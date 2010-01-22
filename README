@@ -1,0 +1,113 @@
+Installation
+------------
+
+Read the INSTALL file
+
+
+
+Configuration files
+-------------------
+
+All the configuration files are in YAML format. YAML is very easy to understand
+and to use in Python. For more information visit http://yaml.org
+
+By default, configuration files will be stored in ~/.config/lutris
+
+Lutris' configuration system is a hierarchy, the deeper you go in the hierarchy
+the higher priority they have. 
+There are three levels :
+ - User configuration
+ - Runner configuration
+ - Game 
+
+User configuration is able to change system settings such as the 
+screen resolution or the audio library you use. 
+
+Runner configuration is more specific, you can change option specific to the
+runner like setting a registry key in Wine. You can also override default and 
+user configuration in here. 
+
+Game configuration is specific to a very specific game. If the game uses 
+configuration files this is the place to change them, like for example 
+displaying the FPS count in Quake 3. You can also override runner, user and 
+default configuration here. 
+
+***************************
+* Main configuration file *
+***************************
+
+This file set the program's configuration (in the root "config" section) and
+The possible keys for the "config" section are:
+
+ - hide_panels : hide Gnome's panels while playing (boolean)
+ - screensaver : inhibit the screesaver while playin (boolean)
+ - oss_wrapper : the program used to activate oss sound, can be aoss for alsa
+, padsp for pulseaudio or none
+ - reset_pulse : kill pulseaudio and restart it, some games need this. 
+Activating this setting can mess with your applications that use pulseaudio so
+it's better to quit any application that uses pulseaudio before launching a game
+with this option
+ - user_wm : the user's window manager such as metacity, kwin, openbox or compiz 
+ - game_wm : the window manager you wish to use when playing a game
+ 
+the runners configuration (in "runner" sections where runner is the name of the 
+runner's class)
+
+****************************
+* Games configuration file *
+****************************
+
+A game configuration file must have a "main" section, this sections has 
+mandatory keys which are :
+ - system : the runner used for the game
+ - realname : the name that will be displayed in the game list
+ 
+Some keys are dependent of the runner and are usually related to the game
+location and data needed to run the game:
+
+For most runners "path" will be used as the location for the game
+Runners that use floppy disk image or isos use the key "disk"
+Emulators will usually have a "rom" key
+
+The game config file can have a "runner" section where runner is the value given
+by the "main/system" key and not actually "runner"
+The options given in this section will override the runner's default
+configuration.
+The game config file can also have a "config" section which will override Lutris
+default options. 
+
+************
+* Examples *
+************
+
+----------------
+
+main.yml
+
+hide_panels: true
+reset_pulse: false
+-----------------
+
+uae.yml
+
+drives: 2
+game_path: /home/user/games/amiga/adf
+system:
+  hide_panels: false
+  
+-----------------
+
+dragon_ninja.yml
+
+realname: Dragon Ninja
+runner: uae
+path: /home/user/games/amiga/adf/dragon ninja
+uae:
+  drives:1
+system:
+  reset_pulse: true
+
+
+
+
+

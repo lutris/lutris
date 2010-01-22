@@ -5,7 +5,7 @@
   <!-- interface-naming-policy project-wide -->
   <!-- interface-local-resource-path ../media -->
   <object class="LutrisWindow" id="lutris_window">
-    <property name="width_request">600</property>
+    <property name="width_request">650</property>
     <property name="height_request">500</property>
     <property name="title" translatable="yes">Lutris</property>
     <property name="icon">../media/icon.png</property>
@@ -19,58 +19,77 @@
           <object class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
             <child>
-              <object class="GtkMenuItem" id="menuitem1">
+              <object class="GtkMenuItem" id="lutris_menuitem">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">_File</property>
+                <property name="label" translatable="yes">_Lutris</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
+                  <object class="GtkMenu" id="lutris_menu">
                     <property name="visible">True</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem1">
-                        <property name="label">gtk-new</property>
+                      <object class="GtkMenuItem" id="manage_runners_menuitem">
                         <property name="visible">True</property>
-                        <property name="use_action_appearance">True</property>
+                        <property name="tooltip_text" translatable="yes">Install and configure runners</property>
+                        <property name="label" translatable="yes">Manage runners</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <accelerator key="n" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="activate" handler="runner_preferences"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem2">
-                        <property name="label">gtk-open</property>
+                      <object class="GtkMenuItem" id="preferences_menuitem">
                         <property name="visible">True</property>
+                        <property name="tooltip_text" translatable="yes">configure the default options</property>
+                        <property name="label" translatable="yes">Global preferences</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="system_preferences"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem3">
-                        <property name="label">gtk-save</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem4">
-                        <property name="label">gtk-save-as</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
+                      <object class="GtkSeparatorMenuItem" id="separator">
                         <property name="visible">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem5">
-                        <property name="label">gtk-quit</property>
+                      <object class="GtkMenuItem" id="import_menuitem">
                         <property name="visible">True</property>
+                        <property name="label" translatable="yes">Import</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="menu4">
+                            <property name="visible">True</property>
+                            <child>
+                              <object class="GtkMenuItem" id="scummvm_menuitem">
+                                <property name="visible">True</property>
+                                <property name="tooltip_text" translatable="yes">Import games from ScummVM</property>
+                                <property name="label" translatable="yes">ScummVM</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="import_scummvm"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="cedega_menuitem">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Cedega</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="import_cedega"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="steam_menuitem">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Steam</property>
+                                <property name="use_underline">True</property>
+                                <signal name="activate" handler="import_steam"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="quit_menuitem">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Quit</property>
                         <signal name="activate" handler="quit"/>
                       </object>
                     </child>
@@ -79,72 +98,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menuitem2">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_Edit</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu2">
-                    <property name="visible">True</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem6">
-                        <property name="label">gtk-cut</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem7">
-                        <property name="label">gtk-copy</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem8">
-                        <property name="label">gtk-paste</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem9">
-                        <property name="label">gtk-delete</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
-                        <property name="visible">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem11">
-                        <property name="label">gtk-preferences</property>
-                        <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="preferences"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="menuitem3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="menuitem4">
+              <object class="GtkMenuItem" id="help_menuitem">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
@@ -171,44 +125,170 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label1">
+          <object class="GtkToolbar" id="lutris_toolbar">
             <property name="visible">True</property>
-            <property name="xpad">5</property>
-            <property name="ypad">5</property>
-            <property name="label" translatable="yes">Your application has been created!
-
-To start changing this user interface, run 'quickly glade', which will open Glade so you can edit the default windows and dialogs.
-
-To change the behavior and edit the python code, run 'quickly edit', which will bring up a text editor.</property>
-            <property name="wrap">True</property>
+            <property name="toolbar_style">both</property>
+            <child>
+              <object class="GtkToolButton" id="add_game_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Add game</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-add</property>
+                <signal name="clicked" handler="add_game"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="install_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Install game</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-cdrom</property>
+                <signal name="clicked" handler="install_game"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="delete_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Remove</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-delete</property>
+                <signal name="clicked" handler="remove_game"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="reset_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Reset</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-refresh</property>
+                <signal name="clicked" handler="reset"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="fullscreen_button">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Fullscreen</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-fullscreen</property>
+                <signal name="clicked" handler="on_fullscreen_clicked"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
           </object>
           <packing>
+            <property name="expand">False</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
-          <object class="GtkImage" id="image1">
+          <object class="GtkHPaned" id="main_hpaned">
             <property name="visible">True</property>
-            <property name="xpad">5</property>
-            <property name="ypad">5</property>
-            <property name="pixbuf">../media/background.png</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkScrolledWindow" id="game_list_scrolledwindow">
+                <property name="width_request">400</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">False</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkImage" id="game_cover_image">
+                <property name="width_request">250</property>
+                <property name="visible">True</property>
+                <property name="stock">gtk-missing-image</property>
+              </object>
+              <packing>
+                <property name="resize">True</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
           </object>
           <packing>
-            <property name="padding">15</property>
             <property name="position">2</property>
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar1">
+          <object class="GtkStatusbar" id="statusbar">
             <property name="visible">True</property>
             <property name="spacing">2</property>
             <child>
-              <object class="GtkLabel" id="label2">
+              <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
-                <property name="xalign">0</property>
-                <property name="xpad">5</property>
-                <property name="ypad">5</property>
-                <property name="label" translatable="yes">Status Area</property>
+                <child>
+                  <object class="GtkLabel" id="status_label">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">5</property>
+                    <property name="ypad">5</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="js0image">
+                    <property name="visible">True</property>
+                    <property name="icon_name">input-gaming</property>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="js1image">
+                    <property name="visible">True</property>
+                    <property name="icon_name">input-gaming</property>
+                  </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="js2image">
+                    <property name="visible">True</property>
+                    <property name="icon_name">input-gaming</property>
+                  </object>
+                  <packing>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="js3image">
+                    <property name="visible">True</property>
+                    <property name="icon_name">input-gaming</property>
+                  </object>
+                  <packing>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="position">0</property>

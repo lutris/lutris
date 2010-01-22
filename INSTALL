@@ -1,0 +1,23 @@
+
+Lutris depends on the following :
+ - Python (>= 2.5) (Maybe compatible with 2.4 and earlier, someone will have to test)
+ - python-gtk2
+ - python-glade2
+ - python-yaml
+
+ 
+Optional dependencies:
+ - fuseiso (To mount isos without root permissions, and this isn't implemented
+  yet btw)
+ - python-pyglet (For the fullscreen coverflow)
+ - python-gconf
+ 
+Stuff that Lutris may install for you:
+ - wine
+ - scummvm
+ - uae
+ - mednafen
+ - sdlmame
+ - snes9x-gtk
+ - ...
+ 

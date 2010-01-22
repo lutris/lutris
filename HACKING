@@ -1,0 +1,13 @@
+Creating a runner module:
+
+
+    def __init__(self,settings=None):
+        self.executable = "name of the executable"
+        self.package = "Debian package"
+        self.description = "Short description of the capabilities of the runner"
+        self.machine = "Which machine does this runner runs ?" 
+        
+    def play(self)
+        return [self.executable,"command","line","with","arguments"]
+
+
