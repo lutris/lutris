@@ -1,0 +1,23 @@
+Source: lutris
+Section: python
+Priority: extra
+Build-Depends: cdbs (>= 0.4.43),
+ debhelper (>= 6),
+ python,
+ python-central (>= 0.6.11),
+ python-distutils-extra (>= 2.10)
+Maintainer: Mathieu Comandon <strycore@gmail.com>
+Standards-Version: 3.8.2
+XS-Python-Version: current
+
+Package: lutris
+Architecture: all
+XB-Python-Version: ${python:Versions}
+Depends: ${misc:Depends},
+ ${python:Depends}${misc:Depends},
+ ${python:Depends},
+ python-gobject,
+ python-gtk2,
+ python-yaml
+Description: UI for managing games
+ UNKNOWN

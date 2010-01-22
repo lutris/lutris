@@ -93,7 +93,7 @@ class InstallAndUpdateDataDirectory(DistUtilsExtra.auto.install_auto):
 
 DistUtilsExtra.auto.setup(
     name='lutris',
-    version='0.2',
+    version='0.2~public1',
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strycore@gmail.com',
