@@ -1,0 +1,9 @@
+<glade-catalog name="preferences_lutris_dialog" domain="glade-3" 
+               depends="gtk+" version="1.0">
+  <glade-widget-classes>
+    <glade-widget-class title="Lutris Preferences Dialog" name="PreferencesLutrisDialog" 
+                        generic-name="PreferenceLutrisDialog" parent="GtkDialog"
+                        icon-name="widget-gtk-dialog"/>
+  </glade-widget-classes>
+
+</glade-catalog>

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Lutris
+Comment=Lutris application
+Categories=GNOME;Utility;
+Exec=lutris
+Icon=lutris
+Terminal=false
+Type=Application

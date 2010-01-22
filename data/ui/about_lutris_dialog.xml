@@ -1,0 +1,9 @@
+<glade-catalog name="about_lutris_dialog" domain="glade-3" 
+               depends="gtk+" version="1.0">
+  <glade-widget-classes>
+    <glade-widget-class title="About Lutris Dialog" name="AboutLutrisDialog" 
+                        generic-name="AboutLutrisDialog" parent="GtkAboutDialog"
+                        icon-name="widget-gtk-about-dialog"/>
+  </glade-widget-classes>
+
+</glade-catalog>
