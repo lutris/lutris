@@ -18,15 +18,16 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
-from gui.runner_config_vbox import RunnerConfigVBox
-from system_config_vbox import SystemConfigVBox
+
 
 
 import gtk
 import runners
 import os
 from lutris.config import LutrisConfig
-from gui.game_config_vbox import GameConfigVBox
+from lutris.game_config_vbox import GameConfigVBox
+from lutris.runner_config_vbox import RunnerConfigVBox
+from lutris.system_config_vbox import SystemConfigVBox
 
 class AddGameDialog(gtk.Dialog):
     def __init__(self,parent):
@@ -43,7 +44,6 @@ class AddGameDialog(gtk.Dialog):
         realname_hbox.pack_start(self.realname_entry)
         self.vbox.pack_start(realname_hbox,False,False,5)
 
-        
         self.lutris_config = LutrisConfig()
         
         #Runner

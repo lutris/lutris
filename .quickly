@@ -1,3 +1,4 @@
 project = lutris
 template = ubuntu-project
 format = 0.2.5
+lp_id = lutris

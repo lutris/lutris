@@ -8,10 +8,13 @@ class machine:
 
     def load(self,game):
         self.game = game
+
     def config(self):
         subprocess.Popen([self.configscript],stdout=subprocess.PIPE).communicate()[0]
+
     def play(self):
         pass
+
     def isInstalled(self):
         cmdline = "which " + self.executable
         cmdline = str.split(cmdline," ")
@@ -34,4 +37,3 @@ class machine:
         gameConfig = LutrisConfig()
         values = {"main":{ "path":path, "exe":exe, "realname" : name, "system":system }}
         gameConfig.write_game_config(id, values)
-        

@@ -1,9 +1,8 @@
 import runners
-#from runners import *
 import gtk
-from gui.runner_config_dialog import RunnerConfigDialog
+from lutris.runner_config_dialog import RunnerConfigDialog
 
-class PlatformDialog(gtk.Dialog):
+class RunnersDialog(gtk.Dialog):
     """Dialog class  for the platform preferences"""
 
     def __init__(self):
@@ -44,10 +43,9 @@ class PlatformDialog(gtk.Dialog):
         runner_instance = eval("runners."+runner+"."+runner+"()")
         runner_instance.install()
 
-
     def on_configure_clicked(self,widget,runner):
         RunnerConfigDialog(runner)
 
 if __name__ == "__main__":
-    dialog = PlatformDialog()
+    dialog = RunnersDialog()
     gtk.main()

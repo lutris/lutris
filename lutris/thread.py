@@ -49,6 +49,7 @@ class LutrisThread(threading.Thread):
         self.output =  self.game_process.communicate()
     
     def poke_process(self):
+        
         if not self.game_process:
             logging.debug("game not running")
             return True

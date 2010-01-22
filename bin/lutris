@@ -35,7 +35,9 @@ from lutris import AboutLutrisDialog
 from lutris.lutrisconfig import getdatapath
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
+from lutris.add_game_dialog import AddGameDialog
 from lutris.edit_game_config_dialog import EditGameConfigDialog
+from lutris.runners_dialog import RunnersDialog
 from lutris.google_image_dialog import GoogleImageDialog
 from coverflow import coverflow
 from quidgets.widgets import dictionary_grid
@@ -204,28 +206,38 @@ class LutrisWindow(gtk.Window):
             running_game.play()
         
     def reset(self,widget,data=None):
-        logging.debug("Reset : Not implemented")
+        if hasattr(self,"running_game"):
+            self.running_game.quit_game()
+        else:
+            LutrisDesktopControl().reset_desktop()
 
     def install_game(self,widget,data=None):
         logging.debug("Install game : Not implemented")
 
     def add_game(self,widget,data=None):
         logging.debug("Add game : Not implemented")
-
+        AddGameDialog(self)
+        
     def import_cedega(self,widget,data=None):
-        logging.debug("Import from cedega")    
+        cedega = runners.cedega.cedega()
+        cedega.import_games()
+        self.get_game_list()
+
 
     def import_steam(self,widget,data=None):
         logging.debug("Import from steam")
 
     def import_scummvm(self,widget,data=None):
-        logging.debug("Import from scummvm")
+        scummvm = runners.scummvm.scummvm()
+        scummvm.import_games()
+        self.get_game_list()
 
     def system_preferences(self,widget,data=None):
         logging.debug("Open system preferences")
 
     def runner_preferences(self,widget,data=None):
         logging.debug("Open runner preferences")
+        RunnersDialog()
 
     def edit_game_name(self,button):
         """Change game name"""
@@ -302,5 +314,9 @@ if __name__ == "__main__":
     #run the application
     window = NewLutrisWindow()
     window.show()
+    gtk.gdk.threads_init()
+    gtk.gdk.threads_enter()
     gtk.main()
+    gtk.gdk.threads_leave()
+
 

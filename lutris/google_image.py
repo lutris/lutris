@@ -24,7 +24,7 @@ __date__ ="$28 nov. 2009 05:29:44$"
 from tool.url_tool import UrlTool
 from tool.re_tool import RE_tool
 import urllib2
-
+import logging
 import os
 
 class GoogleImage():
@@ -36,15 +36,13 @@ class GoogleImage():
 
     def get_google_image_page(self,search_string):
         self.url_tool = UrlTool()
-        self.url_tool.local = False
-        #self.url_tool.set_local_file("/home/strider/result.html")
-        
+        self.url_tool.local = False     
+        self.fetch_count = 0   
         # "Everybody stand back"
         # "I know regular expressions"
         # Python !  *tap* *tap*
         # "Wait, forgot to escape a space."  Wheeeeee[taptaptap]eeeeee.
         self.webpage = self.url_tool.read_html("http://images.google.fr/images?q="+urllib2.quote(search_string)+"&oe=utf-8&rls=com.ubuntu:fr:official&client=firefox-a&um=1&ie=UTF-8&sa=N&hl=en&tab=wi")
-        #file("/home/strider/result.html","w").write(self.webpage)
         
     def scan_for_images(self,dest):
         re_tool = RE_tool()
@@ -52,7 +50,8 @@ class GoogleImage():
         self.google_results = []
         index = 0
         for image in images:
-            print "Fetching image %i / 21" % index
+            self.fetch_count = index
+            logging.debug("Fetching image %i / 21" % index)
             thumbnail = "http://"+image[6]+"?q=tbn:"+image[2]+image[0]
             url = image[0]
             size = image[4]
