@@ -21,6 +21,7 @@
 
 import os
 import subprocess
+import logging
 #Dumb Debian Lenny,they don't even have python-gconf !
 try:
     import gconf
@@ -33,11 +34,11 @@ class LutrisDesktopControl():
     Change some settings in gconf that are useful to provide a good gaming experience
     """
     def __init__(self):
+        self.default_resolution = None
         if gconf_capable:
             self.gconf_path = os.path.join(os.path.expanduser("~"),".gconf")
             self.client = gconf.client_get_default ()
         
-    
     def set_keyboard_repeat(self, gconf_value = False):
         """
         Desactivate key repeats, this is needed in Wolfenstein (2009) for example
@@ -90,17 +91,31 @@ class LutrisDesktopControl():
     
     def change_resolution(self,resolution):
         """change desktop resolution"""
-        xrandr = subprocess.Popen("xrandr",stdout=subprocess.PIPE).communicate()[0]
-        for res in xrandr.split("\n"):
-            if res.startswith("  "):
-                if res.strip().lower().startswith(resolution.lower()):
-                    subprocess.Popen("xrandr -s %s" % resolution,shell = True).communicate()[0]
-                    return True
-        return False
-    
+        if resolution not in self.get_resolutions():
+            return False
+        subprocess.Popen("xrandr -s %s" % resolution,shell = True).communicate()[0]
+        return True
+
+    def get_resolutions(self):
+        xrandr_output = subprocess.Popen("xrandr",stdout=subprocess.PIPE).communicate()[0]
+        resolution_list = []
+        for line in xrandr_output.split("\n"):
+            if line.startswith("  "):
+                resolution_list.append(line.split()[0])
+        return resolution_list
+
+    def get_current_resolution(self):
+        xrandr_output = subprocess.Popen("xrandr",stdout=subprocess.PIPE).communicate()[0]
+        for line in xrandr_output.split("\n"):
+            if line.startswith("  ") and "*" in line:
+                return line.split()[0]
+        return None
+
     def reset_desktop(self):
-        #TODO : Remove reset_desktop in LutrisGame
         self.hide_panels(False)
-        os.popen("xrandr -s 0")
+        if self.default_resolution is None:
+            os.popen("xrandr -s 0")
+        else:
+            os.popen("xrandr -s %s" % self.default_resolution)
         
         

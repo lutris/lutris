@@ -24,6 +24,7 @@
 import gtk
 import runners
 import os
+import logging
 from lutris.config import LutrisConfig
 from lutris.game_config_vbox import GameConfigVBox
 from lutris.runner_config_vbox import RunnerConfigVBox
@@ -112,7 +113,6 @@ class AddGameDialog(gtk.Dialog):
     def add_game(self, button):
         """OK button pressed in the Add Game Dialog"""
         #Get name
-        print "ADD THIS GAME"
         realname = self.realname_entry.get_text()
         #Get runner
         self.lutris_config.config["realname"] = realname
@@ -120,8 +120,10 @@ class AddGameDialog(gtk.Dialog):
         
         if self.runner_class and realname:
             print self.lutris_config.config
-            self.lutris_config.save(type="game")
+            game_identifier = self.lutris_config.save(type="game")
+            self.game_info = {"Game Name": realname,"Runner": self.runner_class , "name": game_identifier}
             self.destroy()
+            
 
     def on_runner_changed(self,widget):
         

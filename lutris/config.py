@@ -165,6 +165,7 @@ class LutrisConfig():
                 self.game_identifier = self.config["runner"] + "-" + self.config["realname"].replace(" ","_")
             self.game_config_path = os.path.join(constants.game_config_path,self.game_identifier+constants.config_extension)
             file(self.game_config_path,"w").write(yaml_config)
+            return self.game_identifier
         else:
             print "Config type is %s or %s" % (self.config_type, type)
             print "i don't know how to save this yet"

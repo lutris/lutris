@@ -30,17 +30,20 @@ else:
     fullPath = os.getcwd()
 sys.path.insert(0, os.path.dirname(fullPath))
 
-from lutris import constants
-from lutris import AboutLutrisDialog
-from lutris.lutrisconfig import getdatapath
-from lutris.game import LutrisGame
-from lutris.config import LutrisConfig
-from lutris.add_game_dialog import AddGameDialog
-from lutris.edit_game_config_dialog import EditGameConfigDialog
-from lutris.runners_dialog import RunnersDialog
-from lutris.google_image_dialog import GoogleImageDialog
 from coverflow import coverflow
 from quidgets.widgets import dictionary_grid
+
+from lutris import constants
+from lutris import AboutLutrisDialog
+from lutris.game import LutrisGame
+from lutris.config import LutrisConfig
+from lutris.lutrisconfig import getdatapath
+from lutris.runners_dialog import RunnersDialog
+from lutris.add_game_dialog import AddGameDialog
+from lutris.desktop_control import LutrisDesktopControl
+from lutris.google_image_dialog import GoogleImageDialog
+from lutris.system_config_dialog import SystemConfigDialog
+from lutris.edit_game_config_dialog import EditGameConfigDialog
 
 class LutrisWindow(gtk.Window):
     __gtype_name__ = "LutrisWindow"
@@ -137,7 +140,6 @@ class LutrisWindow(gtk.Window):
                     error_dialog.run()
                     error_dialog.destroy()
                 game_list.append({"Game Name":Game.real_name,"Runner":Game.runner_name,"name":game_name})
-        
         return game_list      
 
     def about(self, widget, data=None):
@@ -215,8 +217,12 @@ class LutrisWindow(gtk.Window):
         logging.debug("Install game : Not implemented")
 
     def add_game(self,widget,data=None):
-        logging.debug("Add game : Not implemented")
-        AddGameDialog(self)
+        add_game_dialog = AddGameDialog(self)
+       
+        logging.debug("opening dialog")
+        game_info = add_game_dialog.game_info
+        logging.debug(game_info)
+        self.game_list_grid_view.append_row(game_info)
         
     def import_cedega(self,widget,data=None):
         cedega = runners.cedega.cedega()
@@ -225,7 +231,7 @@ class LutrisWindow(gtk.Window):
 
 
     def import_steam(self,widget,data=None):
-        logging.debug("Import from steam")
+        logging.debug("Import from steam not yet implemented")
 
     def import_scummvm(self,widget,data=None):
         scummvm = runners.scummvm.scummvm()
@@ -233,34 +239,30 @@ class LutrisWindow(gtk.Window):
         self.get_game_list()
 
     def system_preferences(self,widget,data=None):
-        logging.debug("Open system preferences")
+        SystemConfigDialog()
 
     def runner_preferences(self,widget,data=None):
-        logging.debug("Open runner preferences")
         RunnersDialog()
 
     def edit_game_name(self,button):
         """Change game name"""
-
-        logging.debug(self.game_cell)
         self.game_cell.set_property('editable',True)
         self.game_list_grid_view.set_cursor(self.paths[0][0],self.game_column,True)
 
     def game_name_edited_callback(self,widget,index,new_name):
-        logging.debug(index , new_name)
         self.game_list_grid_view.get_model()[index][0] = new_name
         new_name_game_config = LutrisConfig(game=self.get_selected_game())
         new_name_game_config.config["realname"] =new_name
-        logging.debug(new_name_game_config.config)
         new_name_game_config.save(type="game")
         self.game_cell.set_property('editable',False)
 
     def edit_game_configuration(self,button):
-        """open dialog to edit game preferences"""
+        """Edit game preferences"""
         game = self.get_selected_game()
         EditGameConfigDialog(self,game)
 
     def get_cover(self,button):
+        """Fetch cover from Google Image"""
         game = self.get_selected_game()
         GoogleImageDialog(game)
                  
@@ -310,7 +312,7 @@ if __name__ == "__main__":
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
         logging.debug('logging enabled')
-
+    print("vxbw")
     #run the application
     window = NewLutrisWindow()
     window.show()

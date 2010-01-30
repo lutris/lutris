@@ -73,8 +73,12 @@ class LutrisGame():
                     self.hide_panels = True
             if "resolution" in config["system"]:
                 #Change resolution before starting game
-                self.lutris_desktop_control.change_resolution(config["system"]["resolution"])
-
+                success = self.lutris_desktop_control.change_resolution(config["system"]["resolution"])
+                if success:
+                    logging.debug("Resolution changed to %s"% config["system"]["resolution"])
+                else:
+                    logging.debug("Failed to set resolution %s" % config["system"]["resolution"])
+                    
             if "oss_wrapper" in config["system"]:
                 oss_wrapper = config["system"]["oss_wrapper"]                
                 
@@ -85,15 +89,21 @@ class LutrisGame():
                     print "PulseAudio restarted"
                     
         game_run_args = self.machine.play()
+
+        path = None
         if hasattr(self.machine,"game_path"):
-            os.chdir(self.machine.game_path)
+            path = self.machine.game_path
+
         command =  " ".join(game_run_args)
+        #OSS Wrapper
         if oss_wrapper and oss_wrapper != "none":
             command = oss_wrapper + " " + command
+
         logging.debug(command)
+
         if game_run_args:
             self.timer_id = gobject.timeout_add(1000, self.poke_process)
-            self.game_thread = LutrisThread(command)
+            self.game_thread = LutrisThread(command,path)
             self.game_thread.start()
             
     def write_conf(self,settings):
@@ -108,7 +118,8 @@ class LutrisGame():
         return True
 
     def quit_game(self):
-        if self.game_thread.pid:
+        
+        if self.game_thread is not None and self.game_thread.pid:
             if self.game_thread.cedega:
                 for pid in self.game_thread.pid:
                     os.popen("kill -9 %s" % pid)
@@ -116,4 +127,5 @@ class LutrisGame():
                 self.game_thread.game_process.terminate()
         self.lutris_desktop_control.reset_desktop()
         pathname = os.path.dirname(sys.argv[0])
+        logging.debug(pathname)
         os.chdir(os.path.abspath(pathname))

@@ -4,12 +4,7 @@ Upstream-Maintainer: Mathieu Comandon <strycore@gmail.com>
 Upstream-Source: https://launchpad.net/lutris
 
 Files: *
-Copyright: (C)
 Copyright: (C) 2009, 2010 Mathieu Comandon <strycore@gmail.com>
-Copyright: (C) 2009 Mathieu Comandon strycore@gmail.com
-Copyright: (C) 2010 Lutris Gaming Platform"
-Copyright: (C) 2010 Mathieu Comandon <strycore@gmail.com>
-Copyright: (C) 2010 Mathieu Comandon strycore@gmail.com
 License: GPL-3
  The full text of the GPL is distributed in
  /usr/share/common-licenses/GPL-3 on Debian systems.

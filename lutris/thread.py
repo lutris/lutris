@@ -28,16 +28,17 @@ from runners.cedega import cedega
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     
-    def __init__(self,command):
+    def __init__(self,command,path):
         """Thread init"""
         threading.Thread.__init__(self)
         self.command = command
+        self.path = path
         self.output = ""
         self.game_process = None
         self.return_code = None
         self.pid = 99999
         self.cedega = False
-        self.command_path = None
+        self.emergency_kill = False
         logging.debug("Thread initialized")
         
     def run(self):
@@ -45,11 +46,10 @@ class LutrisThread(threading.Thread):
         if "cedega" in self.command:
             self.cedega = True
         logging.debug(self.command)
-        self.game_process = subprocess.Popen(self.command,shell = True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        self.game_process = subprocess.Popen(self.command,shell = True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.path)
         self.output =  self.game_process.communicate()
     
     def poke_process(self):
-        
         if not self.game_process:
             logging.debug("game not running")
             return True
@@ -61,7 +61,6 @@ class LutrisThread(threading.Thread):
                     self.pid.append(item)
         else:
             self.pid = self.game_process.pid
-        logging.debug("poke...")
         self.return_code = self.game_process.poll()
         if self.return_code is not None and not self.cedega:
             logging.debug("Game quit")

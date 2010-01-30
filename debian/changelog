@@ -1,3 +1,9 @@
+lutris (0.2~public2) lucid; urgency=low
+
+  * New release.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 23 Jan 2010 00:15:00 +0100
+
 lutris (0.2~public1) lucid; urgency=low
 
   * Initial release.

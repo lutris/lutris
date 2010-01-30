@@ -1,7 +1,8 @@
 try:
     from pyglet.gl import *
     from pyglet import image
-except ImportError:
+except ImportError,msg:
+    print msg
     PYGLET_ENABLED = False
 #from PIL import Image
 import anim

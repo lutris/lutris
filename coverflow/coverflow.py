@@ -40,10 +40,12 @@ try:
     PYGLET_ENABLED = True
     import covergl
     import anim
-
-except ImportError:
+except ImportError,msg:
+    print "Pyglet Error: %s" % str(msg)
     PYGLET_ENABLED = False
-
+except pyglet.window.NoSuchConfigException,msg:
+    print "Pyglet Error: %s" % str(msg)
+    PYGLET_ENABLED = False
 
 Z_NEAR = 1.0
 Z_FAR  = 50.0

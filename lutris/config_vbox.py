@@ -72,6 +72,7 @@ class ConfigVBox(gtk.VBox):
     def generate_entry(self,option_name,label,value=None):
         hbox = gtk.HBox()
         entry_label = gtk.Label(label)
+        entry_label.set_size_request(200,30)
         entry = gtk.Entry()
         if value:
             entry.set_text(value)
@@ -90,10 +91,11 @@ class ConfigVBox(gtk.VBox):
         for choice in choices:
             liststore.append(choice)
         combobox = gtk.ComboBox(liststore)
+        combobox.set_size_request(200,30)
         cell = gtk.CellRendererText()
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)  
-        index = selected_index  = 0
+        index = selected_index  = -1
         if value:
             for choice in choices:
                 if choice[1] == value:
@@ -102,6 +104,7 @@ class ConfigVBox(gtk.VBox):
         combobox.set_active(selected_index)
         combobox.connect('changed',self.on_combobox_change,option_name)
         gtklabel = gtk.Label(label)
+        gtklabel.set_size_request(200,30)
         hbox.pack_start(gtklabel)
         hbox.pack_start(combobox)
         hbox.show_all()
@@ -122,6 +125,7 @@ class ConfigVBox(gtk.VBox):
         spin_button.connect('changed',self.on_spin_button_changed,option_name)
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
+        gtklabel.set_size_request(200,30)
         hbox.pack_start(gtklabel)
         hbox.pack_start(spin_button)
         hbox.show_all()
@@ -136,7 +140,9 @@ class ConfigVBox(gtk.VBox):
         logging.debug(value)
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
+        gtklabel.set_size_request(200,30)
         file_chooser = gtk.FileChooserButton("Choose a file for %s" % label)
+        file_chooser.set_size_request(200,30)
 
         file_chooser.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
         file_chooser.set_current_folder(self.lutris_config.get_path(self.runner_class))
@@ -152,7 +158,9 @@ class ConfigVBox(gtk.VBox):
         """Generates a file chooser button to choose a directory"""
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
+        gtklabel.set_size_request(200,30)
         directory_chooser = gtk.FileChooserButton("Choose a directory for %s" % label)
+        directory_chooser.set_size_request(200,30)
         directory_chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)
@@ -168,6 +176,7 @@ class ConfigVBox(gtk.VBox):
     def generate_multiple_file_chooser(self,option_name,label,value=None):
         hbox = gtk.HBox()
         gtk_label = gtk.Label(label)
+        gtk_label.set_size_request(200,30)
         hbox.pack_start(gtk_label)
         self.files_chooser_dialog = gtk.FileChooserDialog(title="Select files",
                                                               parent=self.get_parent_window(),

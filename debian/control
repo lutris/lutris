@@ -14,10 +14,12 @@ Package: lutris
 Architecture: all
 XB-Python-Version: ${python:Versions}
 Depends: ${misc:Depends},
- ${python:Depends}${misc:Depends},
  ${python:Depends},
  python-gobject,
+ python-apt,
  python-gtk2,
- python-yaml
+ python-yaml,
+ python-pyglet,
+ python-gconf
 Description: UI for managing games
  UNKNOWN
