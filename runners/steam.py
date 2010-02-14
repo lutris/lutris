@@ -8,7 +8,7 @@ __date__ = "$Oct 6, 2009 12:23:49 PM$"
 
 class steam(wine):
 
-    def __init__(self):
+    def __init__(self,settings = None):
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"

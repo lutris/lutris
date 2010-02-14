@@ -3,6 +3,6 @@ Name=Lutris
 Comment=Lutris application
 Categories=GNOME;Utility;
 Exec=lutris
-Icon=lutris
+Icon=/usr/share/lutris/media/icon.png
 Terminal=false
 Type=Application

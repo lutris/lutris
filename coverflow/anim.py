@@ -183,6 +183,7 @@ def animate(start, end, startt=None, endt=None, dt=None, extend="constant", meth
     try:
         iter(start), iter(end)
     except TypeError:
+        print "boo"
         return InterpolatedAnimator(start, end, startt, endt, extend, method)
     else:
         return [InterpolatedAnimator(s, e, startt, endt, extend, method)
@@ -211,7 +212,7 @@ if __name__ == "__main__":
     add_time(0)
     print o.x   # prints out 0.0
     #o.x.anim = animate("linear", start=5., end=10., dt=5) # this doesn't work
-    o.x = animate("linear", start=0, end=1, dt=5)
+    o.x = animate(start=0, end=1, dt=5,method="linear")
     add_time(2.5)
     print o.x   # prints out 0.5
     add_time(2.5)

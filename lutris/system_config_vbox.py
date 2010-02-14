@@ -30,7 +30,6 @@ class SystemConfigVBox(ConfigVBox):
         """VBox init"""
         ConfigVBox.__init__(self,"system")
         self.lutris_config = lutris_config
-        self.lutris_config.config_type = "system"
         
         #TODO : Move the list of window manager somewhere else, in lutris_desktop_control for example.
         #TODO : Auto detect the installed WMs on the user's machine

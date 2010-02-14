@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(fullPath))
 
 from coverflow import coverflow
 from quidgets.widgets import dictionary_grid
-
+import runners
 from lutris import constants
 from lutris import AboutLutrisDialog
 from lutris.game import LutrisGame
@@ -40,10 +40,13 @@ from lutris.config import LutrisConfig
 from lutris.lutrisconfig import getdatapath
 from lutris.runners_dialog import RunnersDialog
 from lutris.add_game_dialog import AddGameDialog
+from lutris.mount_iso_dialog import MountIsoDialog
+from lutris.installer_dialog import InstallerDialog
 from lutris.desktop_control import LutrisDesktopControl
 from lutris.google_image_dialog import GoogleImageDialog
 from lutris.system_config_dialog import SystemConfigDialog
 from lutris.edit_game_config_dialog import EditGameConfigDialog
+
 
 class LutrisWindow(gtk.Window):
     __gtype_name__ = "LutrisWindow"
@@ -193,6 +196,9 @@ class LutrisWindow(gtk.Window):
             self.gameName = model.get_value(select_iter, 2)["name"]
             self.set_game_cover()
 
+    def on_mount_iso_menuitem_activate(self,widget):
+        mount_iso_dialog = MountIsoDialog()
+
     def on_fullscreen_clicked(self,widget):
         game = coverflow.coverflow()
         if game:
@@ -214,7 +220,7 @@ class LutrisWindow(gtk.Window):
             LutrisDesktopControl().reset_desktop()
 
     def install_game(self,widget,data=None):
-        logging.debug("Install game : Not implemented")
+        installer_dialog = InstallerDialog(self)
 
     def add_game(self,widget,data=None):
         add_game_dialog = AddGameDialog(self)
@@ -312,7 +318,6 @@ if __name__ == "__main__":
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
         logging.debug('logging enabled')
-    print("vxbw")
     #run the application
     window = NewLutrisWindow()
     window.show()

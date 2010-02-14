@@ -9,6 +9,7 @@ class wine(Runner):
         self.package = "wine"
         self.machine = "Windows games"
         self.description = "Run Windows games with Wine"
+        self.installer_options = [{"option": "exe","type": "single","label": "Executable"}]
         self.game_options = [ {"option": "exe", "type":"single", "label":"Executable"},
                               {"option": "args", "type": "string", "label": "Arguments" }]
 

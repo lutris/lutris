@@ -27,7 +27,7 @@ class ConfigVBox(gtk.VBox):
     def __init__(self,save_in_key):
         gtk.VBox.__init__(self)
         self.options = None
-        self.game_config = None # FIXME : remove this
+        #self.game_config = None # FIXME : remove this
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
 
@@ -97,9 +97,10 @@ class ConfigVBox(gtk.VBox):
         combobox.add_attribute(cell, 'text', 0)  
         index = selected_index  = -1
         if value:
+            logging.debug(value)
             for choice in choices:
                 if choice[1] == value:
-                    selected_index = index
+                    selected_index = index +1
                 index = index +1 
         combobox.set_active(selected_index)
         combobox.connect('changed',self.on_combobox_change,option_name)
@@ -214,25 +215,25 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(treeview_scroll,True,True)
 
         
-    def generate_file_widget(self,widget_config,file_value=None):
-        # FIXME : Remove me
-        print "OLD CRAPPY FUNCTION CALLED (generate_file_widget)"
-        widget_type = widget_config["type"]
-        self.key_name_for_file = widget_config["name"]
-        #lutris_config = LutrisConfig()
-        if widget_type == "single":
-            file_widget = gtk.HBox()
-            file_label = gtk.Label(widget_config["label"])
-            file_widget.pack_start(file_label,False,False,5)
-            self.file_chooser_button = gtk.FileChooserButton("Select a file")
-            self.file_chooser_button.connect("file-set",self.add_file_callback)
-            self.file_chooser_button.set_current_folder(self.lutris_config.get_path(self.runner_class))
-            if file_value:
-                self.file_chooser_button.set_filename(file_value)
-            #self.file_chooser_button.set_current_folder("/home/strider/Games/")
-            file_widget.pack_start(self.file_chooser_button,True,True,5)
-
-        self.pack_start(file_widget,False,False,10)
+#    def generate_file_widget(self,widget_config,file_value=None):
+#        # FIXME : Remove me
+#        print "OLD CRAPPY FUNCTION CALLED (generate_file_widget)"
+#        widget_type = widget_config["type"]
+#        self.key_name_for_file = widget_config["name"]
+#        #lutris_config = LutrisConfig()
+#        if widget_type == "single":
+#            file_widget = gtk.HBox()
+#            file_label = gtk.Label(widget_config["label"])
+#            file_widget.pack_start(file_label,False,False,5)
+#            self.file_chooser_button = gtk.FileChooserButton("Select a file")
+#            self.file_chooser_button.connect("file-set",self.add_file_callback)
+#            self.file_chooser_button.set_current_folder(self.lutris_config.get_path(self.runner_class))
+#            if file_value:
+#                self.file_chooser_button.set_filename(file_value)
+#            #self.file_chooser_button.set_current_folder("/home/strider/Games/")
+#            file_widget.pack_start(self.file_chooser_button,True,True,5)
+#
+#        self.pack_start(file_widget,False,False,10)
 
     def on_files_treeview_event(self,treeview,event):
         key =  event.keyval
@@ -251,8 +252,8 @@ class ConfigVBox(gtk.VBox):
         self.lutris_config.config[self.save_in_key][option] = self.files
         self.files_chooser_dialog = None
         
-    def add_file_callback(self,widget,response=None):
-        # FIXME : Remove me
-        print "OLD CRAPPY FUNCTION CALLED (add_file_callback)"
-        self.file = widget.get_filename()
-        self.game_config["exe"]  = self.file
+#    def add_file_callback(self,widget,response=None):
+#        # FIXME : Remove me
+#        print "OLD CRAPPY FUNCTION CALLED (add_file_callback)"
+#        self.file = widget.get_filename()
+#        self.game_config["exe"]  = self.file

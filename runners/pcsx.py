@@ -19,23 +19,28 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import runners
-from lutris.config_vbox import ConfigVBox
-import gtk
 
-class RunnerConfigVBox(ConfigVBox):
-    def __init__(self,lutris_config):
-        runner = lutris_config.runner
-        ConfigVBox.__init__(self,runner)
-        runner_instance = eval("runners."+runner+"."+runner+"()")
-        if hasattr(runner_instance, "runner_options"):
-            self.options = runner_instance.runner_options
-        else:
-            warningLabel = gtk.Label("This runner has no options yet\nPlease fix this")
-            self.pack_start(warningLabel)
-            return
-        self.lutris_config = lutris_config
-        self.generate_widgets()
+from runner import Runner
 
+class pcsx(Runner):
+    def __init__(self,settings = None):
+        """
+        pcsx-df is what seems the best candidate for a playstation emulator.
+        Sadly, it was removed from the Debian archives and thus Ubuntu because
+        of a small licensing issue :
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=514446
+        The package also lacks a maintainer :
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510530
+        """
+        self.executable = "pcsx"
+        self.package = "pcsx-df"
+        self.description = "Runs PlayStation games"
+        self.machine = "Playstation"
+        self.game_options = [{"option":"iso","type":"single","label":"iso"}]
+        self.runner_options = []
+        #Load settings
+        if settings:
+            self.iso = settings["game"]["iso"]
 
-        
+    def play(self):
+        return [self.executable," -nogui -cdfile \""+self.iso+"\""]

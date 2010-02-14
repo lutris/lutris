@@ -18,8 +18,6 @@ Depends: ${misc:Depends},
  python-gobject,
  python-apt,
  python-gtk2,
- python-yaml,
- python-pyglet,
- python-gconf
+ python-yaml
 Description: UI for managing games
  UNKNOWN

@@ -46,8 +46,8 @@ class LutrisThread(threading.Thread):
         if "cedega" in self.command:
             self.cedega = True
         logging.debug(self.command)
-        self.game_process = subprocess.Popen(self.command,shell = True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.path)
-        self.output =  self.game_process.communicate()
+        self.game_process = subprocess.Popen(self.command,shell = True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,cwd=self.path)
+        self.output =  self.game_process.stdout
     
     def poke_process(self):
         if not self.game_process:
@@ -64,13 +64,9 @@ class LutrisThread(threading.Thread):
         self.return_code = self.game_process.poll()
         if self.return_code is not None and not self.cedega:
             logging.debug("Game quit")
-            if self.output[0]:
-                for stdout in self.output[0].split("\n"):
+            if self.output:
+                for stdout in self.output.split("\n"):
                     logging.debug(stdout)
-            if self.output[1]:
-                logging.debug("The game returned the following errors")
-                for stderr in self.output[1].split("\n"):
-                    logging.debug(stderr)
             self.pid = None
             return False
         return True

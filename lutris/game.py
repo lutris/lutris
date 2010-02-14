@@ -1,3 +1,4 @@
+import os
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -24,6 +25,7 @@
 import subprocess
 import gobject
 import logging
+import os,time
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
@@ -100,9 +102,8 @@ class LutrisGame():
             command = oss_wrapper + " " + command
 
         logging.debug(command)
-
         if game_run_args:
-            self.timer_id = gobject.timeout_add(1000, self.poke_process)
+            self.timer_id = gobject.timeout_add(5000, self.poke_process)
             self.game_thread = LutrisThread(command,path)
             self.game_thread.start()
             
@@ -111,14 +112,14 @@ class LutrisGame():
 
     def poke_process(self):
         if self.game_thread.pid:
-            pass
+            os.system("gnome-screensaver-command --poke")
         else:
             self.quit_game()
             return False
         return True
 
     def quit_game(self):
-        
+        logging.debug("game has quit at %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime() ) )
         if self.game_thread is not None and self.game_thread.pid:
             if self.game_thread.cedega:
                 for pid in self.game_thread.pid:
@@ -127,5 +128,4 @@ class LutrisGame():
                 self.game_thread.game_process.terminate()
         self.lutris_desktop_control.reset_desktop()
         pathname = os.path.dirname(sys.argv[0])
-        logging.debug(pathname)
         os.chdir(os.path.abspath(pathname))

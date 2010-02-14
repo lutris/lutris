@@ -112,10 +112,21 @@ class LutrisDesktopControl():
         return None
 
     def reset_desktop(self):
+        #Restore panels
+        #FIXME : Restore only with panels where shown before starting game
         self.hide_panels(False)
+
+        #Restore resolution
         if self.default_resolution is None:
+            os.popen("xrandr -s 1")
             os.popen("xrandr -s 0")
         else:
+            os.popen("xrandr -s 1")
             os.popen("xrandr -s %s" % self.default_resolution)
+
+        #Restore gamma
+        os.popen("xgamma -gamma 1.0")
+        
+
         
         

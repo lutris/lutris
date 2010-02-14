@@ -19,23 +19,30 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+import gtk
 import runners
 from lutris.config_vbox import ConfigVBox
-import gtk
 
-class RunnerConfigVBox(ConfigVBox):
+class InstallerConfigVBox(ConfigVBox):
     def __init__(self,lutris_config):
-        runner = lutris_config.runner
-        ConfigVBox.__init__(self,runner)
-        runner_instance = eval("runners."+runner+"."+runner+"()")
-        if hasattr(runner_instance, "runner_options"):
-            self.options = runner_instance.runner_options
+        ConfigVBox.__init__(self,"game")
+        self.lutris_config  = lutris_config
+        self.lutris_config.config_type = "game"
+        self.runner_class = self.lutris_config.runner
+        runner = eval("runners."+self.runner_class+"."+self.runner_class+"()")
+        if hasattr(runner,"installer_options"):
+            self.options = runner.installer_options
         else:
-            warningLabel = gtk.Label("This runner has no options yet\nPlease fix this")
-            self.pack_start(warningLabel)
-            return
-        self.lutris_config = lutris_config
+            no_option_label = gtk.Label("No game options")
+            self.pack_start(no_option_label)
+            return 
         self.generate_widgets()
 
 
-        
+
+
+
+
+
+
+
