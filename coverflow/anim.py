@@ -183,7 +183,6 @@ def animate(start, end, startt=None, endt=None, dt=None, extend="constant", meth
     try:
         iter(start), iter(end)
     except TypeError:
-        print "boo"
         return InterpolatedAnimator(start, end, startt, endt, extend, method)
     else:
         return [InterpolatedAnimator(s, e, startt, endt, extend, method)
