@@ -11,6 +11,9 @@ class nulldc(wine):
     def __init__(self,settings=None):
         self.description = "Runs Dreamcast games with nullDC emulator"
         self.machine = "Sega Dreamcast"
+        
+        self.is_installable = False
+        
         self.requires = ["wine","joy2key"]
         self.nulldc_path = "/mnt/seagate/games/nullDC/"
         self.executable = "nullDC_1.0.3_mmu.exe"

@@ -58,8 +58,13 @@ class LutrisGame():
             return False           
         try:
             self.machine = eval(self.runner_name+"."+self.runner_name+"(self.game_config)")
-        except AttributeError:
-            print "Malformed configuration file : %s" % self.name
+        except AttributeError,msg:
+            logging.error("Malformed configuration file : %s" % self.name)
+            logging.error(msg)
+            return False
+        except KeyError,msg:
+            logging.error("Malformed configuration file : %s" % self.name)
+            logging.error(msg)
             return False
         return True
           
@@ -128,4 +133,6 @@ class LutrisGame():
                 self.game_thread.game_process.terminate()
         self.lutris_desktop_control.reset_desktop()
         pathname = os.path.dirname(sys.argv[0])
+        logging.debug("Remove me after debug : %s on %s" %( sys.argv[0],pathname))
+        logging.debug("line 2 : %s " % os.path.abspath(pathname))
         os.chdir(os.path.abspath(pathname))

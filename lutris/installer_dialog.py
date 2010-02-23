@@ -25,6 +25,7 @@ import gtk
 import runners
 import os
 import logging
+import subprocess
 from lutris.config import LutrisConfig
 from lutris.installer_config_vbox import InstallerConfigVBox
 from lutris.runner_config_vbox import RunnerConfigVBox
@@ -63,7 +64,7 @@ class InstallerDialog(gtk.Dialog):
             else:
                 logging.debug("Please fix % and add a machine attribute" % runner_cls)
                 machine = ""
-            if runner.is_installed():
+            if runner.is_installed() and runner.is_installable:
                 runner_liststore.append((machine+" ("+ description +")" ,runner_cls))
 
         self.runner_combobox = gtk.ComboBox(runner_liststore)
@@ -109,16 +110,25 @@ class InstallerDialog(gtk.Dialog):
         self.run()
 
     def install_game(self, button):
-        """OK button pressed in the Add Game Dialog"""
+        """OK button pressed in the Installer Dialog"""
         #Get name
         realname = self.realname_entry.get_text()
         #Get runner
         self.lutris_config.config["realname"] = realname
         self.lutris_config.config["runner"] = self.runner_class
 
+        #Run the installer
+        runner = eval("runners."+self.runner_class+"."+self.runner_class+"()")
+        command = runner.get_install_command(self.lutris_config.config["game"]["installer"])
+        if command:
+            logging.debug("Running installer : %s" % command)
+            subprocess.Popen(command,shell=True)
+        else:
+            logging.debug("No command given for installation")
+
         if self.runner_class and realname:
-            game_identifier = self.lutris_config.save(type="game")
-            self.game_info = {"Game Name": realname,"Runner": self.runner_class , "name": game_identifier}
+            #game_identifier = self.lutris_config.save(type="game")
+            #self.game_info = {"Game Name": realname,"Runner": self.runner_class , "name": game_identifier}
             self.destroy()
 
 

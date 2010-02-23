@@ -1,21 +1,38 @@
-'''
-Created on Sep 16, 2009
+# -*- coding:Utf-8 -*-
+###############################################################################
+## Lutris
+##
+## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+###############################################################################
 
-@author: strider
-'''
-from lutris.config import LutrisConfig
+
 import subprocess
 import platform
+from lutris.config import LutrisConfig
 
 class Runner(object):
     '''Generic runner (base class for other runners) '''
     def __init__(self,settings=None):
         ''' Initialize runner'''
         self.executable = None
+        self.is_installable = False
         
     def load(self,game):
         self.game = game
-
 
     def config(self):
         """this is dumb and useless i guess"""
@@ -45,7 +62,7 @@ class Runner(object):
         return None
 
 
-    def install(self):
+    def install_runner(self):
         """Generic install method, for use with package management systems"""
         #Return false if runner has no package, must be then another method and
         # install method should be overridden by the specific runner

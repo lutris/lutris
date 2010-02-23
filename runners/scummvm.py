@@ -16,6 +16,7 @@ class scummvm(Runner):
         self.scummvm_config_file = os.path.join(os.path.expanduser("~"),".scummvmrc")
         self.executable = "scummvm"
         self.package = "scummvm"
+        self.is_installable = False
         self.description = "Runs LucasArts games based on the Scumm engine"
         self.machine = "LucasArts point and click games"
         self.gfxmode = "--gfx-mode=normal"

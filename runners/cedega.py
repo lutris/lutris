@@ -29,6 +29,7 @@ class cedega(Runner):
         self.executable = "cedega"
         self.description = "Runs Windows games with Cedega"
         self.machine = "Windows games"
+        self.is_installable = False
         self.game_options = [ {"option":"shortcut", "type": "string","label": "Shortcut"},
                               {"option":"folder", "type": "string","label": "Folder"}]
         self.runner_options = []

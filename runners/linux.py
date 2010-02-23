@@ -1,3 +1,5 @@
+import logging
+import os.path
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -22,19 +24,33 @@
 
 from runner import Runner
 import os
+import stat
 
 class linux(Runner):
     def __init__(self,settings=None):
         self.description = "Runs native games"
         self.machine = "Linux games"
+        self.is_installable = True
+        self.installer_options = [{"option": "installer","type": "single","label": "Executable"}]
 
         self.game_options = [ {"option": "exe", "type":"single", "label":"Executable"},
                               {"option": "args", "type": "string", "name": "args", "label": "Arguments" }]
         self.runner_options = []
-        if settings:       
+        if settings:
             self.executable = settings["game"]["exe"]
 
-            
+    def get_install_command(self,installer_path):
+        #Check if installer exists
+        if not os.path.exists(installer_path):
+            raise IOError
+
+        #Check if script is executable and make it executable if not
+        if not os.access(installer_path,os.X_OK):
+           logging.debug("%s is not executable, setting it executable")
+           os.chmod(installer_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+           
+        return  "x-terminal-emulator -e %s" % installer_path
+
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True

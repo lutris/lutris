@@ -118,10 +118,10 @@ class LutrisDesktopControl():
 
         #Restore resolution
         if self.default_resolution is None:
-            os.popen("xrandr -s 1")
+            #os.popen("xrandr -s 1")
             os.popen("xrandr -s 0")
         else:
-            os.popen("xrandr -s 1")
+            #os.popen("xrandr -s 1")
             os.popen("xrandr -s %s" % self.default_resolution)
 
         #Restore gamma

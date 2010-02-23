@@ -24,12 +24,12 @@ from runner import Runner
 class dosbox(Runner):
     '''Runner for MSX games'''
 
-
     def __init__(self,settings = None):
         '''Constructor'''
         self.package = "dosbox"
         self.executable = "dosbox"
         self.machine = "MS DOS"
+        self.is_installable = False
         self.description = "DOS Emulator"
         self.game_options = [{"option":"exe","type":"single","label":"EXE File"}]
         self.runner_options = []

@@ -34,6 +34,7 @@ class pcsx(Runner):
         """
         self.executable = "pcsx"
         self.package = "pcsx-df"
+        self.is_installable = False
         self.description = "Runs PlayStation games"
         self.machine = "Playstation"
         self.game_options = [{"option":"iso","type":"single","label":"iso"}]

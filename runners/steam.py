@@ -2,12 +2,12 @@
 # and open the template in the editor.
 
 from wine import wine
+from runners.runner import Runner
 import os
 __author__ = "strider"
 __date__ = "$Oct 6, 2009 12:23:49 PM$"
 
-class steam(wine):
-
+class steam(Runner):
     def __init__(self,settings = None):
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"

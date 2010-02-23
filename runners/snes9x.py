@@ -42,6 +42,7 @@ class snes9x(Runner):
         self.package = "snes9x-gtk"
         self.description = "Runs Super Nintendo games with Snes9x"
         self.machine = "Super Nintendo"
+        self.is_installable = False
         self.game_options = [{"option":"rom","type":"single","label":"ROM"}]
         self.runner_options = [{"option":"fullscreen", "type":"bool", "label":"Fullscreen"}]
         if settings:

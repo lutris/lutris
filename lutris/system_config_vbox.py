@@ -38,7 +38,7 @@ class SystemConfigVBox(ConfigVBox):
         ("Metacity","metacity"),("Metacity (Composited)","metacity_composited")]
 
         #TODO : Same thing for OSS Wrappers
-        oss_list = [("None (don't use OSS)","none"),("aoss (OSS Wrapper for Alsa)","aoss"),("padsp (OSS Wrapper for PulseAudio)","padsp")]
+        oss_list = [("None (don't use OSS)","none"),("aoss (OSS Wrapper for Alsa)","aoss"),("esddsp (OSS Wrapper for esound)","esddsp"),("padsp (OSS Wrapper for PulseAudio)","padsp")]
         
         self.options = [{"option":"game_path","type":"directory_chooser","label":"Default game path"},
                         {"option":"user_wm","type":"one_choice","label":"Desktop Window Manager","choices":wm_list},

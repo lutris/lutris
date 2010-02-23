@@ -49,7 +49,7 @@ class RunnersDialog(gtk.Dialog):
 
     def on_install_clicked(self,widget,runner):
         runner_instance = eval("runners."+runner+"."+runner+"()")
-        runner_instance.install()
+        runner_instance.install_runner()
 
     def on_configure_clicked(self,widget,runner):
         RunnerConfigDialog(runner)

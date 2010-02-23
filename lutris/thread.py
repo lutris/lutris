@@ -65,7 +65,7 @@ class LutrisThread(threading.Thread):
         if self.return_code is not None and not self.cedega:
             logging.debug("Game quit")
             if self.output:
-                for stdout in self.output.split("\n"):
+                for stdout in self.output.read().split("\n"):
                     logging.debug(stdout)
             self.pid = None
             return False
