@@ -1,4 +1,4 @@
-import os.path
+
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -21,7 +21,7 @@ import os.path
 ###############################################################################
 
 from runner import Runner
-
+import os.path
 class o2em(Runner):
     '''Runner for MSX games'''
 
@@ -37,7 +37,7 @@ class o2em(Runner):
 
         self.description = "Magnavox Oyssey² Emulator"
         bios_choices = [("Odyssey² bios","o2rom"),("French odyssey² Bios","c52"),("VP+ Bios","g7400"),("French VP+ Bios","jopac")]
-        controller_choices = [("Diasble","0"),("Arrows keys and right shift","1"),("W,S,A,D,SPACE","2"),("Joystick","3")]
+        controller_choices = [("Disable","0"),("Arrows keys and right shift","1"),("W,S,A,D,SPACE","2"),("Joystick","3")]
         self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
         self.runner_options = [{"option": "bios", "type":"one_choice", "choices":bios_choices,"label":"Bios"},
                                {"option": "first_controller", "type":"one_choice","choices":controller_choices,"label":"First controller"},
