@@ -128,5 +128,7 @@ class LutrisDesktopControl():
         os.popen("xgamma -gamma 1.0")
         
 
-        
-        
+
+if __name__ == "__main__":
+    ldc = LutrisDesktopControl()
+    print ldc.get_resolutions()

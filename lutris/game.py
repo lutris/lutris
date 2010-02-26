@@ -95,8 +95,13 @@ class LutrisGame():
                     subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start",shell = True)
                     print "PulseAudio restarted"
                     
-        game_run_args = self.machine.play()
-
+        gameplay_info = self.machine.play()
+        if type(gameplay_info) == dict:
+            game_run_args = gameplay_info["command"]
+        else:
+            game_run_args = gameplay_info
+            print type(gameplay_info)
+            logging.debug("Old method used for returning gameplay infos")
         path = None
         if hasattr(self.machine,"game_path"):
             path = self.machine.game_path

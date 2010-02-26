@@ -22,7 +22,12 @@
 
 import subprocess
 import platform
-from lutris.config import LutrisConfig
+import hashlib
+import logging
+try:
+    from lutris.config import LutrisConfig
+except:
+    print "HOPE YOU ARE RUNNING TESTS !!!!!!!!"
 
 class Runner(object):
     '''Generic runner (base class for other runners) '''
@@ -30,13 +35,11 @@ class Runner(object):
         ''' Initialize runner'''
         self.executable = None
         self.is_installable = False
+        self.arguments = []
+        self.error_messages = []
         
     def load(self,game):
         self.game = game
-
-    def config(self):
-        """this is dumb and useless i guess"""
-        subprocess.Popen([self.configscript],stdout=subprocess.PIPE).communicate()[0]
 
     def play(self):
         pass
@@ -61,6 +64,14 @@ class Runner(object):
     def get_runner_options(self):
         return None
 
+    def md5sum(self,filename):
+        m = hashlib.md5()
+        fd = open(filename,"rb")
+        content = fd.readlines()
+        fd.close()
+        for line in content:
+            m.update(line)
+        return m.hexdigest()
 
     def install_runner(self):
         """Generic install method, for use with package management systems"""
@@ -77,8 +88,7 @@ class Runner(object):
             package_manager = "yum"
             install_args = "install"
         else:
-            print """The distro you're running is not supported yet\n
-            edit runners/runner.py to add support for it"""
+            logging.error("""The distro you're running is not supported yet.\n Edit runners/runner.py to add support for it""")
             return False
         print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager,install_args,self.package),shell=True,stdout=subprocess.PIPE).communicate()[0]
 
