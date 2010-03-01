@@ -138,17 +138,17 @@ class AddGameDialog(gtk.Dialog):
         logging.debug("loading config before adding game : ")
         logging.debug(self.lutris_config.config)
         #Load game box
-        self.game_config_vbox = GameConfigVBox(self.lutris_config)
+        self.game_config_vbox = GameConfigVBox(self.lutris_config,"game")
         self.game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
         self.game_config_scrolled_window.show_all()
         
         #Load runner box 
-        self.runner_options_vbox = RunnerConfigVBox(self.lutris_config)
+        self.runner_options_vbox = RunnerConfigVBox(self.lutris_config,"game")
         self.runner_config_scrolled_window.add_with_viewport(self.runner_options_vbox)
         self.runner_config_scrolled_window.show_all()
         
         #Load system box
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"game")
         self.system_config_scrolled_window.add_with_viewport(self.system_config_vbox)
         self.system_config_scrolled_window.show_all()
         
