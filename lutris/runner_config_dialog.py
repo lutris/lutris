@@ -37,14 +37,14 @@ class RunnerConfigDialog(gtk.Dialog):
         self.vbox.pack_start(self.config_notebook,True,True,0)
         
         #Runner configuration
-        self.runner_config_vbox = RunnerConfigVBox(self.lutris_config)
+        self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,"runner")
         runner_config_scrolled_window = gtk.ScrolledWindow()
         runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         runner_config_scrolled_window.add_with_viewport(self.runner_config_vbox)
         self.config_notebook.append_page(runner_config_scrolled_window,gtk.Label("Runner configuration"))
         
         #System configuration
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"runner")
         system_config_scrolled_window = gtk.ScrolledWindow()
         system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
         system_config_scrolled_window.add_with_viewport(self.system_config_vbox)

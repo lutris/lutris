@@ -2,28 +2,30 @@ lutris (0.2~public2) lucid; urgency=low
 
   * New release.
 
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 21 Feb 2010 00:42:31 +0100
-
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 12 Feb 2010 13:28:16 +0100
-
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
  -- Mathieu Comandon <strycore@gmail.com>  Sun, 31 Jan 2010 23:06:53 +0100
 
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Sat, 23 Jan 2010 00:15:00 +0100
 
 lutris (0.2~public1) lucid; urgency=low
 
-  * Initial release.
+  * Initial Quickly release.
 
  -- Mathieu Comandon <strycore@gmail.com>  Fri, 22 Jan 2010 19:38:42 +0100
+
+lutris (0.1.1)
+
+  * Resize the covers to 250px
+  * Added fullscreen coverflow 
+  * Icons show up in the status bar when joysticks are connected
+  * Rewrite of preferences dialog using GTK and not Glade
+  * Implementation of user_wm and game_wm options
+  * Removed the oss boolean option, set the oss_wrapper to none for no oss
+
+lutris (0.1.0)
+
+  * First public release
+  * Support for uae
+  * ScummVM and Cedega import
+  * Search Google Images for covers
+
+ -- Mathieu Comandon <strycore@gmail.com> Sat, 28 Nov 2009 21:57:00 
+  

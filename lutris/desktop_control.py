@@ -1,3 +1,4 @@
+import os.path
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -127,8 +128,17 @@ class LutrisDesktopControl():
         #Restore gamma
         os.popen("xgamma -gamma 1.0")
         
+    def check_joysticks(self):
+        number_joysticks = 0
+        joysticks = []
+        for device_number in range(0,8):
+            device_name = "/dev/input/js%d" % device_number
+            if os.path.exists(device_name):
+                number_joysticks = number_joysticks + 1
+                joysticks.append(device_name)
 
-
+        return joysticks
 if __name__ == "__main__":
     ldc = LutrisDesktopControl()
-    print ldc.get_resolutions()
+    print ldc.check_joysticks()
+    #print ldc.get_resolutions()

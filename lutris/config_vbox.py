@@ -24,24 +24,42 @@ import gtk
 import logging
 
 class ConfigVBox(gtk.VBox):
-    def __init__(self,save_in_key):
+    def __init__(self,save_in_key,caller):
         gtk.VBox.__init__(self)
+
         self.options = None
-        #self.game_config = None # FIXME : remove this
+        
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
+        
+        self.caller = caller
 
     def generate_widgets(self):
+        #Select what data to load based on caller.
+        if self.caller == "system":
+            lutris_config = self.lutris_config.system_config
+        elif self.caller == "runner":
+            lutris_config = self.lutris_config.runner_config
+        elif self.caller == "game":
+            lutris_config = self.lutris_config.game_config
+
+        #Select part of config to load or create it.
+        if self.save_in_key in lutris_config:
+            config = lutris_config[self.save_in_key]
+        else:
+            config = lutris_config[self.save_in_key] = {}
+
+        #Go thru all options.
         for option in self.options:
             option_key = option["option"]
-            if self.save_in_key in self.lutris_config.config:
-                config = self.lutris_config.config[self.save_in_key]
-            else:
-                config = self.lutris_config.config[self.save_in_key] = {}
+
+            #Load value if there is one.
             if option_key in config:
                 value = config[option_key]
             else:
                 value = None
+
+            #Different types of widgets.
             if option["type"] == "one_choice":
                 self.generate_combobox(option_key,option["choices"],option["label"],value)
             elif option["type"] == "bool":
@@ -58,7 +76,8 @@ class ConfigVBox(gtk.VBox):
                 self.generate_multiple_file_chooser(option_key, option["label"], value)
             else:
                 print "WTF is %s ?" % option["type"]
-    
+
+    #Checkbox
     def generate_checkbox(self,option_name,label,value=None):
         checkbox = gtk.CheckButton(label)
         if value:
@@ -69,6 +88,7 @@ class ConfigVBox(gtk.VBox):
     def checkbox_toggle(self,widget,option_name):
         self.lutris_config.config[self.save_in_key][option_name] = widget.get_active()
 
+    #Entry
     def generate_entry(self,option_name,label,value=None):
         hbox = gtk.HBox()
         entry_label = gtk.Label(label)
@@ -85,6 +105,7 @@ class ConfigVBox(gtk.VBox):
         entry_text = entry.get_text()
         self.lutris_config.config[self.save_in_key][option_name] = entry_text
 
+    #ComboBox
     def generate_combobox(self,option_name,choices,label,value=None):
         hbox = gtk.HBox()
         liststore = gtk.ListStore(str,str)
@@ -118,6 +139,7 @@ class ConfigVBox(gtk.VBox):
         option_value = model[active][1]
         self.lutris_config.config[self.save_in_key][option] = option_value
 
+    #Range
     def generate_range(self,option_name,min,max,label,value=None):
         adjustment = gtk.Adjustment(float(min),float(min),float(max),1,0,0)
         spin_button = gtk.SpinButton(adjustment)
@@ -135,6 +157,8 @@ class ConfigVBox(gtk.VBox):
         value = spin_button.get_value_as_int()
         self.lutris_config.config[self.save_in_key][option] = value
 
+
+    #File chooser
     def generate_file_chooser(self,option_name,label,value=None):
         """Generates a file chooser button to choose a file"""
         logging.debug("File chooser")
@@ -214,27 +238,6 @@ class ConfigVBox(gtk.VBox):
         treeview_scroll.add(files_treeview)
         self.pack_start(treeview_scroll,True,True)
 
-        
-#    def generate_file_widget(self,widget_config,file_value=None):
-#        # FIXME : Remove me
-#        print "OLD CRAPPY FUNCTION CALLED (generate_file_widget)"
-#        widget_type = widget_config["type"]
-#        self.key_name_for_file = widget_config["name"]
-#        #lutris_config = LutrisConfig()
-#        if widget_type == "single":
-#            file_widget = gtk.HBox()
-#            file_label = gtk.Label(widget_config["label"])
-#            file_widget.pack_start(file_label,False,False,5)
-#            self.file_chooser_button = gtk.FileChooserButton("Select a file")
-#            self.file_chooser_button.connect("file-set",self.add_file_callback)
-#            self.file_chooser_button.set_current_folder(self.lutris_config.get_path(self.runner_class))
-#            if file_value:
-#                self.file_chooser_button.set_filename(file_value)
-#            #self.file_chooser_button.set_current_folder("/home/strider/Games/")
-#            file_widget.pack_start(self.file_chooser_button,True,True,5)
-#
-#        self.pack_start(file_widget,False,False,10)
-
     def on_files_treeview_event(self,treeview,event):
         key =  event.keyval
         if key == gtk.keysyms.Delete:
@@ -251,9 +254,3 @@ class ConfigVBox(gtk.VBox):
                     self.files.append(filename)
         self.lutris_config.config[self.save_in_key][option] = self.files
         self.files_chooser_dialog = None
-        
-#    def add_file_callback(self,widget,response=None):
-#        # FIXME : Remove me
-#        print "OLD CRAPPY FUNCTION CALLED (add_file_callback)"
-#        self.file = widget.get_filename()
-#        self.game_config["exe"]  = self.file

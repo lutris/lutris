@@ -107,6 +107,14 @@
                   <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <child>
+                      <object class="GtkMenuItem" id="getfromftp_menuitem">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Get games from FTP</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_getfromftp_clicked"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="mount_iso_menuitem">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Mount ISO</property>

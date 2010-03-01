@@ -104,12 +104,19 @@ class LutrisConfig():
         self.update_global_config()
 
     def update_global_config(self):
-        self.config.update(copy.deepcopy(self.system_config))
-        self.config.update(copy.deepcopy(self.runner_config))
-        self.config.update(copy.deepcopy(self.game_config))
-        if self.config_type == "game" and self.runner in self.game_config:
-            pass
-            #self.config[self.runner].update(self.game_config[self.runner])
+        self.config = copy.deepcopy(self.system_config)
+
+        for key in self.runner_config.keys():
+            if key in self.config:
+                self.config[key].update(self.runner_config[key])
+            else:
+                self.config[key] = self.runner_config[key]
+
+        for key in self.game_config.keys():
+            if key in self.config:
+                self.config[key].update(self.game_config[key])
+            else:
+                self.config[key] = self.game_config[key]
     
     def remove(self,game_name):
         logging.debug("removing %s" % game_name)

@@ -37,15 +37,17 @@ from lutris import constants
 from lutris import AboutLutrisDialog
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
+from lutris.gui.ftpdialog import FtpDialog
 from lutris.lutrisconfig import getdatapath
 from lutris.runners_dialog import RunnersDialog
 from lutris.add_game_dialog import AddGameDialog
 from lutris.mount_iso_dialog import MountIsoDialog
 from lutris.installer_dialog import InstallerDialog
 from lutris.desktop_control import LutrisDesktopControl
-from lutris.google_image_dialog import GoogleImageDialog
 from lutris.system_config_dialog import SystemConfigDialog
-from lutris.edit_game_config_dialog import EditGameConfigDialog
+from lutris.gui.google_image_dialog import GoogleImageDialog
+from lutris.gui.edit_game_config_dialog import EditGameConfigDialog
+
 
 
 class LutrisWindow(gtk.Window):
@@ -243,6 +245,8 @@ class LutrisWindow(gtk.Window):
         scummvm = runners.scummvm.scummvm()
         scummvm.import_games()
         self.get_game_list()
+    def on_getfromftp_clicked(self,widget,data=None):
+        FtpDialog()
 
     def system_preferences(self,widget,data=None):
         SystemConfigDialog()

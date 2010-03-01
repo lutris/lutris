@@ -26,9 +26,9 @@ class SystemConfigVBox(ConfigVBox):
     """VBox for system configuration, to be inserted in main preferences, runner preferences
     and game preferences""" 
     
-    def __init__(self,lutris_config):
+    def __init__(self,lutris_config,caller):
         """VBox init"""
-        ConfigVBox.__init__(self,"system")
+        ConfigVBox.__init__(self,"system",caller)
         self.lutris_config = lutris_config
         
         #TODO : Move the list of window manager somewhere else, in lutris_desktop_control for example.

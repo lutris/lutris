@@ -24,9 +24,9 @@ from lutris.config_vbox import ConfigVBox
 import gtk
 
 class RunnerConfigVBox(ConfigVBox):
-    def __init__(self,lutris_config):
+    def __init__(self,lutris_config,caller):
         runner = lutris_config.runner
-        ConfigVBox.__init__(self,runner)
+        ConfigVBox.__init__(self,runner,caller)
         runner_instance = eval("runners."+runner+"."+runner+"()")
         if hasattr(runner_instance, "runner_options"):
             self.options = runner_instance.runner_options

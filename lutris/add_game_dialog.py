@@ -91,7 +91,7 @@ class AddGameDialog(gtk.Dialog):
         self.notebook.append_page(self.runner_config_scrolled_window,gtk.Label("Runner configuration"))
         
         #System configuration
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"game")
         self.system_config_scrolled_window = gtk.ScrolledWindow()
         self.system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
         self.system_config_scrolled_window.add_with_viewport(self.system_config_vbox)
