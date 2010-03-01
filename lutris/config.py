@@ -120,7 +120,8 @@ class LutrisConfig():
 
         for key in self.game_config.keys():
             if key in self.config:
-                self.config[key].update(self.game_config[key])
+                if type(self.config[key]) is dict:
+                    self.config[key].update(self.game_config[key])
             else:
                 self.config[key] = self.game_config[key]
     
