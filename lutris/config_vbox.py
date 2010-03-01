@@ -36,18 +36,21 @@ class ConfigVBox(gtk.VBox):
 
     def generate_widgets(self):
         #Select what data to load based on caller.
+        logging.debug("Caller : %s" % self.caller)
+        logging.debug("Save in key : %s" % self.save_in_key)
         if self.caller == "system":
-            lutris_config = self.lutris_config.system_config
+            self.real_config = self.lutris_config.system_config
         elif self.caller == "runner":
-            lutris_config = self.lutris_config.runner_config
+            self.real_config = self.lutris_config.runner_config
         elif self.caller == "game":
-            lutris_config = self.lutris_config.game_config
+            self.real_config = self.lutris_config.game_config
 
         #Select part of config to load or create it.
-        if self.save_in_key in lutris_config:
-            config = lutris_config[self.save_in_key]
+        if self.save_in_key in self.real_config:
+            config = self.real_config[self.save_in_key]
         else:
-            config = lutris_config[self.save_in_key] = {}
+            logging.debug("Creating key : %s" % self.save_in_key)
+            config = self.real_config[self.save_in_key] = {}
 
         #Go thru all options.
         for option in self.options:
@@ -86,7 +89,7 @@ class ConfigVBox(gtk.VBox):
         checkbox.show()
         self.pack_start(checkbox,False,True,5)
     def checkbox_toggle(self,widget,option_name):
-        self.lutris_config.config[self.save_in_key][option_name] = widget.get_active()
+        self.real_config[self.save_in_key][option_name] = widget.get_active()
 
     #Entry
     def generate_entry(self,option_name,label,value=None):
@@ -103,7 +106,7 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox,False,True,5)
     def entry_changed(self,entry,option_name):
         entry_text = entry.get_text()
-        self.lutris_config.config[self.save_in_key][option_name] = entry_text
+        self.real_config[self.save_in_key][option_name] = entry_text
 
     #ComboBox
     def generate_combobox(self,option_name,choices,label,value=None):
@@ -137,7 +140,7 @@ class ConfigVBox(gtk.VBox):
         if active < 0:
             return None
         option_value = model[active][1]
-        self.lutris_config.config[self.save_in_key][option] = option_value
+        self.real_config[self.save_in_key][option] = option_value
 
     #Range
     def generate_range(self,option_name,min,max,label,value=None):
@@ -155,7 +158,7 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox,False,True,5)
     def on_spin_button_changed(self,spin_button,option):
         value = spin_button.get_value_as_int()
-        self.lutris_config.config[self.save_in_key][option] = value
+        self.real_config[self.save_in_key][option] = value
 
 
     #File chooser
@@ -195,8 +198,10 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox,False,True,5)
         
     def on_chooser_file_set(self,filechooser_widget,option):
-        directory =  filechooser_widget.get_filename()
-        self.lutris_config.config[self.save_in_key][option] = directory
+        filename =  filechooser_widget.get_filename()
+        logging.debug(self.save_in_key)
+        logging.debug(self.lutris_config.config)
+        self.real_config[self.save_in_key][option] = filename
     
     def generate_multiple_file_chooser(self,option_name,label,value=None):
         hbox = gtk.HBox()
@@ -252,5 +257,5 @@ class ConfigVBox(gtk.VBox):
                 self.files_list_store.append([filename])
                 if not filename in self.files:
                     self.files.append(filename)
-        self.lutris_config.config[self.save_in_key][option] = self.files
+        self.real_config[self.save_in_key][option] = self.files
         self.files_chooser_dialog = None

@@ -226,7 +226,6 @@ class LutrisWindow(gtk.Window):
 
     def add_game(self,widget,data=None):
         add_game_dialog = AddGameDialog(self)
-       
         logging.debug("opening dialog")
         game_info = add_game_dialog.game_info
         logging.debug(game_info)

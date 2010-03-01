@@ -61,6 +61,8 @@ class LutrisConfig():
         #Read system configuration
         if os.path.exists(constants.system_config_full_path):
             self.system_config = yaml.load(file(constants.system_config_full_path, 'r').read())
+            if self.system_config is None:
+                self.system_config = {}
         else:
             logging.debug("Creating new system config file")
             file(constants.system_config_full_path,"w+")
@@ -104,8 +106,12 @@ class LutrisConfig():
         self.update_global_config()
 
     def update_global_config(self):
-        self.config = copy.deepcopy(self.system_config)
-
+        for key in self.system_config.keys():
+            if key in self.config:
+                self.config[key].update(self.system_config[key])
+            else:
+                self.config[key] = self.system_config[key]
+                
         for key in self.runner_config.keys():
             if key in self.config:
                 self.config[key].update(self.runner_config[key])
@@ -126,11 +132,14 @@ class LutrisConfig():
         """Save configuration file
         The way to save config files can be set by the type argument
         or with self.config_type"""
+
+        self.update_global_config()
+        logging.debug("Saving config (type %s)" % type)
+        logging.debug(self.config)
         if type is None:
             type = self.config_type
         yaml_config = yaml.dump(self.config,default_flow_style=False)
-        logging.debug("Saving config (type %s)" % type)
-        print yaml_config
+        
         if type == "system":
             file(constants.system_config_full_path,"w").write(yaml_config)
         elif type == "runner":
@@ -149,6 +158,8 @@ class LutrisConfig():
     
     
     def get_path(self,runner):
+        if self.config is None:
+            return os.path.expanduser("~")
         if runner in self.config:
             if "game_path" in self.config[runner]:
                 return self.config[runner]["game_path"]
