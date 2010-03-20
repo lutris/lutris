@@ -18,6 +18,7 @@
 import sys
 import os
 import gtk
+import gobject
 
 # Check if we are working in the source tree or from the installed 
 # package and mangle the python path accordingly
@@ -47,8 +48,6 @@ from lutris.desktop_control import LutrisDesktopControl
 from lutris.system_config_dialog import SystemConfigDialog
 from lutris.gui.google_image_dialog import GoogleImageDialog
 from lutris.gui.edit_game_config_dialog import EditGameConfigDialog
-
-
 
 class LutrisWindow(gtk.Window):
     __gtype_name__ = "LutrisWindow"
@@ -129,7 +128,24 @@ class LutrisWindow(gtk.Window):
         self.game_list_scrolledwindow = self.builder.get_object("game_list_scrolledwindow")
         self.game_list_scrolledwindow.add_with_viewport(self.game_list_grid_view)
 
-        
+        #Timer
+        self.timer_id = gobject.timeout_add(1000, self.refresh_status)
+
+    def refresh_status(self):
+        ###FIXME !!
+#        if hasattr(self.running_game.game_process, "pid"):
+#            self.status_text = "Game is running (pid: %s)" % str(self.running_game.game_process.pid)
+#            self.status_bar.push(self.status_bar_context_id,self.status_text)
+#        else:
+#            self.status_bar.push(self.status_bar_context_id,"Welcome to Lutris")
+        for index in range(0,3):
+            if os.path.exists("/dev/input/js%d" % index):
+                self.joystick_icons[index].show()
+            else:
+                self.joystick_icons[index].hide()
+        return True
+
+    
     def get_game_list(self):
         game_list = []
         for file in os.listdir(constants.game_config_path):
@@ -226,16 +242,14 @@ class LutrisWindow(gtk.Window):
 
     def add_game(self,widget,data=None):
         add_game_dialog = AddGameDialog(self)
-        logging.debug("opening dialog")
-        game_info = add_game_dialog.game_info
-        logging.debug(game_info)
-        self.game_list_grid_view.append_row(game_info)
+        if hasattr(add_game_dialog,"game_info"):
+            game_info = add_game_dialog.game_info
+            self.game_list_grid_view.append_row(game_info)
         
     def import_cedega(self,widget,data=None):
         cedega = runners.cedega.cedega()
         cedega.import_games()
         self.get_game_list()
-
 
     def import_steam(self,widget,data=None):
         logging.debug("Import from steam not yet implemented")
@@ -277,8 +291,6 @@ class LutrisWindow(gtk.Window):
                  
     def set_game_cover(self):
         if self.gameName:
-            logging.debug("Setting cover for :")
-            logging.debug(self.gameName)
             extensions = ["png", "jpg", "jpeg"]
             for extension in extensions:
                 coverFile = os.path.join(constants.cover_path, self.gameName + "." + extension)

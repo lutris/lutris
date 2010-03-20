@@ -1,3 +1,4 @@
+import os.path
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -30,23 +31,29 @@ class sdlmame(Runner):
         self.description = "Runs arcade games with SDLMame"
         self.machine = "Arcade"
         self.is_installable = False
-        
-        self.game_options = [{"option": "file", "type":"single", "name":"rom", "label":"Rom file"}]
-        self.runner_options = []
-        
+        self.fullscreen = True
+        self.game_options = [{"option": "rom", "type":"single","label":"Rom file"}]
+        self.runner_options = [{"option":"windowed","type":"bool","label":"Windowed"}]
+                
         if settings:
-            self.romdir = settings["path"]
-            self.rom = settings["rom"]
+            self.romdir = os.path.dirname(settings["game"]["rom"])
+            self.rom = os.path.basename(settings["game"]["rom"])
             self.mameconfigdir = os.path.join(os.path.expanduser("~"),".mame")
-            if not os.path.exists(os.path.join(self.mameconfigdir,"mame.ini")):
-                try:
-                    os.makedirs(self.mameconfigdir)
-                except OSError:
-                    print "mame directory already exists"
-                os.chdir(self.mameconfigdir)
-                subprocess.Popen([self.executable,"-createconfig"],stdout=subprocess.PIPE).communicate()[0]
-        
+            if "sdlmame" in settings.config:
+                if "windowed" in settings["sdlmame"]:
+                    self.fullscreen = not settings["sdlmame"]["windowed"]
+
     
     def play(self):
+        if not os.path.exists(os.path.join(self.mameconfigdir,"mame.ini")):
+            try:
+                os.makedirs(self.mameconfigdir)
+            except OSError:
+                pass
+            os.chdir(self.mameconfigdir)
+            subprocess.Popen([self.executable,"-createconfig"],stdout=subprocess.PIPE).communicate()[0]
         os.chdir(self.romdir)
-        return [self.executable,"-inipath",self.mameconfigdir,"-skip_gameinfo","-rompath",self.romdir,self.rom]
+        arguments = []
+        if not self.fullscreen:
+            arguments = arguments + ["-window"]
+        return [self.executable,"-inipath",self.mameconfigdir,"-skip_gameinfo","-rompath",self.romdir,self.rom] + arguments

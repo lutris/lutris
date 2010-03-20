@@ -5,7 +5,7 @@
   <!-- interface-naming-policy project-wide -->
   <object class="AddgameDialog" id="addgame_dialog">
     <property name="border_width">5</property>
-    <property name="icon">../media/icon.png</property>
+    <property name="icon">../media/lutris.svg</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -22,7 +22,7 @@
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button2">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -37,7 +37,7 @@
             </child>
             <child>
               <object class="GtkButton" id="button1">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

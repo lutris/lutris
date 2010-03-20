@@ -24,8 +24,8 @@ import runners
 from lutris.config_vbox import ConfigVBox
 
 class InstallerConfigVBox(ConfigVBox):
-    def __init__(self,lutris_config):
-        ConfigVBox.__init__(self,"game")
+    def __init__(self,lutris_config,caller):
+        ConfigVBox.__init__(self,"game",caller)
         self.lutris_config  = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-21 00:42+0100\n"
+"POT-Creation-Date: 2010-03-02 00:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,69 +37,73 @@ msgid "Fullscreen"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:4
-msgid "Global preferences"
+msgid "Get games from FTP"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:5
-msgid "Import"
+msgid "Global preferences"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:6
-msgid "Import games from ScummVM"
+msgid "Import"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:7
-msgid "Install and configure runners"
+msgid "Import games from ScummVM"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:8
-msgid "Install game"
+msgid "Install and configure runners"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:9
-msgid "Lutris"
+msgid "Install game"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:10
-msgid "Manage runners"
+msgid "Lutris"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:11
-msgid "Mount ISO"
+msgid "Manage runners"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:12
-msgid "Quit"
+msgid "Mount ISO"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:13
-msgid "Remove"
+msgid "Quit"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:14
-msgid "Reset"
+msgid "Remove"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:15
-msgid "ScummVM"
+msgid "Reset"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:16
-msgid "Steam"
+msgid "ScummVM"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:17
-msgid "_Help"
+msgid "Steam"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:18
-msgid "_Lutris"
+msgid "_Help"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:19
-msgid "_Tools"
+msgid "_Lutris"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:20
+msgid "_Tools"
+msgstr ""
+
+#: ../data/ui/LutrisWindow.ui.h:21
 msgid "configure the default options"
 msgstr ""

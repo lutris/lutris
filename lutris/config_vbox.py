@@ -173,6 +173,7 @@ class ConfigVBox(gtk.VBox):
         file_chooser.set_size_request(200,30)
 
         file_chooser.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
+        file_chooser.set_current_folder("/media/seagate300")
         file_chooser.set_current_folder(self.lutris_config.get_path(self.runner_class))
         file_chooser.connect("file-set",self.on_chooser_file_set,option_name)
         if value:
@@ -199,8 +200,6 @@ class ConfigVBox(gtk.VBox):
         
     def on_chooser_file_set(self,filechooser_widget,option):
         filename =  filechooser_widget.get_filename()
-        logging.debug(self.save_in_key)
-        logging.debug(self.lutris_config.config)
         self.real_config[self.save_in_key][option] = filename
     
     def generate_multiple_file_chooser(self,option_name,label,value=None):

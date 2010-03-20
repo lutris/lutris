@@ -92,7 +92,7 @@ class InstallerDialog(gtk.Dialog):
         self.notebook.append_page(self.runner_config_scrolled_window,gtk.Label("Runner configuration"))
 
         #System configuration
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"game")
         self.system_config_scrolled_window = gtk.ScrolledWindow()
         self.system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
         self.system_config_scrolled_window.add_with_viewport(self.system_config_vbox)
@@ -119,6 +119,7 @@ class InstallerDialog(gtk.Dialog):
 
         #Run the installer
         runner = eval("runners."+self.runner_class+"."+self.runner_class+"()")
+        self.lutris_config.update_global_config()
         command = runner.get_install_command(self.lutris_config.config["game"]["installer"])
         if command:
             logging.debug("Running installer : %s" % command)
@@ -130,7 +131,6 @@ class InstallerDialog(gtk.Dialog):
             #game_identifier = self.lutris_config.save(type="game")
             #self.game_info = {"Game Name": realname,"Runner": self.runner_class , "name": game_identifier}
             self.destroy()
-
 
     def on_runner_changed(self,widget):
         selected_runner = widget.get_active()
@@ -148,17 +148,17 @@ class InstallerDialog(gtk.Dialog):
         logging.debug("loading config before adding game : ")
         logging.debug(self.lutris_config.config)
         #Load game box
-        self.installer_config_vbox = InstallerConfigVBox(self.lutris_config)
+        self.installer_config_vbox = InstallerConfigVBox(self.lutris_config,"game")
         self.installer_config_scrolled_window.add_with_viewport(self.installer_config_vbox)
         self.installer_config_scrolled_window.show_all()
 
         #Load runner box
-        self.runner_options_vbox = RunnerConfigVBox(self.lutris_config)
+        self.runner_options_vbox = RunnerConfigVBox(self.lutris_config,"game")
         self.runner_config_scrolled_window.add_with_viewport(self.runner_options_vbox)
         self.runner_config_scrolled_window.show_all()
 
         #Load system box
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"game")
         self.system_config_scrolled_window.add_with_viewport(self.system_config_vbox)
         self.system_config_scrolled_window.show_all()
 

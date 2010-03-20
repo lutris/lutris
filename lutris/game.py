@@ -55,15 +55,15 @@ class LutrisGame():
             self.runner_name = self.game_config["runner"]
         except KeyError:
             print "Error in %s config file : No runner" % self.name
-            return False           
+            return False
         try:
             self.machine = eval(self.runner_name+"."+self.runner_name+"(self.game_config)")
         except AttributeError,msg:
-            logging.error("Malformed configuration file : %s" % self.name)
+            logging.error("Malformed configuration file (Attribute Error) : %s" % self.name)
             logging.error(msg)
             return False
         except KeyError,msg:
-            logging.error("Malformed configuration file : %s" % self.name)
+            logging.error("Malformed configuration file (Key Error) : %s" % self.name)
             logging.error(msg)
             return False
         return True

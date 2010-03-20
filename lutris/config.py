@@ -159,13 +159,11 @@ class LutrisConfig():
     
     
     def get_path(self,runner):
-        if self.config is None:
-            return os.path.expanduser("~")
-        if runner in self.config:
-            if "game_path" in self.config[runner]:
-                return self.config[runner]["game_path"]
-        if "game_path" in self.config:
-            return self.config["game_path"]
+        if "system" in self.config:
+            if "game_path" in self.config["system"]:
+                return self.config["system"]["game_path"]
+        logging.debug("Fail !")
+        logging.debug(self.config)
         return os.path.expanduser("~")
 
 
