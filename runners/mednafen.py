@@ -23,6 +23,7 @@ import os
 import subprocess
 from runner import Runner
 
+from lutris.desktop_control import LutrisDesktopControl
 
 class mednafen(Runner):
     def __init__(self,settings=None):
@@ -42,18 +43,14 @@ class mednafen(Runner):
             self.rom = settings["game"]["rom"]
             self.machine = settings["game"]["machine"]
             #Defaults
-            fullscreen = "1"
-            xres = str(1680)
-            yres = str(1050)
+            self.fullscreen = "1"
+            
             if "mednafen" in settings.config:
                 if "fs" in settings.config["mednafen"]:
                     if not settings.config["mednafen"]["fs"]:
-                        fullscreen = "0"
+                        self.fullscreen = "0"
 
-            self.options = ["-fs",fullscreen,
-                            "-"+self.machine+".xres",xres,"-"+self.machine+".yres",yres,
-                            "-"+self.machine+".stretch","1","-"+self.machine+".special","hq4x",
-                            "-"+self.machine+".videoip","1"]
+
 
 
     def find_joysticks(self):
@@ -75,6 +72,16 @@ class mednafen(Runner):
 
 
     def play(self):
+
+        desktop_control = LutrisDesktopControl()
+        resolution = desktop_control.get_current_resolution()
+        (resolutionx, resolutiony) = resolution.split("x")
+        xres = str(resolutionx)
+        yres = str(resolutiony)
+        self.options = ["-fs",self.fullscreen,
+                        "-"+self.machine+".xres",xres,"-"+self.machine+".yres",yres,
+                        "-"+self.machine+".stretch","1","-"+self.machine+".special","hq4x",
+                        "-"+self.machine+".videoip","1"]
         self.joy_ids = []
         self.find_joysticks()
         nes_controls = ["-nes.input.port1.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",

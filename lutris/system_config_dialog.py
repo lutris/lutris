@@ -8,7 +8,7 @@ class SystemConfigDialog(gtk.Dialog):
         self.set_title("System preferences")
         self.set_size_request(400,500)
         self.lutris_config = LutrisConfig()
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config)
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,'system')
         self.vbox.pack_start(self.system_config_vbox)
         
         #Action area

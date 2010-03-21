@@ -113,6 +113,9 @@ class ConfigVBox(gtk.VBox):
         hbox = gtk.HBox()
         liststore = gtk.ListStore(str,str)
         for choice in choices:
+            logging.debug(type(choice))
+            if type(choice) is str:
+                choice = [choice, choice]
             liststore.append(choice)
         combobox = gtk.ComboBox(liststore)
         combobox.set_size_request(200,30)
