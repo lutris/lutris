@@ -22,21 +22,21 @@
 
 from runner import Runner
 
-class browser(Runner):
-    '''Runner for browser games'''
+class stella(Runner):
+    '''Runner for stella Atari 2600 emulator'''
 
     def __init__(self,settings = None):
         '''Constructor'''
-        self.package = "x-www-browser"
-        self.executable = "x-www-browser"
-        self.machine = "Web Browser"
-        self.description = "Run games in the browser"
-        self.game_options = [{"option":"url","type":"string","label":"URL"}]
+        self.package = "stella"
+        self.executable = "stella"
+        self.machine = "Atari 2600"
+        self.description = "Run Atari 2600 games"
+        self.game_options = [{"option":"cart","type":"single","label":"Cartridge"}]
         self.runner_options = []
         if settings:
-            self.url = settings["game"]["url"]
+            self.cart = settings["game"]["cart"]
 
 
     def play(self):
-        command = ['x-www-browser',"\""+self.url+"\""]
+        command = ['stella',"\""+self.cart+"\""]
         return command
