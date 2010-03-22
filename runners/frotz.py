@@ -27,6 +27,7 @@ class frotz(Runner):
 
     def __init__(self,settings = None):
         '''Constructor'''
+        super(frotz,self).__init__()
         self.package = "frotz"
         self.executable = "frotz"
         self.machine = "Z-Code"

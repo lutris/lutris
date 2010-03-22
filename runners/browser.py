@@ -27,6 +27,7 @@ class browser(Runner):
 
     def __init__(self,settings = None):
         '''Constructor'''
+        super(browser,self).__init__()
         self.package = "x-www-browser"
         self.executable = "x-www-browser"
         self.machine = "Web Browser"

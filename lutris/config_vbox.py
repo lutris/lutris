@@ -77,8 +77,15 @@ class ConfigVBox(gtk.VBox):
                 self.generate_file_chooser(option_key,option["label"],value)
             elif option["type"] == "multiple":
                 self.generate_multiple_file_chooser(option_key, option["label"], value)
+            elif option["type"] == "label":
+                self.generate_label(option["label"])
             else:
                 print "WTF is %s ?" % option["type"]
+
+    def generate_label(self,text):
+        label = gtk.Label(text)
+        label.show()
+        self.pack_start(label,True,True)
 
     #Checkbox
     def generate_checkbox(self,option_name,label,value=None):

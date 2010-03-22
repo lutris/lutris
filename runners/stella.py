@@ -27,6 +27,7 @@ class stella(Runner):
 
     def __init__(self,settings = None):
         '''Constructor'''
+        super(stella,self).__init__()
         self.package = "stella"
         self.executable = "stella"
         self.machine = "Atari 2600"

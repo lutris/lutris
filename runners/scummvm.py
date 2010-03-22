@@ -31,11 +31,13 @@ class scummvm(Runner):
         self.scummvm_config_file = os.path.join(os.path.expanduser("~"),".scummvmrc")
         self.executable = "scummvm"
         self.package = "scummvm"
-        self.is_installable = False
+        self.is_installable = True
         self.description = "Runs LucasArts games based on the Scumm engine"
         self.machine = "LucasArts point and click games"
         self.gfxmode = "--gfx-mode=normal"
         self.fullscreen = "-f"      # -F for windowed
+        self.installer_options = [{'option': 'foo','type': "label",
+                                    'label': "Click on install to launch ScummVM and install the game"}]
         self.game_options = []
         scaler_modes = [("2x","2x"),
                         ("3x","3x"),
@@ -81,10 +83,12 @@ class scummvm(Runner):
                 realname = config_parser.get(section, "description")
                 self.add_game(section, realname)
 
+    def get_install_command(self):
+        command = "%s" % (self.executable)
+        return command
+
     def add_game(self,name,realname):
         lutris_config = LutrisConfig()
-        #settings = {"runner":"scummvm", "realname":realname, "name": name }
-        #name = "ScummVM-" + name
         lutris_config.config = {"runner":"scummvm", "realname":realname, "name": name }
         lutris_config.save("game")
 

@@ -28,6 +28,7 @@ from lutris.desktop_control import LutrisDesktopControl
 class mednafen(Runner):
     def __init__(self,settings=None):
         self.executable = "mednafen"
+        self.is_installable = False
         self.machine = """Atari Lynx, Game Boy (Color), GameBoy Advance, NES, PC Engine(TurboGrafx 16), SuperGrafx, Neo Geo Pocket (Color), PC-FX, and WonderSwan (Color)"""
         self.description = """Use Mednafen"""
         self.package = "mednafen"
@@ -86,32 +87,33 @@ class mednafen(Runner):
         self.joy_ids = []
         self.find_joysticks()
         nes_controls = ["-nes.input.port1.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
-                             "-nes.input.port1.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
-                             "-nes.input.port1.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
-                             "-nes.input.port1.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
-                             "-nes.input.port1.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
-                             "-nes.input.port1.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
-                             "-nes.input.port1.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
-                             "-nes.input.port1.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\""
-                            ]
+                         "-nes.input.port1.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
+                         "-nes.input.port1.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
+                         "-nes.input.port1.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
+                         "-nes.input.port1.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
+                         "-nes.input.port1.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
+                         "-nes.input.port1.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
+                         "-nes.input.port1.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\"" ]
+                             
         gba_controls = ["-gba.input.builtin.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
-                             "-gba.input.builtin.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
-                             "-gba.input.builtin.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
-                             "-gba.input.builtin.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
-                             "-gba.input.builtin.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
-                             "-gba.input.builtin.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
-                             "-gba.input.builtin.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
-                             "-gba.input.builtin.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\""
-                            ]
+                         "-gba.input.builtin.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
+                         "-gba.input.builtin.gamepad.shoulder_r","\"joystick "+self.joy_ids[0]+" 00000007\"",
+                         "-gba.input.builtin.gamepad.shoulder_l","\"joystick "+self.joy_ids[0]+" 00000006\"",
+                         "-gba.input.builtin.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
+                         "-gba.input.builtin.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
+                         "-gba.input.builtin.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
+                         "-gba.input.builtin.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
+                         "-gba.input.builtin.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
+                         "-gba.input.builtin.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\"" ]
+
         gb_controls = ["-gb.input.builtin.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
-                             "-gb.input.builtin.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
-                             "-gb.input.builtin.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
-                             "-gb.input.builtin.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
-                             "-gb.input.builtin.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
-                             "-gb.input.builtin.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
-                             "-gb.input.builtin.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
-                             "-gb.input.builtin.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\""
-                            ]
+                       "-gb.input.builtin.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
+                       "-gb.input.builtin.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
+                       "-gb.input.builtin.gamepad.select","\"joystick "+self.joy_ids[0]+" 00000008\"",
+                       "-gb.input.builtin.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
+                       "-gb.input.builtin.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
+                       "-gb.input.builtin.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
+                       "-gb.input.builtin.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\"" ]
 
         pce_controls = ["-pce.input.port1.gamepad.i","\"joystick "+self.joy_ids[0]+" 00000001\"",
                         "-pce.input.port1.gamepad.ii","\"joystick "+self.joy_ids[0]+" 00000002\"",
@@ -120,8 +122,7 @@ class mednafen(Runner):
                         "-pce.input.port1.gamepad.up","\"joystick "+self.joy_ids[0]+" 0000c001\"",
                         "-pce.input.port1.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
                         "-pce.input.port1.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
-                        "-pce.input.port1.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\""
-                       ]
+                        "-pce.input.port1.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\"" ]
 
         if self.machine == "pce":
             controls = pce_controls

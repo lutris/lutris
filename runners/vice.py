@@ -27,6 +27,7 @@ class vice(Runner):
 
     def __init__(self,settings = None):
         '''Constructor'''
+        super(vice,self).__init__()
         self.package = "vice"
         self.executable = "x64"
         self.machine = "Commodore 64"

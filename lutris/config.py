@@ -150,8 +150,9 @@ class LutrisConfig():
             if not self.game:
                 self.game = self.config["runner"] + "-" + self.config["realname"].replace(" ","_")
             self.game_config_path = os.path.join(constants.game_config_path,
-                                                 self.game + constants.config_extension)
-            file(self.game_config_path,"w").write(yaml_config)
+                                                 self.game.replace('/','_') + constants.config_extension)
+            config_file = file(self.game_config_path,"w")
+            config_file.write(yaml_config)
             return self.game
         else:
             print "Config type is %s or %s" % (self.config_type, type)
