@@ -22,12 +22,22 @@
 # where your project will head for your data (for instance, images and ui files)
 # by default, this is ../data, relative your trunk layout
 __lutris_data_directory__ = '../data/'
+__license__ = 'GPL-3'
 
 
 import os
 
 class project_path_not_found(Exception):
     pass
+
+def get_data_file(*path_segments):
+    """Get the full path to a data file.
+
+    Returns the path to a file underneath the data directory (as defined by
+    `get_data_path`). Equivalent to os.path.join(get_data_path(),
+    *path_segments).
+    """
+    return os.path.join(getdatapath(), *path_segments)
 
 def getdatapath():
     """Retrieve lutris data path
