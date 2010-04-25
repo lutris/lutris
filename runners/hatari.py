@@ -21,9 +21,7 @@
 
 from runner import Runner
 from lutris.desktop_control import LutrisDesktopControl
-import os
 import os.path
-import logging
 
 class hatari(Runner):
     '''Runner for intellivision games'''
@@ -40,12 +38,6 @@ class hatari(Runner):
         self.game_options = [ {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
                               {"option": "disk-b", "type":"single", "label": "Floppy Disk B"},
                             ]
-                              
-        self.screen_resolutions = []
-        desktop_control = LutrisDesktopControl()
-        resolutions_available = desktop_control.get_resolutions()
-        for resolution in resolutions_available:
-            self.screen_resolutions = self.screen_resolutions + [(resolution,resolution)]
 
         joystick_choices = [('None','none'),('Keyboard','keys'),('Joystick','real')]
 
@@ -56,7 +48,7 @@ class hatari(Runner):
                                {"option": "status", "type": "bool", 'label': 'Display status bar'},
                                {"option": "joy1", "type": "one_choice", "label": "Joystick 1", "choices": joystick_choices },
                                {"option": "joy2", "type": "one_choice", "label": "Joystick 2", "choices": joystick_choices },
-                             ]
+                              ]
 
         if settings:
             if "fullscreen" in settings["hatari"]:
@@ -89,7 +81,6 @@ class hatari(Runner):
                 self.error_messages = self.error_messages + [ "TOS path not set."]
             if "disk-a" in settings['game']:
                 self.diska = settings['game']['disk-a']
-
 
     def play(self):
         self.arguments = self.arguments + [ "--disk-a \"%s\"" % self.diska ]
