@@ -23,8 +23,6 @@ import os
 from runner import Runner
 
 class uae(Runner):
-
-
     def __init__(self,settings = None):
         self.package = "uae"
         self.executable = "uae"

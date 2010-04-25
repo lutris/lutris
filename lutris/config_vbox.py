@@ -28,7 +28,7 @@ class ConfigVBox(gtk.VBox):
         gtk.VBox.__init__(self)
 
         self.options = None
-        
+        logging.debug("caller:"+caller)
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
         
@@ -36,8 +36,6 @@ class ConfigVBox(gtk.VBox):
 
     def generate_widgets(self):
         #Select what data to load based on caller.
-        logging.debug("Caller : %s" % self.caller)
-        logging.debug("Save in key : %s" % self.save_in_key)
         if self.caller == "system":
             self.real_config = self.lutris_config.system_config
         elif self.caller == "runner":
@@ -49,7 +47,6 @@ class ConfigVBox(gtk.VBox):
         if self.save_in_key in self.real_config:
             config = self.real_config[self.save_in_key]
         else:
-            logging.debug("Creating key : %s" % self.save_in_key)
             config = self.real_config[self.save_in_key] = {}
 
         #Go thru all options.
@@ -120,7 +117,6 @@ class ConfigVBox(gtk.VBox):
         hbox = gtk.HBox()
         liststore = gtk.ListStore(str,str)
         for choice in choices:
-            logging.debug(type(choice))
             if type(choice) is str:
                 choice = [choice, choice]
             liststore.append(choice)
@@ -131,7 +127,6 @@ class ConfigVBox(gtk.VBox):
         combobox.add_attribute(cell, 'text', 0)  
         index = selected_index  = -1
         if value:
-            logging.debug(value)
             for choice in choices:
                 if choice[1] == value:
                     selected_index = index +1
@@ -174,8 +169,6 @@ class ConfigVBox(gtk.VBox):
     #File chooser
     def generate_file_chooser(self,option_name,label,value=None):
         """Generates a file chooser button to choose a file"""
-        logging.debug("File chooser")
-        logging.debug(value)
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
         gtklabel.set_size_request(200,30)
@@ -183,8 +176,7 @@ class ConfigVBox(gtk.VBox):
         file_chooser.set_size_request(200,30)
 
         file_chooser.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
-        file_chooser.set_current_folder("/media/seagate300")
-        file_chooser.set_current_folder(self.lutris_config.get_path(self.runner_class))
+        #file_chooser.set_current_folder(self.lutris_config.get_path(self.runner_class))
         file_chooser.connect("file-set",self.on_chooser_file_set,option_name)
         if value:
             file_chooser.unselect_all()

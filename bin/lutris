@@ -62,23 +62,9 @@ class LutrisWindow(gtk.Window):
     __gtype_name__ = "LutrisWindow"
 
     def __init__(self):
-        """__init__ - This function is typically not called directly.
-        Creation a LutrisWindow requires redeading the associated ui
-        file and parsing the ui definition extrenally,
-        and then calling LutrisWindow.finish_initializing().
-
-        Use the convenience function NewLutrisWindow to create
-        LutrisWindow object.
-
-        """
         pass
 
     def finish_initializing(self, builder):
-        """finish_initalizing should be called after parsing the ui definition
-        and creating a LutrisWindow object with it in order to finish
-        initializing the start of the new LutrisWindow instance.
-
-        """
         #get a reference to the builder and set up the signals
         self.builder = builder
         self.builder.connect_signals(self)
