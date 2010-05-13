@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-#This program is free software: you can redistribute it and/or modify it 
-#under the terms of the GNU General Public License version 3, as published 
-#by the Free Software Foundation.
-#
-#This program is distributed in the hope that it will be useful, but 
-#WITHOUT ANY WARRANTY; without even the implied warranties of 
-#MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
-#PURPOSE.  See the GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License along 
-#with this program.  If not, see <http://www.gnu.org/licenses/>.
+# This program is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License version 3, as published 
+# by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but 
+# WITHOUT ANY WARRANTY; without even the implied warranties of 
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+# PURPOSE.  See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along 
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
 import sys
@@ -19,7 +19,7 @@ import os
 import gtk
 
 from lutris.lutrisconfig import getdatapath
-from lutris import constants
+import lutris.constants 
 
 class AboutLutrisDialog(gtk.AboutDialog):
     __gtype_name__ = "AboutLutrisDialog"
@@ -48,15 +48,15 @@ class AboutLutrisDialog(gtk.AboutDialog):
 
         #code for other initialization actions should be added here
         self.set_position(gtk.WIN_POS_CENTER)
-        self.set_icon_from_file(constants.lutris_icon_path)
-        self.set_logo(gtk.gdk.pixbuf_new_from_file(constants.lutris_icon_path))
-        self.set_name(constants.name)
-        self.set_version(constants.version)
-        self.set_copyright(constants.copyright)
-        self.set_license(constants.license)
-        self.set_authors(constants.authors)
-        self.set_artists(constants.artists)
-        self.set_website(constants.website)
+        self.set_icon_from_file(lutris.constants.lutris_icon_path)
+        self.set_logo(gtk.gdk.pixbuf_new_from_file(lutris.constants.lutris_icon_path))
+        self.set_name(lutris.constants.name)
+        self.set_version(lutris.constants.version)
+        self.set_copyright(lutris.constants.copyright)
+        self.set_license(lutris.constants.license)
+        self.set_authors(lutris.constants.authors)
+        self.set_artists(lutris.constants.artists)
+        self.set_website(lutris.constants.website)
         
 def NewAboutLutrisDialog():
     """NewAboutLutrisDialog - returns a fully instantiated

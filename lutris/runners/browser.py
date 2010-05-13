@@ -1,4 +1,5 @@
 # -*- coding:Utf-8 -*-
+# It is pitch black. You are likely to be eaten by a grue.
 ###############################################################################
 ## Lutris
 ##
@@ -19,25 +20,24 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from runner import Runner
+from lutris.runners.runner import Runner
 
-class openmsx(Runner):
-    '''Runner for MSX games'''
-
+class browser(Runner):
+    '''Runner for browser games'''
 
     def __init__(self,settings = None):
         '''Constructor'''
-        self.package = "openmsx"
-        self.executable = "openmsx"
-        self.machine = "MSX"
-        self.description = "MSX Emulator"
-        self.game_options = [{"option":"rom","type":"single","label":"ROM File"}]
+        super(browser,self).__init__()
+        self.package = "x-www-browser"
+        self.executable = "x-www-browser"
+        self.machine = "Web Browser"
+        self.description = "Run games in the browser"
+        self.game_options = [{"option":"url","type":"string","label":"URL"}]
         self.runner_options = []
         if settings:
-            self.rom = settings["game"]["rom"]
-        
-        
+            self.url = settings["game"]["url"]
+
+
     def play(self):
-        command = [self.executable,"\""+self.rom+"\""]
+        command = ['x-www-browser',"\""+self.url+"\""]
         return command
-        

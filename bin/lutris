@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-#This program is free software: you can redistribute it and/or modify it 
-#under the terms of the GNU General Public License version 3, as published 
-#by the Free Software Foundation.
-#
-#This program is distributed in the hope that it will be useful, but 
-#WITHOUT ANY WARRANTY; without even the implied warranties of 
-#MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
-#PURPOSE.  See the GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License along 
-#with this program.  If not, see <http://www.gnu.org/licenses/>.
+# This program is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License version 3, as published 
+# by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but 
+# WITHOUT ANY WARRANTY; without even the implied warranties of 
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+# PURPOSE.  See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along 
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
 import sys
@@ -40,11 +40,11 @@ else:
     fullPath = os.getcwd()
 sys.path.insert(0, os.path.dirname(fullPath))
 
-from coverflow import coverflow
-from lutris.gui import dictionary_grid
-import runners
-from lutris import constants
-from lutris import AboutLutrisDialog
+from lutris.coverflow.coverflow import coverflow
+from lutris.gui.dictionary_grid import DictionaryGrid
+import lutris.runners
+import lutris.constants
+from lutris.AboutLutrisDialog import AboutLutrisDialog , NewAboutLutrisDialog
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.ftpdialog import FtpDialog
@@ -120,7 +120,7 @@ class LutrisWindow(gtk.Window):
 
         #Game list
         self.game_list = self.get_game_list()
-        self.game_list_grid_view = dictionary_grid.DictionaryGrid(self.game_list,["Game Name","Runner"])
+        self.game_list_grid_view = DictionaryGrid(self.game_list,["Game Name","Runner"])
         self.game_list_grid_view.connect('row-activated',self.game_launch)
         self.game_list_grid_view.connect("cursor-changed", self.select_game)
         self.game_list_grid_view.connect("button-press-event", self.mouse_menu)        
@@ -154,9 +154,9 @@ class LutrisWindow(gtk.Window):
     
     def get_game_list(self):
         game_list = []
-        for file in os.listdir(constants.game_config_path):
-            if file.endswith(constants.config_extension):
-                game_name = file[:len(file)-len(constants.config_extension)]
+        for file in os.listdir(lutris.constants.game_config_path):
+            if file.endswith(lutris.constants.config_extension):
+                game_name = file[:len(file)-len(lutris.constants.config_extension)]
                 Game = LutrisGame(game_name)
                 if not Game.load_success:
                     message = "Error while loading configuration for %s" % game_name
@@ -171,7 +171,7 @@ class LutrisWindow(gtk.Window):
 
     def about(self, widget, data=None):
         """about - display the about box for lutris """
-        about = AboutLutrisDialog.NewAboutLutrisDialog()
+        about = NewAboutLutrisDialog()
         response = about.run()
         about.destroy()
 
@@ -224,7 +224,7 @@ class LutrisWindow(gtk.Window):
         mount_iso_dialog = MountIsoDialog()
 
     def on_fullscreen_clicked(self,widget):
-        game = coverflow.coverflow()
+        game = lutris.coverflow.coverflow.coverflow()
         if game:
             if game == "NOCOVERS":
                 logging.error("Add some covers to these games first !")
@@ -253,7 +253,7 @@ class LutrisWindow(gtk.Window):
             self.game_list_grid_view.append_row(game_info)
         
     def import_cedega(self,widget,data=None):
-        cedega = runners.cedega.cedega()
+        cedega = lutris.runners.cedega.cedega()
         cedega.import_games()
         self.get_game_list()
 
@@ -261,7 +261,7 @@ class LutrisWindow(gtk.Window):
         logging.debug("Import from steam not yet implemented")
 
     def import_scummvm(self,widget,data=None):
-        scummvm = runners.scummvm.scummvm()
+        scummvm = lutris.runners.scummvm.scummvm()
         scummvm.import_games()
         games = self.get_game_list()
         current_game_names = []
@@ -306,7 +306,7 @@ class LutrisWindow(gtk.Window):
         if self.gameName:
             extensions = ["png", "jpg", "jpeg"]
             for extension in extensions:
-                coverFile = os.path.join(constants.cover_path, self.gameName + "." + extension)
+                coverFile = os.path.join(lutris.constants.cover_path, self.gameName + "." + extension)
                 if os.path.exists(coverFile):
                     #Resize the image
                     cover_pixbuf = gtk.gdk.pixbuf_new_from_file(coverFile)

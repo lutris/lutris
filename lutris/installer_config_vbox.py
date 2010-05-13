@@ -20,7 +20,7 @@
 ###############################################################################
 
 import gtk
-import runners
+import lutris.runners
 from lutris.config_vbox import ConfigVBox
 
 class InstallerConfigVBox(ConfigVBox):
@@ -29,7 +29,7 @@ class InstallerConfigVBox(ConfigVBox):
         self.lutris_config  = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
-        runner = eval("runners."+self.runner_class+"."+self.runner_class+"()")
+        runner = eval("lutris.runners."+self.runner_class+"."+self.runner_class+"()")
         if hasattr(runner,"installer_options"):
             self.options = runner.installer_options
         else:

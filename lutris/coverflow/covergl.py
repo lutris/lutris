@@ -5,7 +5,7 @@ except ImportError,msg:
     print msg
     PYGLET_ENABLED = False
 #from PIL import Image
-import anim
+import lutris.coverflow.anim
 
 _glGenTextures = glGenTextures
 def glGenTextures(i):
@@ -36,8 +36,8 @@ afValues = []
 def setup_values():
     global pValueCoverAngle, pValueCoverTrack, pValueCoverAlpha, pValueCoverBounce
     # set some animation variables */
-    pValueCoverTrack = anim.animate(start=0, end=0, dt=.5, method="sine")
-    pValueCoverAlpha = anim.animate(start=0, end=1., dt=2., method="exponential")
+    pValueCoverTrack = lutris.coverflow.anim.animate(start=0, end=0, dt=.5, method="sine")
+    pValueCoverAlpha = lutris.coverflow.anim.animate(start=0, end=1., dt=2., method="exponential")
 
 def mk_advance(tracks, covers):
     def advance(reverse=True):
@@ -179,10 +179,10 @@ class Cover(object):
         self.z_base = -5
         self.z_focus = -2
         self.y_base = self.fHeight/0.5 - 1
-        self.fX = anim.ConstantAnimator(0)
-        self.fY = anim.ConstantAnimator(0)
-        self.fZ = anim.animate(start=self.z_base, end=self.z_base, dt=.5, method="ease_out_back")
-        self.fAngle = anim.animate(start=angle, end=angle, dt=.5, method="ease_out_circ")
+        self.fX = lutris.coverflow.anim.ConstantAnimator(0)
+        self.fY = lutris.coverflow.anim.ConstantAnimator(0)
+        self.fZ = lutris.coverflow.anim.animate(start=self.z_base, end=self.z_base, dt=.5, method="ease_out_back")
+        self.fAngle = lutris.coverflow.anim.animate(start=angle, end=angle, dt=.5, method="ease_out_circ")
         self.fAlpha = pValueCoverAlpha
         self.current = False
     def __del__(self):

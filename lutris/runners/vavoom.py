@@ -1,5 +1,4 @@
 # -*- coding:Utf-8 -*-
-# It is pitch black. You are likely to be eaten by a grue.
 ###############################################################################
 ## Lutris
 ##
@@ -20,24 +19,18 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from runner import Runner
+from lutris.runners.runner import Runner
 
-class frotz(Runner):
-    '''Runner for z-code games such as Zork'''
-
-    def __init__(self,settings = None):
-        '''Constructor'''
-        super(frotz,self).__init__()
-        self.package = "frotz"
-        self.executable = "frotz"
-        self.machine = "Z-Code"
-        self.description = "Z Code interpreter (Infocom interactive fictions)"
-        self.game_options = [{"option":"story","type":"single","label":"Story File"}]
-        self.runner_options = []
+class vavoom(Runner):
+    def __init__(self,settings=None):
+        self.executable = "vavoom"
+        self.package = None
+        self.description = "Runs games based on the Doom engine like Doom, Hexen, Heretic"
+        self.machine = "Games based on the Doom engine"
         if settings:
-            self.story = settings["game"]["story"]
+            self.wad = settings["main"]["wad"]
 
-
+        
+    
     def play(self):
-        command = ['x-terminal-emulator','-e',"\""+self.executable,"\""+self.story+"\"\""]
-        return command
+        return [self.executable,self.gfxmode,self.wad]

@@ -22,7 +22,7 @@
 
 
 import gtk
-import runners
+import lutris.runners
 import os
 import logging
 import subprocess
@@ -53,7 +53,7 @@ class InstallerDialog(gtk.Dialog):
         runner_liststore = gtk.ListStore(str,str)
         runner_liststore.append(("Choose a runner for the list",""))
         for runner_cls in runners.__all__:
-            runner = eval("runners."+runner_cls+"."+runner_cls+"()")
+            runner = eval("lutris.runners."+runner_cls+"."+runner_cls+"()")
             if hasattr(runner,"description"):
                 description = runner.description
             else:
@@ -118,7 +118,7 @@ class InstallerDialog(gtk.Dialog):
         self.lutris_config.config["runner"] = self.runner_class
 
         #Run the installer
-        runner = eval("runners."+self.runner_class+"."+self.runner_class+"()")
+        runner = eval("lutris.runners."+self.runner_class+"."+self.runner_class+"()")
         self.lutris_config.update_global_config()
         command = runner.get_install_command(self.lutris_config.config["game"]["installer"])
         #command = runner.get_install_command()

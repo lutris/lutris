@@ -38,8 +38,8 @@ try:
     from pyglet import window
     #from pyglet import clock
     PYGLET_ENABLED = True
-    import covergl
-    import anim
+    import lutris.coverflow.covergl
+    import lutris.coverflow.anim
 except ImportError,msg:
     print "Pyglet Error: %s" % str(msg)
     PYGLET_ENABLED = False
@@ -105,23 +105,23 @@ def coverflow():
     def on_resize(w, h):
         # Override the default on_resize handler to create a 3D projection
         glViewport (0, 0, w, h)
-        covergl.change_projection(True, w, h)
+        lutris.coverflow.covergl.change_projection(True, w, h)
         glClear(GL_COLOR_BUFFER_BIT)
 
     setup()
-    covergl.setup_values()
+    lutris.coverflow.covergl.setup_values()
     w.clicked = False
 
 
     for i, fname in enumerate(filenames):
-        cover = covergl.Cover(2.0, fname, angle=-70)
+        cover = lutris.coverflow.covergl.Cover(2.0, fname, angle=-70)
         x = i*0.75
         cover.fX.set(x)
         covers.append(cover)
         tracks.append(x)
     covers[0].focus()
 
-    advance = covergl.mk_advance(tracks, covers)
+    advance = lutris.coverflow.covergl.mk_advance(tracks, covers)
     @w.event
     def on_key_press(symbol, modifiers):
         if symbol == window.key.LEFT: advance(True)
@@ -161,12 +161,12 @@ def coverflow():
     def on_draw():
         w.clear()
         w.dispatch_events()
-        covergl.display(w.width, w.height, covers)
+        lutris.coverflow.covergl.display(w.width, w.height, covers)
         w.flip()
 
     clock = pyglet.clock.get_default()
     clock.set_fps_limit(60)
-    clock.schedule(anim.add_time)
+    clock.schedule(lutris.coverflow.anim.add_time)
     pyglet.app.run()
     if w.clicked:
         return filenames[advance.i]

@@ -19,7 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import runners
+import lutris.runners
 from lutris.config_vbox import ConfigVBox
 import gtk
 
@@ -27,7 +27,7 @@ class RunnerConfigVBox(ConfigVBox):
     def __init__(self,lutris_config,caller):
         runner = lutris_config.runner
         ConfigVBox.__init__(self,runner,caller)
-        runner_instance = eval("runners."+runner+"."+runner+"()")
+        runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
         if hasattr(runner_instance, "runner_options"):
             self.options = runner_instance.runner_options
         else:

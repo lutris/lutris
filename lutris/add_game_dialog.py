@@ -22,7 +22,7 @@
 
 
 import gtk
-import runners
+import lutris.runners
 import os
 import logging
 from lutris.config import LutrisConfig
@@ -52,7 +52,7 @@ class AddGameDialog(gtk.Dialog):
         runner_liststore = gtk.ListStore(str,str)
         runner_liststore.append(("Choose a runner for the list",""))
         for runner_cls in runners.__all__:
-            runner = eval("runners."+runner_cls+"."+runner_cls+"()")
+            runner = eval("lutris.runners."+runner_cls+"."+runner_cls+"()")
             if hasattr(runner,"description"):
                 description = runner.description
             else:

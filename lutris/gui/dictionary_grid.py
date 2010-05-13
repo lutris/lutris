@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-#This program is free software: you can redistribute it and/or modify it 
-#under the terms of the GNU General Public License version 3, as published 
-#by the Free Software Foundation.
-#
-#This program is distributed in the hope that it will be useful, but 
-#WITHOUT ANY WARRANTY; without even the implied warranties of 
-#MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
-#PURPOSE.  See the GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License along 
-#with this program.  If not, see <http://www.gnu.org/licenses/>.
+# This program is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License version 3, as published 
+# by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but 
+# WITHOUT ANY WARRANTY; without even the implied warranties of 
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+# PURPOSE.  See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along 
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 """A Treeview for Dictionaries"""
 
 import gtk
 import gobject
-import conventions
-from grid_column import StringColumn
+from lutris.gui.conventions import *
+from lutris.gui.grid_column import StringColumn
 
 class DictionaryGrid(gtk.TreeView):
     def __init__(self, dictionaries=None, keys=None, type_hints=None):
@@ -244,7 +244,7 @@ class DictionaryGrid(gtk.TreeView):
                 column = self.__type_hints[k](k,i,len(self.keys))
             else:
                 #no column supplied, use conventions to get a column
-                column = conventions.get_column(k,i,len(self.keys), self.editable)
+                column = get_column(k,i,len(self.keys), self.editable)
                 
             #add the created column, and remember it's key
             self.append_column(column)

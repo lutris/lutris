@@ -1,4 +1,4 @@
-import runners
+import lutris.runners
 import gtk
 from lutris.runner_config_dialog import RunnerConfigDialog
 
@@ -20,7 +20,7 @@ class RunnersDialog(gtk.Dialog):
         for runner in runner_list:
             hbox = gtk.HBox()
             #Label
-            runner_instance = eval("runners."+runner+"."+runner+"()")
+            runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
             machine = runner_instance.machine
             runner_label = gtk.Label()
             runner_label.set_markup("<b>"+runner + "</b> ( "+machine+" ) ")
@@ -48,7 +48,7 @@ class RunnersDialog(gtk.Dialog):
         self.destroy()
 
     def on_install_clicked(self,widget,runner):
-        runner_instance = eval("runners."+runner+"."+runner+"()")
+        runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
         runner_instance.install_runner()
 
     def on_configure_clicked(self,widget,runner):

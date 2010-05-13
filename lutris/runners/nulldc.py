@@ -4,7 +4,7 @@ Created on Apr 25, 2009
 @author: strider
 '''
 
-from wine import wine
+from lutris.runners.wine import wine
 import os
 
 class nulldc(wine):

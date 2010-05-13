@@ -1,7 +1,7 @@
 import gtk
 import gobject
-from grid_column import StringColumn, CurrencyColumn, CheckColumn
-from grid_column import IntegerColumn, TagsColumn
+from lutris.gui.grid_column import StringColumn, CurrencyColumn, CheckColumn
+from lutris.gui.grid_column import IntegerColumn, TagsColumn
 
 def get_column(key, index, dictionary_index, editable):
     if key.lower() == "id":

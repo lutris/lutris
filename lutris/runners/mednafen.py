@@ -19,11 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import os
-import subprocess
-from runner import Runner
-
+from lutris.runners.runner import Runner
 from lutris.desktop_control import LutrisDesktopControl
+import subprocess
+import os
 
 class mednafen(Runner):
     def __init__(self,settings=None):

@@ -22,7 +22,7 @@
 import os
 import logging
 import lutris.constants
-from runner import Runner
+from lutris.runners.runner import Runner
 class wine(Runner):
     def __init__(self,settings = None):
         self.executable = "wine"

@@ -19,12 +19,12 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import os
-import subprocess
-from runner import Runner
-from ConfigParser import ConfigParser
+from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from lutris.constants import *
+from ConfigParser import ConfigParser
+import os
+import subprocess
 
 class scummvm(Runner):
     def __init__(self,settings=None):

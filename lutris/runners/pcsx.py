@@ -20,33 +20,28 @@
 ###############################################################################
 
 
-from runner import Runner
+from lutris.runners.runner import Runner
 
-class snes9x(Runner):
+class pcsx(Runner):
     def __init__(self,settings = None):
-        """It seems that the best snes emulator around it snes9x-gtk
-        zsnes has no 64bit port
-        I have no idea why Ubuntu Packagers have dropped the snes9x-opengl
-        package, this is absurd ! snes9x-x looks really ugly and has broken
-        fullscreen support.
-        So if you want snes9x-gtk on Ubuntu , add this PPA :
-        ppa:bearoso/ppa
-
-        There is more details about snes9x-gtk here :
-        http://www.snes9x.com/phpbb2/viewtopic.php?t=3703
-
-        The [needs packaging] bug is here:
-        https://bugs.launchpad.net/ubuntu/+source/snes9x/+bug/316808
         """
-        self.executable = "snes9x-gtk"
-        self.package = "snes9x-gtk"
-        self.description = "Runs Super Nintendo games with Snes9x"
-        self.machine = "Super Nintendo"
+        pcsx-df is what seems the best candidate for a playstation emulator.
+        Sadly, it was removed from the Debian archives and thus Ubuntu because
+        of a small licensing issue :
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=514446
+        The package also lacks a maintainer :
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510530
+        """
+        self.executable = "pcsx"
+        self.package = "pcsx-df"
         self.is_installable = False
-        self.game_options = [{"option":"rom","type":"single","label":"ROM"}]
-        self.runner_options = [{"option":"fullscreen", "type":"bool", "label":"Fullscreen"}]
+        self.description = "Runs PlayStation games"
+        self.machine = "Playstation"
+        self.game_options = [{"option":"iso","type":"single","label":"iso"}]
+        self.runner_options = []
+        #Load settings
         if settings:
-            self.rom = settings["game"]["rom"]
-        
+            self.iso = settings["game"]["iso"]
+
     def play(self):
-        return [self.executable,"\""+self.rom+"\""]
+        return [self.executable," -nogui -cdfile \""+self.iso+"\""]

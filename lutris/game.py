@@ -29,7 +29,7 @@ import os,time
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
-from runners import *
+from lutris.runners import *
 from lutris.constants import *
 
 class LutrisGame():

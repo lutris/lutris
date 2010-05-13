@@ -19,37 +19,25 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from runner import Runner
+from lutris.runners.runner import Runner
 
-class osmose(Runner):
-    '''Runner for intellivision games'''
+class dosbox(Runner):
+    '''Runner for MSX games'''
 
     def __init__(self,settings = None):
         '''Constructor'''
-        self.package = "osmose"
-        self.executable = "osmose"
-        self.machine = "Sega Master System"
-        #osmose is not yet available as a package  in Debian and Ubuntu,
-        #it requires some packaging
+        self.package = "dosbox"
+        self.executable = "dosbox"
+        self.machine = "MS DOS"
         self.is_installable = False
-
-        self.description = "Sega Master System Emulator"
-      
-        self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
-        self.runner_options = [{"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
-                              {"option": "joy", "type":"bool", "label":"Use joystick"},]
-        self.arguments = []
+        self.description = "DOS Emulator"
+        self.game_options = [{"option":"exe","type":"single","label":"EXE File"}]
+        self.runner_options = []
         if settings:
-            if 'fullscreen' in settings['osmose']:
-                if settings['osmose']['fullscreen']:
-                    self.arguments = self.arguments + ['-fs','-bilinear']
-            if 'joy' in settings["osmose"]:
-                if settings['osmose']['joy']:
-                    self.arguments = self.arguments + ['-joy']
-            self.arguments = self.arguments + ["\""+settings['game']['rom']+"\""]
-
-
+            self.exe = settings["game"]["exe"]
+        
+        
     def play(self):
-        command = [self.executable] + self.arguments
+        command = [self.executable,"\""+self.exe+"\""]
         return command
         

@@ -18,11 +18,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-__author__="strider"
-__date__ ="$28 nov. 2009 05:29:44$"
-
-from tool.url_tool import UrlTool
-from tool.re_tool import RE_tool
+from lutris.tool.url_tool import UrlTool
+from lutris.tool.re_tool import RE_tool
 import urllib2
 import logging
 import os
@@ -38,14 +35,14 @@ class GoogleImage():
         self.url_tool = UrlTool()
         self.url_tool.local = False     
         self.fetch_count = 0   
-        # "Everybody stand back"
-        # "I know regular expressions"
-        # Python !  *tap* *tap*
-        # "Wait, forgot to escape a space."  Wheeeeee[taptaptap]eeeeee.
         self.webpage = self.url_tool.read_html("http://images.google.fr/images?q="+urllib2.quote(search_string)+"&oe=utf-8&rls=com.ubuntu:fr:official&client=firefox-a&um=1&ie=UTF-8&sa=N&hl=en&tab=wi")
         
     def scan_for_images(self,dest):
         re_tool = RE_tool()
+        # "Everybody stand back"
+        # "I know regular expressions"
+        # Python !  *tap* *tap*
+        # "Wait, forgot to escape a space."  Wheeeeee[taptaptap]eeeeee.
         images = re_tool.findall("\[\"/imgres\?imgurl\\\\x3d(.*?)\\\\x26imgrefurl\\\\x3d(.*?)\\\\x3d1\",\"\",\"(.*?)\".*?http://(.*?)(\d+ x \d+ - \d+[bkm]).*?\"(.*?)\".*?http://(.*?)\",.*?\]", self.webpage)
         self.google_results = []
         index = 0

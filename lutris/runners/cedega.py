@@ -20,7 +20,7 @@
 ###############################################################################
 
 from lutris.config import LutrisConfig
-from runners.runner import Runner
+from lutris.runners.runner import Runner
 import ConfigParser
 import os
 

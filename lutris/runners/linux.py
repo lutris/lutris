@@ -22,7 +22,7 @@ import os.path
 ###############################################################################
 
 
-from runner import Runner
+from lutris.runners.runner import Runner
 import os
 import stat
 

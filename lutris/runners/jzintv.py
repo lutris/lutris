@@ -19,7 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from runner import Runner
+from lutris.runners.runner import Runner
 import os.path
 class jzintv(Runner):
     '''Runner for intellivision games'''

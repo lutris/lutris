@@ -1,4 +1,5 @@
 # -*- coding:Utf-8 -*-
+# It is pitch black. You are likely to be eaten by a grue.
 ###############################################################################
 ## Lutris
 ##
@@ -19,29 +20,24 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+from lutris.runners.runner import Runner
 
-from runner import Runner
+class frotz(Runner):
+    '''Runner for z-code games such as Zork'''
 
-class pcsx(Runner):
     def __init__(self,settings = None):
-        """
-        pcsx-df is what seems the best candidate for a playstation emulator.
-        Sadly, it was removed from the Debian archives and thus Ubuntu because
-        of a small licensing issue :
-        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=514446
-        The package also lacks a maintainer :
-        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510530
-        """
-        self.executable = "pcsx"
-        self.package = "pcsx-df"
-        self.is_installable = False
-        self.description = "Runs PlayStation games"
-        self.machine = "Playstation"
-        self.game_options = [{"option":"iso","type":"single","label":"iso"}]
+        '''Constructor'''
+        super(frotz,self).__init__()
+        self.package = "frotz"
+        self.executable = "frotz"
+        self.machine = "Z-Code"
+        self.description = "Z Code interpreter (Infocom interactive fictions)"
+        self.game_options = [{"option":"story","type":"single","label":"Story File"}]
         self.runner_options = []
-        #Load settings
         if settings:
-            self.iso = settings["game"]["iso"]
+            self.story = settings["game"]["story"]
+
 
     def play(self):
-        return [self.executable," -nogui -cdfile \""+self.iso+"\""]
+        command = ['x-terminal-emulator','-e',"\""+self.executable,"\""+self.story+"\"\""]
+        return command

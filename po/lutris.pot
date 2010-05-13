@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-02 00:58+0100\n"
+"POT-Creation-Date: 2010-05-13 12:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,12 +16,25 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../data/ui/PreferencesLutrisDialog.ui.h:1 ../data/ui/AddgameDialog.ui.h:1
-msgid "gtk-cancel"
+#: ../data/ui/AboutLutrisDialog.ui.h:1
+msgid ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it \n"
+"# under the terms of the GNU General Public License version 3, as "
+"published \n"
+"# by the Free Software Foundation.\n"
+"# \n"
+"# This program is distributed in the hope that it will be useful, but \n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of \n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR \n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"# \n"
+"# You should have received a copy of the GNU General Public License along \n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
 
-#: ../data/ui/PreferencesLutrisDialog.ui.h:2 ../data/ui/AddgameDialog.ui.h:2
-msgid "gtk-ok"
+#: ../data/ui/AboutLutrisDialog.ui.h:14
+msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:1
@@ -106,4 +119,12 @@ msgstr ""
 
 #: ../data/ui/LutrisWindow.ui.h:21
 msgid "configure the default options"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:1
+msgid "gtk-cancel"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:2
+msgid "gtk-ok"
 msgstr ""

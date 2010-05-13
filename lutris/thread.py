@@ -24,7 +24,8 @@ import logging
 import threading
 import subprocess
 import gobject
-from runners.cedega import cedega
+from lutris.runners.cedega import cedega
+
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     

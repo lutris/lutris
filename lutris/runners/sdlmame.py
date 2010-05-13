@@ -22,7 +22,7 @@ import os.path
 
 import os
 import subprocess
-from runner import Runner
+from lutris.runners.runner import Runner
 
 class sdlmame(Runner):
     def __init__(self,settings=None):

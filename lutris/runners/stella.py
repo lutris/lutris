@@ -1,4 +1,5 @@
 # -*- coding:Utf-8 -*-
+# It is pitch black. You are likely to be eaten by a grue.
 ###############################################################################
 ## Lutris
 ##
@@ -19,25 +20,24 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from runner import Runner
+from lutris.runners.runner import Runner
 
-class dosbox(Runner):
-    '''Runner for MSX games'''
+class stella(Runner):
+    '''Runner for stella Atari 2600 emulator'''
 
     def __init__(self,settings = None):
         '''Constructor'''
-        self.package = "dosbox"
-        self.executable = "dosbox"
-        self.machine = "MS DOS"
-        self.is_installable = False
-        self.description = "DOS Emulator"
-        self.game_options = [{"option":"exe","type":"single","label":"EXE File"}]
+        super(stella,self).__init__()
+        self.package = "stella"
+        self.executable = "stella"
+        self.machine = "Atari 2600"
+        self.description = "Run Atari 2600 games"
+        self.game_options = [{"option":"cart","type":"single","label":"Cartridge"}]
         self.runner_options = []
         if settings:
-            self.exe = settings["game"]["exe"]
-        
-        
+            self.cart = settings["game"]["cart"]
+
+
     def play(self):
-        command = [self.executable,"\""+self.exe+"\""]
+        command = ['stella',"\""+self.cart+"\""]
         return command
-        

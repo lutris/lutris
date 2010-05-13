@@ -24,7 +24,7 @@ import yaml
 import os
 import logging
 import copy
-import constants as constants
+import lutris.constants as constants
 
 class LutrisConfig():
     def __init__(self,runner=None,game=None):
