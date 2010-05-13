@@ -81,8 +81,8 @@ class wine(Runner):
         """The kill command runs wineserver -k"""
         os.popen("winserver -k")
 
-    def get_install_command(self):
-        command = "%s %s" % (self.executable, self.installer_executable)
+    def get_install_command(self,installer_executable):
+        command = "%s %s" % (self.executable, installer_executable)
         return command
 
     def play(self):

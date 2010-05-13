@@ -29,6 +29,7 @@ class uae(Runner):
         self.description = "Runs Amiga games with UAE"
         self.machine = "Amiga"
         self.uae_options = {}
+        self.is_installable = False
         control_choices = [("Mouse","mouse"), ("Joystick 1","joy0"),
                            ("Joystick 2","joy1"),  ("Keyboard 1","kbd1"),
                            ("Keyboard 2","kbd2"),  ("Keyboard 3","kbd3")]

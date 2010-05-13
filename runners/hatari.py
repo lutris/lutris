@@ -20,8 +20,6 @@
 ###############################################################################
 
 from runner import Runner
-from lutris.desktop_control import LutrisDesktopControl
-import os.path
 
 class hatari(Runner):
     '''Runner for intellivision games'''
@@ -49,7 +47,6 @@ class hatari(Runner):
                                {"option": "joy1", "type": "one_choice", "label": "Joystick 1", "choices": joystick_choices },
                                {"option": "joy2", "type": "one_choice", "label": "Joystick 2", "choices": joystick_choices },
                               ]
-
         if settings:
             if "fullscreen" in settings["hatari"]:
                 if settings["hatari"]["fullscreen"]:

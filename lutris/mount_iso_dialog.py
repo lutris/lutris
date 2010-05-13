@@ -1,3 +1,5 @@
+import os.path
+import os
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -55,6 +57,14 @@ class MountIsoDialog(gtk.Dialog):
         self.mount_point_hbox.pack_start(self.mount_point_filechooserbutton)
         self.vbox.pack_start(self.mount_point_hbox,False,False,10)
 
+        self.wine_cdrom_hbox = gtk.HBox()
+        self.wine_cdrom_label = gtk.Label("Set Wine CDROM to mount point")
+        self.wine_cdrom_checkbutton = gtk.CheckButton()
+        self.wine_cdrom_hbox.pack_start(self.wine_cdrom_label,False,False)
+        self.wine_cdrom_hbox.pack_start(self.wine_cdrom_checkbutton,False,False)
+        self.vbox.pack_start(self.wine_cdrom_hbox,False,False,10)
+
+
         #Action buttons
         cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
         ok_button = gtk.Button(None, gtk.STOCK_OK)
@@ -81,6 +91,18 @@ class MountIsoDialog(gtk.Dialog):
         #TODO: Check if file is valid
         iso_file = self.iso_filechooserbutton.get_filename()
         mount_point = self.mount_point_filechooserbutton.get_filename()
+
+
+        
+        #TODO: Check if file is valid
+        iso_file = self.iso_filechooserbutton.get_filename()
+        mount_point = self.mount_point_filechooserbutton.get_filename()
         fuseiso_command = subprocess.Popen(["fuseiso",iso_file,mount_point],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+        #TODO : Show dialog
+        if self.wine_cdrom_checkbutton.get_active():
+            os.remove(os.path.expanduser('~'), '.wine/dosdevices/d:')
+            os.symlink(mount_point, os.path.join(os.path.expanduser('~'), '.wine/dosdevices/d:'))
+            
         print "mount done!"
         self.destroy()
