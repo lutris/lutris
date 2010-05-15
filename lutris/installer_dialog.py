@@ -52,7 +52,7 @@ class InstallerDialog(gtk.Dialog):
         #get a list of available runners
         runner_liststore = gtk.ListStore(str,str)
         runner_liststore.append(("Choose a runner for the list",""))
-        for runner_cls in runners.__all__:
+        for runner_cls in lutris.runners.__all__:
             runner = eval("lutris.runners."+runner_cls+"."+runner_cls+"()")
             if hasattr(runner,"description"):
                 description = runner.description
