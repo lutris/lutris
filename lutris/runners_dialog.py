@@ -14,7 +14,7 @@ class RunnersDialog(gtk.Dialog):
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.vbox.pack_start(scrolled_window,True,True,0)
 
-        runner_list = runners.__all__
+        runner_list = lutris.runners.__all__
         runner_vbox = gtk.VBox()
 
         for runner in runner_list:

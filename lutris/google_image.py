@@ -35,7 +35,11 @@ class GoogleImage():
         self.url_tool = UrlTool()
         self.url_tool.local = False     
         self.fetch_count = 0   
-        self.webpage = self.url_tool.read_html("http://images.google.fr/images?q="+urllib2.quote(search_string)+"&oe=utf-8&rls=com.ubuntu:fr:official&client=firefox-a&um=1&ie=UTF-8&sa=N&hl=en&tab=wi")
+        logging.debug('fetching google data')
+        google_url = "http://images.google.fr/images?q="+urllib2.quote(search_string)+"&oe=utf-8&rls=com.ubuntu:fr:official&client=firefox-a&um=1&ie=UTF-8&sa=N&hl=en&tab=wi"
+        print google_url
+        self.webpage = self.url_tool.read_html(google_url)
+        print self.webpage
         
     def scan_for_images(self,dest):
         re_tool = RE_tool()
