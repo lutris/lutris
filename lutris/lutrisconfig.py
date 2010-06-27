@@ -57,6 +57,5 @@ def getdatapath():
     if os.path.exists(abs_data_path):
         return abs_data_path
     else:
-        print abs_data_path
         raise project_path_not_found
 

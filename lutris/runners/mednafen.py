@@ -71,20 +71,7 @@ class mednafen(Runner):
             index = joy.find("Unique ID:")
             self.joy_ids.append(joy[index+11:])
 
-
-    def play(self):
-
-        desktop_control = LutrisDesktopControl()
-        resolution = desktop_control.get_current_resolution()
-        (resolutionx, resolutiony) = resolution.split("x")
-        xres = str(resolutionx)
-        yres = str(resolutiony)
-        self.options = ["-fs",self.fullscreen,
-                        "-"+self.machine+".xres",xres,"-"+self.machine+".yres",yres,
-                        "-"+self.machine+".stretch","1","-"+self.machine+".special","hq4x",
-                        "-"+self.machine+".videoip","1"]
-        self.joy_ids = []
-        self.find_joysticks()
+    def set_joystick_controls(self):
         nes_controls = ["-nes.input.port1.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
                          "-nes.input.port1.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
                          "-nes.input.port1.gamepad.start","\"joystick "+self.joy_ids[0]+" 00000009\"",
@@ -134,7 +121,24 @@ class mednafen(Runner):
         else:
             controls = []
         for control in controls:
-            self.options.append(control)
+            self.options.append(control)        
+
+    def play(self):
+
+        desktop_control = LutrisDesktopControl()
+        resolution = desktop_control.get_current_resolution()
+        (resolutionx, resolutiony) = resolution.split("x")
+        xres = str(resolutionx)
+        yres = str(resolutiony)
+        self.options = ["-fs",self.fullscreen,
+                        "-"+self.machine+".xres",xres,"-"+self.machine+".yres",yres,
+                        "-"+self.machine+".stretch","1","-"+self.machine+".special","hq4x",
+                        "-"+self.machine+".videoip","1"]
+        self.joy_ids = []
+        self.find_joysticks()
+        if len(self.joy_ids) > 1:
+            self.set_joystick_controls()
+
 
         #os.chdir(self.romdir)
         command = [self.executable]
