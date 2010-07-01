@@ -46,12 +46,15 @@ class SystemConfigVBox(ConfigVBox):
         resolution_list = desktop_control.get_resolutions()
         logging.debug(resolution_list)
         
-        self.options = [{"option": "game_path","type": "directory_chooser","label":"Default game path"},
-                        {"option": "user_wm","type": "one_choice","label":"Desktop Window Manager","choices": wm_list },
-                        {"option": "game_wm","type": "one_choice","label":"Gaming Window Manager","choices": wm_list },
-                        {"option": "resolution", "type": "one_choice","label": "Resolution", "choices": resolution_list },
-                        {"option": "oss_wrapper","type": "one_choice","label":"OSS Wrapper","choices": oss_list },
-                        {"option": "reset_pulse","type": "bool","label":"Reset PulseAudio" },
-                        {"option": "hide_panels","type": "bool","label":"Hide Gnome Panels" }]
+        self.options = [
+            { "option": "game_path", "type": "directory_chooser", "label":"Default game path" },
+            { "option": "user_wm", "type": "one_choice", "label":"Desktop Window Manager","choices": wm_list },
+            { "option": "game_wm", "type": "one_choice", "label":"Gaming Window Manager","choices": wm_list },
+            { "option": "resolution", "type": "one_choice", "label": "Resolution", "choices": resolution_list },
+            { "option": "oss_wrapper", "type": "one_choice", "label":"OSS Wrapper","choices": oss_list },
+            { "option": "reset_pulse", "type": "bool", "label":"Reset PulseAudio" },
+            { "option": "hide_panels", "type": "bool", "label":"Hide Gnome Panels" },
+            { 'option': 'reset_desktop', 'type': 'bool', 'label': 'Reset resolution when game quits' }
+        ]
         
         self.generate_widgets()

@@ -59,11 +59,11 @@ class LutrisGame():
         try:
             self.machine = eval(self.runner_name+"."+self.runner_name+"(self.game_config)")
         except AttributeError,msg:
-            logging.error("Malformed configuration file (Attribute Error) : %s" % self.name)
+            logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)
             logging.error(msg)
             return False
         except KeyError,msg:
-            logging.error("Malformed configuration file (Key Error) : %s" % self.name)
+            logging.error("Invalid configuration file (Key Error) : %s" % self.name)
             logging.error(msg)
             return False
         return True
@@ -136,8 +136,11 @@ class LutrisGame():
                     os.popen("kill -9 %s" % pid)
             else:
                 self.game_thread.game_process.terminate()
-        self.lutris_desktop_control.reset_desktop()
+        if 'reset_desktop' in self.game_config.config['system']:
+            if self.game_config.config['system']['reset_desktop']:
+                self.lutris_desktop_control.reset_desktop()
         pathname = os.path.dirname(sys.argv[0])
+        #FIXME : Problem here finding the right path
         logging.debug("Remove me after debug : %s on %s" %( sys.argv[0],pathname))
         logging.debug("line 2 : %s " % os.path.abspath(pathname))
         os.chdir(os.path.abspath(pathname))
