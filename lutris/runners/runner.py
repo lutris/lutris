@@ -31,7 +31,7 @@ except:
 
 class Runner(object):
     '''Generic runner (base class for other runners) '''
-    def __init__(self,settings=None):
+    def __init__(self, settings = None):
         ''' Initialize runner'''
         self.executable = None
         self.is_installable = False

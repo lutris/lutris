@@ -22,7 +22,7 @@
 from lutris.runners.runner import Runner
 
 class osmose(Runner):
-    '''Runner for intellivision games'''
+    '''Runner for Sega Master System games'''
 
     def __init__(self,settings = None):
         '''Constructor'''
@@ -35,9 +35,11 @@ class osmose(Runner):
 
         self.description = "Sega Master System Emulator"
       
-        self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
-        self.runner_options = [{"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
-                              {"option": "joy", "type":"bool", "label":"Use joystick"},]
+        self.game_options = [ { 'option': 'rom', 'type': 'single', 'label': 'Rom File' } ]
+        self.runner_options = [
+            { 'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen' },
+            { 'option': 'joy', 'type': 'bool', 'label': 'Use joystick' }
+        ]
         self.arguments = []
         if settings:
             if 'fullscreen' in settings['osmose']:
@@ -46,10 +48,10 @@ class osmose(Runner):
             if 'joy' in settings["osmose"]:
                 if settings['osmose']['joy']:
                     self.arguments = self.arguments + ['-joy']
-            self.arguments = self.arguments + ["\""+settings['game']['rom']+"\""]
+            self.arguments = self.arguments + ["\"" + settings['game']['rom'] + "\""]
 
 
     def play(self):
         command = [self.executable] + self.arguments
-        return command
+        return { 'command': command }
         

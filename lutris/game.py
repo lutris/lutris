@@ -1,4 +1,3 @@
-import os
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -25,7 +24,9 @@ import os
 import subprocess
 import gobject
 import logging
-import os,time
+import os
+import os.path
+import time
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
@@ -47,17 +48,20 @@ class LutrisGame():
     def load_config(self):
         #Load the game's configuration
         self.game_config = LutrisConfig(game=self.name)
+
         if "realname" in self.game_config.config:
             self.real_name = self.game_config["realname"]
         else: 
             self.real_name = self.name
+
         try:
             self.runner_name = self.game_config["runner"]
         except KeyError:
             print "Error in %s config file : No runner" % self.name
             return False
+
         try:
-            self.machine = eval(self.runner_name+"."+self.runner_name+"(self.game_config)")
+            self.machine = eval(self.runner_name + "." + self.runner_name + "(self.game_config)")
         except AttributeError,msg:
             logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)
             logging.error(msg)
@@ -73,48 +77,53 @@ class LutrisGame():
         self.hide_panels = False
         oss_wrapper = None
         if "system" in config and config["system"] is not None:
+
+            #Hide Gnome panels
             if "hide_panels" in config["system"]:
                 if config["system"]["hide_panels"]:
-                    #Hide Gnome panels
+                    
                     self.lutris_desktop_control.hide_panels()
                     self.hide_panels = True
+
+            #Change resolution before starting game
             if "resolution" in config["system"]:
-                #Change resolution before starting game
                 success = self.lutris_desktop_control.change_resolution(config["system"]["resolution"])
                 if success:
                     logging.debug("Resolution changed to %s"% config["system"]["resolution"])
                 else:
                     logging.debug("Failed to set resolution %s" % config["system"]["resolution"])
-                    
+
+            #Setting OSS Wrapper
             if "oss_wrapper" in config["system"]:
                 oss_wrapper = config["system"]["oss_wrapper"]                
-                
+
+            #Reset Pulse Audio
             if "reset_pulse" in config["system"]:
                 if config["system"]["reset_pulse"]:
-                    print "Restarting PulseAudio"
+                    logging.debug("Restarting PulseAudio")
                     subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start",shell = True)
-                    print "PulseAudio restarted"
-                    
+                    logging.debug("PulseAudio restarted")
+
         gameplay_info = self.machine.play()
+        
         if type(gameplay_info) == dict:
             game_run_args = gameplay_info["command"]
         else:
             game_run_args = gameplay_info
-            print type(gameplay_info)
             logging.debug("Old method used for returning gameplay infos")
+
         path = None
-        if hasattr(self.machine,"game_path"):
+        if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path
 
-        command =  " ".join(game_run_args)
+        command =  " " . join(game_run_args)
         #OSS Wrapper
-        if oss_wrapper and oss_wrapper != "none":
+        if oss_wrapper and oss_wrapper != 'none':
             command = oss_wrapper + " " + command
 
-        logging.debug(command)
         if game_run_args:
             self.timer_id = gobject.timeout_add(5000, self.poke_process)
-            self.game_thread = LutrisThread(command,path)
+            self.game_thread = LutrisThread(command, path)
             self.game_thread.start()
             
     def write_conf(self,settings):
@@ -139,8 +148,6 @@ class LutrisGame():
         if 'reset_desktop' in self.game_config.config['system']:
             if self.game_config.config['system']['reset_desktop']:
                 self.lutris_desktop_control.reset_desktop()
-        pathname = os.path.dirname(sys.argv[0])
-        #FIXME : Problem here finding the right path
-        logging.debug("Remove me after debug : %s on %s" %( sys.argv[0],pathname))
-        logging.debug("line 2 : %s " % os.path.abspath(pathname))
-        os.chdir(os.path.abspath(pathname))
+        
+        os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+        

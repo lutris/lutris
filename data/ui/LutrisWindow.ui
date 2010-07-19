@@ -14,7 +14,6 @@
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">5</property>
         <child>
           <object class="GtkMenuBar" id="menubar1">
@@ -256,7 +255,7 @@
                 <property name="stock">gtk-missing-image</property>
               </object>
               <packing>
-                <property name="resize">True</property>
+                <property name="resize">False</property>
                 <property name="shrink">True</property>
               </packing>
             </child>
