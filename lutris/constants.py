@@ -46,17 +46,16 @@ license = """
     """
 #Icons
 lutris_icon_file = "data/media/logo.svg"
-lutris_icon_path = os.path.join(sys.path[0],lutris_icon_file)
+lutris_icon_path = os.path.join(sys.path[0], lutris_icon_file)
 
-##Config files
-#Where the files are stored
-lutris_config_path = os.path.join(os.path.expanduser('~'),".config","lutris")
-#name of the main config file
-system_config_file = "system"+config_extension
+#Config files
+lutris_config_path = os.path.join(os.path.expanduser('~'), '.config', 'lutris')
+system_config_file = 'system' + config_extension
 
 system_config_full_path = os.path.join(lutris_config_path, system_config_file)
-runner_config_path = os.path.join(lutris_config_path,"runners")
-game_config_path = os.path.join(lutris_config_path,"games")
-cover_path = os.path.join(lutris_config_path,"covers")
-tmp_path = os.path.join(lutris_config_path,"tmp")
+runner_config_path = os.path.join(lutris_config_path, 'runners"')
+game_config_path = os.path.join(lutris_config_path, 'games')
+cover_path = os.path.join(lutris_config_path, 'covers')
+tmp_path = os.path.join(lutris_config_path, 'tmp')
+cache_path = os.path.join(lutris_config_path, 'cache')
 

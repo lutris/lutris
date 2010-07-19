@@ -19,7 +19,6 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
 import yaml
 import os
 import logging
@@ -27,7 +26,7 @@ import copy
 import lutris.constants as constants
 
 class LutrisConfig():
-    def __init__(self,runner=None,game=None):
+    def __init__(self, runner=None, game=None):
         #Check if configuration directories exists and create them if needed.
         config_paths = [constants.lutris_config_path, \
                         constants.runner_config_path, \
@@ -64,7 +63,6 @@ class LutrisConfig():
             if self.system_config is None:
                 self.system_config = {}
         else:
-            logging.debug("Creating new system config file")
             file(constants.system_config_full_path,"w+")
 
         if self.game:
@@ -166,8 +164,6 @@ class LutrisConfig():
         logging.debug("Fail !")
         logging.debug(self.config)
         return os.path.expanduser("~")
-
-
 
 if  __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

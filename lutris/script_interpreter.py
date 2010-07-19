@@ -25,6 +25,7 @@ from tool.url_tool import UrlTool
 import os
 import hashlib
 import logging
+import lutris.constants
 
 class LutrisInterpreter():
 
@@ -33,7 +34,7 @@ class LutrisInterpreter():
         self.url_tool = UrlTool()
         self.files = {}
         self.dirs = {}
-        self.dirs['cache'] = '/home/strider/.config/lutris/cache'
+        self.dirs['cache'] = lutris.constants.cache_path
         self.dirs['gamedir'] = '/home/strider/Jeux'
         
         if filename:
@@ -52,7 +53,7 @@ class LutrisInterpreter():
                 url = urlparse.urlparse(file_path)
                 if url.scheme:
                     destfile = os.path.basename(url.path)
-                    destpath = '/home/strider/.config/lutris/cache/' + destfile
+                    destpath = lutris.constants.cache_path + destfile
                     if not os.path.exists(destpath):
                         self.url_tool.save_to(destpath,file_path)
                     self.files[file_id] = destpath
