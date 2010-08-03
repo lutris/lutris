@@ -1,4 +1,3 @@
-import os.path
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -21,8 +20,11 @@ import os.path
 ###############################################################################
 
 import os
+import os.path
 import subprocess
 import logging
+import lutris.gconfwrapper
+
 #Dumb Debian Lenny,they don't even have python-gconf !
 try:
     import gconf
@@ -36,18 +38,19 @@ class LutrisDesktopControl():
     """
     def __init__(self):
         self.default_resolution = None
+        self.gconf = GconfWrapper()
         if gconf_capable:
-            self.gconf_path = os.path.join(os.path.expanduser("~"),".gconf")
+            self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
             self.client = gconf.client_get_default ()
-        
+
     def set_keyboard_repeat(self, gconf_value = False):
         """
         Desactivate key repeats, this is needed in Wolfenstein (2009) for example
         """
         gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
-        type= "Boolean"
-        self.change_gconf_key(gconf_key,type,gconf_value)
-        
+        type = "Boolean"
+        self.change_gconf_key(gconf_key, type, gconf_value)
+
     def hide_panels(self, hide = True):
         """
         Hide any panel that exists on the Gnome desktop
@@ -61,44 +64,44 @@ class LutrisDesktopControl():
                 print "Hiding %s" % panel
             else:
                 print "Showing %s" % panel
-            gconf_key = base_dir+panel+"/auto_hide"
-            self.change_gconf_key(gconf_key,"boolean",hide)
+            gconf_key = base_dir + panel + "/auto_hide"
+            self.change_gconf_key(gconf_key, "boolean", hide)
 
-    def change_gconf_key(self,gconf_key,gconf_type,gconf_value):
-        if not hasattr(self,"client"):
+    def change_gconf_key(self, gconf_key, gconf_type, gconf_value):
+        if not hasattr(self, "client"):
             return
         if gconf_type.lower() == "string":
-            self.client.set_string(gconf_key,gconf_value)
+            self.client.set_string(gconf_key, gconf_value)
         if gconf_type.lower() == "boolean" or gconf_type.lower() == "bool":
-            self.client.set_bool(gconf_key,gconf_value)
+            self.client.set_bool(gconf_key, gconf_value)
 
-    def get_gconf_key(self,type,gconf_key):
-        if not hasattr(self,"client"):
+    def get_gconf_key(self, type, gconf_key):
+        if not hasattr(self, "client"):
             return
         if type == "boolean":
             return self.client.get_bool(gconf_key)
         if type == "string":
             return self.client.get_string(gconf_key)
 
-    def all_dirs(self,base_dir):
+    def all_dirs(self, base_dir):
         """The same thing as gconftool --all-dirs <dir>"""
-        
-        if base_dir[0] =="/":
+
+        if base_dir[0] == "/":
             base_dir = base_dir[1:]
         path = os.path.join(self.gconf_path, base_dir)
         dirs = os.listdir(path)
         dirs.remove("%gconf.xml")
         return dirs
-    
-    def change_resolution(self,resolution):
+
+    def change_resolution(self, resolution):
         """change desktop resolution"""
         if resolution not in self.get_resolutions():
             return False
-        subprocess.Popen("xrandr -s %s" % resolution,shell = True).communicate()[0]
+        subprocess.Popen("xrandr -s %s" % resolution, shell = True).communicate()[0]
         return True
 
     def get_resolutions(self):
-        xrandr_output = subprocess.Popen("xrandr",stdout=subprocess.PIPE).communicate()[0]
+        xrandr_output = subprocess.Popen("xrandr", stdout = subprocess.PIPE).communicate()[0]
         resolution_list = []
         for line in xrandr_output.split("\n"):
             if line.startswith("  "):
@@ -106,7 +109,7 @@ class LutrisDesktopControl():
         return resolution_list
 
     def get_current_resolution(self):
-        xrandr_output = subprocess.Popen("xrandr",stdout=subprocess.PIPE).communicate()[0]
+        xrandr_output = subprocess.Popen("xrandr", stdout = subprocess.PIPE).communicate()[0]
         for line in xrandr_output.split("\n"):
             if line.startswith("  ") and "*" in line:
                 return line.split()[0]
@@ -127,11 +130,11 @@ class LutrisDesktopControl():
 
         #Restore gamma
         os.popen("xgamma -gamma 1.0")
-        
+
     def check_joysticks(self):
         number_joysticks = 0
         joysticks = []
-        for device_number in range(0,8):
+        for device_number in range(0, 8):
             device_name = "/dev/input/js%d" % device_number
             if os.path.exists(device_name):
                 number_joysticks = number_joysticks + 1

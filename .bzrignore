@@ -1,2 +1,5 @@
 nbproject
 build
+.project
+.pydevproject
+.settings
