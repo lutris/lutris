@@ -23,7 +23,7 @@ import os
 import os.path
 import subprocess
 import logging
-import lutris.gconfwrapper
+from lutris.gconfwrapper import GconfWrapper
 
 #Dumb Debian Lenny,they don't even have python-gconf !
 try:

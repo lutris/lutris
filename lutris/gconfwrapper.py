@@ -24,7 +24,7 @@
 
 
 import os
-import glib
+from glib import GError
 from lutris.exceptions import GConfBindingsUnavailable
 
 try:
@@ -47,7 +47,7 @@ class GconfWrapper():
     def get_key(self, key):
         try:
             key = self.client.get_string(key)
-        except glib.GError, err:
+        except GError, err:
             if "Type mismatch" in err[0]:
                 if "got `bool' for key" in err[0]:
                     key = self.client.get_bool(key)
@@ -71,7 +71,6 @@ class GconfWrapper():
         dirs.remove("%gconf.xml")
         return dirs
 
-
     def set_key(self, key, value, override_type = False):
         try:
             success = True
@@ -87,7 +86,7 @@ class GconfWrapper():
                 raise TypeError, "Unknown type"
             if not override_type:
                 if not self.get_key_type(key) == type(value):
-                    raise TypeError, "Type mismatch: use type_override to force your way or leave it the way it is!"
+                    raise TypeError, "Type mismatch: use override_type to force your way or leave it the way it is!"
             method(key, value)
         except Exception, err:
             print err

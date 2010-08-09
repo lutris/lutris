@@ -18,16 +18,26 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
-
-try:
-    import gconf
-    gconf_capable = True
-except ImportError:
-    gconf_capable = False
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from lutris.gconfwrapper import GconfWrapper
 
 def register_lutris_handler():
-    if not gconf_capable:
-        return False
+    gconf = GconfWrapper()
+    defaults = (
+        ('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
+        ('/desktop/gnome/url-handlers/lutris/enabled', True),
+        ('/desktop/gnome/url-handlers/lutris/needs-terminal', False),
+    )
+
+    for key, value in defaults:
+        if not gconf.has_key(key):
+            gconf.set_key(key, value, override_type = True)
+
+if __name__ == '__main__':
+    register_lutris_handler()
+
+
 
 
 

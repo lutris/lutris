@@ -347,11 +347,24 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
         logging.debug('logging enabled')
     #run the application
-    window = NewLutrisWindow()
-    window.show()
-    gtk.gdk.threads_init()
-    gtk.gdk.threads_enter()
-    gtk.main()
-    gtk.gdk.threads_leave()
+    game = None
+    for arg in args:
+        if arg.startswith('lutris://'):
+            print 'will install : ' + arg[9:]
+            game = arg[9:]
+            break
+    if game:
+        #TODO: Fetch the .lutris  file
+        #Todo : install the game
+        installer = lutris.WebInstaller(game=game)
+        #window = lutris.gui.InstallerDialog(name=game)
+        exit()
+    else:
+        window = NewLutrisWindow()
+        window.show()
+        gtk.gdk.threads_init()
+        gtk.gdk.threads_enter()
+        gtk.main()
+        gtk.gdk.threads_leave()
 
 
