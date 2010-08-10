@@ -4,6 +4,7 @@ import urllib
 import urllib2
 import subprocess
 import shutil
+import time
 import yaml
 import platform
 from lutris.config import LutrisConfig
@@ -57,12 +58,13 @@ class Installer():
             print "Wrong protocol version (Expected %d, got %d)" % (self.supported_protocol_version, protocol_version)
             return False
 
-        #Script version
-        self.game_info['version'] = self.install_data['version']
-        #Runner
-        self.game_info['runner'] = self.install_data['runner']
-        #Name
-        self.game_info['name'] = self.install_data['name']
+        mandatory_fields = ['version', 'runner', 'name']
+        optional_fields = ['exe']
+        for field in mandatory_fields:
+            self.game_info[field] = self.install_data[field]
+        for field in optional_fields:
+            if field in self.install_data:
+                self.game_info[field] = self.install_data[field]
         files = self.install_data['files']
         self.gamefiles = {}
         for gamefile in files:
@@ -80,45 +82,33 @@ class Installer():
             mappings = {
                 'check_md5': self.check_md5,
                 'extract' : self.extract,
-                'move' : self.move
+                'move' : self.move,
+                'delete': self.delete
             }
             if action_name not in mappings.keys():
                 print "Action " + action_name + " not supported !"
                 return False
             mappings[action_name](action_data)
-#                    
-#                    extIndex = 
-#                    extension = destFile[destFile.rfind("."):]
-#                    if extension == ".zip":
-#                        self.unzip(destFile)
-#                    elif extension == ".rar":
-#                        self.unrar(destFile)
-#                    elif extension == ".tgz" or extension == ".gz":
-#                        self.untgz(destFile)
-#                    elif extension == ".run" or extension == ".bin":
-#                        self.runInstaller(destFile)
-        #=======================================================================
-        # if line.startswith("exec_x86") and platform.architecture()[0] == "32bit":
-        #    self.game_info['exe'] = line[str.index(line, ":") + 1:].strip()
-        # if line.startswith("exec_x64") and platform.architecture()[0] == "64bit":
-        #    self.exe = line[str.index(line, ":") + 1:].strip()
-        # if line.startswith('runner'):
-        #    self.game_info['runner'] = line[str.index(line, ":") + 1:]
-        #=======================================================================
-
+        return True
     def writeConfig(self):
-        config_filename = os.path.join(self.lutrisConfigDir, "games" , self.gameName + ".conf")
+        config_filename = os.path.join(self.lutrisConfigDir,
+                "games" , self.game_info['runner'] + "-" + self.gameName + ".yml")
         config_file = open(config_filename, "w")
-        config_file.write("[main]\n")
-        config_file.write("path = " + self.gameDir + "\n")
+        config_data = {
+                'game': {},
+                'realname': self.game_info['name'],
+                'runner': self.game_info['runner']
+        }
+
         if('exe' in self.game_info):
-            config_file.write("exe = " + self.game_info['exe'] + "\n")
-        config_file.write("runner = " + self.game_info['runner'])
-        config_file.close()
+            config_data['game']['exe'] = os.path.join(self.gameDir, self.game_info['exe'])
+            
+        yaml_config = yaml.dump(config_data, default_flow_style=False)
+        file(config_filename, "w").write(yaml_config)
 
     def reporthook(self, arg1, bytes, totalSize):
         self.totalDownloaded = self.totalDownloaded + bytes
-        print self.totalDownloaded / totalSize * 100.0
+        #print self.totalDownloaded / totalSize * 100.0
 
     def download(self, url):
         logging.debug('Downloading ' + url)
@@ -147,7 +137,11 @@ class Installer():
             self.unzip(filename)
 
     def move(self, data):
-        src = data['src']
+        src = os.path.join(self.gameDir, data['src'])
+        if not os.path.exists(src):
+            time.sleep(1)
+        if not os.path.exists(src):
+            return False
         destination_alias = data['dst']
         if destination_alias == 'gamedir':
             dst = self.gameDir;
@@ -157,7 +151,7 @@ class Installer():
         shutil.move(src, dst)
 
     def unzip(self, file):
-        subprocess.Popen(["unzip", file])
+        subprocess.call(["unzip", '-o', '-qq', file])
 
     def unrar(self, file):
         subprocess.Popen(["unrar", "x", file])
@@ -168,7 +162,8 @@ class Installer():
     def runInstaller(self, file):
         subprocess.Popen(["chmod", "+x", file])
         subprocess.Popen([file])
-
+    def delete(self, data):
+        print "let's not delete anything right now, m'kay ?"
 
 if __name__ == "__main__":
     quakeInstall = LutrisInstaller("quake")
