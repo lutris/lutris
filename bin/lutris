@@ -18,7 +18,6 @@
 import sys
 import os
 import gtk
-
 # optional Launchpad integration
 # this shouldn't crash if not found as it is simply used for bug reporting
 try:
@@ -49,6 +48,7 @@ from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.lutrisconfig import getdatapath
+from lutris.installer import Installer
 from lutris.runners_dialog import RunnersDialog
 from lutris.add_game_dialog import AddGameDialog
 from lutris.mount_iso_dialog import MountIsoDialog
@@ -356,7 +356,8 @@ if __name__ == "__main__":
     if game:
         #TODO: Fetch the .lutris  file
         #Todo : install the game
-        installer = lutris.WebInstaller(game=game)
+        installer = Installer(game)
+        installer.install()
         #window = lutris.gui.InstallerDialog(name=game)
         exit()
     else:

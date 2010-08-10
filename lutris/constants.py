@@ -25,6 +25,7 @@ import sys
 name = "Lutris"
 version = "0.2"
 website = "http://lutris.net"
+installer_prefix = "http://localhost:8000/media/installers/"
 config_extension = ".yml"
 license = 'GPL-3'
 copyright = "(c) 2010 Lutris Gaming Platform"
