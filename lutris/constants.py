@@ -25,7 +25,6 @@ import sys
 name = "Lutris"
 version = "0.2"
 website = "http://lutris.net"
-#installer_prefix = "http://localhost:8000/media/installers/"
 installer_prefix = "http://lutris.net/media/installers/"
 config_extension = ".yml"
 license = 'GPL-3'
@@ -53,6 +52,7 @@ lutris_icon_path = os.path.join(sys.path[0], lutris_icon_file)
 #Config files
 lutris_config_path = os.path.join(os.path.expanduser('~'), '.config', 'lutris')
 system_config_file = 'system' + config_extension
+protocol_version = 1
 
 system_config_full_path = os.path.join(lutris_config_path, system_config_file)
 runner_config_path = os.path.join(lutris_config_path, 'runners"')

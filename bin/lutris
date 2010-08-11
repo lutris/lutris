@@ -17,16 +17,17 @@
 
 import sys
 import os
+
 import gtk
+import gobject
+
 # optional Launchpad integration
 # this shouldn't crash if not found as it is simply used for bug reporting
 try:
     import LaunchpadIntegration
-    launchpad_available = True
-except:
-    launchpad_available = False
-
-import gobject
+    LAUNCHPAD_AVAILABLE = True
+except ImportError:
+    LAUNCHPAD_AVAILABLE = False
 
 # Check if we are working in the source tree or from the installed 
 # package and mangle the python path accordingly
@@ -38,6 +39,7 @@ if os.path.dirname(sys.argv[0]) != ".":
 else:
     fullPath = os.getcwd()
 sys.path.insert(0, os.path.dirname(fullPath))
+
 
 from lutris.coverflow.coverflow import coverflow
 from lutris.gui.dictionary_grid import DictionaryGrid
@@ -59,6 +61,7 @@ from lutris.gui.google_image_dialog import GoogleImageDialog
 from lutris.gui.edit_game_config_dialog import EditGameConfigDialog
 
 class LutrisWindow(gtk.Window):
+    """ Main Lutris window """
     __gtype_name__ = "LutrisWindow"
 
     def __init__(self):
@@ -69,8 +72,8 @@ class LutrisWindow(gtk.Window):
         self.builder = builder
         self.builder.connect_signals(self)
 
-        global launchpad_available
-        if launchpad_available:
+        global LAUNCHPAD_AVAILABLE
+        if LAUNCHPAD_AVAILABLE:
             # see https://wiki.ubuntu.com/UbuntuDevelopment/Internationalisation/Coding for more information
             # about LaunchpadIntegration
             helpmenu = self.builder.get_object('menu3')
@@ -78,11 +81,11 @@ class LutrisWindow(gtk.Window):
                 LaunchpadIntegration.set_sourcepackagename('lutris')
                 LaunchpadIntegration.add_items(helpmenu, 0, False, True)
             else:
-                launchpad_available = False
+                LAUNCHPAD_AVAILABLE = False
 
         self.game_cover_image = self.builder.get_object("game_cover_image")
         self.game_cover_image.set_from_file("data/media/background.png")
-        
+
         self.set_title("Lutris")
 
         #Load Lutris configuration
@@ -92,7 +95,7 @@ class LutrisWindow(gtk.Window):
         game_rename = "Rename", self.edit_game_name
         game_config = "Configure", self.edit_game_configuration
         game_get_cover = "Get cover", self.get_cover
-        menu_actions = [game_rename,game_config,game_get_cover]
+        menu_actions = [game_rename, game_config, game_get_cover]
         self.menu = gtk.Menu()
         for item in menu_actions:
             if item == None:
@@ -101,12 +104,12 @@ class LutrisWindow(gtk.Window):
                 subitem = gtk.ImageMenuItem(item[0])
                 subitem.connect("activate", item[1])
                 self.menu.append(subitem)
-        self.menu.show_all()        
-        
+        self.menu.show_all()
+
         #Status bar
         self.status_label = self.builder.get_object("status_label")
         self.status_label.set_text("Game on!")
-        
+
         self.joystick_icons = []
         self.joystick_icons.append(self.builder.get_object("js0image"))
         self.joystick_icons.append(self.builder.get_object("js1image"))
@@ -115,15 +118,16 @@ class LutrisWindow(gtk.Window):
         for joystick_icon in self.joystick_icons:
             joystick_icon.hide()
 
-        #Toolbar
+        # Toolbar
         self.toolbar = self.builder.get_object("lutris_toolbar")
 
-        #Game list
+        # Game list
         self.game_list = self.get_game_list()
-        self.game_list_grid_view = DictionaryGrid(self.game_list,["Game Name","Runner"])
-        self.game_list_grid_view.connect('row-activated',self.game_launch)
+        self.game_list_grid_view = DictionaryGrid(self.game_list,
+                                                  ["Game Name", "Runner"])
+        self.game_list_grid_view.connect('row-activated', self.game_launch)
         self.game_list_grid_view.connect("cursor-changed", self.select_game)
-        self.game_list_grid_view.connect("button-press-event", self.mouse_menu)        
+        self.game_list_grid_view.connect("button-press-event", self.mouse_menu)
         self.game_list_grid_view.show()
 
         self.game_column = self.game_list_grid_view.get_column(0)
@@ -138,36 +142,35 @@ class LutrisWindow(gtk.Window):
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
 
     def refresh_status(self):
-        ###FIXME !!
-#        if hasattr(self.running_game.game_process, "pid"):
-#            self.status_text = "Game is running (pid: %s)" % str(self.running_game.game_process.pid)
-#            self.status_bar.push(self.status_bar_context_id,self.status_text)
-#        else:
-#            self.status_bar.push(self.status_bar_context_id,"Welcome to Lutris")
-        for index in range(0,3):
+        # FIXME !!
+        # if hasattr(self.running_game.game_process, "pid"):
+        #     self.status_text = "Game is running (pid: %s)" % str(self.running_game.game_process.pid)
+        #     self.status_bar.push(self.status_bar_context_id,self.status_text)
+        # else:
+        #     self.status_bar.push(self.status_bar_context_id,"Welcome to Lutris")
+        for index in range(0, 3):
             if os.path.exists("/dev/input/js%d" % index):
                 self.joystick_icons[index].show()
             else:
                 self.joystick_icons[index].hide()
         return True
 
-    
     def get_game_list(self):
         game_list = []
         for file in os.listdir(lutris.constants.game_config_path):
             if file.endswith(lutris.constants.config_extension):
-                game_name = file[:len(file)-len(lutris.constants.config_extension)]
+                game_name = file[:len(file) - len(lutris.constants.config_extension)]
                 Game = LutrisGame(game_name)
                 if not Game.load_success:
                     message = "Error while loading configuration for %s" % game_name
-                    error_dialog = gtk.MessageDialog(parent=self, flags=0, 
-                                                     type=gtk.MESSAGE_ERROR, 
-                                                     buttons=gtk.BUTTONS_OK, 
+                    error_dialog = gtk.MessageDialog(parent=self, flags=0,
+                                                     type=gtk.MESSAGE_ERROR,
+                                                     buttons=gtk.BUTTONS_OK,
                                                      message_format=message)
                     error_dialog.run()
                     error_dialog.destroy()
-                game_list.append({"Game Name":Game.real_name,"Runner":Game.runner_name,"name":game_name})
-        return game_list      
+                game_list.append({"Game Name":Game.real_name, "Runner":Game.runner_name, "name":game_name})
+        return game_list
 
     def about(self, widget, data=None):
         """about - display the about box for lutris """
@@ -177,14 +180,15 @@ class LutrisWindow(gtk.Window):
 
     def quit(self, widget, data=None):
         """quit - signal handler for closing the LutrisWindow"""
+
         self.destroy()
 
     def on_destroy(self, widget, data=None):
         """on_destroy - called when the LutrisWindow is close. """
         #clean up code for saving application state should be added here
         gtk.main_quit()
-        
-    def mouse_menu(self,widget,event):
+
+    def mouse_menu(self, widget, event):
         if event.button == 3:
             (model, self.paths) = widget.get_selection().get_selected_rows()
             try:
@@ -192,9 +196,9 @@ class LutrisWindow(gtk.Window):
             except IndexError:
                 return
             if len(self.paths) > 0:
-                self.menu.popup(None, None, None, event.button, event.time)        
+                self.menu.popup(None, None, None, event.button, event.time)
 
-    def remove_game(self,widget,data=None):
+    def remove_game(self, widget, data=None):
         """Remove game configuration file
         Note: this won't delete the actual game"""
         if not self.gameName:
@@ -212,7 +216,7 @@ class LutrisWindow(gtk.Window):
         model, select_iter = gameSelection.get_selected()
         game_name = model.get_value(select_iter, 2)
         return game_name["name"]
- 
+
     def select_game(self, treeview):
         gameSelection = treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
@@ -220,47 +224,47 @@ class LutrisWindow(gtk.Window):
             self.gameName = model.get_value(select_iter, 2)["name"]
             self.set_game_cover()
 
-    def on_mount_iso_menuitem_activate(self,widget):
-        mount_iso_dialog = MountIsoDialog()
 
-    def on_fullscreen_clicked(self,widget):
-        game = lutris.coverflow.coverflow.coverflow()
-        if game:
-            if game == "NOCOVERS":
+
+    def on_fullscreen_clicked(self, widget):
+        """ Switch to coverflow mode """
+        coverflow = lutris.coverflow.coverflow.coverflow()
+        if coverflow:
+            if coverflow == "NOCOVERS":
                 logging.error("Add some covers to these games first !")
                 return
-            if game == "NOPYGLET":
+            if coverflow == "NOPYGLET":
                 logging.debug("python-pyglet is not installed")
                 return
-            filename = os.path.basename(game)
+            filename = os.path.basename(coverflow)
             game_name = filename[:filename.rfind(".")]
             running_game = LutrisGame(game_name)
             running_game.play()
-        
-    def reset(self,widget,data=None):
-        if hasattr(self,"running_game"):
+
+    def reset(self, widget, data=None):
+        if hasattr(self, "running_game"):
             self.running_game.quit_game()
         else:
             LutrisDesktopControl().reset_desktop()
 
-    def install_game(self,widget,data=None):
+    def install_game(self, widget, data=None):
         installer_dialog = InstallerDialog(self)
 
-    def add_game(self,widget,data=None):
+    def add_game(self, widget, data=None):
         add_game_dialog = AddGameDialog(self)
-        if hasattr(add_game_dialog,"game_info"):
+        if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
             self.game_list_grid_view.append_row(game_info)
-        
-    def import_cedega(self,widget,data=None):
+
+    def import_cedega(self, widget, data=None):
         cedega = lutris.runners.cedega.cedega()
         cedega.import_games()
         self.get_game_list()
 
-    def import_steam(self,widget,data=None):
+    def import_steam(self, widget, data=None):
         logging.debug("Import from steam not yet implemented")
 
-    def import_scummvm(self,widget,data=None):
+    def import_scummvm(self, widget, data=None):
         scummvm = lutris.runners.scummvm.scummvm()
         scummvm.import_games()
         games = self.get_game_list()
@@ -271,55 +275,59 @@ class LutrisWindow(gtk.Window):
             if game['name'] not in current_game_names:
                 self.game_list_grid_view.append_row(game)
 
-    def on_getfromftp_clicked(self,widget,data=None):
+    def on_getfromftp_clicked(self, widget, data=None):
         FtpDialog()
 
-    def system_preferences(self,widget,data=None):
+    def system_preferences(self, widget, data=None):
         SystemConfigDialog()
 
-    def runner_preferences(self,widget,data=None):
+    def runner_preferences(self, widget, data=None):
         RunnersDialog()
 
-    def edit_game_name(self,button):
-        """Change game name"""
-        self.game_cell.set_property('editable',True)
-        self.game_list_grid_view.set_cursor(self.paths[0][0],self.game_column,True)
+    def on_mount_iso_menuitem_activate(self, widget):
+        MountIsoDialog()
 
-    def game_name_edited_callback(self,widget,index,new_name):
+    def edit_game_name(self, button):
+        """Change game name"""
+        self.game_cell.set_property('editable', True)
+        self.game_list_grid_view.set_cursor(self.paths[0][0], self.game_column, True)
+
+    def game_name_edited_callback(self, widget, index, new_name):
         self.game_list_grid_view.get_model()[index][0] = new_name
         new_name_game_config = LutrisConfig(game=self.get_selected_game())
-        new_name_game_config.config["realname"] =new_name
+        new_name_game_config.config["realname"] = new_name
         new_name_game_config.save(type="game")
-        self.game_cell.set_property('editable',False)
+        self.game_cell.set_property('editable', False)
 
-    def edit_game_configuration(self,button):
+    def edit_game_configuration(self, button):
         """Edit game preferences"""
         game = self.get_selected_game()
-        EditGameConfigDialog(self,game)
+        EditGameConfigDialog(self, game)
 
-    def get_cover(self,button):
+    def get_cover(self, button):
         """Fetch cover from Google Image"""
         game = self.get_selected_game()
         GoogleImageDialog(game)
-                 
+
     def set_game_cover(self):
         if self.gameName:
             extensions = ["png", "jpg", "jpeg"]
             for extension in extensions:
-                coverFile = os.path.join(lutris.constants.cover_path, self.gameName + "." + extension)
+                coverFile = os.path.join(lutris.constants.cover_path,
+                                         self.gameName + "." + extension)
                 if os.path.exists(coverFile):
                     #Resize the image
                     cover_pixbuf = gtk.gdk.pixbuf_new_from_file(coverFile)
                     dest_w = 250.0
                     h = cover_pixbuf.get_height()
                     w = cover_pixbuf.get_width()
-                    dest_h = h * (dest_w/w)
-                    self.game_cover_image.set_from_pixbuf(cover_pixbuf.scale_simple(int(dest_w),int(dest_h),gtk.gdk.INTERP_BILINEAR))
+                    dest_h = h * (dest_w / w)
+                    self.game_cover_image.set_from_pixbuf(cover_pixbuf.scale_simple(int(dest_w), int(dest_h), gtk.gdk.INTERP_BILINEAR))
                     return
                 else:
                     self.game_cover_image.set_from_file("data/media/background.png")
-def NewLutrisWindow():
-    """NewLutrisWindow - returns a fully instantiated
+def new_lutris_window():
+    """new_lutris_window - returns a fully instantiated
     LutrisWindow object. Use this function rather than
     creating a LutrisWindow directly.
     """
@@ -336,36 +344,39 @@ def NewLutrisWindow():
     return window
 
 if __name__ == "__main__":
-    #support for command line options
-    import logging, optparse
+    # Support for command line options.
+    import logging
+    import optparse
     parser = optparse.OptionParser(version="%prog %ver")
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="Show debug messages")
+    parser.add_option("-v", "--verbose", action="store_true",
+                      dest="verbose", help="Show debug messages")
     (options, args) = parser.parse_args()
 
-    #set the logging level to show debug messages
+    # Set the logging level to show debug messages.
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
         logging.debug('logging enabled')
-    #run the application
+
+    # Run the application.
     game = None
     for arg in args:
         if arg.startswith('lutris://'):
-            print 'will install : ' + arg[9:]
+            print 'Installing ' + arg[9:]
             game = arg[9:]
             break
     if game:
-        #TODO: Fetch the .lutris  file
-        #Todo : install the game
         installer = Installer(game)
-        installer.install()
-        #window = lutris.gui.InstallerDialog(name=game)
+        success = installer.pre_install()
+        if not success:
+            print "Unable to install game"
+        else:
+            print "Ready! Launching installer."
+            installer.install()
         exit()
     else:
-        window = NewLutrisWindow()
-        window.show()
+        lutris_window = new_lutris_window()
+        lutris_window.show()
         gtk.gdk.threads_init()
         gtk.gdk.threads_enter()
         gtk.main()
         gtk.gdk.threads_leave()
-
-

@@ -19,11 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
-
 import gtk
-import lutris.runners
 import logging
+
+import lutris.runners
 from lutris.config import LutrisConfig
 from lutris.game_config_vbox import GameConfigVBox
 from lutris.runner_config_vbox import RunnerConfigVBox
@@ -119,7 +118,7 @@ class AddGameDialog(gtk.Dialog):
         logging.debug(self.lutris_config.game_config)
 
         if self.runner_class and realname:
-            game_identifier = self.lutris_config.save(type = "game")
+            game_identifier = self.lutris_config.save(type="game")
             self.game_info = {"Game Name": realname, "Runner": self.runner_class , "name": game_identifier}
             self.destroy()
 
@@ -155,7 +154,7 @@ class AddGameDialog(gtk.Dialog):
         self.system_config_scrolled_window.show_all()
 
 
-    def close(self, widget = None, other = None):
+    def close(self, widget=None, other=None):
         self.destroy()
 
     def no_runner_selected(self):
