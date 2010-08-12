@@ -32,40 +32,36 @@ import subprocess
 import lutris.constants
 from lutris.config import LutrisConfig
 
-def unzip(filename):
+def unzip(filename, dest=None):
     """Unzips a file"""
-
-    subprocess.Popen(["_unzip", 'o', filename])
+    command = ["unzip", '-o', filename]
+    if dest:
+        command = command + ['-d', dest]
+    subprocess.call(command)
 
 def unrar(filename):
     """Unrar a file"""
 
-    subprocess.Popen(["_unrar", "x", filename])
+    subprocess.call(["unrar", "x", filename])
 
 def untgz(filename):
     """Untgz a file"""
 
-    subprocess.Popen(["tar", "xzf", filename])
+    subprocess.call(["tar", "xzf", filename])
+
+
 
 def run_installer(filename):
     """Run an installer of .sh or .run type"""
 
-    subprocess.Popen(["chmod", "+x", filename])
-    subprocess.Popen([filename])
+    subprocess.call(["chmod", "+x", filename])
+    subprocess.call([filename])
 
-def reporthook(arg1, received_bytes, total_size):
+def reporthook(piece, received_bytes, total_size):
     """Follows the progress of a download"""
-    print "What is this ? : %d " % arg1
-    print "received_bytes : %d " % received_bytes
-    print "total_size : %d" % total_size
 
-def check_md5(data):
-    """ Calculates the checksum of a file and validates it. """
+    print "%d %%" % ((piece * received_bytes) * 100 / total_size)
 
-    print 'checking md5 for file ' + self.gamefiles[data['file']]
-    print 'expecting ' + data['value']
-    print "NOT IMPLEMENTED"
-    return True
 
 class Installer():
     """ Lutris installer """
@@ -115,6 +111,7 @@ class Installer():
                                             runner=self.game_info['runner'])
         if not self.games_dir:
             self.installer_user_actions.append("ask_games_dir")
+            return False
 
         self.game_dir = os.path.join(self.games_dir, self.game_name)
         if not os.path.exists(self.game_dir):
@@ -131,9 +128,10 @@ class Installer():
             action_name = action.keys()[0]
             action_data = action[action_name]
             mappings = {
-                'check_md5': check_md5,
+                'check_md5': self.check_md5,
                 'extract' : self._extract,
-                'move' : self._move
+                'move' : self._move,
+                'delete': self.delete
             }
             if action_name not in mappings.keys():
                 print "Action " + action_name + " not supported !"
@@ -156,12 +154,13 @@ class Installer():
             self.installer_errors.append("SERVER_UNREACHABLE")
             success = False
         else:
+            print "yay"
             installer_file = open(self.installer_dest_path, "w")
             installer_file.write(response.read())
             installer_file.close()
             success = True
-        finally:
-            return success
+
+        return success
 
     def parseconfig(self):
         """ Reads the installer file. """
@@ -176,12 +175,13 @@ class Installer():
                   (lutris.constants.protocol_version, protocol_version))
             return False
 
-        #Script version
-        self.game_info['version'] = self.install_data['version']
-        #Runner
-        self.game_info['runner'] = self.install_data['runner']
-        #Name
-        self.game_info['name'] = self.install_data['name']
+        mandatory_fields = ['version', 'runner', 'name']
+        optional_fields = ['exe', 'iso', 'rom']
+        for field in mandatory_fields:
+            self.game_info[field] = self.install_data[field]
+        for field in optional_fields:
+            if field in self.install_data:
+                self.game_info[field] = self.install_data[field]
         files = self.install_data['files']
 
         for gamefile in files:
@@ -192,17 +192,31 @@ class Installer():
 
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
-        config_filename = os.path.join(lutris.constants.lutris_config_path, "games",
-                                       self.game_name + ".conf")
-        config_file = open(config_filename, "w")
-        config_file.write("[main]\n")
-        config_file.write("path = " + self.game_dir + "\n")
-        if('exe' in self.game_info):
-            config_file.write("exe = " + self.game_info['exe'] + "\n")
-        config_file.write("runner = " + self.game_info['runner'])
-        config_file.close()
+        config_filename = os.path.join(lutris.constants.game_config_path,
+                self.game_info['runner'] + "-" + self.game_name + ".yml")
 
+        config_data = {
+                'game': {},
+                'realname': self.game_info['name'],
+                'runner': self.game_info['runner']
+        }
+        launchers = ['exe', 'iso', 'rom']
 
+        for launcher in launchers:
+            if(launcher in self.game_info):
+                config_data['game'][launcher] = os.path.join(self.game_dir,
+                                                      self.game_info[launcher])
+
+        yaml_config = yaml.dump(config_data, default_flow_style=False)
+        file(config_filename, "w").write(yaml_config)
+
+    def check_md5(self, data):
+        """ Calculates the checksum of a file and validates it. """
+
+        print 'checking md5 for file ' + self.gamefiles[data['file']]
+        print 'expecting ' + data['value']
+        print "NOT IMPLEMENTED"
+        return True
 
     def _download(self, url):
         """ Downloads a file. """
@@ -215,12 +229,15 @@ class Installer():
         if os.path.exists(dest_file):
             return dest_file
         if url.startswith("file://"):
-            shutil.copy(url[7:], self.game_dir)
+            shutil.copy(url[7:], dest_dir)
         else:
             urllib.urlretrieve(url, dest_file, reporthook)
         return dest_file
 
-
+    def delete(self, data):
+        """ Deletes a file """
+        print "will delete " + self.gamefiles[data['file']]
+        print "let's not delete anything right now, m'kay ?"
 
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
@@ -231,7 +248,7 @@ class Installer():
         extension = filename[filename.rfind(".") + 1:]
 
         if extension == "zip":
-            unzip(filename)
+            unzip(filename, self.game_dir)
 
     def _move(self, data):
         """ Moves a file. """
@@ -246,6 +263,6 @@ class Installer():
 
         try:
             shutil.move(src, dst)
-        except ValueError:
+        except shutil.Error:
             print "Could not move the file, destination already exists ?"
 

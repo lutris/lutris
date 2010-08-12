@@ -25,7 +25,7 @@ import logging
 import lutris.constants as constants
 
 class LutrisConfig():
-    def __init__(self, runner = None, game = None):
+    def __init__(self, runner=None, game=None):
         #Check if configuration directories exists and create them if needed.
         config_paths = [
             constants.lutris_config_path,
@@ -40,7 +40,7 @@ class LutrisConfig():
                 os.mkdir(config_path)
 
         #Initialize configuration
-        self.config = {}
+        self.config = {'system': {}}
         self.game_config = {}
         self.runner_config = {}
         self.system_config = {}
@@ -129,7 +129,7 @@ class LutrisConfig():
         logging.debug("removing %s" % game_name)
         os.remove(os.path.join(constants.game_config_path, game_name + constants.config_extension))
 
-    def save(self, type = None):
+    def save(self, type=None):
         """Save configuration file
         The way to save config files can be set by the type argument
         or with self.config_type"""
@@ -139,7 +139,7 @@ class LutrisConfig():
         logging.debug(self.config)
         if type is None:
             type = self.config_type
-        yaml_config = yaml.dump(self.config, default_flow_style = False)
+        yaml_config = yaml.dump(self.config, default_flow_style=False)
 
         if type == "system":
             file(constants.system_config_full_path, "w").write(yaml_config)
@@ -159,7 +159,7 @@ class LutrisConfig():
             print "i don't know how to save this yet"
 
 
-    def get_path(self, runner = None, default = None):
+    def get_path(self, runner=None, default=None):
         """Gets the path to install games for a given runner"""
 
         if "system" in self.config:
@@ -169,9 +169,9 @@ class LutrisConfig():
         return os.path.expanduser("~")
 
 if  __name__ == "__main__":
-    logging.basicConfig(level = logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     logging.debug('logging enabled')
-    lc = LutrisConfig(runner = "wine")
+    lc = LutrisConfig(runner="wine")
     print "system config : "
     print lc.system_config
     print "runner config : "
@@ -183,7 +183,7 @@ if  __name__ == "__main__":
     print ("* testing games *")
     print ("*****************")
 
-    lc = LutrisConfig(game = "wine-Ghostbusters")
+    lc = LutrisConfig(game="wine-Ghostbusters")
     print "system config : "
     print lc.system_config
     print ("-----------------------")

@@ -367,8 +367,9 @@ if __name__ == "__main__":
     if game:
         installer = Installer(game)
         success = installer.pre_install()
-        if not success:
+        if success is False:
             print "Unable to install game"
+            print installer.installer_errors
         else:
             print "Ready! Launching installer."
             installer.install()
