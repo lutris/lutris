@@ -21,8 +21,6 @@ import os
 import gtk
 import gobject
 
-# optional Launchpad integration
-# this shouldn't crash if not found as it is simply used for bug reporting
 try:
     import LaunchpadIntegration
     LAUNCHPAD_AVAILABLE = True
@@ -86,7 +84,8 @@ class LutrisWindow(gtk.Window):
                 LAUNCHPAD_AVAILABLE = False
 
         self.game_cover_image = self.builder.get_object("game_cover_image")
-        self.game_cover_image.set_from_file("data/media/background.png")
+        print fullPath
+        self.game_cover_image.set_from_file(os.path.join(fullPath,  "media/background.png"))
 
         self.set_title("Lutris")
         gtk.window_set_default_icon_name("softwarecenter")

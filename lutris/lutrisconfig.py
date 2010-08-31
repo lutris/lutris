@@ -21,7 +21,8 @@
 
 # where your project will head for your data (for instance, images and ui files)
 # by default, this is ../data, relative your trunk layout
-__lutris_data_directory__ = '/usr/local/share/lutris/'
+#__lutris_data_directory__ = '/usr/local/share/lutris/'
+__lutris_data_directory__ = '.'
 __license__ = 'GPL-3'
 
 import os
@@ -56,6 +57,5 @@ def getdatapath():
     if os.path.exists(abs_data_path):
         return abs_data_path
     else:
-        print "path not found : %s " % abs_data_path
         raise project_path_not_found
 
