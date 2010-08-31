@@ -21,8 +21,8 @@
 
 import gtk
 from lutris.config import LutrisConfig
-from lutris.runner_config_vbox import RunnerConfigVBox
-from lutris.system_config_vbox import SystemConfigVBox
+from lutris.gui.runnerconfigvbox import RunnerConfigVBox
+from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 class RunnerConfigDialog(gtk.Dialog):
     def __init__(self,runner):

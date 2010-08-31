@@ -21,7 +21,7 @@
 
 import gtk
 import lutris.runners
-from lutris.config_vbox import ConfigVBox
+from lutris.gui.configvbox import ConfigVBox
 
 class GameConfigVBox(ConfigVBox):
     def __init__(self,lutris_config,caller):

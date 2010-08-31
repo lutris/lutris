@@ -1,6 +1,6 @@
 import lutris.runners
 import gtk
-from lutris.runner_config_dialog import RunnerConfigDialog
+from lutris.gui.runnerconfigdialog import RunnerConfigDialog
 
 class RunnersDialog(gtk.Dialog):
     """Dialog class  for the platform preferences"""

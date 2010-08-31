@@ -22,9 +22,9 @@
 import logging
 import gtk
 from lutris.config import LutrisConfig
-from lutris.game_config_vbox import GameConfigVBox
-from lutris.runner_config_vbox import RunnerConfigVBox
-from lutris.system_config_vbox import SystemConfigVBox
+from lutris.gui.gameconfigvbox import GameConfigVBox
+from lutris.gui.runnerconfigvbox import RunnerConfigVBox
+from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 class EditGameConfigDialog(gtk.Dialog):
     def __init__(self,parent,game):

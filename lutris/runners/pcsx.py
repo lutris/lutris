@@ -23,7 +23,7 @@
 from lutris.runners.runner import Runner
 
 class pcsx(Runner):
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         """
         pcsx-df is what seems the best candidate for a playstation emulator.
         Sadly, it was removed from the Debian archives and thus Ubuntu because
@@ -37,11 +37,11 @@ class pcsx(Runner):
         self.is_installable = False
         self.description = "Runs PlayStation games"
         self.machine = "Playstation"
-        self.game_options = [{"option":"iso","type":"single","label":"iso"}]
+        self.game_options = [{"option":"iso", "type":"single", "label":"iso"}]
         self.runner_options = []
         #Load settings
         if settings:
             self.iso = settings["game"]["iso"]
 
     def play(self):
-        return [self.executable," -nogui -cdfile \""+self.iso+"\""]
+        return [self.executable, " -nogui -cdfile \"" + self.iso + "\" -runcd"]

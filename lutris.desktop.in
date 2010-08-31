@@ -3,6 +3,6 @@ Name=Lutris
 Comment=Lutris application
 Categories=GNOME;Games;
 Exec=lutris
-Icon=/usr/share/lutris/media/lutris.svg
+Icon=/usr/local/share/lutris/media/lutris.svg
 Terminal=false
 Type=Application

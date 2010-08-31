@@ -15,7 +15,8 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
-###################### DO NOT TOUCH THIS (HEAD TO THE SECOND PART) ######################
+
+import os
 
 try:
     import DistUtilsExtra.auto
@@ -25,7 +26,6 @@ except ImportError:
     sys.exit(1)
 
 assert DistUtilsExtra.auto.__version__ >= '2.10', 'needs DistUtilsExtra.auto >= 2.10'
-import os
 
 
 def update_data_path(prefix, oldvalue=None):
@@ -97,8 +97,12 @@ DistUtilsExtra.auto.setup(
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strycore@gmail.com',
-    description='UI for managing games',
-    #long_description='Here a longer description',
+    description='Install and play any video game on Linux',
+    long_description = """Lutris is a gaming platform for GNU/Linux. It's goal is to make 
+gaming on Linux as easy as possible by taking care of installing
+and setting up the game for the user. The only thing you have to 
+do is play the game. It aims to support every game that is playable
+on Linux.""",
     url='https://launchpad.net/lutris',
     cmdclass={'install': InstallAndUpdateDataDirectory}
     )

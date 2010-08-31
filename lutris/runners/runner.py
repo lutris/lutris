@@ -31,27 +31,30 @@ except:
 
 class Runner(object):
     '''Generic runner (base class for other runners) '''
-    def __init__(self, settings = None):
+
+    def __init__(self):
         ''' Initialize runner'''
         self.executable = None
         self.is_installable = False
         self.arguments = []
         self.error_messages = []
-        
-    def load(self,game):
+        self.game = None
+
+    def load(self, game):
+        """ Load a game """
         self.game = game
 
     def play(self):
         pass
-    
+
     def is_installed(self):
         """ Check if runner is installed"""
         is_installed = None
         if not self.executable:
-            return 
+            return
         cmdline = "which " + self.executable
-        cmdline = str.split(cmdline," ")
-        result = subprocess.Popen(cmdline,stdout=subprocess.PIPE).communicate()[0]
+        cmdline = str.split(cmdline, " ")
+        result = subprocess.Popen(cmdline, stdout=subprocess.PIPE).communicate()[0]
         if result == '' :
             is_installed = False
         else:
@@ -64,22 +67,24 @@ class Runner(object):
     def get_runner_options(self):
         return None
 
-    def md5sum(self,filename):
-        m = hashlib.md5()
-        fd = open(filename,"rb")
-        content = fd.readlines()
-        fd.close()
+    def md5sum(self, filename):
+        md5check = hashlib.md5()
+        file_ = open(filename, "rb")
+        content = file_.readlines()
+        file_.close()
         for line in content:
-            m.update(line)
-        return m.hexdigest()
+            md5check.update(line)
+        return md5check.hexdigest()
 
     def install_runner(self):
         """Generic install method, for use with package management systems"""
-        #Return false if runner has no package, must be then another method and
-        # install method should be overridden by the specific runner
-        if not hasattr(self,"package"):
+
+        # Return false if runner has no package, must be then another method 
+        # and install method should be overridden by the specific runner
+        if not hasattr(self, "package"):
             return False
         linux_dist = platform.linux_distribution()[0]
+
         #Add the package manager with arguments for your favorite distro :)
         if linux_dist == "Ubuntu" or linux_dist == "Debian":
             package_manager = "apt-get"
@@ -90,16 +95,16 @@ class Runner(object):
         else:
             logging.error("""The distro you're running is not supported yet.\n Edit runners/runner.py to add support for it""")
             return False
-        print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager,install_args,self.package),shell=True,stdout=subprocess.PIPE).communicate()[0]
+        print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager, install_args, self.package), shell=True, stdout=subprocess.PIPE).communicate()[0]
 
-    def write_config(self,id,name,fullpath):
+    def write_config(self, id, name, fullpath):
         """Writes game config to settings directory"""
         system = self.__class__.__name__
-        index= fullpath.rindex("/")
-        exe = fullpath[index+1:]
+        index = fullpath.rindex("/")
+        exe = fullpath[index + 1:]
         path = fullpath[:index]
         if path.startswith("file://"):
             path = path[7:]
         gameConfig = LutrisConfig()
-        values = {"main":{ "path":path, "exe":exe, "realname" : name, "system":system }}
-        gameConfig.write_game_config(id, values)
+        gameConfig.config = {"main":{ "path":path, "exe":exe, "realname" : name, "runner": system }}
+        gameConfig.save(id, values)

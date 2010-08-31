@@ -19,7 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from lutris.config_vbox import ConfigVBox
+from lutris.gui.configvbox import ConfigVBox
 from lutris.desktop_control import LutrisDesktopControl
 import logging
 

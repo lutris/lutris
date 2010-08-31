@@ -20,7 +20,7 @@
 ###############################################################################
 
 import lutris.runners
-from lutris.config_vbox import ConfigVBox
+from lutris.gui.configvbox import ConfigVBox
 import gtk
 
 class RunnerConfigVBox(ConfigVBox):

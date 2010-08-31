@@ -1,5 +1,5 @@
 from lutris.config import LutrisConfig
-from lutris.system_config_vbox import SystemConfigVBox
+from lutris.gui.systemconfigvbox import SystemConfigVBox
 import gtk
 
 class SystemConfigDialog(gtk.Dialog):

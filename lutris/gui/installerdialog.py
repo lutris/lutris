@@ -19,17 +19,16 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
-
 import gtk
-import lutris.runners
-import os
 import logging
 import subprocess
+
+import lutris.runners
+
 from lutris.config import LutrisConfig
-from lutris.installer_config_vbox import InstallerConfigVBox
-from lutris.runner_config_vbox import RunnerConfigVBox
-from lutris.system_config_vbox import SystemConfigVBox
+from lutris.gui.installerconfigvbox import InstallerConfigVBox
+from lutris.gui.runnerconfigvbox import RunnerConfigVBox
+from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 class InstallerDialog(gtk.Dialog):
     def __init__(self,parent):

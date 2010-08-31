@@ -74,7 +74,9 @@ class LutrisConfig():
                 try:
                     self.game_config = yaml.load(file(game_config_full_path, 'r').read())
                     self.runner = self.game_config["runner"]
-                except yaml.scanner.ScannerError:
+                except yaml.scanner.ScannerError :
+                    logging.debug("error parsing config file %s" % game_config_full_path)
+                except yaml.parser.ParserError:
                     logging.debug("error parsing config file %s" % game_config_full_path)
                 except KeyError:
                     logging.debug("Runner key is mandatory !")

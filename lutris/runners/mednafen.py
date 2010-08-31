@@ -27,7 +27,7 @@ import os
 class mednafen(Runner):
     def __init__(self,settings=None):
         self.executable = "mednafen"
-        self.is_installable = False
+        self.is_installable = True
         self.machine = """Atari Lynx, Game Boy (Color), GameBoy Advance, NES, PC Engine(TurboGrafx 16), SuperGrafx, Neo Geo Pocket (Color), PC-FX, and WonderSwan (Color)"""
         self.description = """Use Mednafen"""
         self.package = "mednafen"
@@ -51,10 +51,9 @@ class mednafen(Runner):
                     if not settings.config["mednafen"]["fs"]:
                         self.fullscreen = "0"
 
-
-
-
     def find_joysticks(self):
+        if not self.is_installed:
+            return false
         output = subprocess.Popen(["mednafen","dummy"],stdout=subprocess.PIPE).communicate()[0]
         ouput = str.split(output,"\n")
         found = False
@@ -124,7 +123,7 @@ class mednafen(Runner):
             self.options.append(control)        
 
     def play(self):
-
+        """Runs the game"""
         desktop_control = LutrisDesktopControl()
         resolution = desktop_control.get_current_resolution()
         (resolutionx, resolutiony) = resolution.split("x")
@@ -138,7 +137,6 @@ class mednafen(Runner):
         self.find_joysticks()
         if len(self.joy_ids) > 1:
             self.set_joystick_controls()
-
 
         #os.chdir(self.romdir)
         command = [self.executable]
