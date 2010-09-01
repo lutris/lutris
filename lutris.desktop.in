@@ -1,8 +1,9 @@
 [Desktop Entry]
+Version=0.2.1
 Name=Lutris
 Comment=Lutris application
-Categories=GNOME;Games;
+Categories=Game;
 Exec=lutris
-Icon=/usr/local/share/lutris/media/lutris.svg
+Icon=/usr/share/lutris/media/lutris.svg
 Terminal=false
 Type=Application

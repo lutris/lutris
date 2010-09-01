@@ -1,25 +1,23 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-### BEGIN LICENSE
-# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-# This program is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License version 3, as published 
-# by the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranties of 
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
-# PURPOSE.  See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along 
-# with this program.  If not, see <http://www.gnu.org/licenses/>.
-### END LICENSE
-
-import sys
-import os
-
-import gtk
-import gobject
+# -*- coding:Utf-8 -*-
+###############################################################################
+## Lutris
+##
+## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+###############################################################################
 
 try:
     import LaunchpadIntegration
@@ -27,26 +25,13 @@ try:
 except ImportError:
     LAUNCHPAD_AVAILABLE = False
 
-# Check if we are working in the source tree or from the installed 
-# package and mangle the python path accordingly
-if os.path.dirname(sys.argv[0]) != ".":
-    if sys.argv[0][0] == "/":
-        fullPath = os.path.dirname(sys.argv[0])
-    else:
-        fullPath = os.getcwd() + "/" + os.path.dirname(sys.argv[0])
-else:
-    fullPath = os.getcwd()
-sys.path.insert(0, os.path.dirname(fullPath))
+import gtk
+import os
+import gobject
 
 import lutris.runners
-import lutris.constants
-
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
-from lutris.lutrisconfig import getdatapath
-from lutris.installer import Installer
-from lutris.desktop_control import LutrisDesktopControl
-
 from lutris.gui.dictionary_grid import DictionaryGrid
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -56,26 +41,44 @@ from lutris.gui.installerdialog import InstallerDialog
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.googleimagedialog import GoogleImageDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
-from lutris.gui.aboutdialog import AboutLutrisDialog , NewAboutLutrisDialog
+from lutris.gui.aboutdialog import NewAboutLutrisDialog
+from lutris.desktop_control import LutrisDesktopControl
 
-from lutris.coverflow.coverflow import coverflow
+import lutris.coverflow.coverflow
 
 class LutrisWindow(gtk.Window):
     """ Main Lutris window """
     __gtype_name__ = "LutrisWindow"
 
     def __init__(self):
-        pass
+        super(LutrisWindow, self).__init__()
+        self.data_path = None
+        self.builder = None
+        
+        # Load Lutris configuration
+        # TODO : this sould be useless soon (hint: remove() ) 
+        self.lutris_config = LutrisConfig()
+        
+        # Widgets
+        self.status_label = None
+        self.menu = None
+        self.game_cover_image = None
+        self.toolbar = None
+        
+        self.joystick_icons = []
 
-    def finish_initializing(self, builder):
+    def finish_initializing(self, builder, data_path):
+        """ Method used by gtkBuilder to instanciate the window. """
+        self.data_path = data_path
         #get a reference to the builder and set up the signals
         self.builder = builder
         self.builder.connect_signals(self)
 
-        global LAUNCHPAD_AVAILABLE
-        if LAUNCHPAD_AVAILABLE:
-            # see https://wiki.ubuntu.com/UbuntuDevelopment/Internationalisation/Coding for more information
-            # about LaunchpadIntegration
+        self.set_title("Lutris")
+
+        # https://wiki.ubuntu.com/UbuntuDevelopment/Internationalisation/Coding
+        # for more information about LaunchpadIntegration
+        if LAUNCHPAD_AVAILABLE: 
             helpmenu = self.builder.get_object('menu3')
             if helpmenu:
                 LaunchpadIntegration.set_sourcepackagename('lutris')
@@ -83,15 +86,12 @@ class LutrisWindow(gtk.Window):
             else:
                 LAUNCHPAD_AVAILABLE = False
 
+        # TODO: The game_cover_image will be moved inot it's own widget
         self.game_cover_image = self.builder.get_object("game_cover_image")
-        print fullPath
-        self.game_cover_image.set_from_file(os.path.join(fullPath,  "media/background.png"))
-
-        self.set_title("Lutris")
-        gtk.window_set_default_icon_name("softwarecenter")
-        #Load Lutris configuration
-        self.lutrisConfig = LutrisConfig()
-
+        self.game_cover_image.set_from_file(
+            os.path.join(data_path, "media/background.png")
+        )
+        
         #Context menu
         game_rename = "Rename", self.edit_game_name
         game_config = "Configure", self.edit_game_configuration
@@ -109,9 +109,8 @@ class LutrisWindow(gtk.Window):
 
         #Status bar
         self.status_label = self.builder.get_object("status_label")
-        self.status_label.set_text("Game on!")
+        self.status_label.set_text("Ready to roll !")
 
-        self.joystick_icons = []
         self.joystick_icons.append(self.builder.get_object("js0image"))
         self.joystick_icons.append(self.builder.get_object("js1image"))
         self.joystick_icons.append(self.builder.get_object("js2image"))
@@ -175,8 +174,8 @@ class LutrisWindow(gtk.Window):
 
     def about(self, widget, data=None):
         """about - display the about box for lutris """
-        about = NewAboutLutrisDialog()
-        response = about.run()
+        about = NewAboutLutrisDialog(self.data_path)
+        about.run()
         about.destroy()
 
     def quit(self, widget, data=None):
@@ -204,7 +203,7 @@ class LutrisWindow(gtk.Window):
         Note: this won't delete the actual game"""
         if not self.gameName:
             return
-        self.lutrisConfig.remove(self.gameName)
+        self.lutris_config.remove(self.gameName)
         self.game_list_grid_view.remove_selected_rows()
         self.status_label.set_text("Removed game")
 
@@ -327,61 +326,3 @@ class LutrisWindow(gtk.Window):
                     return
                 else:
                     self.game_cover_image.set_from_file("data/media/background.png")
-def new_lutris_window():
-    """new_lutris_window - returns a fully instantiated
-    LutrisWindow object. Use this function rather than
-    creating a LutrisWindow directly.
-    """
-
-    #look for the ui file that describes the ui
-    ui_filename = os.path.join(getdatapath(), 'ui', 'LutrisWindow.ui')
-    if not os.path.exists(ui_filename):
-        ui_filename = None
-
-    builder = gtk.Builder()
-    builder.add_from_file(ui_filename)
-    window = builder.get_object("lutris_window")
-    window.finish_initializing(builder)
-    icon_file = os.path.join(getdatapath(), 'media', 'logo.png')
-    
-    window.set_icon_from_file(icon_file)
-    return window
-
-if __name__ == "__main__":
-    # Support for command line options.
-    import logging
-    import optparse
-    parser = optparse.OptionParser(version="%prog %ver")
-    parser.add_option("-v", "--verbose", action="store_true",
-                      dest="verbose", help="Show debug messages")
-    (options, args) = parser.parse_args()
-
-    # Set the logging level to show debug messages.
-    if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        logging.debug('logging enabled')
-
-    # Run the application.
-    game = None
-    for arg in args:
-        if arg.startswith('lutris://'):
-            print 'Installing ' + arg[9:]
-            game = arg[9:]
-            break
-    if game:
-        installer = Installer(game)
-        success = installer.pre_install()
-        if success is False:
-            print "Unable to install game"
-            print installer.installer_errors
-        else:
-            print "Ready! Launching installer."
-            installer.install()
-        exit()
-    else:
-        lutris_window = new_lutris_window()
-        lutris_window.show()
-        gtk.gdk.threads_init()
-        gtk.gdk.threads_enter()
-        gtk.main()
-        gtk.gdk.threads_leave()

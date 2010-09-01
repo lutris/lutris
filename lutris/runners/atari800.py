@@ -19,11 +19,11 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from lutris.runners.runner import Runner
-from lutris.desktop_control import LutrisDesktopControl
-import os
 import os.path
 import logging
+
+from lutris.runners.runner import Runner
+from lutris.desktop_control import LutrisDesktopControl
 
 class atari800(Runner):
     '''Runner for intellivision games'''

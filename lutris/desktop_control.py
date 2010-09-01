@@ -22,10 +22,9 @@
 import os
 import os.path
 import subprocess
-import logging
 from lutris.gconfwrapper import GconfWrapper
 
-#Dumb Debian Lenny,they don't even have python-gconf !
+# Don't force to import gconf, some users might not have it.
 try:
     import gconf
     gconf_capable = True
@@ -141,7 +140,3 @@ class LutrisDesktopControl():
                 joysticks.append(device_name)
 
         return joysticks
-if __name__ == "__main__":
-    ldc = LutrisDesktopControl()
-    print ldc.check_joysticks()
-    #print ldc.get_resolutions()

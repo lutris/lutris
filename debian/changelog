@@ -1,53 +1,12 @@
-lutris (0.2-public5) lucid; urgency=low
+lutris (0.2.1) maverick; urgency=low
 
-  * New release.
+  * Cleaned some files to prepare for 0.33 release
+  * First attempt at the Lutris installer
+  * Many bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 13 May 2010 12:17:40 +0200
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 31 Aug 2010 02:44:47 +0200
 
-lutris (0.2-public4) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 13 May 2010 12:17:12 +0200
-
-lutris (0.2-public3) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 13 May 2010 12:12:32 +0200
-
-lutris (0.2-public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 13 May 2010 12:08:40 +0200
-
-lutris (0.2-public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Thu, 13 May 2010 12:08:14 +0200
-
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 02 Mar 2010 00:57:57 +0100
-
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 02 Mar 2010 00:54:43 +0100
-
-lutris (0.2~public2) lucid; urgency=low
-
-  * New release.
-
- -- Mathieu Comandon <strycore@gmail.com>  Sun, 31 Jan 2010 23:06:53 +0100
-
-
-lutris (0.2~public1) lucid; urgency=low
+lutris (0.2) lucid; urgency=low
 
   * Initial Quickly release.
 

@@ -56,7 +56,7 @@ system_config_file = 'system' + config_extension
 protocol_version = 1
 
 system_config_full_path = os.path.join(lutris_config_path, system_config_file)
-runner_config_path = os.path.join(lutris_config_path, 'runners"')
+runner_config_path = os.path.join(lutris_config_path, 'runners')
 game_config_path = os.path.join(lutris_config_path, 'games')
 cover_path = os.path.join(lutris_config_path, 'covers')
 tmp_path = os.path.join(lutris_config_path, 'tmp')

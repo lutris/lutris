@@ -14,11 +14,10 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
-import sys
 import os
 import gtk
+import gtk.gdk
 
-from lutris.lutrisconfig import getdatapath
 import lutris.constants 
 
 class AboutLutrisDialog(gtk.AboutDialog):
@@ -58,7 +57,7 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.set_artists(lutris.constants.artists)
         self.set_website(lutris.constants.website)
         
-def NewAboutLutrisDialog():
+def NewAboutLutrisDialog(data_path):
     """NewAboutLutrisDialog - returns a fully instantiated
     AboutLutrisDialog object. Use this function rather than
     creating a AboutLutrisDialog instance directly.
@@ -66,18 +65,13 @@ def NewAboutLutrisDialog():
     """
 
     #look for the ui file that describes the ui
-    ui_filename = os.path.join(getdatapath(), 'ui', 'AboutLutrisDialog.ui')
+    ui_filename = os.path.join(data_path, 'ui', 'AboutLutrisDialog.ui')
     if not os.path.exists(ui_filename):
         ui_filename = None
 
     builder = gtk.Builder()
-    builder.add_from_file(ui_filename)    
+    builder.add_from_file(ui_filename)
     dialog = builder.get_object("about_lutris_dialog")
     dialog.finish_initializing(builder)
     return dialog
-
-if __name__ == "__main__":
-    dialog = NewAboutLutrisDialog()
-    dialog.show()
-    gtk.main()
 
