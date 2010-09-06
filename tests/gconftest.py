@@ -29,6 +29,7 @@ class TestGConfWrapper(unittest.TestCase):
         self.assertFalse(self.gconf.set_key('/apps/metacity/general/auto_raise_delay', "Five hundred"))
         self.assertTrue(self.gconf.set_key('/apps/metacity/general/auto_raise_delay', 500))
 
+        print 'testing new keys'
         self.assertTrue(self.gconf.set_key('/apps/lutris/tests/foo', "dressed like pazuzu", override_type = True))
         self.assertEqual(self.gconf.get_key('/apps/lutris/tests/foo'), "dressed like pazuzu")
         self.assertEqual(self.gconf.all_dirs('/apps/lutris'), ['tests'])

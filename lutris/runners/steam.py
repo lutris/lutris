@@ -34,6 +34,7 @@ class steam(Runner):
         self.game_path = "/home/strider/Games/Steam/"
         self.game_exe = "steam.exe"
         self.args = "-silent -applaunch 26800"
+        self.depends = "wine"
 
 
     def get_name(self, steam_file):

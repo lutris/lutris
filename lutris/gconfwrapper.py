@@ -67,9 +67,12 @@ class GconfWrapper():
         if base_dir[0] == "/":
             base_dir = base_dir[1:]
         path = os.path.join(self.gconf_path, base_dir)
-        dirs = os.listdir(path)
-        dirs.remove("%gconf.xml")
-        return dirs
+        if os.path.exists(path):
+            dirs = os.listdir(path)
+            dirs.remove("%gconf.xml")
+            return dirs
+        else:
+            return False
 
     def set_key(self, key, value, override_type = False):
         try:
@@ -86,7 +89,7 @@ class GconfWrapper():
                 raise TypeError, "Unknown type"
             if not override_type:
                 if not self.get_key_type(key) == type(value):
-                    raise TypeError, "Type mismatch: use override_type to force your way or leave it the way it is!"
+                    raise TypeError, "Type mismatch for key %s : use override_type to force your way or leave it the way it is!" % key
             method(key, value)
         except Exception, err:
             print err

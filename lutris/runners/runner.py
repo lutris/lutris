@@ -39,6 +39,7 @@ class Runner(object):
         self.arguments = []
         self.error_messages = []
         self.game = None
+        self.depends = None
 
     def load(self, game):
         """ Load a game """
@@ -47,11 +48,31 @@ class Runner(object):
     def play(self):
         pass
 
+    def check_depends(self):
+        """Check if all the dependencies for a runner are installed."""
+        if not self.depends: 
+            return true
+        
+        classname = "lutris.runners." + self.depends
+        parts = classname.split('.')
+        module = ".".join(parts[:-1])
+        m = __import__(module)
+        for comp in parts[1:]:
+            m = getattr(m, comp) 
+        
+        runner = getattr(m, self.depends)
+        runner_instance = runner()
+        
+        return runner_instance.is_installed()
+
     def is_installed(self):
-        """ Check if runner is installed"""
-        is_installed = None
+        """ Check if runner is installed
+        
+        Return a boolean
+        """
+        is_installed = False
         if not self.executable:
-            return
+            return False
         cmdline = "which " + self.executable
         cmdline = str.split(cmdline, " ")
         result = subprocess.Popen(cmdline, stdout=subprocess.PIPE).communicate()[0]
