@@ -28,10 +28,12 @@ except ImportError:
 import gtk
 import os
 import gobject
+import logging
 
 import lutris.runners
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
+from lutris.gui.common_dialogs import NoticeDialog
 from lutris.gui.dictionary_grid import DictionaryGrid
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -49,7 +51,7 @@ import lutris.coverflow.coverflow
 class LutrisWindow(gtk.Window):
     """ Main Lutris window """
     __gtype_name__ = "LutrisWindow"
-
+    
     def __init__(self):
         super(LutrisWindow, self).__init__()
         self.data_path = None
@@ -58,6 +60,7 @@ class LutrisWindow(gtk.Window):
         # Load Lutris configuration
         # TODO : this sould be useless soon (hint: remove() ) 
         self.lutris_config = LutrisConfig()
+        
         
         # Widgets
         self.status_label = None
@@ -78,6 +81,7 @@ class LutrisWindow(gtk.Window):
 
         # https://wiki.ubuntu.com/UbuntuDevelopment/Internationalisation/Coding
         # for more information about LaunchpadIntegration
+        global LAUNCHPAD_AVAILABLE
         if LAUNCHPAD_AVAILABLE: 
             helpmenu = self.builder.get_object('menu3')
             if helpmenu:
@@ -200,7 +204,10 @@ class LutrisWindow(gtk.Window):
 
     def remove_game(self, widget, data=None):
         """Remove game configuration file
-        Note: this won't delete the actual game"""
+
+        Note: this won't delete the actual game
+        
+        """
         if not self.gameName:
             return
         self.lutris_config.remove(self.gameName)
@@ -224,17 +231,17 @@ class LutrisWindow(gtk.Window):
             self.gameName = model.get_value(select_iter, 2)["name"]
             self.set_game_cover()
 
-
-
     def on_fullscreen_clicked(self, widget):
         """ Switch to coverflow mode """
         coverflow = lutris.coverflow.coverflow.coverflow()
         if coverflow:
             if coverflow == "NOCOVERS":
-                logging.error("Add some covers to these games first !")
+                message = "You need covers for your games to switch to fullscreen mode." 
+                 
+                NoticeDialog(message)
                 return
             if coverflow == "NOPYGLET":
-                logging.debug("python-pyglet is not installed")
+                NoticeDialog("python-pyglet is not installed")
                 return
             filename = os.path.basename(coverflow)
             game_name = filename[:filename.rfind(".")]
@@ -262,7 +269,7 @@ class LutrisWindow(gtk.Window):
         self.get_game_list()
 
     def import_steam(self, widget, data=None):
-        logging.debug("Import from steam not yet implemented")
+        NoticeDialog("Import from steam not yet implemented")
 
     def import_scummvm(self, widget, data=None):
         scummvm = lutris.runners.scummvm.scummvm()
