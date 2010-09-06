@@ -264,8 +264,11 @@ class LutrisWindow(gtk.Window):
             self.game_list_grid_view.append_row(game_info)
 
     def import_cedega(self, widget, data=None):
-        cedega = lutris.runners.cedega.cedega()
-        cedega.import_games()
+        from lutris.runners.cedega import cedega
+        cedega = cedega()
+        result = cedega.import_games()
+        if result is not True:
+            NoticeDialog(result)
         self.get_game_list()
 
     def import_steam(self, widget, data=None):

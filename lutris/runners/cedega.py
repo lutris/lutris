@@ -30,24 +30,34 @@ class cedega(Runner):
         self.description = "Runs Windows games with Cedega"
         self.machine = "Windows games"
         self.is_installable = False
-        self.game_options = [ {"option":"shortcut", "type": "string","label": "Shortcut"},
-                              {"option":"folder", "type": "string","label": "Folder"}]
+        self.game_options = [{"option":"shortcut",
+                              "type": "string",
+                              "label": "Shortcut"},
+                             {"option":"folder",
+                              "type": "string",
+                              "label": "Folder"}]
         self.runner_options = []
         if settings:
             self.folder=settings["game"]["folder"]
             self.game = settings["game"]["shortcut"]
 
     def import_games(self):
+        if not self.is_installed():
+            return "Cedega is not installed"
         cedega_settings_dir = os.path.join(os.path.expanduser('~'),".cedega")
         if (os.path.exists(cedega_settings_dir)):
             os.chdir(cedega_settings_dir)
             dirs = os.listdir(cedega_settings_dir)
             for game_folder in dirs:
                 if not game_folder.startswith(".") and  game_folder != "configuration_profiles":
-                    shortcuts = self.get_cedega_shortcuts(os.path.join(cedega_settings_dir,game_folder))
+                    shortcuts = self.get_cedega_shortcuts(os.path.join(cedega_settings_dir,
+                                                                       game_folder))
                     for shortcut in shortcuts:
                         print "Importing %s - %s" % (game_folder, shortcut)
                         self.add_game(game_folder,shortcut)
+            return True
+        else:
+            return "No Cedega directory"
 
     def get_cedega_shortcuts(self,path):
         os.chdir(path)
@@ -59,9 +69,14 @@ class cedega(Runner):
 
     def add_game(self,folder,shortcut):
         lutris_config = LutrisConfig()
-        lutris_config.config = {"runner":"cedega", "realname":shortcut ,"game":{"folder": folder, "shortcut": shortcut} }
+        lutris_config.config = {"runner": "cedega",
+                                "realname": shortcut,
+                                "game": {"folder": folder, "shortcut": shortcut}}
         lutris_config.save(type="game")
         
     def play(self):
-        return [self.executable,"--run","\""+self.folder+"\"","\""+self.game+"\""]
+        return [self.executable,
+                "--run",
+                "\"" + self.folder + "\"",
+                "\"" + self.game + "\""]
 

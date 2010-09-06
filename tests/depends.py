@@ -20,4 +20,4 @@ class TestSomeStuff(unittest.TestCase):
         
 if __name__ == '__main__':
     test = TestSomeStuff()
-    test.runTest() 
+    test.runTest()

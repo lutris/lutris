@@ -19,12 +19,14 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from lutris.runners.runner import Runner
-from lutris.runners.wine import wine
 import os
 
+from lutris.runners.runner import Runner
+from lutris.runners.wine import wine
 
 class steam(Runner):
+    """Runner for the Steam platform."""
+    
     def __init__(self,settings = None):
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"
@@ -35,7 +37,7 @@ class steam(Runner):
         self.game_exe = "steam.exe"
         self.args = "-silent -applaunch 26800"
         self.depends = "wine"
-
+        self.is_installable = False
 
     def get_name(self, steam_file):
         data = steam_file.read(1000)

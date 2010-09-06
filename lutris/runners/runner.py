@@ -2,7 +2,7 @@
 ###############################################################################
 ## Lutris
 ##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2009, 2010 Mathieu Comandon <strycore@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,21 +19,18 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
 import subprocess
 import platform
 import hashlib
 import logging
-try:
-    from lutris.config import LutrisConfig
-except:
-    print "HOPE YOU ARE RUNNING TESTS !!!!!!!!"
+
+from lutris.config import LutrisConfig
 
 class Runner(object):
-    '''Generic runner (base class for other runners) '''
+    """Generic runner (base class for other runners) """
 
     def __init__(self):
-        ''' Initialize runner'''
+        """ Initialize runner """
         self.executable = None
         self.is_installable = False
         self.arguments = []
@@ -56,11 +53,10 @@ class Runner(object):
         classname = "lutris.runners." + self.depends
         parts = classname.split('.')
         module = ".".join(parts[:-1])
-        m = __import__(module)
-        for comp in parts[1:]:
-            m = getattr(m, comp) 
-        
-        runner = getattr(m, self.depends)
+        module = __import__(module)
+        for component in parts[1:]:
+            module = getattr(module, component)
+        runner = getattr(module, self.depends)
         runner_instance = runner()
         
         return runner_instance.is_installed()
@@ -98,28 +94,33 @@ class Runner(object):
         return md5check.hexdigest()
 
     def install_runner(self):
-        """Generic install method, for use with package management systems"""
+        """Install runner using package management systems."""
 
         # Return false if runner has no package, must be then another method 
         # and install method should be overridden by the specific runner
-        if not hasattr(self, "package"):
+        if not hasattr(self, 'package'):
             return False
         linux_dist = platform.linux_distribution()[0]
 
         #Add the package manager with arguments for your favorite distro :)
-        if linux_dist == "Ubuntu" or linux_dist == "Debian":
-            package_manager = "apt-get"
-            install_args = "-y install"
-        elif linux_dist == "Fedora":
-            package_manager = "yum"
-            install_args = "install"
+        if linux_dist == 'Ubuntu' or linux_dist == 'Debian':
+            package_manager = 'apt-get'
+            install_args = '-y install'
+        elif linux_dist == 'Fedora':
+            package_manager = 'yum'
+            install_args = 'install'
         else:
-            logging.error("""The distro you're running is not supported yet.\n Edit runners/runner.py to add support for it""")
+            logging.error("The distribution you're running is not supported yet.")
+            logging.error("Edit runners/runner.py to add support for it")
             return False
-        print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager, install_args, self.package), shell=True, stdout=subprocess.PIPE).communicate()[0]
+        print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager,
+                                                      install_args,
+                                                      self.package),
+                               shell=True,
+                               stdout=subprocess.PIPE).communicate()[0]
 
     def write_config(self, id, name, fullpath):
-        """Writes game config to settings directory"""
+        """Write game configuration to settings directory."""
         system = self.__class__.__name__
         index = fullpath.rindex("/")
         exe = fullpath[index + 1:]
