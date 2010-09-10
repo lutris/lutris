@@ -19,32 +19,33 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from lutris.runners.wine import wine
+#from lutris.runners.wine import wine
+from lutris.runners.runner import Runner
 import os
 
 class nulldc(Runner):
     """Runner for the Dreamcast emulator NullDC
-    
-    Since there is no good Linux emulator out there, we have to use a Windows 
+
+    Since there is no good Linux emulator out there, we have to use a Windows
     emulator. It runs pretty well.
-    
+
     NullDC is now OpenSource ! Somebody please port it to Linux.
-    
+
     Download link : http://nulldc.googlecode.com/files/nullDC_104_r50.7z
-    
+
     TODO: implement joy2key or use Lutris' own version
     """
-    
+
     def __init__(self,settings=None):
         """Initialize NullDC
-        
+
         TODO: Remove hardcoded stuff
         """
         self.description = "Runs Dreamcast games with nullDC emulator"
         self.machine = "Sega Dreamcast"
-        
+
         self.is_installable = False
-        
+
         self.depends = "wine"
         self.nulldc_path = "/mnt/seagate/games/nullDC/"
         self.executable = "nullDC_1.0.3_mmu.exe"
@@ -52,7 +53,7 @@ class nulldc(Runner):
         self.gameIso = "disc.gdi"
         self.args = ""
         self.game_options = [{"option": "file",
-                              "type":"single", 
+                              "type":"single",
                               "name":"iso",
                               "label":"Disc image"}]
         self.runner_options = [{"option":"fullscreen",
@@ -68,10 +69,10 @@ class nulldc(Runner):
             return False
         else:
             return True
-    
+
     def get_nulldc_path(self):
         """ Return the full path for the NullDC executable.
-        
+
         TODO: Load from config
         """
         return os.path.join(self.nulldc_path, self.executable)
@@ -90,5 +91,5 @@ class nulldc(Runner):
                    "-config",
                    " ImageReader:DefaultImage=\"" + path + "\"",
                    "-config", "drkpvr:Fullscreen.Enabled=1"]
-        
+
         return command
