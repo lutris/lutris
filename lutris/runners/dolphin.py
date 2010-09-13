@@ -19,19 +19,27 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
+from lutris.runners.runner import Runner
 
 class dolphin(Runner):
     """Runner for the Gamecube / Wii emulator Dolphin
-    
+
     Code repository: http://code.google.com/p/dolphin-emu/
     Download link : http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2
-    
-    Warning: This emulator is bullshit. It will give you false hopes 
-    and then segfault right in your face.
+
     """
     def __init__(self):
-        self.depends = ['libao2', 'nvidia-cg-toolkit', 'libglew1.5']
-    
-    
-    
+
+        self.ppa = "ppa:glennric/dolphin-emu"
+        self.package = "dolphin-emu"
+        self.executable = "dolphin"
+        self.machine = "Gamecube, Wii"
+        self.description = "Emulator for Nintendo Gamecube and Wii games"
+
+
+
+
+        
+
+
+

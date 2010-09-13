@@ -9,7 +9,7 @@ class RunnersDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title("Configure runners")
         self.set_size_request(450,400)
-        
+
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.vbox.pack_start(scrolled_window,True,True,0)
@@ -39,7 +39,7 @@ class RunnersDialog(gtk.Dialog):
                 button.connect("clicked",self.on_install_clicked,runner)
             button_alignement.add(button)
             hbox.pack_start(button_alignement,True,True)
-            
+
             runner_vbox.pack_start(hbox,True,True,5)
         scrolled_window.add_with_viewport(runner_vbox)
         self.show_all()
@@ -48,8 +48,10 @@ class RunnersDialog(gtk.Dialog):
         self.destroy()
 
     def on_install_clicked(self,widget,runner):
-        runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
-        runner_instance.install_runner()
+        """Install a runner"""
+        #TODO : this is ugly !
+        runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
+        runner_instance.install()
 
     def on_configure_clicked(self,widget,runner):
         RunnerConfigDialog(runner)

@@ -21,6 +21,13 @@
 
 import gtk
 
+class NoticeDialog:
+    def __init__(self, message):
+        dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
+        dialog.set_markup(message)
+        dialog.run()
+        dialog.destroy()
+
 class QuestionDialog(gtk.Dialog):
     def __init__(self,settings):
         gtk.Dialog.__init__(self)
@@ -33,13 +40,12 @@ class QuestionDialog(gtk.Dialog):
         self.question_hbox.pack_start(self.question_entry)
         self.vbox.pack_start(self.question_hbox)
         self.show_all();
-        
+
     def show(self):
         gtk.main()
-        
-        
+
 if __name__ == "__main__":
     settings = { 'title': 'My Question', 'question': '???' }
-    qd = QuestionDialog(settings) 
+    qd = QuestionDialog(settings)
     qd.show()
-           
+

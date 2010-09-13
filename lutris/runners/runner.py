@@ -93,14 +93,14 @@ class Runner(object):
             md5check.update(line)
         return md5check.hexdigest()
 
-    def install_runner(self):
+    def install(self):
         """Install runner using package management systems."""
 
         # Return false if runner has no package, must be then another method
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
             return False
-        linux_dist = platform.linux_distribution()[0]
+        linux_dist = platform.dist()[0]
 
         #Add the package manager with arguments for your favorite distro :)
         if linux_dist == 'Ubuntu' or linux_dist == 'Debian':
@@ -113,6 +113,17 @@ class Runner(object):
             logging.error("The distribution you're running is not supported yet.")
             logging.error("Edit runners/runner.py to add support for it")
             return False
+
+        if hasattr(self, "ppa"):
+            if (linux_dist != "Ubuntu"):
+                print "this runner requires a ppa to be installed"
+                #TODO : check if the PPA is already installed
+                #TODO : check the ubuntu version available for the ppa,
+                #       choose the one corresponding to the current install
+                #       or the closest one.     
+                subprocess.Popen('gksu add-apt-repository %s' % self.ppa)
+                subprocess.Popen('gksu apt-get update')
+
         print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager,
                                                       install_args,
                                                       self.package),
@@ -128,5 +139,12 @@ class Runner(object):
         if path.startswith("file://"):
             path = path[7:]
         gameConfig = LutrisConfig()
-        gameConfig.config = {"main":{ "path":path, "exe":exe, "realname" : name, "runner": system }}
+        gameConfig.config = {
+                "main": {
+                    "path": path,
+                    "exe":exe,
+                    "realname": name,
+                    "runner": system
+                    }
+                }
         gameConfig.save(id, values)

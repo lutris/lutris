@@ -33,8 +33,8 @@ import logging
 import lutris.runners
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
-from lutris.gui.common_dialogs import NoticeDialog
-from lutris.gui.dictionary_grid import DictionaryGrid
+from lutris.constants import DATA_PATH
+from lutris.gui.common import NoticeDialog
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
@@ -45,7 +45,6 @@ from lutris.gui.googleimagedialog import GoogleImageDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
-from lutris.gui.grid_column import StringColumn, ImageColumn
 from lutris.gui.widgets import GameTreeView
 import lutris.coverflow.coverflow
 
@@ -62,7 +61,6 @@ class LutrisWindow(gtk.Window):
         # TODO : this sould be useless soon (hint: remove() )
         self.lutris_config = LutrisConfig()
 
-
         # Widgets
         self.status_label = None
         self.menu = None
@@ -74,6 +72,8 @@ class LutrisWindow(gtk.Window):
     def finish_initializing(self, builder, data_path):
         """ Method used by gtkBuilder to instanciate the window. """
         self.data_path = data_path
+        print "arg : " + data_path
+        print "const : " + DATA_PATH
         #get a reference to the builder and set up the signals
         self.builder = builder
         self.builder.connect_signals(self)
@@ -116,12 +116,11 @@ class LutrisWindow(gtk.Window):
         self.status_label = self.builder.get_object("status_label")
         self.status_label.set_text("Ready to roll !")
 
-        self.joystick_icons.append(self.builder.get_object("js0image"))
-        self.joystick_icons.append(self.builder.get_object("js1image"))
-        self.joystick_icons.append(self.builder.get_object("js2image"))
-        self.joystick_icons.append(self.builder.get_object("js3image"))
-        for joystick_icon in self.joystick_icons:
-            joystick_icon.hide()
+        for index in range(0, 3):
+            self.joystick_icons.append(
+                    self.builder.get_object("js" + str(index) + "image")
+            )
+            self.joystick_icons[index].hide()
 
         # Toolbar
         self.toolbar = self.builder.get_object("lutris_toolbar")
@@ -158,8 +157,6 @@ class LutrisWindow(gtk.Window):
                 self.joystick_icons[index].hide()
         return True
 
-
-
     def about(self, widget, data=None):
         """about - display the about box for lutris """
         about = NewAboutLutrisDialog(self.data_path)
@@ -168,7 +165,6 @@ class LutrisWindow(gtk.Window):
 
     def quit(self, widget, data=None):
         """quit - signal handler for closing the LutrisWindow"""
-
         self.destroy()
 
     def on_destroy(self, widget, data=None):
@@ -198,10 +194,6 @@ class LutrisWindow(gtk.Window):
         self.game_list_grid_view.remove_selected_rows()
         self.status_label.set_text("Removed game")
 
-    def game_launch(self, treeview, arg1, arg2):
-        self.running_game = LutrisGame(self.get_selected_game())
-        self.running_game.play()
-
     def get_selected_game(self):
         gameSelection = self.game_treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
@@ -214,6 +206,10 @@ class LutrisWindow(gtk.Window):
         if select_iter:
             self.gameName = model.get_value(select_iter, 2)
             self.set_game_cover()
+
+    def game_launch(self, treeview, arg1, arg2):
+        self.running_game = LutrisGame(self.get_selected_game())
+        self.running_game.play()
 
     def on_fullscreen_clicked(self, widget):
         """ Switch to coverflow mode """
@@ -259,7 +255,8 @@ class LutrisWindow(gtk.Window):
         NoticeDialog("Import from steam not yet implemented")
 
     def import_scummvm(self, widget, data=None):
-        scummvm = lutris.runners.scummvm.scummvm()
+        from lutris.runners.scummvm import scummvm
+        scummvm = scummvm()
         scummvm.import_games()
         games = self.get_game_list()
         current_game_names = []
@@ -319,4 +316,6 @@ class LutrisWindow(gtk.Window):
                     self.game_cover_image.set_from_pixbuf(cover_pixbuf.scale_simple(int(dest_w), int(dest_h), gtk.gdk.INTERP_BILINEAR))
                     return
                 else:
-                    self.game_cover_image.set_from_file("data/media/background.png")
+                    self.game_cover_image.set_from_file(
+                            os.path.join(DATA_PATH, "media/background.png")
+                    )

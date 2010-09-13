@@ -2,7 +2,7 @@
 ###############################################################################
 ## Lutris
 ##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2009, 2010 Mathieu Comandon strycore@gmail.com
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,7 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-""" Here is your docstring ... """
+""" This is where takes place the whole install process for games
+
+TODO: The gui frontend
+"""
 
 import os
 import yaml
@@ -49,8 +52,6 @@ def untgz(filename):
 
     subprocess.call(["tar", "xzf", filename])
 
-
-
 def run_installer(filename):
     """Run an installer of .sh or .run type"""
 
@@ -68,15 +69,16 @@ class Installer():
 
     def __init__(self, game):
 
-        self.lutris_config = LutrisConfig()
+        self.lutris_config = None
         self.game_name = game
-        self.installer_dest_path = os.path.join(lutris.constants.cache_path,
-                                                self.game_name + ".yml")
-        # Stores a list of actions that will be sent back to the user 
+        self.installer_dest_path = os.path.join(
+                lutris.constants.cache_path, self.game_name + ".yml"
+            )
+        # Stores a list of actions that will be sent back to the user
         # in order to complete the installation
         self.installer_user_actions = []
 
-        # Actions that the installer has to run 
+        # Actions that the installer has to run
         # in order to complete the install.
         self.installer_actions = []
 
@@ -99,7 +101,7 @@ class Installer():
         self.games_dir = path
 
     def pre_install(self):
-        """Reads the installer and checks everything is OK 
+        """Reads the installer and checks everything is OK
         before beginning the install process
         """
 
@@ -107,8 +109,7 @@ class Installer():
         if not success:
             return False
         success = self.parseconfig()
-        self.games_dir = self.lutris_config.get_path(
-                                            runner=self.game_info['runner'])
+        self.games_dir = self.lutris_config.get_path()
         if not self.games_dir:
             self.installer_user_actions.append("ask_games_dir")
             return False
@@ -165,8 +166,9 @@ class Installer():
     def parseconfig(self):
         """ Reads the installer file. """
 
-        self.install_data = yaml.load(file(self.installer_dest_path,
-                                           'r').read())
+        self.install_data = yaml.load(
+                file(self.installer_dest_path, 'r').read()
+            )
 
         #Checking protocol
         protocol_version = self.install_data['protocol']
@@ -189,6 +191,7 @@ class Installer():
             dest_path = self._download(gamefile[file_id])
             self.gamefiles[file_id] = dest_path
         self.installer_actions = self.install_data['installer']
+        self.config = LutrisConfig(runner=self.game_info['runner'])
 
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """

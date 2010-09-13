@@ -68,11 +68,15 @@ class LutrisConfig():
             file(constants.system_config_full_path, "w+")
 
         if self.game:
-            game_config_full_path = os.path.join(constants.GAME_CONFIG_PATH,
-                                                 self.game + constants.CONFIG_EXTENSION)
+            game_config_full_path = os.path.join(
+                    constants.GAME_CONFIG_PATH,
+                    self.game + constants.CONFIG_EXTENSION
+                )
             if os.path.exists(game_config_full_path):
                 try:
-                    self.game_config = yaml.load(file(game_config_full_path, 'r').read())
+                    self.game_config = yaml.load(
+                            file(game_config_full_path, 'r').read()
+                        )
                     self.runner = self.game_config["runner"]
                 except yaml.scanner.ScannerError :
                     logging.debug("error parsing config file %s" % game_config_full_path)
@@ -82,10 +86,14 @@ class LutrisConfig():
                     logging.debug("Runner key is mandatory !")
 
         if self.runner:
-            runner_config_full_path = os.path.join(constants.runner_config_path,
-                                                   self.runner + constants.CONFIG_EXTENSION)
+            runner_config_full_path = os.path.join(
+                    constants.runner_config_path,
+                    self.runner + constants.CONFIG_EXTENSION
+                )
             if os.path.exists(runner_config_full_path):
-                self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
+                self.runner_config = yaml.load(
+                        file(runner_config_full_path, 'r').read()
+                    )
         self.update_global_config()
 
     def __getitem__(self, key):
@@ -129,7 +137,12 @@ class LutrisConfig():
 
     def remove(self, game_name):
         logging.debug("removing %s" % game_name)
-        os.remove(os.path.join(constants.game_config_path, game_name + constants.config_extension))
+        os.remove(
+                os.path.join(
+                    constants.game_config_path,
+                    game_name + constants.CONFIG_EXTENSION
+                )
+            )
 
     def save(self, type=None):
         """Save configuration file
@@ -146,13 +159,19 @@ class LutrisConfig():
         if type == "system":
             file(constants.system_config_full_path, "w").write(yaml_config)
         elif type == "runner":
-            runner_config_path = os.path.join(constants.runner_config_path, self.runner + constants.config_extension)
+            runner_config_path = os.path.join(
+                    constants.runner_config_path,
+                    self.runner + constants.CONFIG_EXTENSION
+                )
             file(runner_config_path, "w").write(yaml_config)
         elif type == "game":
             if not self.game:
-                self.game = self.config["runner"] + "-" + self.config["realname"].replace(" ", "_")
-            self.game_config_path = os.path.join(constants.GAME_CONFIG_PATH,
-                                                 self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
+                self.game = self.config["runner"] \
+                        + "-" + self.config["realname"].replace(" ", "_")
+            self.game_config_path = os.path.join(
+                    constants.GAME_CONFIG_PATH,
+                    self.game.replace('/', '_') + constants.CONFIG_EXTENSION
+                )
             config_file = file(self.game_config_path, "w")
             config_file.write(yaml_config)
             return self.game
@@ -161,41 +180,15 @@ class LutrisConfig():
             print "i don't know how to save this yet"
 
 
-    def get_path(self, runner=None, default=None):
-        """Gets the path to install games for a given runner"""
+    def get_path(self, default=None):
+        """Gets the path to install games for a given runner
+        
+           Returns False if it can't find an installation path
+        """
 
-        if "system" in self.config:
-            if "game_path" in self.config["system"]:
-                return self.config["system"]["game_path"]
-        logging.debug("Fail !")
-        return os.path.expanduser("~")
-
-if  __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    logging.debug('logging enabled')
-    lc = LutrisConfig(runner="wine")
-    print "system config : "
-    print lc.system_config
-    print "runner config : "
-    print lc.runner_config
-    print "global config"
-    print lc.config
-
-    print ("*****************")
-    print ("* testing games *")
-    print ("*****************")
-
-    lc = LutrisConfig(game="wine-Ghostbusters")
-    print "system config : "
-    print lc.system_config
-    print ("-----------------------")
-    print "runner config : "
-    print lc.runner_config
-    print ("-----------------------")
-    print "game config :"
-    print lc.game_config
-    print ("-----------------------")
-    print "global config"
-    print lc.config
-
-
+        if "system" in self.config and "game_path" in self.config["system"]:
+            return self.config["system"]["game_path"]
+        if default is None or not os.path.exists(default):            
+            return False
+        else:
+            return default
