@@ -29,15 +29,20 @@ class gens(Runner):
         '''Constructor'''
         super(gens,self).__init__()
         self.package = "gens-gs"
+        self.ppa = "FIXME"
         self.executable = "gens"
         self.machine = "Sega Genesis"
         self.is_installable = True
         self.description = "Sega Genesis emulator."
 
-        self.game_options = [ {"option": "rom", "type":"single", "label": "Rom File"}]
+        self.game_options = [
+                {"option": "rom", "type":"single", "label": "Rom File"}
+            ]
 
-        self.runner_options = [{"option": "fullscreen", "type":"bool", "label": "Fullscreen"},
-                               {"option": "quickexit", "type": "bool", "label": "Exit emulator with Esc"}]
+        self.runner_options = [
+                {"option": "fullscreen", "type":"bool", "label": "Fullscreen"},
+                {"option": "quickexit", "type": "bool", "label": "Exit emulator with Esc"}
+            ]
 
         if settings:
             if "fullscreen" in settings["gens"]:
@@ -54,10 +59,11 @@ class gens(Runner):
 
     def play(self):
         if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED'}
+            return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
         if not os.path.exists(self.rom):
             return {'error': 'FILE_NOT_FOUND', 'file': self.rom}
+
         self.arguments = self.arguments + [ "--game \"%s\"" % self.rom ]
         command = [self.executable] + self.arguments
-        return_val = { "command": command ,"error_messages": self.error_messages}
-        return return_val
+
+        return { "command": command }

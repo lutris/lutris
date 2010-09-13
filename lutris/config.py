@@ -139,7 +139,7 @@ class LutrisConfig():
         logging.debug("removing %s" % game_name)
         os.remove(
                 os.path.join(
-                    constants.game_config_path,
+                    constants.GAME_CONFIG_PATH,
                     game_name + constants.CONFIG_EXTENSION
                 )
             )
@@ -182,13 +182,13 @@ class LutrisConfig():
 
     def get_path(self, default=None):
         """Gets the path to install games for a given runner
-        
+
            Returns False if it can't find an installation path
         """
 
         if "system" in self.config and "game_path" in self.config["system"]:
             return self.config["system"]["game_path"]
-        if default is None or not os.path.exists(default):            
+        if default is None or not os.path.exists(default):
             return False
         else:
             return default

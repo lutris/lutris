@@ -19,7 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+import pygtk
 import gtk
+import apt.progress.gtk2
+
 
 class NoticeDialog:
     def __init__(self, message):
@@ -28,24 +31,21 @@ class NoticeDialog:
         dialog.run()
         dialog.destroy()
 
-class QuestionDialog(gtk.Dialog):
+class ErrorDialog:
+    def __init__(self, message):
+        dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
+        dialog.set_markup(message)
+        dialog.run()
+        dialog.destroy()
+
+class QuestionDialog:
     def __init__(self,settings):
-        gtk.Dialog.__init__(self)
-        self.set_title(settings['title'])
-        self.set_size_request(300,300)
-        self.question_hbox = gtk.HBox();
-        self.question_label = gtk.Label(settings['question'])
-        self.question_entry = gtk.Entry()
-        self.question_hbox.pack_start(self.question_label)
-        self.question_hbox.pack_start(self.question_entry)
-        self.vbox.pack_start(self.question_hbox)
-        self.show_all();
-
-    def show(self):
-        gtk.main()
-
-if __name__ == "__main__":
-    settings = { 'title': 'My Question', 'question': '???' }
-    qd = QuestionDialog(settings)
-    qd.show()
+        dialog = gtk.MessageDialog(
+                type=gtk.MESSAGE_QUESTION,
+                buttons=gtk.BUTTONS_YES_NO,
+                message_format=settings['question']
+            )
+        dialog.set_title(settings['title'])
+        self.result = dialog.run()
+        dialog.destroy()
 

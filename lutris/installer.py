@@ -191,11 +191,11 @@ class Installer():
             dest_path = self._download(gamefile[file_id])
             self.gamefiles[file_id] = dest_path
         self.installer_actions = self.install_data['installer']
-        self.config = LutrisConfig(runner=self.game_info['runner'])
+        self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
 
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
-        config_filename = os.path.join(lutris.constants.game_config_path,
+        config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
                 self.game_info['runner'] + "-" + self.game_name + ".yml")
 
         config_data = {

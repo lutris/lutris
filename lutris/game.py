@@ -25,6 +25,9 @@ import logging
 import os
 import os.path
 import time
+import gtk
+
+from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
@@ -32,11 +35,18 @@ from lutris.runners import *
 from lutris.constants import *
 
 def show_error_message(message, info=None):
-    print "************************************"
-    print " /!\ Error ! %s " % message['error']
-    if message['error'] == 'FILE_NOT_FOUND':
-        print message['file']
-    print "************************************"
+    if "RUNNER_NOT_INSTALLED" == message['error']:
+        q = QuestionDialog({
+                    'title': 'Error the runner is not installed', 
+                    'question': '%s is not installed, \
+                            do you want to install it now ?' % message['runner']
+                })
+        if gtk.RESPONSE_YES == q.result:
+            subprocess.Popen(['software-center', message['runner']])
+    elif "NO_BIOS" == message['error']:
+        ErrorDialog("A bios file is required to run this game")
+    elif "FILE_NOT_FOUND" == message['error']:
+        ErrorDialog("The file %s doesn't exists" % message['file'])
 
 def get_list():
     game_list = []
@@ -88,6 +98,7 @@ class LutrisGame():
             return False
 
         try:
+            #FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             self.machine = eval(self.runner_name + "." + self.runner_name + "(self.game_config)")
         except AttributeError, msg:
             logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)
@@ -105,38 +116,46 @@ class LutrisGame():
         self.hide_panels = False
         oss_wrapper = None
         if "system" in config and config["system"] is not None:
-
             #Hide Gnome panels
             if "hide_panels" in config["system"]:
                 if config["system"]["hide_panels"]:
-
                     self.lutris_desktop_control.hide_panels()
                     self.hide_panels = True
 
             #Change resolution before starting game
             if "resolution" in config["system"]:
-                success = self.lutris_desktop_control.change_resolution(config["system"]["resolution"])
+                success = self.lutris_desktop_control.change_resolution(
+                        config["system"]["resolution"]
+                    )
                 if success:
-                    logging.debug("Resolution changed to %s" % config["system"]["resolution"])
+                    logging.debug(
+                            "Resolution changed to %s" 
+                            % config["system"]["resolution"]
+                        )
                 else:
-                    logging.debug("Failed to set resolution %s" % config["system"]["resolution"])
+                    logging.debug(
+                            "Failed to set resolution %s" 
+                            % config["system"]["resolution"]
+                        )
 
             #Setting OSS Wrapper
             if "oss_wrapper" in config["system"]:
                 oss_wrapper = config["system"]["oss_wrapper"]
 
             #Reset Pulse Audio
-            if "reset_pulse" in config["system"]:
-                if config["system"]["reset_pulse"]:
-                    logging.debug("Restarting PulseAudio")
-                    subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start", shell=True)
-                    logging.debug("PulseAudio restarted")
+            if "reset_pulse" in config["system"] and config["system"]["reset_pulse"]:
+                subprocess.Popen(
+                        "pulseaudio --kill && sleep 1 && pulseaudio --start",
+                        shell=True
+                    )
+                logging.debug("PulseAudio restarted")
 
         gameplay_info = self.machine.play()
 
         if type(gameplay_info) == dict:
             if 'error' in gameplay_info:
                 show_error_message(gameplay_info)
+
                 return False
             game_run_args = gameplay_info["command"]
         else:
@@ -151,9 +170,9 @@ class LutrisGame():
         #OSS Wrapper
         if oss_wrapper and oss_wrapper != 'none':
             command = oss_wrapper + " " + command
-
         if game_run_args:
             self.timer_id = gobject.timeout_add(5000, self.poke_process)
+            print "running " + command
             self.game_thread = LutrisThread(command, path)
             self.game_thread.start()
 

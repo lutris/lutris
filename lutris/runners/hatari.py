@@ -20,6 +20,7 @@
 ###############################################################################
 
 from lutris.runners.runner import Runner
+import os
 
 class hatari(Runner):
     '''Runner for intellivision games'''
@@ -33,54 +34,106 @@ class hatari(Runner):
         self.is_installable = True
         self.description = "AtariST emulator."
 
-        self.game_options = [ {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
-                              {"option": "disk-b", "type":"single", "label": "Floppy Disk B"},
-                            ]
+        self.settings = settings
 
-        joystick_choices = [('None','none'),('Keyboard','keys'),('Joystick','real')]
+        self.game_options = [
+                {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
+                {"option": "disk-b", "type":"single", "label": "Floppy Disk B"}
+            ]
 
-        self.runner_options = [{"option": "bios_file", "type":"file_chooser", "label": "Bios File (TOS.img)"},
-                               {"option": "fullscreen", "type":"bool", "label": "Fullscreen"},
-                               {"option": "zoom", "type": "bool", "label": "Double ST low resolution"},
-                               {"option": "borders", "type": "bool", 'label': 'Add borders to display'},
-                               {"option": "status", "type": "bool", 'label': 'Display status bar'},
-                               {"option": "joy1", "type": "one_choice", "label": "Joystick 1", "choices": joystick_choices },
-                               {"option": "joy2", "type": "one_choice", "label": "Joystick 2", "choices": joystick_choices },
-                              ]
-        if settings:
-            if "fullscreen" in settings["hatari"]:
-                if settings["hatari"]["fullscreen"]:
-                    self.arguments = self.arguments + ["--fullscreen"]
-                else:
-                    self.arguments = self.arguments + ["--window"]
-            if "zoom" in settings["hatari"]:
-                if settings["hatari"]["zoom"]:
-                    self.arguments = self.arguments + ["--zoom 2"]
-                else:
-                    self.arguments = self.arguments + ["--zoom 1"]
-            if 'borders' in settings['hatari'] and settings["hatari"]["borders"]:
-                self.arguments = self.arguments + ['--borders true']
-            else:
-                self.arguments = self.arguments + ['--borders false']
+        joystick_choices = [
+                ('None','none'),
+                ('Keyboard','keys'),
+                ('Joystick','real')
+            ]
 
-            if 'status' in settings['hatari'] and settings["hatari"]["status"]:
-                self.arguments = self.arguments + ['--statusbar true']
-            else:
-                self.arguments = self.arguments + ['--statusbar false']
-            if "joy1" in settings["hatari"]:
-                self.arguments = self.arguments + ["--joy0 "+settings["hatari"]['joy1']]
-            if "joy2" in settings["hatari"]:
-                self.arguments = self.arguments + ["--joy1 "+settings["hatari"]['joy2']]
-                
-            if "bios_file" in settings["hatari"]:
-                self.arguments = self.arguments + ["--tos "+settings["hatari"]["bios_file"]]
-            else:
-                self.error_messages = self.error_messages + [ "TOS path not set."]
-            if "disk-a" in settings['game']:
-                self.diska = settings['game']['disk-a']
+        self.runner_options = [
+                {
+                    "option": "bios_file",
+                    "type":"file_chooser",
+                    "label": "Bios File (TOS.img)"
+                },
+                {
+                    "option": "fullscreen",
+                    "type":"bool",
+                    "label": "Fullscreen"
+                },
+                {
+                    "option": "zoom",
+                    "type": "bool",
+                    "label": "Double ST low resolution"
+                },
+                {
+                    "option": "borders",
+                    "type": "bool",
+                    'label': 'Add borders to display'
+                },
+                {
+                    "option": "status",
+                    "type": "bool",
+                    'label': 'Display status bar'
+                },
+                {
+                    "option": "joy1",
+                    "type": "one_choice",
+                    "label": "Joystick 1",
+                    "choices": joystick_choices
+                },
+                {
+                    "option": "joy2",
+                    "type": "one_choice",
+                    "label": "Joystick 2",
+                    "choices": joystick_choices
+                },
+            ]
+
 
     def play(self):
+        settings = self.settings['hatari']
+        game_settings = self.settings['game']
+        if "fullscreen" in settings and settings["fullscreen"]:
+            self.arguments = self.arguments + ["--fullscreen"]
+        else:
+            self.arguments = self.arguments + ["--window"]
+
+        if "zoom" in settings and settings["zoom"]:
+            self.arguments = self.arguments + ["--zoom 2"]
+        else:
+            self.arguments = self.arguments + ["--zoom 1"]
+
+        if 'borders' in settings and settings["borders"]:
+            self.arguments = self.arguments + ['--borders true']
+        else:
+            self.arguments = self.arguments + ['--borders false']
+
+        if 'status' in settings and settings["status"]:
+            self.arguments = self.arguments + ['--statusbar true']
+        else:
+            self.arguments = self.arguments + ['--statusbar false']
+        if "joy1" in settings:
+            self.arguments = self.arguments + ["--joy0 "+settings['joy1']]
+        if "joy2" in settings:
+            self.arguments = self.arguments + ["--joy1 "+settings['joy2']]
+
+        if "bios_file" in settings:
+            if os.path.exists(settings['bios_file']):
+                self.arguments = self.arguments +\
+                    ["--tos " + settings["bios_file"]]
+            else:
+                return {
+                    'error': 'FILE_NOT_FOUND',
+                    'file': settings['bios_file']
+                }
+        else:
+            return {'error': 'NO_BIOS'}
+            self.error_messages = self.error_messages + [ "TOS path not set."]
+        if "disk-a" in game_settings:
+            self.diska = game_settings['disk-a']
         self.arguments = self.arguments + [ "--disk-a \"%s\"" % self.diska ]
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
+        if not os.path.exists(self.diska):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.diska}
         command = [self.executable] + self.arguments
-        return_val = { "command": command ,"error_messages": self.error_messages}
-        return return_val
+
+        return { "command": command }
