@@ -35,9 +35,11 @@ class dosbox(Runner):
         self.runner_options = []
         if settings:
             self.exe = settings["game"]["exe"]
-        
-        
+
+
     def play(self):
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED'}
         command = [self.executable,"\""+self.exe+"\""]
         return command
-        
+

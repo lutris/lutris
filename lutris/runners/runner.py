@@ -47,9 +47,9 @@ class Runner(object):
 
     def check_depends(self):
         """Check if all the dependencies for a runner are installed."""
-        if not self.depends: 
+        if not self.depends:
             return true
-        
+
         classname = "lutris.runners." + self.depends
         parts = classname.split('.')
         module = ".".join(parts[:-1])
@@ -58,12 +58,12 @@ class Runner(object):
             module = getattr(module, component)
         runner = getattr(module, self.depends)
         runner_instance = runner()
-        
+
         return runner_instance.is_installed()
 
     def is_installed(self):
         """ Check if runner is installed
-        
+
         Return a boolean
         """
         is_installed = False
@@ -96,7 +96,7 @@ class Runner(object):
     def install_runner(self):
         """Install runner using package management systems."""
 
-        # Return false if runner has no package, must be then another method 
+        # Return false if runner has no package, must be then another method
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
             return False

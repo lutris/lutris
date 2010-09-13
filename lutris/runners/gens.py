@@ -23,16 +23,16 @@ from lutris.runners.runner import Runner
 import os.path
 
 class gens(Runner):
-    '''Runner for intellivision games'''
+    '''Runner for Sega Genesis games'''
 
     def __init__(self,settings = None):
         '''Constructor'''
         super(gens,self).__init__()
-        self.package = "gens"
+        self.package = "gens-gs"
         self.executable = "gens"
         self.machine = "Sega Genesis"
         self.is_installable = True
-        self.description = "AtariST emulator."
+        self.description = "Sega Genesis emulator."
 
         self.game_options = [ {"option": "rom", "type":"single", "label": "Rom File"}]
 
@@ -53,6 +53,10 @@ class gens(Runner):
                 self.rom = settings['game']['rom']
 
     def play(self):
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED'}
+        if not os.path.exists(self.rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.rom}
         self.arguments = self.arguments + [ "--game \"%s\"" % self.rom ]
         command = [self.executable] + self.arguments
         return_val = { "command": command ,"error_messages": self.error_messages}

@@ -30,7 +30,7 @@ class LutrisConfig():
         config_paths = [
             constants.lutris_config_path,
             constants.runner_config_path,
-            constants.game_config_path,
+            constants.GAME_CONFIG_PATH,
             constants.cover_path,
             constants.tmp_path,
             constants.cache_path
@@ -68,8 +68,8 @@ class LutrisConfig():
             file(constants.system_config_full_path, "w+")
 
         if self.game:
-            game_config_full_path = os.path.join(constants.game_config_path,
-                                                 self.game + constants.config_extension)
+            game_config_full_path = os.path.join(constants.GAME_CONFIG_PATH,
+                                                 self.game + constants.CONFIG_EXTENSION)
             if os.path.exists(game_config_full_path):
                 try:
                     self.game_config = yaml.load(file(game_config_full_path, 'r').read())
@@ -83,7 +83,7 @@ class LutrisConfig():
 
         if self.runner:
             runner_config_full_path = os.path.join(constants.runner_config_path,
-                                                   self.runner + constants.config_extension)
+                                                   self.runner + constants.CONFIG_EXTENSION)
             if os.path.exists(runner_config_full_path):
                 self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
         self.update_global_config()
@@ -151,8 +151,8 @@ class LutrisConfig():
         elif type == "game":
             if not self.game:
                 self.game = self.config["runner"] + "-" + self.config["realname"].replace(" ", "_")
-            self.game_config_path = os.path.join(constants.game_config_path,
-                                                 self.game.replace('/', '_') + constants.config_extension)
+            self.game_config_path = os.path.join(constants.GAME_CONFIG_PATH,
+                                                 self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
             config_file = file(self.game_config_path, "w")
             config_file.write(yaml_config)
             return self.game

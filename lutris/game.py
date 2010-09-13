@@ -19,8 +19,6 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
-
 import subprocess
 import gobject
 import logging
@@ -32,6 +30,35 @@ from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
 from lutris.runners import *
 from lutris.constants import *
+
+def show_error_message(message, info=None):
+    print "************************************"
+    print " /!\ Error ! %s " % message['error']
+    if message['error'] == 'FILE_NOT_FOUND':
+        print message['file']
+    print "************************************"
+
+def get_list():
+    game_list = []
+    for file in os.listdir(GAME_CONFIG_PATH):
+        if file.endswith(CONFIG_EXTENSION):
+            game_name = file[:len(file) - len(CONFIG_EXTENSION)]
+            Game = LutrisGame(game_name)
+            if not Game.load_success:
+                message = "Error while loading configuration for %s" % game_name
+
+                #error_dialog = gtk.MessageDialog(parent=None, flags=0,
+                #                                 type=gtk.MESSAGE_ERROR,
+                #                                 buttons=gtk.BUTTONS_OK,
+                #                                 message_format=message)
+                #error_dialog.run()
+                #error_dialog.destroy()
+                print message
+            game_list.append({
+                "name": Game.real_name,
+                "runner": Game.runner_name,
+                "id":game_name})
+    return game_list
 
 class LutrisGame():
     """"This class takes cares about loading the configuration for a game
@@ -74,6 +101,7 @@ class LutrisGame():
 
     def play(self):
         config = self.game_config.config
+        logging.debug("get ready for %s " % config['realname'])
         self.hide_panels = False
         oss_wrapper = None
         if "system" in config and config["system"] is not None:
@@ -107,6 +135,9 @@ class LutrisGame():
         gameplay_info = self.machine.play()
 
         if type(gameplay_info) == dict:
+            if 'error' in gameplay_info:
+                show_error_message(gameplay_info)
+                return False
             game_run_args = gameplay_info["command"]
         else:
             game_run_args = gameplay_info
@@ -149,4 +180,4 @@ class LutrisGame():
             if self.game_config.config['system']['reset_desktop']:
                 self.lutris_desktop_control.reset_desktop()
 
-        os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+        #os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))

@@ -19,9 +19,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-#from lutris.runners.wine import wine
-from lutris.runners.runner import Runner
 import os
+from lutris.runners.runner import Runner
 
 class nulldc(Runner):
     """Runner for the Dreamcast emulator NullDC
@@ -62,7 +61,7 @@ class nulldc(Runner):
                                 "label":"Fullscreen"}]
 
     def is_installed(self):
-        if not self.depends():
+        if not self.check_depends():
             return False
         nulldc_path = self.get_nulldc_path()
         if not os.path.exists(nulldc_path):

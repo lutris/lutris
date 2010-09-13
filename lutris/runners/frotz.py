@@ -20,6 +20,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+import os
 from lutris.runners.runner import Runner
 
 class frotz(Runner):
@@ -39,5 +40,9 @@ class frotz(Runner):
 
 
     def play(self):
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED'}
+        if not os.path.exists(self.story):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.story}
         command = ['x-terminal-emulator','-e',"\""+self.executable,"\""+self.story+"\"\""]
         return command

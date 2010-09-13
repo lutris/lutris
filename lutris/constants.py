@@ -27,7 +27,7 @@ version = "0.2"
 website = "http://lutris.net"
 #installer_prefix = "http://lutris.net/media/installers/"
 installer_prefix = "http://localhost:8000/media/installers/"
-config_extension = ".yml"
+CONFIG_EXTENSION = ".yml"
 license = 'GPL-3'
 copyright = "(c) 2010 Lutris Gaming Platform"
 authors = ["Mathieu Comandon <strycore@gmail.com>"]
@@ -52,12 +52,12 @@ lutris_icon_path = os.path.join(sys.path[0], lutris_icon_file)
 
 #Config files
 lutris_config_path = os.path.join(os.path.expanduser('~'), '.config', 'lutris')
-system_config_file = 'system' + config_extension
+system_config_file = 'system' + CONFIG_EXTENSION
 protocol_version = 1
-
+DATA_PATH = os.path.join(sys.path[0], 'data')
 system_config_full_path = os.path.join(lutris_config_path, system_config_file)
 runner_config_path = os.path.join(lutris_config_path, 'runners')
-game_config_path = os.path.join(lutris_config_path, 'games')
+GAME_CONFIG_PATH = os.path.join(lutris_config_path, 'games')
 cover_path = os.path.join(lutris_config_path, 'covers')
 tmp_path = os.path.join(lutris_config_path, 'tmp')
 cache_path = os.path.join(lutris_config_path, 'cache')
