@@ -45,7 +45,7 @@ class mednafen(Runner):
             self.machine = settings["game"]["machine"]
             #Defaults
             self.fullscreen = "1"
-            
+
             if "mednafen" in settings.config:
                 if "fs" in settings.config["mednafen"]:
                     if not settings.config["mednafen"]["fs"]:
@@ -79,7 +79,7 @@ class mednafen(Runner):
                          "-nes.input.port1.gamepad.down","\"joystick "+self.joy_ids[0]+" 00008001\"",
                          "-nes.input.port1.gamepad.left","\"joystick "+self.joy_ids[0]+" 0000c000\"",
                          "-nes.input.port1.gamepad.right","\"joystick "+self.joy_ids[0]+" 00008000\"" ]
-                             
+
         gba_controls = ["-gba.input.builtin.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
                          "-gba.input.builtin.gamepad.b","\"joystick "+self.joy_ids[0]+" 00000002\"",
                          "-gba.input.builtin.gamepad.shoulder_r","\"joystick "+self.joy_ids[0]+" 00000007\"",
@@ -120,7 +120,7 @@ class mednafen(Runner):
         else:
             controls = []
         for control in controls:
-            self.options.append(control)        
+            self.options.append(control)
 
     def play(self):
         """Runs the game"""
@@ -129,18 +129,28 @@ class mednafen(Runner):
         (resolutionx, resolutiony) = resolution.split("x")
         xres = str(resolutionx)
         yres = str(resolutiony)
-        self.options = ["-fs",self.fullscreen,
-                        "-"+self.machine+".xres",xres,"-"+self.machine+".yres",yres,
-                        "-"+self.machine+".stretch","1","-"+self.machine+".special","hq4x",
-                        "-"+self.machine+".videoip","1"]
+        self.options = [
+                "-fs", self.fullscreen,
+                "-" + self.machine + ".xres", xres, 
+                "-" + self.machine + ".yres", yres,
+                "-" + self.machine + ".stretch","1",
+                "-" + self.machine + ".special","hq4x",
+                "-" + self.machine + ".videoip","1"
+            ]
         self.joy_ids = []
         self.find_joysticks()
         if len(self.joy_ids) > 1:
             self.set_joystick_controls()
 
-        #os.chdir(self.romdir)
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
+
+        if not os.path.exists(self.rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.rom }
+
         command = [self.executable]
         for option in self.options:
             command.append(option)
-        command.append("\""+self.rom+"\"")
+        command.append("\"" + self.rom + "\"")
         return command

@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-# This program is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License version 3, as published 
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
 # by the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranties of 
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along 
+#
+# You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
@@ -21,10 +21,12 @@ import gtk
 import logging
 import optparse
 
-# This is inspired by gwibber because the quickly method was starting to be 
+# This is inspired by gwibber because the quickly method was starting to be
 # annoying, there might be some issues left with running from source tree or
 # packaged version (and running from source with the packaged version installed)
 # See Gwibber source for more inspiration.
+# See also lutris.constants.py which also has a DATA_PATH
+
 LAUNCH_PATH=os.path.abspath(sys.path[0])
 DATA_PATH=os.path.join(LAUNCH_PATH, '..', 'data')
 SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
@@ -41,7 +43,7 @@ def new_lutris_window():
     builder = gtk.Builder()
     builder.add_from_file(ui_filename)
     window = builder.get_object("lutris_window")
-    window.finish_initializing(builder,DATA_PATH)
+    window.finish_initializing(builder, DATA_PATH)
     return window
 
 # Support for command line options.
@@ -58,9 +60,9 @@ if options.verbose:
 # Run the application.
 game = None
 for arg in args:
-    if arg.startswith('lutris://'):
-        print 'Installing ' + arg[9:]
-        game = arg[9:]
+    if arg.startswith('lutris:'):
+        print 'Installing ' + arg[7:]
+        game = arg[7:]
         break
 if game:
     installer = Installer(game)

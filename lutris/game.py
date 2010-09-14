@@ -37,7 +37,7 @@ from lutris.constants import *
 def show_error_message(message, info=None):
     if "RUNNER_NOT_INSTALLED" == message['error']:
         q = QuestionDialog({
-                    'title': 'Error the runner is not installed', 
+                    'title': 'Error the runner is not installed',
                     'question': '%s is not installed, \
                             do you want to install it now ?' % message['runner']
                 })
@@ -115,6 +115,18 @@ class LutrisGame():
         logging.debug("get ready for %s " % config['realname'])
         self.hide_panels = False
         oss_wrapper = None
+        gameplay_info = self.machine.play()
+
+        if type(gameplay_info) == dict:
+            if 'error' in gameplay_info:
+                show_error_message(gameplay_info)
+
+                return False
+            game_run_args = gameplay_info["command"]
+        else:
+            game_run_args = gameplay_info
+            logging.debug("Old method used for returning gameplay infos")
+
         if "system" in config and config["system"] is not None:
             #Hide Gnome panels
             if "hide_panels" in config["system"]:
@@ -129,12 +141,12 @@ class LutrisGame():
                     )
                 if success:
                     logging.debug(
-                            "Resolution changed to %s" 
+                            "Resolution changed to %s"
                             % config["system"]["resolution"]
                         )
                 else:
                     logging.debug(
-                            "Failed to set resolution %s" 
+                            "Failed to set resolution %s"
                             % config["system"]["resolution"]
                         )
 
@@ -149,18 +161,6 @@ class LutrisGame():
                         shell=True
                     )
                 logging.debug("PulseAudio restarted")
-
-        gameplay_info = self.machine.play()
-
-        if type(gameplay_info) == dict:
-            if 'error' in gameplay_info:
-                show_error_message(gameplay_info)
-
-                return False
-            game_run_args = gameplay_info["command"]
-        else:
-            game_run_args = gameplay_info
-            logging.debug("Old method used for returning gameplay infos")
 
         path = None
         if hasattr(self.machine, 'game_path'):

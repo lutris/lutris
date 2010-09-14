@@ -207,8 +207,9 @@ class Installer():
 
         for launcher in launchers:
             if(launcher in self.game_info):
-                config_data['game'][launcher] = os.path.join(self.game_dir,
-                                                      self.game_info[launcher])
+                config_data['game'][launcher] = os.path.join(
+                        self.game_dir, self.game_info[launcher]
+                    )
 
         yaml_config = yaml.dump(config_data, default_flow_style=False)
         file(config_filename, "w").write(yaml_config)
@@ -235,6 +236,7 @@ class Installer():
             shutil.copy(url[7:], dest_dir)
         else:
             urllib.urlretrieve(url, dest_file, reporthook)
+        
         return dest_file
 
     def delete(self, data):
@@ -256,16 +258,26 @@ class Installer():
     def _move(self, data):
         """ Moves a file. """
         src = data['src']
+        if src in self.gamefiles.keys():
+            src = self.gamefiles[src]
         destination_alias = data['dst']
-        if destination_alias == 'gamedir':
+        if data['dst'] == 'gamedir':
             dst = self.game_dir
         else:
-            dst = '/tmp'
+            dst = data['dst'].replace('homedir', os.path.expanduser('~'))
+            if not os.path.exists(dst):                
+                dst = '/tmp'
 
         print "Moving %s to %s" % (src, dst)
 
+        if not os.path.exists(src):
+            print "I cannot move what does not exist"
+            return False
         try:
             shutil.move(src, dst)
         except shutil.Error:
             print "Could not move the file, destination already exists ?"
+            return False
+        return True
 
+        
