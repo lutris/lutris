@@ -31,7 +31,7 @@ class ConfigVBox(gtk.VBox):
         logging.debug("caller:"+caller)
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
-        
+
         self.caller = caller
 
     def generate_widgets(self):
@@ -124,13 +124,13 @@ class ConfigVBox(gtk.VBox):
         combobox.set_size_request(200,30)
         cell = gtk.CellRendererText()
         combobox.pack_start(cell, True)
-        combobox.add_attribute(cell, 'text', 0)  
+        combobox.add_attribute(cell, 'text', 0)
         index = selected_index  = -1
         if value:
             for choice in choices:
                 if choice[1] == value:
                     selected_index = index +1
-                index = index +1 
+                index = index +1
         combobox.set_active(selected_index)
         combobox.connect('changed',self.on_combobox_change,option_name)
         gtklabel = gtk.Label(label)
@@ -199,21 +199,23 @@ class ConfigVBox(gtk.VBox):
         hbox.pack_start(gtklabel)
         hbox.pack_start(directory_chooser)
         self.pack_start(hbox,False,True,5)
-        
+
     def on_chooser_file_set(self,filechooser_widget,option):
         filename =  filechooser_widget.get_filename()
         self.real_config[self.save_in_key][option] = filename
-    
+
     def generate_multiple_file_chooser(self,option_name,label,value=None):
         hbox = gtk.HBox()
         gtk_label = gtk.Label(label)
         gtk_label.set_size_request(200,30)
         hbox.pack_start(gtk_label)
-        self.files_chooser_dialog = gtk.FileChooserDialog(title="Select files",
-                                                              parent=self.get_parent_window(),
-                                                              action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                                                              buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
-                                                                       gtk.STOCK_ADD, gtk.RESPONSE_OK))
+        self.files_chooser_dialog = gtk.FileChooserDialog(
+                title="Select files",
+                parent=self.get_parent_window(),
+                action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
+                         gtk.STOCK_ADD, gtk.RESPONSE_OK)
+            )
         self.files_chooser_dialog.set_select_multiple(True)
         self.files_chooser_dialog.connect('response', self.add_files_callback,option_name)
 
@@ -221,7 +223,7 @@ class ConfigVBox(gtk.VBox):
         files_chooser_button.set_current_folder(self.lutris_config.get_path(self.runner_class))
         if value:
             files_chooser_button.set_filename(value[0])
-            
+
         hbox.pack_start(files_chooser_button)
         self.pack_start(hbox,False,True,5)
         if value:
@@ -249,7 +251,7 @@ class ConfigVBox(gtk.VBox):
         if key == gtk.keysyms.Delete:
             #TODO : Delete selected row
             print "you don't wanna delete this ... yet"
-            
+
     def add_files_callback(self,dialog,response,option):
         """Add several files to the configuration"""
         if response == gtk.RESPONSE_OK:

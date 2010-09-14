@@ -49,3 +49,17 @@ class QuestionDialog:
         self.result = dialog.run()
         dialog.destroy()
 
+class DirectoryDialog:
+    def __init__(self, message):
+        dialog = gtk.FileChooserDialog(
+                title=message,
+                action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
+                         gtk.STOCK_OK, gtk.RESPONSE_OK)
+            )
+        self.result = dialog.run()
+        self.folder =  dialog.get_current_folder()
+        dialog.destroy()
+
+        
+

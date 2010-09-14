@@ -20,6 +20,7 @@
 ###############################################################################
 
 import gtk
+
 from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
@@ -30,19 +31,19 @@ class RunnerConfigDialog(gtk.Dialog):
         self.set_title("Configure %s" % (runner))
         self.set_size_request(500,500)
         self.runner = runner
-        self.lutris_config = LutrisConfig(runner = runner)
+        self.lutris_config = LutrisConfig(runner=runner)
 
-        #Notebook for choosing between runner and system configuration        
+        #Notebook for choosing between runner and system configuration
         self.config_notebook = gtk.Notebook()
-        self.vbox.pack_start(self.config_notebook,True,True,0)
-        
+        self.vbox.pack_start(self.config_notebook, True, True, 0)
+
         #Runner configuration
         self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,"runner")
         runner_config_scrolled_window = gtk.ScrolledWindow()
         runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         runner_config_scrolled_window.add_with_viewport(self.runner_config_vbox)
         self.config_notebook.append_page(runner_config_scrolled_window,gtk.Label("Runner configuration"))
-        
+
         #System configuration
         self.system_config_vbox = SystemConfigVBox(self.lutris_config,"runner")
         system_config_scrolled_window = gtk.ScrolledWindow()
@@ -58,10 +59,10 @@ class RunnerConfigDialog(gtk.Dialog):
         self.action_area.pack_start(ok_button)
         cancel_button.connect("clicked", self.close)
         ok_button.connect("clicked", self.ok_clicked)
-        
+
         self.show_all()
         self.run()
-        
+
     def close(self,widget):
         self.destroy()
 

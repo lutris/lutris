@@ -20,24 +20,55 @@
 ###############################################################################
 
 import os
+import gtk
 
+from lutris.gui.common import QuestionDialog, DirectoryDialog
 from lutris.runners.runner import Runner
-from lutris.runners.wine import wine
+from lutris.config import LutrisConfig
 
 class steam(Runner):
     """Runner for the Steam platform."""
-    
+
     def __init__(self,settings = None):
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"
         super(steam, self).__init__()
         #TODO : Put Steam Path in config file
-        self.game_path = "/home/strider/Games/Steam/"
+        config = LutrisConfig(runner=self.__class__.__name__)
+        self.game_path = config.get_path()
         self.game_exe = "steam.exe"
         self.args = "-silent -applaunch 26800"
         self.depends = "wine"
         self.is_installable = False
+
+    def install(self):
+        q = QuestionDialog({
+            'title': 'Installing Steam',
+            'question': 'Do you already have Steam on your computer ?'
+            })
+        if q.result == gtk.RESPONSE_NO:
+            print "!!! NOT IMPLEMENTED !!!"
+        
+        d = DirectoryDialog('Where is located Steam ?')
+        
+        config = LutrisConfig(runner='steam')
+        config.runner_config = {'system': {'game_path': d.folder }}
+        config.save(type='runner')
+
+
+
+    def is_installed(self):
+        """Checks if wine is installed and 
+        if the steam executable is on the harddrive
+            
+        """
+        if not self.check_depends():
+            return False
+        if not os.path.exists(os.path.join(self.game_path, self.game_exe)):
+            return False
+        else:
+            return True
 
     def get_name(self, steam_file):
         data = steam_file.read(1000)
@@ -83,9 +114,17 @@ class steam(Runner):
                 test_file.close()
 
         steam_apps.sort()
-        steam_apps_file = open(os.path.join(os.path.expanduser("~"),"steamapps.txt"),"w")
+        steam_apps_file = open(
+                os.path.join(os.path.expanduser("~"),"steamapps.txt"),"w"
+            )
         for steam_app in steam_apps:
             #steam_apps_file.write("%d\t%s\n" % (steam_app[0],steam_app[1]))
             #print ("%d\t%s\n" % (steam_app[0],steam_app[1]))
             self.game_list.append((steam_app[0],steam_app[1]))
         steam_apps_file.close()
+
+    def play():
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
+

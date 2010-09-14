@@ -1,5 +1,6 @@
-import lutris.runners
 import gtk
+
+import lutris.runners
 from lutris.gui.runnerconfigdialog import RunnerConfigDialog
 
 class RunnersDialog(gtk.Dialog):
@@ -20,15 +21,18 @@ class RunnersDialog(gtk.Dialog):
         for runner in runner_list:
             hbox = gtk.HBox()
             #Label
-            runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
+            runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
             machine = runner_instance.machine
             runner_label = gtk.Label()
-            runner_label.set_markup("<b>"+runner + "</b> ( "+machine+" ) ")
+            runner_label.set_markup("<b>"+runner + "</b> ( " + machine + " ) ")
             runner_label.set_width_chars(33)
             runner_label.set_line_wrap(True)
-            hbox.pack_start(runner_label,True,True,5)
+            hbox.pack_start(runner_label, True, True, 5)
             #Button
-            button_alignement = gtk.Alignment(xalign=0.0, yalign=0.0, xscale=0.5, yscale=0.0)
+            button_alignement = gtk.Alignment(
+                    xalign=0.0, yalign=0.0,
+                    xscale=0.5, yscale=0.0
+                )
             if runner_instance.is_installed():
                 button = gtk.Button("Configure")
                 button.set_size_request(100,30)
@@ -49,7 +53,7 @@ class RunnersDialog(gtk.Dialog):
 
     def on_install_clicked(self,widget,runner):
         """Install a runner"""
-        #TODO : this is ugly !
+        #FIXME : this is ugly !
         runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
         runner_instance.install()
 

@@ -32,7 +32,7 @@ class Runner(object):
     def __init__(self):
         """ Initialize runner """
         self.executable = None
-        self.is_installable = False
+        self.is_installable = True
         self.arguments = []
         self.error_messages = []
         self.game = None
@@ -69,9 +69,9 @@ class Runner(object):
         is_installed = False
         if not self.executable:
             return False
-        cmdline = "which " + self.executable
-        cmdline = str.split(cmdline, " ")
-        result = subprocess.Popen(cmdline, stdout=subprocess.PIPE).communicate()[0]
+        result = subprocess.Popen(
+                ['which', self.executable],
+                stdout=subprocess.PIPE).communicate()[0]
         if result == '' :
             is_installed = False
         else:
@@ -100,17 +100,19 @@ class Runner(object):
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
             return False
+        if self.is_installable is False:
+            return False
         linux_dist = platform.dist()[0]
 
         #Add the package manager with arguments for your favorite distro :)
         if linux_dist == 'Ubuntu' or linux_dist == 'Debian':
-            package_manager = 'apt-get'
-            install_args = '-y install'
+            package_manager = 'software-center'
+            install_args = ''
         elif linux_dist == 'Fedora':
             package_manager = 'yum'
             install_args = 'install'
         else:
-            logging.error("The distribution you're running is not supported yet.")
+            logging.error("The distribution you're running is not supported.")
             logging.error("Edit runners/runner.py to add support for it")
             return False
 
@@ -120,15 +122,16 @@ class Runner(object):
                 #TODO : check if the PPA is already installed
                 #TODO : check the ubuntu version available for the ppa,
                 #       choose the one corresponding to the current install
-                #       or the closest one.     
+                #       or the closest one.
                 subprocess.Popen('gksu add-apt-repository %s' % self.ppa)
                 subprocess.Popen('gksu apt-get update')
 
-        print subprocess.Popen("gksu \"%s %s %s\"" % (package_manager,
-                                                      install_args,
-                                                      self.package),
+        print subprocess.Popen("%s %s %s" % (package_manager,
+                                             install_args,
+                                             self.package),
                                shell=True,
                                stdout=subprocess.PIPE).communicate()[0]
+        return True
 
     def write_config(self, id, name, fullpath):
         """Write game configuration to settings directory."""

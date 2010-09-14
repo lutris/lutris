@@ -34,24 +34,37 @@ class osmose(Runner):
         self.is_installable = False
 
         self.description = "Sega Master System Emulator"
-      
-        self.game_options = [ { 'option': 'rom', 'type': 'single', 'label': 'Rom File' } ]
+
+        self.game_options = [{
+            'option': 'rom',
+            'type': 'single',
+            'label': 'Rom File'
+        }]
         self.runner_options = [
-            { 'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen' },
-            { 'option': 'joy', 'type': 'bool', 'label': 'Use joystick' }
+            {'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen'},
+            {'option': 'joy', 'type': 'bool', 'label': 'Use joystick'}
         ]
         self.arguments = []
         if settings:
-            if 'fullscreen' in settings['osmose']:
-                if settings['osmose']['fullscreen']:
-                    self.arguments = self.arguments + ['-fs','-bilinear']
-            if 'joy' in settings["osmose"]:
-                if settings['osmose']['joy']:
-                    self.arguments = self.arguments + ['-joy']
-            self.arguments = self.arguments + ["\"" + settings['game']['rom'] + "\""]
-
+            self.settings = settings
 
     def play(self):
-        command = [self.executable] + self.arguments
-        return { 'command': command }
-        
+        if 'fullscreen' in self.settings['osmose']:
+            if self.settings['osmose']['fullscreen']:
+                self.arguments = self.arguments + ['-fs','-bilinear']
+        if 'joy' in self.settings["osmose"]:
+            if self.settings['osmose']['joy']:
+                self.arguments = self.arguments + ['-joy']
+
+        self.rom = self.settings['game']['rom']
+        self.arguments = self.arguments + ["\"" + self.rom + "\""]
+
+        if not self.is_installed():
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
+        if not os.path.exists(self.rom):
+            return {'error': 'FILE_NOT_FOUND',
+                    'file': self.rom}
+
+        return { 'command': [self.executable] + self.arguments }
+
