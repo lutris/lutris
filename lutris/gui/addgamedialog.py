@@ -120,7 +120,12 @@ class AddGameDialog(gtk.Dialog):
 
         if self.runner_class and realname:
             game_identifier = self.lutris_config.save(type="game")
-            self.game_info = {"Game Name": realname, "Runner": self.runner_class , "name": game_identifier}
+            self.game_info = {
+                    "name": realname,
+                    "runner": self.runner_class ,
+                    "id": game_identifier
+                }
+
             self.destroy()
 
 
@@ -144,7 +149,7 @@ class AddGameDialog(gtk.Dialog):
         self.game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
         self.game_config_scrolled_window.show_all()
 
-        #Load runner box 
+        #Load runner box
         self.runner_options_vbox = RunnerConfigVBox(self.lutris_config, "game")
         self.runner_config_scrolled_window.add_with_viewport(self.runner_options_vbox)
         self.runner_config_scrolled_window.show_all()

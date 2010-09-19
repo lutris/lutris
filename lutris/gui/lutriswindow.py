@@ -72,8 +72,6 @@ class LutrisWindow(gtk.Window):
     def finish_initializing(self, builder, data_path):
         """ Method used by gtkBuilder to instanciate the window. """
         self.data_path = data_path
-        print "arg : " + data_path
-        print "const : " + DATA_PATH
         #get a reference to the builder and set up the signals
         self.builder = builder
         self.builder.connect_signals(self)
@@ -188,23 +186,24 @@ class LutrisWindow(gtk.Window):
         Note: this won't delete the actual game
 
         """
-        if not self.gameName:
-            return
-        self.lutris_config.remove(self.gameName)
-        self.game_list_grid_view.remove_selected_rows()
+        gameSelection = self.game_treeview.get_selection()
+        model, select_iter = gameSelection.get_selected()
+        game_name = model.get_value(select_iter, 0)
+        self.lutris_config.remove(game_name)
+        self.game_treeview.remove_row(select_iter)
         self.status_label.set_text("Removed game")
 
     def get_selected_game(self):
         gameSelection = self.game_treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
-        game_name = model.get_value(select_iter, 2)
+        game_name = model.get_value(select_iter, 0)
         return game_name
 
     def select_game(self, treeview):
         gameSelection = treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
         if select_iter:
-            self.gameName = model.get_value(select_iter, 2)
+            self.gameName = model.get_value(select_iter, 0)
             self.set_game_cover()
 
     def game_launch(self, treeview, arg1, arg2):
@@ -217,7 +216,6 @@ class LutrisWindow(gtk.Window):
         if coverflow:
             if coverflow == "NOCOVERS":
                 message = "You need covers for your games to switch to fullscreen mode."
-
                 NoticeDialog(message)
                 return
             if coverflow == "NOPYGLET":
@@ -241,7 +239,8 @@ class LutrisWindow(gtk.Window):
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            self.game_list_grid_view.append_row(game_info)
+            self.game_treeview.add_row(game_info)
+            self.game_treeview.sort_rows()
 
     def import_cedega(self, widget, data=None):
         from lutris.runners.cedega import cedega

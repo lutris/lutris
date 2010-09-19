@@ -126,7 +126,7 @@ class wine(Runner):
 
         os.chdir(lutris.constants.tmp_path)
         #Make temporary reg file
-        logging.debug("Setting wine registry key : %s\\%s to %s" 
+        logging.debug("Setting wine registry key : %s\\%s to %s"
                 % (path, key, value))
         reg_file = open("wine_tmp.reg","w")
         reg_file.write("""REGEDIT4

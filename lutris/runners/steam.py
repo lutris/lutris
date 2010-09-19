@@ -23,24 +23,32 @@ import os
 import gtk
 
 from lutris.gui.common import QuestionDialog, DirectoryDialog
-from lutris.runners.runner import Runner
+from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
 
-class steam(Runner):
+class steam(wine):
     """Runner for the Steam platform."""
 
     def __init__(self,settings = None):
+        super(steam, self).__init__()
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"
-        super(steam, self).__init__()
         #TODO : Put Steam Path in config file
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
         self.game_exe = "steam.exe"
-        self.args = "-silent -applaunch 26800"
+        self.arguments = []
         self.depends = "wine"
         self.is_installable = False
+        self.appid = "26800"
+        self.game_options = [
+                {'option': 'appid', 'type': 'string', 'label': 'appid'},
+                {'option': 'args', 'type': 'string', 'label': 'arguments'}
+        ]
+        if settings:
+            self.appid = settings['game']['appid']
+            self.args = settings['game']['args']
 
     def install(self):
         q = QuestionDialog({
@@ -49,9 +57,9 @@ class steam(Runner):
             })
         if q.result == gtk.RESPONSE_NO:
             print "!!! NOT IMPLEMENTED !!!"
-        
+
         d = DirectoryDialog('Where is located Steam ?')
-        
+
         config = LutrisConfig(runner='steam')
         config.runner_config = {'system': {'game_path': d.folder }}
         config.save(type='runner')
@@ -59,12 +67,10 @@ class steam(Runner):
 
 
     def is_installed(self):
-        """Checks if wine is installed and 
+        """Checks if wine is installed and
         if the steam executable is on the harddrive
-            
+
         """
-        if not self.check_depends():
-            return False
         if not os.path.exists(os.path.join(self.game_path, self.game_exe)):
             return False
         else:
@@ -88,7 +94,7 @@ class steam(Runner):
             appid = filename[filename.find("_") + 1:filename.find(".")]
         elif filename.endswith('.pkv'):
             appid = filename[:filename.find("_")]
-        return  int(appid)
+        return  appid
 
     def get_appid_list(self):
         self.game_list = []
@@ -123,8 +129,17 @@ class steam(Runner):
             self.game_list.append((steam_app[0],steam_app[1]))
         steam_apps_file.close()
 
-    def play():
+    def play(self):
+        if not self.check_depends():
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.depends }
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
+
+        self.check_regedit_keys() #From parent wine runner
+
+        steam_full_path = os.path.join(self.game_path, self.game_exe)
+        command = ['wine', steam_full_path, '-applaunch', self.appid, self.args]
+        return {'command': command }
 
