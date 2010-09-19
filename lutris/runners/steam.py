@@ -29,8 +29,8 @@ from lutris.config import LutrisConfig
 class steam(wine):
     """Runner for the Steam platform."""
 
-    def __init__(self,settings = None):
-        super(steam, self).__init__()
+    def __init__(self,settings=None):
+        super(steam, self).__init__(settings)
         self.executable = "Steam.exe"
         self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"

@@ -20,6 +20,7 @@
 ###############################################################################
 
 import os
+import subprocess
 import logging
 import lutris.constants
 from lutris.runners.runner import Runner
@@ -60,16 +61,20 @@ class wine(Runner):
                 ("ReadTex","readtex"),
                 ("TexDraw","texdraw"),
                 ("TexTex","textex")
-        ]
+            ]
         multisampling_choices = [
                 ("Enabled","enabled"),
                 ("Disabled","disabled")
-        ]
+            ]
         audio_choices = [
                 ("Alsa","alsa"),
                 ("OSS","oss"),
                 ("Jack","jack")
-        ]
+            ]
+        desktop_choices = [
+                ('Yes', 'Default'),
+                ('No', 'None')
+            ]
         self.runner_options = [
                 {
                     "option": "cdrom_path",
@@ -105,17 +110,35 @@ class wine(Runner):
                     "label": "Audio driver",
                     "type": "one_choice",
                     "choices": audio_choices
+                },
+                {
+                    "option": 'Desktop',
+                    'label': 'Virtual desktop',
+                    'type': 'one_choice',
+                    'choices': desktop_choices
                 }
         ]
+        self.reg_keys = {
+                "RenderTargetLockMode": r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
+                "Audio": r"HKEY_CURRENT_USER\Software\Wine\Drivers",
+                "MouseWarpOverride": r"HKEY_CURRENT_USER\Software\Wine\DirectInput",
+                "Multisampling": r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
+                "RenderTargetLockMode" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
+                "OffscreenRenderingMode" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
+                "DirectDrawRenderer" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
+                "Version": r"HKEY_CURRENT_USER\Software\Wine",
+                "Desktop": r"HKEY_CURRENT_USER\Software\Wine\Explorer"
+                }
 
         if settings:
-            self.gameExe = settings["game"]["exe"]
+            if "exe" in settings['game']:
+                self.gameExe = settings["game"]["exe"]
             if "args" in settings.config["game"]:
                 self.args = settings["game"]["args"]
             else:
                 self.args = None
-            if "wine" in settings.config:
-                self.wine_config = settings.config["wine"]
+            if self.__class__.__name__ in settings.config:
+                self.wine_config = settings.config[self.__class__.__name__]
             else:
                 self.wine_config = None
 
@@ -130,12 +153,14 @@ class wine(Runner):
                 % (path, key, value))
         reg_file = open("wine_tmp.reg","w")
         reg_file.write("""REGEDIT4
+
 [%s]
 "%s"="%s"
+
 """ % (path,key,value))
         reg_file.close()
         reg_path = os.path.join(lutris.constants.tmp_path,"wine_tmp.reg")
-        os.popen(self.executable + " regedit " + reg_path )
+        subprocess.call(["wine", "regedit", reg_path])
         #os.remove(reg_path)
 
     def kill(self):
@@ -146,55 +171,16 @@ class wine(Runner):
         command = "%s %s" % (self.executable, installer_executable)
         return command
 
+    def check_regedit_keys(self):
+        for key in self.reg_keys.keys():
+            if key in self.wine_config:
+                self.set_regedit(
+                    self.reg_keys[key],
+                    key,
+                    self.wine_config[key]
+                )
+
     def play(self):
-        if "MouseWarpOverride" in self.wine_config:
-            self.set_regedit(
-                    r"HKEY_CURRENT_USER\Software\Wine\DirectInput",
-                    "MouseWarpOverride",
-                    self.wine_config["MouseWarpOverride"]
-                )
-
-        if "Audio" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine\Drivers]",
-                    "Audio",
-                    self.wine_config["Audio"]
-                )
-
-        if "Multisampling" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine\Direct3D]",
-                    "Multisampling",
-                    self.wine_config["Multisampling"]
-                )
-
-        if "RenderTargetLockMode" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine\Direct3D]",
-                    "RenderTargetLockMode",
-                    self.wine_config["RenderTargetLockMode"]
-                )
-
-        if "OffscreenRenderingMode" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine\Direct3D]",
-                    "OffscreenRenderingMode",
-                    self.wine_config["OffscreenRenderingMode"]
-                )
-
-        if "DirectDrawRenderer" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine\Direct3D]",
-                    "DirectDrawRenderer",
-                    self.wine_config["DirectDrawRenderer"]
-                )
-
-        if "Version" in self.wine_config:
-            self.set_regedit(
-                    r"[HKEY_CURRENT_USER\Software\Wine]",
-                    "Version",
-                    self.wine_config["Version"]
-                )
         self.game_path = os.path.dirname(self.gameExe)
         game_exe = os.path.basename(self.gameExe)
 
