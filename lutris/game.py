@@ -161,7 +161,12 @@ class LutrisGame():
                         shell=True
                     )
                 logging.debug("PulseAudio restarted")
+            if "compiz_nodecoration" in config['system']:
+                self.lutris_desktop_control.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
 
+            if "compiz_fullscreen" in config['system']:
+                self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
+        
         path = None
         if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path

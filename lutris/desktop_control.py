@@ -50,6 +50,47 @@ class LutrisDesktopControl():
         type = "Boolean"
         self.change_gconf_key(gconf_key, type, gconf_value)
 
+    def make_compiz_rule(self, class_=None, title=None):
+        if class_ is not None:
+            rule = 'class=%s' % class_
+        elif title is not None:
+            rule = 'title=%s' % title
+        else: 
+            rule = False
+        return rule
+
+
+    def set_compiz_fullscreen(self, class_=None, title=None):
+        """
+        Set a compiz rule for the plugin Window Rules 
+        to make the game window fullscreen
+        """
+        rule = self.make_compiz_rule(class_, title)
+        if rule is False:
+            return False
+        self.gconf.set_key(
+                "/apps/compiz/plugins/winrules/screen0/options/fullscreen_match",
+                rule,
+                True
+
+            )
+        return True
+
+    def set_compiz_nodecoration(self, class_=None, title=None):
+        """
+        Removes the decorations for the game's window
+        """
+        window_rule = self.make_compiz_rule(class_, title)
+        if window_rule is False:
+            return False
+        rule = "(any) & !(%s)" % window_rule
+        self.gconf.set_key(
+                "/apps/compiz/plugins/decoration/allscreens/options/decoration_match",
+                rule,
+                True
+            )
+        return True
+
     def hide_panels(self, hide = True):
         """
         Hide any panel that exists on the Gnome desktop

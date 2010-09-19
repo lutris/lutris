@@ -114,7 +114,7 @@ class LutrisWindow(gtk.Window):
         self.status_label = self.builder.get_object("status_label")
         self.status_label.set_text("Ready to roll !")
 
-        for index in range(0, 3):
+        for index in range(4):
             self.joystick_icons.append(
                     self.builder.get_object("js" + str(index) + "image")
             )
@@ -148,7 +148,7 @@ class LutrisWindow(gtk.Window):
         #     self.status_bar.push(self.status_bar_context_id,self.status_text)
         # else:
         #     self.status_bar.push(self.status_bar_context_id,"Welcome to Lutris")
-        for index in range(0, 3):
+        for index in range(4):
             if os.path.exists("/dev/input/js%d" % index):
                 self.joystick_icons[index].show()
             else:
