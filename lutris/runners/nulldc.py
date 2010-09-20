@@ -20,9 +20,9 @@
 ###############################################################################
 
 import os
-from lutris.runners.runner import Runner
+from lutris.runners.wine import wine
 
-class nulldc(Runner):
+class nulldc(wine):
     """Runner for the Dreamcast emulator NullDC
 
     Since there is no good Linux emulator out there, we have to use a Windows
@@ -39,7 +39,14 @@ class nulldc(Runner):
         """Initialize NullDC
 
         TODO: Remove hardcoded stuff
+        TODO; joy2key
+
+        joy2key $(xwininfo -root -tree  | grep nullDC | grep -v VMU |\
+                awk '{print $1}') \
+                -X  -rcfile ~/.joy2keyrc \
+                -buttons y a b x c r l r o s -axis Left Right Up Down
         """
+        super(nulldc, self).__init__(settings)
         self.description = "Runs Dreamcast games with nullDC emulator"
         self.machine = "Sega Dreamcast"
 
@@ -51,14 +58,18 @@ class nulldc(Runner):
         self.gamePath = "/mnt/seagate/games/Soul Calibur [NTSC-U]/"
         self.gameIso = "disc.gdi"
         self.args = ""
-        self.game_options = [{"option": "file",
-                              "type":"single",
-                              "name":"iso",
-                              "label":"Disc image"}]
-        self.runner_options = [{"option":"fullscreen",
-                                "type":"bool",
-                                "name":"fullscreen",
-                                "label":"Fullscreen"}]
+        self.game_options = [{
+            'option': 'file',
+            'type': 'single',
+            'name': 'iso',
+            'label': 'Disc image'
+        }]
+        self.runner_options = [{
+            'option': 'fullscreen',
+            'type': 'bool',
+            'name': 'fullscreen',
+            'label': 'Fullscreen'
+        }]
 
     def is_installed(self):
         if not self.check_depends():
