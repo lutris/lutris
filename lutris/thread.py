@@ -3,7 +3,7 @@
 ###############################################################################
 ## Lutris
 ##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2009, 2010 Mathieu Comandon strycore@gmail.com
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -24,13 +24,15 @@ import logging
 import threading
 import subprocess
 import gobject
+
 from lutris.runners.cedega import cedega
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    
-    def __init__(self,command,path):
+
+    def __init__(self, command, path):
         """Thread init"""
+
         threading.Thread.__init__(self)
         self.command = command
         self.path = path
@@ -41,21 +43,27 @@ class LutrisThread(threading.Thread):
         self.cedega = False
         self.emergency_kill = False
         logging.debug("Thread initialized")
-        
+
     def run(self):
         self.timer_id = gobject.timeout_add(2000, self.poke_process)
         if "cedega" in self.command:
             self.cedega = True
         logging.debug(self.command)
-        self.game_process = subprocess.Popen(self.command,shell = True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,cwd=self.path)
+        self.game_process = subprocess.Popen(self.command, shell=True,
+                                             stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT,
+                                             cwd=self.path)
         self.output =  self.game_process.stdout
-    
+
     def poke_process(self):
         if not self.game_process:
             logging.debug("game not running")
             return True
         if self.cedega:
-            pid = subprocess.Popen("ps -ef | grep winex_ver | grep -v grep | awk '{print $2}'",shell = True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()
+            command = "ps -ef | grep winex_ver | grep -v grep | awk '{print $2}'"
+            pid = subprocess.Popenc(command, shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE).communicate()
             self.pid = []
             for item in pid[0].split("\n"):
                 if item:
@@ -71,3 +79,18 @@ class LutrisThread(threading.Thread):
             self.pid = None
             return False
         return True
+    
+class ThreadProcessReader(threading.Thread):
+    def __init__(self, stdout):
+        threading.Thread.__init__(self)
+
+        self.stdout = stdout
+        self.status = "running"
+        self.seconds_left = 0
+
+    def run(self):
+        seconds_max = 0
+        process_ended = False
+        while self.status == "running":
+            line = self.stdout.read(80)
+
