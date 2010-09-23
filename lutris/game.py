@@ -166,7 +166,7 @@ class LutrisGame():
 
             if "compiz_fullscreen" in config['system']:
                 self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
-        
+
         path = None
         if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path
@@ -180,6 +180,23 @@ class LutrisGame():
             print "running " + command
             self.game_thread = LutrisThread(command, path)
             self.game_thread.start()
+            if 'joy2key' in gameplay_info:
+                self.run_joy2key(gameplay_info['joy2key'])
+
+    def run_joy2key(self, config):
+        win = "grep %s" % config['window']
+        if 'notwindow' in config:
+            win = win + ' | grep -v %s' % config['notwindow']
+        wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win   
+        buttons = config['buttons']
+        axis = "Left Right Up Down"
+        command = "sleep 5 && joy2key $(%s) -X -rcfile ~/.joy2keyrc -buttons %s -axis %s" % (
+                wid, buttons, axis
+            )
+        print command
+        self.joy2key_thread = LutrisThread(command, "/tmp")
+        self.joy2key_thread.start()
+        
 
     def write_conf(self, settings):
         self.lutris_config.write_game_config(self.name, settings)

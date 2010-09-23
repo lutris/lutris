@@ -21,6 +21,8 @@
 
 import os
 from lutris.runners.wine import wine
+from lutris.gui.common import DirectoryDialog
+from lutris.config import LutrisConfig
 
 class nulldc(wine):
     """Runner for the Dreamcast emulator NullDC
@@ -29,6 +31,7 @@ class nulldc(wine):
     emulator. It runs pretty well.
 
     NullDC is now OpenSource ! Somebody please port it to Linux.
+    The open source NullDC version (1.0.4) doesn't work with wine !
 
     Download link : http://nulldc.googlecode.com/files/nullDC_104_r50.7z
 
@@ -53,23 +56,33 @@ class nulldc(wine):
         self.is_installable = False
 
         self.depends = "wine"
-        self.nulldc_path = "/mnt/seagate/games/nullDC/"
-        self.executable = "nullDC_1.0.3_mmu.exe"
+        config = LutrisConfig(runner=self.__class__.__name__)
+        self.nulldc_path = config.get_path()
+        self.executable = "nullDC_1.0.3_nommu.exe"
         self.gamePath = "/mnt/seagate/games/Soul Calibur [NTSC-U]/"
         self.gameIso = "disc.gdi"
         self.args = ""
         self.game_options = [{
-            'option': 'file',
+            'option': 'iso',
             'type': 'single',
             'name': 'iso',
             'label': 'Disc image'
         }]
-        self.runner_options = [{
+        self.runner_options = self.runner_options + [{
             'option': 'fullscreen',
             'type': 'bool',
             'name': 'fullscreen',
             'label': 'Fullscreen'
         }]
+        if settings:
+            self.settings = settings
+
+    def install(self):
+        d = DirectoryDialog('Where is NullDC located ?')
+
+        config = LutrisConfig(runner=self.__class__.__name__)
+        config.runner_config = {'system': {'game_path': d.folder}}
+        config.save(type='runner')
 
     def is_installed(self):
         if not self.check_depends():
@@ -83,23 +96,27 @@ class nulldc(wine):
     def get_nulldc_path(self):
         """ Return the full path for the NullDC executable.
 
-        TODO: Load from config
         """
         return os.path.join(self.nulldc_path, self.executable)
 
     def play(self):
-        os.chdir(self.nulldc_path)
         #-config ImageReader:DefaultImage="[rompath]/[romfile]"
-
-        path = self.gamePath + self.gameIso
+        path = self.settings['game']['iso']
         path = path.replace("/", "\\")
         path = 'Z:' + path
 
-        command = ["WINEDEBUG=-all",
-                   "wine",
-                   self.get_nulldc_path(),
-                   "-config",
-                   " ImageReader:DefaultImage=\"" + path + "\"",
-                   "-config", "drkpvr:Fullscreen.Enabled=1"]
+        command = [
+                "wine",
+                self.get_nulldc_path(),
+                "-config", "ImageReader:DefaultImage=\"%s\"" % path,
+            ]
 
-        return command
+        self.check_regedit_keys() #From parent wine runner
+        return {
+                'command': command,
+                'joy2key': {
+                    'buttons': 'y a b x c r l r o s',
+                    'window': 'nullDC',
+                    'notwindow': 'VMU'
+                    }
+                }

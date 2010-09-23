@@ -54,6 +54,10 @@ class LutrisThread(threading.Thread):
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
         self.output =  self.game_process.stdout
+        line = "1"
+        while line:
+            line = self.game_process.stdout.read(80)
+            print line
 
     def poke_process(self):
         if not self.game_process:
@@ -79,7 +83,7 @@ class LutrisThread(threading.Thread):
             self.pid = None
             return False
         return True
-    
+
 class ThreadProcessReader(threading.Thread):
     def __init__(self, stdout):
         threading.Thread.__init__(self)

@@ -71,6 +71,8 @@ class steam(wine):
         if the steam executable is on the harddrive
 
         """
+        if not self.check_depends():
+            return False
         if not os.path.exists(os.path.join(self.game_path, self.game_exe)):
             return False
         else:
