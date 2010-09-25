@@ -36,7 +36,7 @@ class uae(Runner):
         amiga_choices = [("Amiga 500","amiga500"),
                          ("Amiga 1200","amiga1200")]
         self.game_options = [ {"option": "disk", "type":"multiple", "label":"Floppies"}]
- 
+
         self.runner_options = [
           {"option": "x11.rom_path", "label": "Rom Path", "type":"directory_chooser"},
           {"option": "x11.floppy_path", "label":"Floppy path", "type": "directory_chooser"},
@@ -111,7 +111,7 @@ class uae(Runner):
                     inserted_disks = inserted_disks +1
                     if inserted_disks == disks:
                         break
-                    
+
     def get_game_options(self):
         return {"file":self.file_options , "options":self.runner_options}
 
@@ -122,5 +122,4 @@ class uae(Runner):
             command.append("-s")
             command.append(option+"="+self.uae_options[option])
         return command
-       
-        
+

@@ -54,7 +54,7 @@ class scummvm(Runner):
         self.runner_options = [ \
             {"option":"fullscreen", "label":"Fullscreen", "type":"bool"},
             {"option":"gfx-mode", "label": "Graphics scaler", "type":"one_choice", "choices":scaler_modes}]
-        
+
         if isinstance(settings, LutrisConfig):
             config = settings.config
             if "scummvm" in config:
@@ -64,7 +64,7 @@ class scummvm(Runner):
                 if "gfx-mode" in config["scummvm"]:
                     self.gfxmode = "--gfx-mode="+config["scummvm"]["gfx-mode"]
             self.game = settings["name"]
-            
+
     def play(self):
         return [self.executable,self.fullscreen,self.gfxmode,self.game]
 
@@ -101,7 +101,7 @@ class scummvm(Runner):
             if gameListStart:
                 if len(game) > 1:
                     dirLimit=game.index(" ")
-                else : 
+                else :
                     dirLimit == None
                 if dirLimit != None:
                     gameDir = game[0:dirLimit]
@@ -110,5 +110,4 @@ class scummvm(Runner):
             if game.startswith("-----"):
                 gameListStart = True
         return gameArray
-        
-        
+

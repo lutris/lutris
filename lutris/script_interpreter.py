@@ -21,11 +21,12 @@
 
 import yaml
 import urlparse
-from tool.url_tool import UrlTool
 import os
 import hashlib
 import logging
 import lutris.constants
+
+from lutris.tool.url_tool import UrlTool
 
 class LutrisInterpreter():
 
@@ -36,7 +37,7 @@ class LutrisInterpreter():
         self.dirs = {}
         self.dirs['cache'] = lutris.constants.cache_path
         self.dirs['gamedir'] = '/home/strider/Jeux'
-        
+
         if filename:
             self.load(filename)
 
@@ -59,7 +60,7 @@ class LutrisInterpreter():
                     self.files[file_id] = destpath
                 else:
                     print 'not a url', file_id
-        
+
     def install(self):
         if not 'installer' in self.config:
             return False
@@ -77,20 +78,20 @@ class LutrisInterpreter():
                     self.dirs[extract_info['newdir']] = dest
                 else:
                     dest = self.dirs[extract_info['destination']]
-                self.extract(extract_info['file'], dest)    
-    
+                self.extract(extract_info['file'], dest)
+
     def check_md5(self, file_id):
-        print 'checking ', self.files[file_id]     
-    
+        print 'checking ', self.files[file_id]
+
     def extract(self,archive,dest,options = {}):
         if not 'method' in options:
             method = 'zip'
         else:
-            method = options['method'] 
+            method = options['method']
         print "extracting %s to %s " % (self.files[archive], dest )
         command = "unzip %s -d  %s"%(self.files[archive], dest)
         os.system(command)
-    
+
     def move(self,source, destination):
         os.move
 

@@ -61,9 +61,9 @@ class o2em(Runner):
             romfile = os.path.basename(settings["game"]["rom"])
             self.arguments = self.arguments + ["-romdir=\"%s\"" % romdir+"/"]
             self.arguments = self.arguments + ["\""+romfile+"\""]
-            
+
 
     def play(self):
         command = [self.executable] + self.arguments
         return command
-        
+

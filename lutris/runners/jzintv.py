@@ -35,7 +35,7 @@ class jzintv(Runner):
 
 
         self.description = "Intellivision Emulator"
-      
+
         self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
         self.runner_options = [{"option": "bios_path", "type":"directory_chooser", "label":"Bios Path"},
                                {"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
@@ -59,4 +59,4 @@ class jzintv(Runner):
     def play(self):
         command = [self.executable] + self.arguments
         return command
-        
+

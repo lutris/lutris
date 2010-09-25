@@ -35,9 +35,8 @@ class openmsx(Runner):
         self.runner_options = []
         if settings:
             self.rom = settings["game"]["rom"]
-        
-        
+
     def play(self):
         command = [self.executable,"\""+self.rom+"\""]
         return command
-        
+

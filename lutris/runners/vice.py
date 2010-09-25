@@ -33,7 +33,7 @@ class vice(Runner):
         self.machine = "Commodore 64"
 
         self.arguments = []
-        
+
         self.description = "Commodore Emulator"
         self.game_options = [{"option":"disk","type":"single","label":"Disk File"}]
         self.runner_options = [{"option": "joy", "type":"bool", "label":"Use joysticks"},
@@ -53,8 +53,7 @@ class vice(Runner):
 
             self.arguments = self.arguments + ["\""+settings['game']['disk']+"\""]
 
-
     def play(self):
         command = [self.executable] + self.arguments
         return command
-        
+
