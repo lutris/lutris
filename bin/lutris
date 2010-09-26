@@ -21,6 +21,8 @@ import gtk
 import logging
 import optparse
 
+
+
 # This is inspired by gwibber because the quickly method was starting to be
 # annoying, there might be some issues left with running from source tree or
 # packaged version (and running from source with the packaged version installed)
@@ -28,9 +30,12 @@ import optparse
 # See also lutris.constants.py which also has a DATA_PATH
 
 LAUNCH_PATH=os.path.abspath(sys.path[0])
-DATA_PATH=os.path.join(LAUNCH_PATH, '..', 'data')
-SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
-sys.path.insert(0, SOURCE_PATH)
+if LAUNCH_PATH != "/usr/bin":
+    SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
+    sys.path.insert(0, SOURCE_PATH)
+    DATA_PATH = os.path.join(LAUNCH_PATH, '..', 'data')
+else:
+    DATA_PATH = '/usr/share/lutris' 
 
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow

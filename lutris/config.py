@@ -31,7 +31,7 @@ class LutrisConfig():
             constants.lutris_config_path,
             constants.runner_config_path,
             constants.GAME_CONFIG_PATH,
-            constants.cover_path,
+            constants.COVER_PATH,
             constants.tmp_path,
             constants.cache_path
         ]

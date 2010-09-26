@@ -1,3 +1,12 @@
+lutris (0.2.2) maverick; urgency=low
+
+  * Added support for nullDC, joy2key
+  * New common dialogs
+  * Basic steam installer
+  * Many bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 25 Sep 2010 12:53:43 +0200
+
 lutris (0.2.1) maverick; urgency=low
 
   * Cleaned some files to prepare for 0.33 release

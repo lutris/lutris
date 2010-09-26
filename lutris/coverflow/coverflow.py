@@ -53,7 +53,7 @@ FOVY   = 20.0
 
 def setup():
     afLightDiffuse = [0.76, 0.75, 0.65, 1.0]
-    
+
     # set some GL-states
     glClearColor(1.0, 0.5, 0.25, 1.0)
     glColor4f(0.25, 0.5, 1.0, 1.0)
@@ -81,7 +81,7 @@ def coverflow():
     if not PYGLET_ENABLED:
         return "NOPYGLET"
     width, height = 640, 480
-    path = lutris.constants.cover_path
+    path = lutris.constants.COVER_PATH
     filenames = glob.glob(path+"/*")[:200]
     filenames.sort()
     #curdir = os.path.abspath(os.curdir)
@@ -91,7 +91,7 @@ def coverflow():
         return "NOCOVERS"
     try:
         # Try and create a window with multisampling (antialiasing)
-        #config = Config(sample_buffers=1, samples=4, 
+        #config = Config(sample_buffers=1, samples=4,
         #                depth_size=16, double_buffer=True,)
         config = Config(depth_size=16, double_buffer=True,)
         w = window.Window(config=config,fullscreen=True )
@@ -140,15 +140,15 @@ def coverflow():
         elif tmp_dx[0] < -20:
             tmp_dx[0] = 0
             #advance(True)
-            
+
     @w.event
     def on_mouse_scroll(x, y, scroll_x, scroll_y):
         if scroll_y > 0:
             advance(True)
         else:
             advance(False)
-           
-    
+
+
     @w.event
     def on_mouse_press(x, y, button, modifiers):
         if button == window.mouse.LEFT:

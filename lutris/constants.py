@@ -23,8 +23,9 @@ import os
 import sys
 
 name = "Lutris"
-version = "0.2"
+version = "0.2.2"
 website = "http://lutris.net"
+protocol_version = 1
 #installer_prefix = "http://lutris.net/media/installers/"
 installer_prefix = "http://localhost:8000/media/installers/"
 CONFIG_EXTENSION = ".yml"
@@ -46,19 +47,23 @@ license = """
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     """
-#Icons
-lutris_icon_file = "data/media/logo.svg"
-lutris_icon_path = os.path.join(sys.path[0], lutris_icon_file)
+#Paths
 
-#Config files
+LAUNCH_PATH = os.path.abspath(sys.path[0])
+
+if not LAUNCH_PATH.startswith('/usr'):
+    DATA_PATH = os.path.join(sys.path[0], 'data')
+else:
+    DATA_PATH = '/usr/share/lutris'
+lutris_icon_file = "media/logo.svg"
+lutris_icon_path = os.path.join(DATA_PATH, lutris_icon_file)
+
 lutris_config_path = os.path.join(os.path.expanduser('~'), '.config', 'lutris')
 system_config_file = 'system' + CONFIG_EXTENSION
-protocol_version = 1
-DATA_PATH = os.path.join(sys.path[0], 'data')
 system_config_full_path = os.path.join(lutris_config_path, system_config_file)
 runner_config_path = os.path.join(lutris_config_path, 'runners')
 GAME_CONFIG_PATH = os.path.join(lutris_config_path, 'games')
-cover_path = os.path.join(lutris_config_path, 'covers')
+COVER_PATH = os.path.join(lutris_config_path, 'covers')
 tmp_path = os.path.join(lutris_config_path, 'tmp')
 cache_path = os.path.join(lutris_config_path, 'cache')
 

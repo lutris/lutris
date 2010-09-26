@@ -23,7 +23,7 @@
 # by default, this is ../data, relative your trunk layout
 
 #__lutris_data_directory__ = '/usr/local/share/lutris/'
-__lutris_data_directory__ = '.'
+__lutris_data_directory__ = '/usr/share/lutris/'
 __license__ = 'GPL-3'
 
 import os

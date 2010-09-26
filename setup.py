@@ -2,22 +2,22 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-# This program is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License version 3, as published 
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
 # by the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranties of 
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along 
+#
+# You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
 
 import os
-
+import lutris.constants
 try:
     import DistUtilsExtra.auto
 except ImportError:
@@ -34,7 +34,7 @@ def update_data_path(prefix, oldvalue=None):
         fin = file('lutris/lutrisconfig.py', 'r')
         fout = file(fin.name + '.new', 'w')
 
-        for line in fin:            
+        for line in fin:
             fields = line.split(' = ') # Separate variable from value
             if fields[0] == '__lutris_data_directory__':
                 # update to prefix, store oldvalue
@@ -61,7 +61,7 @@ def update_desktop_file(datadir):
         fin = file('lutris.desktop.in', 'r')
         fout = file(fin.name + '.new', 'w')
 
-        for line in fin:            
+        for line in fin:
             if 'Icon=' in line:
                 line = "Icon=%s\n" % (datadir + 'media/lutris.svg')
             fout.write(line)
@@ -86,21 +86,21 @@ class InstallAndUpdateDataDirectory(DistUtilsExtra.auto.install_auto):
         update_data_path(self.prefix, previous_value)
 
 
-        
+
 ##################################################################################
 ###################### YOU SHOULD MODIFY ONLY WHAT IS BELOW ######################
 ##################################################################################
 
 DistUtilsExtra.auto.setup(
     name='lutris',
-    version='0.2-public5',
+    version=lutris.constants.version,
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strycore@gmail.com',
     description='Install and play any video game on Linux',
-    long_description = """Lutris is a gaming platform for GNU/Linux. It's goal is to make 
+    long_description = """Lutris is a gaming platform for GNU/Linux. It's goal is to make
 gaming on Linux as easy as possible by taking care of installing
-and setting up the game for the user. The only thing you have to 
+and setting up the game for the user. The only thing you have to
 do is play the game. It aims to support every game that is playable
 on Linux.""",
     url='https://launchpad.net/lutris',

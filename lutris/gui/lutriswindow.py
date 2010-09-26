@@ -94,7 +94,6 @@ class LutrisWindow(gtk.Window):
         self.game_cover_image.set_from_file(
             os.path.join(data_path, "media/background.png")
         )
-
         #Context menu
         game_rename = "Rename", self.edit_game_name
         game_config = "Configure", self.edit_game_configuration
@@ -288,6 +287,7 @@ class LutrisWindow(gtk.Window):
         new_name_game_config.config["realname"] = new_name
         new_name_game_config.save(type="game")
         self.game_cell.set_property('editable', False)
+        self.game_cell.set_property('editable', False)
 
     def edit_game_configuration(self, button):
         """Edit game preferences"""
@@ -303,7 +303,7 @@ class LutrisWindow(gtk.Window):
         if self.gameName:
             extensions = ["png", "jpg", "jpeg"]
             for extension in extensions:
-                coverFile = os.path.join(lutris.constants.cover_path,
+                coverFile = os.path.join(lutris.constants.COVER_PATH,
                                          self.gameName + "." + extension)
                 if os.path.exists(coverFile):
                     #Resize the image
