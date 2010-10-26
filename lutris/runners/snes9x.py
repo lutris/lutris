@@ -19,34 +19,34 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
 from lutris.runners.runner import Runner
 
 class snes9x(Runner):
     def __init__(self,settings = None):
         """It seems that the best snes emulator around it snes9x-gtk
         zsnes has no 64bit port
-        I have no idea why Ubuntu Packagers have dropped the snes9x-opengl
-        package, this is absurd ! snes9x-x looks really ugly and has broken
-        fullscreen support.
-        So if you want snes9x-gtk on Ubuntu , add this PPA :
-        ppa:bearoso/ppa
-
-        There is more details about snes9x-gtk here :
-        http://www.snes9x.com/phpbb2/viewtopic.php?t=3703
-
-        The [needs packaging] bug is here:
-        https://bugs.launchpad.net/ubuntu/+source/snes9x/+bug/316808
         """
         self.executable = "snes9x-gtk"
         self.package = "snes9x-gtk"
         self.description = "Runs Super Nintendo games with Snes9x"
         self.machine = "Super Nintendo"
-        self.is_installable = False
-        self.game_options = [{"option":"rom","type":"single","label":"ROM"}]
-        self.runner_options = [{"option":"fullscreen", "type":"bool", "label":"Fullscreen"}]
+        self.is_installable = True
+        self.game_options = [
+                        {
+                            "option": "rom",
+                            "type": "single",
+                            "label": "ROM"
+                        }
+                    ]
+        self.runner_options = [
+                        {
+                	        "option":"fullscreen",
+                        	"type":"bool",
+                        	"label":"Fullscreen"
+                        }
+                    ]
         if settings:
             self.rom = settings["game"]["rom"]
-        
+
     def play(self):
         return [self.executable,"\""+self.rom+"\""]

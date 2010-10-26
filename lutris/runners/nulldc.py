@@ -88,7 +88,7 @@ class nulldc(wine):
         if not self.check_depends():
             return False
         nulldc_path = self.get_nulldc_path()
-        if not os.path.exists(nulldc_path):
+        if nulldc_path is False or not os.path.exists(nulldc_path):
             return False
         else:
             return True
@@ -97,7 +97,10 @@ class nulldc(wine):
         """ Return the full path for the NullDC executable.
 
         """
-        return os.path.join(self.nulldc_path, self.executable)
+        if not self.nulldc_path:
+            return ""
+        else:
+        	return os.path.join(self.nulldc_path, self.executable)
 
     def play(self):
         #-config ImageReader:DefaultImage="[rompath]/[romfile]"

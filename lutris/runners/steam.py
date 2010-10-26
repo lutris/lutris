@@ -32,12 +32,13 @@ class steam(wine):
     def __init__(self,settings=None):
         super(steam, self).__init__(settings)
         self.executable = "Steam.exe"
+        self.package = None
         self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"
         #TODO : Put Steam Path in config file
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
-        self.game_exe = "steam.exe"
+        self.game_exe = "Steam.exe"
         self.arguments = []
         self.depends = "wine"
         self.is_installable = False
@@ -73,7 +74,8 @@ class steam(wine):
         """
         if not self.check_depends():
             return False
-        if not os.path.exists(os.path.join(self.game_path, self.game_exe)):
+        if self.game_path is False or \
+           not os.path.exists(os.path.join(self.game_path, self.game_exe)):
             return False
         else:
             return True
@@ -142,6 +144,6 @@ class steam(wine):
         self.check_regedit_keys() #From parent wine runner
 
         steam_full_path = os.path.join(self.game_path, self.game_exe)
-        command = ['wine', steam_full_path, '-applaunch', self.appid, self.args]
+        command = ['wine', '"' + steam_full_path + '"', '-applaunch', self.appid, self.args]
         return {'command': command }
 

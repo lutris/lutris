@@ -1,3 +1,15 @@
+lutris (0.2.2ubuntu2) maverick; urgency=low
+
+  * Fixed a bug in Steam and NullDC runner which prevented to add games.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 13 Oct 2010 19:54:17 +0200
+
+lutris (0.2.2ubuntu1) maverick; urgency=low
+
+  * Fixed file paths
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 12 Oct 2010 23:33:41 +0200
+
 lutris (0.2.2) maverick; urgency=low
 
   * Added support for nullDC, joy2key
@@ -24,7 +36,7 @@ lutris (0.2) lucid; urgency=low
 lutris (0.1.1)
 
   * Resize the covers to 250px
-  * Added fullscreen coverflow 
+  * Added fullscreen coverflow
   * Icons show up in the status bar when joysticks are connected
   * Rewrite of preferences dialog using GTK and not Glade
   * Implementation of user_wm and game_wm options
@@ -37,5 +49,5 @@ lutris (0.1.0)
   * ScummVM and Cedega import
   * Search Google Images for covers
 
- -- Mathieu Comandon <strycore@gmail.com> Sat, 28 Nov 2009 21:57:00 
-  
+ -- Mathieu Comandon <strycore@gmail.com> Sat, 28 Nov 2009 21:57:00
+
