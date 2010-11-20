@@ -1,15 +1,41 @@
+# -*- coding:Utf-8 -*-
+###############################################################################
+## Lutris
+##
+## Copyright (C) 2010 Mathieu Comandon strycore@gmail.com
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+###############################################################################
+
 import os
 import gtk
 import pango
 import lutris.constants
 
-
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
 
 class GameTreeView(gtk.TreeView):
-    COL_ICON = 1
-    COL_TEXT = 2
+    """
+    Show the main list of games
+    Some code inspired by Ubuntu Software Center
+    Many thanks to Michael Vogt
+
+    """
+    COL_ICON = 1 # Column number for the icon
+    COL_TEXT = 2 # Column number for the description
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
@@ -28,8 +54,7 @@ class GameTreeView(gtk.TreeView):
 
     def add_row(self, game):
         model = self.get_model()
-        s = "%s \n<small>%s</small>" % (
-                game['name'], game['runner'])
+        s = "%s \n<small>%s</small>" % (game['name'], game['runner'])
         icon_path = os.path.join(lutris.constants.DATA_PATH, 'media/runner_icons', game['runner'] + '.png')
         pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
                                                    ICON_SIZE, ICON_SIZE)
@@ -39,8 +64,12 @@ class GameTreeView(gtk.TreeView):
     def remove_row(self, model_iter):
         model = self.get_model()
         model.remove(model_iter)
-        
 
     def sort_rows(self):
         model = self.get_model()
         gtk.TreeModelSort(model)
+
+class DownloadProgressBar(gtk.ProgressBar):
+    def __init__(self):
+        super(DownloadProgressBar, self).__init__()
+        # TODO Get some code from Quickly widgets

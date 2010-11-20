@@ -93,21 +93,28 @@ class scummvm(Runner):
         lutris_config.save("game")
 
     def get_game_list(self):
-        gameList = subprocess.Popen([self.executable,"-z"],stdout=subprocess.PIPE).communicate()[0]
-        gameList = str.split(gameList,"\n")
-        gameArray = []
-        gameListStart = False
-        for game in gameList:
-            if gameListStart:
+        """
+        Return the entire list of games supported by ScummVM
+        """
+        scumm_output = subprocess.Popen(
+                [self.executable, "-z"],
+                stdout=subprocess.PIPE).communicate()[0]
+        game_list = str.split(scumm_output, "\n")
+        game_array = []
+        game_list_start = False
+        for game in game_list:
+            if game_list_start:
                 if len(game) > 1:
-                    dirLimit=game.index(" ")
+                    dir_limit = game.index(" ")
                 else :
-                    dirLimit == None
-                if dirLimit != None:
-                    gameDir = game[0:dirLimit]
-                    gameName = game[dirLimit+1:len(game)].strip()
-                    gameArray.append([gameDir,gameName])
+                    dir_limit = None
+                if dir_limit is not  None:
+                    game_dir = game[0:dir_limit]
+                    game_name = game[dir_limit+1:len(game)].strip()
+                    game_array.append([game_dir,game_name])
+            # The actual list is below a separator
             if game.startswith("-----"):
-                gameListStart = True
-        return gameArray
+                game_list_start = True
+
+        return game_array
 

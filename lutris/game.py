@@ -49,6 +49,10 @@ def show_error_message(message, info=None):
         ErrorDialog("The file %s doesn't exists" % message['file'])
 
 def get_list():
+    """
+    Get the list of all installed games
+    """
+
     game_list = []
     for file in os.listdir(GAME_CONFIG_PATH):
         if file.endswith(CONFIG_EXTENSION):
@@ -161,23 +165,34 @@ class LutrisGame():
                         shell=True
                     )
                 logging.debug("PulseAudio restarted")
+
+            # Set compiz fullscreen windows    
+            # TODO : Check that compiz is running
             if "compiz_nodecoration" in config['system']:
-                self.lutris_desktop_control.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
-
+                self.lutris_desktop_control.set_compiz_nodecoration(
+                        title=config['system']['compiz_nodecoration']
+                    )
             if "compiz_fullscreen" in config['system']:
-                self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
+                self.lutris_desktop_control.set_compiz_fullscreen(
+                        title=config['system']['compiz_fullscreen']
+                    )
 
-        path = None
+            # Switch to other WM
+
+            # TODO
+
         if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path
+        else:
+        	path = None
 
         command = " " . join(game_run_args)
-        #OSS Wrapper
+        # Set OSS Wrapper
         if oss_wrapper and oss_wrapper != 'none':
             command = oss_wrapper + " " + command
         if game_run_args:
             self.timer_id = gobject.timeout_add(5000, self.poke_process)
-            print "running " + command
+            logging.debug(" > Running : " + command)
             self.game_thread = LutrisThread(command, path)
             self.game_thread.start()
             if 'joy2key' in gameplay_info:
@@ -187,16 +202,14 @@ class LutrisGame():
         win = "grep %s" % config['window']
         if 'notwindow' in config:
             win = win + ' | grep -v %s' % config['notwindow']
-        wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win   
+        wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win
         buttons = config['buttons']
         axis = "Left Right Up Down"
         command = "sleep 5 && joy2key $(%s) -X -rcfile ~/.joy2keyrc -buttons %s -axis %s" % (
                 wid, buttons, axis
             )
-        print command
         self.joy2key_thread = LutrisThread(command, "/tmp")
         self.joy2key_thread.start()
-        
 
     def write_conf(self, settings):
         self.lutris_config.write_game_config(self.name, settings)

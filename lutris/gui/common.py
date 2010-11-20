@@ -21,8 +21,7 @@
 
 import pygtk
 import gtk
-import apt.progress.gtk2
-
+from lutris.gui.widgets import DownloadProgressBar
 
 class NoticeDialog:
     def __init__(self, message):
@@ -61,5 +60,8 @@ class DirectoryDialog:
         self.folder =  dialog.get_current_folder()
         dialog.destroy()
 
-        
+class DownloadDialog:
+    def __init__(self):
+        self.download_progress_bar = DownloadProgressBar()
+        dialog = gtk.Dialog()
 
