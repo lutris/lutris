@@ -21,6 +21,8 @@
 
 import os
 import gtk
+import gobject
+import gio
 import pango
 import lutris.constants
 
@@ -69,7 +71,8 @@ class GameTreeView(gtk.TreeView):
         model = self.get_model()
         gtk.TreeModelSort(model)
 
+
 class DownloadProgressBar(gtk.ProgressBar):
-    def __init__(self):
+    def __init__(self, url, dest):
         super(DownloadProgressBar, self).__init__()
         # TODO Get some code from Quickly widgets

@@ -19,23 +19,29 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import lutris.runners
-from lutris.gui.configvbox import ConfigVBox
 import gtk
 
+import lutris.runners
+from lutris.gui.configvbox import ConfigVBox
+
 class RunnerConfigVBox(ConfigVBox):
-    def __init__(self,lutris_config,caller):
+    """ Runner Configuration VBox
+        This vbox is used in game configuration and global
+        runner configuration.
+    """
+    def __init__(self, lutris_config, caller):
         runner = lutris_config.runner
-        ConfigVBox.__init__(self,runner,caller)
+        ConfigVBox.__init__(self, runner, caller)
+
+        # FIXME ugly
         runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
+
         if hasattr(runner_instance, "runner_options"):
             self.options = runner_instance.runner_options
+            self.lutris_config = lutris_config
+            self.generate_widgets()
         else:
             warningLabel = gtk.Label("This runner has no options yet\nPlease fix this")
             self.pack_start(warningLabel)
             return
-        self.lutris_config = lutris_config
-        self.generate_widgets()
 
-
-        

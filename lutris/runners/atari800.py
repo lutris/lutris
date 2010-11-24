@@ -1,6 +1,6 @@
 # -*- coding:Utf-8 -*-
 ###############################################################################
-## Lutris
+## Lutris, get_resolutions
 ##
 ## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
 ##
@@ -19,14 +19,15 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Runner for Atari 800 (and other early Atari consoles)"""
+
 import os.path
 import logging
 
 from lutris.runners.runner import Runner
-from lutris.desktop_control import LutrisDesktopControl
+from lutris.desktop_control import get_resolutions
 
 class atari800(Runner):
-    '''Runner for intellivision games'''
 
     def __init__(self,settings = None):
         '''Constructor'''
@@ -38,22 +39,23 @@ class atari800(Runner):
         self.atarixl_url = "http://kent.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip"
         self.description = "Atari 400,800 and XL emulator."
         self.bios = None
-        self.bios_checksums = { "xlxe_rom" :"06daac977823773a3eea3422fd26a703",
-                                "basic_rom":"0bac0c6a50104045d902df4503a4c30b",
-                                "osa_rom": "",
-                                "osb_rom":"a3e8d617c95d08031fe1b20d541434b2",
-                                "5200_rom": ""}
+        self.bios_checksums = {"xlxe_rom": "06daac977823773a3eea3422fd26a703",
+                               "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
+                               "osa_rom": "",
+                               "osb_rom": "a3e8d617c95d08031fe1b20d541434b2",
+                               "5200_rom": ""}
 
         self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
-        
+
         self.screen_resolutions = []
-        desktop_control = LutrisDesktopControl()
-        resolutions_available = desktop_control.get_resolutions()
+        resolutions_available = get_resolutions()
         for resolution in resolutions_available:
             self.screen_resolutions = self.screen_resolutions + [(resolution,resolution)]
 
-        machine_choices = [("Emulate Atari 800","atari"),("Emulate Atari 800 XL","xl"),
-                           ("Emulate Atari 320 XE (Compy Shop)","320xe"),("Emulate Atari 320 XE (Rambo)","rambo"),
+        machine_choices = [("Emulate Atari 800","atari"),
+                           ("Emulate Atari 800 XL","xl"),
+                           ("Emulate Atari 320 XE (Compy Shop)","320xe"),
+                           ("Emulate Atari 320 XE (Rambo)","rambo"),
                            ("Emulate Atari 5200","5200")]
 
         self.runner_options = [{"option": "bios_path", "type":"directory_chooser", "label":"Bios Path"},
@@ -67,7 +69,7 @@ class atari800(Runner):
                     self.arguments = self.arguments + ["-fullscreen"]
                 else:
                     self.arguments = self.arguments + ["-windowed"]
-                    
+
             if "resolution" in settings["atari800"]:
                 resol = settings["atari800"]["resolution"]
                 width = resol[:resol.find("x")]
@@ -108,10 +110,3 @@ class atari800(Runner):
         return_val = { "command": command ,"error_messages": self.error_messages}
         return return_val
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    bios_path = "/home/strider/Downloads/Atari/xf25"
-    settings = {"atari800":{"bios_path":bios_path,"machine":"xl"},"game":{"rom":"foo"}}
-    atari = atari800(settings)
-    print bios_path
-    print atari.play()

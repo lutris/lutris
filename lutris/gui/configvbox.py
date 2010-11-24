@@ -28,7 +28,6 @@ class ConfigVBox(gtk.VBox):
         gtk.VBox.__init__(self)
 
         self.options = None
-        logging.debug("caller:"+caller)
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
 
@@ -67,11 +66,11 @@ class ConfigVBox(gtk.VBox):
             elif option["type"] == "range":
                 self.generate_range(option_key,option["min"], option["max"],option["label"],value)
             elif option["type"] == "string":
-                self.generate_entry(option_key,option["label"],value)
+                self.generate_entry(option_key,option["label"], value)
             elif option["type"] == "directory_chooser":
-                self.generate_directory_chooser(option_key,option["label"],value)
+                self.generate_directory_chooser(option_key,option["label"], value)
             elif option["type"] == "file_chooser" or option["type"] == "single":
-                self.generate_file_chooser(option_key,option["label"],value)
+                self.generate_file_chooser(option_key,option["label"], value)
             elif option["type"] == "multiple":
                 self.generate_multiple_file_chooser(option_key, option["label"], value)
             elif option["type"] == "label":
@@ -220,7 +219,9 @@ class ConfigVBox(gtk.VBox):
         self.files_chooser_dialog.connect('response', self.add_files_callback,option_name)
 
         files_chooser_button = gtk.FileChooserButton(self.files_chooser_dialog)
-        files_chooser_button.set_current_folder(self.lutris_config.get_path(self.runner_class))
+        game_path = self.lutris_config.get_path(self.runner_class)
+        if game_path:
+           files_chooser_button.set_current_folder(game_path)
         if value:
             files_chooser_button.set_filename(value[0])
 

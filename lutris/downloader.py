@@ -19,5 +19,29 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Downloader class that doesn't block the program"""
 
+import gobject
+import urllib
+
+class Downloader(gobject.GObject):
+
+    __gsignals__ = {
+            'report-progress': (gobject.RUN_LAST, gocject.TYPE_NONE,
+                (gobject.TYPE_INT,))
+            }
+
+    def __init__(self, url, dest):
+        """"""
+        gobject.GObject.__init__(self)
+        self.url = url
+        self.dest = path
+
+    def start(self):
+        """Start the download"""
+        urllib.urlretrieve(self.url, self.dest, self.report_progress)
+
+    def report_progress(self, piece, received_bytes, total_size):
+        progress = ((piece * received_bytes) * 100) / total_size
+        self.emit('report-progress', progress)
 

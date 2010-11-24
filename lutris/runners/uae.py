@@ -38,7 +38,7 @@ class uae(Runner):
         self.game_options = [ {"option": "disk", "type":"multiple", "label":"Floppies"}]
 
         self.runner_options = [
-          {"option": "x11.rom_path", "label": "Rom Path", "type":"directory_chooser"},
+          {"option": "kickstart_rom_file", "label": "Rom Path", "type": "file_chooser"},
           {"option": "x11.floppy_path", "label":"Floppy path", "type": "directory_chooser"},
           {"option": "use_gui", "label":"Show UAE gui","type":"bool"},
           {"option": "gfx_fullscreen_amiga", "label": "Fullscreen (F12 + s to Switch)", "type":"bool"},
@@ -50,8 +50,16 @@ class uae(Runner):
 
         if settings:
             if "uae" in settings.config:
-                config_keys = ["gfx_fullscreen_amiga","gfx_show_leds_fullscreen",
-                "unix.rom_path","unix.floppy_path","joyport0","joyport1","use_gui"]
+                config_keys = [
+                        "kickstart_rom_file",
+                        "gfx_fullscreen_amiga",
+                        "gfx_show_leds_fullscreen",
+                        "unix.rom_path",
+                        "unix.floppy_path",
+                        "joyport0",
+                        "joyport1",
+                        "use_gui"
+                    ]
 
                 for config_key in config_keys:
                     if config_key in settings["uae"]:
@@ -60,42 +68,46 @@ class uae(Runner):
                             value = str(value).lower()
                         self.uae_options.update({config_key: value})
                 if "machine" in settings["uae"]:
-                    if settings["uae"]["machine"].replace(" ","").lower() == "amiga1200":
-                        amiga_settings = {"kickstart_rom_file":"\""+os.path.join(settings["uae"]["x11.rom_path"],"kick31.rom")+"\"",
-                                              "chipset":"aga",
-                                              "cpu_speed":"15",
-                                              "cpu_type":"68020",
-                                              "chipmem_size":"4",
-                                              "fastmem_size":"2"
-                                          }
+                    if settings["uae"]["machine"].replace(" ", "").lower() == "amiga1200":
+                        amiga_settings = {
+                                "chipset": "aga",
+                                "cpu_speed": "15",
+                                "cpu_type": "68020",
+                                "chipmem_size": "4",
+                                "fastmem_size": "2"
+                            }
                     #if settings["uae"]["machine"].replace(" ","").lower() == "amiga500":
                     #Load at least something by default !
                     else:
-                        rom_file = "kick13.rom"
-                        amiga_settings = {"kickstart_rom_file": "\""+os.path.join(settings["uae"]["x11.rom_path"],rom_file)+"\"",
-                                              "chipset":"ocs",
-                                              #CPU Speed is supposed to be set on "real"
-                                              #for Amiga 500 speed, but it's simply too fast...
-                                              #"cpu_speed":"real",
-                                              "cpu_speed":"15",
-                                              "cpu_type":"68000",
-                                              "chipmem_size":"1",
-                                              "fastmem_size":"0",
-                                              "bogomem_size":"2"}
+                        amiga_settings = {
+                                "chipset":"ocs",
+                                #CPU Speed is supposed to be set on "real"
+                                #for Amiga 500 speed, but it's simply too fast...
+                                #"cpu_speed":"real",
+                                "cpu_speed":"15",
+                                "cpu_type":"68000",
+                                "chipmem_size":"1",
+                                "fastmem_size":"0",
+                                "bogomem_size":"2"
+                            }
                     self.uae_options.update(amiga_settings)
             #Hardcoded stuff
             #If you have some better settings or have any reason that this
             #shouldn't be hardcoded, please let me know
-            sound_settings = {"sound_output": "normal",
-                              "sound_bits": "16",
-                              "sound_frequency":"44100",
-                              "sound_channels":"stereo",
-                              "sound_interpolation":"rx"}
-            gfx_settings = {"gfx_width_windowed":"640",
-                            "gfx_height_windowed":"512",
-                            "gfx_linemode":"double",
-                            "gfx_center_horizontal":"simple",
-                            "gfx_center_vertical":"simple"}
+            sound_settings = {
+            	    "sound_output": "normal",
+                    "sound_bits": "16",
+                    "sound_frequency":"44100",
+                    "sound_channels":"stereo",
+                    "sound_interpolation":"rx"
+                }
+            gfx_settings = {
+            	    "gfx_width_windowed": "640",
+                    "gfx_height_windowed": "512",
+                    "gfx_linemode": "double",
+                    "gfx_center_horizontal": "simple",
+                    "gfx_center_vertical": "simple"
+                }
             self.uae_options.update(sound_settings)
             self.uae_options.update(gfx_settings)
 

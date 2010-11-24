@@ -2,7 +2,7 @@
 ###############################################################################
 ## Lutris
 ##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2009, 2010 Mathieu Comandon strycore@gmail.com
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,17 +19,71 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Class to control the user's desktop in many aspects
+
+This class interacts with the window manager, xrandr, gconf, ...
+"""
+
 import os
 import os.path
-import subprocess
-from lutris.gconfwrapper import GconfWrapper
+from subprocess import Popen, PIPE
 
 # Don't force to import gconf, some users might not have it.
 try:
     import gconf
-    gconf_capable = True
+    GCONF_CAPABLE = True
 except ImportError:
-    gconf_capable = False
+    GCONF_CAPABLE = False
+
+from lutris.gconfwrapper import GconfWrapper
+
+def make_compiz_rule(class_=None, title=None):
+    """Return a string formated for the Window Rules plugin"""
+    if class_ is not None:
+        rule = 'class=%s' % class_
+    elif title is not None:
+        rule = 'title=%s' % title
+    else:
+        rule = False
+    return rule
+
+def get_resolutions():
+    """Return the list of supported screen resolutions."""
+    xrandr_output = Popen("xrandr", 
+                          stdout=PIPE).communicate()[0]
+    resolution_list = []
+    for line in xrandr_output.split("\n"):
+        if line.startswith("  "):
+            resolution_list.append(line.split()[0])
+    return resolution_list
+
+def get_current_resolution():
+    """Return the current resolution for the desktop."""
+    xrandr_output = Popen("xrandr", 
+                          stdout=PIPE).communicate()[0]
+    for line in xrandr_output.split("\n"):
+        if line.startswith("  ") and "*" in line:
+            return line.split()[0]
+    return None
+
+def change_resolution(resolution):
+    """change desktop resolution"""
+    if resolution not in get_resolutions():
+        return False
+    Popen("xrandr -s %s" % resolution, 
+          shell=True).communicate()[0]
+    return True
+
+def check_joysticks():
+    """Return list of connected joysticks."""
+    number_joysticks = 0
+    joysticks = []
+    for device_number in range(0, 8):
+        device_name = "/dev/input/js%d" % device_number
+        if os.path.exists(device_name):
+            number_joysticks = number_joysticks + 1
+            joysticks.append(device_name)
+    return joysticks
 
 class LutrisDesktopControl():
     """
@@ -38,64 +92,41 @@ class LutrisDesktopControl():
     def __init__(self):
         self.default_resolution = None
         self.gconf = GconfWrapper()
-        if gconf_capable:
+        if GCONF_CAPABLE:
             self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
             self.client = gconf.client_get_default ()
 
-    def set_keyboard_repeat(self, gconf_value = False):
-        """
-        Desactivate key repeats, this is needed in Wolfenstein (2009) for example
-        """
-        gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
-        type = "Boolean"
-        self.change_gconf_key(gconf_key, type, gconf_value)
-
-    def make_compiz_rule(self, class_=None, title=None):
-        if class_ is not None:
-            rule = 'class=%s' % class_
-        elif title is not None:
-            rule = 'title=%s' % title
-        else: 
-            rule = False
-        return rule
-
+    ### Compiz ###
 
     def set_compiz_fullscreen(self, class_=None, title=None):
-        """
-        Set a compiz rule for the plugin Window Rules 
-        to make the game window fullscreen
-        """
-        rule = self.make_compiz_rule(class_, title)
+        """Set a fullscreen rule for the plugin Window Rules"""
+        rule = make_compiz_rule(class_, title)
         if rule is False:
             return False
-        self.gconf.set_key(
-                "/apps/compiz/plugins/winrules/screen0/options/fullscreen_match",
-                rule,
-                True
-
-            )
+        compiz_root = "/apps/compiz/plugins"
+        key = compiz_root + "/winrules/screen0/options/fullscreen_match"
+        self.gconf.set_key(key, rule, True)
         return True
 
     def set_compiz_nodecoration(self, class_=None, title=None):
-        """
-        Removes the decorations for the game's window
-        """
-        window_rule = self.make_compiz_rule(class_, title)
+        """Remove the decorations for the game's window"""
+        window_rule = make_compiz_rule(class_, title)
         if window_rule is False:
             return False
         rule = "(any) & !(%s)" % window_rule
-        self.gconf.set_key(
-                "/apps/compiz/plugins/decoration/allscreens/options/decoration_match",
-                rule,
-                True
-            )
+        compiz_root = "/apps/compiz/plugins"
+        key = compiz_root + "/decoration/allscreens/options/decoration_match"
+        self.gconf.set_key(key, rule, True)
         return True
+
+    ### Gnome ###
 
     def hide_panels(self, hide = True):
         """
-        Hide any panel that exists on the Gnome desktop
-        This is useful because some games, mainly with Wine
-        don't hide the panels in fullscreen.
+        Hide any panel that exists on the Gnome desktop.
+
+        This is useful with some games, mostly running with Wine,
+        won't hide the panels in fullscreen mode.
         """
         base_dir = "/apps/panel/toplevels/"
         panels = self.all_dirs(base_dir)
@@ -107,7 +138,19 @@ class LutrisDesktopControl():
             gconf_key = base_dir + panel + "/auto_hide"
             self.change_gconf_key(gconf_key, "boolean", hide)
 
+    def set_keyboard_repeat(self, gconf_value = False):
+        """Desactivate key repeats.
+        
+        This is needed, for example in Wolfenstein (2009)
+        """
+        gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
+        key_type = "Boolean"
+        self.change_gconf_key(gconf_key, key_type, gconf_value)
+
+    ### Gconf ###
+
     def change_gconf_key(self, gconf_key, gconf_type, gconf_value):
+        """Change the value of a Gconf key."""
         if not hasattr(self, "client"):
             return
         if gconf_type.lower() == "string":
@@ -115,17 +158,17 @@ class LutrisDesktopControl():
         if gconf_type.lower() == "boolean" or gconf_type.lower() == "bool":
             self.client.set_bool(gconf_key, gconf_value)
 
-    def get_gconf_key(self, type, gconf_key):
+    def get_gconf_key(self, key_type, gconf_key):
+        """Return the value of a Gconf key."""
         if not hasattr(self, "client"):
             return
-        if type == "boolean":
+        if key_type == "boolean":
             return self.client.get_bool(gconf_key)
-        if type == "string":
+        if key_type == "string":
             return self.client.get_string(gconf_key)
 
     def all_dirs(self, base_dir):
-        """The same thing as gconftool --all-dirs <dir>"""
-
+        """Equivalent to gconftool --all-dirs <dir>"""
         if base_dir[0] == "/":
             base_dir = base_dir[1:]
         path = os.path.join(self.gconf_path, base_dir)
@@ -133,31 +176,11 @@ class LutrisDesktopControl():
         dirs.remove("%gconf.xml")
         return dirs
 
-    def change_resolution(self, resolution):
-        """change desktop resolution"""
-        if resolution not in self.get_resolutions():
-            return False
-        subprocess.Popen("xrandr -s %s" % resolution, shell = True).communicate()[0]
-        return True
-
-    def get_resolutions(self):
-        xrandr_output = subprocess.Popen("xrandr", stdout = subprocess.PIPE).communicate()[0]
-        resolution_list = []
-        for line in xrandr_output.split("\n"):
-            if line.startswith("  "):
-                resolution_list.append(line.split()[0])
-        return resolution_list
-
-    def get_current_resolution(self):
-        xrandr_output = subprocess.Popen("xrandr", stdout = subprocess.PIPE).communicate()[0]
-        for line in xrandr_output.split("\n"):
-            if line.startswith("  ") and "*" in line:
-                return line.split()[0]
-        return None
+    ### Misc ###
 
     def reset_desktop(self):
+        """Restore the desktop to its original state."""
         #Restore panels
-        #FIXME : Restore only with panels where shown before starting game
         self.hide_panels(False)
 
         #Restore resolution
@@ -171,13 +194,3 @@ class LutrisDesktopControl():
         #Restore gamma
         os.popen("xgamma -gamma 1.0")
 
-    def check_joysticks(self):
-        number_joysticks = 0
-        joysticks = []
-        for device_number in range(0, 8):
-            device_name = "/dev/input/js%d" % device_number
-            if os.path.exists(device_name):
-                number_joysticks = number_joysticks + 1
-                joysticks.append(device_name)
-
-        return joysticks

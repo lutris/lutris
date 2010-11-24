@@ -30,7 +30,7 @@ import gtk
 from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
-from lutris.desktop_control import LutrisDesktopControl
+from lutris.desktop_control import LutrisDesktopControl, change_resolution
 from lutris.runners import *
 from lutris.constants import *
 
@@ -49,9 +49,7 @@ def show_error_message(message, info=None):
         ErrorDialog("The file %s doesn't exists" % message['file'])
 
 def get_list():
-    """
-    Get the list of all installed games
-    """
+    """Get the list of all installed games"""
 
     game_list = []
     for file in os.listdir(GAME_CONFIG_PATH):
@@ -68,10 +66,9 @@ def get_list():
                 #error_dialog.run()
                 #error_dialog.destroy()
                 print message
-            game_list.append({
-                "name": Game.real_name,
-                "runner": Game.runner_name,
-                "id":game_name})
+            game_list.append({"name": Game.real_name,
+                              "runner": Game.runner_name,
+                              "id":game_name})
     return game_list
 
 class LutrisGame():
@@ -115,6 +112,9 @@ class LutrisGame():
         return True
 
     def play(self):
+        if not self.machine.is_installed():
+        	print "the required runner is not installed"
+        	return False
         config = self.game_config.config
         logging.debug("get ready for %s " % config['realname'])
         self.hide_panels = False
@@ -140,19 +140,13 @@ class LutrisGame():
 
             #Change resolution before starting game
             if "resolution" in config["system"]:
-                success = self.lutris_desktop_control.change_resolution(
-                        config["system"]["resolution"]
-                    )
+                success = change_resolution(config["system"]["resolution"]))
                 if success:
-                    logging.debug(
-                            "Resolution changed to %s"
-                            % config["system"]["resolution"]
-                        )
+                    logging.debug("Resolution changed to %s"
+                                  % config["system"]["resolution"])
                 else:
-                    logging.debug(
-                            "Failed to set resolution %s"
-                            % config["system"]["resolution"]
-                        )
+                    logging.debug("Failed to set resolution %s"
+                                  % config["system"]["resolution"])
 
             #Setting OSS Wrapper
             if "oss_wrapper" in config["system"]:
@@ -166,7 +160,7 @@ class LutrisGame():
                     )
                 logging.debug("PulseAudio restarted")
 
-            # Set compiz fullscreen windows    
+            # Set compiz fullscreen windows
             # TODO : Check that compiz is running
             if "compiz_nodecoration" in config['system']:
                 self.lutris_desktop_control.set_compiz_nodecoration(
