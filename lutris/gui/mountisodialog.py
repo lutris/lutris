@@ -22,19 +22,21 @@ import os
 ###############################################################################
 
 import gtk
-import subprocess
 import logging
+
+from lutris.fuseiso import is_fuseiso_installed, fuseiso_mount
 
 class MountIsoDialog(gtk.Dialog):
     def __init__(self):
 
-        self.check_fuseiso()
+        is_fuseiso_installed()
 
         gtk.Dialog.__init__(self)
         self.set_title("Mount ISO image")
         self.set_size_request(300,200)
-        
-        self.iso_filechooserbutton = gtk.FileChooserButton("Open an ISO file", backend=None)
+
+        self.iso_filechooserbutton = gtk.FileChooserButton("Open an ISO file", 
+                                                           backend=None)
         self.iso_label = gtk.Label("ISO file")
         self.iso_label.set_size_request(90,20)
         self.iso_hbox = gtk.HBox()
@@ -64,7 +66,6 @@ class MountIsoDialog(gtk.Dialog):
         self.wine_cdrom_hbox.pack_start(self.wine_cdrom_checkbutton,False,False)
         self.vbox.pack_start(self.wine_cdrom_hbox,False,False,10)
 
-
         #Action buttons
         cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
         ok_button = gtk.Button(None, gtk.STOCK_OK)
@@ -76,33 +77,18 @@ class MountIsoDialog(gtk.Dialog):
         self.show_all()
         self.run()
 
-    def check_fuseiso(self):
-        fuseiso_command = subprocess.Popen(["which","fuseiso"],stdout=subprocess.PIPE).stdout
-        fuseiso_is_installed = fuseiso_command.readline()
-        if "fuseiso" in fuseiso_is_installed:
-            logging.debug("fuseiso is installed")
-        else:
-            logging.debug("fuseiso not here, problems ahead")
-
     def close(self,widget):
         self.destroy()
 
     def ok_clicked(self,wigdet):
-        #TODO: Check if file is valid
         iso_file = self.iso_filechooserbutton.get_filename()
         mount_point = self.mount_point_filechooserbutton.get_filename()
 
-
-        
-        #TODO: Check if file is valid
-        iso_file = self.iso_filechooserbutton.get_filename()
-        mount_point = self.mount_point_filechooserbutton.get_filename()
-        fuseiso_command = subprocess.Popen(["fuseiso",iso_file,mount_point],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-
-        #TODO : Show dialog
+        fuseiso_mount(iso_file, mount_point)
         if self.wine_cdrom_checkbutton.get_active():
             os.remove(os.path.expanduser('~'), '.wine/dosdevices/d:')
-            os.symlink(mount_point, os.path.join(os.path.expanduser('~'), '.wine/dosdevices/d:'))
-            
-        print "mount done!"
+            os.symlink(mount_point, 
+                       os.path.join(os.path.expanduser('~'), 
+                                    '.wine/dosdevices/d:'))
         self.destroy()
+

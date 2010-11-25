@@ -119,7 +119,10 @@ class InstallerDialog(gtk.Dialog):
         #Run the installer
         runner = eval("lutris.runners."+self.runner_class+"."+self.runner_class+"()")
         self.lutris_config.update_global_config()
-        command = runner.get_install_command(self.lutris_config.config["game"]["installer"])
+        if "installer" in self.lutris_config.config['game']:
+            command = runner.get_install_command(exe=self.lutris_config.config["game"]["installer"])
+        elif 'iso' in self.lutris_config.config['game']:
+            command = runner.get_install_command(iso=self.lutris_config.config["game"]['iso'])
         #command = runner.get_install_command()
         if command:
             logging.debug("Running installer : %s" % command)

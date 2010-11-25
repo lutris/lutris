@@ -108,18 +108,11 @@ class nulldc(wine):
         path = path.replace("/", "\\")
         path = 'Z:' + path
 
-        command = [
-                "wine",
-                self.get_nulldc_path(),
-                "-config", "ImageReader:DefaultImage=\"%s\"" % path,
-            ]
+        command = ["wine", self.get_nulldc_path(),
+                   "-config", "ImageReader:DefaultImage=\"%s\"" % path,]
 
         self.check_regedit_keys() #From parent wine runner
-        return {
-                'command': command,
-                'joy2key': {
-                    'buttons': 'y a b x c r l r o s',
-                    'window': 'nullDC',
-                    'notwindow': 'VMU'
-                    }
-                }
+        return {'command': command,
+                'joy2key': {'buttons': 'y a b x c r l r o s',
+                            'window': 'nullDC',
+                            'notwindow': 'VMU'}}

@@ -140,7 +140,7 @@ class LutrisGame():
 
             #Change resolution before starting game
             if "resolution" in config["system"]:
-                success = change_resolution(config["system"]["resolution"]))
+                success = change_resolution(config["system"]["resolution"])
                 if success:
                     logging.debug("Resolution changed to %s"
                                   % config["system"]["resolution"])
