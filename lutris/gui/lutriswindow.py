@@ -38,7 +38,6 @@ from lutris.gui.common import NoticeDialog
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.mountisodialog import MountIsoDialog
 from lutris.gui.installerdialog import InstallerDialog
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.googleimagedialog import GoogleImageDialog

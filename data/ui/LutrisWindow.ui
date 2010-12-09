@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-requires lutris_window 1.0 -->
@@ -92,34 +92,6 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Quit</property>
                         <signal name="activate" handler="quit"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="Tools">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_Tools</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
-                    <property name="visible">True</property>
-                    <child>
-                      <object class="GtkMenuItem" id="getfromftp_menuitem">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Get games from FTP</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_getfromftp_clicked"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="mount_iso_menuitem">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Mount ISO</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_mount_iso_menuitem_activate"/>
                       </object>
                     </child>
                   </object>

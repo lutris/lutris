@@ -1,94 +1,86 @@
+#!/usr/bin/python
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
+#
+#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License version 3 as
+#  published by the Free Software Foundation.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 import os
 import subprocess
 import logging
 import lutris.constants
 from lutris.runners.runner import Runner
-from lutris.fuseiso import fuseiso_mount
+
 class wine(Runner):
     def __init__(self,settings = None):
-        self.executable = "wine"
-        self.package = "wine"
-        self.machine = "Windows games"
-        self.description = "Run Windows games with Wine"
+        self.executable = 'wine'
+        self.package = 'wine'
+        self.machine = 'Windows games'
+        self.description = 'Run Windows games with Wine'
 
         self.is_installable = True
 
-        self.installer_options = [{"option": "installer",
-                                   "type": "single",
-                                   "label": "Executable"},
-                                  {'option': 'iso',
+        self.installer_options = [{'option': 'installer',
                                    'type': 'single',
-                                   'label': 'ISO Image'}]
+                                   'label': 'Executable'}, ]
 
-        self.game_options = [
-                {"option": "exe","type":"single", "label":"Executable"},
-                {"option": "args", "type": "string", "label": "Arguments" }
-        ]
+        self.game_options = [{'option': 'exe', 'type':'single', 'label':'Executable'},
+                             {'option': 'args', 'type': 'string', 'label': 'Arguments'}]
 
-        mouse_warp_choices = [("Disable", "disable"),
-                              ("Enable", "enable"),
-                              ("Force", "force")]
-        orm_choices = [("BackBuffer","backbuffer"),
-                       ("FBO","fbo"),
-                       ("PBuffer","pbuffer")]
-        rtlm_choices = [("Auto","auto"),
-                        ("Disabled","disabled"),
-                        ("ReadDraw","readdraw"),
-                        ("ReadTex","readtex"),
-                        ("TexDraw","texdraw"),
-                        ("TexTex","textex")]
-        multisampling_choices = [("Enabled","enabled"),
+        mouse_warp_choices = [('Disable', 'disable'),
+                              ('Enable', 'enable'),
+                              ('Force', 'force')]
+        orm_choices = [('BackBuffer', 'backbuffer'),
+                       ('FBO', 'fbo'),
+                       ('PBuffer', 'pbuffer')]
+        rtlm_choices = [('Auto', 'auto'),
+                        ('Disabled', 'disabled'),
+                        ('ReadDraw', 'readdraw'),
+                        ('ReadTex', 'readtex'),
+                        ('TexDraw', 'texdraw'),
+                        ('TexTex', 'textex')]
+        multisampling_choices = [('Enabled', 'enabled'),
                                  ("Disabled","disabled")]
-        audio_choices = [("Alsa","alsa"),
-                         ("OSS","oss"),
-                         ("Jack","jack")]
+        audio_choices = [('Alsa','alsa'),
+                         ('OSS','oss'),
+                         ('Jack','jack')]
         desktop_choices = [('Yes', 'Default'),
                            ('No', 'None')]
-        self.runner_options = [{"option": "cdrom_path",
-                                "label": "CDRom mount point",
-                                "type": "directory_chooser"},
-                               {"option": "MouseWarpOverride",
-                                "label": "Mouse Warp Override",
-                                "type": "one_choice",
-                                "choices": mouse_warp_choices},
-                               {"option": "Multisampling",
-                                "label": "Multisampling",
-                                "type": "one_choice",
-                                "choices": multisampling_choices},
-                               {"option": "OffscreenRenderingMode",
-                                "label": "Offscreen Rendering Mode",
-                                "type": "one_choice",
-                                "choices": orm_choices},
-                               {"option": "RenderTargetLockMode",
-                                "label": "Render Target Lock Mode",
-                                "type": "one_choice",
-                                "choices": rtlm_choices},
-                               {"option": "Audio",
-                                "label": "Audio driver",
-                                "type": "one_choice",
-                                "choices": audio_choices},
-                               {"option": 'Desktop',
+        self.runner_options = [{'option': 'cdrom_path',
+                                'label': 'CDRom mount point',
+                                'type': 'directory_chooser'},
+                               {'option': 'MouseWarpOverride',
+                                'label': 'Mouse Warp Override',
+                                'type': 'one_choice',
+                                'choices': mouse_warp_choices},
+                               {'option': 'Multisampling',
+                                'label': 'Multisampling',
+                                'type': 'one_choice',
+                                'choices': multisampling_choices},
+                               {'option': 'OffscreenRenderingMode',
+                                'label': 'Offscreen Rendering Mode',
+                                'type': 'one_choice',
+                                'choices': orm_choices},
+                               {'option': 'RenderTargetLockMode',
+                                'label': 'Render Target Lock Mode',
+                                'type': 'one_choice',
+                                'choices': rtlm_choices},
+                               {'option': 'Audio',
+                                'label': 'Audio driver',
+                                'type': 'one_choice',
+                                'choices': audio_choices},
+                               {'option': 'Desktop',
                                 'label': 'Virtual desktop',
                                 'type': 'one_choice',
                                 'choices': desktop_choices}]
@@ -104,10 +96,10 @@ class wine(Runner):
             "Desktop": r"HKEY_CURRENT_USER\Software\Wine\Explorer"}
 
         if settings:
-            if "exe" in settings['game']:
-                self.gameExe = settings["game"]["exe"]
-            if "args" in settings.config["game"]:
-                self.args = settings["game"]["args"]
+            if 'exe' in settings['game']:
+                self.gameExe = settings['game']['exe']
+            if 'args' in settings.config['game']:
+                self.args = settings['game']['args']
             else:
                 self.args = None
             if self.__class__.__name__ in settings.config:
@@ -145,12 +137,8 @@ class wine(Runner):
         """Return the installer command, either from an exe or an iso"""
         if exe:
             command = "%s %s" % (self.executable, exe)
-        elif iso:
-            mount_path = lutris.constants.tmp_path
-            mount_path = fuseiso_mount(iso, mount_path)
-            command = os.path.join(mount_path, 'Setup.exe')
         else:
-        	print "Need either an executable or an iso file"
+        	print "Need an executable file"
         	return False
         return command
 

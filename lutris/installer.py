@@ -1,23 +1,20 @@
+#!/usr/bin/python
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009, 2010 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
+#
+#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License version 3 as
+#  published by the Free Software Foundation.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 """ This is where takes place the whole install process for games
 
@@ -236,7 +233,7 @@ class Installer():
             shutil.copy(url[7:], dest_dir)
         else:
             urllib.urlretrieve(url, dest_file, reporthook)
-        
+
         return dest_file
 
     def delete(self, data):
@@ -265,7 +262,7 @@ class Installer():
             dst = self.game_dir
         else:
             dst = data['dst'].replace('homedir', os.path.expanduser('~'))
-            if not os.path.exists(dst):                
+            if not os.path.exists(dst):
                 dst = '/tmp'
 
         print "Moving %s to %s" % (src, dst)
@@ -280,4 +277,4 @@ class Installer():
             return False
         return True
 
-        
+

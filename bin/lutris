@@ -21,8 +21,6 @@ import gtk
 import logging
 import optparse
 
-
-
 # This is inspired by gwibber because the quickly method was starting to be
 # annoying, there might be some issues left with running from source tree or
 # packaged version (and running from source with the packaged version installed)
@@ -35,7 +33,7 @@ if LAUNCH_PATH != "/usr/bin":
     sys.path.insert(0, SOURCE_PATH)
     DATA_PATH = os.path.join(LAUNCH_PATH, '..', 'data')
 else:
-    DATA_PATH = '/usr/share/lutris' 
+    DATA_PATH = '/usr/share/lutris'
 
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
