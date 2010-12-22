@@ -21,6 +21,9 @@ import gtk
 import logging
 import optparse
 
+import lutris.constants
+from lutris.gui.common import ErrorDialog
+
 # This is inspired by gwibber because the quickly method was starting to be
 # annoying, there might be some issues left with running from source tree or
 # packaged version (and running from source with the packaged version installed)
@@ -64,18 +67,27 @@ if options.verbose:
 game = None
 for arg in args:
     if arg.startswith('lutris:'):
-        print 'Installing ' + arg[7:]
         game = arg[7:]
         break
 if game:
-    installer = Installer(game)
-    success = installer.pre_install()
-    if success is False:
-        print "Unable to install game"
-        print installer.installer_errors
+	file_path = os.path.join(lutris.constants.GAME_CONFIG_PATH,
+	                         game + lutris.constants.CONFIG_EXTENSION)
+    if (os.path.exists(file_path)):
+    	import lutris.game
+    	lutris_game = lutris.game.LutrisGame(game)
+    	lutris_game.play()
     else:
-        print "Ready! Launching installer."
-        installer.install()
+        installer = Installer(game)
+        success = installer.pre_install()
+        if not success:
+            print "Unable to install game"
+            print installer.installer_errors
+            if 'INSTALLER_UNREACHABLE' in installer.installer_errors:
+            	ErrorDialog("Can't find an installer for \"%s\""
+                     	     % game)
+        else:
+            print "Ready! Launching installer."
+            installer.install()
     exit()
 else:
     lutris_window = new_lutris_window()

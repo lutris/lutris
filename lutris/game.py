@@ -39,6 +39,8 @@ def show_error_message(message, info=None):
                             do you want to install it now ?' % message['runner']
                 })
         if gtk.RESPONSE_YES == q.result:
+            # FIXME : This is not right at all!
+            # Call the runner's install method
             subprocess.Popen(['software-center', message['runner']])
     elif "NO_BIOS" == message['error']:
         ErrorDialog("A bios file is required to run this game")
@@ -151,25 +153,18 @@ class LutrisGame():
 
             #Reset Pulse Audio
             if "reset_pulse" in config["system"] and config["system"]["reset_pulse"]:
-                subprocess.Popen(
-                        "pulseaudio --kill && sleep 1 && pulseaudio --start",
-                        shell=True
-                    )
+                subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start",
+                                 shell=True)
                 logging.debug("PulseAudio restarted")
 
             # Set compiz fullscreen windows
             # TODO : Check that compiz is running
             if "compiz_nodecoration" in config['system']:
-                self.lutris_desktop_control.set_compiz_nodecoration(
-                        title=config['system']['compiz_nodecoration']
-                    )
+                self.lutris_desktop_control.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
             if "compiz_fullscreen" in config['system']:
-                self.lutris_desktop_control.set_compiz_fullscreen(
-                        title=config['system']['compiz_fullscreen']
-                    )
+                self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
 
             # Switch to other WM
-
             # TODO
 
         if hasattr(self.machine, 'game_path'):

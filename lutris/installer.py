@@ -109,6 +109,7 @@ class Installer():
         self.games_dir = self.lutris_config.get_path()
         if not self.games_dir:
             self.installer_user_actions.append("ask_games_dir")
+            logging.debug('Install dir missing')
             return False
 
         self.game_dir = os.path.join(self.games_dir, self.game_name)
@@ -125,12 +126,12 @@ class Installer():
         for action in self.installer_actions:
             action_name = action.keys()[0]
             action_data = action[action_name]
-            mappings = {
-                'check_md5': self.check_md5,
-                'extract' : self._extract,
-                'move' : self._move,
-                'delete': self.delete
-            }
+            mappings = {'check_md5': self.check_md5,
+                        'extract' : self._extract,
+                        'move' : self._move,
+                        'delete': self.delete,
+                        'request_media': self._request_media,
+                        'run': self._run }
             if action_name not in mappings.keys():
                 print "Action " + action_name + " not supported !"
                 return False
@@ -141,18 +142,16 @@ class Installer():
     def save_installer_content(self):
         """ Save the downloaded installer to disk. """
 
-        print 'downloading installer for ' + self.game_name
-
         full_url = lutris.constants.installer_prefix + self.game_name + '.yml'
         request = urllib2.Request(url=full_url)
         try:
             response = urllib2.urlopen(request)
         except urllib2.URLError:
-            print "Server is unreachable"
-            self.installer_errors.append("SERVER_UNREACHABLE")
+            logging.debug("Server is unreachable")
+            self.installer_errors.append("INSTALLER_UNREACHABLE")
             success = False
         else:
-            print "yay"
+            logging.debug("downloading %s" % full_url)
             installer_file = open(self.installer_dest_path, "w")
             installer_file.write(response.read())
             installer_file.close()
@@ -163,9 +162,7 @@ class Installer():
     def parseconfig(self):
         """ Reads the installer file. """
 
-        self.install_data = yaml.load(
-                file(self.installer_dest_path, 'r').read()
-            )
+        self.install_data = yaml.load(file(self.installer_dest_path, 'r').read())
 
         #Checking protocol
         protocol_version = self.install_data['protocol']
@@ -185,28 +182,34 @@ class Installer():
 
         for gamefile in files:
             file_id = gamefile.keys()[0]
-            dest_path = self._download(gamefile[file_id])
+            # if download link is a dict, it contains the url (in the
+            # 'url' key) and ouput filename (in 'ouput')
+            if type(gamefile[file_id]) == type(dict()):
+                url = gamefile[file_id]['url']
+                output = gamefile[file_id]['ouput']
+            else:
+                url = gamefile[file_id]
+                ouput = None
+            dest_path = self._download(url, output)
             self.gamefiles[file_id] = dest_path
         self.installer_actions = self.install_data['installer']
         self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
+        return True
 
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
         config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
                 self.game_info['runner'] + "-" + self.game_name + ".yml")
 
-        config_data = {
-                'game': {},
-                'realname': self.game_info['name'],
-                'runner': self.game_info['runner']
-        }
+        config_data = {'game': {},
+                       'realname': self.game_info['name'],
+                       'runner': self.game_info['runner']}
         launchers = ['exe', 'iso', 'rom']
 
         for launcher in launchers:
             if(launcher in self.game_info):
-                config_data['game'][launcher] = os.path.join(
-                        self.game_dir, self.game_info[launcher]
-                    )
+                config_data['game'][launcher] = os.path.join(self.game_dir,
+                                                             self.game_info[launcher])
 
         yaml_config = yaml.dump(config_data, default_flow_style=False)
         file(config_filename, "w").write(yaml_config)
@@ -219,14 +222,16 @@ class Installer():
         print "NOT IMPLEMENTED"
         return True
 
-    def _download(self, url):
+    def _download(self, url, output=None):
         """ Downloads a file. """
 
         logging.debug('Downloading ' + url)
         dest_dir = os.path.join(lutris.constants.tmp_path, self.game_name)
         if not os.path.exists(dest_dir):
             os.mkdir(dest_dir)
-        dest_file = os.path.join(dest_dir, url.split("/")[-1])
+        if not output:
+            output = url.split('/')[-1]
+        dest_file = os.path.join(dest_dir, output)
         if os.path.exists(dest_file):
             return dest_file
         if url.startswith("file://"):
@@ -276,5 +281,18 @@ class Installer():
             print "Could not move the file, destination already exists ?"
             return False
         return True
+
+    def _request_media(self, data):
+        if 'default' in data:
+            path = data['default']
+        if os.path.exists(os.path.join(path, data['contains'])):
+            return True
+        else:
+            return False
+    def _run(self, data):
+        exec_path = os.path.join(lutris.constants.TMP_PATH, self.game_name,
+                                 self.gamefiles[data['file']])
+        os.popen('chmod +x %s' % exec_path)
+        subprocess.call([exec_path])
 
 

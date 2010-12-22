@@ -24,14 +24,12 @@ import lutris.constants as constants
 class LutrisConfig():
     def __init__(self, runner=None, game=None):
         #Check if configuration directories exists and create them if needed.
-        config_paths = [
-            constants.lutris_config_path,
-            constants.runner_config_path,
-            constants.GAME_CONFIG_PATH,
-            constants.COVER_PATH,
-            constants.tmp_path,
-            constants.cache_path
-        ]
+        config_paths = [constants.lutris_config_path,
+                        constants.runner_config_path,
+                        constants.GAME_CONFIG_PATH,
+                        constants.COVER_PATH,
+                        constants.tmp_path,
+                        constants.cache_path]
         for config_path in config_paths:
             if not os.path.exists(config_path):
                 os.mkdir(config_path)
@@ -185,7 +183,7 @@ class LutrisConfig():
 
         if "system" in self.config and "game_path" in self.config["system"]:
             return self.config["system"]["game_path"]
-        if default is None or not os.path.exists(default):
+        if not default or not os.path.exists(default):
             return False
         else:
             return default

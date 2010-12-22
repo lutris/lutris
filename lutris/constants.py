@@ -48,7 +48,7 @@ license = """
 LAUNCH_PATH = os.path.abspath(sys.path[0])
 
 if not LAUNCH_PATH.startswith('/usr'):
-    DATA_PATH = os.path.join(sys.path[0], 'data')
+    DATA_PATH = os.path.join(sys.path[0], '..','data')
 else:
     DATA_PATH = '/usr/share/lutris'
 lutris_icon_file = "media/logo.svg"
@@ -61,5 +61,6 @@ runner_config_path = os.path.join(lutris_config_path, 'runners')
 GAME_CONFIG_PATH = os.path.join(lutris_config_path, 'games')
 COVER_PATH = os.path.join(lutris_config_path, 'covers')
 tmp_path = os.path.join(lutris_config_path, 'tmp')
+TMP_PATH = tmp_path
 cache_path = os.path.join(lutris_config_path, 'cache')
 

@@ -40,4 +40,4 @@ class stella(Runner):
 
     def play(self):
         command = ['stella',"\""+self.cart+"\""]
-        return command
+        return  {'command': command}

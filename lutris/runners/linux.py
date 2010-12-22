@@ -48,7 +48,7 @@ class linux(Runner):
         if not os.access(installer_path,os.X_OK):
            logging.debug("%s is not executable, setting it executable")
            os.chmod(installer_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
-           
+
         return  "x-terminal-emulator -e %s" % installer_path
 
     def is_installed(self):
@@ -57,4 +57,7 @@ class linux(Runner):
 
     def play(self):
         self.game_path = os.path.dirname(self.executable)
-        return ["./"+os.path.basename(self.executable)]
+        if not os.path.exists(self.executable):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.executable }
+
+        return {'command': "./"+os.path.basename(self.executable)}
