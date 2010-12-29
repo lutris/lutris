@@ -25,6 +25,7 @@ import gobject
 import gio
 import pango
 import lutris.constants
+from lutris.downloader import Downloader
 
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
@@ -76,3 +77,13 @@ class DownloadProgressBar(gtk.ProgressBar):
     def __init__(self, url, dest):
         super(DownloadProgressBar, self).__init__()
         # TODO Get some code from Quickly widgets
+        self.downloader = Downloader(url, dest)
+        self.downloader.connect('report-progress', self.progress)
+
+    def start(self):
+        self.downloader.start()
+
+    def progress(self, widget, data):
+        frac = data/100.0
+        print frac
+        self.set_fraction(data)

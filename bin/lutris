@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
-### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -13,16 +12,14 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-### END LICENSE
 
-import sys
 import os
+import sys
 import gtk
 import logging
 import optparse
 
-import lutris.constants
-from lutris.gui.common import ErrorDialog
+logger =  logging.getLogger(__name__)
 
 # This is inspired by gwibber because the quickly method was starting to be
 # annoying, there might be some issues left with running from source tree or
@@ -38,8 +35,11 @@ if LAUNCH_PATH != "/usr/bin":
 else:
     DATA_PATH = '/usr/share/lutris'
 
+import lutris.constants
+
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
+from lutris.gui.common import ErrorDialog
 
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
@@ -61,7 +61,7 @@ parser.add_option("-v", "--verbose", action="store_true",
 # Set the logging level to show debug messages.
 if options.verbose:
     logging.basicConfig(level=logging.DEBUG)
-    logging.debug('logging enabled')
+    logger.debug('logging enabled')
 
 # Run the application.
 game = None
@@ -80,13 +80,13 @@ if game:
         installer = Installer(game)
         success = installer.pre_install()
         if not success:
-            print "Unable to install game"
-            print installer.installer_errors
+            logger.error("Unable to install game")
+            logger.error(installer.installer_errors)
             if 'INSTALLER_UNREACHABLE' in installer.installer_errors:
             	ErrorDialog("Can't find an installer for \"%s\""
                      	     % game)
         else:
-            print "Ready! Launching installer."
+            logger.info("Ready! Launching installer.")
             installer.install()
     exit()
 else:

@@ -60,8 +60,28 @@ class DirectoryDialog:
         self.folder =  dialog.get_current_folder()
         dialog.destroy()
 
-class DownloadDialog:
-    def __init__(self):
-        self.download_progress_bar = DownloadProgressBar()
-        dialog = gtk.Dialog()
+class DownloadDialog(gtk.Dialog):
+    def __init__(self, url, dest):
+        gtk.Dialog.__init__(self)
+        self.connect('destroy', self.destroy_cb)
+        self.download_progress_bar = DownloadProgressBar(url, dest)
+        label = gtk.Label('Downloading %s' % url)
+        button = gtk.Button("start")
+        button.connect('clicked', self.start)
+        self.vbox.pack_start(label)
+        self.vbox.pack_start(button)
+        self.vbox.pack_start(self.download_progress_bar)
+        self.show_all()
 
+    def destroy_cb(self, widget):
+        self.destroy()
+
+    def start(self, widget):
+        self.download_progress_bar.start()
+
+if __name__ == "__main__":
+    dd = DownloadDialog("http://strycore.com/games/quake/quake.zip", "/home/strider/quake.zip")
+    gtk.gdk.threads_init()
+    gtk.gdk.threads_enter()
+    gtk.main()
+    gtk.gdk.threads_leave()
