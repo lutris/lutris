@@ -27,19 +27,21 @@ logger =  logging.getLogger(__name__)
 # See Gwibber source for more inspiration.
 # See also lutris.constants.py which also has a DATA_PATH
 
-LAUNCH_PATH=os.path.abspath(sys.path[0])
-if LAUNCH_PATH != "/usr/bin":
-    SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
-    sys.path.insert(0, SOURCE_PATH)
-    DATA_PATH = os.path.join(LAUNCH_PATH, '..', 'data')
-else:
-    DATA_PATH = '/usr/share/lutris'
+#LAUNCH_PATH=os.path.abspath(sys.path[0])
+#if LAUNCH_PATH != "/usr/bin":
+#    SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
+#    sys.path.insert(0, SOURCE_PATH)
+#    DATA_PATH = os.path.join(LAUNCH_PATH, '..', 'data')
+#else:
+#    DATA_PATH = '/usr/share/lutris'
 
 import lutris.constants
 
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
 from lutris.gui.common import ErrorDialog
+
+DATA_PATH = lutris.constants.DATA_PATH
 
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
