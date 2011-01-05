@@ -110,7 +110,7 @@ class LutrisGame():
             return False
         return True
 
-    def play(self):
+    def play(self):    
         if not self.machine.is_installed():
         	print "the required runner is not installed"
         	return False

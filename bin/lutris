@@ -76,6 +76,7 @@ if game:
 	                         game + lutris.constants.CONFIG_EXTENSION)
     if (os.path.exists(file_path)):
     	import lutris.game
+    	print "launching " + game
     	lutris_game = lutris.game.LutrisGame(game)
     	lutris_game.play()
     else:

@@ -68,9 +68,8 @@ class Installer():
 
         self.lutris_config = None
         self.game_name = game
-        self.installer_dest_path = os.path.join(
-                lutris.constants.cache_path, self.game_name + ".yml"
-            )
+        self.installer_dest_path = os.path.join(lutris.constants.cache_path,
+                                                self.game_name + ".yml")
         # Stores a list of actions that will be sent back to the user
         # in order to complete the installation
         self.installer_user_actions = []
@@ -94,7 +93,6 @@ class Installer():
 
     def set_games_dir(self, path):
         """ Set the base path where the game will be installed """
-
         self.games_dir = path
 
     def pre_install(self):
@@ -131,12 +129,11 @@ class Installer():
                         'move' : self._move,
                         'delete': self.delete,
                         'request_media': self._request_media,
-                        'run': self._run }
+                        'run': self._run}
             if action_name not in mappings.keys():
                 print "Action " + action_name + " not supported !"
                 return False
             mappings[action_name](action_data)
-
         self.write_config()
 
     def save_installer_content(self):
@@ -189,7 +186,7 @@ class Installer():
                 output = gamefile[file_id]['ouput']
             else:
                 url = gamefile[file_id]
-                ouput = None
+                output = None
             dest_path = self._download(url, output)
             self.gamefiles[file_id] = dest_path
         self.installer_actions = self.install_data['installer']
@@ -199,7 +196,7 @@ class Installer():
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
         config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
-                self.game_info['runner'] + "-" + self.game_name + ".yml")
+                                       self.game_name + ".yml")
 
         config_data = {'game': {},
                        'realname': self.game_info['name'],

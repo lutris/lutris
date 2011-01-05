@@ -38,6 +38,10 @@ class linux(Runner):
         self.runner_options = []
         if settings:
             self.executable = settings["game"]["exe"]
+            if 'args' in settings['game']:
+                self.args = settings['game']['args']
+            else:
+            	self.args = None
 
     def get_install_command(self,installer_path):
         #Check if installer exists
@@ -59,5 +63,9 @@ class linux(Runner):
         self.game_path = os.path.dirname(self.executable)
         if not os.path.exists(self.executable):
             return {'error': 'FILE_NOT_FOUND', 'file': self.executable }
+        command = ["./%s"  % os.path.basename(self.executable) ]
+        if self.args:
+        	for arg in self.args.split():
+        		command.append(arg)
 
-        return {'command': "./"+os.path.basename(self.executable)}
+        return {'command': command}
