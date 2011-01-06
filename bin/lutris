@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from os.path import realpath, dirname, normpath
 import os
 import sys
 import gtk
@@ -21,33 +22,27 @@ import optparse
 
 logger =  logging.getLogger(__name__)
 
-# This is inspired by gwibber because the quickly method was starting to be
-# annoying, there might be some issues left with running from source tree or
-# packaged version (and running from source with the packaged version installed)
-# See Gwibber source for more inspiration.
-# See also lutris.constants.py which also has a DATA_PATH
+LAUNCH_PATH=dirname(realpath(__file__))
+if LAUNCH_PATH != "/usr/bin":
+    SOURCE_PATH=normpath(os.path.join(LAUNCH_PATH, '..'))
+    sys.path.insert(0, SOURCE_PATH)
 
-#LAUNCH_PATH=os.path.abspath(sys.path[0])
-#if LAUNCH_PATH != "/usr/bin":
-#    SOURCE_PATH=os.path.join(LAUNCH_PATH, '..')
-#    sys.path.insert(0, SOURCE_PATH)
-#    DATA_PATH = os.path.join(LAUNCH_PATH, '..', 'data')
-#else:
-#    DATA_PATH = '/usr/share/lutris'
+from lutris.constants import DATA_PATH, CONFIG_EXTENSION, GAME_CONFIG_PATH
+from lutris.util import log
 
-import lutris.constants
+log.logger.name = "Lutris Gaming Platform"
 
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
 from lutris.gui.common import ErrorDialog
 
-DATA_PATH = lutris.constants.DATA_PATH
-
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
     ui_filename = os.path.join(DATA_PATH, 'ui', 'LutrisWindow.ui')
     if not os.path.exists(ui_filename):
-        raise IOError('File not found')
+        msg = 'File %s not found' % ui_filename
+    	log.logger.error(msg)
+        raise IOError(msg)
     builder = gtk.Builder()
     builder.add_from_file(ui_filename)
     window = builder.get_object("lutris_window")
@@ -57,13 +52,27 @@ def new_lutris_window():
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog %ver")
 parser.add_option("-v", "--verbose", action="store_true",
-                  dest="verbose", help="Show debug messages")
+                  dest="verbose", help="Verbose output")
+parser.add_option("-d", "--debug", action="store_true",
+                  dest="debug", help="Show debug messages")
 (options, args) = parser.parse_args()
 
 # Set the logging level to show debug messages.
+if options.debug:
+	log.logger.setLevel(log.logging.DEBUG)
+    log.logger.debug('logging enabled')
+else:
+	log.logger.setLevel(log.logging.INFO)
 if options.verbose:
-    logging.basicConfig(level=logging.DEBUG)
-    logger.debug('logging enabled')
+	console = log.logging.StreamHandler()
+    if options.debug:
+    	console.setLevel(log.logging.DEBUG)
+    else:
+    	console.setLevel(log.logging.INFO)
+
+    formatter = log.logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    log.logger.addHandler(console)
 
 # Run the application.
 game = None
@@ -72,27 +81,27 @@ for arg in args:
         game = arg[7:]
         break
 if game:
-	file_path = os.path.join(lutris.constants.GAME_CONFIG_PATH,
-	                         game + lutris.constants.CONFIG_EXTENSION)
+	file_path = os.path.join(GAME_CONFIG_PATH, game + CONFIG_EXTENSION)
     if (os.path.exists(file_path)):
     	import lutris.game
-    	print "launching " + game
+    	log.logger.info('Launching ' + game)
     	lutris_game = lutris.game.LutrisGame(game)
     	lutris_game.play()
     else:
         installer = Installer(game)
         success = installer.pre_install()
         if not success:
-            logger.error("Unable to install game")
-            logger.error(installer.installer_errors)
+            log.logger.error("Unable to install game")
+            log.logger.error(installer.installer_errors)
             if 'INSTALLER_UNREACHABLE' in installer.installer_errors:
             	ErrorDialog("Can't find an installer for \"%s\""
                      	     % game)
         else:
-            logger.info("Ready! Launching installer.")
+            log.logger.info("Ready! Launching installer.")
             installer.install()
     exit()
 else:
+	log.logger.info('Showing main window')
     lutris_window = new_lutris_window()
     lutris_window.show()
     gtk.gdk.threads_init()

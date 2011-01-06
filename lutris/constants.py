@@ -15,7 +15,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
+from os.path import realpath, normpath, dirname, join, exists, expanduser
 import sys
 
 name = "Lutris"
@@ -45,24 +45,23 @@ license = """
     """
 #Paths
 
-LAUNCH_PATH = os.path.abspath(sys.path[0])
-print "LP : ", LAUNCH_PATH
+LAUNCH_PATH = realpath(sys.path[0])
 if not LAUNCH_PATH.startswith('/usr'):
-    DATA_PATH = os.path.join(sys.path[0], '..','data')
+    DATA_PATH = normpath(join(sys.path[0], 'data'))
 else:
     DATA_PATH = '/usr/share/lutris'
-if not os.path.exists(DATA_PATH):
+if not exists(DATA_PATH):
     print "DATA_PATH can't be found at : %s" % DATA_PATH
 lutris_icon_file = "media/logo.svg"
-lutris_icon_path = os.path.join(DATA_PATH, lutris_icon_file)
+lutris_icon_path = join(DATA_PATH, lutris_icon_file)
 
-lutris_config_path = os.path.join(os.path.expanduser('~'), '.config', 'lutris')
+lutris_config_path = join(expanduser('~'), '.config', 'lutris')
 system_config_file = 'system' + CONFIG_EXTENSION
-system_config_full_path = os.path.join(lutris_config_path, system_config_file)
-runner_config_path = os.path.join(lutris_config_path, 'runners')
-GAME_CONFIG_PATH = os.path.join(lutris_config_path, 'games')
-COVER_PATH = os.path.join(lutris_config_path, 'covers')
-tmp_path = os.path.join(lutris_config_path, 'tmp')
+system_config_full_path = join(lutris_config_path, system_config_file)
+runner_config_path = join(lutris_config_path, 'runners')
+GAME_CONFIG_PATH = join(lutris_config_path, 'games')
+COVER_PATH = join(lutris_config_path, 'covers')
+tmp_path = join(lutris_config_path, 'tmp')
 TMP_PATH = tmp_path
-cache_path = os.path.join(lutris_config_path, 'cache')
+cache_path = join(lutris_config_path, 'cache')
 
