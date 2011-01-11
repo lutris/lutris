@@ -25,6 +25,7 @@ import os
 import os.path
 from subprocess import Popen, PIPE
 
+from lutris.exceptions import GConfBindingsUnavailable
 # Don't force to import gconf, some users might not have it.
 try:
     import gconf

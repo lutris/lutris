@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from lutris.gconfwrapper import GconfWrapper
     GCONF_CAPABLE = True
-except GCongfBindingsUnavailable:
+except GConfBindingsUnavailable:
     GCONF_CAPABLE = False
 
 def register_lutris_handler():
