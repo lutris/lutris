@@ -28,11 +28,11 @@ from subprocess import Popen, PIPE
 # Don't force to import gconf, some users might not have it.
 try:
     import gconf
+    from lutris.gconfwrapper import GconfWrapper
     GCONF_CAPABLE = True
-except ImportError:
+except GConfBindingsUnavailable:
     GCONF_CAPABLE = False
 
-from lutris.gconfwrapper import GconfWrapper
 
 def make_compiz_rule(class_=None, title=None):
     """Return a string formated for the Window Rules plugin"""
@@ -88,8 +88,8 @@ class LutrisDesktopControl():
     """
     def __init__(self):
         self.default_resolution = None
-        self.gconf = GconfWrapper()
         if GCONF_CAPABLE:
+            self.gconf = GconfWrapper()
             self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
             self.client = gconf.client_get_default ()
 
@@ -98,7 +98,7 @@ class LutrisDesktopControl():
     def set_compiz_fullscreen(self, class_=None, title=None):
         """Set a fullscreen rule for the plugin Window Rules"""
         rule = make_compiz_rule(class_, title)
-        if rule is False:
+        if not rule or not GCONF_CAPABLE:
             return False
         compiz_root = "/apps/compiz/plugins"
         key = compiz_root + "/winrules/screen0/options/fullscreen_match"
@@ -108,7 +108,7 @@ class LutrisDesktopControl():
     def set_compiz_nodecoration(self, class_=None, title=None):
         """Remove the decorations for the game's window"""
         window_rule = make_compiz_rule(class_, title)
-        if window_rule is False:
+        if not window_rule or not GCONF_CAPABLE:
             return False
         rule = "(any) & !(%s)" % window_rule
         compiz_root = "/apps/compiz/plugins"
@@ -118,60 +118,36 @@ class LutrisDesktopControl():
 
     ### Gnome ###
 
-    def hide_panels(self, hide = True):
+    def hide_panels(self, hide=True):
         """
         Hide any panel that exists on the Gnome desktop.
 
         This is useful with some games, mostly running with Wine,
         won't hide the panels in fullscreen mode.
         """
+        if not GCONF_CAPABLE:
+        	return False
         base_dir = "/apps/panel/toplevels/"
-        panels = self.all_dirs(base_dir)
+        panels = self.gconf.all_dirs(base_dir)
         for panel in panels:
             if hide:
                 print "Hiding %s" % panel
             else:
                 print "Showing %s" % panel
             gconf_key = base_dir + panel + "/auto_hide"
-            self.change_gconf_key(gconf_key, "boolean", hide)
+            self.gconf.set_key(gconf_key, hide)
+        return True
 
     def set_keyboard_repeat(self, gconf_value = False):
         """Desactivate key repeats.
 
-        This is needed, for example in Wolfenstein (2009)
+        This is needed, for example, in Wolfenstein (2009)
         """
+        if not GCONF_CAPABLE:
+        	return False
         gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
-        key_type = "Boolean"
-        self.change_gconf_key(gconf_key, key_type, gconf_value)
-
-    ### Gconf ###
-
-    def change_gconf_key(self, gconf_key, gconf_type, gconf_value):
-        """Change the value of a Gconf key."""
-        if not hasattr(self, "client"):
-            return
-        if gconf_type.lower() == "string":
-            self.client.set_string(gconf_key, gconf_value)
-        if gconf_type.lower() == "boolean" or gconf_type.lower() == "bool":
-            self.client.set_bool(gconf_key, gconf_value)
-
-    def get_gconf_key(self, key_type, gconf_key):
-        """Return the value of a Gconf key."""
-        if not hasattr(self, "client"):
-            return
-        if key_type == "boolean":
-            return self.client.get_bool(gconf_key)
-        if key_type == "string":
-            return self.client.get_string(gconf_key)
-
-    def all_dirs(self, base_dir):
-        """Equivalent to gconftool --all-dirs <dir>"""
-        if base_dir[0] == "/":
-            base_dir = base_dir[1:]
-        path = os.path.join(self.gconf_path, base_dir)
-        dirs = os.listdir(path)
-        dirs.remove("%gconf.xml")
-        return dirs
+        self.gconf.set_key(gconf_key, gconf_value)
+        return True
 
     ### Misc ###
 

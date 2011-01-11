@@ -88,7 +88,7 @@ class nulldc(wine):
         if not self.check_depends():
             return False
         nulldc_path = self.get_nulldc_path()
-        if nulldc_path is False or not os.path.exists(nulldc_path):
+        if not nulldc_path or not os.path.exists(nulldc_path):
             return False
         else:
             return True

@@ -65,8 +65,6 @@ class steam(wine):
         config.runner_config = {'system': {'game_path': d.folder }}
         config.save(type='runner')
 
-
-
     def is_installed(self):
         """Checks if wine is installed and
         if the steam executable is on the harddrive
@@ -74,7 +72,7 @@ class steam(wine):
         """
         if not self.check_depends():
             return False
-        if self.game_path is False or \
+        if not self.game_path or \
            not os.path.exists(os.path.join(self.game_path, self.game_exe)):
             return False
         else:

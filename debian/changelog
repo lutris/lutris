@@ -1,3 +1,12 @@
+lutris (0.2.4) maverick; urgency=low
+
+  * A lot of bug fixes
+  * Better support for the web installers
+  * Initial support for Mupen64+
+  * New logging system inspired by Gwibber
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 06 Jan 2011 02:08:35 +0100
+
 lutris (0.2.2ubuntu2) maverick; urgency=low
 
   * Fixed a bug in Steam and NullDC runner which prevented to add games.

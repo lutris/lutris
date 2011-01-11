@@ -18,11 +18,11 @@
 
 import os
 
-from glib import GError
 from lutris.exceptions import GConfBindingsUnavailable
 
 try:
     import gconf
+    from glib import GError
 except ImportError:
     raise GConfBindingsUnavailable('Install python-gconf')
 

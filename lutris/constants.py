@@ -19,7 +19,7 @@ from os.path import realpath, normpath, dirname, join, exists, expanduser
 import sys
 
 name = "Lutris"
-version = "0.2.2"
+version = "0.2.4"
 website = "http://lutris.net"
 protocol_version = 1
 installer_prefix = "http://lutris.net/media/installers/"

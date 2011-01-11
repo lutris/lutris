@@ -20,9 +20,16 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lutris.gconfwrapper import GconfWrapper
+try:
+    from lutris.gconfwrapper import GconfWrapper
+    GCONF_CAPABLE = True
+except GCongfBindingsUnavailable:
+    GCONF_CAPABLE = False
 
 def register_lutris_handler():
+    if not GCONF_CAPABLE:
+        print "Can't find gconf bindings"
+        return
     gconf = GconfWrapper()
     defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
                 ('/desktop/gnome/url-handlers/lutris/enabled', True),
