@@ -44,10 +44,13 @@ def unrar(filename):
 
     subprocess.call(["unrar", "x", filename])
 
-def untgz(filename):
+def untgz(filename, dest=None):
     """Untgz a file"""
-
+    cwd = os.getcwd()
+    if dest and os.path.exists(dest):
+    	os.chdir(dest)
     subprocess.call(["tar", "xzf", filename])
+    os.chdir(cwd)
 
 def run_installer(filename):
     """Run an installer of .sh or .run type"""
@@ -243,16 +246,26 @@ class Installer():
         print "will delete " + self.gamefiles[data['file']]
         print "let's not delete anything right now, m'kay ?"
 
+    def _get_path(self, data):
+        """Return a filesystem path based on data"""
+
+        if data == 'parent':
+            path = os.path.join(self.game_dir, '..')
+        else:
+        	path = self.game_dir
+        return path
+
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
 
         print 'extracting ' + data['file']
         filename = self.gamefiles[data['file']]
-        print "NOT IMPLEMENTED"
         extension = filename[filename.rfind(".") + 1:]
 
         if extension == "zip":
             unzip(filename, self.game_dir)
+        if filename.endswith('.tgz') or filename.endswith('.tar.gz'):
+        	untgz(filename, self._get_path('parent'))
 
     def _move(self, data):
         """ Moves a file. """
