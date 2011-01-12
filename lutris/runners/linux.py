@@ -31,10 +31,12 @@ class linux(Runner):
         self.description = "Runs native games"
         self.machine = "Linux games"
         self.is_installable = True
+        self.ld_preload = None
         self.installer_options = [{"option": "installer","type": "single","label": "Executable"}]
 
         self.game_options = [ {"option": "exe", "type":"single", "label":"Executable"},
-                              {"option": "args", "type": "string", "name": "args", "label": "Arguments" }]
+                              {"option": "args", "type": "string", "label": "Arguments"},
+                              {"option": "ld_preload", "type": "single", "label": "Preload libray"}]
         self.runner_options = []
         if settings:
             self.executable = settings["game"]["exe"]
@@ -42,6 +44,8 @@ class linux(Runner):
                 self.args = settings['game']['args']
             else:
             	self.args = None
+            if 'ld_preload' in settings['game']:
+            	self.ld_preload = settings['game']['ld_preload']
 
     def get_install_command(self,installer_path):
         #Check if installer exists
@@ -63,9 +67,12 @@ class linux(Runner):
         self.game_path = os.path.dirname(self.executable)
         if not os.path.exists(self.executable):
             return {'error': 'FILE_NOT_FOUND', 'file': self.executable }
-        command = ["./%s"  % os.path.basename(self.executable) ]
+        command = []
+        if self.ld_preload:
+        	command.append("LD_PRELOAD=%s " % self.ld_preload)
+        command.append("./%s"  % os.path.basename(self.executable))
         if self.args:
         	for arg in self.args.split():
         		command.append(arg)
 
-        return {'command': command}
+        return {'command': command }

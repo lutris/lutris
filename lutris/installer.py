@@ -44,12 +44,18 @@ def unrar(filename):
 
     subprocess.call(["unrar", "x", filename])
 
-def untgz(filename, dest=None):
-    """Untgz a file"""
+def untar(filename, dest=None, method='gzip'):
+    """Untar a file"""
     cwd = os.getcwd()
     if dest and os.path.exists(dest):
     	os.chdir(dest)
-    subprocess.call(["tar", "xzf", filename])
+    if method == 'gzip':
+    	compression_flag = 'z'
+    elif method == 'bzip2':
+        compression_flag = 'j'
+    else:
+    	compression_flag = ''
+    subprocess.call(["tar", "x%sf" % compression_flag, filename])
     os.chdir(cwd)
 
 def run_installer(filename):
@@ -265,7 +271,9 @@ class Installer():
         if extension == "zip":
             unzip(filename, self.game_dir)
         if filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-        	untgz(filename, self._get_path('parent'))
+        	untar(filename, self._get_path('parent'))
+        if filename.endswith('.tar.bz2'):
+        	untar(filename, None, 'bzip2')
 
     def _move(self, data):
         """ Moves a file. """

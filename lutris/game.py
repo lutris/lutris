@@ -28,7 +28,7 @@ from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl, change_resolution
-from lutris.runners import *
+#from lutris.runners import *
 from lutris.constants import *
 
 def show_error_message(message, info=None):
@@ -98,8 +98,13 @@ class LutrisGame():
             return False
 
         try:
-            #FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            self.machine = eval(self.runner_name + "." + self.runner_name + "(self.game_config)")
+            runner_module = __import__("lutris.runners.%s" %
+                    self.runner_name, globals(), locals(),
+                    [self.runner_name], -1 )
+            #print type(runner_module)
+            runner_cls = getattr(runner_module, self.runner_name)
+            #print type(runner_cls)
+            self.machine = runner_cls(self.game_config)
         except AttributeError, msg:
             logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)
             logging.error(msg)
@@ -110,7 +115,7 @@ class LutrisGame():
             return False
         return True
 
-    def play(self):    
+    def play(self):
         if not self.machine.is_installed():
         	print "the required runner is not installed"
         	return False
@@ -172,6 +177,7 @@ class LutrisGame():
         else:
         	path = None
 
+        print game_run_args
         command = " " . join(game_run_args)
         # Set OSS Wrapper
         if oss_wrapper and oss_wrapper != 'none':
