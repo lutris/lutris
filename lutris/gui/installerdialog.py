@@ -24,7 +24,7 @@ import logging
 import subprocess
 
 import lutris.runners
-
+from lutris.runners import import_runner
 from lutris.config import LutrisConfig
 from lutris.gui.installerconfigvbox import InstallerConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
@@ -51,20 +51,21 @@ class InstallerDialog(gtk.Dialog):
         #get a list of available runners
         runner_liststore = gtk.ListStore(str,str)
         runner_liststore.append(("Choose a runner for the list",""))
-        for runner_cls in lutris.runners.__all__:
-            runner = eval("lutris.runners."+runner_cls+"."+runner_cls+"()")
+        for runner_classname in lutris.runners.__all__:
+            runner_cls = import_runner(runner_classname)
+            runner = runner_cls()
             if hasattr(runner,"description"):
                 description = runner.description
             else:
-                logging.debug("Please fix %s and add a description attribute" % runner_cls)
+                logging.debug("Please fix %s and add a description attribute" % runner_classname)
                 description = ""
             if hasattr(runner,"machine"):
                 machine = runner.machine
             else:
-                logging.debug("Please fix % and add a machine attribute" % runner_cls)
+                logging.debug("Please fix % and add a machine attribute" % runner_classname)
                 machine = ""
             if runner.is_installed() and runner.is_installable:
-                runner_liststore.append((machine+" ("+ description +")" ,runner_cls))
+                runner_liststore.append((machine+" ("+ description +")", runner_classname))
 
         self.runner_combobox = gtk.ComboBox(runner_liststore)
         self.runner_combobox.connect("changed",self.on_runner_changed)
@@ -110,29 +111,28 @@ class InstallerDialog(gtk.Dialog):
 
     def install_game(self, button):
         """OK button pressed in the Installer Dialog"""
+        command = None
         #Get name
         realname = self.realname_entry.get_text()
         #Get runner
         self.lutris_config.config["realname"] = realname
-        self.lutris_config.config["runner"] = self.runner_class
+        self.lutris_config.config["runner"] = self.runner_classname
 
         #Run the installer
-        runner = eval("lutris.runners."+self.runner_class+"."+self.runner_class+"()")
+        runner_cls = import_runner(self.runner_classname)
+        runner = runner_cls()
         self.lutris_config.update_global_config()
         if "installer" in self.lutris_config.config['game']:
-            command = runner.get_install_command(exe=self.lutris_config.config["game"]["installer"])
-        elif 'iso' in self.lutris_config.config['game']:
-            command = runner.get_install_command(iso=self.lutris_config.config["game"]['iso'])
-        #command = runner.get_install_command()
+            command = runner.get_install_command(self.lutris_config.config["game"]["installer"])
         if command:
             logging.debug("Running installer : %s" % command)
             subprocess.Popen(command,shell=True)
         else:
             logging.debug("No command given for installation")
 
-        if self.runner_class and realname:
+        if self.runner_classname and realname:
             #game_identifier = self.lutris_config.save(type="game")
-            #self.game_info = {"Game Name": realname,"Runner": self.runner_class , "name": game_identifier}
+            #self.game_info = {"Game Name": realname,"Runner": self.runner_classname , "name": game_identifier}
             self.destroy()
 
     def on_runner_changed(self,widget):
@@ -146,8 +146,8 @@ class InstallerDialog(gtk.Dialog):
             self.no_runner_selected()
             return
 
-        self.runner_class = widget.get_model()[selected_runner][1]
-        self.lutris_config = LutrisConfig(self.runner_class)
+        self.runner_classname = widget.get_model()[selected_runner][1]
+        self.lutris_config = LutrisConfig(self.runner_classname)
         logging.debug("loading config before adding game : ")
         logging.debug(self.lutris_config.config)
         #Load game box

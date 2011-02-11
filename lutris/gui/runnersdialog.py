@@ -91,7 +91,11 @@ class RunnersDialog(gtk.Dialog):
         for runner in runner_list:
             hbox = gtk.HBox()
             #Label
-            runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
+            runner_module = __import__('lutris.runners.%s' % runner,
+                    globals(), locals(), [runner], -1)
+            runner_cls = getattr(runner_module, runner)
+            runner_instance = runner_cls()
+            #runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
             machine = runner_instance.machine
             runner_label = gtk.Label()
             runner_label.set_markup("<b>"+runner + "</b> ( " + machine + " ) ")

@@ -116,16 +116,6 @@ class Runner(object):
             logging.error("Edit runners/runner.py to add support for it")
             return False
 
-        if hasattr(self, "ppa"):
-            if (linux_dist != "Ubuntu"):
-                print "this runner requires a ppa to be installed"
-                #TODO : check if the PPA is already installed
-                #TODO : check the ubuntu version available for the ppa,
-                #       choose the one corresponding to the current install
-                #       or the closest one.
-                subprocess.Popen('gksu add-apt-repository %s' % self.ppa)
-                subprocess.Popen('gksu apt-get update')
-
         print subprocess.Popen("%s %s %s" % (package_manager,
                                              install_args,
                                              self.package),

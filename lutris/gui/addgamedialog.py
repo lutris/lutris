@@ -23,6 +23,7 @@ import gtk
 import logging
 
 import lutris.runners
+from lutris.runners import import_runner
 from lutris.config import LutrisConfig
 
 from lutris.gui.gameconfigvbox import GameConfigVBox
@@ -50,8 +51,9 @@ class AddGameDialog(gtk.Dialog):
         #get a list of available runners
         runner_liststore = gtk.ListStore(str, str)
         runner_liststore.append(("Choose a runner for the list", ""))
-        for runner_cls in lutris.runners.__all__:
-            runner = eval("lutris.runners." + runner_cls + "." + runner_cls + "()")
+        for runner_name in lutris.runners.__all__:
+            runner_cls = import_runner(runner_name)
+            runner = runner_cls()
             if hasattr(runner, "description"):
                 description = runner.description
             else:
@@ -63,7 +65,7 @@ class AddGameDialog(gtk.Dialog):
                 logging.debug("Please fix % and add a machine attribute" % runner_cls)
                 machine = ""
             if runner.is_installed():
-                runner_liststore.append((machine + " (" + description + ")" , runner_cls))
+                runner_liststore.append((machine + " (" + description + ")" , runner_name))
 
         self.runner_combobox = gtk.ComboBox(runner_liststore)
         self.runner_combobox.connect("changed", self.on_runner_changed)
@@ -120,11 +122,9 @@ class AddGameDialog(gtk.Dialog):
 
         if self.runner_class and realname:
             game_identifier = self.lutris_config.save(type="game")
-            self.game_info = {
-                    "name": realname,
-                    "runner": self.runner_class ,
-                    "id": game_identifier
-                }
+            self.game_info = {"name": realname,
+                              "runner": self.runner_class ,
+                              "id": game_identifier }
 
             self.destroy()
 
@@ -142,6 +142,7 @@ class AddGameDialog(gtk.Dialog):
 
         self.runner_class = widget.get_model()[selected_runner][1]
         self.lutris_config = LutrisConfig(self.runner_class)
+        print self.runner_class
         logging.debug("loading config before adding game : ")
         logging.debug(self.lutris_config.config)
         #Load game box

@@ -28,7 +28,6 @@ from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl, change_resolution
-#from lutris.runners import *
 from lutris.constants import *
 
 def show_error_message(message, info=None):
@@ -101,9 +100,7 @@ class LutrisGame():
             runner_module = __import__("lutris.runners.%s" %
                     self.runner_name, globals(), locals(),
                     [self.runner_name], -1 )
-            #print type(runner_module)
             runner_cls = getattr(runner_module, self.runner_name)
-            #print type(runner_cls)
             self.machine = runner_cls(self.game_config)
         except AttributeError, msg:
             logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)

@@ -63,10 +63,8 @@ class LutrisConfig():
             file(constants.system_config_full_path, "w+")
 
         if self.game:
-            game_config_full_path = os.path.join(
-                    constants.GAME_CONFIG_PATH,
-                    self.game + constants.CONFIG_EXTENSION
-                )
+            game_config_full_path = os.path.join(constants.GAME_CONFIG_PATH,
+                                                 self.game + constants.CONFIG_EXTENSION)
             if os.path.exists(game_config_full_path):
                 try:
                     self.game_config = yaml.load(
@@ -81,14 +79,10 @@ class LutrisConfig():
                     logging.debug("Runner key is mandatory !")
 
         if self.runner:
-            runner_config_full_path = os.path.join(
-                    constants.runner_config_path,
-                    self.runner + constants.CONFIG_EXTENSION
-                )
+            runner_config_full_path = os.path.join(constants.runner_config_path,
+                                                   self.runner + constants.CONFIG_EXTENSION)
             if os.path.exists(runner_config_full_path):
-                self.runner_config = yaml.load(
-                        file(runner_config_full_path, 'r').read()
-                    )
+                self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
         self.update_global_config()
 
     def __getitem__(self, key):
@@ -132,12 +126,8 @@ class LutrisConfig():
 
     def remove(self, game_name):
         logging.debug("removing %s" % game_name)
-        os.remove(
-                os.path.join(
-                    constants.GAME_CONFIG_PATH,
-                    game_name + constants.CONFIG_EXTENSION
-                )
-            )
+        os.remove(os.path.join(constants.GAME_CONFIG_PATH,
+                               game_name + constants.CONFIG_EXTENSION))
 
     def save(self, type=None):
         """Save configuration file
@@ -154,19 +144,15 @@ class LutrisConfig():
         if type == "system":
             file(constants.system_config_full_path, "w").write(yaml_config)
         elif type == "runner":
-            runner_config_path = os.path.join(
-                    constants.runner_config_path,
-                    self.runner + constants.CONFIG_EXTENSION
-                )
+            runner_config_path = os.path.join(constants.runner_config_path,
+                                              self.runner + constants.CONFIG_EXTENSION)
             file(runner_config_path, "w").write(yaml_config)
         elif type == "game":
             if not self.game:
                 self.game = self.config["runner"] \
                         + "-" + self.config["realname"].replace(" ", "_")
-            self.game_config_path = os.path.join(
-                    constants.GAME_CONFIG_PATH,
-                    self.game.replace('/', '_') + constants.CONFIG_EXTENSION
-                )
+            self.game_config_path = os.path.join(constants.GAME_CONFIG_PATH,
+                                                 self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
             config_file = file(self.game_config_path, "w")
             config_file.write(yaml_config)
             return self.game
