@@ -37,7 +37,7 @@ class SystemConfigVBox(ConfigVBox):
         #TODO : Auto detect the installed WMs on the user's machine
         #TODO : If the user_wm has not yet been set, detect the WM currently running
         wm_list = [("Compiz","compiz"), ("OpenBox","openbox"), ("KWin","kwin"),
-                   ("Metacity","metacity"), 
+                   ("Metacity","metacity"),
                    ("Metacity (Composited)","metacity_composited")]
 
         #TODO : Same thing for OSS Wrappers
@@ -57,6 +57,7 @@ class SystemConfigVBox(ConfigVBox):
             {'option': "hide_panels", "type": "bool", "label":"Hide Gnome Panels" },
             {'option': 'reset_desktop', 'type': 'bool', 'label': 'Reset resolution when game quits' },
             {'option': 'compiz_nodecoration', 'type': 'string', 'label': 'Remove window decoration with compiz' },
-            {'option': 'compiz_fullscreen', 'type': 'string', 'label': 'Make a fullscreen window with compiz' }]
+            {'option': 'compiz_fullscreen', 'type': 'string', 'label': 'Make a fullscreen window with compiz' },
+            {'option': 'killswitch', 'type': 'string', 'label': 'Killswitch file'}]
 
         self.generate_widgets()

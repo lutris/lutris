@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
 #
-#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
+#  Copyright (C) 2010, 2011 Mathieu Comandon <strider@strycore.com>
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License version 3 as
@@ -16,19 +16,21 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import sys
 import logging
 import threading
 import subprocess
 import gobject
+from os.path import exists
+from signal import SIGKILL
 
+from os import kill, killpg
 from lutris.runners.cedega import cedega
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-
-    def __init__(self, command, path):
+    def __init__(self, command, path, killswitch=None):
         """Thread init"""
-
         threading.Thread.__init__(self)
         self.command = command
         self.path = path
@@ -37,7 +39,10 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.pid = 99999
         self.cedega = False
-        self.emergency_kill = False
+        self.killswitch = killswitch
+        if type(self.killswitch) == type(str()) and not exists(self.killswitch):
+            # Prevent setting a killswitch to a file that doesn't exists
+            self.killswitch = None
         logging.debug("Thread initialized")
 
     def run(self):
@@ -50,18 +55,23 @@ class LutrisThread(threading.Thread):
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
         self.output =  self.game_process.stdout
-        line = "1"
+        line = "\n"
         while line:
             line = self.game_process.stdout.read(80)
-            print line
+            sys.stdout.write(line)
 
     def poke_process(self):
+        """pokes at the running process"""
         if not self.game_process:
             logging.debug("game not running")
             return True
+        else:
+            if not exists(self.killswitch):
+                # How do be sure that pid + 1 is actually the game process ?
+                kill(self.game_process.pid + 1, SIGKILL)
         if self.cedega:
             command = "ps -ef | grep winex_ver | grep -v grep | awk '{print $2}'"
-            pid = subprocess.Popenc(command, shell=True,
+            pid = subprocess.Popen(command, shell=True,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE).communicate()
             self.pid = []
@@ -73,9 +83,6 @@ class LutrisThread(threading.Thread):
         self.return_code = self.game_process.poll()
         if self.return_code is not None and not self.cedega:
             logging.debug("Game quit")
-            if self.output:
-                for stdout in self.output.read().split("\n"):
-                    logging.debug(stdout)
             self.pid = None
             return False
         return True

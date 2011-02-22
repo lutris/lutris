@@ -19,7 +19,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from os.path import exists, join
+from os.path import exists, join, expanduser
+from os import mkdir
 
 from lutris.runners.runner import Runner
 from lutris.downloader import Downloader
@@ -63,12 +64,15 @@ class gens(Runner):
         dest = join(lutris.constants.TMP_PATH, 'gens-gs.deb')
         downloader = Downloader(self.package_url, dest)
         downloader.start()
-        
+
         subprocess.Popen("software-center %s" % dest,
                          shell=True,stdout=subprocess.PIPE).communicate()[0]
-        
+
 
     def play(self):
+        plugins_dir = join(expanduser('~'), '.gens', 'plugins')
+        if not exists(plugins_dir):
+            mkdir(plugins_dir)
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
         if not exists(self.rom):

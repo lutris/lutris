@@ -166,6 +166,12 @@ class LutrisGame():
             if "compiz_fullscreen" in config['system']:
                 self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
 
+
+            if "killswitch" in config['system']:
+                killswitch = config['system']['killswitch']
+            else:
+                killswitch = None
+
             # Switch to other WM
             # TODO
 
@@ -174,7 +180,7 @@ class LutrisGame():
         else:
         	path = None
 
-        print game_run_args
+        #print game_run_args
         command = " " . join(game_run_args)
         # Set OSS Wrapper
         if oss_wrapper and oss_wrapper != 'none':
@@ -182,7 +188,7 @@ class LutrisGame():
         if game_run_args:
             self.timer_id = gobject.timeout_add(5000, self.poke_process)
             logging.debug(" > Running : " + command)
-            self.game_thread = LutrisThread(command, path)
+            self.game_thread = LutrisThread(command, path, killswitch)
             self.game_thread.start()
             if 'joy2key' in gameplay_info:
                 self.run_joy2key(gameplay_info['joy2key'])

@@ -86,7 +86,7 @@ class LutrisConfig():
         self.update_global_config()
 
     def __getitem__(self, key):
-        """Allows to access config data directly by keys"""
+        """Allow to access config data directly by keys"""
         if self.config_type == "game":
             value = self.game_config[key]
         elif self.config_type == "runner":
@@ -131,6 +131,7 @@ class LutrisConfig():
 
     def save(self, type=None):
         """Save configuration file
+
         The way to save config files can be set by the type argument
         or with self.config_type"""
 
@@ -162,9 +163,9 @@ class LutrisConfig():
 
 
     def get_path(self, default=None):
-        """Gets the path to install games for a given runner
+        """Get the path to install games for a given runner
 
-           Returns False if it can't find an installation path
+        Return False if it can't find an installation path
         """
 
         if "system" in self.config and "game_path" in self.config["system"]:
