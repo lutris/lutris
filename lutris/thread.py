@@ -43,7 +43,6 @@ class LutrisThread(threading.Thread):
         if type(self.killswitch) == type(str()) and not exists(self.killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
-        logging.debug("Thread initialized")
 
     def run(self):
         self.timer_id = gobject.timeout_add(2000, self.poke_process)
@@ -66,9 +65,12 @@ class LutrisThread(threading.Thread):
             logging.debug("game not running")
             return True
         else:
-            if not exists(self.killswitch):
+            if self.killswitch is not None and not exists(self.killswitch):
                 # How do be sure that pid + 1 is actually the game process ?
+                #self.game_process.terminate()
                 kill(self.game_process.pid + 1, SIGKILL)
+                self.pid = None
+                return False
         if self.cedega:
             command = "ps -ef | grep winex_ver | grep -v grep | awk '{print $2}'"
             pid = subprocess.Popen(command, shell=True,
@@ -90,7 +92,6 @@ class LutrisThread(threading.Thread):
 class ThreadProcessReader(threading.Thread):
     def __init__(self, stdout):
         threading.Thread.__init__(self)
-
         self.stdout = stdout
         self.status = "running"
         self.seconds_left = 0

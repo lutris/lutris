@@ -18,12 +18,13 @@
 
 import subprocess
 import gobject
-import logging
 import os
 import os.path
 import time
 import gtk
+from signal import SIGKILL
 
+from lutris.util.log import logger
 from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
@@ -32,11 +33,9 @@ from lutris.constants import *
 
 def show_error_message(message, info=None):
     if "RUNNER_NOT_INSTALLED" == message['error']:
-        q = QuestionDialog({
-                    'title': 'Error the runner is not installed',
-                    'question': '%s is not installed, \
-                            do you want to install it now ?' % message['runner']
-                })
+        q = QuestionDialog({'title': 'Error the runner is not installed',
+                            'question': '%s is not installed, \
+                         do you want to install it now ?' % message['runner']})
         if gtk.RESPONSE_YES == q.result:
             # FIXME : This is not right at all!
             # Call the runner's install method
@@ -48,7 +47,6 @@ def show_error_message(message, info=None):
 
 def get_list():
     """Get the list of all installed games"""
-
     game_list = []
     for file in os.listdir(GAME_CONFIG_PATH):
         if file.endswith(CONFIG_EXTENSION):
@@ -103,12 +101,12 @@ class LutrisGame():
             runner_cls = getattr(runner_module, self.runner_name)
             self.machine = runner_cls(self.game_config)
         except AttributeError, msg:
-            logging.error("Invalid configuration file (Attribute Error) : %s" % self.name)
-            logging.error(msg)
+            logger.error("Invalid configuration file (Attribute Error) : %s" % self.name)
+            logger.error(msg)
             return False
         except KeyError, msg:
-            logging.error("Invalid configuration file (Key Error) : %s" % self.name)
-            logging.error(msg)
+            logger.error("Invalid configuration file (Key Error) : %s" % self.name)
+            logger.error(msg)
             return False
         return True
 
@@ -117,7 +115,7 @@ class LutrisGame():
         	print "the required runner is not installed"
         	return False
         config = self.game_config.config
-        logging.debug("get ready for %s " % config['realname'])
+        logger.debug("get ready for %s " % config['realname'])
         self.hide_panels = False
         oss_wrapper = None
         gameplay_info = self.machine.play()
@@ -130,7 +128,7 @@ class LutrisGame():
             game_run_args = gameplay_info["command"]
         else:
             game_run_args = gameplay_info
-            logging.debug("Old method used for returning gameplay infos")
+            logger.debug("Old method used for returning gameplay infos")
 
         if "system" in config and config["system"] is not None:
             #Hide Gnome panels
@@ -143,10 +141,10 @@ class LutrisGame():
             if "resolution" in config["system"]:
                 success = change_resolution(config["system"]["resolution"])
                 if success:
-                    logging.debug("Resolution changed to %s"
+                    logger.debug("Resolution changed to %s"
                                   % config["system"]["resolution"])
                 else:
-                    logging.debug("Failed to set resolution %s"
+                    logger.debug("Failed to set resolution %s"
                                   % config["system"]["resolution"])
 
             #Setting OSS Wrapper
@@ -157,7 +155,7 @@ class LutrisGame():
             if "reset_pulse" in config["system"] and config["system"]["reset_pulse"]:
                 subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start",
                                  shell=True)
-                logging.debug("PulseAudio restarted")
+                logger.debug("PulseAudio restarted")
 
             # Set compiz fullscreen windows
             # TODO : Check that compiz is running
@@ -185,9 +183,10 @@ class LutrisGame():
         # Set OSS Wrapper
         if oss_wrapper and oss_wrapper != 'none':
             command = oss_wrapper + " " + command
+
         if game_run_args:
             self.timer_id = gobject.timeout_add(5000, self.poke_process)
-            logging.debug(" > Running : " + command)
+            logger.debug("Running : " + command)
             self.game_thread = LutrisThread(command, path, killswitch)
             self.game_thread.start()
             if 'joy2key' in gameplay_info:
@@ -218,13 +217,14 @@ class LutrisGame():
         return True
 
     def quit_game(self):
-        logging.debug("game has quit at %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()))
+        self.timer_id = None
+        logger.debug("game has quit at %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()))
         if self.game_thread is not None and self.game_thread.pid:
             if self.game_thread.cedega:
                 for pid in self.game_thread.pid:
-                    os.popen("kill -9 %s" % pid)
+                    os.kill(pid, SIGKILL)
             else:
-                self.game_thread.game_process.terminate()
+                os.kill(self.game_thread.pid + 1, SIGKILL)
         if 'reset_desktop' in self.game_config.config['system']:
             if self.game_config.config['system']['reset_desktop']:
                 self.lutris_desktop_control.reset_desktop()

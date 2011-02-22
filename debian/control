@@ -8,9 +8,9 @@ Standards-Version: 3.9.1
 
 Package: lutris
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-xdg, python-pyglet,
- python-gobject, python-apt, python-gtk2, python-yaml, python-gconf, joy2key
-Recommends: python-apport
+Depends: ${misc:Depends}, ${python:Depends}, python-xdg, python-gconf,
+ python-gobject, python-apt, python-gtk2, python-yaml, joy2key
+Recommends: python-apport, python-pyglet, joy2key 
 Description: Install and play any video game easily
  Lutris is a gaming platform for GNU/Linux. It's goal is to make
  gaming on Linux as easy as possible by taking care of installing

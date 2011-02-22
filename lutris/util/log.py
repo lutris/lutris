@@ -2,7 +2,6 @@ from os.path import join, isdir, realpath
 from os import makedirs
 import logging
 import logging.handlers
-
 import xdg.BaseDirectory
 
 cache_dir = realpath(join(xdg.BaseDirectory.xdg_cache_home, "lutris"))
@@ -17,6 +16,4 @@ logformatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(mes
 loghandler.setFormatter(logformatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(loghandler)
-
-
 
