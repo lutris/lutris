@@ -18,23 +18,34 @@
 
 import gobject
 import urllib
+import threading
 
-class Downloader(gobject.GObject):
+class DownloadStoppedException:
+    def __init__(self):
+        pass
+
+class Downloader(threading.Thread):
     """Downloader class that doesn't block the program"""
-    __gsignals__ = {'report-progress': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                       (gobject.TYPE_INT,))}
 
     def __init__(self, url, dest):
         """Set up the downloader."""
-        gobject.GObject.__init__(self)
+        threading.Thread.__init__(self)
+        self.setDaemon(False)
         self.url = url
         self.dest = dest
+        self.progress = 0
+        self.kill = None
 
-    def start(self):
+    def run(self):
         """Start the download."""
         urllib.urlretrieve(self.url, self.dest, self._report_progress)
+        return True
 
     def _report_progress(self, piece, received_bytes, total_size):
-        """Emit a signal for each piece downloaded."""
-        progress = ((piece * received_bytes) * 100) / total_size
-        self.emit('report-progress', progress)
+        self.progress = ((piece * received_bytes) * 100) / total_size
+        try:
+            if self.kill is True:
+                raise DownloadStoppedException 
+        except DownloadStoppedException:
+            pass
+            

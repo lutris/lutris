@@ -19,9 +19,16 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+
+import sys
+import os
+root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+sys.path.append(root_dir)
+print sys.path
+
 import pygtk
 import gtk
-from lutris.gui.widgets import DownloadProgressBar
+from lutris.gui.widgets import DownloadProgressBox
 
 class NoticeDialog:
     def __init__(self, message):
@@ -64,23 +71,24 @@ class DownloadDialog(gtk.Dialog):
     def __init__(self, url, dest):
         gtk.Dialog.__init__(self)
         self.connect('destroy', self.destroy_cb)
-        self.download_progress_bar = DownloadProgressBar(url, dest)
+        params = {'url': url, 'dest': dest}
+        self.download_progress_box = DownloadProgressBox(params)
         label = gtk.Label('Downloading %s' % url)
         button = gtk.Button("start")
         button.connect('clicked', self.start)
         self.vbox.pack_start(label)
         self.vbox.pack_start(button)
-        self.vbox.pack_start(self.download_progress_bar)
+        self.vbox.pack_start(self.download_progress_box)
         self.show_all()
 
     def destroy_cb(self, widget):
         self.destroy()
 
     def start(self, widget):
-        self.download_progress_bar.start()
+        self.download_progress_box.start()
 
 if __name__ == "__main__":
-    dd = DownloadDialog("http://strycore.com/games/quake/quake.zip", "/home/strider/quake.zip")
+    dd = DownloadDialog("http://newport.strycore.com/videos/Telle%20terre%20tel%20fils.avi", "/home/strider/stf.mp4")
     gtk.gdk.threads_init()
     gtk.gdk.threads_enter()
     gtk.main()

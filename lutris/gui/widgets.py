@@ -24,8 +24,8 @@ import gtk
 import gobject
 import gio
 import pango
-import lutris.constants
 from lutris.downloader import Downloader
+import lutris.constants
 
 ICON_SIZE = 24
 MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
@@ -73,17 +73,57 @@ class GameTreeView(gtk.TreeView):
         gtk.TreeModelSort(model)
 
 
-class DownloadProgressBar(gtk.ProgressBar):
-    def __init__(self, url, dest):
-        super(DownloadProgressBar, self).__init__()
-        # TODO Get some code from Quickly widgets
-        self.downloader = Downloader(url, dest)
-        self.downloader.connect('report-progress', self.progress)
+class DownloadProgressBox(gtk.HBox):
+
+    __gsignals__ = {'complete' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        (gobject.TYPE_PYOBJECT,)),
+        'cancelrequested' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        (gobject.TYPE_PYOBJECT,))
+        }
+
+    def __init__(self, params, cancelable=True):
+
+        gtk.HBox.__init__(self, False, 2)
+
+        self.progressbar = gtk.ProgressBar()
+        self.progressbar.show()
+        self.pack_start(self.progressbar, True)
+
+        self.cancel_button = gtk.Button(stock=gtk.STOCK_CANCEL)
+        if cancelable:
+            self.cancel_button.show()
+        self.cancel_button.set_sensitive(False)
+        self.cancel_button.connect('clicked', self.__stop_download)
+        self.pack_end(self.cancel_button, False)
+
+        self.url = params['url']
+        self.dest = params['dest']
 
     def start(self):
+        self.downloader = Downloader(self.url, self.dest)
+        self.timer_id = gobject.timeout_add(100, self.progress)
+        self.cancel_button.set_sensitive(True)
         self.downloader.start()
 
-    def progress(self, widget, data):
+    def progress(self):
+        if self.downloader is None:
+            return False
+        data = self.downloader.progress
         frac = data/100.0
-        print frac
-        self.set_fraction(data)
+        self.progressbar.set_fraction(frac)
+        self.progressbar.set_text("%d %%" % data)
+        if data == 100:
+            self.downloader = None
+            self.cancel_button.set_sensitive(False)
+            return False
+        return True
+
+    def __stop_download(self, widget):
+        self.downloader.kill = True
+        self.cancel_button.set_sensitive(False)
+        self.downloader = None
+
+    def cancel(self):
+        if self.downloader != None:
+            self.downloader.kill()
+            self.downloader = None
