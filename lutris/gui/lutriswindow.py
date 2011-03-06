@@ -254,14 +254,10 @@ class LutrisWindow(gtk.Window):
     def import_scummvm(self, widget, data=None):
         from lutris.runners.scummvm import scummvm
         scummvm = scummvm()
-        scummvm.import_games()
-        games = self.get_game_list()
-        current_game_names = []
-        for row in self.game_list_grid_view.rows:
-            current_game_names.append(row["name"])
-        for game in games:
-            if game['name'] not in current_game_names:
-                self.game_list_grid_view.append_row(game)
+        new_games = scummvm.import_games()
+        for new_game in new_games:
+            self.game_treeview.add_row(new_game)
+        self.game_treeview.sort_rows()
 
     def on_getfromftp_clicked(self, widget, data=None):
         FtpDialog()

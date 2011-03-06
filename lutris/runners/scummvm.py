@@ -73,6 +73,7 @@ class scummvm(Runner):
         Parse the scummvm config file and imports
         the games in Lutris config files.
         """
+        imported_games = []
         if os.path.exists(self.scummvm_config_file):
             config_parser = ConfigParser()
             config_parser.read(self.scummvm_config_file)
@@ -82,6 +83,9 @@ class scummvm(Runner):
             for section in config_sections:
                 realname = config_parser.get(section, "description")
                 self.add_game(section, realname)
+                imported_games.append({'id': section, 'name': realname, 'runner': 'scummvm'})
+
+        return imported_games
 
     def get_install_command(self):
         command = "%s" % (self.executable)
