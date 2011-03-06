@@ -25,6 +25,7 @@ import ConfigParser
 import os
 
 class cedega(Runner):
+    """What the hell, Cedega is dead now, bring on GameTree Linux"""
     def __init__(self,settings = None):
         self.executable = "cedega"
         self.description = "Runs Windows games with Cedega"
@@ -73,7 +74,7 @@ class cedega(Runner):
                                 "realname": shortcut,
                                 "game": {"folder": folder, "shortcut": shortcut}}
         lutris_config.save(type="game")
-        
+
     def play(self):
         return [self.executable,
                 "--run",

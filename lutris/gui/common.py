@@ -69,23 +69,19 @@ class DirectoryDialog:
 
 class DownloadDialog(gtk.Dialog):
     def __init__(self, url, dest):
-        gtk.Dialog.__init__(self)
+        gtk.Dialog.__init__(self, "Downloading files")
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
+        self.download_progress_box.connect('complete', self.destroy_cb)
         label = gtk.Label('Downloading %s' % url)
-        button = gtk.Button("start")
-        button.connect('clicked', self.start)
         self.vbox.pack_start(label)
-        self.vbox.pack_start(button)
         self.vbox.pack_start(self.download_progress_box)
         self.show_all()
-
-    def destroy_cb(self, widget):
-        self.destroy()
-
-    def start(self, widget):
         self.download_progress_box.start()
+
+    def destroy_cb(self, widget, data=None):
+        self.destroy()
 
 if __name__ == "__main__":
     dd = DownloadDialog("http://newport.strycore.com/videos/Telle%20terre%20tel%20fils.avi", "/home/strider/stf.mp4")

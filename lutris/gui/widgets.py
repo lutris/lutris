@@ -115,6 +115,7 @@ class DownloadProgressBox(gtk.HBox):
         if data == 100:
             self.downloader = None
             self.cancel_button.set_sensitive(False)
+            self.emit('complete', {})
             return False
         return True
 

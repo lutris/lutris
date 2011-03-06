@@ -24,6 +24,7 @@ import time
 import gtk
 from signal import SIGKILL
 
+from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
@@ -112,8 +113,14 @@ class LutrisGame():
 
     def play(self):
         if not self.machine.is_installed():
-        	print "the required runner is not installed"
-        	return False
+            install_runner_dialog = QuestionDialog({
+                'question': "The required runner is not installed, do you wish to install it now ?",
+                'title': "Required runner unavailable"})
+            if gtk.RESPONSE_YES == install_runner_dialog.result:
+                runner_class = import_runner(self.runner_name)
+                runner = runner_class()
+                runner.install()
+            return False
         config = self.game_config.config
         logger.debug("get ready for %s " % config['realname'])
         self.hide_panels = False

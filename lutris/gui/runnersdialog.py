@@ -21,6 +21,7 @@
 
 import gtk
 
+import lutris.runners
 from lutris.runners import  import_runner
 from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
@@ -125,7 +126,7 @@ class RunnersDialog(gtk.Dialog):
         """Install a runner"""
         #FIXME : this is ugly !
         runner_class = import_runner(runner_classname)
-        runner = runner_classname()
+        runner = runner_class()
         runner.install()
 
     def on_configure_clicked(self,widget,runner):

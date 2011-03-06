@@ -24,6 +24,7 @@ from os import mkdir
 
 from lutris.runners.runner import Runner
 from lutris.downloader import Downloader
+from lutris.gui.common import DownloadDialog
 import lutris.constants
 import subprocess
 
@@ -43,8 +44,7 @@ class gens(Runner):
         self.game_options = [{'option': 'rom', 'type':'single', 'label':  'Rom File'}]
 
         self.runner_options = [{'option': 'fullscreen', 'type':'bool', 'label': 'Fullscreen'},
-                               {'option': 'quickexit', 'type': 'bool', 'label': 'Exit emulator with Esc'}
-                              ]
+                               {'option': 'quickexit', 'type': 'bool', 'label': 'Exit emulator with Esc'}]
 
         if settings:
             if 'fullscreen' in settings['gens']:
@@ -62,11 +62,12 @@ class gens(Runner):
     def install(self):
         """Downloads deb package and installs it"""
         dest = join(lutris.constants.TMP_PATH, 'gens-gs.deb')
-        downloader = Downloader(self.package_url, dest)
-        downloader.start()
+        dialog = DownloadDialog(self.package_url, dest)
+        dialog.run()
 
-        subprocess.Popen("software-center %s" % dest,
-                         shell=True,stdout=subprocess.PIPE).communicate()[0]
+        subprocess.Popen(["software-center", dest],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
 
 
     def play(self):
