@@ -21,8 +21,7 @@
 
 import gtk
 
-import lutris.runners
-
+from lutris.runners import  import_runner
 from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
@@ -91,11 +90,8 @@ class RunnersDialog(gtk.Dialog):
         for runner in runner_list:
             hbox = gtk.HBox()
             #Label
-            runner_module = __import__('lutris.runners.%s' % runner,
-                    globals(), locals(), [runner], -1)
-            runner_cls = getattr(runner_module, runner)
-            runner_instance = runner_cls()
-            #runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
+            runner_class = import_runner(runner)
+            runner_instance = runner_class()
             machine = runner_instance.machine
             runner_label = gtk.Label()
             runner_label.set_markup("<b>"+runner + "</b> ( " + machine + " ) ")
@@ -125,11 +121,12 @@ class RunnersDialog(gtk.Dialog):
     def close(self, widget=None, other=None):
         self.destroy()
 
-    def on_install_clicked(self,widget,runner):
+    def on_install_clicked(self,widget,runner_classname):
         """Install a runner"""
         #FIXME : this is ugly !
-        runner_instance = eval("lutris.runners." + runner + "." + runner + "()")
-        runner_instance.install()
+        runner_class = import_runner(runner_classname)
+        runner = runner_classname()
+        runner.install()
 
     def on_configure_clicked(self,widget,runner):
         RunnerConfigDialog(runner)

@@ -20,8 +20,7 @@
 ###############################################################################
 
 import gtk
-
-import lutris.runners
+from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
 class RunnerConfigVBox(ConfigVBox):
@@ -30,14 +29,12 @@ class RunnerConfigVBox(ConfigVBox):
         runner configuration.
     """
     def __init__(self, lutris_config, caller):
-        runner = lutris_config.runner
-        ConfigVBox.__init__(self, runner, caller)
-
-        # FIXME ugly
-        runner_instance = eval("lutris.runners."+runner+"."+runner+"()")
-
-        if hasattr(runner_instance, "runner_options"):
-            self.options = runner_instance.runner_options
+        runner_classname = lutris_config.runner
+        ConfigVBox.__init__(self, runner_classname, caller)
+        runner_class = import_runner(runner_classname)
+        runner = runer_class()
+        if hasattr(runner, "runner_options"):
+            self.options = runner.runner_options
             self.lutris_config = lutris_config
             self.generate_widgets()
         else:
