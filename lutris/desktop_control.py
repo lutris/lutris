@@ -34,7 +34,6 @@ try:
 except GConfBindingsUnavailable:
     GCONF_CAPABLE = False
 
-
 def make_compiz_rule(class_=None, title=None):
     """Return a string formated for the Window Rules plugin"""
     if class_ is not None:
@@ -48,7 +47,7 @@ def make_compiz_rule(class_=None, title=None):
 def get_resolutions():
     """Return the list of supported screen resolutions."""
     xrandr_output = Popen("xrandr",
-                          stdout=PIPE).communicate()[0]
+                          stdout=PIPE, stderr=PIPE).communicate()[0]
     resolution_list = []
     for line in xrandr_output.split("\n"):
         if line.startswith("  "):
@@ -118,7 +117,6 @@ class LutrisDesktopControl():
         return True
 
     ### Gnome ###
-
     def hide_panels(self, hide=True):
         """
         Hide any panel that exists on the Gnome desktop.
@@ -151,20 +149,15 @@ class LutrisDesktopControl():
         return True
 
     ### Misc ###
-
     def reset_desktop(self):
         """Restore the desktop to its original state."""
         #Restore panels
         self.hide_panels(False)
-
         #Restore resolution
         if self.default_resolution is None:
-            #os.popen("xrandr -s 1")
             os.popen("xrandr -s 0")
         else:
-            #os.popen("xrandr -s 1")
             os.popen("xrandr -s %s" % self.default_resolution)
-
         #Restore gamma
         os.popen("xgamma -gamma 1.0")
 

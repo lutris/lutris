@@ -96,7 +96,6 @@ class Runner(object):
     def install(self):
         """Install runner using package management systems."""
 
-        print "generic install method called"
         # Return false if runner has no package, must be then another method
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
@@ -117,11 +116,12 @@ class Runner(object):
             logging.error("Edit runners/runner.py to add support for it")
             return False
 
-        print subprocess.Popen("%s %s %s" % (package_manager,
+        stdout = subprocess.Popen("%s %s %s" % (package_manager,
                                              install_args,
                                              self.package),
                                shell=True,
-                               stdout=subprocess.PIPE).communicate()[0]
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE).communicate()[0]
         return True
 
     def write_config(self, id, name, fullpath):
@@ -133,12 +133,8 @@ class Runner(object):
         if path.startswith("file://"):
             path = path[7:]
         gameConfig = LutrisConfig()
-        gameConfig.config = {
-                "main": {
-                    "path": path,
-                    "exe":exe,
-                    "realname": name,
-                    "runner": system
-                    }
-                }
+        gameConfig.config = {"main": {"path": path,
+                                       "exe":exe,
+                                       "realname": name,
+                                       "runner": system}}
         gameConfig.save(id, values)

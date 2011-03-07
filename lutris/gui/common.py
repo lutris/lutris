@@ -22,12 +22,9 @@
 
 import sys
 import os
-root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-sys.path.append(root_dir)
-print sys.path
-
 import pygtk
 import gtk
+
 from lutris.gui.widgets import DownloadProgressBox
 
 class NoticeDialog:
@@ -83,9 +80,3 @@ class DownloadDialog(gtk.Dialog):
     def destroy_cb(self, widget, data=None):
         self.destroy()
 
-if __name__ == "__main__":
-    dd = DownloadDialog("http://newport.strycore.com/videos/Telle%20terre%20tel%20fils.avi", "/home/strider/stf.mp4")
-    gtk.gdk.threads_init()
-    gtk.gdk.threads_enter()
-    gtk.main()
-    gtk.gdk.threads_leave()
