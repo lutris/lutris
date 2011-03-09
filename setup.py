@@ -55,7 +55,6 @@ def update_data_path(prefix, oldvalue=None):
         sys.exit(1)
     return oldvalue
 
-
 def update_desktop_file(datadir):
 
     try:
@@ -74,7 +73,6 @@ def update_desktop_file(datadir):
         print ("ERROR: Can't find lutris.desktop.in")
         sys.exit(1)
 
-
 class InstallAndUpdateDataDirectory(DistUtilsExtra.auto.install_auto):
     def run(self):
         if self.root or self.home:
@@ -86,11 +84,6 @@ class InstallAndUpdateDataDirectory(DistUtilsExtra.auto.install_auto):
         DistUtilsExtra.auto.install_auto.run(self)
         update_data_path(self.prefix, previous_value)
 
-
-
-##################################################################################
-###################### YOU SHOULD MODIFY ONLY WHAT IS BELOW ######################
-##################################################################################
 
 DistUtilsExtra.auto.setup(
     name='lutris',
