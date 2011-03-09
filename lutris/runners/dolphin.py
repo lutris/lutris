@@ -20,6 +20,7 @@
 ###############################################################################
 
 from lutris.runners.runner import Runner
+from lutris.gui.common import NoticeDialog
 
 class dolphin(Runner):
     """Runner for the Gamecube / Wii emulator Dolphin
@@ -36,10 +37,15 @@ class dolphin(Runner):
         self.machine = "Gamecube, Wii"
         self.description = "Emulator for Nintendo Gamecube and Wii games"
 
-
-
-
+    def install(self):
+        NoticeDialog('Please activate the PlayDeb reposiories in order to install Dolphin')
+        super(dolphin, self).install()
         
+
+
+
+
+
 
 
 

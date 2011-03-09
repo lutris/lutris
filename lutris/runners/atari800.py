@@ -90,6 +90,19 @@ class atari800(Runner):
                 self.rom = ""
                 self.error_messages = self.error_messages + ["No disk image given."]
 
+    def package_installed(self):
+        return  super(atari800, self).is_installed    
+
+    def is_installed(self):
+        if self.package_installed is False:
+            return False
+        if not os.path.exists(os.path.join(os.path.expanduser('~'),
+                              '.config/lutris/runnerfiles/xf25.zip')):
+            return False
+    def install(self):
+        if self.package_installed is False:
+            super(atari800, self).install()
+        
     def find_good_bioses(self,machine=None):
         good_bios = {}
         for file in os.listdir(self.bios_path):

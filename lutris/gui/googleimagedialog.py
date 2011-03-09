@@ -33,7 +33,7 @@ class GoogleImageDialog(gtk.Dialog):
         gtk.Dialog.__init__(self)
         self.set_title(game)
         self.set_size_request(800,260)
-        
+
         self.thumbnails_scroll_window = gtk.ScrolledWindow()
         self.thumbnails_scroll_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.vbox.pack_start(self.thumbnails_scroll_window)
@@ -54,7 +54,7 @@ class GoogleImageDialog(gtk.Dialog):
         cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
         cancel_button.connect("clicked", self.close)
         self.action_area.pack_start(cancel_button)
-        
+
         self.show_all()
 
     def close(self,widget=None):
@@ -71,9 +71,9 @@ class GoogleImageDialog(gtk.Dialog):
         self.progress_bar.set_text("Getting Images ...")
         self.progress_bar.show()
         self.thumbnails_scroll_window.add_with_viewport(self.progress_bar)
-        
+
         self.google_image = GoogleImage()
-        self.thumbs_path = lutris.constants.tmp_path
+        self.thumbs_path = lutris.constants.TMP_PATH
         self.google_image.get_google_image_page(self.search_entry.get_text())
         google_fetcher = GoogleFetcher(self.google_image,self.thumbs_path)
         timer_id = gobject.timeout_add(25, self.refresh_status)
@@ -82,7 +82,7 @@ class GoogleImageDialog(gtk.Dialog):
     def show_images(self):
         self.progress_bar.destroy()
         self.progress_bar=None
-        
+
         self.thumbnails_table = gtk.Table(rows=2,columns=20,homogeneous=False)
         self.thumbnails_table.show()
         self.thumbnails_scroll_window.add_with_viewport(self.thumbnails_table)
@@ -100,7 +100,7 @@ class GoogleImageDialog(gtk.Dialog):
             self.thumbnails_table.attach(image_button,index,index+1,0,1,xpadding = 3, ypadding = 3)
             self.thumbnails_table.attach(image_info,index,index+1,1,2,xpadding = 3, ypadding = 3)
             index = index + 1
-            
+
     def refresh_status(self):
         fraction = self.google_image.fetch_count / 20.0
         self.progress_bar.set_fraction(fraction)
@@ -114,15 +114,15 @@ class GoogleImageDialog(gtk.Dialog):
         logging.debug("grabbing %s" % file)
         self.google_image.get_pic_at(int(file.split('.')[0]),os.path.join(lutris.constants.cover_path,self.game))
         self.destroy()
-        
+
 class GoogleFetcher(threading.Thread):
     def __init__(self,google_image,thumbs_path):
-        threading.Thread.__init__(self) 
+        threading.Thread.__init__(self)
         self.google_image = google_image
         self.thumbs_path = thumbs_path
     def run(self):
         self.google_image.scan_for_images(self.thumbs_path)
-        
+
 if __name__ == "__main__":
     google_img_dlg = GoogleImageDialog()
 

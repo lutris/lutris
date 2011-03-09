@@ -35,14 +35,12 @@ class nulldc(wine):
 
     Download link : http://nulldc.googlecode.com/files/nullDC_104_r50.7z
 
-    TODO: implement joy2key or use Lutris' own version
     """
 
     def __init__(self,settings=None):
         """Initialize NullDC
 
         TODO: Remove hardcoded stuff
-        TODO; joy2key
 
         joy2key $(xwininfo -root -tree  | grep nullDC | grep -v VMU |\
                 awk '{print $1}') \
@@ -94,9 +92,7 @@ class nulldc(wine):
             return True
 
     def get_nulldc_path(self):
-        """ Return the full path for the NullDC executable.
-
-        """
+        """ Return the full path for the NullDC executable."""
         if not self.nulldc_path:
             return ""
         else:

@@ -25,6 +25,7 @@ import hashlib
 import logging
 
 from lutris.config import LutrisConfig
+from lutris.gui.common import ErrorDialog
 
 class Runner(object):
     """Generic runner (base class for other runners) """
@@ -101,6 +102,7 @@ class Runner(object):
         if not hasattr(self, 'package'):
             return False
         if self.is_installable is False:
+            ErrorDialog('This runner is not yet installable')
             return False
         linux_dist = platform.dist()[0]
 

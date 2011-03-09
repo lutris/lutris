@@ -22,15 +22,18 @@ TODO: The gui frontend
 """
 
 import os
+import gtk
 import yaml
 import shutil
 import urllib
 import urllib2
-import logging
 import subprocess
-
 import lutris.constants
+from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL
+
 from lutris.config import LutrisConfig
+from lutris.gui.common import DownloadDialog, ErrorDialog
+from lutris.util import log
 
 def unzip(filename, dest=None):
     """Unzips a file"""
@@ -70,14 +73,15 @@ def reporthook(piece, received_bytes, total_size):
     print "%d %%" % ((piece * received_bytes) * 100 / total_size)
 
 
-class Installer():
+class Installer(gtk.Dialog):
     """ Lutris installer """
 
     def __init__(self, game):
 
+        gtk.Dialog.__init__(self)
         self.lutris_config = None
         self.game_name = game
-        self.installer_dest_path = os.path.join(lutris.constants.cache_path,
+        self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
                                                 self.game_name + ".yml")
         # Stores a list of actions that will be sent back to the user
         # in order to complete the installation
@@ -99,6 +103,23 @@ class Installer():
         # Dictionary of the files needed to install the game
         self.gamefiles = {}
 
+        button = gtk.Button('Install')
+        button.connect('clicked', self.launch_install)
+        self.vbox.pack_start(button)
+
+        self.show_all()
+
+    def launch_install(self,widget, data=None):
+        success = self.pre_install()
+        if not success:
+            log.logger.error("Unable to install game")
+            log.logger.error(installer.installer_errors)
+            if 'INSTALLER_UNREACHABLE' in self.installer_errors:
+            	ErrorDialog("Can't find an installer for \"%s\""
+                     	     % self.game_name)
+        else:
+            log.logger.info("Ready! Launching installer.")
+            self.install()
 
     def set_games_dir(self, path):
         """ Set the base path where the game will be installed """
@@ -108,7 +129,6 @@ class Installer():
         """Reads the installer and checks everything is OK
         before beginning the install process
         """
-
         success = self.save_installer_content()
         if not success:
             return False
@@ -116,7 +136,7 @@ class Installer():
         self.games_dir = self.lutris_config.get_path()
         if not self.games_dir:
             self.installer_user_actions.append("ask_games_dir")
-            logging.debug('Install dir missing')
+            log.logger.debug('Install dir missing')
             return False
 
         self.game_dir = os.path.join(self.games_dir, self.game_name)
@@ -148,19 +168,19 @@ class Installer():
     def save_installer_content(self):
         """ Save the downloaded installer to disk. """
 
-        full_url = lutris.constants.installer_prefix + self.game_name + '.yml'
+        full_url = INSTALLER_URL + self.game_name + '.yml'
         request = urllib2.Request(url=full_url)
         try:
             response = urllib2.urlopen(request)
         except urllib2.URLError:
-            logging.debug("Server is unreachable")
+            log.logger.debug("Server is unreachable")
             self.installer_errors.append("INSTALLER_UNREACHABLE")
             success = False
         else:
-            logging.debug("downloading %s" % full_url)
-            installer_file = open(self.installer_dest_path, "w")
-            installer_file.write(response.read())
-            installer_file.close()
+            DownloadDialog(full_url, self.installer_dest_path)
+            #installer_file = open(self.installer_dest_path, "w")
+            #installer_file.write(response.read())
+            #installer_file.close()
             success = True
 
         return success
@@ -231,8 +251,8 @@ class Installer():
     def _download(self, url, output=None):
         """ Downloads a file. """
 
-        logging.debug('Downloading ' + url)
-        dest_dir = os.path.join(lutris.constants.tmp_path, self.game_name)
+        log.logger.debug('Downloading ' + url)
+        dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_name)
         if not os.path.exists(dest_dir):
             os.mkdir(dest_dir)
         if not output:
@@ -243,7 +263,8 @@ class Installer():
         if url.startswith("file://"):
             shutil.copy(url[7:], dest_dir)
         else:
-            urllib.urlretrieve(url, dest_file, reporthook)
+            DownloadDialog(url, dest_file)
+            #urllib.urlretrieve(url, dest_file, reporthook)
 
         return dest_file
 

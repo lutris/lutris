@@ -22,14 +22,24 @@ import logging
 import lutris.constants as constants
 
 class LutrisConfig():
+    """Class where all the configuration handling happens.
+    
+    Lutris configuration uses a cascading mecanism where 
+    each higher, more specific level override the lower ones.
+
+    The config files are stored in a YAML format and are easy to edit manually.
+
+    """
     def __init__(self, runner=None, game=None):
         #Check if configuration directories exists and create them if needed.
+        #FIXME: This isn't the right place for this piece of code, it has
+        #       nothing to do with configuration files.   
         config_paths = [constants.lutris_config_path,
                         constants.runner_config_path,
                         constants.GAME_CONFIG_PATH,
                         constants.COVER_PATH,
-                        constants.tmp_path,
-                        constants.cache_path]
+                        constants.TMP_PATH,
+                        constants.LUTRIS_CACHE_PATH]
         for config_path in config_paths:
             if not os.path.exists(config_path):
                 os.mkdir(config_path)

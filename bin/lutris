@@ -24,6 +24,8 @@ logger =  logging.getLogger(__name__)
 
 LAUNCH_PATH=dirname(realpath(__file__))
 if LAUNCH_PATH != "/usr/bin":
+    LAUNCH_PATH=dirname(realpath(__file__))
+if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH=normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
@@ -89,22 +91,12 @@ if game:
     	lutris_game.play()
     else:
         installer = Installer(game)
-        success = installer.pre_install()
-        if not success:
-            log.logger.error("Unable to install game")
-            log.logger.error(installer.installer_errors)
-            if 'INSTALLER_UNREACHABLE' in installer.installer_errors:
-            	ErrorDialog("Can't find an installer for \"%s\""
-                     	     % game)
-        else:
-            log.logger.info("Ready! Launching installer.")
-            installer.install()
-    exit()
+        gtk.main()
 else:
-	log.logger.info('Showing main window')
     lutris_window = new_lutris_window()
     lutris_window.show()
     gtk.gdk.threads_init()
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
+

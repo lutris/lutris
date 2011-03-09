@@ -108,7 +108,7 @@ class DownloadProgressBox(gtk.HBox):
     def progress(self):
         if self.downloader is None:
             return False
-        data = self.downloader.progress
+        data = max(self.downloader.progress, 100)
         frac = data/100.0
         self.progressbar.set_fraction(frac)
         self.progressbar.set_text("%d %%" % data)

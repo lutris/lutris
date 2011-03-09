@@ -16,14 +16,15 @@
 #
 
 from os.path import realpath, normpath, dirname, join, exists, expanduser
+from xdg import BaseDirectory
 import sys
 
 name = "Lutris"
-version = "0.2.4"
+version = "0.2.5"
 website = "http://lutris.net"
 protocol_version = 1
-#installer_prefix = "http://lutris.net/media/installers/"
-installer_prefix = "http://localhost:8000/media/installers/"
+INSTALLER_URL = "http://lutris.net/media/installers/"
+#installer_prefix = "http://localhost:8000/media/installers/"
 CONFIG_EXTENSION = ".yml"
 license = 'GPL-3'
 copyright = "(c) 2010 Lutris Gaming Platform"
@@ -55,13 +56,15 @@ if not exists(DATA_PATH):
 lutris_icon_file = "media/logo.svg"
 lutris_icon_path = join(DATA_PATH, lutris_icon_file)
 
-lutris_config_path = join(expanduser('~'), '.config', 'lutris')
+lutris_config_path = join(BaseDirectory.xdg_config_home, 'lutris')
+LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
+LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
+
 system_config_file = 'system' + CONFIG_EXTENSION
 system_config_full_path = join(lutris_config_path, system_config_file)
 runner_config_path = join(lutris_config_path, 'runners')
 GAME_CONFIG_PATH = join(lutris_config_path, 'games')
 COVER_PATH = join(lutris_config_path, 'covers')
-tmp_path = join(lutris_config_path, 'tmp')
-TMP_PATH = tmp_path
-cache_path = join(lutris_config_path, 'cache')
+cache_path = LUTRIS_CACHE_PATH
+TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')
 
