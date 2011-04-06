@@ -49,7 +49,10 @@ class steam(wine):
         ]
         if settings:
             self.appid = settings['game']['appid']
-            self.args = settings['game']['args']
+            if 'args' in settings['game']:
+                self.args = settings['game']['args']
+            else:
+                self.args = ""
 
     def install(self):
         q = QuestionDialog({
@@ -70,6 +73,7 @@ class steam(wine):
         if the steam executable is on the harddrive
 
         """
+        return True
         if not self.check_depends():
             return False
         if not self.game_path or \

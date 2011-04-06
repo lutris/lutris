@@ -31,8 +31,6 @@ class GameConfigVBox(ConfigVBox):
         self.lutris_config  = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
-        print "runner_class", self.runner_class
-        print type(self.runner_class)
         runner_cls = import_runner(self.runner_class)
         runner = runner_cls()
 
