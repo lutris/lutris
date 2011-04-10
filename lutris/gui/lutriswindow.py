@@ -146,14 +146,21 @@ class LutrisWindow(gtk.Window):
 
         #Timer
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
+        
 
     def refresh_status(self):
-        # FIXME !!
-        # if hasattr(self.running_game.game_process, "pid"):
-        #     self.status_text = "Game is running (pid: %s)" % str(self.running_game.game_process.pid)
-        #     self.status_bar.push(self.status_bar_context_id,self.status_text)
-        # else:
-        #     self.status_bar.push(self.status_bar_context_id,"Welcome to Lutris")
+        if hasattr(self, "running_game"):
+            if hasattr(self.running_game.game_thread, "pid"):
+                pid = self.running_game.game_thread.pid
+                name = self.running_game.real_name
+                if pid == 99999:
+                    self.status_label.set_text("Preparing to launch %s" % name)
+                elif pid is None:
+                    self.status_label.set_text("Game has quit")
+                else:
+                    self.status_label.set_text("Playing %s (pid: %r)" % (name, pid))
+        else:
+            self.status_label.set_text("Welcome to Lutris")
         for index in range(4):
             if os.path.exists("/dev/input/js%d" % index):
                 self.joystick_icons[index].show()
@@ -221,13 +228,13 @@ class LutrisWindow(gtk.Window):
             self.gameName = model.get_value(select_iter, 0)
             self.set_game_cover()
 
-    def game_launch(self, treeview, arg1=None, arg2=None):
+    def game_launch(self, treeview=None, arg1=None, arg2=None):
         self.running_game = LutrisGame(self.get_selected_game())
         self.running_game.play()
 
     def on_play_clicked(self, widget):
-        self.game_launch(None)
-
+        """Callback for the play button"""
+        self.game_launch()
 
     def on_fullscreen_clicked(self, widget):
         """ Switch to coverflow mode """
@@ -248,6 +255,7 @@ class LutrisWindow(gtk.Window):
     def reset(self, widget, data=None):
         if hasattr(self, "running_game"):
             self.running_game.quit_game()
+            self.status_label.set_text("Stopped %s" % self.running_game.real_name)
         else:
             LutrisDesktopControl().reset_desktop()
 

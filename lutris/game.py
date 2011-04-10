@@ -171,7 +171,6 @@ class LutrisGame():
             if "compiz_fullscreen" in config['system']:
                 self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
 
-
             if "killswitch" in config['system']:
                 killswitch = config['system']['killswitch']
             else:
