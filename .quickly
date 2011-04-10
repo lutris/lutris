@@ -1,4 +1,4 @@
 project = lutris
 template = ubuntu-application
 lp_id = lutris
-version = 0.6.1
+version = 11.04

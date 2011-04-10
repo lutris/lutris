@@ -136,6 +136,14 @@ class LutrisWindow(gtk.Window):
         self.game_list_scrolledwindow = self.builder.get_object("game_list_scrolledwindow")
         self.game_list_scrolledwindow.add_with_viewport(self.game_treeview)
 
+        # Set buttons state
+        self.play_button = self.builder.get_object('play_button')
+        self.play_button.set_sensitive(False)
+        self.reset_button = self.builder.get_object('reset_button')
+        self.reset_button.set_sensitive(False)
+        self.delete_button = self.builder.get_object('delete_button')
+        self.delete_button.set_sensitive(False)
+
         #Timer
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
 
@@ -198,15 +206,28 @@ class LutrisWindow(gtk.Window):
         return game_name
 
     def select_game(self, treeview):
+        """ Method triggered when a game is selected in the list.
+        
+        """
+
+        #Set buttons states
+        self.play_button.set_sensitive(True)
+        self.reset_button.set_sensitive(True)
+        self.delete_button.set_sensitive(True)
+
         gameSelection = treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
         if select_iter:
             self.gameName = model.get_value(select_iter, 0)
             self.set_game_cover()
 
-    def game_launch(self, treeview, arg1, arg2):
+    def game_launch(self, treeview, arg1=None, arg2=None):
         self.running_game = LutrisGame(self.get_selected_game())
         self.running_game.play()
+
+    def on_play_clicked(self, widget):
+        self.game_launch(None)
+
 
     def on_fullscreen_clicked(self, widget):
         """ Switch to coverflow mode """

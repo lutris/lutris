@@ -7,80 +7,100 @@
   <object class="LutrisWindow" id="lutris_window">
     <property name="width_request">650</property>
     <property name="height_request">500</property>
+    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
     <property name="icon">../media/lutris.svg</property>
     <property name="icon_name">lutris</property>
-    <signal name="destroy" handler="on_destroy"/>
+    <signal name="destroy" handler="on_destroy" swapped="no"/>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
+        <property name="can_focus">False</property>
         <property name="spacing">5</property>
         <child>
           <object class="GtkMenuBar" id="menubar1">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="lutris_menuitem">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Lutris</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="lutris_menu">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <object class="GtkMenuItem" id="manage_runners_menuitem">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Install and configure runners</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Manage runners</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="runner_preferences"/>
+                        <signal name="activate" handler="runner_preferences" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="preferences_menuitem">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">configure the default options</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Global preferences</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="system_preferences"/>
+                        <signal name="activate" handler="system_preferences" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="separator">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="import_menuitem">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Import</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
                           <object class="GtkMenu" id="menu4">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <child>
                               <object class="GtkMenuItem" id="scummvm_menuitem">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Import games from ScummVM</property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">ScummVM</property>
                                 <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_scummvm"/>
+                                <signal name="activate" handler="import_scummvm" swapped="no"/>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="cedega_menuitem">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Cedega</property>
                                 <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_cedega"/>
+                                <signal name="activate" handler="import_cedega" swapped="no"/>
                               </object>
                             </child>
                             <child>
                               <object class="GtkMenuItem" id="steam_menuitem">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Steam</property>
                                 <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_steam"/>
+                                <signal name="activate" handler="import_steam" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -90,8 +110,10 @@
                     <child>
                       <object class="GtkMenuItem" id="quit_menuitem">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Quit</property>
-                        <signal name="activate" handler="quit"/>
+                        <signal name="activate" handler="quit" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -101,18 +123,23 @@
             <child>
               <object class="GtkMenuItem" id="help_menuitem">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu3">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem10">
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="about"/>
+                        <signal name="activate" handler="about" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -122,20 +149,24 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolbar" id="lutris_toolbar">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="toolbar_style">both</property>
             <child>
               <object class="GtkToolButton" id="add_game_button">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Add game</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-add</property>
-                <signal name="clicked" handler="add_game"/>
+                <signal name="clicked" handler="add_game" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -145,10 +176,12 @@
             <child>
               <object class="GtkToolButton" id="install_button">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Install game</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-cdrom</property>
-                <signal name="clicked" handler="install_game"/>
+                <signal name="clicked" handler="install_game" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -156,12 +189,25 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="delete_button">
+              <object class="GtkSeparatorToolItem" id="toolbar_separator1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Remove</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="play_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Play</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-delete</property>
-                <signal name="clicked" handler="remove_game"/>
+                <property name="stock_id">gtk-media-play</property>
+                <signal name="clicked" handler="on_play_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -171,10 +217,38 @@
             <child>
               <object class="GtkToolButton" id="reset_button">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Reset</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Stop</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-refresh</property>
-                <signal name="clicked" handler="reset"/>
+                <property name="stock_id">gtk-media-stop</property>
+                <signal name="clicked" handler="reset" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="delete_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Remove</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-delete</property>
+                <signal name="clicked" handler="remove_game" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbar_separator2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -184,10 +258,12 @@
             <child>
               <object class="GtkToolButton" id="fullscreen_button">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Fullscreen</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-fullscreen</property>
-                <signal name="clicked" handler="on_fullscreen_clicked"/>
+                <signal name="clicked" handler="on_fullscreen_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -197,6 +273,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -224,6 +301,7 @@
               <object class="GtkImage" id="game_cover_image">
                 <property name="width_request">250</property>
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="stock">gtk-missing-image</property>
               </object>
               <packing>
@@ -233,19 +311,39 @@
             </child>
           </object>
           <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
         </child>
         <child>
           <object class="GtkStatusbar" id="statusbar">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="spacing">2</property>
             <child>
               <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="status_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">5</property>
+                    <property name="ypad">5</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
                 <child>
                   <object class="GtkImage" id="js0image">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
                   <packing>
@@ -257,6 +355,7 @@
                 <child>
                   <object class="GtkImage" id="js1image">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
                   <packing>
@@ -268,6 +367,7 @@
                 <child>
                   <object class="GtkImage" id="js2image">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
                   <packing>
@@ -279,6 +379,7 @@
                 <child>
                   <object class="GtkImage" id="js3image">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
                   <packing>
@@ -287,20 +388,10 @@
                     <property name="position">4</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkLabel" id="status_label">
-                    <property name="visible">True</property>
-                    <property name="xalign">0</property>
-                    <property name="xpad">5</property>
-                    <property name="ypad">5</property>
-                  </object>
-                  <packing>
-                    <property name="pack_type">end</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
               </object>
               <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
             </child>
