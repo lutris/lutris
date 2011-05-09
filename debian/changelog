@@ -1,3 +1,17 @@
+lutris (0.2.5ubuntu1) natty; urgency=low
+
+  * Oops, forgot to bump the python version
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 11:25:52 +0200
+
+lutris (0.2.5) natty; urgency=low
+
+  * Bugfixes and code cleanup
+  * Installer enhancement
+  * Added Play button
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 11:03:43 +0200
+
 lutris (0.2.4) maverick; urgency=low
 
   * A lot of bug fixes
