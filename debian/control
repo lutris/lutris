@@ -1,19 +1,18 @@
 Source: lutris
 Section: games
 Priority: optional
-Build-Depends: cdbs (>= 0.4.43)
+Build-Depends: cdbs (>= 0.4.43),
  debhelper (>= 6),
  python,
  python-support (>= 0.6.4),
- python-distutils-extra (>= 2.10)
+ python-distutils-extra (>= 2.10),
+ python-xdg
 Maintainer: Mathieu Comandon <strycore@gmail.com>
 Standards-Version: 3.9.1
-XS-Python-Version: current
 
 Package: lutris
 Architecture: all
-XB-Python-Version: ${python:Versions}
-Depends: ${misc:Depends}, 
+Depends: ${misc:Depends},
  ${python:Depends},
  python-xdg,
  python-gconf,

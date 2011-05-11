@@ -21,6 +21,12 @@
 
 import gtk
 
+if __name__ == "__main__":
+    
+    import sys, os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..')))
+    print sys.path
+
 import lutris.runners
 from lutris.runners import  import_runner
 from lutris.config import LutrisConfig
@@ -89,31 +95,34 @@ class RunnersDialog(gtk.Dialog):
         runner_vbox = gtk.VBox()
 
         for runner in runner_list:
-            hbox = gtk.HBox()
-            #Label
+            # Get runner details
             runner_class = import_runner(runner)
             runner_instance = runner_class()
             machine = runner_instance.machine
+            description = runner_instance.description
+
+            hbox = gtk.HBox()
+            #Label
             runner_label = gtk.Label()
-            runner_label.set_markup("<b>"+runner + "</b> ( " + machine + " ) ")
+            runner_label.set_markup("<b>"+runner + "</b>\n" + description + "\n <i>Supported platforms : " + machine + "</i>")
             runner_label.set_width_chars(33)
             runner_label.set_line_wrap(True)
-            hbox.pack_start(runner_label, True, True, 5)
+            runner_label.set_alignment(0.0,0.0)
+            runner_label.set_padding(25,5)
+            hbox.pack_start(runner_label,True, True)
             #Button
-            button_alignement = gtk.Alignment(
-                    xalign=0.0, yalign=0.0,
-                    xscale=0.5, yscale=0.0
-                )
+            button = gtk.Button("Configure")
+            button.set_size_request(100,30)
+            button_align = gtk.Alignment(0.0,1.0,0.0,0.0)
             if runner_instance.is_installed():
-                button = gtk.Button("Configure")
+                button.set_label('Configure')
                 button.set_size_request(100,30)
                 button.connect("clicked",self.on_configure_clicked,runner)
             else:
-                button = gtk.Button("Install")
-                button.set_size_request(100,30)
+                button.set_label('Install')
                 button.connect("clicked",self.on_install_clicked,runner)
-            button_alignement.add(button)
-            hbox.pack_start(button_alignement,True,True)
+            button_align.add(button)
+            hbox.pack_start(button_align,True,False)
 
             runner_vbox.pack_start(hbox,True,True,5)
         scrolled_window.add_with_viewport(runner_vbox)
@@ -124,7 +133,6 @@ class RunnersDialog(gtk.Dialog):
 
     def on_install_clicked(self,widget,runner_classname):
         """Install a runner"""
-        #FIXME : this is ugly !
         runner_class = import_runner(runner_classname)
         runner = runner_class()
         runner.install()

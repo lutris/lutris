@@ -1,4 +1,10 @@
-lutris (0.2.5ubuntu1) natty; urgency=low
+lutris (0.2.5r2) natty; urgency=low
+
+  * xdg is a build dependency
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 09 May 2011 13:36:55 +0200
+
+lutris (0.2.5r1) natty; urgency=low
 
   * Oops, forgot to bump the python version
 
