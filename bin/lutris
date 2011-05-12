@@ -57,7 +57,11 @@ parser.add_option("-v", "--verbose", action="store_true",
                   dest="verbose", help="Verbose output")
 parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
+parser.add_option("-i", "--install", dest="installer_file", 
+                  help="Install a game from a yml file")
 (options, args) = parser.parse_args()
+
+    
 
 # Set the logging level to show debug messages.
 if options.debug:
@@ -76,21 +80,35 @@ if options.verbose:
     console.setFormatter(formatter)
     log.logger.addHandler(console)
 
-# Run the application.
+installer = False
 game = None
+if options.installer_file:
+    if not os.path.exists(options.installer_file):
+        print "Unable to find installer at : %s" % options.installer_file
+        exit()
+    else:
+        game = True
+        installer = os.path.abspath(options.installer_file)
+        print "Installing game from %s" % installer
+
+# Run the application.
 for arg in args:
     if arg.startswith('lutris:'):
         game = arg[7:]
         break
-if game:
-	file_path = os.path.join(GAME_CONFIG_PATH, game + CONFIG_EXTENSION)
-    if (os.path.exists(file_path)):
+if game is not None:
+    if isinstance(game, str):
+        file_path = os.path.join(GAME_CONFIG_PATH, 
+                                 game + CONFIG_EXTENSION)
+    else:
+        file_path = None
+    if file_path is not None and os.path.exists(file_path):
     	import lutris.game
     	log.logger.info('Launching ' + game)
     	lutris_game = lutris.game.LutrisGame(game)
     	lutris_game.play()
     else:
-        installer = Installer(game)
+        installer = Installer(game, installer)
         gtk.main()
 else:
     lutris_window = new_lutris_window()

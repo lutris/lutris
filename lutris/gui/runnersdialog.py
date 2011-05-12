@@ -19,11 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import gtk
+import gtk, os
 
 if __name__ == "__main__":
-    
-    import sys, os
+    import sys
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..')))
     print sys.path
 
@@ -38,7 +37,7 @@ class RunnerConfigDialog(gtk.Dialog):
     def __init__(self,runner):
         gtk.Dialog.__init__(self)
         self.set_title("Configure %s" % (runner))
-        self.set_size_request(500,500)
+        self.set_size_request(570,500)
         self.runner = runner
         self.lutris_config = LutrisConfig(runner=runner)
 
@@ -85,11 +84,17 @@ class RunnersDialog(gtk.Dialog):
     def __init__(self):
         gtk.Dialog.__init__(self)
         self.set_title("Configure runners")
-        self.set_size_request(450,400)
+        self.set_size_request(570,400)
+
+        label = gtk.Label()
+        label.set_markup("""
+        <b>Install and configure the game runners</b>
+        """)
 
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.vbox.pack_start(scrolled_window,True,True,0)
+        self.vbox.pack_start(label, False, True, 20)
+        self.vbox.pack_start(scrolled_window, True, True)
 
         runner_list = lutris.runners.__all__
         runner_vbox = gtk.VBox()
@@ -102,10 +107,18 @@ class RunnersDialog(gtk.Dialog):
             description = runner_instance.description
 
             hbox = gtk.HBox()
+            #Icon
+            icon_path = os.path.join(lutris.constants.DATA_PATH, 
+                                     'media/runner_icons',
+                                     runner + '.png')
+            icon = gtk.Image()
+            icon.set_from_file(icon_path)
+            hbox.pack_start(icon, False, False, 10)
+
             #Label
             runner_label = gtk.Label()
             runner_label.set_markup("<b>"+runner + "</b>\n" + description + "\n <i>Supported platforms : " + machine + "</i>")
-            runner_label.set_width_chars(33)
+            runner_label.set_width_chars(38)
             runner_label.set_line_wrap(True)
             runner_label.set_alignment(0.0,0.0)
             runner_label.set_padding(25,5)

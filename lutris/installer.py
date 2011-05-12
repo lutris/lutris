@@ -32,7 +32,7 @@ import lutris.constants
 from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL
 
 from lutris.config import LutrisConfig
-from lutris.gui.common import DownloadDialog, ErrorDialog
+from lutris.gui.common import DownloadDialog, ErrorDialog, DirectoryDialog
 from lutris.util import log
 
 def unzip(filename, dest=None):
@@ -76,13 +76,16 @@ def reporthook(piece, received_bytes, total_size):
 class Installer(gtk.Dialog):
     """ Lutris installer """
 
-    def __init__(self, game):
-
+    def __init__(self, game, installer=False):
         gtk.Dialog.__init__(self)
+        self.set_default_size(640,480)
         self.lutris_config = None
         self.game_name = game
-        self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
-                                                self.game_name + ".yml")
+        if installer is False:
+            self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
+                                                    self.game_name + ".yml")
+        else:
+            self.installer_dest_path = installer
         # Stores a list of actions that will be sent back to the user
         # in order to complete the installation
         self.installer_user_actions = []
@@ -94,8 +97,8 @@ class Installer(gtk.Dialog):
         # List of errors that occurred while installing the game
         self.installer_errors = []
 
-        # ???
-        self.install_data = []
+        # Content of yaml file
+        self.install_data = {}
 
         # Essential game information to create Lutris launcher
         self.game_info = {}
@@ -105,8 +108,7 @@ class Installer(gtk.Dialog):
 
         button = gtk.Button('Install')
         button.connect('clicked', self.launch_install)
-        self.vbox.pack_start(button)
-
+        self.vbox.pack_start(button, False, False)
         self.show_all()
 
     def launch_install(self,widget, data=None):
@@ -129,9 +131,13 @@ class Installer(gtk.Dialog):
         """Reads the installer and checks everything is OK
         before beginning the install process
         """
-        success = self.save_installer_content()
-        if not success:
-            return False
+
+        # Download installer if not already there.
+        if not os.path.exists(self.installer_dest_path):
+            success = self.download_installer()
+            if not success:
+                return False
+        # Parse installer file
         success = self.parseconfig()
         self.games_dir = self.lutris_config.get_path()
         if not self.games_dir:
@@ -147,7 +153,6 @@ class Installer(gtk.Dialog):
 
     def install(self):
         """ Runs the actions to complete the install. """
-
         os.chdir(self.game_dir)
 
         for action in self.installer_actions:
@@ -158,14 +163,15 @@ class Installer(gtk.Dialog):
                         'move' : self._move,
                         'delete': self.delete,
                         'request_media': self._request_media,
-                        'run': self._run}
+                        'run': self._run,
+                        'locate': self._locate }
             if action_name not in mappings.keys():
                 print "Action " + action_name + " not supported !"
                 return False
             mappings[action_name](action_data)
         self.write_config()
 
-    def save_installer_content(self):
+    def download_installer(self):
         """ Save the downloaded installer to disk. """
 
         full_url = INSTALLER_URL + self.game_name + '.yml'
@@ -188,6 +194,7 @@ class Installer(gtk.Dialog):
     def parseconfig(self):
         """ Reads the installer file. """
 
+        print "reading config"
         self.install_data = yaml.load(file(self.installer_dest_path, 'r').read())
 
         #Checking protocol
@@ -206,17 +213,30 @@ class Installer(gtk.Dialog):
                 self.game_info[field] = self.install_data[field]
         files = self.install_data['files']
 
+        self.game_name = self.install_data['name']
+        self.game_slug = os.path.basename(self.installer_dest_path)[:-4]
+
         for gamefile in files:
             file_id = gamefile.keys()[0]
-            # if download link is a dict, it contains the url (in the
-            # 'url' key) and ouput filename (in 'ouput')
-            if type(gamefile[file_id]) == type(dict()):
+            # Game files can be either a string, containing the location of the 
+            # file to fetch or a dict with the possible options :
+            # - url : location of file (mandatory)
+            # - filename : force destination filename
+            # - nocopy : don't copy the file in the cache (doesn't work for internet links)
+            copyfile = True
+            if isinstance(gamefile[file_id], dict):
                 url = gamefile[file_id]['url']
-                output = gamefile[file_id]['ouput']
+                if 'filename' in gamefile[file_id]:
+                    filename = gamefile[file_id]['filename']
+                else:
+                    filename = None
+
+                if 'nocopy' in gamefile[file_id]:
+                    copyfile = False
             else:
                 url = gamefile[file_id]
-                output = None
-            dest_path = self._download(url, output)
+                filename = None
+            dest_path = self._download(url, filename, copyfile)
             self.gamefiles[file_id] = dest_path
         self.installer_actions = self.install_data['installer']
         self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
@@ -225,7 +245,7 @@ class Installer(gtk.Dialog):
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
         config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
-                                       self.game_name + ".yml")
+                                       self.game_slug + ".yml")
 
         config_data = {'game': {},
                        'realname': self.game_info['name'],
@@ -248,24 +268,38 @@ class Installer(gtk.Dialog):
         print "NOT IMPLEMENTED"
         return True
 
-    def _download(self, url, output=None):
-        """ Downloads a file. """
+    def _download(self, url, filename=None, copyfile=True):
+        """ Downloads a file. 
+        Not necessarily downloading a file but fetching it from anywhere.
+        url: location of the file to fetch
+        destfile: force filename of destfile
+
+        return the path of local file
+        """
 
         log.logger.debug('Downloading ' + url)
-        dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_name)
+        dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_slug)
         if not os.path.exists(dest_dir):
             os.mkdir(dest_dir)
-        if not output:
-            output = url.split('/')[-1]
-        dest_file = os.path.join(dest_dir, output)
+        if not filename:
+            filename = os.path.basename(url)
+        dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
             return dest_file
         if url.startswith("file://"):
-            shutil.copy(url[7:], dest_dir)
+            location = url[7:]
+            if copyfile is True:
+                shutil.copy(location, dest_dir)
+        elif url.startswith("$ASK_DIR"):
+            #Ask the user where is located the file
+            basename = url[9:]
+            d = DirectoryDialog("Select location of file %s " % basename)
+            file_path = d.folder
+            if copyfile is True:
+                location = os.path.join(file_path, basename)
+                shutil.copy(location, dest_dir)
         else:
             DownloadDialog(url, dest_file)
-            #urllib.urlretrieve(url, dest_file, reporthook)
-
         return dest_file
 
     def delete(self, data):
@@ -329,9 +363,16 @@ class Installer(gtk.Dialog):
         else:
             return False
     def _run(self, data):
-        exec_path = os.path.join(lutris.constants.TMP_PATH, self.game_name,
+        exec_path = os.path.join(lutris.constants.TMP_PATH, self.game_slug,
                                  self.gamefiles[data['file']])
-        os.popen('chmod +x %s' % exec_path)
-        subprocess.call([exec_path])
+        if not os.path.exists(exec_path):
+            print "unable to find %s" % exec_path
+            exit()
+        else:
+            os.popen('chmod +x %s' % exec_path)
+            subprocess.call([exec_path])
 
+    def _locate(self):
+        return None
+    
 

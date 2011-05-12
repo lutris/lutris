@@ -53,6 +53,7 @@ class QuestionDialog:
         dialog.destroy()
 
 class DirectoryDialog:
+    """Ask the user to select a directory"""
     def __init__(self, message):
         dialog = gtk.FileChooserDialog(
                 title=message,
@@ -61,7 +62,7 @@ class DirectoryDialog:
                          gtk.STOCK_OK, gtk.RESPONSE_OK)
             )
         self.result = dialog.run()
-        self.folder =  dialog.get_current_folder()
+        self.folder = dialog.get_current_folder()
         dialog.destroy()
 
 class DownloadDialog(gtk.Dialog):

@@ -1,16 +1,16 @@
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 ### BEGIN LICENSE
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-# This program is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License version 3, as published 
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
 # by the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranties of 
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along 
+#
+# You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
@@ -18,7 +18,8 @@ import os
 import gtk
 import gtk.gdk
 
-import lutris.constants 
+import lutris.constants
+from lutris.constants import lutris_icon_path
 
 class AboutLutrisDialog(gtk.AboutDialog):
     __gtype_name__ = "AboutLutrisDialog"
@@ -26,12 +27,12 @@ class AboutLutrisDialog(gtk.AboutDialog):
     def __init__(self):
         """__init__ - This function is typically not called directly.
         Creation of a AboutLutrisDialog requires redeading the associated ui
-        file and parsing the ui definition extrenally, 
+        file and parsing the ui definition extrenally,
         and then calling AboutLutrisDialog.finish_initializing().
-    
-        Use the convenience function NewAboutLutrisDialog to create 
+
+        Use the convenience function NewAboutLutrisDialog to create
         NewAboutLutrisDialog objects.
-    
+
         """
         pass
 
@@ -39,12 +40,13 @@ class AboutLutrisDialog(gtk.AboutDialog):
         """finish_initalizing should be called after parsing the ui definition
         and creating a AboutLutrisDialog object with it in order to finish
         initializing the start of the new AboutLutrisDialog instance.
-    
+
         """
         #get a reference to the builder and set up the signals
         self.builder = builder
         self.builder.connect_signals(self)
 
+        print lutris.constants.lutris_icon_path
         #code for other initialization actions should be added here
         self.set_position(gtk.WIN_POS_CENTER)
         self.set_icon_from_file(lutris.constants.lutris_icon_path)
@@ -56,12 +58,12 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.set_authors(lutris.constants.authors)
         self.set_artists(lutris.constants.artists)
         self.set_website(lutris.constants.website)
-        
+
 def NewAboutLutrisDialog(data_path):
     """NewAboutLutrisDialog - returns a fully instantiated
     AboutLutrisDialog object. Use this function rather than
     creating a AboutLutrisDialog instance directly.
-    
+
     """
 
     #look for the ui file that describes the ui
