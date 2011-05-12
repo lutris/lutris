@@ -17,9 +17,7 @@
 import os
 import gtk
 import gtk.gdk
-
 import lutris.constants
-from lutris.constants import lutris_icon_path
 
 class AboutLutrisDialog(gtk.AboutDialog):
     __gtype_name__ = "AboutLutrisDialog"
@@ -46,7 +44,6 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.builder = builder
         self.builder.connect_signals(self)
 
-        print lutris.constants.lutris_icon_path
         #code for other initialization actions should be added here
         self.set_position(gtk.WIN_POS_CENTER)
         self.set_icon_from_file(lutris.constants.lutris_icon_path)

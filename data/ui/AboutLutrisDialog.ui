@@ -1,22 +1,21 @@
 <interface>
   <requires lib="gtk+" version="2.16" />
-  
-  
+
+
   <object class="AboutLutrisDialog" id="about_lutris_dialog">
     <property name="version">0.2-public5</property><property name="license" translatable="yes"># Copyright (C) 2010 Mathieu Comandon &lt;strycore@gmail.com&gt;
-# This program is free software: you can redistribute it and/or modify it 
-# under the terms of the GNU General Public License version 3, as published 
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
 # by the Free Software Foundation.
-# 
-# This program is distributed in the hope that it will be useful, but 
-# WITHOUT ANY WARRANTY; without even the implied warranties of 
-# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along 
+#
+# You should have received a copy of the GNU General Public License along
 # with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </property><property name="authors">Copyright (C) 2010 Mathieu Comandon &lt;strycore@gmail.com&gt;</property><property name="copyright" translatable="yes">Copyright (C) 2010 Mathieu Comandon &lt;strycore@gmail.com&gt;</property><property name="border_width">5</property>
-    <property name="icon">../media/icon.png</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="program_name">Lutris</property>
