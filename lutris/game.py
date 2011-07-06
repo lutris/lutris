@@ -63,9 +63,10 @@ def get_list():
                 #error_dialog.run()
                 #error_dialog.destroy()
                 print message
-            game_list.append({"name": Game.real_name,
-                              "runner": Game.runner_name,
-                              "id":game_name})
+            else:
+                game_list.append({"name": Game.real_name,
+                                  "runner": Game.runner_name,
+                                  "id":game_name})
     return game_list
 
 class LutrisGame():
@@ -81,26 +82,28 @@ class LutrisGame():
         self.load_success = self.load_config()
 
     def load_config(self):
-        #Load the game's configuration
+        """
+        Load the game's configuration.
+        """
         self.game_config = LutrisConfig(game=self.name)
-
-        if "realname" in self.game_config.config:
-            self.real_name = self.game_config["realname"]
-        else:
-            self.real_name = self.name
-
-        try:
+        if self.game_config.is_valid():
             self.runner_name = self.game_config["runner"]
-        except KeyError:
-            print "Error in %s config file : No runner" % self.name
+            if "realname" in self.game_config.config:
+                self.real_name = self.game_config["realname"]
+            else:
+                self.real_name = self.name
+        else:
             return False
 
         try:
-            runner_module = __import__("lutris.runners.%s" %
-                    self.runner_name, globals(), locals(),
-                    [self.runner_name], -1 )
+            runner_module = __import__("lutris.runners.%s" % self.runner_name, 
+                                       globals(), locals(),
+                                       [self.runner_name], -1)
             runner_cls = getattr(runner_module, self.runner_name)
             self.machine = runner_cls(self.game_config)
+        except ImportError, msg:
+            logger.error("Invalid runner %s" % self.runner_name)
+            logger.error(msg)
         except AttributeError, msg:
             logger.error("Invalid configuration file (Attribute Error) : %s" % self.name)
             logger.error(msg)
@@ -226,11 +229,7 @@ class LutrisGame():
         self.timer_id = None
         logger.debug("game has quit at %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()))
         if self.game_thread is not None and self.game_thread.pid:
-            if self.game_thread.cedega:
-                for pid in self.game_thread.pid:
-                    os.kill(pid, SIGKILL)
-            else:
-                os.kill(self.game_thread.pid + 1, SIGKILL)
+            os.kill(self.game_thread.pid + 1, SIGKILL)
         if 'reset_desktop' in self.game_config.config['system']:
             if self.game_config.config['system']['reset_desktop']:
                 self.lutris_desktop_control.reset_desktop()

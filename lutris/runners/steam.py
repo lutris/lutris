@@ -73,7 +73,6 @@ class steam(wine):
         if the steam executable is on the harddrive
 
         """
-        return True
         if not self.check_depends():
             return False
         if not self.game_path or \
@@ -145,6 +144,8 @@ class steam(wine):
 
         self.check_regedit_keys() #From parent wine runner
 
+        print self.game_path
+        print self.game_exe
         steam_full_path = os.path.join(self.game_path, self.game_exe)
         command = ['wine', '"' + steam_full_path + '"', '-applaunch', self.appid, self.args]
         return {'command': command }

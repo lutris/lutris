@@ -19,6 +19,7 @@ import gtk
 import gtk.gdk
 import lutris.constants
 
+
 class AboutLutrisDialog(gtk.AboutDialog):
     __gtype_name__ = "AboutLutrisDialog"
 

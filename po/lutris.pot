@@ -50,10 +50,6 @@ msgstr ""
 msgid "Add game"
 msgstr ""
 
-#: ../data/ui/LutrisWindow.ui.h:2
-msgid "Cedega"
-msgstr ""
-
 #: ../data/ui/LutrisWindow.ui.h:3
 msgid "Fullscreen"
 msgstr ""

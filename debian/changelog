@@ -1,3 +1,17 @@
+lutris (0.2.6ubuntu1) natty; urgency=low
+
+  * Forgot to actually remove cedega stuff ... Silly me
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 12 May 2011 03:40:27 +0200
+
+lutris (0.2.6) natty; urgency=low
+
+  * Improved appearence of runners dialog
+  * Removed Cedega runner (Not maintained anymore)
+  * Minor Bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 12 May 2011 03:32:12 +0200
+
 lutris (0.2.5r2) natty; urgency=low
 
   * xdg is a build dependency

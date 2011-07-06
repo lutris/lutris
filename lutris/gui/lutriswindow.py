@@ -129,9 +129,9 @@ class LutrisWindow(gtk.Window):
         self.game_treeview.connect("cursor-changed", self.select_game)
         self.game_treeview.connect("button-press-event", self.mouse_menu)
 
-        #self.game_column = self.game_list_grid_view.get_column(0)
-        #self.game_cell = self.game_column.get_cell_renderers()[0]
-        #self.game_cell.connect('edited', self.game_name_edited_callback)
+        self.game_column = self.game_treeview.get_column(1)
+        self.game_cell = self.game_column.get_cell_renderers()[0]
+        self.game_cell.connect('edited', self.game_name_edited_callback)
 
         self.game_list_scrolledwindow = self.builder.get_object("game_list_scrolledwindow")
         self.game_list_scrolledwindow.add_with_viewport(self.game_treeview)
@@ -146,7 +146,7 @@ class LutrisWindow(gtk.Window):
 
         #Timer
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
-        
+
 
     def refresh_status(self):
         if hasattr(self, "running_game"):
@@ -214,7 +214,7 @@ class LutrisWindow(gtk.Window):
 
     def select_game(self, treeview):
         """ Method triggered when a game is selected in the list.
-        
+
         """
 
         #Set buttons states
@@ -269,14 +269,6 @@ class LutrisWindow(gtk.Window):
             self.game_treeview.add_row(game_info)
             self.game_treeview.sort_rows()
 
-    def import_cedega(self, widget, data=None):
-        from lutris.runners.cedega import cedega
-        cedega = cedega()
-        result = cedega.import_games()
-        if result is not True:
-            NoticeDialog(result)
-        self.get_game_list()
-
     def import_steam(self, widget, data=None):
         NoticeDialog("Import from steam not yet implemented")
 
@@ -303,14 +295,13 @@ class LutrisWindow(gtk.Window):
     def edit_game_name(self, button):
         """Change game name"""
         self.game_cell.set_property('editable', True)
-        self.game_list_grid_view.set_cursor(self.paths[0][0], self.game_column, True)
+        self.game_treeview.set_cursor(self.paths[0][0], self.game_column, True)
 
     def game_name_edited_callback(self, widget, index, new_name):
-        self.game_list_grid_view.get_model()[index][0] = new_name
+        self.game_treeview.get_model()[index][0] = new_name
         new_name_game_config = LutrisConfig(game=self.get_selected_game())
         new_name_game_config.config["realname"] = new_name
         new_name_game_config.save(type="game")
-        self.game_cell.set_property('editable', False)
         self.game_cell.set_property('editable', False)
 
     def edit_game_configuration(self, button):

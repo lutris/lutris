@@ -41,10 +41,11 @@ try:
     import lutris.coverflow.covergl
     import lutris.coverflow.anim
 except ImportError,msg:
-    print "Pyglet Error: %s" % str(msg)
+    print "Pyglet Import Error: %s" % str(msg)
+
     PYGLET_ENABLED = False
-except pyglet.window.NoSuchConfigException,msg:
-    print "Pyglet Error: %s" % str(msg)
+except pyglet.window.NoSuchConfigException, msg:
+    print "Pyglet Unhandled Error: %s" % str(msg)
     PYGLET_ENABLED = False
 
 Z_NEAR = 1.0

@@ -23,8 +23,8 @@ import lutris.constants as constants
 
 class LutrisConfig():
     """Class where all the configuration handling happens.
-    
-    Lutris configuration uses a cascading mecanism where 
+
+    Lutris configuration uses a cascading mecanism where
     each higher, more specific level override the lower ones.
 
     The config files are stored in a YAML format and are easy to edit manually.
@@ -33,7 +33,7 @@ class LutrisConfig():
     def __init__(self, runner=None, game=None):
         #Check if configuration directories exists and create them if needed.
         #FIXME: This isn't the right place for this piece of code, it has
-        #       nothing to do with configuration files.   
+        #       nothing to do with configuration files.
         config_paths = [constants.lutris_config_path,
                         constants.runner_config_path,
                         constants.GAME_CONFIG_PATH,
@@ -138,6 +138,17 @@ class LutrisConfig():
         logging.debug("removing %s" % game_name)
         os.remove(os.path.join(constants.GAME_CONFIG_PATH,
                                game_name + constants.CONFIG_EXTENSION))
+
+    def is_valid(self):
+        """
+        Check the config data and return True if config is ok
+        """
+        try:
+            self.runner_name = self.game_config["runner"]
+        except KeyError:
+            print "Error in %s config file : No runner" % self.game
+            return False
+        return True
 
     def save(self, type=None):
         """Save configuration file

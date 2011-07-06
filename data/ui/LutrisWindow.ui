@@ -83,16 +83,6 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkMenuItem" id="cedega_menuitem">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="use_action_appearance">False</property>
-                                <property name="label" translatable="yes">Cedega</property>
-                                <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_cedega" swapped="no"/>
-                              </object>
-                            </child>
-                            <child>
                               <object class="GtkMenuItem" id="steam_menuitem">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>

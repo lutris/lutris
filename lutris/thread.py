@@ -25,7 +25,6 @@ from os.path import exists
 from signal import SIGKILL
 
 from os import kill, killpg
-from lutris.runners.cedega import cedega
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
@@ -38,7 +37,6 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.pid = 99999
-        self.cedega = False
         self.killswitch = killswitch
         if type(self.killswitch) == type(str()) and not exists(self.killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
@@ -46,8 +44,6 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         self.timer_id = gobject.timeout_add(2000, self.poke_process)
-        if "cedega" in self.command:
-            self.cedega = True
         logging.debug(self.command)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,
@@ -71,19 +67,9 @@ class LutrisThread(threading.Thread):
                 kill(self.game_process.pid + 1, SIGKILL)
                 self.pid = None
                 return False
-        if self.cedega:
-            command = "ps -ef | grep winex_ver | grep -v grep | awk '{print $2}'"
-            pid = subprocess.Popen(command, shell=True,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE).communicate()
-            self.pid = []
-            for item in pid[0].split("\n"):
-                if item:
-                    self.pid.append(item)
-        else:
-            self.pid = self.game_process.pid
+        self.pid = self.game_process.pid
         self.return_code = self.game_process.poll()
-        if self.return_code is not None and not self.cedega:
+        if self.return_code is not None:
             logging.debug("Game quit")
             self.pid = None
             return False

@@ -58,7 +58,9 @@ class GameTreeView(gtk.TreeView):
     def add_row(self, game):
         model = self.get_model()
         s = "%s \n<small>%s</small>" % (game['name'], game['runner'])
-        icon_path = os.path.join(lutris.constants.DATA_PATH, 'media/runner_icons', game['runner'] + '.png')
+        icon_path = os.path.join(lutris.constants.DATA_PATH, 
+                                 'media/runner_icons',
+                                 game['runner'] + '.png')
         pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
                                                    ICON_SIZE, ICON_SIZE)
         row = model.append([game['id'], pix, s,])
@@ -74,7 +76,6 @@ class GameTreeView(gtk.TreeView):
 
 
 class DownloadProgressBox(gtk.HBox):
-
     __gsignals__ = {'complete' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
         (gobject.TYPE_PYOBJECT,)),
         'cancelrequested' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,

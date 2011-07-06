@@ -20,7 +20,7 @@ from xdg import BaseDirectory
 import sys
 
 name = "Lutris"
-version = "0.2.5"
+version = "0.2.6"
 website = "http://lutris.net"
 protocol_version = 1
 INSTALLER_URL = "http://lutris.net/media/installers/"
