@@ -44,7 +44,7 @@ from lutris.gui.googleimagedialog import GoogleImageDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
-from lutris.gui.widgets import GameTreeView
+from lutris.gui.widgets import GameTreeView, GameCover
 import lutris.coverflow.coverflow
 
 class LutrisWindow(gtk.Window):
@@ -63,7 +63,6 @@ class LutrisWindow(gtk.Window):
         # Widgets
         self.status_label = None
         self.menu = None
-        self.game_cover_image = None
         self.toolbar = None
 
         self.joystick_icons = []
@@ -88,52 +87,52 @@ class LutrisWindow(gtk.Window):
             else:
                 LAUNCHPAD_AVAILABLE = False
 
-        # TODO: The game_cover_image will be moved inot it's own widget
-        self.game_cover_image = self.builder.get_object("game_cover_image")
-        self.game_cover_image.set_from_file(
-            os.path.join(data_path, "media/background.png")
-        )
-        #Context menu
-        game_rename = "Rename", self.edit_game_name
-        game_config = "Configure", self.edit_game_configuration
-        game_get_cover = "Get cover", self.get_cover
-        menu_actions = [game_rename, game_config, game_get_cover]
+        self.game_cover = GameCover()
+        self.game_cover.show()
+        cover_alignment = self.builder.get_object('cover_alignment')
+        cover_alignment.add(self.game_cover)
+
+        #Contextual menu
+        play = 'Play', self.game_launch
+        rename = 'Rename', self.edit_game_name
+        config = 'Configure', self.edit_game_configuration
+        get_cover = 'Get cover', self.get_cover
         self.menu = gtk.Menu()
-        for item in menu_actions:
+        for item in [play, rename, config, get_cover]:
             if item == None:
                 subitem = gtk.SeparatorMenuItem()
             else:
                 subitem = gtk.ImageMenuItem(item[0])
-                subitem.connect("activate", item[1])
+                subitem.connect('activate', item[1])
                 self.menu.append(subitem)
         self.menu.show_all()
 
         #Status bar
-        self.status_label = self.builder.get_object("status_label")
-        self.status_label.set_text("Ready to roll !")
+        self.status_label = self.builder.get_object('status_label')
+        self.status_label.set_text('Insert coin')
 
         for index in range(4):
             self.joystick_icons.append(
-                    self.builder.get_object("js" + str(index) + "image")
+                self.builder.get_object('js' + str(index) + 'image')
             )
             self.joystick_icons[index].hide()
 
         # Toolbar
-        self.toolbar = self.builder.get_object("lutris_toolbar")
+        self.toolbar = self.builder.get_object('lutris_toolbar')
 
         # Game list
         self.game_list = get_list()
         self.game_treeview = GameTreeView(self.game_list)
         self.game_treeview.show()
         self.game_treeview.connect('row-activated', self.game_launch)
-        self.game_treeview.connect("cursor-changed", self.select_game)
-        self.game_treeview.connect("button-press-event", self.mouse_menu)
+        self.game_treeview.connect('cursor-changed', self.select_game)
+        self.game_treeview.connect('button-press-event', self.mouse_menu)
 
         self.game_column = self.game_treeview.get_column(1)
         self.game_cell = self.game_column.get_cell_renderers()[0]
         self.game_cell.connect('edited', self.game_name_edited_callback)
 
-        self.game_list_scrolledwindow = self.builder.get_object("game_list_scrolledwindow")
+        self.game_list_scrolledwindow = self.builder.get_object('game_list_scrolledwindow')
         self.game_list_scrolledwindow.add_with_viewport(self.game_treeview)
 
         # Set buttons state
@@ -327,9 +326,13 @@ class LutrisWindow(gtk.Window):
                     h = cover_pixbuf.get_height()
                     w = cover_pixbuf.get_width()
                     dest_h = h * (dest_w / w)
-                    self.game_cover_image.set_from_pixbuf(cover_pixbuf.scale_simple(int(dest_w), int(dest_h), gtk.gdk.INTERP_BILINEAR))
+                    self.game_cover.set_from_pixbuf(cover_pixbuf.scale_simple(
+                        int(dest_w), 
+                        int(dest_h),
+                        gtk.gdk.INTERP_BILINEAR
+                    ))
                     return
                 else:
-                    self.game_cover_image.set_from_file(
+                    self.game_cover.set_from_file(
                             os.path.join(DATA_PATH, "media/background.png")
                     )

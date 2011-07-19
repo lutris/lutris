@@ -288,14 +288,15 @@
               </packing>
             </child>
             <child>
-              <object class="GtkImage" id="game_cover_image">
-                <property name="width_request">250</property>
+              <object class="GtkAlignment" id="cover_alignment">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="stock">gtk-missing-image</property>
+                <child>
+                  <placeholder/>
+                </child>
               </object>
               <packing>
-                <property name="resize">False</property>
+                <property name="resize">True</property>
                 <property name="shrink">True</property>
               </packing>
             </child>

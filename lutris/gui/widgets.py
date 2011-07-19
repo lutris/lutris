@@ -58,7 +58,7 @@ class GameTreeView(gtk.TreeView):
     def add_row(self, game):
         model = self.get_model()
         s = "%s \n<small>%s</small>" % (game['name'], game['runner'])
-        icon_path = os.path.join(lutris.constants.DATA_PATH, 
+        icon_path = os.path.join(lutris.constants.DATA_PATH,
                                  'media/runner_icons',
                                  game['runner'] + '.png')
         pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
@@ -74,6 +74,27 @@ class GameTreeView(gtk.TreeView):
         model = self.get_model()
         gtk.TreeModelSort(model)
 
+class GameCover(gtk.Image):
+    def __init__(self, parent=None):
+        super(GameCover, self).__init__()
+        self.set_from_file(os.path.join(
+            lutris.constants.DATA_PATH, "media/background.png"
+        ))
+        self.connect('drag_data_received', self.on_cover_drop)
+        targets = [('text/plain',0 , 100)]
+        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets, gtk.gdk.ACTION_ASK)
+
+    def on_cover_drop(self, widget, context, x, y, selection, target, ts):
+        # TODO : Change mouse cursor if no game is selected
+        print selection.data
+        file_path = selection.data
+        if file_path.startswith('file://'):
+            file_path = file_path[7:]
+        else:
+            # TODO : Handle http: (and smb:, stuff like that)
+            return True
+        print "matching %s" % file_path
+        return True
 
 class DownloadProgressBox(gtk.HBox):
     __gsignals__ = {'complete' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,

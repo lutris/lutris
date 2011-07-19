@@ -57,11 +57,11 @@ parser.add_option("-v", "--verbose", action="store_true",
                   dest="verbose", help="Verbose output")
 parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
-parser.add_option("-i", "--install", dest="installer_file", 
+parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
 (options, args) = parser.parse_args()
 
-    
+
 
 # Set the logging level to show debug messages.
 if options.debug:
@@ -98,7 +98,7 @@ for arg in args:
         break
 if game is not None:
     if isinstance(game, str):
-        file_path = os.path.join(GAME_CONFIG_PATH, 
+        file_path = os.path.join(GAME_CONFIG_PATH,
                                  game + CONFIG_EXTENSION)
     else:
         file_path = None
@@ -108,6 +108,7 @@ if game is not None:
     	lutris_game = lutris.game.LutrisGame(game)
     	lutris_game.play()
     else:
+        log.logger.debug('File %s does not exist, installing game' % file_path)
         installer = Installer(game, installer)
         gtk.main()
 else:
