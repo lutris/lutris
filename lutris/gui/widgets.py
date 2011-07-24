@@ -81,8 +81,14 @@ class GameCover(gtk.Image):
             lutris.constants.DATA_PATH, "media/background.png"
         ))
         self.connect('drag_data_received', self.on_cover_drop)
-        targets = [('text/plain',0 , 100)]
-        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets, gtk.gdk.ACTION_ASK)
+        targets = [('text/plain',0, 0),
+                   ('text/uri-list',0, 0),
+                   ('text/html',0, 0),
+                   ('text/unicode',0, 0),
+                   ('text/x-moz-url',0, 0)
+                   ]
+        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets, 
+            gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT | gtk.gdk.ACTION_MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         # TODO : Change mouse cursor if no game is selected
@@ -90,8 +96,11 @@ class GameCover(gtk.Image):
         file_path = selection.data
         if file_path.startswith('file://'):
             file_path = file_path[7:]
+            # TODO : Copy local file to cache directory
+        elif file_path.startswith('http://'):
+            # TODO : Download file to cache directory
         else:
-            # TODO : Handle http: (and smb:, stuff like that)
+            # TODO : Handle smb:, stuff like that
             return True
         print "matching %s" % file_path
         return True

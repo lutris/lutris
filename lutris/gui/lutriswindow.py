@@ -96,7 +96,7 @@ class LutrisWindow(gtk.Window):
         rename = 'Rename', self.edit_game_name
         config = 'Configure', self.edit_game_configuration
         self.menu = gtk.Menu()
-        for item in [play, rename, config, get_cover]:
+        for item in [play, rename, config]:
             if item == None:
                 subitem = gtk.SeparatorMenuItem()
             else:
