@@ -40,7 +40,6 @@ from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
 from lutris.gui.installerdialog import InstallerDialog
 from lutris.gui.systemconfigdialog import SystemConfigDialog
-from lutris.gui.googleimagedialog import GoogleImageDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
@@ -96,7 +95,6 @@ class LutrisWindow(gtk.Window):
         play = 'Play', self.game_launch
         rename = 'Rename', self.edit_game_name
         config = 'Configure', self.edit_game_configuration
-        get_cover = 'Get cover', self.get_cover
         self.menu = gtk.Menu()
         for item in [play, rename, config, get_cover]:
             if item == None:
@@ -308,11 +306,6 @@ class LutrisWindow(gtk.Window):
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
 
-    def get_cover(self, button):
-        """Fetch cover from Google Image"""
-        game = self.get_selected_game()
-        GoogleImageDialog(game)
-
     def set_game_cover(self):
         if self.gameName:
             extensions = ["png", "jpg", "jpeg"]
@@ -327,7 +320,7 @@ class LutrisWindow(gtk.Window):
                     w = cover_pixbuf.get_width()
                     dest_h = h * (dest_w / w)
                     self.game_cover.set_from_pixbuf(cover_pixbuf.scale_simple(
-                        int(dest_w), 
+                        int(dest_w),
                         int(dest_h),
                         gtk.gdk.INTERP_BILINEAR
                     ))
