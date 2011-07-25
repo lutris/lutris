@@ -92,13 +92,17 @@ class GameCover(gtk.Image):
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         # TODO : Change mouse cursor if no game is selected
-        print selection.data
-        file_path = selection.data
+        #        of course, it's not handled here 
+        file_path = selection.data.strip()
+        print file_path
+        if file_path.endswith(('.png', '.jpg', '.gif', '.bmp')):
+            print "hmm, seems legit"
         if file_path.startswith('file://'):
             file_path = file_path[7:]
             # TODO : Copy local file to cache directory
         elif file_path.startswith('http://'):
             # TODO : Download file to cache directory
+            pass
         else:
             # TODO : Handle smb:, stuff like that
             return True
