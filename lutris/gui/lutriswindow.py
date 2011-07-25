@@ -86,8 +86,9 @@ class LutrisWindow(gtk.Window):
             else:
                 LAUNCHPAD_AVAILABLE = False
 
-        self.game_cover = GameCover()
+        self.game_cover = GameCover(parent=self)
         self.game_cover.show()
+        self.game_cover.desactivate_drop()
         cover_alignment = self.builder.get_object('cover_alignment')
         cover_alignment.add(self.game_cover)
 
@@ -218,6 +219,7 @@ class LutrisWindow(gtk.Window):
         self.play_button.set_sensitive(True)
         self.reset_button.set_sensitive(True)
         self.delete_button.set_sensitive(True)
+        self.game_cover.activate_drop()
 
         gameSelection = treeview.get_selection()
         model, select_iter = gameSelection.get_selected()

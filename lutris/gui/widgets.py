@@ -24,7 +24,9 @@ import gtk
 import gobject
 import gio
 import pango
+from shutil import copy
 from lutris.downloader import Downloader
+from lutris.constants import COVER_PATH, DATA_PATH
 import lutris.constants
 
 ICON_SIZE = 24
@@ -77,36 +79,41 @@ class GameTreeView(gtk.TreeView):
 class GameCover(gtk.Image):
     def __init__(self, parent=None):
         super(GameCover, self).__init__()
-        self.set_from_file(os.path.join(
-            lutris.constants.DATA_PATH, "media/background.png"
-        ))
+        self.parent_window = parent
+        self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
         self.connect('drag_data_received', self.on_cover_drop)
+
+    def desactivate_drop(self):
+        self.drag_dest_unset()
+        
+    def activate_drop(self):
         targets = [('text/plain',0, 0),
                    ('text/uri-list',0, 0),
                    ('text/html',0, 0),
                    ('text/unicode',0, 0),
                    ('text/x-moz-url',0, 0)
                    ]
-        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets, 
+        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets,
             gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT | gtk.gdk.ACTION_MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         # TODO : Change mouse cursor if no game is selected
-        #        of course, it's not handled here 
+        #        of course, it's not handled here
         file_path = selection.data.strip()
-        print file_path
-        if file_path.endswith(('.png', '.jpg', '.gif', '.bmp')):
-            print "hmm, seems legit"
+        if not file_path.endswith(('.png', '.jpg', '.gif', '.bmp')):
+            return True
+        game = self.parent_window.get_selected_game()
+        dest_image = os.path.join(COVER_PATH, game + file_path[-4:])
         if file_path.startswith('file://'):
             file_path = file_path[7:]
-            # TODO : Copy local file to cache directory
+            copy(file_path, dest_image)
         elif file_path.startswith('http://'):
             # TODO : Download file to cache directory
             pass
         else:
             # TODO : Handle smb:, stuff like that
             return True
-        print "matching %s" % file_path
+        self.set_from_file(dest_image)
         return True
 
 class DownloadProgressBox(gtk.HBox):
