@@ -85,7 +85,7 @@ class GameCover(gtk.Image):
 
     def desactivate_drop(self):
         self.drag_dest_unset()
-        
+
     def activate_drop(self):
         targets = [('text/plain',0, 0),
                    ('text/uri-list',0, 0),
@@ -142,20 +142,19 @@ class DownloadProgressBox(gtk.HBox):
         self.dest = params['dest']
 
     def start(self):
+        print "starting to download %s" % self.url
         self.downloader = Downloader(self.url, self.dest)
         self.timer_id = gobject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()
 
     def progress(self):
-        if self.downloader is None:
-            return False
-        data = max(self.downloader.progress, 100)
-        frac = data/100.0
-        self.progressbar.set_fraction(frac)
-        self.progressbar.set_text("%d %%" % data)
-        if data == 100:
-            self.downloader = None
+        progress = min(self.downloader.progress, 1)
+        self.progressbar.set_fraction(progress)
+        percent = progress * 100
+        self.progressbar.set_text("%d %%" % percent)
+        if progress >= 1.0:
+            print "download has completed"
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False
@@ -164,9 +163,8 @@ class DownloadProgressBox(gtk.HBox):
     def __stop_download(self, widget):
         self.downloader.kill = True
         self.cancel_button.set_sensitive(False)
-        self.downloader = None
+        #self.downloader = None
 
     def cancel(self):
-        if self.downloader != None:
-            self.downloader.kill()
-            self.downloader = None
+        print "cancelling download"
+        self.downloader.kill()

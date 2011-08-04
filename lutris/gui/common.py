@@ -67,17 +67,30 @@ class DirectoryDialog:
 
 class DownloadDialog(gtk.Dialog):
     def __init__(self, url, dest):
-        gtk.Dialog.__init__(self, "Downloading files")
+        print "creating download dialog"
+        gtk.Dialog.__init__(self, "Downloading file")
+        self.quit_gtk = False
+        self.set_size_request(560,100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
-        self.download_progress_box.connect('complete', self.destroy_cb)
+        self.download_progress_box.connect('complete', self.download_complete)
         label = gtk.Label('Downloading %s' % url)
-        self.vbox.pack_start(label)
-        self.vbox.pack_start(self.download_progress_box)
+        label.set_padding(0,0)
+        label.set_alignment(0.0,1.0)
+        self.vbox.pack_start(label, True, True, 0)
+        self.vbox.pack_start(self.download_progress_box, True,False, 0)
         self.show_all()
         self.download_progress_box.start()
 
     def destroy_cb(self, widget, data=None):
+        self.download_cancel(None)
         self.destroy()
+        if self.quit_gtk is True:
+            gtk.main_quit()
 
+    def download_cancel(self, widget, data=None):
+        self.download_progress_box.cancel()
+
+    def download_complete(self, widget, data=None):
+        print "download is complete"

@@ -35,17 +35,22 @@ class Downloader(threading.Thread):
         self.dest = dest
         self.progress = 0
         self.kill = None
+        print "init done"
 
     def run(self):
         """Start the download."""
+        print "starting download"
         urllib.urlretrieve(self.url, self.dest, self._report_progress)
         return True
 
     def _report_progress(self, piece, received_bytes, total_size):
-        self.progress = ((piece * received_bytes) * 100) / total_size
+        self.progress = ((piece * received_bytes)) / (total_size * 1.0)
+        #print "Download progress : %f" % self.progress
+
         try:
             if self.kill is True:
-                raise DownloadStoppedException 
+                raise DownloadStoppedException
         except DownloadStoppedException:
             pass
-            
+            print "stopping download"
+

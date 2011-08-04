@@ -115,7 +115,7 @@ class Installer(gtk.Dialog):
         success = self.pre_install()
         if not success:
             log.logger.error("Unable to install game")
-            log.logger.error(installer.installer_errors)
+            log.logger.error(self.installer_errors)
             if 'INSTALLER_UNREACHABLE' in self.installer_errors:
             	ErrorDialog("Can't find an installer for \"%s\""
                      	     % self.game_name)
@@ -137,6 +137,8 @@ class Installer(gtk.Dialog):
             success = self.download_installer()
             if not success:
                 return False
+        else:
+            log.logger.debug('Using local copy of the installer')
         # Parse installer file
         success = self.parseconfig()
         self.games_dir = self.lutris_config.get_path()
@@ -218,7 +220,7 @@ class Installer(gtk.Dialog):
 
         for gamefile in files:
             file_id = gamefile.keys()[0]
-            # Game files can be either a string, containing the location of the 
+            # Game files can be either a string, containing the location of the
             # file to fetch or a dict with the possible options :
             # - url : location of file (mandatory)
             # - filename : force destination filename
@@ -269,7 +271,7 @@ class Installer(gtk.Dialog):
         return True
 
     def _download(self, url, filename=None, copyfile=True):
-        """ Downloads a file. 
+        """ Downloads a file.
         Not necessarily downloading a file but fetching it from anywhere.
         url: location of the file to fetch
         destfile: force filename of destfile
@@ -374,5 +376,5 @@ class Installer(gtk.Dialog):
 
     def _locate(self):
         return None
-    
+
 

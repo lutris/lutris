@@ -47,12 +47,20 @@ license = """
 #Paths
 
 LAUNCH_PATH = realpath(sys.path[0])
-if not LAUNCH_PATH.startswith('/usr'):
-    DATA_PATH = normpath(join(sys.path[0], 'data'))
-else:
+print "searchin data path"
+if LAUNCH_PATH.startswith('/usr'):
     DATA_PATH = '/usr/share/lutris'
+elif exists(normpath(join(sys.path[0], 'data'))):
+    print "data path exists"
+
+    DATA_PATH = normpath(join(sys.path[0], 'data')) 
+else:
+    lutris_path = dirname(lutris.__file__)
+    print "lutris is located in %s" % lutris_path
+    DATA_PATH = lutris_path
 if not exists(DATA_PATH):
     print "DATA_PATH can't be found at : %s" % DATA_PATH
+    exit
 lutris_icon_file = "media/logo.svg"
 lutris_icon_path = join(DATA_PATH, lutris_icon_file)
 

@@ -26,7 +26,7 @@ from lutris.runners.runner import Runner
 
 class sdlmame(Runner):
     def __init__(self,settings=None):
-        self.executable = "sdlmame"
+        self.executable = "mame"
         self.package = "sdlmame"
         self.description = "Runs arcade games with SDLMame"
         self.machine = "Arcade"
@@ -34,7 +34,7 @@ class sdlmame(Runner):
         self.fullscreen = True
         self.game_options = [{"option": "rom", "type":"single","label":"Rom file"}]
         self.runner_options = [{"option":"windowed","type":"bool","label":"Windowed"}]
-                
+
         if settings:
             self.romdir = os.path.dirname(settings["game"]["rom"])
             self.rom = os.path.basename(settings["game"]["rom"])
@@ -43,7 +43,7 @@ class sdlmame(Runner):
                 if "windowed" in settings["sdlmame"]:
                     self.fullscreen = not settings["sdlmame"]["windowed"]
 
-    
+
     def play(self):
         if not os.path.exists(os.path.join(self.mameconfigdir,"mame.ini")):
             try:
