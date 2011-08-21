@@ -2,7 +2,7 @@
 ###############################################################################
 ## Lutris
 ##
-## Copyright (C) 2010 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -22,9 +22,8 @@
 import os
 import gtk
 import gobject
-import gio
 import pango
-from shutil import copy
+import Image
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH, DATA_PATH
 import lutris.constants
@@ -83,6 +82,24 @@ class GameCover(gtk.Image):
         self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
         self.connect('drag_data_received', self.on_cover_drop)
 
+    def set_game_cover(self, name):
+        coverFile = os.path.join(COVER_PATH, name + ".jpg")
+        if os.path.exists(coverFile):
+            #Resize the image
+            cover_pixbuf = gtk.gdk.pixbuf_new_from_file(coverFile)
+            dest_w = 250.0
+            h = cover_pixbuf.get_height()
+            w = cover_pixbuf.get_width()
+            dest_h = h * (dest_w / w)
+            self.set_from_pixbuf(cover_pixbuf.scale_simple(
+                int(dest_w),
+                int(dest_h),
+                gtk.gdk.INTERP_BILINEAR
+            ))
+            return
+        else:
+            self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
+
     def desactivate_drop(self):
         self.drag_dest_unset()
 
@@ -98,22 +115,24 @@ class GameCover(gtk.Image):
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         # TODO : Change mouse cursor if no game is selected
-        #        of course, it's not handled here
+        #        of course, it must not be handled here
         file_path = selection.data.strip()
         if not file_path.endswith(('.png', '.jpg', '.gif', '.bmp')):
             return True
         game = self.parent_window.get_selected_game()
-        dest_image = os.path.join(COVER_PATH, game + file_path[-4:])
         if file_path.startswith('file://'):
-            file_path = file_path[7:]
-            copy(file_path, dest_image)
+            image_path = file_path[7:]
+            im = Image.open(image_path)
+            im.thumbnail((400, 600), Image.ANTIALIAS)
+            dest_image = os.path.join(COVER_PATH, game + ".jpg")
+            im.save(dest_image, "JPEG")
         elif file_path.startswith('http://'):
             # TODO : Download file to cache directory
             pass
         else:
             # TODO : Handle smb:, stuff like that
             return True
-        self.set_from_file(dest_image)
+        self.set_game_cover(game)
         return True
 
 class DownloadProgressBox(gtk.HBox):

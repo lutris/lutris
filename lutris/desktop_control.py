@@ -21,7 +21,6 @@
 This class interacts with the window manager, xrandr, gconf, ...
 """
 
-import os
 import os.path
 from subprocess import Popen, PIPE
 
@@ -125,7 +124,7 @@ class LutrisDesktopControl():
         won't hide the panels in fullscreen mode.
         """
         if not GCONF_CAPABLE:
-        	return False
+            return False
         base_dir = "/apps/panel/toplevels/"
         panels = self.gconf.all_dirs(base_dir)
         for panel in panels:
@@ -143,7 +142,7 @@ class LutrisDesktopControl():
         This is needed, for example, in Wolfenstein (2009)
         """
         if not GCONF_CAPABLE:
-        	return False
+            return False
         gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
         self.gconf.set_key(gconf_key, gconf_value)
         return True

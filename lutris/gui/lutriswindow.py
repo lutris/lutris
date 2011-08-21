@@ -28,12 +28,9 @@ except ImportError:
 import gtk
 import os
 import gobject
-import logging
 
-import lutris.runners
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
-from lutris.constants import DATA_PATH
 from lutris.gui.common import NoticeDialog
 from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -211,10 +208,7 @@ class LutrisWindow(gtk.Window):
         return game_name
 
     def select_game(self, treeview):
-        """ Method triggered when a game is selected in the list.
-
-        """
-
+        """ Method triggered when a game is selected in the list. """
         #Set buttons states
         self.play_button.set_sensitive(True)
         self.reset_button.set_sensitive(True)
@@ -224,8 +218,8 @@ class LutrisWindow(gtk.Window):
         gameSelection = treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
         if select_iter:
-            self.gameName = model.get_value(select_iter, 0)
-            self.set_game_cover()
+            self.game_name = model.get_value(select_iter, 0)
+            self.game_cover.set_game_cover(self.game_name)
 
     def game_launch(self, treeview=None, arg1=None, arg2=None):
         self.running_game = LutrisGame(self.get_selected_game())
@@ -259,7 +253,7 @@ class LutrisWindow(gtk.Window):
             LutrisDesktopControl().reset_desktop()
 
     def install_game(self, widget, data=None):
-        installer_dialog = InstallerDialog(self)
+        InstallerDialog(self)
 
     def add_game(self, widget, data=None):
         add_game_dialog = AddGameDialog(self)
@@ -288,8 +282,6 @@ class LutrisWindow(gtk.Window):
     def runner_preferences(self, widget, data=None):
         RunnersDialog()
 
-    def on_mount_iso_menuitem_activate(self, widget):
-        MountIsoDialog()
 
     def edit_game_name(self, button):
         """Change game name"""
@@ -308,26 +300,4 @@ class LutrisWindow(gtk.Window):
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
 
-    def set_game_cover(self):
-        if self.gameName:
-            extensions = ["png", "jpg", "jpeg"]
-            for extension in extensions:
-                coverFile = os.path.join(lutris.constants.COVER_PATH,
-                                         self.gameName + "." + extension)
-                if os.path.exists(coverFile):
-                    #Resize the image
-                    cover_pixbuf = gtk.gdk.pixbuf_new_from_file(coverFile)
-                    dest_w = 250.0
-                    h = cover_pixbuf.get_height()
-                    w = cover_pixbuf.get_width()
-                    dest_h = h * (dest_w / w)
-                    self.game_cover.set_from_pixbuf(cover_pixbuf.scale_simple(
-                        int(dest_w),
-                        int(dest_h),
-                        gtk.gdk.INTERP_BILINEAR
-                    ))
-                    return
-                else:
-                    self.game_cover.set_from_file(
-                            os.path.join(DATA_PATH, "media/background.png")
-                    )
+

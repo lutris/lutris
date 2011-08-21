@@ -63,7 +63,6 @@ def untar(filename, dest=None, method='gzip'):
 
 def run_installer(filename):
     """Run an installer of .sh or .run type"""
-
     subprocess.call(["chmod", "+x", filename])
     subprocess.call([filename])
 
@@ -77,15 +76,12 @@ class Installer(gtk.Dialog):
     """ Lutris installer """
 
     def __init__(self, game, installer=False):
-        gtk.Dialog.__init__(self)
-        self.set_default_size(640,480)
+        # Internal game config
         self.lutris_config = None
+
+        # Name of the game
         self.game_name = game
-        if installer is False:
-            self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
-                                                    self.game_name + ".yml")
-        else:
-            self.installer_dest_path = installer
+
         # Stores a list of actions that will be sent back to the user
         # in order to complete the installation
         self.installer_user_actions = []
@@ -106,22 +102,64 @@ class Installer(gtk.Dialog):
         # Dictionary of the files needed to install the game
         self.gamefiles = {}
 
-        button = gtk.Button('Install')
-        button.connect('clicked', self.launch_install)
-        self.vbox.pack_start(button, False, False)
-        self.show_all()
-
-    def launch_install(self,widget, data=None):
+        if installer is False:
+            self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
+                                                    self.game_name + ".yml")
+        else:
+            self.installer_dest_path = installer
         success = self.pre_install()
         if not success:
             log.logger.error("Unable to install game")
             log.logger.error(self.installer_errors)
             if 'INSTALLER_UNREACHABLE' in self.installer_errors:
-            	ErrorDialog("Can't find an installer for \"%s\""
-                     	     % self.game_name)
+                ErrorDialog("Can't find an installer for \"%s\""
+                                % self.game_name)
         else:
             log.logger.info("Ready! Launching installer.")
-            self.install()
+
+        gtk.Dialog.__init__(self)
+        self.set_default_size(600,480)
+        self.set_resizable(False)
+        self.connect('destroy', lambda q: gtk.main_quit())
+
+        banner = gtk.Image()
+        banner.set_from_file('/home/strider/quake-banner.jpg')
+        self.vbox.pack_start(banner, False, False)
+
+        description = gtk.Label()
+        description.set_markup('Quake is a classic FPS released by iD Software in 1996')
+        description.set_padding(20, 20)
+        self.vbox.pack_start(description, True, True)
+
+        separator = gtk.HSeparator()
+        self.vbox.pack_start(separator, True, True)
+
+        button = gtk.Button('Install')
+        button.connect('clicked', self.install)
+
+        alignment = gtk.Alignment()
+        alignment.set(0.95,0.1,0.15,0)
+        alignment.set_padding(10,10,0,0)
+        alignment.add(button)
+        
+        self.vbox.pack_start(alignment, False, False)
+        self.show_all()
+
+    def download_installer(self):
+        """ Save the downloaded installer to disk. """
+
+        full_url = INSTALLER_URL + self.game_name + '.yml'
+        request = urllib2.Request(url=full_url)
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.URLError:
+            log.logger.debug("Server is unreachable")
+            self.installer_errors.append("INSTALLER_UNREACHABLE")
+            success = False
+        else:
+            urllib.urlretrieve(full_url, self.installer_dest_path)
+            success = True
+        return success
 
     def set_games_dir(self, path):
         """ Set the base path where the game will be installed """
@@ -153,8 +191,9 @@ class Installer(gtk.Dialog):
 
         return success
 
-    def install(self):
+    def install(self, widget=None, data=None):
         """ Runs the actions to complete the install. """
+        self.download_game_files()
         os.chdir(self.game_dir)
 
         for action in self.installer_actions:
@@ -173,30 +212,9 @@ class Installer(gtk.Dialog):
             mappings[action_name](action_data)
         self.write_config()
 
-    def download_installer(self):
-        """ Save the downloaded installer to disk. """
-
-        full_url = INSTALLER_URL + self.game_name + '.yml'
-        request = urllib2.Request(url=full_url)
-        try:
-            response = urllib2.urlopen(request)
-        except urllib2.URLError:
-            log.logger.debug("Server is unreachable")
-            self.installer_errors.append("INSTALLER_UNREACHABLE")
-            success = False
-        else:
-            DownloadDialog(full_url, self.installer_dest_path)
-            #installer_file = open(self.installer_dest_path, "w")
-            #installer_file.write(response.read())
-            #installer_file.close()
-            success = True
-
-        return success
-
     def parseconfig(self):
         """ Reads the installer file. """
 
-        print "reading config"
         self.install_data = yaml.load(file(self.installer_dest_path, 'r').read())
 
         #Checking protocol
@@ -213,12 +231,17 @@ class Installer(gtk.Dialog):
         for field in optional_fields:
             if field in self.install_data:
                 self.game_info[field] = self.install_data[field]
-        files = self.install_data['files']
+        self.game_files = self.install_data['files']
 
         self.game_name = self.install_data['name']
         self.game_slug = os.path.basename(self.installer_dest_path)[:-4]
 
-        for gamefile in files:
+        self.installer_actions = self.install_data['installer']
+        self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
+        return True
+
+    def download_game_files(self):
+        for gamefile in self.game_files:
             file_id = gamefile.keys()[0]
             # Game files can be either a string, containing the location of the
             # file to fetch or a dict with the possible options :
@@ -240,8 +263,6 @@ class Installer(gtk.Dialog):
                 filename = None
             dest_path = self._download(url, filename, copyfile)
             self.gamefiles[file_id] = dest_path
-        self.installer_actions = self.install_data['installer']
-        self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
         return True
 
     def write_config(self):
