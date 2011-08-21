@@ -108,7 +108,7 @@ if game is not None:
     	lutris_game = lutris.game.LutrisGame(game)
     	lutris_game.play()
     else:
-        log.logger.debug('File %s does not exist, installing game' % file_path)
+        log.logger.debug('Installing %s' % game)
         installer = Installer(game, installer)
         gtk.main()
 else:

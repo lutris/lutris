@@ -27,12 +27,14 @@ import yaml
 import shutil
 import urllib
 import urllib2
+import platform
 import subprocess
 import lutris.constants
 from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL
 
 from lutris.config import LutrisConfig
-from lutris.gui.common import DownloadDialog, ErrorDialog, DirectoryDialog
+from lutris.gui.common import ErrorDialog, DirectoryDialog
+from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import log
 
 def unzip(filename, dest=None):
@@ -110,12 +112,10 @@ class Installer(gtk.Dialog):
         success = self.pre_install()
         if not success:
             log.logger.error("Unable to install game")
-            log.logger.error(self.installer_errors)
-            if 'INSTALLER_UNREACHABLE' in self.installer_errors:
-                ErrorDialog("Can't find an installer for \"%s\""
-                                % self.game_name)
         else:
             log.logger.info("Ready! Launching installer.")
+
+        self.download_progress = None
 
         gtk.Dialog.__init__(self)
         self.set_default_size(600,480)
@@ -131,18 +131,35 @@ class Installer(gtk.Dialog):
         description.set_padding(20, 20)
         self.vbox.pack_start(description, True, True)
 
+        # Install location
+        self.status_label = gtk.Label()
+        self.status_label.set_markup('<b>Select installation directory:</b>')
+        self.status_label.set_alignment(0,0)
+        self.status_label.set_padding(20,0)
+        self.vbox.pack_start(self.status_label, True, True,2)
+
+        self.widget_box = gtk.HBox()
+        self.vbox.pack_start(self.widget_box)
+
+        self.location_button = gtk.FileChooserButton("Select folder")
+        self.location_button.set_current_folder(os.path.expanduser('~') + "/quake")
+        self.location_button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        self.location_button.connect("file-set", self.game_dir_set)
+        self.widget_box.pack_start(self.location_button)
+
         separator = gtk.HSeparator()
-        self.vbox.pack_start(separator, True, True)
+        self.vbox.pack_start(separator, True, True, 10)
 
-        button = gtk.Button('Install')
-        button.connect('clicked', self.install)
+        # Install button
+        self.install_button = gtk.Button('Install')
+        self.install_button.connect('clicked', self.install)
+        self.install_button.set_sensitive(False)
 
-        alignment = gtk.Alignment()
-        alignment.set(0.95,0.1,0.15,0)
-        alignment.set_padding(10,10,0,0)
-        alignment.add(button)
+        self.action_buttons = gtk.Alignment()
+        self.action_buttons.set(0.95,0.1,0.15,0)
+        self.action_buttons.add(self.install_button)
         
-        self.vbox.pack_start(alignment, False, False)
+        self.vbox.pack_start(self.action_buttons, False, False)
         self.show_all()
 
     def download_installer(self):
@@ -177,23 +194,40 @@ class Installer(gtk.Dialog):
                 return False
         else:
             log.logger.debug('Using local copy of the installer')
+
+        if 'INSTALLER_UNREACHABLE' in self.installer_errors:
+            ErrorDialog("Can't find an installer for \"%s\""
+                            % self.game_name)
+            return False 
+
         # Parse installer file
         success = self.parseconfig()
         self.games_dir = self.lutris_config.get_path()
+
         if not self.games_dir:
-            self.installer_user_actions.append("ask_games_dir")
-            log.logger.debug('Install dir missing')
-            return False
+            return True
 
         self.game_dir = os.path.join(self.games_dir, self.game_name)
         if not os.path.exists(self.game_dir):
             os.mkdir(self.game_dir)
 
+        location_button.set_current_folder(self.game_dir)
         return success
+
+    def game_dir_set(self, widget=None, data=None):
+        self.game_dir = widget.get_current_folder()
+        if os.path.exists(self.game_dir):
+            self.install_button.set_sensitive(True)
 
     def install(self, widget=None, data=None):
         """ Runs the actions to complete the install. """
+        
+        self.location_button.destroy()
+        self.install_button.set_sensitive(False)
+
         self.download_game_files()
+        if self.download_progress is not None:
+            self.download_progress.destroy()
         os.chdir(self.game_dir)
 
         for action in self.installer_actions:
@@ -210,8 +244,16 @@ class Installer(gtk.Dialog):
                 print "Action " + action_name + " not supported !"
                 return False
             mappings[action_name](action_data)
+        self.status_label.set_text("Writing configuration")
         self.write_config()
 
+        self.status_label.set_text("Installation finished !")
+        self.install_button.destroy()
+        self.play_button = gtk.Button("Launch game")
+        self.play_button.show()
+        self.play_button.connect('clicked', self.launch_game)
+        self.action_buttons.add(self.play_button)
+        
     def parseconfig(self):
         """ Reads the installer file. """
 
@@ -225,7 +267,7 @@ class Installer(gtk.Dialog):
             return False
 
         mandatory_fields = ['version', 'runner', 'name']
-        optional_fields = ['exe', 'iso', 'rom']
+        optional_fields = ['exe', 'exe64','iso', 'rom']
         for field in mandatory_fields:
             self.game_info[field] = self.install_data[field]
         for field in optional_fields:
@@ -273,11 +315,20 @@ class Installer(gtk.Dialog):
         config_data = {'game': {},
                        'realname': self.game_info['name'],
                        'runner': self.game_info['runner']}
-        launchers = ['exe', 'iso', 'rom']
-
+        if 'exe64' in self.game_info and platform.machine() == "x86_64":
+            exe = "exe64"
+        else:
+            exe = "exe"
+        launchers = [exe, 'iso', 'rom']
+        
         for launcher in launchers:
-            if(launcher in self.game_info):
-                config_data['game'][launcher] = os.path.join(self.game_dir,
+            if launcher in self.game_info:
+                if launcher == "exe64":
+                    key = "exe"
+                else:
+                    key = launcher
+
+                config_data['game'][key] = os.path.join(self.game_dir,
                                                              self.game_info[launcher])
 
         yaml_config = yaml.dump(config_data, default_flow_style=False)
@@ -300,7 +351,7 @@ class Installer(gtk.Dialog):
         return the path of local file
         """
 
-        log.logger.debug('Downloading ' + url)
+        self.status_label.set_text('Fetching %s' % url)
         dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_slug)
         if not os.path.exists(dest_dir):
             os.mkdir(dest_dir)
@@ -322,7 +373,10 @@ class Installer(gtk.Dialog):
                 location = os.path.join(file_path, basename)
                 shutil.copy(location, dest_dir)
         else:
-            DownloadDialog(url, dest_file)
+            self.dowload_progress = DownloadProgressBox({'url': url, 'dest': dest_file}, cancelable=False)
+            self.widget_box.pack_start(self.download_progress, True, True)
+            self.download_progress.show()
+            self.download_progress.start()
         return dest_file
 
     def delete(self, data):
@@ -342,7 +396,7 @@ class Installer(gtk.Dialog):
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
 
-        print 'extracting ' + data['file']
+        self.status_label.set_text("Extracting %s" % data['file'])
         filename = self.gamefiles[data['file']]
         extension = filename[filename.rfind(".") + 1:]
 
@@ -356,6 +410,7 @@ class Installer(gtk.Dialog):
     def _move(self, data):
         """ Moves a file. """
         src = data['src']
+        self.status_label.set_text("Moving %s" % src)
         if src in self.gamefiles.keys():
             src = self.gamefiles[src]
         destination_alias = data['dst']
@@ -398,4 +453,10 @@ class Installer(gtk.Dialog):
     def _locate(self):
         return None
 
+    def launch_game(self, widget, data=None):
+        from lutris.game import LutrisGame
+        lutris_game = LutrisGame(self.game_slug)
+        lutris_game.play()
+        
+        
 

@@ -54,7 +54,7 @@ class QuestionDialog:
 
 class DirectoryDialog:
     """Ask the user to select a directory"""
-    def __init__(self, message):
+    def __init__(self, message, default_path=None):
         dialog = gtk.FileChooserDialog(
                 title=message,
                 action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
