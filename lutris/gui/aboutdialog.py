@@ -15,7 +15,6 @@
 ### END LICENSE
 
 import os
-import gtk
 import gtk.gdk
 import lutris.constants
 
@@ -52,7 +51,7 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.set_name(lutris.constants.name)
         self.set_version(lutris.constants.version)
         self.set_copyright(lutris.constants.copyright)
-        self.set_license(lutris.constants.license)
+        self.set_license(lutris.constants.license_text)
         self.set_authors(lutris.constants.authors)
         self.set_artists(lutris.constants.artists)
         self.set_website(lutris.constants.website)

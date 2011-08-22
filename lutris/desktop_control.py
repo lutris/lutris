@@ -55,8 +55,7 @@ def get_resolutions():
 
 def get_current_resolution():
     """Return the current resolution for the desktop."""
-    xrandr_output = Popen("xrandr",
-                          stdout=PIPE).communicate()[0]
+    xrandr_output = Popen("xrandr", stdout=PIPE).communicate()[0]
     for line in xrandr_output.split("\n"):
         if line.startswith("  ") and "*" in line:
             return line.split()[0]
@@ -66,8 +65,7 @@ def change_resolution(resolution):
     """change desktop resolution"""
     if resolution not in get_resolutions():
         return False
-    Popen("xrandr -s %s" % resolution,
-          shell=True).communicate()[0]
+    Popen("xrandr -s %s" % resolution, shell=True).communicate()[0]
     return True
 
 def check_joysticks():

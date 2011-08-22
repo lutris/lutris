@@ -26,11 +26,11 @@ protocol_version = 1
 INSTALLER_URL = "http://lutris.net/media/installers/"
 #installer_prefix = "http://localhost:8000/media/installers/"
 CONFIG_EXTENSION = ".yml"
-license = 'GPL-3'
+license_id = 'GPL-3'
 copyright = "(c) 2010 Lutris Gaming Platform"
 authors = ["Mathieu Comandon <strycore@gmail.com>"]
 artists = ["Ludovic Soulié <contact@yudoh.com>"]
-license = """
+license_text = """
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -70,6 +70,8 @@ system_config_full_path = join(lutris_config_path, system_config_file)
 runner_config_path = join(lutris_config_path, 'runners')
 GAME_CONFIG_PATH = join(lutris_config_path, 'games')
 COVER_PATH = join(lutris_config_path, 'covers')
+BANNER_PATH = join(lutris_config_path, 'banners')
+ICON_PATH = join(expanduser('~'), '.icons') 
 cache_path = LUTRIS_CACHE_PATH
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')
 

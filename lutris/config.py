@@ -39,6 +39,7 @@ class LutrisConfig():
                         constants.GAME_CONFIG_PATH,
                         constants.COVER_PATH,
                         constants.TMP_PATH,
+                        constants.ICON_PATH,
                         constants.LUTRIS_CACHE_PATH]
         for config_path in config_paths:
             if not os.path.exists(config_path):
@@ -133,6 +134,9 @@ class LutrisConfig():
                     self.config[key].update(self.game_config[key])
             else:
                 self.config[key] = self.game_config[key]
+
+    def get_real_name(self):
+        return self.config["realname"]
 
     def remove(self, game_name):
         logging.debug("removing %s" % game_name)
