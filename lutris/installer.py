@@ -104,6 +104,10 @@ class Installer(gtk.Dialog):
         # Dictionary of the files needed to install the game
         self.gamefiles = {}
 
+        self.location_button = gtk.FileChooserButton("Select folder")
+        self.location_button.set_current_folder(os.path.expanduser('~') + "/quake")
+        self.location_button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        self.location_button.connect("file-set", self.game_dir_set)
         if installer is False:
             self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
                                                     self.game_name + ".yml")
@@ -116,7 +120,6 @@ class Installer(gtk.Dialog):
             log.logger.info("Ready! Launching installer.")
 
         self.download_progress = None
-        
         gtk.Dialog.__init__(self)
         self.set_default_size(600,480)
         self.set_resizable(False)
@@ -144,10 +147,6 @@ class Installer(gtk.Dialog):
         self.widget_box = gtk.HBox()
         self.vbox.pack_start(self.widget_box)
 
-        self.location_button = gtk.FileChooserButton("Select folder")
-        self.location_button.set_current_folder(os.path.expanduser('~') + "/quake")
-        self.location_button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-        self.location_button.connect("file-set", self.game_dir_set)
         self.widget_box.pack_start(self.location_button)
 
         separator = gtk.HSeparator()
@@ -161,7 +160,7 @@ class Installer(gtk.Dialog):
         self.action_buttons = gtk.Alignment()
         self.action_buttons.set(0.95,0.1,0.15,0)
         self.action_buttons.add(self.install_button)
-        
+
         self.vbox.pack_start(self.action_buttons, False, False)
         self.show_all()
 
@@ -189,17 +188,20 @@ class Installer(gtk.Dialog):
 
         # Fetch assets
         banner_url = 'http://lutris.net/media/banners/%s.jpg' % self.game_slug
+        banner_dest = os.path.join(BANNER_PATH, "%s.jpg" % self.game_slug)
         try:
-            urllib.urlretrieve(banner_url, os.path.join(BANNER_PATH, "%s.jpg" % self.game_slug))
+            urllib.urlretrieve(banner_url, banner_dest)
         except IOError:
+            print "cant get banner to %s" % banner_dest
             pass
-        
+
         icon_url = 'http://lutris.net/media/game_icons/%s.png' % self.game_slug
         try:
             urllib.urlretrieve(icon_url, os.path.join(ICON_PATH, "%s.png" % self.game_slug))
         except IOError:
+            print "cant get icon"
             pass
-        
+
 
         # Download installer if not already there.
         if not os.path.exists(self.installer_dest_path):
@@ -212,7 +214,7 @@ class Installer(gtk.Dialog):
         if 'INSTALLER_UNREACHABLE' in self.installer_errors:
             ErrorDialog("Can't find an installer for \"%s\""
                             % self.game_name)
-            return False 
+            return False
 
         # Parse installer file
         success = self.parseconfig()
@@ -236,7 +238,7 @@ class Installer(gtk.Dialog):
 
     def install(self, widget=None, data=None):
         """ Runs the actions to complete the install. """
-        
+
         self.location_button.destroy()
         self.install_button.set_sensitive(False)
 

@@ -40,6 +40,7 @@ class LutrisConfig():
                         constants.COVER_PATH,
                         constants.TMP_PATH,
                         constants.ICON_PATH,
+                        constants.BANNER_PATH,
                         constants.LUTRIS_CACHE_PATH]
         for config_path in config_paths:
             if not os.path.exists(config_path):
