@@ -36,7 +36,7 @@ class linux(Runner):
 
         self.game_options = [ {"option": "exe", "type":"single", "label":"Executable"},
                               {"option": "args", "type": "string", "label": "Arguments"},
-                              {"option": "ld_preload", "type": "single", "label": "Preload libray"}]
+                              {"option": "ld_preload", "type": "single", "label": "Preload library"}]
         self.runner_options = []
         if settings:
             self.executable = settings["game"]["exe"]

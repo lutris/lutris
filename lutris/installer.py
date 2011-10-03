@@ -154,8 +154,8 @@ class Installer(gtk.Dialog):
 
         # Install button
         self.install_button = gtk.Button('Install')
-        self.install_button.connect('clicked', self.install)
-        self.install_button.set_sensitive(False)
+        self.install_button.connect('clicked', self.download_game_files)
+        #self.install_button.set_sensitive(False)
 
         self.action_buttons = gtk.Alignment()
         self.action_buttons.set(0.95,0.1,0.15,0)
@@ -236,13 +236,48 @@ class Installer(gtk.Dialog):
         if os.path.exists(self.game_dir):
             self.install_button.set_sensitive(True)
 
-    def install(self, widget=None, data=None):
+    def download_game_files(self, widget=None, data=None):
         """ Runs the actions to complete the install. """
 
         self.location_button.destroy()
         self.install_button.set_sensitive(False)
+        
+        self.current_file = 0
+        self.total_files = len(self.install_data['files'])
+        self.download_game_file()
+    
+    def download_game_file(self):
+        if self.current_file == len(self.install_data['files']):
+            self.install()
+            return
+        gamefile = self.install_data['files'][self.current_file]
+        file_id = gamefile.keys()[0]
+        self.current_file += 1
+        # Game files can be either a string, containing the location of the
+        # file to fetch or a dict with the possible options :
+        # - url : location of file (mandatory)
+        # - filename : force destination filename
+        # - nocopy : don't copy the file in the cache (doesn't work for internet links)
+        copyfile = True
+        if isinstance(gamefile[file_id], dict):
+            url = gamefile[file_id]['url']
+            if 'filename' in gamefile[file_id]:
+                filename = gamefile[file_id]['filename']
+            else:
+                filename = None
 
-        self.download_game_files()
+            if 'nocopy' in gamefile[file_id]:
+                copyfile = False
+        else:
+            url = gamefile[file_id]
+            filename = None
+        dest_path = self._download(url, filename, copyfile)
+        self.gamefiles[file_id] = dest_path
+        return True
+    
+    def install(self):
+        log.logger.debug("Running installation")
+        
         if self.download_progress is not None:
             self.download_progress.destroy()
         os.chdir(self.game_dir)
@@ -310,31 +345,6 @@ class Installer(gtk.Dialog):
         self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
         return True
 
-    def download_game_files(self):
-        for gamefile in self.install_data['files']:
-            file_id = gamefile.keys()[0]
-            # Game files can be either a string, containing the location of the
-            # file to fetch or a dict with the possible options :
-            # - url : location of file (mandatory)
-            # - filename : force destination filename
-            # - nocopy : don't copy the file in the cache (doesn't work for internet links)
-            copyfile = True
-            if isinstance(gamefile[file_id], dict):
-                url = gamefile[file_id]['url']
-                if 'filename' in gamefile[file_id]:
-                    filename = gamefile[file_id]['filename']
-                else:
-                    filename = None
-
-                if 'nocopy' in gamefile[file_id]:
-                    copyfile = False
-            else:
-                url = gamefile[file_id]
-                filename = None
-            dest_path = self._download(url, filename, copyfile)
-            self.gamefiles[file_id] = dest_path
-        return True
-
     def write_config(self):
         """ Writes the game configration as a Lutris launcher. """
         config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
@@ -355,8 +365,6 @@ class Installer(gtk.Dialog):
                     key = "exe"
                 else:
                     key = launcher
-                    
-
                 config_data['game'][key] = os.path.join(self.game_dir,
                                                         self.game_info[launcher])
 
@@ -379,6 +387,8 @@ class Installer(gtk.Dialog):
 
         return the path of local file
         """
+        if self.download_progress is not None:
+            self.download_progress.destroy()
 
         self.status_label.set_text('Fetching %s' % url)
         dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_slug)
@@ -403,10 +413,13 @@ class Installer(gtk.Dialog):
                 shutil.copy(location, dest_dir)
         else:
             self.download_progress = DownloadProgressBox({'url': url, 'dest': dest_file}, cancelable=False)
+            self.download_progress.connect('complete', self.download_complete)
             self.widget_box.pack_start(self.download_progress, True, True)
             self.download_progress.show()
             self.download_progress.start()
-        return dest_file
+
+    def download_complete(self, widget, data):
+        self.download_game_file()
 
     def delete(self, data):
         """ Deletes a file """
@@ -438,6 +451,7 @@ class Installer(gtk.Dialog):
 
     def _move(self, data):
         """ Moves a file. """
+        
         src = data['src']
         self.status_label.set_text("Moving %s" % src)
         if src in self.gamefiles.keys():

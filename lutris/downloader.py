@@ -16,9 +16,10 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import gobject
 import urllib
 import threading
+
+from lutris.util import log
 
 class DownloadStoppedException:
     def __init__(self):
@@ -45,7 +46,7 @@ class Downloader(threading.Thread):
 
     def _report_progress(self, piece, received_bytes, total_size):
         self.progress = ((piece * received_bytes)) / (total_size * 1.0)
-        #print "Download progress : %f" % self.progress
+        log.logger.debug("Download progress : %f" % self.progress)
 
         try:
             if self.kill is True:

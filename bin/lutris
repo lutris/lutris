@@ -110,7 +110,10 @@ if game is not None:
     else:
         log.logger.debug('Installing %s' % game)
         installer = Installer(game, installer)
+        gtk.gdk.threads_init()
+        gtk.gdk.threads_enter()
         gtk.main()
+        gtk.gdk.threads_leave()
 else:
     lutris_window = new_lutris_window()
     lutris_window.show()

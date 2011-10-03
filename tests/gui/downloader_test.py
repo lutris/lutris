@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from os.path import join, dirname, abspath
 import sys
@@ -7,7 +7,7 @@ sys.path.insert(0, lutris_path)
 import gtk
 from lutris.gui.common import DownloadDialog
 
-url = "http://strycore.com/videos/lubuntu-wtf.ogv"
+url = "http://localhost/rune.iso"
 
 dest = "/tmp/lutris-testfile.ogv"
 
