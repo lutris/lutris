@@ -19,11 +19,13 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import logging
 import gtk
-from lutris.runners import import_runner
+
+# remove me ?
 import lutris.runners
+
 from lutris.gui.configvbox import ConfigVBox
+from lutris.runners import import_runner
 
 class GameConfigVBox(ConfigVBox):
     def __init__(self, lutris_config, caller):
@@ -41,12 +43,4 @@ class GameConfigVBox(ConfigVBox):
             self.pack_start(no_option_label)
             return
         self.generate_widgets()
-
-
-
-
-
-
-
-
 

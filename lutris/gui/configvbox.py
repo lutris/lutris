@@ -21,16 +21,13 @@
 #Widget generators and their signal handlers
 
 import gtk
-import logging
 
 class ConfigVBox(gtk.VBox):
     def __init__(self,save_in_key,caller):
         gtk.VBox.__init__(self)
-
         self.options = None
         #Section of the configuration file to save options in. Can be "game", "runner" or "system"
         self.save_in_key= save_in_key
-
         self.caller = caller
 
     def generate_widgets(self):
@@ -67,11 +64,11 @@ class ConfigVBox(gtk.VBox):
                 self.generate_range(option_key,option["min"], option["max"],option["label"],value)
             elif option["type"] == "string":
                 self.generate_entry(option_key,option["label"], value)
-            elif option["type"] == "directory_chooser":
+            elif option["type"] in ("directory_chooser", "directory"):
                 self.generate_directory_chooser(option_key,option["label"], value)
-            elif option["type"] == "file_chooser" or option["type"] == "single":
+            elif option["type"] in ("file_chooser", "single", "file"):
                 self.generate_file_chooser(option_key,option["label"], value)
-            elif option["type"] == "multiple":
+            elif option["type"] in ("multiple", "files"):
                 self.generate_multiple_file_chooser(option_key, option["label"], value)
             elif option["type"] == "label":
                 self.generate_label(option["label"])

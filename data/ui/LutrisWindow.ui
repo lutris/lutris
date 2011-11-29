@@ -13,12 +13,12 @@
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <child>
-      <object class="GtkVBox" id="vbox1">
+      <object class="GtkVBox" id="main_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="spacing">5</property>
         <child>
-          <object class="GtkMenuBar" id="menubar1">
+          <object class="GtkMenuBar" id="main_menubar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
@@ -33,14 +33,24 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkMenuItem" id="manage_runners_menuitem">
+                      <object class="GtkMenuItem" id="connect_menuitem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Connect</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_connect_menuitem_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="runners_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Install and configure runners</property>
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Manage runners</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="runner_preferences" swapped="no"/>
+                        <signal name="activate" handler="on_runners_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -51,7 +61,7 @@
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Global preferences</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="system_preferences" swapped="no"/>
+                        <signal name="activate" handler="on_preferences_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -68,7 +78,7 @@
                         <property name="label" translatable="yes">Import</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
-                          <object class="GtkMenu" id="menu4">
+                          <object class="GtkMenu" id="import_menu">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
@@ -79,7 +89,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">ScummVM</property>
                                 <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_scummvm" swapped="no"/>
+                                <signal name="activate" handler="on_scumm_activate" swapped="no"/>
                               </object>
                             </child>
                             <child>
@@ -118,7 +128,7 @@
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu3">
+                  <object class="GtkMenu" id="help_menu">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>

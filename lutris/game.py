@@ -96,7 +96,7 @@ class LutrisGame():
             return False
 
         try:
-            runner_module = __import__("lutris.runners.%s" % self.runner_name, 
+            runner_module = __import__("lutris.runners.%s" % self.runner_name,
                                        globals(), locals(),
                                        [self.runner_name], -1)
             runner_cls = getattr(runner_module, self.runner_name)
@@ -219,7 +219,9 @@ class LutrisGame():
 
     def poke_process(self):
         if self.game_thread.pid:
-            os.system("gnome-screensaver-command --poke")
+            # Removing poking for now, it's been removed from Gnome
+            #os.system("gnome-screensaver-command --poke")
+            pass
         else:
             self.quit_game()
             return False

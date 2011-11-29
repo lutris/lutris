@@ -61,9 +61,11 @@ if not exists(DATA_PATH):
 lutris_icon_file = "media/logo.svg"
 lutris_icon_path = join(DATA_PATH, lutris_icon_file)
 
-lutris_config_path = join(BaseDirectory.xdg_config_home, 'lutris')
+LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
 LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
+# For legacy purposes FIXME : Remove 
+lutris_config_path = LUTRIS_CONFIG_PATH 
 
 system_config_file = 'system' + CONFIG_EXTENSION
 system_config_full_path = join(lutris_config_path, system_config_file)
@@ -75,3 +77,4 @@ ICON_PATH = join(expanduser('~'), '.icons')
 cache_path = LUTRIS_CACHE_PATH
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')
 
+PGA_PATH = join(LUTRIS_DATA_PATH, 'pga.db')

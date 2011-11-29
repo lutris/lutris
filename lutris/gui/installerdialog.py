@@ -31,7 +31,7 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 class InstallerDialog(gtk.Dialog):
-    def __init__(self,parent):
+    def __init__(self, parent):
         gtk.Dialog.__init__(self)
         self.parent_window = parent
         self.set_title("Install a game")
