@@ -26,45 +26,53 @@ from lutris.gui.gameconfigvbox import GameConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
+
 class EditGameConfigDialog(gtk.Dialog):
-    def __init__(self,parent,game):
+    def __init__(self, parent, game):
         self.parent_window = parent
         self.game = game
         gtk.Dialog.__init__(self)
         self.set_title("Edit game configuration")
-        self.set_size_request(500,500)
-        
+        self.set_size_request(500, 500)
+
         #Top label
         self.lutris_config = LutrisConfig(game=game)
         self.lutris_config.runner = self.lutris_config.config["runner"]
-        
-        game_name_label = gtk.Label("Edit configuration for %s " % self.lutris_config.config["realname"])
-        self.vbox.pack_start(game_name_label,False,False,10)
-        
+
+        game_name_label = gtk.Label("Edit configuration for %s "\
+                                    % self.lutris_config.config["realname"])
+        self.vbox.pack_start(game_name_label, False, False, 10)
+
         #Notebook
         config_notebook = gtk.Notebook()
         self.vbox.pack_start(config_notebook)
-        
+
         #Game configuration tab
-        self.game_config_vbox = GameConfigVBox(self.lutris_config,"game")
+        self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
         game_config_scrolled_window = gtk.ScrolledWindow()
-        game_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        game_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
+                                               gtk.POLICY_AUTOMATIC)
         game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
-        config_notebook.append_page(game_config_scrolled_window,gtk.Label("Game Configuration"))
+        config_notebook.append_page(game_config_scrolled_window,
+                                    gtk.Label("Game Configuration"))
 
         #Runner configuration tab
-        self.runner_config_box = RunnerConfigVBox(self.lutris_config,"game")
+        self.runner_config_box = RunnerConfigVBox(self.lutris_config, "game")
         runner_config_scrolled_window = gtk.ScrolledWindow()
-        runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+        runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
+                                                 gtk.POLICY_AUTOMATIC)
         runner_config_scrolled_window.add_with_viewport(self.runner_config_box)
-        config_notebook.append_page(runner_config_scrolled_window,gtk.Label("Runner Configuration"))
-        
+        config_notebook.append_page(runner_config_scrolled_window,
+                                    gtk.Label("Runner Configuration"))
+
         #System configuration tab
-        self.system_config_box = SystemConfigVBox(self.lutris_config,"game")
+        self.system_config_box = SystemConfigVBox(self.lutris_config, "game")
         system_config_scrolled_window = gtk.ScrolledWindow()
-        system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
+        system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
+                                                 gtk.POLICY_AUTOMATIC)
         system_config_scrolled_window.add_with_viewport(self.system_config_box)
-        config_notebook.append_page(system_config_scrolled_window,gtk.Label("Runner Configuration"))
+        config_notebook.append_page(system_config_scrolled_window,
+                                    gtk.Label("Runner Configuration"))
 
         #Action Area
         cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
@@ -73,14 +81,14 @@ class EditGameConfigDialog(gtk.Dialog):
         self.action_area.pack_start(add_button)
         cancel_button.connect("clicked", self.close)
         add_button.connect("clicked", self.edit_game)
-        
+
         self.show_all()
         self.run()
 
-    def edit_game(self,widget=None):
+    def edit_game(self, widget=None):
         logging.debug(self.lutris_config.config)
         self.lutris_config.save(type="game")
         self.destroy()
-        
-    def close(self,widget=None):
+
+    def close(self, widget=None):
         self.destroy()

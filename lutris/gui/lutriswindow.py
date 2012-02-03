@@ -43,6 +43,7 @@ from lutris.desktop_control import LutrisDesktopControl
 from lutris.gui.widgets import GameTreeView, GameCover
 import lutris.coverflow.coverflow
 
+
 class LutrisWindow(gtk.Window):
     """ Main Lutris window """
     __gtype_name__ = "LutrisWindow"
@@ -128,8 +129,8 @@ class LutrisWindow(gtk.Window):
         self.game_cell = self.game_column.get_cell_renderers()[0]
         self.game_cell.connect('edited', self.game_name_edited_callback)
 
-        self.game_list_scrolledwindow = self.builder.get_object('game_list_scrolledwindow')
-        self.game_list_scrolledwindow.add_with_viewport(self.game_treeview)
+        self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
+        self.games_scrollwindow.add_with_viewport(self.game_treeview)
 
         # Set buttons state
         self.play_button = self.builder.get_object('play_button')
@@ -142,7 +143,6 @@ class LutrisWindow(gtk.Window):
         #Timer
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
 
-
     def refresh_status(self):
         if hasattr(self, "running_game"):
             if hasattr(self.running_game.game_thread, "pid"):
@@ -153,7 +153,8 @@ class LutrisWindow(gtk.Window):
                 elif pid is None:
                     self.status_label.set_text("Game has quit")
                 else:
-                    self.status_label.set_text("Playing %s (pid: %r)" % (name, pid))
+                    self.status_label.set_text("Playing %s (pid: %r)"\
+                                               % (name, pid))
         else:
             self.status_label.set_text("Welcome to Lutris")
         for index in range(4):
@@ -234,7 +235,8 @@ class LutrisWindow(gtk.Window):
         coverflow = lutris.coverflow.coverflow.coverflow()
         if coverflow:
             if coverflow == "NOCOVERS":
-                message = "You need covers for your games to switch to fullscreen mode."
+                message = "You need covers for your games"\
+                        + "to switch to fullscreen mode."
                 NoticeDialog(message)
                 return
             if coverflow == "NOPYGLET":
@@ -248,7 +250,8 @@ class LutrisWindow(gtk.Window):
     def reset(self, widget, data=None):
         if hasattr(self, "running_game"):
             self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s" % self.running_game.real_name)
+            self.status_label.set_text("Stopped %s"\
+                                       % self.running_game.real_name)
         else:
             LutrisDesktopControl().reset_desktop()
 
@@ -282,9 +285,9 @@ class LutrisWindow(gtk.Window):
     def runner_preferences(self, widget, data=None):
         RunnersDialog()
 
-
     def edit_game_name(self, button):
         """Change game name"""
+
         self.game_cell.set_property('editable', True)
         self.game_treeview.set_cursor(self.paths[0][0], self.game_column, True)
 
@@ -297,7 +300,6 @@ class LutrisWindow(gtk.Window):
 
     def edit_game_configuration(self, button):
         """Edit game preferences"""
+
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
-
-

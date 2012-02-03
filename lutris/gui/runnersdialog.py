@@ -19,11 +19,13 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import gtk, os
+import gtk
+import os
+from os.path import join, abspath
 
 if __name__ == "__main__":
     import sys
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', '..')))
+    sys.path.insert(0, abspath(join(abspath(__file__), '..', '..', '..')))
     print sys.path
 
 import lutris.runners
@@ -32,12 +34,13 @@ from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
+
 class RunnerConfigDialog(gtk.Dialog):
     """ """
-    def __init__(self,runner):
+    def __init__(self, runner):
         gtk.Dialog.__init__(self)
         self.set_title("Configure %s" % (runner))
-        self.set_size_request(570,500)
+        self.set_size_request(570, 500)
         self.runner = runner
         self.lutris_config = LutrisConfig(runner=runner)
 
@@ -46,18 +49,24 @@ class RunnerConfigDialog(gtk.Dialog):
         self.vbox.pack_start(self.config_notebook, True, True, 0)
 
         #Runner configuration
-        self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,"runner")
-        runner_config_scrolled_window = gtk.ScrolledWindow()
-        runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        runner_config_scrolled_window.add_with_viewport(self.runner_config_vbox)
-        self.config_notebook.append_page(runner_config_scrolled_window,gtk.Label("Runner configuration"))
+        self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,
+                                                   "runner")
+        runner_scrollwindow = gtk.ScrolledWindow()
+        runner_scrollwindow.set_policy(gtk.POLICY_AUTOMATIC,
+                                                 gtk.POLICY_AUTOMATIC)
+        runner_scrollwindow.add_with_viewport(self.runner_config_vbox)
+        self.config_notebook.append_page(runner_scrollwindow,
+                                         gtk.Label("Runner configuration"))
 
         #System configuration
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config,"runner")
-        system_config_scrolled_window = gtk.ScrolledWindow()
-        system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,gtk.POLICY_AUTOMATIC)
-        system_config_scrolled_window.add_with_viewport(self.system_config_vbox)
-        self.config_notebook.append_page(system_config_scrolled_window,gtk.Label("System configuration"))
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,
+                                                   "runner")
+        system_scrollwindow = gtk.ScrolledWindow()
+        system_scrollwindow.set_policy(gtk.POLICY_AUTOMATIC,
+                                                 gtk.POLICY_AUTOMATIC)
+        system_scrollwindow.add_with_viewport(self.system_config_vbox)
+        self.config_notebook.append_page(system_scrollwindow,
+                                         gtk.Label("System configuration"))
 
         #Action buttons
         cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
@@ -70,13 +79,14 @@ class RunnerConfigDialog(gtk.Dialog):
         self.show_all()
         self.run()
 
-    def close(self,widget):
+    def close(self, widget):
         self.destroy()
 
-    def ok_clicked(self,wigdet):
+    def ok_clicked(self, wigdet):
         self.system_config_vbox.lutris_config.config_type = "runner"
         self.system_config_vbox.lutris_config.save()
         self.destroy()
+
 
 class RunnersDialog(gtk.Dialog):
     """Dialog for the runner preferences"""
@@ -84,7 +94,7 @@ class RunnersDialog(gtk.Dialog):
     def __init__(self):
         gtk.Dialog.__init__(self)
         self.set_title("Configure runners")
-        self.set_size_request(570,400)
+        self.set_size_request(570, 400)
 
         label = gtk.Label()
         label.set_markup("""
@@ -108,7 +118,7 @@ class RunnersDialog(gtk.Dialog):
 
             hbox = gtk.HBox()
             #Icon
-            icon_path = os.path.join(lutris.constants.DATA_PATH, 
+            icon_path = os.path.join(lutris.constants.DATA_PATH,
                                      'media/runner_icons',
                                      runner + '.png')
             icon = gtk.Image()
@@ -117,40 +127,42 @@ class RunnersDialog(gtk.Dialog):
 
             #Label
             runner_label = gtk.Label()
-            runner_label.set_markup("<b>"+runner + "</b>\n" + description + "\n <i>Supported platforms : " + machine + "</i>")
+            runner_label.set_markup("<b>%s</b>\n%s\n "\
+                                    + "<i>Supported platforms : %s</i>"\
+                                    % (runner, description, machine))
             runner_label.set_width_chars(38)
             runner_label.set_line_wrap(True)
-            runner_label.set_alignment(0.0,0.0)
-            runner_label.set_padding(25,5)
-            hbox.pack_start(runner_label,True, True)
+            runner_label.set_alignment(0.0, 0.0)
+            runner_label.set_padding(25, 5)
+            hbox.pack_start(runner_label, True, True)
             #Button
             button = gtk.Button("Configure")
-            button.set_size_request(100,30)
-            button_align = gtk.Alignment(0.0,1.0,0.0,0.0)
+            button.set_size_request(100, 30)
+            button_align = gtk.Alignment(0.0, 1.0, 0.0, 0.0)
             if runner_instance.is_installed():
                 button.set_label('Configure')
-                button.set_size_request(100,30)
-                button.connect("clicked",self.on_configure_clicked,runner)
+                button.set_size_request(100, 30)
+                button.connect("clicked", self.on_configure_clicked, runner)
             else:
                 button.set_label('Install')
-                button.connect("clicked",self.on_install_clicked,runner)
+                button.connect("clicked", self.on_install_clicked, runner)
             button_align.add(button)
-            hbox.pack_start(button_align,True,False)
+            hbox.pack_start(button_align, True, False)
 
-            runner_vbox.pack_start(hbox,True,True,5)
+            runner_vbox.pack_start(hbox, True, True, 5)
         scrolled_window.add_with_viewport(runner_vbox)
         self.show_all()
 
     def close(self, widget=None, other=None):
         self.destroy()
 
-    def on_install_clicked(self,widget,runner_classname):
+    def on_install_clicked(self, widget, runner_classname):
         """Install a runner"""
         runner_class = import_runner(runner_classname)
         runner = runner_class()
         runner.install()
 
-    def on_configure_clicked(self,widget,runner):
+    def on_configure_clicked(self, widget, runner):
         RunnerConfigDialog(runner)
 
 if __name__ == "__main__":

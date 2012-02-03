@@ -27,12 +27,14 @@ import gtk
 
 from lutris.gui.widgets import DownloadProgressBox
 
+
 class NoticeDialog:
     def __init__(self, message):
         dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
         dialog.set_markup(message)
         dialog.run()
         dialog.destroy()
+
 
 class ErrorDialog:
     def __init__(self, message):
@@ -41,8 +43,9 @@ class ErrorDialog:
         dialog.run()
         dialog.destroy()
 
+
 class QuestionDialog:
-    def __init__(self,settings):
+    def __init__(self, settings):
         dialog = gtk.MessageDialog(
                 type=gtk.MESSAGE_QUESTION,
                 buttons=gtk.BUTTONS_YES_NO,
@@ -51,6 +54,7 @@ class QuestionDialog:
         dialog.set_title(settings['title'])
         self.result = dialog.run()
         dialog.destroy()
+
 
 class DirectoryDialog:
     """Ask the user to select a directory"""
@@ -65,21 +69,22 @@ class DirectoryDialog:
         self.folder = dialog.get_current_folder()
         dialog.destroy()
 
+
 class DownloadDialog(gtk.Dialog):
     def __init__(self, url, dest):
         print "creating download dialog"
         gtk.Dialog.__init__(self, "Downloading file")
         self.quit_gtk = False
-        self.set_size_request(560,100)
+        self.set_size_request(560, 100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
         self.download_progress_box.connect('complete', self.download_complete)
         label = gtk.Label('Downloading %s' % url)
-        label.set_padding(0,0)
-        label.set_alignment(0.0,1.0)
+        label.set_padding(0, 0)
+        label.set_alignment(0.0, 1.0)
         self.vbox.pack_start(label, True, True, 0)
-        self.vbox.pack_start(self.download_progress_box, True,False, 0)
+        self.vbox.pack_start(self.download_progress_box, True, False, 0)
         self.show_all()
         self.download_progress_box.start()
 

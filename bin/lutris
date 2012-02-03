@@ -36,14 +36,14 @@ log.logger.name = "Lutris Gaming Platform"
 
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
-from lutris.gui.common import ErrorDialog
+#from lutris.gui.common import ErrorDialog
 
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
     ui_filename = os.path.join(DATA_PATH, 'ui', 'LutrisWindow.ui')
     if not os.path.exists(ui_filename):
         msg = 'File %s not found' % ui_filename
-    	log.logger.error(msg)
+        log.logger.error(msg)
         raise IOError(msg)
     builder = gtk.Builder()
     builder.add_from_file(ui_filename)
@@ -65,16 +65,16 @@ parser.add_option("-i", "--install", dest="installer_file",
 
 # Set the logging level to show debug messages.
 if options.debug:
-	log.logger.setLevel(log.logging.DEBUG)
+    log.logger.setLevel(log.logging.DEBUG)
     log.logger.debug('logging enabled')
 else:
-	log.logger.setLevel(log.logging.INFO)
+        log.logger.setLevel(log.logging.INFO)
 if options.verbose:
-	console = log.logging.StreamHandler()
+    console = log.logging.StreamHandler()
     if options.debug:
-    	console.setLevel(log.logging.DEBUG)
+        console.setLevel(log.logging.DEBUG)
     else:
-    	console.setLevel(log.logging.INFO)
+        console.setLevel(log.logging.INFO)
 
     formatter = log.logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
@@ -103,10 +103,10 @@ if game is not None:
     else:
         file_path = None
     if file_path is not None and os.path.exists(file_path):
-    	import lutris.game
-    	log.logger.info('Launching ' + game)
-    	lutris_game = lutris.game.LutrisGame(game)
-    	lutris_game.play()
+        import lutris.game
+        log.logger.info('Launching ' + game)
+        lutris_game = lutris.game.LutrisGame(game)
+        lutris_game.play()
     else:
         log.logger.debug('Installing %s' % game)
         installer = Installer(game, installer)

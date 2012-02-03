@@ -23,28 +23,20 @@ import gtk
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
+
 class InstallerConfigVBox(ConfigVBox):
     """This file is going to disapear anytime now."""
-    def __init__(self,lutris_config,caller):
-        ConfigVBox.__init__(self,"game",caller)
-        self.lutris_config  = lutris_config
+    def __init__(self, lutris_config, caller):
+        ConfigVBox.__init__(self, "game", caller)
+        self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_classname = self.lutris_config.runner
         runner_cls = import_runner(self.runner_classname)
         runner = runner_cls()
-        if hasattr(runner,"installer_options"):
+        if hasattr(runner, "installer_options"):
             self.options = runner.installer_options
         else:
             no_option_label = gtk.Label("No game options")
             self.pack_start(no_option_label)
             return
         self.generate_widgets()
-
-
-
-
-
-
-
-
-
