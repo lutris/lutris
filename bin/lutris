@@ -20,13 +20,13 @@ import gtk
 import logging
 import optparse
 
-logger =  logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-LAUNCH_PATH=dirname(realpath(__file__))
+LAUNCH_PATH = dirname(realpath(__file__))
 if LAUNCH_PATH != "/usr/bin":
-    LAUNCH_PATH=dirname(realpath(__file__))
+    LAUNCH_PATH = dirname(realpath(__file__))
 if LAUNCH_PATH != "/usr/bin":
-    SOURCE_PATH=normpath(os.path.join(LAUNCH_PATH, '..'))
+    SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
 from lutris.constants import DATA_PATH, CONFIG_EXTENSION, GAME_CONFIG_PATH
@@ -37,6 +37,7 @@ log.logger.name = "Lutris Gaming Platform"
 from lutris.installer import Installer
 from lutris.gui.lutriswindow import LutrisWindow
 #from lutris.gui.common import ErrorDialog
+
 
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
@@ -59,24 +60,25 @@ parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
+parser.add_option("-n", "--no-download",
+                  action="store_true", dest="no_download",
+                  help="Don't download anything when installing")
 (options, args) = parser.parse_args()
-
-
 
 # Set the logging level to show debug messages.
 if options.debug:
     log.logger.setLevel(log.logging.DEBUG)
     log.logger.debug('logging enabled')
 else:
-        log.logger.setLevel(log.logging.INFO)
+    log.logger.setLevel(log.logging.INFO)
 if options.verbose:
     console = log.logging.StreamHandler()
     if options.debug:
         console.setLevel(log.logging.DEBUG)
     else:
         console.setLevel(log.logging.INFO)
-
-    formatter = log.logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    fmt = '%(name)-12s: %(levelname)-8s %(message)s'
+    formatter = log.logging.Formatter(fmt)
     console.setFormatter(formatter)
     log.logger.addHandler(console)
 
@@ -84,7 +86,8 @@ installer = False
 game = None
 if options.installer_file:
     if not os.path.exists(options.installer_file):
-        print "Unable to find installer at : %s" % options.installer_file
+        log.logger.error("Unable to find installer at : %s"
+                         % options.installer_file)
         exit()
     else:
         game = True
@@ -121,4 +124,3 @@ else:
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
-
