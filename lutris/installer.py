@@ -16,8 +16,6 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-""" This is where takes place the whole install process for games"""
-
 import os
 import gtk
 import yaml
@@ -27,15 +25,17 @@ import urllib2
 import platform
 import subprocess
 import lutris.constants
-from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL,\
-                             ICON_PATH, BANNER_PATH
 
-from lutris.config import LutrisConfig
+from os.path import join, exists, expanduser
+
+from lutris.util import log
 from lutris.game import LutrisGame
+from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.shortcuts import create_launcher
-from lutris.util import log
+from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL, TMP_PATH,\
+                             ICON_PATH, BANNER_PATH, GAME_CONFIG_PATH
 
 
 def unzip(filename, dest=None):
@@ -75,51 +75,39 @@ def run_installer(filename):
 
 def reporthook(piece, received_bytes, total_size):
     """Follows the progress of a download"""
-
     print "%d %%" % ((piece * received_bytes) * 100 / total_size)
 
 
 class Installer(gtk.Dialog):
-    """ Lutris installer """
 
     def __init__(self, game, installer=False):
-        # Internal game config
-        self.lutris_config = None
-
-        # Name of the game
-        self.game_slug = self.game_name = game
+        self.lutris_config = None  # Internal game config
+        self.game_slug = self.game_name = game  # Name of the game
         self.description = False
         self.game_dir = None
-        # Stores a list of actions that will be sent back to the user
-        # in order to complete the installation
-        self.installer_user_actions = []
-
-        # Actions that the installer has to run
-        # in order to complete the install.
-        self.installer_actions = []
-
-        # List of errors that occurred while installing the game
-        self.installer_errors = []
-
-        # Content of yaml file
-        self.install_data = {}
-
+        self.rules = {}  # Content of yaml file
+        self.actions = []
+        self.errors = []
         # Essential game information to create Lutris launcher
         self.game_info = {}
-
         # Dictionary of the files needed to install the game
         self.gamefiles = {}
+        if installer is False:
+            self.installer_path = join(LUTRIS_CACHE_PATH,
+                                               self.game_name + ".yml")
+        else:
+            self.installer_path = installer
 
         self.location_button = gtk.FileChooserButton("Select folder")
+
+        # FIXME: Wrong ! The runner should be loaded first in order to
+        # determine its default location
         default_path = os.path.expanduser('~') + self.game_slug
+
         self.location_button.set_current_folder(default_path)
         self.location_button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         self.location_button.connect("file-set", self.game_dir_set)
-        if installer is False:
-            self.installer_dest_path = os.path.join(LUTRIS_CACHE_PATH,
-                                                    self.game_name + ".yml")
-        else:
-            self.installer_dest_path = installer
+
         success = self.pre_install()
         if not success:
             log.logger.error("Unable to install game")
@@ -132,7 +120,7 @@ class Installer(gtk.Dialog):
         self.set_resizable(False)
         self.connect('destroy', lambda q: gtk.main_quit())
 
-        banner_path = os.path.join(BANNER_PATH, "%s.jpg" % self.game_slug)
+        banner_path = join(BANNER_PATH, "%s.jpg" % self.game_slug)
         if os.path.exists(banner_path):
             banner = gtk.Image()
             banner.set_from_file(banner_path)
@@ -174,16 +162,16 @@ class Installer(gtk.Dialog):
     def download_installer(self):
         """ Save the downloaded installer to disk. """
 
-        full_url = INSTALLER_URL + self.game_name + '.yml'
+        full_url = INSTALLER_URL + self.game_slug + '.yml'
         request = urllib2.Request(url=full_url)
         try:
             urllib2.urlopen(request)
         except urllib2.URLError:
             log.logger.debug("Server is unreachable")
-            self.installer_errors.append("INSTALLER_UNREACHABLE")
+            self.errors.append("INSTALLER_UNREACHABLE")
             success = False
         else:
-            urllib.urlretrieve(full_url, self.installer_dest_path)
+            urllib.urlretrieve(full_url, self.installer_path)
             success = True
         return success
 
@@ -194,7 +182,7 @@ class Installer(gtk.Dialog):
 
         # Fetch assets
         banner_url = 'http://lutris.net/media/banners/%s.jpg' % self.game_slug
-        banner_dest = os.path.join(BANNER_PATH, "%s.jpg" % self.game_slug)
+        banner_dest = join(BANNER_PATH, "%s.jpg" % self.game_slug)
         try:
             urllib.urlretrieve(banner_url, banner_dest)
         except IOError:
@@ -202,7 +190,7 @@ class Installer(gtk.Dialog):
             pass
 
         icon_url = 'http://lutris.net/media/game_icons/%s.png' % self.game_slug
-        icon_path = os.path.join(ICON_PATH, "%s.png" % self.game_slug)
+        icon_path = join(ICON_PATH, "%s.png" % self.game_slug)
         try:
             urllib.urlretrieve(icon_url, icon_path)
         except IOError:
@@ -210,28 +198,28 @@ class Installer(gtk.Dialog):
             pass
 
         # Download installer if not already there.
-        if not os.path.exists(self.installer_dest_path):
+        if not os.path.exists(self.installer_path):
             success = self.download_installer()
             if not success:
                 return False
         else:
             log.logger.debug('Using local copy of the installer')
 
-        if 'INSTALLER_UNREACHABLE' in self.installer_errors:
+        if 'INSTALLER_UNREACHABLE' in self.errors:
             ErrorDialog("Can't find an installer for \"%s\""
-                            % self.game_name)
+                            % self.game_slug)
             return False
 
         # Parse installer file
-        success = self.parseconfig()
+        success = self.parse_config()
         games_dir = self.lutris_config.get_path()
 
         if not games_dir:
             log.logger.debug("No default path for %s games"
-                             % self.install_data['runner'])
+                             % self.rules['runner'])
             return True
 
-        self.game_dir = os.path.join(games_dir, self.game_name)
+        self.game_dir = join(games_dir, self.game_slug)
         if not os.path.exists(self.game_dir):
             os.mkdir(self.game_dir)
 
@@ -250,14 +238,14 @@ class Installer(gtk.Dialog):
         self.install_button.set_sensitive(False)
 
         self.current_file = 0
-        self.total_files = len(self.install_data['files'])
+        self.total_files = len(self.rules['files'])
         self.download_game_file()
 
     def download_game_file(self):
-        if self.current_file == len(self.install_data['files']):
+        if self.current_file == len(self.rules['files']):
             self.install()
             return
-        gamefile = self.install_data['files'][self.current_file]
+        gamefile = self.rules['files'][self.current_file]
         file_id = gamefile.keys()[0]
         self.current_file += 1
         # Game files can be either a string, containing the location of the
@@ -289,7 +277,7 @@ class Installer(gtk.Dialog):
             self.download_progress.destroy()
         os.chdir(self.game_dir)
 
-        for action in self.installer_actions:
+        for action in self.actions:
             action_name = action.keys()[0]
             action_data = action[action_name]
             mappings = {'check_md5': self.check_md5,
@@ -308,17 +296,17 @@ class Installer(gtk.Dialog):
 
         self.status_label.set_text("Installation finished !")
 
-        add_desktop_shortcut = gtk.Button('Create a desktop shortcut')
-        add_desktop_shortcut.connect('clicked',
+        desktop_btn = gtk.Button('Create a desktop shortcut')
+        desktop_btn.connect('clicked',
                                      lambda d: create_launcher(self.game_slug,
                                                                desktop=True))
-        add_menu_shortcut = gtk.Button('Create an icon in the application menu')
-        add_menu_shortcut.connect('clicked',
+        menu_btn = gtk.Button('Create an icon in the application menu')
+        menu_btn.connect('clicked',
                                   lambda m: create_launcher(self.game_slug,
                                                             menu=True))
         buttons_box = gtk.HBox()
-        buttons_box.pack_start(add_desktop_shortcut, False, False, 10)
-        buttons_box.pack_start(add_menu_shortcut, False, False, 10)
+        buttons_box.pack_start(desktop_btn, False, False, 10)
+        buttons_box.pack_start(menu_btn, False, False, 10)
         buttons_box.show_all()
 
         self.widget_box.pack_start(buttons_box, True, True, 10)
@@ -329,13 +317,18 @@ class Installer(gtk.Dialog):
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)
 
-    def parseconfig(self):
+    def parse_config(self):
         """ Reads the installer file. """
-        raw_data = file(self.installer_dest_path, 'r').read()
-        self.install_data = yaml.load(raw_data)
+        installer_contents = file(self.installer_path, 'r').read()
+        self.rules = yaml.load(installer_contents)
 
         #Checking protocol
-        protocol_version = self.install_data['protocol']
+        try:
+            protocol_version = self.rules['protocol']
+        except KeyError:
+            log.logger.error("No protocol version specified in installer")
+            log.logger.error("Please fix the installer for %s" % self.game)
+            return False
         if protocol_version != lutris.constants.protocol_version:
             print("Wrong protocol version (Expected %d, got %d)" %
                   (lutris.constants.protocol_version, protocol_version))
@@ -344,22 +337,22 @@ class Installer(gtk.Dialog):
         mandatory_fields = ['version', 'runner', 'name']
         optional_fields = ['exe', 'exe64', 'iso', 'rom']
         for field in mandatory_fields:
-            self.game_info[field] = self.install_data[field]
+            self.game_info[field] = self.rules[field]
         for field in optional_fields:
-            if field in self.install_data:
-                self.game_info[field] = self.install_data[field]
+            if field in self.rules:
+                self.game_info[field] = self.rules[field]
 
-        self.game_name = self.install_data['name']
-        self.game_slug = os.path.basename(self.installer_dest_path)[:-4]
+        self.game_name = self.rules['name']
+        self.game_slug = os.path.basename(self.installer_path)[:-4]
 
-        self.installer_actions = self.install_data['installer']
+        self.actions = self.rules['installer']
         self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
         return True
 
     def write_config(self):
-        """ Write the game configuration as a Lutris launcher."""
-        config_filename = os.path.join(lutris.constants.GAME_CONFIG_PATH,
-                                       self.game_slug + ".yml")
+        """Write the game configuration as a Lutris launcher."""
+        config_filename = join(GAME_CONFIG_PATH,
+                               self.game_slug + ".yml")
 
         config_data = {'game': {},
                        'realname': self.game_info['name'],
@@ -376,8 +369,9 @@ class Installer(gtk.Dialog):
                     key = "exe"
                 else:
                     key = launcher
-                config_data['game'][key] = os.path.join(self.game_dir,
-                                                        self.game_info[launcher])
+                launcher_path = join(self.game_dir,
+                                             self.game_info[launcher])
+                config_data['game'][key] = launcher_path
 
         yaml_config = yaml.dump(config_data, default_flow_style=False)
         file(config_filename, "w").write(yaml_config)
@@ -402,8 +396,8 @@ class Installer(gtk.Dialog):
             self.download_progress.destroy()
 
         self.status_label.set_text('Fetching %s' % url)
-        dest_dir = os.path.join(lutris.constants.TMP_PATH, self.game_slug)
-        if not os.path.exists(dest_dir):
+        dest_dir = join(TMP_PATH, self.game_slug)
+        if not exists(dest_dir):
             os.mkdir(dest_dir)
         if not filename:
             filename = os.path.basename(url)
@@ -497,7 +491,7 @@ class Installer(gtk.Dialog):
             return False
 
     def _run(self, data):
-        exec_path = os.path.join(lutris.constants.TMP_PATH, self.game_slug,
+        exec_path = os.path.join(TMP_PATH, self.game_slug,
                                  self.gamefiles[data['file']])
         if not os.path.exists(exec_path):
             print "unable to find %s" % exec_path
