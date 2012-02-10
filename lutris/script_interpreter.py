@@ -25,8 +25,9 @@ import lutris.constants
 
 from lutris.tool.url_tool import UrlTool
 
+
 class LutrisInterpreter():
-    def __init__(self, filename = None):
+    def __init__(self, filename=None):
         self.valid_schemes = ('http', 'https', 'ftp')
         self.url_tool = UrlTool()
         self.files = {}
@@ -37,7 +38,7 @@ class LutrisInterpreter():
         if filename:
             self.load(filename)
 
-    def load(self,filename):
+    def load(self, filename):
         self.config = yaml.load(file(filename, 'r').read())
 
     def get_files(self):
@@ -52,7 +53,7 @@ class LutrisInterpreter():
                     destfile = os.path.basename(url.path)
                     destpath = lutris.constants.cache_path + destfile
                     if not os.path.exists(destpath):
-                        self.url_tool.save_to(destpath,file_path)
+                        self.url_tool.save_to(destpath, file_path)
                     self.files[file_id] = destpath
                 else:
                     print 'not a url', file_id
@@ -68,7 +69,8 @@ class LutrisInterpreter():
             if directive_name == 'extract':
                 extract_info = directive['extract']
                 if 'newdir' in extract_info:
-                    dest = os.path.join(self.dirs[extract_info['destination']],extract_info['newdir'])
+                    dest = os.path.join(self.dirs[extract_info['destination']],
+                                        extract_info['newdir'])
                     if not os.path.exists(dest):
                         os.mkdir(dest)
                     self.dirs[extract_info['newdir']] = dest
@@ -79,16 +81,16 @@ class LutrisInterpreter():
     def check_md5(self, file_id):
         print 'checking ', self.files[file_id]
 
-    def extract(self,archive,dest,options = {}):
+    def extract(self, archive, dest, options={}):
         if not 'method' in options:
             method = 'zip'
         else:
             method = options['method']
-        print "extracting %s to %s " % (self.files[archive], dest )
-        command = "unzip %s -d  %s"%(self.files[archive], dest)
+        print "extracting %s to %s " % (self.files[archive], dest)
+        command = "unzip %s -d  %s" % (self.files[archive], dest)
         os.system(command)
 
-    def move(self,source, destination):
+    def move(self, source, destination):
         os.move
 
 if __name__ == '__main__':
@@ -96,4 +98,3 @@ if __name__ == '__main__':
     interpreter = LutrisInterpreter(filename)
     interpreter.get_files()
     interpreter.install()
-

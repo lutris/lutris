@@ -32,11 +32,12 @@ from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl, change_resolution
 from lutris.constants import *
 
+
 def show_error_message(message, info=None):
     if "RUNNER_NOT_INSTALLED" == message['error']:
         q = QuestionDialog({'title': 'Error the runner is not installed',
-                            'question': '%s is not installed, \
-                         do you want to install it now ?' % message['runner']})
+            'question': '%s is not installed, \
+                    do you want to install it now ?' % message['runner']})
         if gtk.RESPONSE_YES == q.result:
             # FIXME : This is not right at all!
             # Call the runner's install method
@@ -46,6 +47,7 @@ def show_error_message(message, info=None):
     elif "FILE_NOT_FOUND" == message['error']:
         ErrorDialog("The file %s doesn't exists" % message['file'])
 
+
 def get_list():
     """Get the list of all installed games"""
     game_list = []
@@ -54,7 +56,7 @@ def get_list():
             game_name = file[:len(file) - len(CONFIG_EXTENSION)]
             Game = LutrisGame(game_name)
             if not Game.load_success:
-                message = "Error while loading configuration for %s" % game_name
+                message = "Error loading configuration for %s" % game_name
 
                 #error_dialog = gtk.MessageDialog(parent=None, flags=0,
                 #                                 type=gtk.MESSAGE_ERROR,
@@ -66,8 +68,9 @@ def get_list():
             else:
                 game_list.append({"name": Game.real_name,
                                   "runner": Game.runner_name,
-                                  "id":game_name})
-    return game_list
+                                  "id": game_name})
+                return game_list
+
 
 class LutrisGame():
     """"This class takes cares about loading the configuration for a game
@@ -78,7 +81,7 @@ class LutrisGame():
         self.runner = None
         self.subprocess = None
         self.game_thread = None
-        self.lutris_desktop_control = LutrisDesktopControl()
+        self.desktop = LutrisDesktopControl()
         self.load_success = self.load_config()
 
     def load_config(self):
@@ -97,27 +100,30 @@ class LutrisGame():
 
         try:
             runner_module = __import__("lutris.runners.%s" % self.runner_name,
-                                       globals(), locals(),
-                                       [self.runner_name], -1)
+                    globals(), locals(),
+                    [self.runner_name], -1)
             runner_cls = getattr(runner_module, self.runner_name)
             self.machine = runner_cls(self.game_config)
         except ImportError, msg:
             logger.error("Invalid runner %s" % self.runner_name)
             logger.error(msg)
         except AttributeError, msg:
-            logger.error("Invalid configuration file (Attribute Error) : %s" % self.name)
+            logger.error("Invalid configuration file (Attribute Error) : %s"\
+                         % self.name)
             logger.error(msg)
             return False
         except KeyError, msg:
-            logger.error("Invalid configuration file (Key Error) : %s" % self.name)
+            logger.error("Invalid configuration file (Key Error) : %s"\
+                         % self.name)
             logger.error(msg)
             return False
         return True
 
     def play(self):
         if not self.machine.is_installed():
-            install_runner_dialog = QuestionDialog({
-                'question': "The required runner is not installed, do you wish to install it now ?",
+            question = "The required runner is not installed,\
+                        do you wish to install it now ?"
+            install_runner_dialog = QuestionDialog({'question': question,
                 'title': "Required runner unavailable"})
             if gtk.RESPONSE_YES == install_runner_dialog.result:
                 runner_class = import_runner(self.runner_name)
@@ -133,7 +139,6 @@ class LutrisGame():
         if type(gameplay_info) == dict:
             if 'error' in gameplay_info:
                 show_error_message(gameplay_info)
-
                 return False
             game_run_args = gameplay_info["command"]
         else:
@@ -144,7 +149,7 @@ class LutrisGame():
             #Hide Gnome panels
             if "hide_panels" in config["system"]:
                 if config["system"]["hide_panels"]:
-                    self.lutris_desktop_control.hide_panels()
+                    self.desktop.hide_panels()
                     self.hide_panels = True
 
             #Change resolution before starting game
@@ -152,12 +157,12 @@ class LutrisGame():
                 success = change_resolution(config["system"]["resolution"])
                 if success:
                     logger.debug("Resolution changed to %s"
-                                  % config["system"]["resolution"])
+                            % config["system"]["resolution"])
                 else:
                     logger.debug("Failed to set resolution %s"
-                                  % config["system"]["resolution"])
+                            % config["system"]["resolution"])
 
-            #Setting OSS Wrapper
+                    #Setting OSS Wrapper
             if "oss_wrapper" in config["system"]:
                 oss_wrapper = config["system"]["oss_wrapper"]
 
@@ -170,17 +175,14 @@ class LutrisGame():
             # Set compiz fullscreen windows
             # TODO : Check that compiz is running
             if "compiz_nodecoration" in config['system']:
-                self.lutris_desktop_control.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
+                self.desktop.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
             if "compiz_fullscreen" in config['system']:
-                self.lutris_desktop_control.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
+                self.desktop.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
 
             if "killswitch" in config['system']:
                 killswitch = config['system']['killswitch']
             else:
                 killswitch = None
-
-            # Switch to other WM
-            # TODO
 
         if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path
@@ -210,7 +212,7 @@ class LutrisGame():
         axis = "Left Right Up Down"
         command = "sleep 5 && joy2key $(%s) -X -rcfile ~/.joy2keyrc -buttons %s -axis %s" % (
                 wid, buttons, axis
-            )
+                )
         self.joy2key_thread = LutrisThread(command, "/tmp")
         self.joy2key_thread.start()
 
@@ -218,14 +220,11 @@ class LutrisGame():
         self.lutris_config.write_game_config(self.name, settings)
 
     def poke_process(self):
-        if self.game_thread.pid:
-            # Removing poking for now, it's been removed from Gnome
-            #os.system("gnome-screensaver-command --poke")
-            pass
-        else:
+        if not self.game_thread.pid:
             self.quit_game()
             return False
-        return True
+        else:
+            return True
 
     def quit_game(self):
         self.timer_id = None
@@ -234,6 +233,4 @@ class LutrisGame():
             os.kill(self.game_thread.pid + 1, SIGKILL)
         if 'reset_desktop' in self.game_config.config['system']:
             if self.game_config.config['system']['reset_desktop']:
-                self.lutris_desktop_control.reset_desktop()
-
-        #os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+                self.desktop.reset_desktop()

@@ -16,14 +16,14 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import yaml
 import os
+import yaml
 import logging
-
 from os.path import join
 
 import lutris.constants as constants
 from lutris.settings import PGA_PATH
+
 
 def check_config():
     """Check if configuration directories exists and create them if needed.
@@ -45,6 +45,7 @@ def check_config():
     if not os.path.isfile(PGA_PATH):
         import lutris.pga as pga
         pga.create()
+
 
 class LutrisConfig():
     """Class where all the configuration handling happens.
@@ -78,7 +79,8 @@ class LutrisConfig():
 
         #Read system configuration
         if os.path.exists(constants.system_config_full_path):
-            self.system_config = yaml.load(file(constants.system_config_full_path, 'r').read())
+            content = file(constants.system_config_full_path, 'r').read()
+            self.system_config = yaml.load(content)
             if self.system_config is None:
                 self.system_config = {}
         else:
@@ -89,11 +91,10 @@ class LutrisConfig():
                                                  self.game + constants.CONFIG_EXTENSION)
             if os.path.exists(game_config_full_path):
                 try:
-                    self.game_config = yaml.load(
-                            file(game_config_full_path, 'r').read()
-                        )
+                    content = file(game_config_full_path, 'r').read()
+                    self.game_config = yaml.load(content)
                     self.runner = self.game_config["runner"]
-                except yaml.scanner.ScannerError :
+                except yaml.scanner.ScannerError:
                     logging.debug("error parsing config file %s" % game_config_full_path)
                 except yaml.parser.ParserError:
                     logging.debug("error parsing config file %s" % game_config_full_path)
@@ -106,8 +107,6 @@ class LutrisConfig():
             if os.path.exists(runner_config_full_path):
                 self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
         self.update_global_config()
-
-
 
     def __getitem__(self, key):
         """Allow to access config data directly by keys.
@@ -160,7 +159,7 @@ class LutrisConfig():
 
     def is_valid(self):
         """Check the config data and return True if config is ok.
-        
+
         """
         try:
             self.runner_name = self.game_config["runner"]
@@ -174,7 +173,7 @@ class LutrisConfig():
 
         The way to save config files can be set by the type argument
         or with self.config_type
-        
+
         """
 
         self.update_global_config()

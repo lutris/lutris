@@ -22,6 +22,7 @@ import re
 
 from lutris.settings import PGA_PATH
 
+
 def slugify(value):
     """
     Normalizes string, converts to lowercase, removes non-alpha characters,
@@ -32,15 +33,19 @@ def slugify(value):
     value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
     return re.sub('[-\s]+', '-', value)
 
+
 def connect():
     return sqlite3.connect(PGA_PATH)
 
+
 def create():
     c = connect()
-    c.execute('''create table games (name text, slug text, machine text, runner text)''')
+    q = 'create table games (name text, slug text, machine text, runner text)'
+    c.execute(q)
     c.commit()
     c.close()
-    
+
+
 def get_games(name_filter=None):
     c = connect()
     cur = c.cursor()
@@ -56,10 +61,11 @@ def get_games(name_filter=None):
     c.close()
     return results
 
+
 def add_game(name, machine, runner):
     slug = slugify(name)
     c = connect()
-    c.execute("""insert into games(name, slug, machine, runner) values 
+    c.execute("""insert into games(name, slug, machine, runner) values
     (?, ?, ?, ?)""", (name, slug, machine, runner))
     c.commit()
     c.close()
