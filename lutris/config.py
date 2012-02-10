@@ -19,7 +19,32 @@
 import yaml
 import os
 import logging
+
+from os.path import join
+
 import lutris.constants as constants
+from lutris.settings import PGA_PATH
+
+def check_config():
+    """Check if configuration directories exists and create them if needed.
+
+     """
+    config_paths = [constants.LUTRIS_CONFIG_PATH,
+                    constants.runner_config_path,
+                    constants.GAME_CONFIG_PATH,
+                    constants.COVER_PATH,
+                    constants.TMP_PATH,
+                    constants.ICON_PATH,
+                    constants.BANNER_PATH,
+                    constants.LUTRIS_CACHE_PATH,
+                    constants.LUTRIS_DATA_PATH]
+    for config_path in config_paths:
+        if not os.path.exists(config_path):
+            os.mkdir(config_path)
+
+    if not os.path.isfile(PGA_PATH):
+        import lutris.pga as pga
+        pga.create()
 
 class LutrisConfig():
     """Class where all the configuration handling happens.
@@ -31,21 +56,6 @@ class LutrisConfig():
 
     """
     def __init__(self, runner=None, game=None):
-        #Check if configuration directories exists and create them if needed.
-        #FIXME: This isn't the right place for this piece of code, it has
-        #       nothing to do with configuration files.
-        config_paths = [constants.lutris_config_path,
-                        constants.runner_config_path,
-                        constants.GAME_CONFIG_PATH,
-                        constants.COVER_PATH,
-                        constants.TMP_PATH,
-                        constants.ICON_PATH,
-                        constants.BANNER_PATH,
-                        constants.LUTRIS_CACHE_PATH]
-        for config_path in config_paths:
-            if not os.path.exists(config_path):
-                os.mkdir(config_path)
-
         #Initialize configuration
         self.config = {'system': {}}
         self.game_config = {}
@@ -97,8 +107,12 @@ class LutrisConfig():
                 self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
         self.update_global_config()
 
+
+
     def __getitem__(self, key):
-        """Allow to access config data directly by keys"""
+        """Allow to access config data directly by keys.
+
+        """
         if self.config_type == "game":
             value = self.game_config[key]
         elif self.config_type == "runner":
@@ -141,12 +155,12 @@ class LutrisConfig():
 
     def remove(self, game_name):
         logging.debug("removing %s" % game_name)
-        os.remove(os.path.join(constants.GAME_CONFIG_PATH,
-                               game_name + constants.CONFIG_EXTENSION))
+        os.remove(join(constants.GAME_CONFIG_PATH,
+                       game_name + constants.CONFIG_EXTENSION))
 
     def is_valid(self):
-        """
-        Check the config data and return True if config is ok
+        """Check the config data and return True if config is ok.
+        
         """
         try:
             self.runner_name = self.game_config["runner"]
@@ -155,38 +169,39 @@ class LutrisConfig():
             return False
         return True
 
-    def save(self, type=None):
+    def save(self, runner_type=None):
         """Save configuration file
 
         The way to save config files can be set by the type argument
-        or with self.config_type"""
+        or with self.config_type
+        
+        """
 
         self.update_global_config()
-        logging.debug("Saving config (type %s)" % type)
+        logging.debug("Saving config (type %s)" % runner_type)
         logging.debug(self.config)
-        if type is None:
-            type = self.config_type
+        if runner_type is None:
+            runner_type = self.config_type
         yaml_config = yaml.dump(self.config, default_flow_style=False)
 
-        if type == "system":
+        if runner_type == "system":
             file(constants.system_config_full_path, "w").write(yaml_config)
-        elif type == "runner":
-            runner_config_path = os.path.join(constants.runner_config_path,
-                                              self.runner + constants.CONFIG_EXTENSION)
+        elif runner_type == "runner":
+            runner_config_path = join(constants.runner_config_path,
+                                      self.runner + constants.CONFIG_EXTENSION)
             file(runner_config_path, "w").write(yaml_config)
-        elif type == "game":
+        elif runner_type == "game":
             if not self.game:
                 self.game = self.config["runner"] \
                         + "-" + self.config["realname"].replace(" ", "_")
-            self.game_config_path = os.path.join(constants.GAME_CONFIG_PATH,
-                                                 self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
+            self.game_config_path = join(constants.GAME_CONFIG_PATH,
+                                         self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
             config_file = file(self.game_config_path, "w")
             config_file.write(yaml_config)
             return self.game
         else:
             print "Config type is %s or %s" % (self.config_type, type)
             print "i don't know how to save this yet"
-
 
     def get_path(self, default=None):
         """Get the path to install games for a given runner

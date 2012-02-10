@@ -44,7 +44,6 @@ license_text = """
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     """
-#Paths
 
 LAUNCH_PATH = realpath(sys.path[0])
 if LAUNCH_PATH.startswith('/usr'):
@@ -64,17 +63,14 @@ lutris_icon_path = join(DATA_PATH, lutris_icon_file)
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
 LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
-# For legacy purposes FIXME : Remove 
-lutris_config_path = LUTRIS_CONFIG_PATH 
 
 system_config_file = 'system' + CONFIG_EXTENSION
-system_config_full_path = join(lutris_config_path, system_config_file)
-runner_config_path = join(lutris_config_path, 'runners')
-GAME_CONFIG_PATH = join(lutris_config_path, 'games')
-COVER_PATH = join(lutris_config_path, 'covers')
-BANNER_PATH = join(lutris_config_path, 'banners')
+system_config_full_path = join(LUTRIS_CONFIG_PATH, system_config_file)
+runner_config_path = join(LUTRIS_CONFIG_PATH, 'runners')
+GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
+COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')
+BANNER_PATH = join(LUTRIS_CONFIG_PATH, 'banners')
 ICON_PATH = join(expanduser('~'), '.icons') 
 cache_path = LUTRIS_CACHE_PATH
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')
 
-PGA_PATH = join(LUTRIS_DATA_PATH, 'pga.db')

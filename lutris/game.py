@@ -185,7 +185,7 @@ class LutrisGame():
         if hasattr(self.machine, 'game_path'):
             path = self.machine.game_path
         else:
-        	path = None
+            path = None
 
         #print game_run_args
         command = " " . join(game_run_args)

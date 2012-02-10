@@ -34,7 +34,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.connectdialog import ConnectDialog
+#from lutris.gui.connectdialog import ConnectDialog
 from lutris.gui.installerdialog import InstallerDialog
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
@@ -180,7 +180,7 @@ class LutrisWindow(gtk.Window):
 
     def on_preferences_activate(self, widget, data=None):
         SystemConfigDialog()
-    
+
     # -- Import menu
     def on_scumm_activate(self, widget, data=None):
         from lutris.runners.scummvm import scummvm
@@ -192,7 +192,7 @@ class LutrisWindow(gtk.Window):
 
     def on_steam_activate(self, widget, data=None):
         NoticeDialog("Import from steam not yet implemented")
-        
+
     # - Help menu
     def about(self, widget, data=None):
         about = NewAboutLutrisDialog(self.data_path)
