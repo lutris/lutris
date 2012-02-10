@@ -19,7 +19,7 @@
 import os
 
 from lutris.exceptions import GConfBindingsUnavailable
-from lutris.utils import logger
+from lutris.util.log import logger
 
 try:
     import gconf

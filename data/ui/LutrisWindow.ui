@@ -39,7 +39,7 @@
                         <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Connect</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_connect_menuitem_activate" swapped="no"/>
+                        <signal name="activate" handler="on_connect" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -89,7 +89,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">ScummVM</property>
                                 <property name="use_underline">True</property>
-                                <signal name="activate" handler="on_scumm_activate" swapped="no"/>
+                                <signal name="activate" handler="import_scummvm" swapped="no"/>
                               </object>
                             </child>
                             <child>

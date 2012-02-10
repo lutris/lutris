@@ -29,19 +29,19 @@ import gtk
 import os
 import gobject
 
+import lutris.coverflow.coverflow
+
+from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-#from lutris.gui.connectdialog import ConnectDialog
 from lutris.gui.installerdialog import InstallerDialog
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
-from lutris.gui.widgets import GameTreeView, GameCover
-import lutris.coverflow.coverflow
 
 
 class LutrisWindow(gtk.Window):
@@ -174,8 +174,9 @@ class LutrisWindow(gtk.Window):
 
     # Menu action handlers
     # - Lutris Menu
-    def on_connect_activate(self, widget, data=None):
-        ConnectDialog()
+    def on_connect(self, widget, data=None):
+        #ConnectDialog()
+        NoticeDialog("This functionnality is not yet implemented.")
 
     def on_runners_activate(self, widget, data=None):
         RunnersDialog()
@@ -184,7 +185,7 @@ class LutrisWindow(gtk.Window):
         SystemConfigDialog()
 
     # -- Import menu
-    def on_scumm_activate(self, widget, data=None):
+    def import_scummvm(self, widget, data=None):
         from lutris.runners.scummvm import scummvm
         scummvm = scummvm()
         new_games = scummvm.import_games()
@@ -192,7 +193,7 @@ class LutrisWindow(gtk.Window):
             self.game_treeview.add_row(new_game)
         self.game_treeview.sort_rows()
 
-    def on_steam_activate(self, widget, data=None):
+    def import_steam(self, widget, data=None):
         NoticeDialog("Import from steam not yet implemented")
 
     # - Help menu
@@ -286,7 +287,6 @@ class LutrisWindow(gtk.Window):
             game_info = add_game_dialog.game_info
             self.game_treeview.add_row(game_info)
             self.game_treeview.sort_rows()
-
 
     def edit_game_name(self, button):
         """Change game name"""
