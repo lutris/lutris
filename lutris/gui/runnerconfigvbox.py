@@ -23,6 +23,7 @@ import gtk
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
+
 class RunnerConfigVBox(ConfigVBox):
     """ Runner Configuration VBox
         This vbox is used in game configuration and global
@@ -38,7 +39,7 @@ class RunnerConfigVBox(ConfigVBox):
             self.lutris_config = lutris_config
             self.generate_widgets()
         else:
-            warningLabel = gtk.Label("This runner has no options yet\nPlease fix this")
+            warningLabel = gtk.Label("This runner has no options yet\n"\
+                                     + "Please fix this")
             self.pack_start(warningLabel)
             return
-

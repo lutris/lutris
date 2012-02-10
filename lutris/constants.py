@@ -59,6 +59,7 @@ if not exists(DATA_PATH):
 
 lutris_icon_file = "media/logo.svg"
 lutris_icon_path = join(DATA_PATH, lutris_icon_file)
+LUTRIS_ICON_PATH = lutris_icon_path
 
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
@@ -70,7 +71,6 @@ runner_config_path = join(LUTRIS_CONFIG_PATH, 'runners')
 GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
 COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')
 BANNER_PATH = join(LUTRIS_CONFIG_PATH, 'banners')
-ICON_PATH = join(expanduser('~'), '.icons') 
+ICON_PATH = join(expanduser('~'), '.icons')
 cache_path = LUTRIS_CACHE_PATH
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')
-

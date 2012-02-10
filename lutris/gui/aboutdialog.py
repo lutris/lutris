@@ -18,6 +18,8 @@ import os
 import gtk.gdk
 import lutris.constants
 
+from lutris.constants import LUTRIS_ICON_PATH
+
 
 class AboutLutrisDialog(gtk.AboutDialog):
     __gtype_name__ = "AboutLutrisDialog"
@@ -47,7 +49,7 @@ class AboutLutrisDialog(gtk.AboutDialog):
         #code for other initialization actions should be added here
         self.set_position(gtk.WIN_POS_CENTER)
         self.set_icon_from_file(lutris.constants.lutris_icon_path)
-        self.set_logo(gtk.gdk.pixbuf_new_from_file(lutris.constants.lutris_icon_path))
+        self.set_logo(gtk.gdk.pixbuf_new_from_file(LUTRIS_ICON_PATH))
         self.set_name(lutris.constants.name)
         self.set_version(lutris.constants.version)
         self.set_copyright(lutris.constants.copyright)
@@ -56,11 +58,10 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.set_artists(lutris.constants.artists)
         self.set_website(lutris.constants.website)
 
-def NewAboutLutrisDialog(data_path):
-    """NewAboutLutrisDialog - returns a fully instantiated
-    AboutLutrisDialog object. Use this function rather than
-    creating a AboutLutrisDialog instance directly.
 
+def NewAboutLutrisDialog(data_path):
+    """NewAboutLutrisDialog - returns a fully instantiated AboutLutrisDialog
+    object.
     """
 
     #look for the ui file that describes the ui
@@ -73,4 +74,3 @@ def NewAboutLutrisDialog(data_path):
     dialog = builder.get_object("about_lutris_dialog")
     dialog.finish_initializing(builder)
     return dialog
-

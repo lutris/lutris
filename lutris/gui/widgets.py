@@ -29,7 +29,8 @@ from lutris.constants import COVER_PATH, DATA_PATH
 import lutris.constants
 
 ICON_SIZE = 24
-MISSING_APP_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
+MISSING_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
+
 
 class GameTreeView(gtk.TreeView):
     """
@@ -38,12 +39,12 @@ class GameTreeView(gtk.TreeView):
     Many thanks to Michael Vogt
 
     """
-    COL_ICON = 1 # Column number for the icon
-    COL_TEXT = 2 # Column number for the description
+    COL_ICON = 1  # Column number for the icon
+    COL_TEXT = 2  # Column number for the description
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        model = gtk.ListStore(str,gtk.gdk.Pixbuf, str)
+        model = gtk.ListStore(str, gtk.gdk.Pixbuf, str)
         model.set_sort_column_id(0, gtk.SORT_ASCENDING)
         self.set_model(model)
         tp = gtk.CellRendererPixbuf()
@@ -64,7 +65,7 @@ class GameTreeView(gtk.TreeView):
                                  game['runner'] + '.png')
         pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
                                                    ICON_SIZE, ICON_SIZE)
-        row = model.append([game['id'], pix, s,])
+        row = model.append([game['id'], pix, s, ])
         return row
 
     def remove_row(self, model_iter):
@@ -74,6 +75,7 @@ class GameTreeView(gtk.TreeView):
     def sort_rows(self):
         model = self.get_model()
         gtk.TreeModelSort(model)
+
 
 class GameCover(gtk.Image):
     def __init__(self, parent=None):
@@ -104,12 +106,11 @@ class GameCover(gtk.Image):
         self.drag_dest_unset()
 
     def activate_drop(self):
-        targets = [('text/plain',0, 0),
-                   ('text/uri-list',0, 0),
-                   ('text/html',0, 0),
-                   ('text/unicode',0, 0),
-                   ('text/x-moz-url',0, 0)
-                   ]
+        targets = [('text/plain', 0, 0),
+                   ('text/uri-list', 0, 0),
+                   ('text/html', 0, 0),
+                   ('text/unicode', 0, 0),
+                   ('text/x-moz-url', 0, 0)]
         self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets,
             gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT | gtk.gdk.ACTION_MOVE)
 
@@ -135,21 +136,20 @@ class GameCover(gtk.Image):
         self.set_game_cover(game)
         return True
 
+
 class DownloadProgressBox(gtk.HBox):
-    __gsignals__ = {'complete' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-        (gobject.TYPE_PYOBJECT,)),
-        'cancelrequested' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-        (gobject.TYPE_PYOBJECT,))
-        }
+    __gsignals__ = {'complete': (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 (gobject.TYPE_PYOBJECT,)),
+                    'cancelrequested': (gobject.SIGNAL_RUN_LAST,
+                                         gobject.TYPE_NONE,
+                                         (gobject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
-
         gtk.HBox.__init__(self, False, 2)
-
         self.progressbar = gtk.ProgressBar()
         self.progressbar.show()
         self.pack_start(self.progressbar, True)
-
         self.cancel_button = gtk.Button(stock=gtk.STOCK_CANCEL)
         if cancelable:
             self.cancel_button.show()
@@ -182,7 +182,6 @@ class DownloadProgressBox(gtk.HBox):
     def __stop_download(self, widget):
         self.downloader.kill = True
         self.cancel_button.set_sensitive(False)
-        #self.downloader = None
 
     def cancel(self):
         print "cancelling download"

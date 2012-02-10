@@ -22,12 +22,15 @@
 
 import gtk
 
+
 class ConfigVBox(gtk.VBox):
-    def __init__(self,save_in_key,caller):
+    def __init__(self, save_in_key, caller):
         gtk.VBox.__init__(self)
         self.options = None
-        #Section of the configuration file to save options in. Can be "game", "runner" or "system"
+        #Section of the configuration file to save options in. Can be "game",
+        #"runner" or "system" self.save_in_key= save_in_key
         self.save_in_key= save_in_key
+
         self.caller = caller
 
     def generate_widgets(self):
@@ -57,85 +60,97 @@ class ConfigVBox(gtk.VBox):
 
             #Different types of widgets.
             if option["type"] == "one_choice":
-                self.generate_combobox(option_key,option["choices"],option["label"],value)
+                self.generate_combobox(option_key,
+                                       option["choices"],
+                                       option["label"], value)
             elif option["type"] == "bool":
-                self.generate_checkbox(option_key,option["label"],value)
+                self.generate_checkbox(option_key, option["label"], value)
             elif option["type"] == "range":
-                self.generate_range(option_key,option["min"], option["max"],option["label"],value)
+                self.generate_range(option_key,
+                                    option["min"],
+                                    option["max"],
+                                    option["label"], value)
             elif option["type"] == "string":
-                self.generate_entry(option_key,option["label"], value)
-            elif option["type"] in ("directory_chooser", "directory"):
-                self.generate_directory_chooser(option_key,option["label"], value)
-            elif option["type"] in ("file_chooser", "single", "file"):
-                self.generate_file_chooser(option_key,option["label"], value)
-            elif option["type"] in ("multiple", "files"):
-                self.generate_multiple_file_chooser(option_key, option["label"], value)
+                self.generate_entry(option_key,
+                                    option["label"], value)
+            elif option["type"] == "directory_chooser":
+                self.generate_directory_chooser(option_key,
+                                                option["label"],
+                                                value)
+            elif option["type"] in ("file_chooser", "single"):
+                self.generate_file_chooser(option_key, option["label"], value)
+            elif option["type"] == "multiple":
+                self.generate_multiple_file_chooser(option_key,
+                                                    option["label"], value)
             elif option["type"] == "label":
                 self.generate_label(option["label"])
             else:
                 print "WTF is %s ?" % option["type"]
 
-    def generate_label(self,text):
+    def generate_label(self, text):
         label = gtk.Label(text)
         label.show()
-        self.pack_start(label,True,True)
+        self.pack_start(label, True, True)
 
     #Checkbox
-    def generate_checkbox(self,option_name,label,value=None):
+    def generate_checkbox(self, option_name, label, value=None):
         checkbox = gtk.CheckButton(label)
         if value:
             checkbox.set_active(value)
-        checkbox.connect("toggled",self.checkbox_toggle,option_name)
+        checkbox.connect("toggled", self.checkbox_toggle, option_name)
         checkbox.show()
-        self.pack_start(checkbox,False,True,5)
-    def checkbox_toggle(self,widget,option_name):
+        self.pack_start(checkbox, False, True, 5)
+
+    def checkbox_toggle(self, widget, option_name):
         self.real_config[self.save_in_key][option_name] = widget.get_active()
 
     #Entry
-    def generate_entry(self,option_name,label,value=None):
+    def generate_entry(self, option_name, label, value=None):
         hbox = gtk.HBox()
         entry_label = gtk.Label(label)
-        entry_label.set_size_request(200,30)
+        entry_label.set_size_request(200, 30)
         entry = gtk.Entry()
         if value:
             entry.set_text(value)
-        entry.connect("changed",self.entry_changed,option_name)
-        hbox.pack_start(entry_label,False,False,5)
-        hbox.pack_start(entry,True,True,5)
+        entry.connect("changed", self.entry_changed, option_name)
+        hbox.pack_start(entry_label, False, False, 5)
+        hbox.pack_start(entry, True, True, 5)
         hbox.show_all()
-        self.pack_start(hbox,False,True,5)
-    def entry_changed(self,entry,option_name):
+        self.pack_start(hbox, False, True, 5)
+
+    def entry_changed(self, entry, option_name):
         entry_text = entry.get_text()
         self.real_config[self.save_in_key][option_name] = entry_text
 
     #ComboBox
-    def generate_combobox(self,option_name,choices,label,value=None):
+    def generate_combobox(self, option_name, choices, label, value=None):
         hbox = gtk.HBox()
-        liststore = gtk.ListStore(str,str)
+        liststore = gtk.ListStore(str, str)
         for choice in choices:
             if type(choice) is str:
                 choice = [choice, choice]
             liststore.append(choice)
         combobox = gtk.ComboBox(liststore)
-        combobox.set_size_request(200,30)
+        combobox.set_size_request(200, 30)
         cell = gtk.CellRendererText()
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)
-        index = selected_index  = -1
+        index = selected_index = -1
         if value:
             for choice in choices:
                 if choice[1] == value:
-                    selected_index = index +1
-                index = index +1
+                    selected_index = index + 1
+                index = index + 1
         combobox.set_active(selected_index)
-        combobox.connect('changed',self.on_combobox_change,option_name)
+        combobox.connect('changed', self.on_combobox_change, option_name)
         gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200,30)
+        gtklabel.set_size_request(200, 30)
         hbox.pack_start(gtklabel)
         hbox.pack_start(combobox)
         hbox.show_all()
-        self.pack_start(hbox,False,True,5)
-    def on_combobox_change(self,combobox,option):
+        self.pack_start(hbox, False, True, 5)
+
+    def on_combobox_change(self, combobox, option):
         model = combobox.get_model()
         active = combobox.get_active()
         if active < 0:
@@ -144,86 +159,87 @@ class ConfigVBox(gtk.VBox):
         self.real_config[self.save_in_key][option] = option_value
 
     #Range
-    def generate_range(self,option_name,min,max,label,value=None):
-        adjustment = gtk.Adjustment(float(min),float(min),float(max),1,0,0)
+    def generate_range(self, option_name, min, max, label, value=None):
+        adjustment = gtk.Adjustment(float(min), float(min), float(max),
+                                    1, 0, 0)
         spin_button = gtk.SpinButton(adjustment)
         if value:
             spin_button.set_value(value)
-        spin_button.connect('changed',self.on_spin_button_changed,option_name)
+        spin_button.connect('changed',
+                            self.on_spin_button_changed, option_name)
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200,30)
+        gtklabel.set_size_request(200, 30)
         hbox.pack_start(gtklabel)
         hbox.pack_start(spin_button)
         hbox.show_all()
-        self.pack_start(hbox,False,True,5)
-    def on_spin_button_changed(self,spin_button,option):
+        self.pack_start(hbox, False, True, 5)
+
+    def on_spin_button_changed(self, spin_button, option):
         value = spin_button.get_value_as_int()
         self.real_config[self.save_in_key][option] = value
 
-
-    #File chooser
-    def generate_file_chooser(self,option_name,label,value=None):
+    def generate_file_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to choose a file"""
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200,30)
+        gtklabel.set_size_request(200, 30)
         file_chooser = gtk.FileChooserButton("Choose a file for %s" % label)
-        file_chooser.set_size_request(200,30)
+        file_chooser.set_size_request(200, 30)
 
         file_chooser.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
-        #file_chooser.set_current_folder(self.lutris_config.get_path(self.runner_class))
-        file_chooser.connect("file-set",self.on_chooser_file_set,option_name)
+        file_chooser.connect("file-set", self.on_chooser_file_set, option_name)
         if value:
             file_chooser.unselect_all()
             file_chooser.select_filename(value)
-        hbox.pack_start(gtklabel,False,False,10)
+        hbox.pack_start(gtklabel, False, False, 10)
         hbox.pack_start(file_chooser)
-        self.pack_start(hbox,False,True,5)
+        self.pack_start(hbox, False, True, 5)
 
-    def generate_directory_chooser(self,option_name,label,value=None):
+    def generate_directory_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to choose a directory"""
         hbox = gtk.HBox()
         gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200,30)
-        directory_chooser = gtk.FileChooserButton("Choose a directory for %s" % label)
-        directory_chooser.set_size_request(200,30)
+        gtklabel.set_size_request(200, 30)
+        directory_chooser = gtk.FileChooserButton("Choose a directory for %s"\
+                                                  % label)
+        directory_chooser.set_size_request(200, 30)
         directory_chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)
-        directory_chooser.connect("file-set",self.on_chooser_file_set,option_name)
+        directory_chooser.connect("file-set",
+                                  self.on_chooser_file_set, option_name)
         hbox.pack_start(gtklabel)
         hbox.pack_start(directory_chooser)
-        self.pack_start(hbox,False,True,5)
+        self.pack_start(hbox, False, True, 5)
 
-    def on_chooser_file_set(self,filechooser_widget,option):
-        filename =  filechooser_widget.get_filename()
+    def on_chooser_file_set(self, filechooser_widget, option):
+        filename = filechooser_widget.get_filename()
         self.real_config[self.save_in_key][option] = filename
 
-    def generate_multiple_file_chooser(self,option_name,label,value=None):
+    def generate_multiple_file_chooser(self, option_name, label, value=None):
         hbox = gtk.HBox()
         gtk_label = gtk.Label(label)
-        gtk_label.set_size_request(200,30)
+        gtk_label.set_size_request(200, 30)
         hbox.pack_start(gtk_label)
-        self.files_chooser_dialog = gtk.FileChooserDialog(
-                title="Select files",
-                parent=self.get_parent_window(),
-                action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
-                         gtk.STOCK_ADD, gtk.RESPONSE_OK)
-            )
+        self.files_chooser_dialog = gtk.FileChooserDialog(title="Select files",
+                                parent=self.get_parent_window(),
+                                action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
+                                         gtk.STOCK_ADD, gtk.RESPONSE_OK))
         self.files_chooser_dialog.set_select_multiple(True)
-        self.files_chooser_dialog.connect('response', self.add_files_callback,option_name)
+        self.files_chooser_dialog.connect('response',
+                                          self.add_files_callback, option_name)
 
         files_chooser_button = gtk.FileChooserButton(self.files_chooser_dialog)
         game_path = self.lutris_config.get_path(self.runner_class)
         if game_path:
-           files_chooser_button.set_current_folder(game_path)
+            files_chooser_button.set_current_folder(game_path)
         if value:
             files_chooser_button.set_filename(value[0])
 
         hbox.pack_start(files_chooser_button)
-        self.pack_start(hbox,False,True,5)
+        self.pack_start(hbox, False, True, 5)
         if value:
             self.files = value
         else:
@@ -234,23 +250,23 @@ class ConfigVBox(gtk.VBox):
         files_column = gtk.TreeViewColumn("Files")
         cell_renderer = gtk.CellRendererText()
         files_column.pack_start(cell_renderer)
-        files_column.set_attributes(cell_renderer,text=0)
+        files_column.set_attributes(cell_renderer, text=0)
         files_treeview = gtk.TreeView(self.files_list_store)
         files_treeview.append_column(files_column)
-        files_treeview.set_size_request(10,100)
-        files_treeview.connect('key-press-event',self.on_files_treeview_event)
+        files_treeview.set_size_request(10, 100)
+        files_treeview.connect('key-press-event', self.on_files_treeview_event)
         treeview_scroll = gtk.ScrolledWindow()
         treeview_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         treeview_scroll.add(files_treeview)
-        self.pack_start(treeview_scroll,True,True)
+        self.pack_start(treeview_scroll, True, True)
 
-    def on_files_treeview_event(self,treeview,event):
-        key =  event.keyval
+    def on_files_treeview_event(self, treeview, event):
+        key = event.keyval
         if key == gtk.keysyms.Delete:
             #TODO : Delete selected row
             print "you don't wanna delete this ... yet"
 
-    def add_files_callback(self,dialog,response,option):
+    def add_files_callback(self, dialog, response, option):
         """Add several files to the configuration"""
         if response == gtk.RESPONSE_OK:
             filenames = dialog.get_filenames()

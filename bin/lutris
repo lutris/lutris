@@ -58,6 +58,9 @@ parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
+parser.add_option("-n", "--no-download",
+                  action="store_true", dest="no_download",
+                  help="Don't download anything when installing")
 (options, args) = parser.parse_args()
 
 # Set the logging level to show debug messages.
@@ -73,7 +76,8 @@ if options.verbose:
     else:
         console.setLevel(log.logging.INFO)
 
-    formatter = log.logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    fmt = '%(name)-12s: %(levelname)-8s %(message)s'
+    formatter = log.logging.Formatter(fmt)
     console.setFormatter(formatter)
     log.logger.addHandler(console)
 
@@ -81,7 +85,8 @@ installer = False
 game = None
 if options.installer_file:
     if not os.path.exists(options.installer_file):
-        print "Unable to find installer at : %s" % options.installer_file
+        log.logger.error("Unable to find installer at : %s"
+                         % options.installer_file)
         exit()
     else:
         game = True
@@ -118,4 +123,3 @@ else:
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
-

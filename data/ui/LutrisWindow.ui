@@ -282,7 +282,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkScrolledWindow" id="game_list_scrolledwindow">
+              <object class="GtkScrolledWindow" id="games_scrollwindow">
                 <property name="width_request">400</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
