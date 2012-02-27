@@ -18,12 +18,14 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
+"""Misc widgets used in the GUI."""
 
 import os
 import gtk
 import gobject
 import pango
 import Image
+
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH, DATA_PATH
 import lutris.constants
@@ -47,37 +49,46 @@ class GameTreeView(gtk.TreeView):
         model = gtk.ListStore(str, gtk.gdk.Pixbuf, str)
         model.set_sort_column_id(0, gtk.SORT_ASCENDING)
         self.set_model(model)
-        tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Runner", tp, pixbuf=self.COL_ICON)
+        image_cell = gtk.CellRendererPixbuf()
+        column = gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
         self.append_column(column)
-        tr = gtk.CellRendererText()
-        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn("Game", tr, markup=self.COL_TEXT)
+        text_cell = gtk.CellRendererText()
+        text_cell.set_property("ellipsize", pango.ELLIPSIZE_END)
+        column = gtk.TreeViewColumn("Game", text_cell, markup=self.COL_TEXT)
         self.append_column(column)
-        for game in sorted(games):
-            self.add_row(game)
+        if games:
+            for game in sorted(games):
+                self.add_row(game)
 
     def add_row(self, game):
+        """Add a game in the treeview."""
+
         model = self.get_model()
-        s = "%s \n<small>%s</small>" % (game['name'], game['runner'])
+        label = "%s \n<small>%s</small>" % \
+                (game['name'], game['runner'])
         icon_path = os.path.join(lutris.constants.DATA_PATH,
                                  'media/runner_icons',
                                  game['runner'] + '.png')
         pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
                                                    ICON_SIZE, ICON_SIZE)
-        row = model.append([game['id'], pix, s, ])
+        row = model.append([game['id'], pix, label, ])
         return row
 
     def remove_row(self, model_iter):
+        """Remove a game from the treeview."""
+
         model = self.get_model()
         model.remove(model_iter)
 
     def sort_rows(self):
+        """Sort the game list."""
+
         model = self.get_model()
         gtk.TreeModelSort(model)
 
 
 class GameCover(gtk.Image):
+    """Widget displaing the selected game's cover"""
     def __init__(self, parent=None):
         super(GameCover, self).__init__()
         self.parent_window = parent
@@ -85,14 +96,15 @@ class GameCover(gtk.Image):
         self.connect('drag_data_received', self.on_cover_drop)
 
     def set_game_cover(self, name):
-        coverFile = os.path.join(COVER_PATH, name + ".jpg")
-        if os.path.exists(coverFile):
+        """Change the cover currently displayed."""
+        cover_file = os.path.join(COVER_PATH, name + ".jpg")
+        if os.path.exists(cover_file):
             #Resize the image
-            cover_pixbuf = gtk.gdk.pixbuf_new_from_file(coverFile)
+            cover_pixbuf = gtk.gdk.pixbuf_new_from_file(cover_file)
             dest_w = 250.0
-            h = cover_pixbuf.get_height()
-            w = cover_pixbuf.get_width()
-            dest_h = h * (dest_w / w)
+            height = cover_pixbuf.get_height()
+            width = cover_pixbuf.get_width()
+            dest_h = height * (dest_w / width)
             self.set_from_pixbuf(cover_pixbuf.scale_simple(
                 int(dest_w),
                 int(dest_h),
@@ -103,9 +115,11 @@ class GameCover(gtk.Image):
             self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
 
     def desactivate_drop(self):
+        """Deactivate DnD for the widget."""
         self.drag_dest_unset()
 
     def activate_drop(self):
+        """Activate DnD for the widget."""
         targets = [('text/plain', 0, 0),
                    ('text/uri-list', 0, 0),
                    ('text/html', 0, 0),
@@ -115,6 +129,7 @@ class GameCover(gtk.Image):
             gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT | gtk.gdk.ACTION_MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
+        """Take action based on a drop on the widget."""
         # TODO : Change mouse cursor if no game is selected
         #        of course, it must not be handled here
         file_path = selection.data.strip()
@@ -138,6 +153,7 @@ class GameCover(gtk.Image):
 
 
 class DownloadProgressBox(gtk.HBox):
+    """Progress bar used to monitor a file download."""
     __gsignals__ = {'complete': (gobject.SIGNAL_RUN_LAST,
                                  gobject.TYPE_NONE,
                                  (gobject.TYPE_PYOBJECT,)),
@@ -147,6 +163,7 @@ class DownloadProgressBox(gtk.HBox):
 
     def __init__(self, params, cancelable=True):
         gtk.HBox.__init__(self, False, 2)
+        self.downloader = None
         self.progressbar = gtk.ProgressBar()
         self.progressbar.show()
         self.pack_start(self.progressbar, True)
@@ -161,13 +178,16 @@ class DownloadProgressBox(gtk.HBox):
         self.dest = params['dest']
 
     def start(self):
+        """Start downloading a file."""
         print "starting to download %s" % self.url
         self.downloader = Downloader(self.url, self.dest)
-        self.timer_id = gobject.timeout_add(100, self.progress)
+        timer_id = gobject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()
+        return timer_id
 
     def progress(self):
+        """Show download progress."""
         progress = min(self.downloader.progress, 1)
         self.progressbar.set_fraction(progress)
         percent = progress * 100
@@ -179,10 +199,12 @@ class DownloadProgressBox(gtk.HBox):
             return False
         return True
 
-    def __stop_download(self, widget):
+    def __stop_download(self):
+        """Stop the current download."""
         self.downloader.kill = True
         self.cancel_button.set_sensitive(False)
 
     def cancel(self):
+        """Cancel the current download."""
         print "cancelling download"
         self.downloader.kill()

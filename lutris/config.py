@@ -15,14 +15,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Handle the basic configuration of Lutris."""
 
 import os
 import yaml
 import logging
 from os.path import join
 
+import lutris.pga as pga
 import lutris.constants as constants
 from lutris.settings import PGA_PATH
+from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 
 
 def check_config():
@@ -43,7 +46,6 @@ def check_config():
             os.mkdir(config_path)
 
     if not os.path.isfile(PGA_PATH):
-        import lutris.pga as pga
         pga.create()
 
 
@@ -69,13 +71,14 @@ class LutrisConfig():
         #By default config type is system, it can also be runner and game
         #this means that when you call lutris_config_instance["key"] is will
         #pick up the right configuration depending of config_type
-        self.config_type = "system"
         if runner:
             self.runner = runner
             self.config_type = "runner"
         elif game:
             self.game = game
             self.config_type = "game"
+        else:
+            self.config_type = "system"
 
         #Read system configuration
         if os.path.exists(constants.system_config_full_path):
@@ -87,31 +90,32 @@ class LutrisConfig():
             file(constants.system_config_full_path, "w+")
 
         if self.game:
-            game_config_full_path = os.path.join(constants.GAME_CONFIG_PATH,
-                                                 self.game + constants.CONFIG_EXTENSION)
+            game_config_full_path = join(GAME_CONFIG_PATH,
+                                         self.game + CONFIG_EXTENSION)
             if os.path.exists(game_config_full_path):
                 try:
                     content = file(game_config_full_path, 'r').read()
                     self.game_config = yaml.load(content)
                     self.runner = self.game_config["runner"]
                 except yaml.scanner.ScannerError:
-                    logging.debug("error parsing config file %s" % game_config_full_path)
+                    logging.debug("error parsing config file %s",
+                                  game_config_full_path)
                 except yaml.parser.ParserError:
-                    logging.debug("error parsing config file %s" % game_config_full_path)
+                    logging.debug("error parsing config file %s",
+                                  game_config_full_path)
                 except KeyError:
                     logging.debug("Runner key is mandatory !")
 
         if self.runner:
-            runner_config_full_path = os.path.join(constants.runner_config_path,
-                                                   self.runner + constants.CONFIG_EXTENSION)
+            runner_config_full_path = join(constants.runner_config_path,
+                                           self.runner + CONFIG_EXTENSION)
             if os.path.exists(runner_config_full_path):
-                self.runner_config = yaml.load(file(runner_config_full_path, 'r').read())
+                yaml_content = file(runner_config_full_path, 'r').read()
+                self.runner_config = yaml.load(yaml_content)
         self.update_global_config()
 
     def __getitem__(self, key):
-        """Allow to access config data directly by keys.
-
-        """
+        """Allow to access config data directly by keys."""
         if self.config_type == "game":
             value = self.game_config[key]
         elif self.config_type == "runner":
@@ -130,6 +134,7 @@ class LutrisConfig():
         self.update_global_config()
 
     def update_global_config(self):
+        """Update the global config dict."""
         for key in self.system_config.keys():
             if key in self.config:
                 self.config[key].update(self.system_config[key])
@@ -150,34 +155,35 @@ class LutrisConfig():
                 self.config[key] = self.game_config[key]
 
     def get_real_name(self):
+        """Return the real name of a game."""
+
         return self.config["realname"]
 
     def remove(self, game_name):
-        logging.debug("removing %s" % game_name)
-        os.remove(join(constants.GAME_CONFIG_PATH,
-                       game_name + constants.CONFIG_EXTENSION))
+        """Delete the configuration file from disk."""
+
+        logging.debug("removing %s", game_name)
+        os.remove(join(GAME_CONFIG_PATH,
+                       game_name + CONFIG_EXTENSION))
 
     def is_valid(self):
-        """Check the config data and return True if config is ok.
+        """Check the config data and return True if config is ok."""
 
-        """
-        try:
-            self.runner_name = self.game_config["runner"]
-        except KeyError:
+        if "runner" in self.game_config:
+            return True
+        else:
             print "Error in %s config file : No runner" % self.game
             return False
-        return True
 
     def save(self, runner_type=None):
         """Save configuration file
 
         The way to save config files can be set by the type argument
         or with self.config_type
-
         """
 
         self.update_global_config()
-        logging.debug("Saving config (type %s)" % runner_type)
+        logging.debug("Saving config (type %s)", runner_type)
         logging.debug(self.config)
         if runner_type is None:
             runner_type = self.config_type
@@ -187,15 +193,16 @@ class LutrisConfig():
             file(constants.system_config_full_path, "w").write(yaml_config)
         elif runner_type == "runner":
             runner_config_path = join(constants.runner_config_path,
-                                      self.runner + constants.CONFIG_EXTENSION)
+                                      self.runner + CONFIG_EXTENSION)
             file(runner_config_path, "w").write(yaml_config)
         elif runner_type == "game":
             if not self.game:
                 self.game = self.config["runner"] \
                         + "-" + self.config["realname"].replace(" ", "_")
-            self.game_config_path = join(constants.GAME_CONFIG_PATH,
-                                         self.game.replace('/', '_') + constants.CONFIG_EXTENSION)
-            config_file = file(self.game_config_path, "w")
+            game_config_path = join(GAME_CONFIG_PATH,
+                                    self.game.replace('/', '_') + \
+                                    CONFIG_EXTENSION)
+            config_file = file(game_config_path, "w")
             config_file.write(yaml_config)
             return self.game
         else:
@@ -203,7 +210,7 @@ class LutrisConfig():
             print "i don't know how to save this yet"
 
     def get_path(self, default=None):
-        """Get the path to install games for a given runner
+        """Get the path to install games for a given runner.
 
         Return False if it can't find an installation path
         """

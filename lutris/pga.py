@@ -15,8 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Personnal Game Archive module. Handle local database of user's games."""
 
-
+import unicodedata
 import sqlite3
 import re
 
@@ -24,48 +25,53 @@ from lutris.settings import PGA_PATH
 
 
 def slugify(value):
-    """
+    """Remove special characters from a string and slugify it.
+
     Normalizes string, converts to lowercase, removes non-alpha characters,
     and converts spaces to hyphens.
     """
-    import unicodedata
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
     return re.sub('[-\s]+', '-', value)
 
 
 def connect():
+    """Connect to the local PGA database."""
     return sqlite3.connect(PGA_PATH)
 
 
 def create():
-    c = connect()
-    q = 'create table games (name text, slug text, machine text, runner text)'
-    c.execute(q)
-    c.commit()
-    c.close()
+    """Create the local PGA database."""
+    con = connect()
+    query = 'create table games ' + \
+            '(name text, slug text, machine text, runner text)'
+    con.execute(query)
+    con.commit()
+    con.close()
 
 
 def get_games(name_filter=None):
-    c = connect()
-    cur = c.cursor()
+    """Get the list of every game in database."""
+    con = connect()
+    cur = con.cursor()
 
     if filter is not None:
-        q = "select * from where name LIKE = ?"
-        rows = cur.execute(q, (name_filter, ))
+        query = "select * from where name LIKE = ?"
+        rows = cur.execute(query, (name_filter, ))
     else:
-        q = "select * from games"
-        rows = cur.execute(q)
+        query = "select * from games"
+        rows = cur.execute(query)
     results = rows.fetchall()
     cur.close()
-    c.close()
+    con.close()
     return results
 
 
 def add_game(name, machine, runner):
+    """Adds a game to the PGA database."""
     slug = slugify(name)
-    c = connect()
-    c.execute("""insert into games(name, slug, machine, runner) values
+    con = connect()
+    con.execute("""insert into games(name, slug, machine, runner) values
     (?, ?, ?, ?)""", (name, slug, machine, runner))
-    c.commit()
-    c.close()
+    con.commit()
+    con.close()

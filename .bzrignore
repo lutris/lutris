@@ -3,5 +3,6 @@ build
 .project
 .pydevproject
 .settings
+.ropeproject
 tags
 *.pyc
