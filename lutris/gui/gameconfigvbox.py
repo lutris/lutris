@@ -19,12 +19,13 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import logging
 import gtk
+
 import lutris.runners
 
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
+from lutris.runners import import_runner
 
 
 class GameConfigVBox(ConfigVBox):

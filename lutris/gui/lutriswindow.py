@@ -29,10 +29,12 @@ import gtk
 import os
 import gobject
 
+import lutris.coverflow.coverflow
+
+from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
 from lutris.gui.common import NoticeDialog
-from lutris.gui.ftpdialog import FtpDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
 from lutris.gui.installerdialog import InstallerDialog
@@ -40,8 +42,6 @@ from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
-from lutris.gui.widgets import GameTreeView, GameCover
-import lutris.coverflow.coverflow
 
 
 class LutrisWindow(gtk.Window):
@@ -54,7 +54,7 @@ class LutrisWindow(gtk.Window):
         self.builder = None
 
         # Load Lutris configuration
-        # TODO : this sould be useless soon (hint: remove() )
+        # TODO : this sould be useless soon (hint: remove())
         self.lutris_config = LutrisConfig()
 
         # Widgets
@@ -77,7 +77,7 @@ class LutrisWindow(gtk.Window):
         # for more information about LaunchpadIntegration
         global LAUNCHPAD_AVAILABLE
         if LAUNCHPAD_AVAILABLE:
-            helpmenu = self.builder.get_object('menu3')
+            helpmenu = self.builder.get_object('help_menu')
             if helpmenu:
                 LaunchpadIntegration.set_sourcepackagename('lutris')
                 LaunchpadIntegration.add_items(helpmenu, 0, False, True)
@@ -164,20 +164,43 @@ class LutrisWindow(gtk.Window):
                 self.joystick_icons[index].hide()
         return True
 
-    def about(self, widget, data=None):
-        """about - display the about box for lutris """
-        about = NewAboutLutrisDialog(self.data_path)
-        about.run()
-        about.destroy()
-
     def quit(self, widget, data=None):
         """quit - signal handler for closing the LutrisWindow"""
         self.destroy()
 
     def on_destroy(self, widget, data=None):
         """on_destroy - called when the LutrisWindow is close. """
-        #clean up code for saving application state should be added here
         gtk.main_quit()
+
+    # Menu action handlers
+    # - Lutris Menu
+    def on_connect(self, widget, data=None):
+        #ConnectDialog()
+        NoticeDialog("This functionnality is not yet implemented.")
+
+    def on_runners_activate(self, widget, data=None):
+        RunnersDialog()
+
+    def on_preferences_activate(self, widget, data=None):
+        SystemConfigDialog()
+
+    # -- Import menu
+    def import_scummvm(self, widget, data=None):
+        from lutris.runners.scummvm import scummvm
+        scummvm = scummvm()
+        new_games = scummvm.import_games()
+        for new_game in new_games:
+            self.game_treeview.add_row(new_game)
+        self.game_treeview.sort_rows()
+
+    def import_steam(self, widget, data=None):
+        NoticeDialog("Import from steam not yet implemented")
+
+    # - Help menu
+    def about(self, widget, data=None):
+        about = NewAboutLutrisDialog(self.data_path)
+        about.run()
+        about.destroy()
 
     def mouse_menu(self, widget, event):
         if event.button == 3:
@@ -264,26 +287,6 @@ class LutrisWindow(gtk.Window):
             game_info = add_game_dialog.game_info
             self.game_treeview.add_row(game_info)
             self.game_treeview.sort_rows()
-
-    def import_steam(self, widget, data=None):
-        NoticeDialog("Import from steam not yet implemented")
-
-    def import_scummvm(self, widget, data=None):
-        from lutris.runners.scummvm import scummvm
-        scummvm = scummvm()
-        new_games = scummvm.import_games()
-        for new_game in new_games:
-            self.game_treeview.add_row(new_game)
-        self.game_treeview.sort_rows()
-
-    def on_getfromftp_clicked(self, widget, data=None):
-        FtpDialog()
-
-    def system_preferences(self, widget, data=None):
-        SystemConfigDialog()
-
-    def runner_preferences(self, widget, data=None):
-        RunnersDialog()
 
     def edit_game_name(self, button):
         """Change game name"""

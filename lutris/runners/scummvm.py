@@ -36,8 +36,9 @@ class scummvm(Runner):
         self.machine = "LucasArts point and click games"
         self.gfxmode = "--gfx-mode=normal"
         self.fullscreen = "-f"      # -F for windowed
-        self.installer_options = [{'option': 'foo','type': "label",
-                                    'label': "Click on install to launch ScummVM and install the game"}]
+        self.installer_options = [{'option': 'foo',
+                                   'type': "label",
+                                   'label': "Click on install to launch ScummVM and install the game"}]
         self.game_options = []
         scaler_modes = [("2x","2x"),
                         ("3x","3x"),

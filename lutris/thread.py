@@ -26,6 +26,7 @@ from signal import SIGKILL
 
 from os import kill, killpg
 
+
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     def __init__(self, command, path, killswitch=None):
@@ -37,10 +38,11 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.pid = 99999
-        self.killswitch = killswitch
-        if type(self.killswitch) == type(str()) and not exists(self.killswitch):
+        if type(killswitch) == type(str()) and not exists(killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
+        else:
+            self.killswitch = killswitch
 
     def run(self):
         self.timer_id = gobject.timeout_add(2000, self.poke_process)
@@ -49,7 +51,7 @@ class LutrisThread(threading.Thread):
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
-        self.output =  self.game_process.stdout
+        self.output = self.game_process.stdout
         line = "\n"
         while line:
             line = self.game_process.stdout.read(80)
@@ -75,6 +77,7 @@ class LutrisThread(threading.Thread):
             return False
         return True
 
+
 class ThreadProcessReader(threading.Thread):
     def __init__(self, stdout):
         threading.Thread.__init__(self)
@@ -87,4 +90,3 @@ class ThreadProcessReader(threading.Thread):
         process_ended = False
         while self.status == "running":
             line = self.stdout.read(80)
-

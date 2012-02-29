@@ -19,8 +19,11 @@
 import os
 import subprocess
 import logging
-import lutris.constants
+
+from os.path import exists
+
 from lutris.runners.runner import Runner
+from lutris.constants import TMP_PATH
 
 class wine(Runner):
     def __init__(self,settings = None):
@@ -29,14 +32,17 @@ class wine(Runner):
         self.machine = 'Windows games'
         self.description = 'Run Windows games with Wine'
 
+        self.prefix = None
+
         self.is_installable = True
 
         self.installer_options = [{'option': 'installer',
                                    'type': 'single',
                                    'label': 'Executable'}, ]
 
-        self.game_options = [{'option': 'exe', 'type':'single', 'label':'Executable'},
-                             {'option': 'args', 'type': 'string', 'label': 'Arguments'}]
+        self.game_options = [{'option': 'exe', 'type':'single', 'label': 'Executable'},
+                             {'option': 'args', 'type': 'string', 'label': 'Arguments'},
+                             {'option': 'prefix', 'type': 'directory_chooser', 'label': 'Prefix'}]
 
         mouse_warp_choices = [('Disable', 'disable'),
                               ('Enable', 'enable'),
@@ -103,7 +109,7 @@ class wine(Runner):
             else:
                 self.args = None
             if self.__class__.__name__ in settings.config:
-            	logging.debug('loading wine specific settings')
+                logging.debug('loading wine specific settings')
                 self.wine_config = settings.config[self.__class__.__name__]
             else:
                 self.wine_config = None
@@ -116,7 +122,7 @@ class wine(Runner):
 
         logging.debug("Setting wine registry key : %s\\%s to %s" %
                       (path, key, value))
-        reg_path = os.path.join(lutris.constants.TMP_PATH, 'winekeys.reg')
+        reg_path = os.path.join(TMP_PATH, 'winekeys.reg')
         #Make temporary reg file
         reg_file = open(reg_path, "w")
         reg_file.write("""REGEDIT4
@@ -138,8 +144,8 @@ class wine(Runner):
         if exe:
             command = "%s %s" % (self.executable, exe)
         else:
-        	print "Need an executable file"
-        	return False
+            print "Need an executable file"
+            return False
         return command
 
     def check_regedit_keys(self):
@@ -151,8 +157,13 @@ class wine(Runner):
     def play(self):
         self.game_path = os.path.dirname(self.gameExe)
         game_exe = os.path.basename(self.gameExe)
-
-        command = [self.executable, "\"" + game_exe + "\""]
+        if not exists(self.game_path):
+            return {"error": "FILE_NOT_FOUND", "file": self.game_path}
+        command = []
+        if self.prefix and exists(self.prefix):
+            command.append("WINEPREFIX=%s ", self.prefix)
+        command.append(self.executable)
+        command.append("\"" + game_exe + "\"")
         if self.args:
             for arg in self.args.split():
                 command.append(arg)

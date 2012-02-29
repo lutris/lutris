@@ -21,10 +21,10 @@ import os.path
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-
-from lutris.runners.runner import Runner
 import os
 import stat
+
+from lutris.runners.runner import Runner
 
 class linux(Runner):
     def __init__(self,settings=None):
@@ -43,9 +43,9 @@ class linux(Runner):
             if 'args' in settings['game']:
                 self.args = settings['game']['args']
             else:
-            	self.args = None
+                self.args = None
             if 'ld_preload' in settings['game']:
-            	self.ld_preload = settings['game']['ld_preload']
+                self.ld_preload = settings['game']['ld_preload']
 
     def get_install_command(self,installer_path):
         #Check if installer exists
@@ -54,8 +54,8 @@ class linux(Runner):
 
         #Check if script is executable and make it executable if not
         if not os.access(installer_path,os.X_OK):
-           logging.debug("%s is not executable, setting it executable")
-           os.chmod(installer_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+            logging.debug("%s is not executable, setting it executable")
+            os.chmod(installer_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
         return  "x-terminal-emulator -e %s" % installer_path
 
@@ -69,10 +69,10 @@ class linux(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': self.executable }
         command = []
         if self.ld_preload:
-        	command.append("LD_PRELOAD=%s " % self.ld_preload)
+            command.append("LD_PRELOAD=%s " % self.ld_preload)
         command.append("./%s"  % os.path.basename(self.executable))
         if self.args:
-        	for arg in self.args.split():
-        		command.append(arg)
+            for arg in self.args.split():
+                command.append(arg)
 
         return {'command': command }

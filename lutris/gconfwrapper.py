@@ -19,6 +19,7 @@
 import os
 
 from lutris.exceptions import GConfBindingsUnavailable
+from lutris.util.log import logger
 
 try:
     import gconf
@@ -26,10 +27,11 @@ try:
 except ImportError:
     raise GConfBindingsUnavailable('Install python-gconf')
 
+
 class GconfWrapper():
     def __init__(self):
         self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
-        self.client = gconf.client_get_default ()
+        self.client = gconf.client_get_default()
 
     def has_key(self, key):
         key = self.client.get_string(key)
@@ -48,8 +50,8 @@ class GconfWrapper():
                 elif "got `int' for key" in err[0]:
                     key = self.client.get_int(key)
                 else:
-                    print err
-                    raise TypeError, "Wrong type"
+                    logger.log.error(err)
+                    raise TypeError("Wrong type")
         return key
 
     def get_key_type(self, key):
@@ -68,7 +70,7 @@ class GconfWrapper():
         else:
             return False
 
-    def set_key(self, key, value, override_type = False):
+    def set_key(self, key, value, override_type=False):
         try:
             success = True
             #Get method according to incoming type
@@ -79,14 +81,16 @@ class GconfWrapper():
             elif isinstance(value, int):
                 method = self.client.set_int
             else:
-                print type(value)
-                raise TypeError, "Unknown type"
+                logger.log("Unknown type for %s" % value)
+                raise TypeError
             if not override_type:
                 if not self.get_key_type(key) == type(value):
-                    raise TypeError, "Type mismatch for key %s : use override_type to force your way or leave it the way it is!" % key
+                    logger.log.error("Type mismatch for key %s : "\
+                                     + "use override_type to force your way"\
+                                     + "or leave it the way it is!" % key)
+                    raise TypeError
             method(key, value)
         except Exception, err:
-            print err
+            logger.log.error(err)
             success = False
         return success
-

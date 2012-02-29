@@ -21,16 +21,15 @@
 #Widget generators and their signal handlers
 
 import gtk
-import logging
 
 
 class ConfigVBox(gtk.VBox):
     def __init__(self, save_in_key, caller):
         gtk.VBox.__init__(self)
-
         self.options = None
         #Section of the configuration file to save options in. Can be "game",
         #"runner" or "system" self.save_in_key= save_in_key
+        self.save_in_key= save_in_key
 
         self.caller = caller
 

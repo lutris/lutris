@@ -38,7 +38,7 @@ class steam(wine):
         #TODO : Put Steam Path in config file
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
-        self.game_exe = "Steam.exe"
+        self.game_exe = "steam.exe"
         self.arguments = []
         self.depends = "wine"
         self.is_installable = False

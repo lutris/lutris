@@ -23,7 +23,7 @@
 from lutris.runners.runner import Runner
 import os.path
 class o2em(Runner):
-    '''Runner for MSX games'''
+    '''Runner for Odyssey² games'''
 
     def __init__(self,settings = None):
         '''Constructor'''

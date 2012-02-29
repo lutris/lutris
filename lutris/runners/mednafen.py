@@ -24,6 +24,7 @@ import subprocess
 
 from lutris.runners.runner import Runner
 from lutris.desktop_control import get_current_resolution
+from lutris.util.log import logger
 
 class mednafen(Runner):
     def __init__(self,settings=None):
@@ -53,7 +54,7 @@ class mednafen(Runner):
 
     def find_joysticks(self):
         if not self.is_installed:
-            return false
+            return False
         output = subprocess.Popen(["mednafen", "dummy"],stdout=subprocess.PIPE).communicate()[0]
         ouput = str.split(output,"\n")
         found = False
@@ -68,7 +69,9 @@ class mednafen(Runner):
 
         for joy in joy_list:
             index = joy.find("Unique ID:")
-            self.joy_ids.append(joy[index+11:])
+            joy_id = joy[index + 11:]
+            logger.debug('Joystick found id %s ' % joy_id)
+            self.joy_ids.append(joy_id)
 
     def set_joystick_controls(self):
         nes_controls = ["-nes.input.port1.gamepad.a","\"joystick "+self.joy_ids[0]+" 00000001\"",
@@ -136,8 +139,10 @@ class mednafen(Runner):
                         "-" + self.machine + ".videoip","1"]
         self.joy_ids = []
         self.find_joysticks()
-        if len(self.joy_ids) > 1:
+        if len(self.joy_ids) > 0:
             self.set_joystick_controls()
+        else:
+            logger.debug("No Joystick found")
 
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
@@ -150,4 +155,4 @@ class mednafen(Runner):
         for option in self.options:
             command.append(option)
         command.append("\"" + self.rom + "\"")
-        return command
+        return {'command': command }
