@@ -83,7 +83,9 @@ class Installer(gtk.Dialog):
     def __init__(self, game, installer=False):
         self.lutris_config = None  # Internal game config
         if not game:
-            ErrorDialog("No game specified in this installer")
+            msg = "No game specified in this installer"
+            log.logger.error(msg)
+            ErrorDialog(msg)
             return False
         self.game_slug = self.game_name = game  # Name of the game
         self.description = False

@@ -89,7 +89,7 @@ if options.installer_file:
                          % options.installer_file)
         exit()
     else:
-        game = True
+        game, _ = os.path.splitext(options.installer_file)
         installer = os.path.abspath(options.installer_file)
         print "Installing game from %s" % installer
 
