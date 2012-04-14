@@ -51,9 +51,10 @@ def show_error_message(message, info=None):
 def get_list():
     """Get the list of all installed games"""
     game_list = []
-    for file in os.listdir(GAME_CONFIG_PATH):
-        if file.endswith(CONFIG_EXTENSION):
-            game_name = file[:len(file) - len(CONFIG_EXTENSION)]
+    for filename in os.listdir(GAME_CONFIG_PATH):
+        if filename.endswith(CONFIG_EXTENSION):
+            game_name = filename[:len(filename) - len(CONFIG_EXTENSION)]
+            print "Loading %s ..." % game_name
             Game = LutrisGame(game_name)
             if not Game.load_success:
                 message = "Error loading configuration for %s" % game_name
@@ -69,10 +70,10 @@ def get_list():
                 game_list.append({"name": Game.real_name,
                                   "runner": Game.runner_name,
                                   "id": game_name})
-                return game_list
+    return game_list
 
 
-class LutrisGame():
+class LutrisGame(object):
     """"This class takes cares about loading the configuration for a game
     and running it."""
     def __init__(self, name):
