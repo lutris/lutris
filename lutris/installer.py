@@ -56,15 +56,19 @@ def unrar(filename):
 def untar(filename, dest=None, method='gzip'):
     """Untar a file"""
     cwd = os.getcwd()
-    if dest and os.path.exists(dest):
-        os.chdir(dest)
+    if dest is None or not os.path.exists(dest):
+        dest = cwd
+    log.logger.debug("Will extract to %s" % dest)
+    os.chdir(dest)
     if method == 'gzip':
         compression_flag = 'z'
     elif method == 'bzip2':
         compression_flag = 'j'
     else:
         compression_flag = ''
-    subprocess.call(["tar", "x%sf" % compression_flag, filename])
+    cmd = "tar x%sf %s" % (compression_flag, filename)
+    log.logger.debug(cmd)
+    subprocess.Popen(cmd, shell=True)
     os.chdir(cwd)
 
 
@@ -90,7 +94,8 @@ class Installer(gtk.Dialog):
         self.game_name = game  # Name of the game
         self.game_slug = slugify(self.game_name)
         self.description = False
-        self.game_dir = None
+        default_path = join(os.path.expanduser('~'), self.game_slug)
+        self.game_dir = default_path
         self.rules = {}  # Content of yaml file
         self.actions = []
         self.errors = []
@@ -245,35 +250,36 @@ class Installer(gtk.Dialog):
 
         self.current_file = 0
         self.total_files = len(self.rules['files'])
-        self.download_game_file()
 
-    def download_game_file(self):
-        if self.current_file == len(self.rules['files']):
-            self.install()
-            return
-        gamefile = self.rules['files'][self.current_file]
-        file_id = gamefile.keys()[0]
-        self.current_file += 1
+        for game_file in self.rules['files']:
+            self.download_game_file(game_file)
+        log.logger.debug("All files downloaded")
+        self.install()
+
+    def download_game_file(self, game_file):
+        file_id = game_file.keys()[0]
         # Game files can be either a string, containing the location of the
         # file to fetch or a dict with the possible options :
         # - url : location of file (mandatory)
         # - filename : force destination filename
         # - nocopy : don't copy the file in the cache (not for internet links)
         copyfile = True
-        if isinstance(gamefile[file_id], dict):
-            url = gamefile[file_id]['url']
-            if 'filename' in gamefile[file_id]:
-                filename = gamefile[file_id]['filename']
+        if isinstance(game_file[file_id], dict):
+            url = game_file[file_id]['url']
+            if 'filename' in game_file[file_id]:
+                filename = game_file[file_id]['filename']
             else:
                 filename = None
 
-            if 'nocopy' in gamefile[file_id]:
+            if 'nocopy' in game_file[file_id]:
                 copyfile = False
         else:
-            url = gamefile[file_id]
+            url = game_file[file_id]
             filename = None
+        log.logger.debug("Downloading %s" % url)
         dest_path = self._download(url, filename, copyfile)
         self.gamefiles[file_id] = dest_path
+        self.current_file += 1
         return True
 
     def install(self):
@@ -281,6 +287,8 @@ class Installer(gtk.Dialog):
 
         if self.download_progress is not None:
             self.download_progress.destroy()
+        if not os.path.exists(self.game_dir):
+            os.makedirs(self.game_dir)
         os.chdir(self.game_dir)
 
         for action in self.actions:
@@ -376,7 +384,7 @@ class Installer(gtk.Dialog):
                 else:
                     key = launcher
                 launcher_path = join(self.game_dir,
-                                             self.game_info[launcher])
+                                     self.game_info[launcher])
                 config_data['game'][key] = launcher_path
 
         yaml_config = yaml.dump(config_data, default_flow_style=False)
@@ -404,11 +412,13 @@ class Installer(gtk.Dialog):
         self.status_label.set_text('Fetching %s' % url)
         dest_dir = join(TMP_PATH, self.game_slug)
         if not exists(dest_dir):
+            log.logger.debug('Creating destination directory %s' % dest_dir)
             os.mkdir(dest_dir)
         if not filename:
             filename = os.path.basename(url)
         dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
+            log.logger.debug("Destination file exists")
             return dest_file
         if url.startswith("file://"):
             location = url[7:]
@@ -432,7 +442,7 @@ class Installer(gtk.Dialog):
             self.download_progress.start()
 
     def download_complete(self, widget, data):
-        self.download_game_file()
+        log.logger.debug("Download complete")
 
     def delete(self, data):
         """ Deletes a file """
@@ -443,28 +453,34 @@ class Installer(gtk.Dialog):
         """Return a filesystem path based on data"""
 
         if data == 'parent':
-            path = os.path.join(self.game_dir, '..')
+            path = os.path.dirname(self.game_dir)
         else:
             path = self.game_dir
         return path
 
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
-
-        self.status_label.set_text("Extracting %s" % data['file'])
         filename = self.gamefiles[data['file']]
-        extension = filename[filename.rfind(".") + 1:]
+        if not os.path.exists(filename):
+            log.logger.error("%s does not exists" % filename)
+            return False
+        msg = "Extracting %s" % filename
+        log.logger.debug(msg)
+        self.status_label.set_text(msg)
+        _, extension = os.path.splitext(filename)
 
         if extension == "zip":
             unzip(filename, self.game_dir)
-        if filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-            untar(filename, self._get_path('parent'))
-        if filename.endswith('.tar.bz2'):
+        elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
+            untar(filename, None)
+        elif filename.endswith('.tar.bz2'):
             untar(filename, None, 'bzip2')
+        else:
+            log.logger.error("unrecognised file extension %s" % extension)
+            return False
 
     def _move(self, data):
         """ Moves a file. """
-
         src = data['src']
         self.status_label.set_text("Moving %s" % src)
         if src in self.gamefiles.keys():

@@ -46,7 +46,7 @@ def show_error_message(message, info=None):
     elif "NO_BIOS" == message['error']:
         ErrorDialog("A bios file is required to run this game")
     elif "FILE_NOT_FOUND" == message['error']:
-        RelocateDialog("The file %s could not be found") % message['file']
+        ErrorDialog("The file %s could not be found" % message['file'])
 
 
 def get_list():

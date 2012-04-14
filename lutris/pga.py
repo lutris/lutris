@@ -19,7 +19,7 @@
 
 import sqlite3
 
-from lutris.utils.strings import slugify
+from lutris.util.strings import slugify
 from lutris.settings import PGA_PATH
 
 
