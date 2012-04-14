@@ -22,11 +22,11 @@
 from lutris.runners.runner import Runner
 import os.path
 
+
 class mupen64plus(Runner):
     '''Runner for Sega Genesis games'''
 
-    def __init__(self,settings = None):
-        '''Constructor'''
+    def __init__(self, settings=None):
         super(mupen64plus, self).__init__()
         self.package = 'mupen64plus'
         self.executable = 'mupen64plus'
@@ -35,25 +35,34 @@ class mupen64plus(Runner):
         self.is_installable = True
         self.description = "Nintendo 64 emulator"
 
-        self.game_options = [{'option': 'rom', 'type':'single', 'label': 'Rom File'}]
+        self.game_options = [{
+            'option': 'rom',
+            'type':'single',
+            'label': 'Rom File'
+        }]
 
-        self.runner_options = [{'option': 'fullscreen', 'type':'bool', 'label': 'Fullscreen'}]
+        self.runner_options = [{
+            'option': 'fullscreen',
+            'type':'bool',
+            'label': 'Fullscreen'
+        }]
 
         if settings:
             if 'fullscreen' in settings['mupen64plus']:
                 if settings['mupen64plus']['fullscreen']:
-                    self.arguments = self.arguments + ['--fullscreen']
+                    self.arguments.append('--fullscreen')
 
             if 'rom' in settings['game']:
                 self.rom = settings['game']['rom']
 
     def play(self):
         if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
         if not os.path.exists(self.rom):
             return {'error': 'FILE_NOT_FOUND', 'file': self.rom}
 
-        self.arguments = self.arguments + [ "\"%s\"" % self.rom ]
+        self.arguments = self.arguments + ["\"%s\"" % self.rom]
         command = [self.executable] + self.arguments
 
-        return { 'command': command }
+        return {'command': command}

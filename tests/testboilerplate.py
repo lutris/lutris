@@ -1,20 +1,5 @@
 #!/usr/bin/python
-
-import unittest
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-class TestSomeStuff(unittest.TestCase):
-    def __init__(self):
-        """Do some stuff"""
-        pass
-
-    def runTest(self):
-        self.assertEqual(True, True)
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
+# -*- coding:utf-8 -*-
 #
 #  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
 #
@@ -30,7 +15,21 @@ class TestSomeStuff(unittest.TestCase):
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-        
+
+import unittest
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+class TestSomeStuff(unittest.TestCase):
+    def __init__(self):
+        """Do some stuff"""
+        pass
+
+    def runTest(self):
+        self.assertEqual(True, True)
+
 if __name__ == '__main__':
     test = TestSomeStuff()
     test.runTest()

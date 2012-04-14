@@ -36,8 +36,9 @@ from lutris.constants import *
 def show_error_message(message, info=None):
     if "RUNNER_NOT_INSTALLED" == message['error']:
         q = QuestionDialog({'title': 'Error the runner is not installed',
-            'question': '%s is not installed, \
-                    do you want to install it now ?' % message['runner']})
+                            'question': '%s is not installed, "\
+                            + "do you want to install it now ?'\
+                            % message['runner']})
         if gtk.RESPONSE_YES == q.result:
             # FIXME : This is not right at all!
             # Call the runner's install method
@@ -45,7 +46,7 @@ def show_error_message(message, info=None):
     elif "NO_BIOS" == message['error']:
         ErrorDialog("A bios file is required to run this game")
     elif "FILE_NOT_FOUND" == message['error']:
-        ErrorDialog("The file %s doesn't exists" % message['file'])
+        RelocateDialog("The file %s could not be found") % message['file']
 
 
 def get_list():
@@ -71,6 +72,13 @@ def get_list():
                                   "runner": Game.runner_name,
                                   "id": game_name})
     return game_list
+
+
+def reset_pulse():
+    pulse_reset = "pulseaudio --kill && sleep 1 && pulseaudio --start"
+    subprocess.Popen(pulse_reset,
+                        shell=True)
+    logger.debug("PulseAudio restarted")
 
 
 class LutrisGame(object):
@@ -168,17 +176,18 @@ class LutrisGame(object):
                 oss_wrapper = config["system"]["oss_wrapper"]
 
             #Reset Pulse Audio
-            if "reset_pulse" in config["system"] and config["system"]["reset_pulse"]:
-                subprocess.Popen("pulseaudio --kill && sleep 1 && pulseaudio --start",
-                                 shell=True)
-                logger.debug("PulseAudio restarted")
+            if "reset_pulse" in config["system"] \
+                and config["system"]["reset_pulse"]:
+                reset_pulse()
 
             # Set compiz fullscreen windows
             # TODO : Check that compiz is running
             if "compiz_nodecoration" in config['system']:
-                self.desktop.set_compiz_nodecoration(title=config['system']['compiz_nodecoration'])
+                title = config['system']['compiz_nodecoration']
+                self.desktop.set_compiz_nodecoration(title=title)
             if "compiz_fullscreen" in config['system']:
-                self.desktop.set_compiz_fullscreen(title=config['system']['compiz_fullscreen'])
+                title = config['system']['compiz_fullscreen']
+                self.desktop.set_compiz_fullscreen(title=title)
 
             if "killswitch" in config['system']:
                 killswitch = config['system']['killswitch']
@@ -211,9 +220,11 @@ class LutrisGame(object):
         wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win
         buttons = config['buttons']
         axis = "Left Right Up Down"
-        command = "sleep 5 && joy2key $(%s) -X -rcfile ~/.joy2keyrc -buttons %s -axis %s" % (
-                wid, buttons, axis
-                )
+        rcfile = "~/.joy2keyrc"
+        command = "sleep 5 "
+        command += "&& joy2key $(%s) -X -rcfile %s -buttons %s -axis %s" % (
+            wid, rcfile, buttons, axis
+        )
         self.joy2key_thread = LutrisThread(command, "/tmp")
         self.joy2key_thread.start()
 
@@ -229,7 +240,8 @@ class LutrisGame(object):
 
     def quit_game(self):
         self.timer_id = None
-        logger.debug("game has quit at %s" % time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()))
+        quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+        logger.debug("game has quit at %s" % quit_time)
         if self.game_thread is not None and self.game_thread.pid:
             os.kill(self.game_thread.pid + 1, SIGKILL)
         if 'reset_desktop' in self.game_config.config['system']:
