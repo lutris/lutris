@@ -29,6 +29,7 @@ import lutris.constants
 from os.path import join, exists, expanduser
 
 from lutris.util import log
+from lutris.util.strings import slugify
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog, DirectoryDialog
@@ -79,7 +80,6 @@ def reporthook(piece, received_bytes, total_size):
 
 
 class Installer(gtk.Dialog):
-
     def __init__(self, game, installer=False):
         self.lutris_config = None  # Internal game config
         if not game:
@@ -87,7 +87,8 @@ class Installer(gtk.Dialog):
             log.logger.error(msg)
             ErrorDialog(msg)
             return False
-        self.game_slug = self.game_name = game  # Name of the game
+        self.game_name = game  # Name of the game
+        self.game_slug = slugify(self.game_name)
         self.description = False
         self.game_dir = None
         self.rules = {}  # Content of yaml file
