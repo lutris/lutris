@@ -29,8 +29,6 @@ import gtk
 import os
 import gobject
 
-import lutris.coverflow.coverflow
-
 from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
