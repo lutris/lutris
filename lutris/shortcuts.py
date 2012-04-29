@@ -1,18 +1,16 @@
-import sys
+""" xdg desktop file creator """
 import os
 import shutil
 
-from subprocess import Popen, PIPE
 from xdg import BaseDirectory
-
-# FIXME : why is this here ?
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from subprocess import Popen, PIPE
 
 from lutris.config import LutrisConfig
 from lutris.constants import ICON_PATH, TMP_PATH
 
 
 def create_launcher(game, desktop=False, menu=False):
+    """ Create desktop file """
     config = LutrisConfig(game=game)
     desktop_dir = Popen(['xdg-user-dir', 'DESKTOP'],
                         stdout=PIPE).communicate()[0]
@@ -43,6 +41,3 @@ Categories=Game""" % (
         shutil.copy(tmp_launcher_path,
                     os.path.join(menu_path, launcher_filename))
     os.remove(tmp_launcher_path)
-
-if __name__ == "__main__":
-    create_launcher("quake", desktop=True, menu=True)

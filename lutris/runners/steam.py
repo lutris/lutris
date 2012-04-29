@@ -19,6 +19,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Runner for the Steam platform"""
+
 import os
 import gtk
 
@@ -26,10 +28,10 @@ from lutris.gui.common import QuestionDialog, DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
 
+
 class steam(wine):
     """Runner for the Steam platform."""
-
-    def __init__(self,settings=None):
+    def __init__(self, settings=None):
         super(steam, self).__init__(settings)
         self.executable = "Steam.exe"
         self.package = None
@@ -44,8 +46,8 @@ class steam(wine):
         self.is_installable = False
         self.appid = "26800"
         self.game_options = [
-                {'option': 'appid', 'type': 'string', 'label': 'appid'},
-                {'option': 'args', 'type': 'string', 'label': 'arguments'}
+            {'option': 'appid', 'type': 'string', 'label': 'appid'},
+            {'option': 'args', 'type': 'string', 'label': 'arguments'}
         ]
         if settings:
             self.appid = settings['game']['appid']
@@ -55,23 +57,22 @@ class steam(wine):
                 self.args = ""
 
     def install(self):
-        q = QuestionDialog({
+        dlg = QuestionDialog({
             'title': 'Installing Steam',
             'question': 'Do you already have Steam on your computer ?'
             })
-        if q.result == gtk.RESPONSE_NO:
+        if dlg.result == gtk.RESPONSE_NO:
             print "!!! NOT IMPLEMENTED !!!"
 
-        d = DirectoryDialog('Where is located Steam ?')
+        dlg = DirectoryDialog('Where is located Steam ?')
 
         config = LutrisConfig(runner='steam')
-        config.runner_config = {'system': {'game_path': d.folder }}
-        config.save(type='runner')
+        config.runner_config = {'system': {'game_path': dlg.folder}}
+        config.save(config_type='runner')
 
     def is_installed(self):
-        """Checks if wine is installed and
-        if the steam executable is on the harddrive
-
+        """Checks if wine is installed and if the steam executable is on the
+        harddrive
         """
         if not self.check_depends():
             return False
@@ -103,7 +104,7 @@ class steam(wine):
 
     def get_appid_list(self):
         self.game_list = []
-        os.chdir(os.path.join(self.game_path,"appcache"))
+        os.chdir(os.path.join(self.game_path, "appcache"))
         max_counter = 10010
         files = []
         counter = 0
@@ -117,36 +118,36 @@ class steam(wine):
         steam_apps = []
         for file in files:
             if file.endswith(".vdf"):
-                test_file = open(file,"rb")
+                test_file = open(file, "rb")
                 appid = self.get_appid_from_filename(file)
                 appname = self.get_name(test_file)
                 if appname:
-                    steam_apps.append((appid,appname,file))
+                    steam_apps.append((appid, appname, file))
                 test_file.close()
 
         steam_apps.sort()
         steam_apps_file = open(
-                os.path.join(os.path.expanduser("~"),"steamapps.txt"),"w"
-            )
+            os.path.join(os.path.expanduser("~"), "steamapps.txt"), "w"
+        )
         for steam_app in steam_apps:
             #steam_apps_file.write("%d\t%s\n" % (steam_app[0],steam_app[1]))
             #print ("%d\t%s\n" % (steam_app[0],steam_app[1]))
-            self.game_list.append((steam_app[0],steam_app[1]))
+            self.game_list.append((steam_app[0], steam_app[1]))
         steam_apps_file.close()
 
     def play(self):
         if not self.check_depends():
             return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.depends }
+                    'runner': self.depends}
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        self.check_regedit_keys() #From parent wine runner
+        self.check_regedit_keys()  # From parent wine runner
 
         print self.game_path
         print self.game_exe
         steam_full_path = os.path.join(self.game_path, self.game_exe)
-        command = ['wine', '"' + steam_full_path + '"', '-applaunch', self.appid, self.args]
-        return {'command': command }
-
+        command = ['wine', '"%s"' % steam_full_path,
+                   '-applaunch', self.appid, self.args]
+        return {'command': command}

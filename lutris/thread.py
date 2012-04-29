@@ -15,16 +15,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+Threading module, used to launch games while keeping Lutris operational.
+"""
 
 import sys
 import logging
+import gobject
 import threading
 import subprocess
-import gobject
 from os.path import exists
 from signal import SIGKILL
 
-from os import kill, killpg
+from os import kill
 
 
 class LutrisThread(threading.Thread):
@@ -45,7 +48,7 @@ class LutrisThread(threading.Thread):
             self.killswitch = killswitch
 
     def run(self):
-        self.timer_id = gobject.timeout_add(2000, self.poke_process)
+        gobject.timeout_add(2000, self.poke_process)
         logging.debug(self.command)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,
@@ -64,8 +67,7 @@ class LutrisThread(threading.Thread):
             return True
         else:
             if self.killswitch is not None and not exists(self.killswitch):
-                # How do be sure that pid + 1 is actually the game process ?
-                #self.game_process.terminate()
+                # How are we sure that pid + 1 is actually the game process ?
                 kill(self.game_process.pid + 1, SIGKILL)
                 self.pid = None
                 return False
@@ -76,17 +78,3 @@ class LutrisThread(threading.Thread):
             self.pid = None
             return False
         return True
-
-
-class ThreadProcessReader(threading.Thread):
-    def __init__(self, stdout):
-        threading.Thread.__init__(self)
-        self.stdout = stdout
-        self.status = "running"
-        self.seconds_left = 0
-
-    def run(self):
-        seconds_max = 0
-        process_ended = False
-        while self.status == "running":
-            line = self.stdout.read(80)

@@ -87,7 +87,7 @@ class EditGameConfigDialog(gtk.Dialog):
 
     def edit_game(self, widget=None):
         logging.debug(self.lutris_config.config)
-        self.lutris_config.save(runner_type="game")
+        self.lutris_config.save(config_type="game")
         self.destroy()
 
     def close(self, widget=None):

@@ -32,8 +32,7 @@ from lutris.installer import Installer
 from lutris.config import check_config
 from lutris.gui.lutriswindow import LutrisWindow
 
-logger = logging.getLogger(__name__)
-log.logger.name = "Lutris Gaming Platform"
+log.logger.name = "Lutris"
 
 def new_lutris_window():
     """ Returns an instantiated LutrisWindow object. """
@@ -48,7 +47,6 @@ def new_lutris_window():
     window.finish_initializing(builder, DATA_PATH)
     return window
 
-check_config()
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog %ver")
@@ -70,6 +68,7 @@ if options.debug:
 else:
     log.logger.setLevel(log.logging.INFO)
 if options.verbose:
+    log.logger.info("Verbose mode enabled")
     console = log.logging.StreamHandler()
     if options.debug:
         console.setLevel(log.logging.DEBUG)
@@ -80,6 +79,8 @@ if options.verbose:
     formatter = log.logging.Formatter(fmt)
     console.setFormatter(formatter)
     log.logger.addHandler(console)
+
+check_config(force_wipe=True)
 
 installer = False
 game = None

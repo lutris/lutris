@@ -16,12 +16,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import subprocess
-import gobject
 import os
-import os.path
-import time
 import gtk
+import time
+import os.path
+import gobject
+import subprocess
 from signal import SIGKILL
 
 from lutris.runners import import_runner
@@ -94,9 +94,7 @@ class LutrisGame(object):
         self.load_success = self.load_config()
 
     def load_config(self):
-        """
-        Load the game's configuration.
-        """
+        """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.name)
         if self.game_config.is_valid():
             self.runner_name = self.game_config["runner"]
@@ -171,7 +169,7 @@ class LutrisGame(object):
                     logger.debug("Failed to set resolution %s"
                             % config["system"]["resolution"])
 
-                    #Setting OSS Wrapper
+            #Setting OSS Wrapper
             if "oss_wrapper" in config["system"]:
                 oss_wrapper = config["system"]["oss_wrapper"]
 

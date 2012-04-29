@@ -57,9 +57,7 @@ if not exists(DATA_PATH):
     print "DATA_PATH can't be found at : %s" % DATA_PATH
     exit
 
-lutris_icon_file = "media/logo.svg"
-lutris_icon_path = join(DATA_PATH, lutris_icon_file)
-LUTRIS_ICON_PATH = lutris_icon_path
+LUTRIS_ICON = join(DATA_PATH, "media/logo.svg")
 
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
@@ -72,5 +70,4 @@ GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
 COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')
 BANNER_PATH = join(LUTRIS_CONFIG_PATH, 'banners')
 ICON_PATH = join(expanduser('~'), '.icons')
-cache_path = LUTRIS_CACHE_PATH
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')

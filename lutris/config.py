@@ -24,29 +24,49 @@ from os.path import join
 
 import lutris.pga as pga
 import lutris.constants as constants
-from lutris.settings import PGA_PATH
-from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
+
+from lutris.util import log
+from lutris.gconfwrapper import GconfWrapper
+from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
+from lutris.constants import GAME_CONFIG_PATH
 
 
-def check_config():
-    """Check if configuration directories exists and create them if needed.
+def register_handler():
+    gconf = GconfWrapper()
+    defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
+                ('/desktop/gnome/url-handlers/lutris/enabled', True),
+                ('/desktop/gnome/url-handlers/lutris/needs-terminal', False),)
 
-     """
-    config_paths = [constants.LUTRIS_CONFIG_PATH,
-                    constants.runner_config_path,
-                    constants.GAME_CONFIG_PATH,
-                    constants.COVER_PATH,
-                    constants.TMP_PATH,
-                    constants.ICON_PATH,
-                    constants.BANNER_PATH,
-                    constants.LUTRIS_CACHE_PATH,
-                    constants.LUTRIS_DATA_PATH]
-    for config_path in config_paths:
-        if not os.path.exists(config_path):
-            os.mkdir(config_path)
+    for key, value in defaults:
+        log.logger.debug("registering gconf key %s" % key)
+        gconf.set_key(key, value, override_type=True)
 
-    if not os.path.isfile(PGA_PATH):
+
+def check_config(force_wipe=False):
+    """Check if initial configuration is correct."""
+    directories = [CONFIG_DIR,
+                   CACHE_DIR,
+                   DATA_DIR,
+                   join(CONFIG_DIR, "runners"),
+                   join(CONFIG_DIR, "games"),
+                   join(DATA_DIR, "covers"),
+                   join(DATA_DIR, "icons"),
+                   join(DATA_DIR, "banners")]
+    if not os.path.exists(CONFIG_DIR) or force_wipe:
+        first_run = True
+    else:
+        first_run = False
+    for directory in directories:
+        if not os.path.exists(directory):
+            log.logger.debug("creating directory %s" % directory)
+            os.mkdir(directory)
+
+    if not os.path.isfile(PGA_DB) or force_wipe:
+        log.logger.debug("creating PGA database in %s" % PGA_DB)
+
         pga.create()
+    if first_run:
+        register_handler
 
 
 class LutrisConfig():
@@ -91,7 +111,7 @@ class LutrisConfig():
 
         if self.game:
             game_config_full_path = join(GAME_CONFIG_PATH,
-                                         self.game + CONFIG_EXTENSION)
+                                         self.game + ".yml")
             if os.path.exists(game_config_full_path):
                 try:
                     content = file(game_config_full_path, 'r').read()
@@ -108,7 +128,7 @@ class LutrisConfig():
 
         if self.runner:
             runner_config_full_path = join(constants.runner_config_path,
-                                           self.runner + CONFIG_EXTENSION)
+                                           self.runner + ".yml")
             if os.path.exists(runner_config_full_path):
                 yaml_content = file(runner_config_full_path, 'r').read()
                 self.runner_config = yaml.load(yaml_content)
@@ -164,7 +184,7 @@ class LutrisConfig():
 
         logging.debug("removing %s", game_name)
         os.remove(join(GAME_CONFIG_PATH,
-                       game_name + CONFIG_EXTENSION))
+                       game_name + ".yml"))
 
     def is_valid(self):
         """Check the config data and return True if config is ok."""
@@ -175,7 +195,7 @@ class LutrisConfig():
             print "Error in %s config file : No runner" % self.game
             return False
 
-    def save(self, runner_type=None):
+    def save(self, config_type=None):
         """Save configuration file
 
         The way to save config files can be set by the type argument
@@ -183,25 +203,24 @@ class LutrisConfig():
         """
 
         self.update_global_config()
-        logging.debug("Saving config (type %s)", runner_type)
+        logging.debug("Saving config (type %s)", config_type)
         logging.debug(self.config)
-        if runner_type is None:
-            runner_type = self.config_type
+        if config_type is None:
+            config_type = self.config_type
         yaml_config = yaml.dump(self.config, default_flow_style=False)
 
-        if runner_type == "system":
+        if config_type == "system":
             file(constants.system_config_full_path, "w").write(yaml_config)
-        elif runner_type == "runner":
+        elif config_type == "runner":
             runner_config_path = join(constants.runner_config_path,
-                                      self.runner + CONFIG_EXTENSION)
+                                      self.runner + ".yml")
             file(runner_config_path, "w").write(yaml_config)
-        elif runner_type == "game":
+        elif config_type == "game":
             if not self.game:
                 self.game = self.config["runner"] \
                         + "-" + self.config["realname"].replace(" ", "_")
             game_config_path = join(GAME_CONFIG_PATH,
-                                    self.game.replace('/', '_') + \
-                                    CONFIG_EXTENSION)
+                                    self.game.replace('/', '_') + ".yml")
             config_file = file(game_config_path, "w")
             config_file.write(yaml_config)
             return self.game

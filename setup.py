@@ -100,4 +100,3 @@ on Linux.""",
     url='https://launchpad.net/lutris',
     cmdclass={'install': InstallAndUpdateDataDirectory}
     )
-

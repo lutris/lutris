@@ -20,19 +20,26 @@
 import sqlite3
 
 from lutris.util.strings import slugify
-from lutris.settings import PGA_PATH
+from lutris.util import log
+from lutris.settings import PGA_DB
 
 
 def connect():
     """Connect to the local PGA database."""
-    return sqlite3.connect(PGA_PATH)
+    return sqlite3.connect(PGA_DB)
 
 
 def create():
     """Create the local PGA database."""
+    log.logger.debug("Running CREATE statement...")
     con = connect()
-    query = 'create table games ' + \
-            '(name text, slug text, machine text, runner text)'
+    query = """CREATE TABLE games (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        slug TEXT,
+        machine TEXT,
+        runner TEXT,
+        lastplayed INTEGER)"""
     con.execute(query)
     con.commit()
     con.close()

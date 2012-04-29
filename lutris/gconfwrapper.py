@@ -17,23 +17,19 @@
 #
 
 import os
+import gconf
 
-from lutris.exceptions import GConfBindingsUnavailable
+from glib import GError
+
 from lutris.util.log import logger
 
-try:
-    import gconf
-    from glib import GError
-except ImportError:
-    raise GConfBindingsUnavailable('Install python-gconf')
 
-
-class GconfWrapper():
+class GconfWrapper(object):
     def __init__(self):
         self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
         self.client = gconf.client_get_default()
 
-    def has_key(self, key):
+    def has(self, key):
         key = self.client.get_string(key)
         if key:
             return True

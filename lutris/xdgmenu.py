@@ -8,8 +8,8 @@ print xdg_config_dirs
 cache = xdg.Menu.parse("/etc/xdg/menus/applications.menu")
 print cache
 for entry in cache.getEntries():
-    #print entry
-    if str(entry) == 'Games':
+    print entry
+    if str(entry) in ('wine-wine'):
         print("youpi")
         for game in entry.getEntries():
             print "============"

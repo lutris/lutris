@@ -131,7 +131,7 @@ class AddGameDialog(gtk.Dialog):
         logging.debug(self.lutris_config.game_config)
 
         if self.runner_class and realname:
-            game_identifier = self.lutris_config.save(runner_type="game")
+            game_identifier = self.lutris_config.save(config_type="game")
             self.game_info = {"name": realname,
                               "runner": self.runner_class,
                               "id": game_identifier}

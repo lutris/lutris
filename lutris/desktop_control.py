@@ -21,17 +21,12 @@
 This class interacts with the window manager, xrandr, gconf, ...
 """
 
+import gconf
 import os.path
+
 from subprocess import Popen, PIPE
 
-from lutris.exceptions import GConfBindingsUnavailable
-# Don't force to import gconf, some users might not have it.
-try:
-    import gconf
-    from lutris.gconfwrapper import GconfWrapper
-    GCONF_CAPABLE = True
-except GConfBindingsUnavailable:
-    GCONF_CAPABLE = False
+from lutris.gconfwrapper import GconfWrapper
 
 def make_compiz_rule(class_=None, title=None):
     """Return a string formated for the Window Rules plugin"""
