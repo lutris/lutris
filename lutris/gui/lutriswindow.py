@@ -253,23 +253,6 @@ class LutrisWindow(gtk.Window):
         """Callback for the play button"""
         self.game_launch()
 
-    def on_fullscreen_clicked(self, widget):
-        """ Switch to coverflow mode """
-        coverflow = lutris.coverflow.coverflow.coverflow()
-        if coverflow:
-            if coverflow == "NOCOVERS":
-                message = "You need covers for your games"\
-                        + "to switch to fullscreen mode."
-                NoticeDialog(message)
-                return
-            if coverflow == "NOPYGLET":
-                NoticeDialog("python-pyglet is not installed")
-                return
-            filename = os.path.basename(coverflow)
-            game_name = filename[:filename.rfind(".")]
-            running_game = LutrisGame(game_name)
-            running_game.play()
-
     def reset(self, widget, data=None):
         if hasattr(self, "running_game"):
             self.running_game.quit_game()
