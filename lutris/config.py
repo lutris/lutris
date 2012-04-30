@@ -51,7 +51,8 @@ def check_config(force_wipe=False):
                    join(CONFIG_DIR, "games"),
                    join(DATA_DIR, "covers"),
                    join(DATA_DIR, "icons"),
-                   join(DATA_DIR, "banners")]
+                   join(DATA_DIR, "banners"),
+                   join(CACHE_DIR, "installer")]
     if not os.path.exists(CONFIG_DIR) or force_wipe:
         first_run = True
     else:
@@ -60,6 +61,9 @@ def check_config(force_wipe=False):
         if not os.path.exists(directory):
             log.logger.debug("creating directory %s" % directory)
             os.mkdir(directory)
+
+    if force_wipe:
+        os.remove(PGA_DB)
 
     if not os.path.isfile(PGA_DB) or force_wipe:
         log.logger.debug("creating PGA database in %s" % PGA_DB)

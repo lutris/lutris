@@ -39,16 +39,18 @@ class Downloader(threading.Thread):
 
     def run(self):
         """Start the download."""
-        log.debug("Download of %s starting" % self.url)
+        log.logger.debug("Download of %s starting" % self.url)
         urllib.urlretrieve(self.url, self.dest, self._report_progress)
         return True
 
     def _report_progress(self, piece, received_bytes, total_size):
+        old_progress = self.progress
         self.progress = ((piece * received_bytes)) / (total_size * 1.0)
-        log.logger.debug("Download progress : %f" % self.progress)
+        if self.progress - old_progress > 0.05:
+            log.logger.debug("Download progress : %.2f%" % self.progress * 100)
 
         try:
             if self.kill is True:
                 raise DownloadStoppedException
         except DownloadStoppedException:
-            log.debug("stopping download")
+            log.logger.debug("stopping download")

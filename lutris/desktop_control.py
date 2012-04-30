@@ -80,10 +80,9 @@ class LutrisDesktopControl():
     """
     def __init__(self):
         self.default_resolution = None
-        if GCONF_CAPABLE:
-            self.gconf = GconfWrapper()
-            self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
-            self.client = gconf.client_get_default ()
+        self.gconf = GconfWrapper()
+        self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
+        self.client = gconf.client_get_default ()
 
     ### Compiz ###
 

@@ -28,6 +28,7 @@ import Image
 
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH, DATA_PATH
+from lutris.util import log
 import lutris.constants
 
 ICON_SIZE = 24
@@ -179,7 +180,7 @@ class DownloadProgressBox(gtk.HBox):
 
     def start(self):
         """Start downloading a file."""
-        print "starting to download %s" % self.url
+        log.logger.debug("starting to download %s" % self.url)
         self.downloader = Downloader(self.url, self.dest)
         timer_id = gobject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
@@ -193,7 +194,7 @@ class DownloadProgressBox(gtk.HBox):
         percent = progress * 100
         self.progressbar.set_text("%d %%" % percent)
         if progress >= 1.0:
-            print "download has completed"
+            log.logger.debug("download of %s has completed" % self.url)
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False

@@ -94,6 +94,8 @@ if options.installer_file:
         installer = os.path.abspath(options.installer_file)
         print "Installing game from %s" % installer
 
+gtk.gdk.threads_init()
+
 # Run the application.
 for arg in args:
     if arg.startswith('lutris:'):
@@ -113,14 +115,12 @@ if game is not None:
     else:
         log.logger.debug('Installing %s' % game)
         installer = Installer(game, installer)
-        gtk.gdk.threads_init()
         gtk.gdk.threads_enter()
         gtk.main()
         gtk.gdk.threads_leave()
 else:
     lutris_window = new_lutris_window()
     lutris_window.show()
-    gtk.gdk.threads_init()
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
