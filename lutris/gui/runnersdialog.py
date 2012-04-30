@@ -23,11 +23,6 @@ import gtk
 import os
 from os.path import join, abspath
 
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, abspath(join(abspath(__file__), '..', '..', '..')))
-    print sys.path
-
 import lutris.runners
 from lutris.runners import  import_runner
 from lutris.config import LutrisConfig
@@ -127,9 +122,10 @@ class RunnersDialog(gtk.Dialog):
 
             #Label
             runner_label = gtk.Label()
-            runner_label.set_markup("<b>%s</b>\n%s\n "\
-                                    + "<i>Supported platforms : %s</i>"\
-                                    % (runner, description, machine))
+            runner_label.set_markup(
+                "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
+                (runner, description, machine)
+            )
             runner_label.set_width_chars(38)
             runner_label.set_line_wrap(True)
             runner_label.set_alignment(0.0, 0.0)
@@ -164,7 +160,3 @@ class RunnersDialog(gtk.Dialog):
 
     def on_configure_clicked(self, widget, runner):
         RunnerConfigDialog(runner)
-
-if __name__ == "__main__":
-    dialog = RunnersDialog()
-    gtk.main()

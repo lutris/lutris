@@ -22,6 +22,14 @@
 
 import gtk
 
+PADDING = 10
+
+class Label(gtk.Label):
+    def __init__(self, str=None):
+        super(Label, self).__init__(str)
+        self.set_size_request(200, 30)
+        self.set_alignment(0.0, 0.5)
+        self.set_line_wrap(True)
 
 class ConfigVBox(gtk.VBox):
     def __init__(self, save_in_key, caller):
@@ -88,18 +96,19 @@ class ConfigVBox(gtk.VBox):
                 print "WTF is %s ?" % option["type"]
 
     def generate_label(self, text):
-        label = gtk.Label(text)
+        label = Label(text)
         label.show()
-        self.pack_start(label, True, True)
+        self.pack_start(label, True, True, PADDING)
 
     #Checkbox
     def generate_checkbox(self, option_name, label, value=None):
         checkbox = gtk.CheckButton(label)
+        checkbox.set_alignment(0.1, 0.5)
         if value:
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option_name)
         checkbox.show()
-        self.pack_start(checkbox, False, True, 5)
+        self.pack_start(checkbox, True, True, PADDING * 2)
 
     def checkbox_toggle(self, widget, option_name):
         self.real_config[self.save_in_key][option_name] = widget.get_active()
@@ -107,16 +116,16 @@ class ConfigVBox(gtk.VBox):
     #Entry
     def generate_entry(self, option_name, label, value=None):
         hbox = gtk.HBox()
-        entry_label = gtk.Label(label)
+        entry_label = Label(label)
         entry_label.set_size_request(200, 30)
         entry = gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
-        hbox.pack_start(entry_label, False, False, 5)
-        hbox.pack_start(entry, True, True, 5)
+        hbox.pack_start(entry_label, False, False, PADDING)
+        hbox.pack_start(entry, True, True, PADDING)
         hbox.show_all()
-        self.pack_start(hbox, False, True, 5)
+        self.pack_start(hbox, False, True, PADDING)
 
     def entry_changed(self, entry, option_name):
         entry_text = entry.get_text()
@@ -143,12 +152,12 @@ class ConfigVBox(gtk.VBox):
                 index = index + 1
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
-        gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200, 30)
-        hbox.pack_start(gtklabel)
-        hbox.pack_start(combobox)
+        label = Label(label)
+        label.set_size_request(200, 30)
+        hbox.pack_start(label, False, False, PADDING)
+        hbox.pack_start(combobox, True, True, PADDING)
         hbox.show_all()
-        self.pack_start(hbox, False, True, 5)
+        self.pack_start(hbox, False, True, PADDING)
 
     def on_combobox_change(self, combobox, option):
         model = combobox.get_model()
@@ -168,9 +177,9 @@ class ConfigVBox(gtk.VBox):
         spin_button.connect('changed',
                             self.on_spin_button_changed, option_name)
         hbox = gtk.HBox()
-        gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200, 30)
-        hbox.pack_start(gtklabel)
+        label = Label(label)
+        label.set_size_request(200, 30)
+        hbox.pack_start(label)
         hbox.pack_start(spin_button)
         hbox.show_all()
         self.pack_start(hbox, False, True, 5)
@@ -182,8 +191,7 @@ class ConfigVBox(gtk.VBox):
     def generate_file_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to choose a file"""
         hbox = gtk.HBox()
-        gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200, 30)
+        gtklabel = Label(label)
         file_chooser = gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
 
@@ -192,26 +200,24 @@ class ConfigVBox(gtk.VBox):
         if value:
             file_chooser.unselect_all()
             file_chooser.select_filename(value)
-        hbox.pack_start(gtklabel, False, False, 10)
-        hbox.pack_start(file_chooser)
-        self.pack_start(hbox, False, True, 5)
+        hbox.pack_start(gtklabel, False, False, PADDING)
+        hbox.pack_start(file_chooser, True, True, PADDING)
+        self.pack_start(hbox, False, True, PADDING)
 
     def generate_directory_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to choose a directory"""
         hbox = gtk.HBox()
-        gtklabel = gtk.Label(label)
-        gtklabel.set_size_request(200, 30)
+        gtklabel = Label(label)
         directory_chooser = gtk.FileChooserButton("Choose a directory for %s"\
                                                   % label)
-        directory_chooser.set_size_request(200, 30)
         directory_chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)
         directory_chooser.connect("file-set",
                                   self.on_chooser_file_set, option_name)
-        hbox.pack_start(gtklabel)
-        hbox.pack_start(directory_chooser)
-        self.pack_start(hbox, False, True, 5)
+        hbox.pack_start(gtklabel, False, False, PADDING)
+        hbox.pack_start(directory_chooser, True, True, PADDING)
+        self.pack_start(hbox, False, True, PADDING)
 
     def on_chooser_file_set(self, filechooser_widget, option):
         filename = filechooser_widget.get_filename()
@@ -219,9 +225,8 @@ class ConfigVBox(gtk.VBox):
 
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         hbox = gtk.HBox()
-        gtk_label = gtk.Label(label)
-        gtk_label.set_size_request(200, 30)
-        hbox.pack_start(gtk_label)
+        label = Label(label)
+        hbox.pack_start(label, False, False, PADDING)
         self.files_chooser_dialog = gtk.FileChooserDialog(title="Select files",
                                 parent=self.get_parent_window(),
                                 action=gtk.FILE_CHOOSER_ACTION_OPEN,
@@ -239,7 +244,7 @@ class ConfigVBox(gtk.VBox):
             files_chooser_button.set_filename(value[0])
 
         hbox.pack_start(files_chooser_button)
-        self.pack_start(hbox, False, True, 5)
+        self.pack_start(hbox, False, True, PADDING)
         if value:
             self.files = value
         else:
