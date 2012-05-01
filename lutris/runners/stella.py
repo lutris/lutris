@@ -20,24 +20,30 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+'''Runner for stella Atari 2600 emulator'''
+
 from lutris.runners.runner import Runner
 
-class stella(Runner):
-    '''Runner for stella Atari 2600 emulator'''
 
-    def __init__(self,settings = None):
+# pylint: disable=C0103
+class stella(Runner):
+    """Atari 2600 games emulator"""
+
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(stella,self).__init__()
+        super(stella, self).__init__()
         self.package = "stella"
         self.executable = "stella"
         self.machine = "Atari 2600"
-        self.description = "Run Atari 2600 games"
-        self.game_options = [{"option":"cart","type":"single","label":"Cartridge"}]
+        self.game_options = [{
+            "option": "cart",
+            "type": "single",
+            "label":"Cartridge"
+        }]
         self.runner_options = []
         if settings:
             self.cart = settings["game"]["cart"]
 
-
     def play(self):
-        command = ['stella',"\""+self.cart+"\""]
+        command = ['stella', "\"%s\"" % self.cart]
         return  {'command': command}

@@ -19,72 +19,71 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-""" Common message dialogs. """
+"""Common message dialogs"""
 
-import sys
-import os
-import pygtk
 import gtk
 
 from lutris.gui.widgets import DownloadProgressBox
 
 
-class NoticeDialog(object):
+# pylint: disable=R0901, R0904
+class NoticeDialog(gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
-        dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
-        dialog.set_markup(message)
-        dialog.run()
-        dialog.destroy()
+        super(NoticeDialog, self).__init__(buttons=gtk.BUTTONS_OK)
+        self.set_markup(message)
+        self.run()
+        self.destroy()
 
 
-class ErrorDialog(object):
+# pylint: disable=R0904
+class ErrorDialog(gtk.MessageDialog):
     """ Displays an error message. """
     def __init__(self, message):
-        dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
-        dialog.set_markup(message)
-        dialog.run()
-        dialog.destroy()
+        super(ErrorDialog, self).__init__(buttons=gtk.BUTTONS_OK)
+        self.set_markup(message)
+        self.run()
+        self.destroy()
 
 
-class QuestionDialog(object):
+class QuestionDialog(gtk.MessageDialog):
     """ Asks a question. """
     def __init__(self, settings):
-        dialog = gtk.MessageDialog(
+        super(QuestionDialog, self).__init__(
             type=gtk.MESSAGE_QUESTION,
             buttons=gtk.BUTTONS_YES_NO,
             message_format=settings['question']
         )
-        dialog.set_title(settings['title'])
-        self.result = dialog.run()
-        dialog.destroy()
+        self.set_title(settings['title'])
+        self.result = self.run()
+        self.destroy()
 
 
-class DirectoryDialog:
+class DirectoryDialog(gtk.FileChooserDialog):
     """Ask the user to select a directory"""
-    def __init__(self, message, default_path=None):
-        dialog = gtk.FileChooserDialog(
+    def __init__(self, message):
+        super(DirectoryDialog, self).__init__(
             title=message,
             action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
             buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
-                        gtk.STOCK_OK, gtk.RESPONSE_OK)
+                     gtk.STOCK_OK, gtk.RESPONSE_OK)
         )
-        self.result = dialog.run()
-        self.folder = dialog.get_current_folder()
-        dialog.destroy()
+        self.result = self.run()
+        self.folder = self.get_current_folder()
+        self.destroy()
 
 
+# pylint: disable=R0904
 class DownloadDialog(gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
         print "creating download dialog"
         gtk.Dialog.__init__(self, "Downloading file")
-        self.quit_gtk = False
         self.set_size_request(560, 100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
-        self.download_progress_box.connect('complete', self.download_complete)
+        #self.download_progress_box.connect('complete', self.download_complete)
         label = gtk.Label('Downloading %s' % url)
         label.set_padding(0, 0)
         label.set_alignment(0.0, 1.0)
@@ -94,13 +93,10 @@ class DownloadDialog(gtk.Dialog):
         self.download_progress_box.start()
 
     def destroy_cb(self, widget, data=None):
+        """Action triggered when window is closed"""
         self.download_cancel(None)
         self.destroy()
-        if self.quit_gtk is True:
-            gtk.main_quit()
 
-    def download_cancel(self, widget, data=None):
+    def download_cancel(self, _widget, _data=None):
+        """Action triggered when download is cancelled"""
         self.download_progress_box.cancel()
-
-    def download_complete(self, widget, data=None):
-        print "download is complete"

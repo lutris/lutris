@@ -19,6 +19,11 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Dialog for game installer, probably shouldn't be here
+
+                    NEEDS REVIEW
+"""
+
 import gtk
 import logging
 import subprocess
@@ -32,6 +37,7 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 class InstallerDialog(gtk.Dialog):
+    """Installer dialog class"""
     def __init__(self, parent):
         gtk.Dialog.__init__(self)
         self.parent_window = parent
@@ -58,14 +64,14 @@ class InstallerDialog(gtk.Dialog):
             if hasattr(runner, "description"):
                 description = runner.description
             else:
-                logging.debug("Please fix %s and add a description attribute"\
-                              % runner_classname)
+                logging.debug("Please fix %s and add a description attribute",
+                              runner_classname)
                 description = ""
             if hasattr(runner, "machine"):
                 machine = runner.machine
             else:
-                logging.debug("Please fix % and add a machine attribute"\
-                              % runner_classname)
+                logging.debug("Please fix %s and add a machine attribute",
+                              runner_classname)
                 machine = ""
             if runner.is_installed() and runner.is_installable:
                 runner_liststore.append((machine + " (" + description + ")",
@@ -145,6 +151,7 @@ class InstallerDialog(gtk.Dialog):
             self.destroy()
 
     def on_runner_changed(self, widget):
+        """action called on runner changed"""
         selected_runner = widget.get_active()
         scroll_windows_children = [self.installer_scroll_window.get_children(),
                                    self.runner_scroll_window.get_children(),
@@ -176,7 +183,7 @@ class InstallerDialog(gtk.Dialog):
         self.system_scroll_window.add_with_viewport(self.system_config_vbox)
         self.system_scroll_window.show_all()
 
-    def close(self, widget=None, other=None):
+    def close(self, _widget=None, _other=None):
         self.destroy()
 
     def no_runner_selected(self):

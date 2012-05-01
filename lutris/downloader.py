@@ -22,10 +22,12 @@ import threading
 
 from lutris.util import log
 
+
 class DownloadStoppedException(Exception):
     """ Dummy exception for download canceled. """
     def __init__(self):
-        pass
+        super(DownloadStoppedException, self).__init__()
+
 
 class Downloader(threading.Thread):
     """Downloader class that doesn't block the program"""
@@ -50,7 +52,7 @@ class Downloader(threading.Thread):
         old_progress = self.progress
         self.progress = ((piece * received_bytes)) / (total_size * 1.0)
         if self.progress - old_progress > 0.05:
-            log.logger.debug("Progress: %0.2f%" % self.progress * 100)
+            log.logger.debug("Progress: %0.2f%%", self.progress * 100)
 
         try:
             if self.kill is True:

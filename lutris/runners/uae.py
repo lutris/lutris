@@ -19,20 +19,21 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runs Amiga games with UAE"""
+
 import os
 from lutris.runners.runner import Runner
 
 
 # pylint: disable=C0103
 class uae(Runner):
+    """Runs Amiga games with UAE, yay"""
     def __init__(self, settings=None):
         super(uae, self).__init__()
         self.package = "uae"
         self.executable = "uae"
-        self.description = "Runs Amiga games with UAE"
         self.machine = "Amiga"
         self.uae_options = {}
-        self.is_installable = False
         control_choices = [("Mouse", "mouse"), ("Joystick 1", "joy0"),
                            ("Joystick 2", "joy1"),  ("Keyboard 1", "kbd1"),
                            ("Keyboard 2", "kbd2"),  ("Keyboard 3", "kbd3")]
@@ -173,9 +174,6 @@ class uae(Runner):
                     inserted_disks = inserted_disks + 1
                     if inserted_disks == disks:
                         break
-
-    def get_game_options(self):
-        return {"file": self.file_options, "options": self.runner_options}
 
     def play(self):
         command = [self.executable]

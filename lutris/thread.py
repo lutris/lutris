@@ -49,6 +49,7 @@ class LutrisThread(threading.Thread):
             self.killswitch = killswitch
 
     def attach_thread(self, thread):
+        """Attach child process that need to be killed on game exit"""
         self.child_processes.append(thread)
 
     def run(self):

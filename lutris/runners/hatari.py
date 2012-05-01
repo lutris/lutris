@@ -34,8 +34,6 @@ class hatari(Runner):
         self.package = "hatari"
         self.executable = "hatari"
         self.machine = "Atari ST computers"
-        self.is_installable = True
-        self.description = "AtariST emulator."
         self.settings = settings
         self.game_options = [
             {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
@@ -125,15 +123,14 @@ class hatari(Runner):
                 }
         else:
             return {'error': 'NO_BIOS'}
-            self.error_messages = self.error_messages + ["TOS path not set."]
         if "disk-a" in game_settings:
-            self.diska = game_settings['disk-a']
-        self.arguments = self.arguments + ["--disk-a \"%s\"" % self.diska]
+            diska = game_settings['disk-a']
+        self.arguments = self.arguments + ["--disk-a \"%s\"" % diska]
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
-        if not os.path.exists(self.diska):
-            return {'error': 'FILE_NOT_FOUND', 'file': self.diska}
+        if not os.path.exists(diska):
+            return {'error': 'FILE_NOT_FOUND', 'file': diska}
         command = [self.executable] + self.arguments
 
         return {"command": command}

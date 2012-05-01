@@ -153,6 +153,7 @@ class LutrisConfig():
         return value
 
     def get_system(self, key):
+        """Return the value of 'key' for system config"""
         try:
             value = self.config["system"][key]
             if str(value).lower() in ("false", "none", "no"):

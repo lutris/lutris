@@ -19,24 +19,24 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Runner for Sega Master System"""
+
+import os
+
 from lutris.runners.runner import Runner
 
 
 # pylint: disable=C0103
 class osmose(Runner):
-    '''Runner for Sega Master System games'''
-
+    """Sega Master System Emulator"""
     def __init__(self, settings=None):
         '''Constructor'''
+        super(osmose, self).__init__()
         self.package = "osmose"
         self.executable = "osmose"
         self.machine = "Sega Master System"
         #osmose is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
-        self.is_installable = False
-
-        self.description = "Sega Master System Emulator"
-
         self.game_options = [{
             'option': 'rom',
             'type': 'single',
@@ -46,26 +46,24 @@ class osmose(Runner):
             {'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen'},
             {'option': 'joy', 'type': 'bool', 'label': 'Use joystick'}
         ]
-        self.arguments = []
-        if settings:
-            self.settings = settings
+        self.settings = settings
 
     def play(self):
+        arguments = []
         if 'fullscreen' in self.settings['osmose']:
             if self.settings['osmose']['fullscreen']:
-                self.arguments = self.arguments + ['-fs', '-bilinear']
+                arguments = arguments + ['-fs', '-bilinear']
         if 'joy' in self.settings["osmose"]:
             if self.settings['osmose']['joy']:
-                self.arguments = self.arguments + ['-joy']
+                arguments = arguments + ['-joy']
 
-        self.rom = self.settings['game']['rom']
-        self.arguments = self.arguments + ["\"" + self.rom + "\""]
+        rom = self.settings['game']['rom']
+        arguments = arguments + ["\"" + rom + "\""]
 
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
-        if not os.path.exists(self.rom):
+        if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND',
-                    'file': self.rom}
-
-        return {'command': [self.executable] + self.arguments}
+                    'file': rom}
+        return {'command': [self.executable] + arguments}

@@ -19,11 +19,14 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""This is going away"""
+
 import gtk
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
 
+# pylint: disable=R0901,R0904
 class InstallerConfigVBox(ConfigVBox):
     """This file is going to disapear anytime now."""
     def __init__(self, lutris_config, caller):

@@ -18,7 +18,8 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
-""" ScummVM runner """
+
+""" Runner for point and click adventure games. """
 
 import os
 import subprocess
@@ -27,25 +28,52 @@ from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from ConfigParser import ConfigParser
 
+SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
+
+
+def add_game(name, realname):
+    """Add scummvm from the auto-import"""
+    lutris_config = LutrisConfig()
+    lutris_config.config = {"runner": "scummvm",
+                            "realname": realname,
+                            "name": name}
+    lutris_config.save("game")
+
+
+def import_games():
+    """
+    Parse the scummvm config file and imports
+    the games in Lutris config files.
+    """
+    imported_games = []
+    if os.path.exists(SCUMMVM_CONFIG_FILE):
+        config_parser = ConfigParser()
+        config_parser.read(SCUMMVM_CONFIG_FILE)
+        config_sections = config_parser.sections()
+        if "scummvm" in config_sections:
+            config_sections.remove("scummvm")
+        for section in config_sections:
+            realname = config_parser.get(section, "description")
+            add_game(section, realname)
+            imported_games.append({'id': section,
+                                    'name': realname,
+                                    'runner': 'scummvm'})
+    return imported_games
+
 
 # pylint: disable=C0103
 class scummvm(Runner):
-    """ Runner for point and click adventure games. """
+    """Runs LucasArts games based on the Scumm engine"""
     def __init__(self, settings=None):
-        self.scummvm_config_file = os.path.join(os.path.expanduser("~"),
-                                                ".scummvmrc")
+        super(scummvm, self).__init__()
         self.executable = "scummvm"
         self.package = "scummvm"
-        self.is_installable = True
-        self.description = "Runs LucasArts games based on the Scumm engine"
         self.machine = "LucasArts point and click games"
-        self.gfxmode = "--gfx-mode=normal"
-        self.fullscreen = "-f"  # -F for windowed
-        self.installer_options = [{'option': 'foo',
-                                   'type': "label",
-                                   'label': "Click on install to launch" \
-                                          + "ScummVM and install the game"}]
-        self.game_options = []
+        self.installer_options = [{
+            'option': 'foo',
+            'type': "label",
+            'label': "Click on install to launch ScummVM and install the game"
+        }]
         scaler_modes = [
             ("2x", "2x"),
             ("3x", "3x"),
@@ -67,57 +95,35 @@ class scummvm(Runner):
              "type": "one_choice",
              "choices": scaler_modes}
         ]
+        self.settings = settings
 
+    def play(self):
+        settings = self.settings
+        gfxmode = "--gfx-mode=normal"
+        fullscreen = "-f"  # -F for windowed
         if isinstance(settings, LutrisConfig):
             config = settings.config
             if "scummvm" in config:
                 if "fullscreen" in config["scummvm"]:
                     if config["scummvm"]["fullscreen"] == False:
-                        self.fullscreen = "-F"
+                        fullscreen = "-F"
                 if "gfx-mode" in config["scummvm"]:
                     mode = config["scummvm"]["gfx-mode"]
-                    self.gfxmode = "--gfx-mode=%s" % mode
-            self.game = settings["name"]
+                    gfxmode = "--gfx-mode=%s" % mode
+            game = settings["name"]
+        return [self.executable, fullscreen, gfxmode, game]
 
-    def play(self):
-        return [self.executable, self.fullscreen, self.gfxmode, self.game]
-
-    def import_games(self):
-        """
-        Parse the scummvm config file and imports
-        the games in Lutris config files.
-        """
-        imported_games = []
-        if os.path.exists(self.scummvm_config_file):
-            config_parser = ConfigParser()
-            config_parser.read(self.scummvm_config_file)
-            config_sections = config_parser.sections()
-            if "scummvm" in config_sections:
-                config_sections.remove("scummvm")
-            for section in config_sections:
-                realname = config_parser.get(section, "description")
-                self.add_game(section, realname)
-                imported_games.append({'id': section,
-                                       'name': realname,
-                                       'runner': 'scummvm'})
-
-        return imported_games
-
+    # pylint: disable=R0201
     def get_install_command(self):
-        command = "%s" % (self.executable)
-        return command
-
-    def add_game(self, name, realname):
-        lutris_config = LutrisConfig()
-        lutris_config.config = {"runner": "scummvm",
-                                "realname": realname,
-                                "name": name}
-        lutris_config.save("game")
+        """WTF is this shit ?"""
+        raise DeprecationWarning
+        #command = "%s" % (self.executable)
+        #return command
 
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """
         scumm_output = subprocess.Popen(
-                [self.executable, "-z"],
+                ["scummvm", "-z"],
                 stdout=subprocess.PIPE).communicate()[0]
         game_list = str.split(scumm_output, "\n")
         game_array = []

@@ -20,12 +20,14 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+'''Runner for MSX games'''
+
 from lutris.runners.runner import Runner
 
 
+# pylint: disable=C0103
 class vice(Runner):
-    '''Runner for MSX games'''
-
+    """Commodore Emulator"""
     def __init__(self, settings=None):
         '''Constructor'''
         super(vice, self).__init__()
@@ -33,7 +35,6 @@ class vice(Runner):
         self.executable = "x64"
         self.machine = "Commodore 64"
         self.arguments = []
-        self.description = "Commodore Emulator"
         self.game_options = [{
             "option": "disk",
             "type": "single",

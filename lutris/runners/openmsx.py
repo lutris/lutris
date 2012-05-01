@@ -19,6 +19,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for MSX games """
+
 from lutris.runners.runner import Runner
 
 
@@ -27,6 +29,7 @@ class openmsx(Runner):
     '''Runner for MSX games'''
     def __init__(self, settings=None):
         '''Constructor'''
+        super(openmsx, self).__init__()
         self.package = "openmsx"
         self.executable = "openmsx"
         self.machine = "MSX"

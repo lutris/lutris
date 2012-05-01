@@ -1,5 +1,3 @@
-import logging
-import os.path
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -21,42 +19,60 @@ import os.path
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Linux runner """
+
 import os
 import stat
+import os.path
+import logging
 
 from lutris.runners.runner import Runner
 
+
 # pylint: disable=C0103
 class linux(Runner):
-    def __init__(self,settings=None):
-        self.description = "Runs native games"
+    """Runs native games"""
+    def __init__(self, config=None):
+        super(linux, self).__init__()
         self.machine = "Linux games"
-        self.is_installable = True
         self.ld_preload = None
-        self.installer_options = [{"option": "installer","type": "single","label": "Executable"}]
-
-        self.game_options = [ {"option": "exe", "type":"single", "label":"Executable"},
-                              {"option": "args", "type": "string", "label": "Arguments"},
-                              {"option": "ld_preload", "type": "single", "label": "Preload library"}]
+        self.game_path = None
+        self.installer_options = [{
+            "option": "installer",
+            "type": "single",
+            "label": "Executable"
+        }]
+        self.game_options = [
+            {
+                "option": "exe",
+                "type":"single",
+                "label":"Executable"
+            },
+            {
+                "option": "args",
+                "type": "string",
+                "label": "Arguments"
+            },
+            {
+                "option": "ld_preload",
+                "type": "single",
+                "label": "Preload library"
+            }
+        ]
         self.runner_options = []
-        if settings:
-            self.executable = settings["game"]["exe"]
-            if 'args' in settings['game']:
-                self.args = settings['game']['args']
-            else:
-                self.args = None
-            if 'ld_preload' in settings['game']:
-                self.ld_preload = settings['game']['ld_preload']
+        self.config = config
 
-    def get_install_command(self,installer_path):
+    def get_install_command(self, installer_path):
+        """ Launch install script (usually .bin or .sh) """
         #Check if installer exists
         if not os.path.exists(installer_path):
             raise IOError
 
         #Check if script is executable and make it executable if not
-        if not os.access(installer_path,os.X_OK):
+        if not os.access(installer_path, os.X_OK):
             logging.debug("%s is not executable, setting it executable")
-            os.chmod(installer_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+            os.chmod(installer_path,
+                        stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
         return  "x-terminal-emulator -e %s" % installer_path
 
@@ -65,15 +81,20 @@ class linux(Runner):
         return True
 
     def play(self):
-        self.game_path = os.path.dirname(self.executable)
-        if not os.path.exists(self.executable):
-            return {'error': 'FILE_NOT_FOUND', 'file': self.executable }
+        executable = self.config["game"]["exe"]
+        if 'args' in self.config['game']:
+            args = self.config['game']['args']
+        else:
+            args = ""
+        if 'ld_preload' in self.config['game']:
+            self.ld_preload = self.config['game']['ld_preload']
+        self.game_path = os.path.dirname(executable)
+        if not os.path.exists(executable):
+            return {'error': 'FILE_NOT_FOUND', 'file': executable}
         command = []
         if self.ld_preload:
             command.append("LD_PRELOAD=%s " % self.ld_preload)
-        command.append("./%s"  % os.path.basename(self.executable))
-        if self.args:
-            for arg in self.args.split():
-                command.append(arg)
-
-        return {'command': command }
+        command.append("./%s" % os.path.basename(executable))
+        for arg in args.split():
+            command.append(arg)
+        return {'command': command}

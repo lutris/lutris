@@ -19,18 +19,21 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Generic runner """
+
 import subprocess
 import platform
 import hashlib
-import logging
 
 from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog
+from lutris.util.log import logger
 
 
+# Pylint, are you from the past ?
+# pylint: disable=R0921
 class Runner(object):
     """Generic runner (base class for other runners) """
-
     def __init__(self):
         """ Initialize runner """
         self.executable = None
@@ -40,17 +43,29 @@ class Runner(object):
         self.game = None
         self.depends = None
 
+    @property
+    def description(self):
+        """Return the class' docstring as the description"""
+        return self.__doc__
+
+    # pylint: disable=E0102,E1101,W0201
+    @description.setter
+    def description(self, value):
+        """Leave the ability to override the docstring"""
+        self.__doc__ = value
+
     def load(self, game):
         """ Load a game """
         self.game = game
 
     def play(self):
-        pass
+        """dummy method, must be implemented by derived runnners"""
+        raise NotImplementedError("Implement the play method in your runner")
 
     def check_depends(self):
         """Check if all the dependencies for a runner are installed."""
         if not self.depends:
-            return true
+            return True
 
         classname = "lutris.runners." + self.depends
         parts = classname.split('.')
@@ -80,13 +95,19 @@ class Runner(object):
             is_installed = True
         return is_installed
 
+    # pylint: disable=R0201
     def get_game_options(self):
-        return None
+        """Not even sure that's used (well, let's see)"""
+        raise DeprecationWarning("WTF is this shit ?")
 
+    # pylint: disable=R0201
     def get_runner_options(self):
-        return None
+        """Not even sure that's used (well, let's see)"""
+        raise DeprecationWarning("WTF is this shit ?")
 
     def get_game_path(self):
+        """Seems suspicious, but still useful"""
+        logger.warning("get_game_path called, I'm 12 and what is this ?")
         if hasattr(self, 'game_path'):
             path = self.game_path
         else:
@@ -94,6 +115,8 @@ class Runner(object):
         return path
 
     def md5sum(self, filename):
+        """checks the md5sum of a file, does not belong here"""
+        logger.warning("please remove md5sum from Runner")
         md5check = hashlib.md5()
         file_ = open(filename, "rb")
         content = file_.readlines()
@@ -122,19 +145,16 @@ class Runner(object):
             package_manager = 'yum'
             install_args = 'install'
         else:
-            logging.error("The distribution you're running is not supported.")
-            logging.error("Edit runners/runner.py to add support for it")
+            logger.error("The distribution you're running is not supported.")
+            logger.error("Edit runners/runner.py to add support for it")
             return False
 
-        stdout = subprocess.Popen("%s %s %s" % (package_manager,
-                                             install_args,
-                                             self.package),
-                               shell=True,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE).communicate()[0]
+        subprocess.Popen("%s %s %s" % (package_manager, install_args,
+                                       self.package),
+                         shell=True, stderr=subprocess.PIPE)
         return True
 
-    def write_config(self, id, name, fullpath):
+    def write_config(self, _id, name, fullpath):
         """Write game configuration to settings directory."""
         system = self.__class__.__name__
         index = fullpath.rindex("/")
@@ -143,8 +163,12 @@ class Runner(object):
         if path.startswith("file://"):
             path = path[7:]
         config = LutrisConfig()
-        config.config = {"main": {"path": path,
-                                   "exe": exe,
-                                   "realname": name,
-                                   "runner": system}}
-        config.save(id, values)
+        config.config = {
+            "main": {
+                "path": path,
+                "exe": exe,
+                "realname": name,
+                "runner": system
+            }
+        }
+        config.save(config_type="game")

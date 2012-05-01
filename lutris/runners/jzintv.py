@@ -19,46 +19,59 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+'''Runner for intellivision games'''
+
 from lutris.runners.runner import Runner
 import os.path
 
+
 # pylint: disable=C0103
 class jzintv(Runner):
-    '''Runner for intellivision games'''
+    """Intellivision Emulator"""
 
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
+        super(jzintv, self).__init__()
         self.package = "jzintv"
         self.executable = "jzintv"
         self.machine = "Intellivision"
         #jzintv is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
         self.is_installable = False
-
-
-        self.description = "Intellivision Emulator"
-
-        self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
-        self.runner_options = [{"option": "bios_path", "type":"directory_chooser", "label":"Bios Path"},
-                               {"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
-                              ]
+        self.game_options = [{
+            "option":"rom",
+            "type":"single",
+            "label":"Rom File"
+        }]
+        self.runner_options = [
+            {
+                "option": "bios_path",
+                "type": "directory_chooser",
+                "label": "Bios Path"
+            },
+            {
+                "option": "fullscreen",
+                "type": "bool",
+                "label":"Fullscreen"
+            }
+        ]
         self.arguments = []
         if settings:
             if "fullscreen" in settings["jzintv"]:
                 if settings["jzintv"]["fullscreen"]:
                     self.arguments = self.arguments + ["-f"]
             if "bios_path" in settings["jzintv"]:
-                self.arguments = self.arguments + ["--execimg=\"%s/exec.bin\"" % settings["jzintv"]["bios_path"] ]
-                self.arguments = self.arguments + ["--gromimg=\"%s/grom.bin\"" % settings["jzintv"]["bios_path"] ]
+                self.arguments += ["--execimg=\"%s/exec.bin\"" % \
+                        settings["jzintv"]["bios_path"]]
+                self.arguments += ["--gromimg=\"%s/grom.bin\"" % \
+                        settings["jzintv"]["bios_path"]]
             else:
                 self.error_message = "Bios path not set"
             romdir = os.path.dirname(settings["game"]["rom"])
             romfile = os.path.basename(settings["game"]["rom"])
-            self.arguments = self.arguments + ["--rom-path=\"%s\"" % romdir+"/"]
-            self.arguments = self.arguments + ["\""+romfile+"\""]
-
+            self.arguments += ["--rom-path=\"%s/\"" % romdir]
+            self.arguments += ["\"%s\"" % romfile]
 
     def play(self):
         command = [self.executable] + self.arguments
         return command
-

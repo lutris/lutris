@@ -29,33 +29,45 @@ from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
 
 
+def get_name(steam_file):
+    """Get game name from some weird steam file"""
+    data = steam_file.read(1000)
+    if "name" in data:
+        index_of_name = str.find(data, "name")
+        index = index_of_name + 5
+        char = "0"
+        name = ""
+        while ord(char) != 0x0:
+            char = data[index]
+            index = index + 1
+            name = name + char
+        return name[:-1]
+
+
+def get_appid_from_filename(filename):
+    """Get appid name from some weird steam file"""
+    if filename.endswith(".vdf"):
+        appid = filename[filename.find("_") + 1:filename.find(".")]
+    elif filename.endswith('.pkv'):
+        appid = filename[:filename.find("_")]
+    return appid
+
+
 # pylint: disable=C0103
 class steam(wine):
-    """Runner for the Steam platform."""
+    """Runs Steam games with Wine"""
     def __init__(self, settings=None):
         super(steam, self).__init__(settings)
         self.executable = "Steam.exe"
-        self.package = None
-        self.description = "Runs Steam games with Wine"
         self.machine = "Steam Platform"
-        #TODO : Put Steam Path in config file
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
-        self.game_exe = "steam.exe"
         self.arguments = []
-        self.depends = "wine"
-        self.is_installable = False
-        self.appid = "26800"
         self.game_options = [
             {'option': 'appid', 'type': 'string', 'label': 'appid'},
             {'option': 'args', 'type': 'string', 'label': 'arguments'}
         ]
-        if settings:
-            self.appid = settings['game']['appid']
-            if 'args' in settings['game']:
-                self.args = settings['game']['args']
-            else:
-                self.args = ""
+        self.settings = settings
 
     def install(self):
         dlg = QuestionDialog({
@@ -78,52 +90,33 @@ class steam(wine):
         if not self.check_depends():
             return False
         if not self.game_path or \
-           not os.path.exists(os.path.join(self.game_path, self.game_exe)):
+           not os.path.exists(os.path.join(self.game_path, self.executable)):
             return False
         else:
             return True
 
-    def get_name(self, steam_file):
-        data = steam_file.read(1000)
-        if "name" in data:
-            index_of_name = str.find(data, "name")
-            index = index_of_name + 5
-            char = "0"
-            name = ""
-            while ord(char) != 0x0:
-                char = data[index]
-                index = index + 1
-                name = name + char
-            return name[:-1]
-
-    def get_appid_from_filename(self, filename):
-        if filename.endswith(".vdf"):
-            appid = filename[filename.find("_") + 1:filename.find(".")]
-        elif filename.endswith('.pkv'):
-            appid = filename[:filename.find("_")]
-        return  appid
-
     def get_appid_list(self):
-        self.game_list = []
+        """Return the list of appids of all user's games"""
+        game_list = []
         os.chdir(os.path.join(self.game_path, "appcache"))
         max_counter = 10010
         files = []
         counter = 0
-        for file in os.listdir("."):
+        for filename in os.listdir("."):
             counter = counter + 1
             if counter < max_counter:
-                files.append(file)
+                files.append(filename)
             else:
                 break
 
         steam_apps = []
-        for file in files:
-            if file.endswith(".vdf"):
-                test_file = open(file, "rb")
-                appid = self.get_appid_from_filename(file)
-                appname = self.get_name(test_file)
+        for filename in files:
+            if filename.endswith(".vdf"):
+                test_file = open(filename, "rb")
+                appid = get_appid_from_filename(filename)
+                appname = get_name(test_file)
                 if appname:
-                    steam_apps.append((appid, appname, file))
+                    steam_apps.append((appid, appname, filename))
                 test_file.close()
 
         steam_apps.sort()
@@ -133,10 +126,18 @@ class steam(wine):
         for steam_app in steam_apps:
             #steam_apps_file.write("%d\t%s\n" % (steam_app[0],steam_app[1]))
             #print ("%d\t%s\n" % (steam_app[0],steam_app[1]))
-            self.game_list.append((steam_app[0], steam_app[1]))
+            game_list.append((steam_app[0], steam_app[1]))
         steam_apps_file.close()
+        return game_list
 
     def play(self):
+        settings = self.settings
+        if settings:
+            appid = settings['game']['appid']
+            if 'args' in settings['game']:
+                self.args = settings['game']['args']
+            else:
+                self.args = ""
         if not self.check_depends():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.depends}
@@ -145,10 +146,7 @@ class steam(wine):
                     'runner': self.__class__.__name__}
 
         self.check_regedit_keys()  # From parent wine runner
-
-        print self.game_path
-        print self.game_exe
-        steam_full_path = os.path.join(self.game_path, self.game_exe)
+        steam_full_path = os.path.join(self.game_path, self.executable)
         command = ['wine', '"%s"' % steam_full_path,
-                   '-applaunch', self.appid, self.args]
+                   '-applaunch', appid, self.args]
         return {'command': command}

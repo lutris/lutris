@@ -44,8 +44,6 @@ class nulldc(wine):
     def __init__(self, settings=None):
         """Initialize NullDC
 
-        TODO: Remove hardcoded stuff
-
         joy2key $(xwininfo -root -tree  | grep nullDC | grep -v VMU |\
                 awk '{print $1}') \
                 -X  -rcfile ~/.joy2keyrc \
@@ -61,8 +59,6 @@ class nulldc(wine):
         config = LutrisConfig(runner=self.__class__.__name__)
         self.nulldc_path = config.get_path()
         self.executable = "nullDC_1.0.3_nommu.exe"
-        self.gamePath = "/mnt/seagate/games/Soul Calibur [NTSC-U]/"
-        self.gameIso = "disc.gdi"
         self.args = ""
         self.game_options = [{
             'option': 'iso',

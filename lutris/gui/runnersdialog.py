@@ -106,8 +106,7 @@ class RunnersDialog(gtk.Dialog):
 
         for runner in runner_list:
             # Get runner details
-            runner_class = import_runner(runner)
-            runner_instance = runner_class()
+            runner_instance = import_runner(runner)
             machine = runner_instance.machine
             description = runner_instance.description
 

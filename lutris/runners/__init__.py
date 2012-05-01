@@ -14,4 +14,8 @@ def import_runner(runner_name, config=None):
         logger.error("Invalid runner %s" % runner)
         logger.error(msg)
 
-    return runner_cls(config)
+    try:
+        instance = runner_cls(config)
+    except:
+        print runner_name
+    return instance

@@ -1,7 +1,5 @@
+"""Surprise!"""
 import xdg
-
-from xdg.Menu import xdg_config_dirs
-from xdg.Menu import Menu
 
 CACHE = xdg.Menu.parse("/etc/xdg/menus/applications.menu")
 print CACHE

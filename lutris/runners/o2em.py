@@ -1,4 +1,3 @@
-
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris
@@ -20,33 +19,73 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for Odyssey2 games """
+
 from lutris.runners.runner import Runner
 import os.path
 
 
 # pylint: disable=C0103
 class o2em(Runner):
-    '''Runner for Odyssey² games'''
+    """Magnavox Oyssey² Emulator"""
 
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
+        super(o2em, self).__init__()
         self.package = "o2em"
         self.executable = "o2em"
         self.machine = "Odyssey 2"
         #o2em is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
-        self.is_installable = False
-        self.bios_path = os.path.join(os.path.expanduser("~"),".o2em/bios/")
+        self.bios_path = os.path.join(os.path.expanduser("~"), ".o2em/bios/")
 
-        self.description = "Magnavox Oyssey² Emulator"
-        bios_choices = [("Odyssey² bios","o2rom"),("French odyssey² Bios","c52"),("VP+ Bios","g7400"),("French VP+ Bios","jopac")]
-        controller_choices = [("Disable","0"),("Arrows keys and right shift","1"),("W,S,A,D,SPACE","2"),("Joystick","3")]
-        self.game_options = [{"option":"rom","type":"single","label":"Rom File"}]
-        self.runner_options = [{"option": "bios", "type":"one_choice", "choices":bios_choices,"label":"Bios"},
-                               {"option": "first_controller", "type":"one_choice","choices":controller_choices,"label":"First controller"},
-                               {"option": "second_controller", "type":"one_choice", "choices":controller_choices,"label":"Second controller"},
-                               {"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
-                               {"option": "scanlines", "type":"bool", "label":"Scanlines"}]
+        bios_choices = [
+            ("Odyssey² bios", "o2rom"),
+            ("French odyssey² Bios", "c52"),
+            ("VP+ Bios", "g7400"),
+            ("French VP+ Bios", "jopac")
+        ]
+        controller_choices = [
+            ("Disable", "0"),
+            ("Arrows keys and right shift", "1"),
+            ("W,S,A,D,SPACE", "2"),
+            ("Joystick", "3")
+        ]
+        self.game_options = [{
+            "option": "rom",
+            "type": "single",
+            "label": "Rom File"
+        }]
+        self.runner_options = [
+            {
+                "option": "bios",
+                "type": "one_choice",
+                "choices":bios_choices,
+                "label":"Bios"
+            },
+            {
+                "option": "first_controller",
+                "type": "one_choice",
+                "choices": controller_choices,
+                "label":"First controller"
+            },
+            {
+                "option": "second_controller",
+                "type": "one_choice",
+                "choices": controller_choices,
+                "label": "Second controller"
+            },
+            {
+                "option": "fullscreen",
+                "type": "bool",
+                "label": "Fullscreen"
+            },
+            {
+                "option": "scanlines",
+                "type": "bool",
+                "label": "Scanlines"
+            }
+        ]
 
         self.arguments = ["-biosdir=\"%s\"" % self.bios_path]
         if settings:
@@ -57,16 +96,16 @@ class o2em(Runner):
                 if settings["o2em"]["scanlines"]:
                     self.arguments = self.arguments + ["-scanlines"]
             if "first_controller" in settings["o2em"]:
-                self.arguments = self.arguments + ["-s1=%s" % settings["o2em"]["first_controller"]]
+                self.arguments += ["-s1=%s" % \
+                                   settings["o2em"]["first_controller"]]
             if "second_controller" in settings["o2em"]:
-                self.arguments = self.arguments + ["-s2=%s" % settings["o2em"]["second_controller"]]
+                self.arguments += ["-s2=%s" % \
+                                   settings["o2em"]["second_controller"]]
             romdir = os.path.dirname(settings["game"]["rom"])
             romfile = os.path.basename(settings["game"]["rom"])
-            self.arguments = self.arguments + ["-romdir=\"%s\"" % romdir+"/"]
-            self.arguments = self.arguments + ["\""+romfile+"\""]
-
+            self.arguments = self.arguments + ["-romdir=\"%s\"/" % romdir]
+            self.arguments = self.arguments + ["\"%s\"" % romfile]
 
     def play(self):
         command = [self.executable] + self.arguments
         return command
-

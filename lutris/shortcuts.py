@@ -7,7 +7,7 @@ from xdg import BaseDirectory
 from subprocess import Popen, PIPE
 
 from lutris.config import LutrisConfig
-from lutris.settings import CACHE_DIR, DATA_DIR
+from lutris.settings  import CACHE_DIR, DATA_DIR
 
 
 def create_launcher(game, desktop=False, menu=False):

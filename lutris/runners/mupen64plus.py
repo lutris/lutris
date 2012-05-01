@@ -19,13 +19,15 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for Nintendo64 """ 
+
 from lutris.runners.runner import Runner
 import os.path
 
 
 # pylint: disable=C0103
 class mupen64plus(Runner):
-    '''Runner for Sega Genesis games'''
+    """Nintendo 64 emulator"""
 
     def __init__(self, settings=None):
         super(mupen64plus, self).__init__()
@@ -33,9 +35,6 @@ class mupen64plus(Runner):
         self.executable = 'mupen64plus'
         self.machine = "Nintendo 64"
         self.arguments = ['--nogui']
-        self.is_installable = True
-        self.description = "Nintendo 64 emulator"
-
         self.game_options = [{
             'option': 'rom',
             'type':'single',

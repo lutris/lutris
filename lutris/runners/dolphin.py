@@ -33,7 +33,7 @@ class dolphin(Runner):
     Download link : http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2
     ppa : ppa:glennric/dolphin-emu
     """
-    def __init__(self):
+    def __init__(self, config):
         """ class initialization """
         super(dolphin, self).__init__()
         self.package = "dolphin-emu"

@@ -14,14 +14,20 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 ### END LICENSE
 
-import os
-import gtk.gdk
-import lutris.constants
+"""About dialog"""
 
+# pylint #37300 False positive F0401 on gtk.gdk import
+# pylint: disable=F0401  
+import gtk.gdk
+import os
+
+from lutris import settings
 from lutris.constants import LUTRIS_ICON
 
 
+# pylint: disable=R0904, R0901
 class AboutLutrisDialog(gtk.AboutDialog):
+    """About dialog class"""
     __gtype_name__ = "AboutLutrisDialog"
 
     def __init__(self):
@@ -50,13 +56,13 @@ class AboutLutrisDialog(gtk.AboutDialog):
         self.set_position(gtk.WIN_POS_CENTER)
         self.set_icon_from_file(LUTRIS_ICON)
         self.set_logo(gtk.gdk.pixbuf_new_from_file(LUTRIS_ICON))
-        self.set_name(lutris.constants.name)
-        self.set_version(lutris.constants.version)
-        self.set_copyright(lutris.constants.copyright)
-        self.set_license(lutris.constants.license_text)
-        self.set_authors(lutris.constants.authors)
-        self.set_artists(lutris.constants.artists)
-        self.set_website(lutris.constants.website)
+        self.set_name(settings.PROJECT)
+        self.set_version(settings.VERSION)
+        self.set_copyright(settings.COPYRIGHT)
+        self.set_license(settings.LICENSE_TEXT)
+        self.set_authors(settings.AUTHORS)
+        self.set_artists(settings.ARTISTS)
+        self.set_website(settings.WEBSITE)
 
 
 def NewAboutLutrisDialog(data_path):

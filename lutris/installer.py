@@ -36,7 +36,7 @@ from lutris.gui.common import ErrorDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.shortcuts import create_launcher
 from lutris.settings import CONFIG_DIR, CACHE_DIR, DATA_DIR
-from lutris.constants import INSTALLER_URL, GAME_CONFIG_PATH
+from lutris.constants import INSTALLER_URL
 
 
 def unzip(filename, dest=None):
@@ -83,21 +83,24 @@ def reporthook(piece, received_bytes, total_size):
     print "%d %%" % ((piece * received_bytes) * 100 / total_size)
 
 
+# pylint: disable=R0904
 class Installer(gtk.Dialog):
-    """ Installer class """
+    """Installer class"""
     def __init__(self, game, installer=False):
+        super(Installer, self).__init__()
         self.lutris_config = None  # Internal game config
         if not game:
             msg = "No game specified in this installer"
             log.logger.error(msg)
             ErrorDialog(msg)
-            return False
+            return
         self.game_name = game  # Name of the game
         self.game_slug = slugify(self.game_name)
         self.description = False
         default_path = join(os.path.expanduser('~'), self.game_slug)
         log.logger.debug("default path set to %s " % default_path)
         self.game_dir = default_path
+        self.download_index = 0
         self.rules = {}  # Content of yaml file
         self.actions = []
         self.errors = []
@@ -109,7 +112,6 @@ class Installer(gtk.Dialog):
             self.installer_path = join(CACHE_DIR, self.game_name + ".yml")
         else:
             self.installer_path = installer
-
         self.location_button = gtk.FileChooserButton("Select folder")
 
         # FIXME: Wrong ! The runner should be loaded first in order to
@@ -241,7 +243,7 @@ class Installer(gtk.Dialog):
         if os.path.exists(self.game_dir):
             self.install_button.set_sensitive(True)
 
-    def download_game_files(self, widget=None, data=None):
+    def download_game_files(self, _widget=None, _data=None):
         """ Runs the actions to complete the install. """
 
         dest_dir = join(CACHE_DIR, "installer/%s" % self.game_slug)
@@ -252,13 +254,12 @@ class Installer(gtk.Dialog):
             key, url = fileinfo.items()[0]
             filename = os.path.basename(url)
             self.gamefiles[key] = os.path.join(dest_dir, filename)
-        dest_file = os.path.join(dest_dir, filename)
         self.location_button.destroy()
         self.install_button.set_sensitive(False)
-        self.download_index = 0
         self.process_downloads()
 
     def process_downloads(self):
+        """Download each file needed for the game"""
         if self.download_index < len(self.rules["files"]):
             log.logger.info(
                 "Downloading file %d of %d" % (self.download_index + 1,
@@ -270,7 +271,7 @@ class Installer(gtk.Dialog):
             log.logger.debug("All files downloaded")
             self.install()
 
-    def download_complete(self, widget, data):
+    def download_complete(self, _widget, _data):
         """Action called on a completed download"""
         self.download_index += 1
         self.process_downloads()
@@ -299,6 +300,7 @@ class Installer(gtk.Dialog):
         self._download(url, filename, copyfile)
 
     def install(self):
+        """Actual game installation"""
         log.logger.debug("Running installation")
 
         if self.download_progress is not None:
@@ -516,7 +518,7 @@ class Installer(gtk.Dialog):
             os.popen('chmod +x %s' % exec_path)
             subprocess.call([exec_path])
 
-    def launch_game(self, widget, data=None):
+    def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
         lutris_game = LutrisGame(self.game_slug)
         lutris_game.play()

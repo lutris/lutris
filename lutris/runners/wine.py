@@ -16,28 +16,53 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""Wine runner"""
+
 import os
 import subprocess
 import logging
 
 from os.path import exists
 
-from lutris.runners.runner import Runner
-from lutris.constants import TMP_PATH
+from lutris.util.log import logger
 from lutris.settings import CACHE_DIR
+from lutris.runners.runner import Runner
 
 
+def set_regedit(path, key, value):
+    """Plays with the windows registry
+
+    path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
+    """
+
+    logging.debug("Setting wine registry key : %s\\%s to %s",
+                    path, key, value)
+    reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
+    #Make temporary reg file
+    reg_file = open(reg_path, "w")
+    reg_file.write("""REGEDIT4
+
+[%s]
+"%s"="%s"
+
+""" % (path, key, value))
+    reg_file.close()
+    subprocess.call(["wine", "regedit", reg_path])
+    os.remove(reg_path)
+
+
+def kill():
+    """The kill command runs wineserver -k"""
+    os.popen("winserver -k")
+
+
+# pylint: disable=C0103
 class wine(Runner):
+    '''Run Windows games with Wine'''
     def __init__(self, settings=None):
+        super(wine, self).__init__()
         self.executable = 'wine'
-        self.package = 'wine'
         self.machine = 'Windows games'
-        self.description = 'Run Windows games with Wine'
-
-        self.prefix = None
-
-        self.is_installable = True
-
         self.installer_options = [{
             'option': 'installer',
             'type': 'single',
@@ -109,59 +134,20 @@ class wine(Runner):
             'type': 'one_choice',
             'choices': desktop_choices}
         ]
-
+        self.settings = settings
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
             "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
             "Audio": r"%s\Drivers" % reg_prefix,
             "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
             "Multisampling": r"%s\Direct3D" % reg_prefix,
-            "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
             "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
             "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
             "Version": r"%s" % reg_prefix,
             "Desktop": r"%s\Explorer" % reg_prefix
         }
 
-        if settings:
-            if 'exe' in settings['game']:
-                self.gameExe = settings['game']['exe']
-            if 'args' in settings.config['game']:
-                self.args = settings['game']['args']
-            else:
-                self.args = None
-            if self.__class__.__name__ in settings.config:
-                logging.debug('loading wine specific settings')
-                self.wine_config = settings.config[self.__class__.__name__]
-            else:
-                self.wine_config = None
-
-    def set_regedit(self, path, key, value):
-        """Plays with the windows registry
-
-        path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
-        """
-
-        logging.debug("Setting wine registry key : %s\\%s to %s" %
-                      (path, key, value))
-        reg_path = os.path.join(TMP_PATH, 'winekeys.reg')
-        #Make temporary reg file
-        reg_file = open(reg_path, "w")
-        reg_file.write("""REGEDIT4
-
-[%s]
-"%s"="%s"
-
-""" % (path, key, value))
-        reg_file.close()
-        subprocess.call(["wine", "regedit", reg_path])
-        os.remove(reg_path)
-
-    def kill(self):
-        """The kill command runs wineserver -k"""
-        os.popen("winserver -k")
-
-    def get_install_command(self, exe=None, iso=None):
+    def get_install_command(self, exe=None):
         """Return the installer command, either from an exe or an iso"""
         if exe:
             command = "%s %s" % (self.executable, exe)
@@ -170,24 +156,35 @@ class wine(Runner):
             return False
         return command
 
-    def check_regedit_keys(self):
+    def check_regedit_keys(self, wine_config):
+        """Resets regedit keys according to config"""
         for key in self.reg_keys.keys():
-            if key in self.wine_config:
-                self.set_regedit(self.reg_keys[key], key,
-                                 self.wine_config[key])
+            if key in wine_config:
+                set_regedit(self.reg_keys[key], key, wine_config[key])
 
     def play(self):
-        self.game_path = os.path.dirname(self.gameExe)
-        game_exe = os.path.basename(self.gameExe)
-        if not exists(self.game_path):
-            return {"error": "FILE_NOT_FOUND", "file": self.game_path}
+        settings = self.settings
+        if 'exe' in settings['game']:
+            game_exe = settings['game']['exe']
+        if 'args' in settings.config['game']:
+            arguments = settings['game']['args']
+        else:
+            arguments = None
+        if self.__class__.__name__ in settings.config:
+            logging.debug('loading wine specific settings')
+            wine_config = settings.config[self.__class__.__name__]
+        game_path = os.path.dirname(game_exe)
+        game_exe = os.path.basename(game_exe)
+        if not exists(game_path):
+            return {"error": "FILE_NOT_FOUND", "file": game_path}
         command = []
-        if self.prefix and exists(self.prefix):
-            command.append("WINEPREFIX=%s ", self.prefix)
+        if "prefix" in wine_config and exists(wine_config['prefix']):
+            logger.debug("using WINEPREFIX %s", wine_config["prefix"])
+            command.append("WINEPREFIX=%s ", wine_config['prefix'])
         command.append(self.executable)
         command.append("\"" + game_exe + "\"")
-        if self.args:
-            for arg in self.args.split():
+        if arguments:
+            for arg in arguments.split():
                 command.append(arg)
-        self.check_regedit_keys()
+        self.check_regedit_keys(wine_config)
         return {'command': command}

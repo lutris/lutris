@@ -18,18 +18,19 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-#Widget generators and their signal handlers
+"""Widget generators and their signal handlers"""
 
 import gtk
 
 PADDING = 10
 
 
+# pylint: disable=R0904
 class Label(gtk.Label):
     """ Standardised label for config vboxes"""
-    def __init__(self, str=None):
+    def __init__(self, message=None):
         """ Custom init of label """
-        super(Label, self).__init__(str)
+        super(Label, self).__init__(message)
         self.set_size_request(200, 30)
         self.set_alignment(0.0, 0.5)
         self.set_line_wrap(True)

@@ -25,7 +25,7 @@ from lutris.runners.runner import Runner
 
 #pylint: disable=C0103
 class pcsx(Runner):
-    """ Runner class for playstation games """
+    """PlayStation emulator"""
     def __init__(self, settings=None):
         """
         pcsx-df is what seems the best candidate for a playstation emulator.
@@ -35,10 +35,9 @@ class pcsx(Runner):
         The package also lacks a maintainer :
         http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510530
         """
+        super(pcsx, self).__init__()
         self.executable = "pcsx"
         self.package = "pcsx-df"
-        self.is_installable = False
-        self.description = "Runs PlayStation games"
         self.machine = "Playstation"
         self.game_options = [{"option":"iso", "type":"single", "label":"iso"}]
         self.runner_options = []

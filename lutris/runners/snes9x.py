@@ -26,7 +26,7 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class snes9x(Runner):
-    """ Uses snes9x to run SNES games """
+    """Runs Super Nintendo games with Snes9x"""
     def __init__(self, settings=None):
         """It seems that the best snes emulator around it snes9x-gtk
         zsnes has no 64bit port
@@ -34,7 +34,6 @@ class snes9x(Runner):
         super(snes9x, self).__init__()
         self.executable = "snes9x-gtk"
         self.package = None
-        self.description = "Runs Super Nintendo games with Snes9x"
         self.machine = "Super Nintendo"
         self.is_installable = True
         self.game_options = [{

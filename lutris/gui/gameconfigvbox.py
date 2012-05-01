@@ -19,16 +19,17 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import gtk
+"""Container for game config options"""
 
-import lutris.runners
+import gtk
 
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
-from lutris.runners import import_runner
 
 
+# pylint: disable=R0901,R0904
 class GameConfigVBox(ConfigVBox):
+    """VBox for game options"""
     def __init__(self, lutris_config, caller):
         ConfigVBox.__init__(self, "game", caller)
         self.lutris_config = lutris_config

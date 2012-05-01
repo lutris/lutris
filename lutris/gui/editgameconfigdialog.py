@@ -19,6 +19,8 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Game edition dialog"""
+
 import logging
 import gtk
 from lutris.config import LutrisConfig
@@ -27,7 +29,9 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
+# pylint: disable=R0904
 class EditGameConfigDialog(gtk.Dialog):
+    """Game config edit dialog"""
     def __init__(self, parent, game):
         self.parent_window = parent
         self.game = game
@@ -85,10 +89,12 @@ class EditGameConfigDialog(gtk.Dialog):
         self.show_all()
         self.run()
 
-    def edit_game(self, widget=None):
+    def edit_game(self, _widget=None):
+        """Save the changes"""
         logging.debug(self.lutris_config.config)
         self.lutris_config.save(config_type="game")
         self.destroy()
 
-    def close(self, widget=None):
+    def close(self, _widget=None):
+        """Dialog destroy callback"""
         self.destroy()

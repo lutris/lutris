@@ -28,46 +28,44 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class sdlmame(Runner):
-    """ Mame runner """
+    """Runs arcade games with SDLMame"""
     def __init__(self, settings=None):
         """ Mame initialization """
         super(sdlmame, self).__init__()
         self.executable = "mame"
-        self.package = "sdlmame"
-        self.description = "Runs arcade games with SDLMame"
         self.machine = "Arcade"
-        self.is_installable = False
-        self.fullscreen = True
         self.game_options = [{"option": "rom",
                               "type":"single",
                               "label":"Rom file"}]
         self.runner_options = [{"option":"windowed",
                                 "type":"bool",
                                 "label":"Windowed"}]
-
-        if settings:
-            self.romdir = os.path.dirname(settings["game"]["rom"])
-            self.rom = os.path.basename(settings["game"]["rom"])
-            self.mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
-            if "sdlmame" in settings.config:
-                if "windowed" in settings["sdlmame"]:
-                    self.fullscreen = not settings["sdlmame"]["windowed"]
+        self.settings = settings
 
     def play(self):
         """ Launch the game. """
-        if not os.path.exists(os.path.join(self.mameconfigdir, "mame.ini")):
+        settings = self.settings
+        fullscreen = True
+        if settings:
+            romdir = os.path.dirname(settings["game"]["rom"])
+            rom = os.path.basename(settings["game"]["rom"])
+            mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
+            if "sdlmame" in settings.config:
+                if "windowed" in settings["sdlmame"]:
+                    fullscreen = not settings["sdlmame"]["windowed"]
+        if not os.path.exists(os.path.join(mameconfigdir, "mame.ini")):
             try:
-                os.makedirs(self.mameconfigdir)
+                os.makedirs(mameconfigdir)
             except OSError:
                 pass
-            os.chdir(self.mameconfigdir)
+            os.chdir(mameconfigdir)
             subprocess.Popen([self.executable, "-createconfig"],
                              stdout=subprocess.PIPE)
-        os.chdir(self.romdir)
-        arguments = []
-        if not self.fullscreen:
-            arguments = arguments + ["-window"]
-        return [self.executable,
-                "-inipath", self.mameconfigdir,
-                "-skip_gameinfo",
-                "-rompath", self.romdir, self.rom] + arguments
+            os.chdir(romdir)
+            arguments = []
+            if not fullscreen:
+                arguments = arguments + ["-window"]
+                return [self.executable,
+                        "-inipath", mameconfigdir,
+                        "-skip_gameinfo",
+                        "-rompath", romdir, rom] + arguments
