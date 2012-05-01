@@ -21,6 +21,8 @@
 
 from lutris.runners.runner import Runner
 import os.path
+
+# pylint: disable=C0103
 class jzintv(Runner):
     '''Runner for intellivision games'''
 

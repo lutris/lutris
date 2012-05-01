@@ -18,11 +18,14 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
-
+""" pcsx runner """
 
 from lutris.runners.runner import Runner
 
+
+#pylint: disable=C0103
 class pcsx(Runner):
+    """ Runner class for playstation games """
     def __init__(self, settings=None):
         """
         pcsx-df is what seems the best candidate for a playstation emulator.

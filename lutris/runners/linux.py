@@ -26,6 +26,7 @@ import stat
 
 from lutris.runners.runner import Runner
 
+# pylint: disable=C0103
 class linux(Runner):
     def __init__(self,settings=None):
         self.description = "Runs native games"

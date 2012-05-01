@@ -23,6 +23,7 @@ from lutris.runners.runner import Runner
 import os.path
 
 
+# pylint: disable=C0103
 class mupen64plus(Runner):
     '''Runner for Sega Genesis games'''
 

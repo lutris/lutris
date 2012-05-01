@@ -24,9 +24,11 @@ from os.path import exists
 
 from lutris.runners.runner import Runner
 from lutris.constants import TMP_PATH
+from lutris.settings import CACHE_DIR
+
 
 class wine(Runner):
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         self.executable = 'wine'
         self.package = 'wine'
         self.machine = 'Windows games'
@@ -36,13 +38,28 @@ class wine(Runner):
 
         self.is_installable = True
 
-        self.installer_options = [{'option': 'installer',
-                                   'type': 'single',
-                                   'label': 'Executable'}, ]
-
-        self.game_options = [{'option': 'exe', 'type':'single', 'label': 'Executable'},
-                             {'option': 'args', 'type': 'string', 'label': 'Arguments'},
-                             {'option': 'prefix', 'type': 'directory_chooser', 'label': 'Prefix'}]
+        self.installer_options = [{
+            'option': 'installer',
+            'type': 'single',
+            'label': 'Executable'
+        }]
+        self.game_options = [
+            {
+                'option': 'exe',
+                'type': 'single',
+                'label': 'Executable'
+            },
+            {
+                'option': 'args',
+                'type': 'string',
+                'label': 'Arguments'
+            },
+            {
+                'option': 'prefix',
+                'type': 'directory_chooser',
+                'label': 'Prefix'
+            }
+        ]
 
         mouse_warp_choices = [('Disable', 'disable'),
                               ('Enable', 'enable'),
@@ -57,49 +74,54 @@ class wine(Runner):
                         ('TexDraw', 'texdraw'),
                         ('TexTex', 'textex')]
         multisampling_choices = [('Enabled', 'enabled'),
-                                 ("Disabled","disabled")]
-        audio_choices = [('Alsa','alsa'),
-                         ('OSS','oss'),
-                         ('Jack','jack')]
+                                 ("Disabled", "disabled")]
+        audio_choices = [('Alsa', 'alsa'),
+                         ('OSS', 'oss'),
+                         ('Jack', 'jack')]
         desktop_choices = [('Yes', 'Default'),
                            ('No', 'None')]
-        self.runner_options = [{'option': 'cdrom_path',
-                                'label': 'CDRom mount point',
-                                'type': 'directory_chooser'},
-                               {'option': 'MouseWarpOverride',
-                                'label': 'Mouse Warp Override',
-                                'type': 'one_choice',
-                                'choices': mouse_warp_choices},
-                               {'option': 'Multisampling',
-                                'label': 'Multisampling',
-                                'type': 'one_choice',
-                                'choices': multisampling_choices},
-                               {'option': 'OffscreenRenderingMode',
-                                'label': 'Offscreen Rendering Mode',
-                                'type': 'one_choice',
-                                'choices': orm_choices},
-                               {'option': 'RenderTargetLockMode',
-                                'label': 'Render Target Lock Mode',
-                                'type': 'one_choice',
-                                'choices': rtlm_choices},
-                               {'option': 'Audio',
-                                'label': 'Audio driver',
-                                'type': 'one_choice',
-                                'choices': audio_choices},
-                               {'option': 'Desktop',
-                                'label': 'Virtual desktop',
-                                'type': 'one_choice',
-                                'choices': desktop_choices}]
+        self.runner_options = [
+            {'option': 'cdrom_path',
+            'label': 'CDRom mount point',
+            'type': 'directory_chooser'},
+            {'option': 'MouseWarpOverride',
+            'label': 'Mouse Warp Override',
+            'type': 'one_choice',
+            'choices': mouse_warp_choices},
+            {'option': 'Multisampling',
+            'label': 'Multisampling',
+            'type': 'one_choice',
+            'choices': multisampling_choices},
+            {'option': 'OffscreenRenderingMode',
+            'label': 'Offscreen Rendering Mode',
+            'type': 'one_choice',
+            'choices': orm_choices},
+            {'option': 'RenderTargetLockMode',
+            'label': 'Render Target Lock Mode',
+            'type': 'one_choice',
+            'choices': rtlm_choices},
+            {'option': 'Audio',
+            'label': 'Audio driver',
+            'type': 'one_choice',
+            'choices': audio_choices},
+            {'option': 'Desktop',
+            'label': 'Virtual desktop',
+            'type': 'one_choice',
+            'choices': desktop_choices}
+        ]
+
+        reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
-            "RenderTargetLockMode": r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
-            "Audio": r"HKEY_CURRENT_USER\Software\Wine\Drivers",
-            "MouseWarpOverride": r"HKEY_CURRENT_USER\Software\Wine\DirectInput",
-            "Multisampling": r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
-            "RenderTargetLockMode" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
-            "OffscreenRenderingMode" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
-            "DirectDrawRenderer" : r"HKEY_CURRENT_USER\Software\Wine\Direct3D",
-            "Version": r"HKEY_CURRENT_USER\Software\Wine",
-            "Desktop": r"HKEY_CURRENT_USER\Software\Wine\Explorer"}
+            "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
+            "Audio": r"%s\Drivers" % reg_prefix,
+            "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
+            "Multisampling": r"%s\Direct3D" % reg_prefix,
+            "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
+            "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
+            "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
+            "Version": r"%s" % reg_prefix,
+            "Desktop": r"%s\Explorer" % reg_prefix
+        }
 
         if settings:
             if 'exe' in settings['game']:
@@ -114,7 +136,7 @@ class wine(Runner):
             else:
                 self.wine_config = None
 
-    def set_regedit(self,path,key,value):
+    def set_regedit(self, path, key, value):
         """Plays with the windows registry
 
         path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
@@ -168,5 +190,4 @@ class wine(Runner):
             for arg in self.args.split():
                 command.append(arg)
         self.check_regedit_keys()
-        return { 'command': command }
-
+        return {'command': command}

@@ -21,10 +21,12 @@
 
 from lutris.runners.runner import Runner
 
+
+# pylint: disable=C0103
 class osmose(Runner):
     '''Runner for Sega Master System games'''
 
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
         self.package = "osmose"
         self.executable = "osmose"
@@ -51,7 +53,7 @@ class osmose(Runner):
     def play(self):
         if 'fullscreen' in self.settings['osmose']:
             if self.settings['osmose']['fullscreen']:
-                self.arguments = self.arguments + ['-fs','-bilinear']
+                self.arguments = self.arguments + ['-fs', '-bilinear']
         if 'joy' in self.settings["osmose"]:
             if self.settings['osmose']['joy']:
                 self.arguments = self.arguments + ['-joy']
@@ -66,5 +68,4 @@ class osmose(Runner):
             return {'error': 'FILE_NOT_FOUND',
                     'file': self.rom}
 
-        return { 'command': [self.executable] + self.arguments }
-
+        return {'command': [self.executable] + self.arguments}

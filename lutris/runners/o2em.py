@@ -22,6 +22,9 @@
 
 from lutris.runners.runner import Runner
 import os.path
+
+
+# pylint: disable=C0103
 class o2em(Runner):
     '''Runner for Odyssey² games'''
 

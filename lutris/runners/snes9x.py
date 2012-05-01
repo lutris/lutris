@@ -21,32 +21,30 @@
 
 from lutris.runners.runner import Runner
 
+
+# pylint: disable=C0103
 class snes9x(Runner):
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         """It seems that the best snes emulator around it snes9x-gtk
         zsnes has no 64bit port
         """
         self.executable = "snes9x-gtk"
-        self.package = "snes9x-gtk"
+        self.package = None
         self.description = "Runs Super Nintendo games with Snes9x"
         self.machine = "Super Nintendo"
         self.is_installable = True
-        self.game_options = [
-                        {
-                            "option": "rom",
-                            "type": "single",
-                            "label": "ROM"
-                        }
-                    ]
-        self.runner_options = [
-                        {
-                	        "option":"fullscreen",
-                        	"type":"bool",
-                        	"label":"Fullscreen"
-                        }
-                    ]
+        self.game_options = [{
+            "option": "rom",
+            "type": "single",
+            "label": "ROM"
+        }]
+        self.runner_options = [{
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen"
+        }]
         if settings:
             self.rom = settings["game"]["rom"]
 
     def play(self):
-        return [self.executable,"\""+self.rom+"\""]
+        return [self.executable, "\"%s\"" % self.rom]

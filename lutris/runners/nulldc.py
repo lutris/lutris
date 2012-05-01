@@ -24,6 +24,7 @@ from lutris.runners.wine import wine
 from lutris.gui.common import DirectoryDialog
 from lutris.config import LutrisConfig
 
+# pylint: disable=C0103
 class nulldc(wine):
     """Runner for the Dreamcast emulator NullDC
 

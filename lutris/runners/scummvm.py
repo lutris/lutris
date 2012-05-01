@@ -18,43 +18,54 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
+""" ScummVM runner """
+
+import os
+import subprocess
 
 from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from lutris.constants import *
 from ConfigParser import ConfigParser
-import os
-import subprocess
 
+
+# pylint: disable=C0103
 class scummvm(Runner):
-    def __init__(self,settings=None):
-        self.scummvm_config_file = os.path.join(os.path.expanduser("~"),".scummvmrc")
+    """ Runner for point and click adventure games. """
+    def __init__(self, settings=None):
+        self.scummvm_config_file = os.path.join(os.path.expanduser("~"),
+                                                ".scummvmrc")
         self.executable = "scummvm"
         self.package = "scummvm"
         self.is_installable = True
         self.description = "Runs LucasArts games based on the Scumm engine"
         self.machine = "LucasArts point and click games"
         self.gfxmode = "--gfx-mode=normal"
-        self.fullscreen = "-f"      # -F for windowed
+        self.fullscreen = "-f"  # -F for windowed
         self.installer_options = [{'option': 'foo',
                                    'type': "label",
-                                   'label': "Click on install to launch ScummVM and install the game"}]
+                                   'label': "Click on install to launch" \
+                                          + "ScummVM and install the game"}]
         self.game_options = []
-        scaler_modes = [("2x","2x"),
-                        ("3x","3x"),
-                        ("2xsai","2xsai"),
-                        ("advmame2x","advmame2x"),
-                        ("advmame3x","advmame3x"),
-                        ("dotmatrix","dotmatrix"),
-                        ("hq2x","hq2x"),
-                        ("hq3x","hq3x"),
-                        ("normal","normal"),
-                        ("super2xsai","super2xsai"),
-                        ("supereagle","supereagle"),
-                        ("tv2x","tv2x")]
-        self.runner_options = [ \
-            {"option":"fullscreen", "label":"Fullscreen", "type":"bool"},
-            {"option":"gfx-mode", "label": "Graphics scaler", "type":"one_choice", "choices":scaler_modes}]
+        scaler_modes = [("2x", "2x"),
+                        ("3x", "3x"),
+                        ("2xsai", "2xsai"),
+                        ("advmame2x", "advmame2x"),
+                        ("advmame3x", "advmame3x"),
+                        ("dotmatrix", "dotmatrix"),
+                        ("hq2x", "hq2x"),
+                        ("hq3x", "hq3x"),
+                        ("normal", "normal"),
+                        ("super2xsai", "super2xsai"),
+                        ("supereagle", "supereagle"),
+                        ("tv2x", "tv2x")]
+        self.runner_options = [
+            {"option": "fullscreen", "label": "Fullscreen", "type": "bool"},
+            {"option": "gfx-mode",
+             "label": "Graphics scaler",
+             "type": "one_choice",
+             "choices": scaler_modes}
+        ]
 
         if isinstance(settings, LutrisConfig):
             config = settings.config
@@ -63,11 +74,12 @@ class scummvm(Runner):
                     if config["scummvm"]["fullscreen"] == False:
                         self.fullscreen = "-F"
                 if "gfx-mode" in config["scummvm"]:
-                    self.gfxmode = "--gfx-mode="+config["scummvm"]["gfx-mode"]
+                    mode = config["scummvm"]["gfx-mode"]
+                    self.gfxmode = "--gfx-mode=%s" % mode
             self.game = settings["name"]
 
     def play(self):
-        return [self.executable,self.fullscreen,self.gfxmode,self.game]
+        return [self.executable, self.fullscreen, self.gfxmode, self.game]
 
     def import_games(self):
         """
@@ -84,7 +96,9 @@ class scummvm(Runner):
             for section in config_sections:
                 realname = config_parser.get(section, "description")
                 self.add_game(section, realname)
-                imported_games.append({'id': section, 'name': realname, 'runner': 'scummvm'})
+                imported_games.append({'id': section,
+                                       'name': realname,
+                                       'runner': 'scummvm'})
 
         return imported_games
 
@@ -92,15 +106,15 @@ class scummvm(Runner):
         command = "%s" % (self.executable)
         return command
 
-    def add_game(self,name,realname):
+    def add_game(self, name, realname):
         lutris_config = LutrisConfig()
-        lutris_config.config = {"runner":"scummvm", "realname":realname, "name": name }
+        lutris_config.config = {"runner": "scummvm",
+                                "realname": realname,
+                                "name": name}
         lutris_config.save("game")
 
     def get_game_list(self):
-        """
-        Return the entire list of games supported by ScummVM
-        """
+        """ Return the entire list of games supported by ScummVM """
         scumm_output = subprocess.Popen(
                 [self.executable, "-z"],
                 stdout=subprocess.PIPE).communicate()[0]
@@ -111,15 +125,13 @@ class scummvm(Runner):
             if game_list_start:
                 if len(game) > 1:
                     dir_limit = game.index(" ")
-                else :
+                else:
                     dir_limit = None
                 if dir_limit is not  None:
                     game_dir = game[0:dir_limit]
-                    game_name = game[dir_limit+1:len(game)].strip()
-                    game_array.append([game_dir,game_name])
+                    game_name = game[dir_limit + 1:len(game)].strip()
+                    game_array.append([game_dir, game_name])
             # The actual list is below a separator
             if game.startswith("-----"):
                 game_list_start = True
-
         return game_array
-

@@ -19,7 +19,6 @@
 import os
 import gtk
 import yaml
-import Queue
 import shutil
 import urllib
 import urllib2
@@ -37,8 +36,7 @@ from lutris.gui.common import ErrorDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.shortcuts import create_launcher
 from lutris.settings import CACHE_DIR, DATA_DIR
-from lutris.constants import LUTRIS_CACHE_PATH, INSTALLER_URL, \
-                             ICON_PATH, BANNER_PATH, GAME_CONFIG_PATH
+from lutris.constants import INSTALLER_URL, GAME_CONFIG_PATH
 
 
 def unzip(filename, dest=None):
@@ -133,7 +131,7 @@ class Installer(gtk.Dialog):
         self.set_resizable(False)
         self.connect('destroy', lambda q: gtk.main_quit())
 
-        banner_path = join(BANNER_PATH, "%s.jpg" % self.game_slug)
+        banner_path = join(CACHE_DIR, "banners/%s.jpg" % self.game_slug)
         if os.path.exists(banner_path):
             banner = gtk.Image()
             banner.set_from_file(banner_path)
@@ -382,9 +380,7 @@ class Installer(gtk.Dialog):
 
     def write_config(self):
         """Write the game configuration as a Lutris launcher."""
-        config_filename = join(GAME_CONFIG_PATH,
-                               self.game_slug + ".yml")
-
+        config_filename = join(CONFIG_DIR, "games/%s.yml" % self.game_slug)
         config_data = {'game': {},
                        'realname': self.game_info['name'],
                        'runner': self.game_info['runner']}

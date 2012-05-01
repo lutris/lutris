@@ -29,6 +29,7 @@ from subprocess import Popen, PIPE
 from lutris.gconfwrapper import GconfWrapper
 from lutris.util.log import logger
 
+
 def make_compiz_rule(class_=None, title=None):
     """Return a string formated for the Window Rules plugin"""
     if class_ is not None:
@@ -38,6 +39,7 @@ def make_compiz_rule(class_=None, title=None):
     else:
         rule = False
     return rule
+
 
 def get_resolutions():
     """Return the list of supported screen resolutions."""
@@ -49,6 +51,7 @@ def get_resolutions():
             resolution_list.append(line.split()[0])
     return resolution_list
 
+
 def get_current_resolution():
     """Return the current resolution for the desktop."""
     xrandr_output = Popen("xrandr", stdout=PIPE).communicate()[0]
@@ -57,12 +60,14 @@ def get_current_resolution():
             return line.split()[0]
     return None
 
+
 def change_resolution(resolution):
     """change desktop resolution"""
     if resolution not in get_resolutions():
         logger.warning("Resolution %s doesn't exist.")
     else:
-        Popen("xrandr -s %s" % resolution, shell=True).communicate()[0]
+        Popen("xrandr -s %s" % resolution, shell=True)
+
 
 def check_joysticks():
     """Return list of connected joysticks."""
@@ -75,22 +80,22 @@ def check_joysticks():
             joysticks.append(device_name)
     return joysticks
 
+
 class LutrisDesktopControl():
     """
-    Change some settings in gconf that are useful to provide a good gaming experience
-    """
+    Change some settings in gconf that are useful to provide a good gaming
+    experience """
     def __init__(self):
         self.default_resolution = None
         self.gconf = GconfWrapper()
         self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
-        self.client = gconf.client_get_default ()
+        self.client = gconf.client_get_default()
         self.panels_hidden = False
 
-    ### Compiz ###
     def set_compiz_fullscreen(self, class_=None, title=None):
         """Set a fullscreen rule for the plugin Window Rules"""
         rule = make_compiz_rule(class_, title)
-        if not rule or not GCONF_CAPABLE:
+        if not rule:
             return False
         compiz_root = "/apps/compiz/plugins"
         key = compiz_root + "/winrules/screen0/options/fullscreen_match"
@@ -100,7 +105,7 @@ class LutrisDesktopControl():
     def set_compiz_nodecoration(self, class_=None, title=None):
         """Remove the decorations for the game's window"""
         window_rule = make_compiz_rule(class_, title)
-        if not window_rule or not GCONF_CAPABLE:
+        if not window_rule:
             return False
         rule = "(any) & !(%s)" % window_rule
         compiz_root = "/apps/compiz/plugins"
@@ -108,7 +113,6 @@ class LutrisDesktopControl():
         self.gconf.set_key(key, rule, True)
         return True
 
-    ### Gnome ###
     def hide_panels(self, hide=True):
         """
         Hide any panel that exists on the Gnome desktop.
@@ -128,18 +132,15 @@ class LutrisDesktopControl():
             self.gconf.set_key(gconf_key, hide)
         return True
 
-    def set_keyboard_repeat(self, gconf_value = False):
+    def set_keyboard_repeat(self, gconf_value=False):
         """Desactivate key repeats.
 
         This is needed, for example, in Wolfenstein (2009)
         """
-        if not GCONF_CAPABLE:
-            return False
         gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
         self.gconf.set_key(gconf_key, gconf_value)
         return True
 
-    ### Misc ###
     def reset_desktop(self):
         """Restore the desktop to its original state."""
         #Restore panels
@@ -151,4 +152,3 @@ class LutrisDesktopControl():
             os.popen("xrandr -s %s" % self.default_resolution)
         #Restore gamma
         os.popen("xgamma -gamma 1.0")
-

@@ -26,6 +26,7 @@ from lutris.runners.runner import Runner
 from lutris.desktop_control import get_current_resolution
 from lutris.util.log import logger
 
+# pylint: disable=C0103
 class mednafen(Runner):
     def __init__(self,settings=None):
         self.executable = "mednafen"

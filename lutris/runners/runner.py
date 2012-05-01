@@ -27,6 +27,7 @@ import logging
 from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog
 
+
 class Runner(object):
     """Generic runner (base class for other runners) """
 
@@ -73,7 +74,7 @@ class Runner(object):
         result = subprocess.Popen(
                 ['which', self.executable],
                 stdout=subprocess.PIPE).communicate()[0]
-        if result == '' :
+        if result == '':
             is_installed = False
         else:
             is_installed = True
@@ -141,9 +142,9 @@ class Runner(object):
         path = fullpath[:index]
         if path.startswith("file://"):
             path = path[7:]
-        gameConfig = LutrisConfig()
-        gameConfig.config = {"main": {"path": path,
-                                       "exe":exe,
-                                       "realname": name,
-                                       "runner": system}}
-        gameConfig.save(id, values)
+        config = LutrisConfig()
+        config.config = {"main": {"path": path,
+                                   "exe": exe,
+                                   "realname": name,
+                                   "runner": system}}
+        config.save(id, values)

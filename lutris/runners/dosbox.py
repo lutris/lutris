@@ -21,6 +21,7 @@
 
 from lutris.runners.runner import Runner
 
+# pylint: disable=C0103
 class dosbox(Runner):
     '''Runner for MSX games'''
 

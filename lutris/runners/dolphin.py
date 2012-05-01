@@ -22,6 +22,7 @@
 from lutris.runners.runner import Runner
 from lutris.gui.common import NoticeDialog
 
+# pylint: disable=C0103
 class dolphin(Runner):
     """Runner for the Gamecube / Wii emulator Dolphin
 
@@ -40,7 +41,7 @@ class dolphin(Runner):
     def install(self):
         NoticeDialog('Please activate the PlayDeb reposiories in order to install Dolphin')
         super(dolphin, self).install()
-        
+
 
 
 

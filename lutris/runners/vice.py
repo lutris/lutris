@@ -22,23 +22,40 @@
 
 from lutris.runners.runner import Runner
 
+
 class vice(Runner):
     '''Runner for MSX games'''
 
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(vice,self).__init__()
+        super(vice, self).__init__()
         self.package = "vice"
         self.executable = "x64"
         self.machine = "Commodore 64"
-
         self.arguments = []
-
         self.description = "Commodore Emulator"
-        self.game_options = [{"option":"disk","type":"single","label":"Disk File"}]
-        self.runner_options = [{"option": "joy", "type":"bool", "label":"Use joysticks"},
-                               {"option": "fullscreen", "type":"bool", "label":"Fullscreen"},
-                               {"option": "double", "type":"bool", "label":"Double Size"}]
+        self.game_options = [{
+            "option": "disk",
+            "type": "single",
+            "label": "Disk File"
+        }]
+        self.runner_options = [
+            {
+                "option": "joy",
+                "type":"bool",
+                "label":"Use joysticks"
+            },
+            {
+                "option": "fullscreen",
+                "type": "bool",
+                "label": "Fullscreen"
+            },
+            {
+                "option": "double",
+                "type":"bool",
+                "label":"Double Size"
+            }
+        ]
 
         if settings:
             if "fullscreen" in settings["vice"]:
@@ -49,11 +66,11 @@ class vice(Runner):
                     self.arguments = self.arguments + ["-VICIIdsize"]
             if "joy" in settings["vice"]:
                 if settings["vice"]["joy"]:
-                    self.arguments = self.arguments + ["-joydev2","4","-joydev1","5"]
-
-            self.arguments = self.arguments + ["\""+settings['game']['disk']+"\""]
+                    self.arguments = self.arguments + \
+                            ["-joydev2", "4", "-joydev1", "5"]
+            self.arguments = self.arguments + \
+                    ["\"%s\"" % settings['game']['disk']]
 
     def play(self):
         command = [self.executable] + self.arguments
         return command
-

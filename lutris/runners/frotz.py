@@ -21,8 +21,10 @@
 ###############################################################################
 
 import os
+
 from lutris.runners.runner import Runner
 
+# pylint: disable=C0103
 class frotz(Runner):
     '''Runner for z-code games such as Zork'''
 

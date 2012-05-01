@@ -19,6 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Common message dialogs. """
 
 import sys
 import os
@@ -29,6 +30,7 @@ from lutris.gui.widgets import DownloadProgressBox
 
 
 class NoticeDialog(object):
+    """ Displays a message to the user. """
     def __init__(self, message):
         dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
         dialog.set_markup(message)
@@ -37,6 +39,7 @@ class NoticeDialog(object):
 
 
 class ErrorDialog(object):
+    """ Displays an error message. """
     def __init__(self, message):
         dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
         dialog.set_markup(message)
@@ -45,12 +48,13 @@ class ErrorDialog(object):
 
 
 class QuestionDialog(object):
+    """ Asks a question. """
     def __init__(self, settings):
         dialog = gtk.MessageDialog(
-                type=gtk.MESSAGE_QUESTION,
-                buttons=gtk.BUTTONS_YES_NO,
-                message_format=settings['question']
-            )
+            type=gtk.MESSAGE_QUESTION,
+            buttons=gtk.BUTTONS_YES_NO,
+            message_format=settings['question']
+        )
         dialog.set_title(settings['title'])
         self.result = dialog.run()
         dialog.destroy()
@@ -60,17 +64,18 @@ class DirectoryDialog:
     """Ask the user to select a directory"""
     def __init__(self, message, default_path=None):
         dialog = gtk.FileChooserDialog(
-                title=message,
-                action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
-                         gtk.STOCK_OK, gtk.RESPONSE_OK)
-            )
+            title=message,
+            action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+            buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
+                        gtk.STOCK_OK, gtk.RESPONSE_OK)
+        )
         self.result = dialog.run()
         self.folder = dialog.get_current_folder()
         dialog.destroy()
 
 
 class DownloadDialog(gtk.Dialog):
+    """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
         print "creating download dialog"
         gtk.Dialog.__init__(self, "Downloading file")

@@ -28,6 +28,7 @@ from lutris.gui.common import DownloadDialog
 import lutris.constants
 import subprocess
 
+# pylint: disable=C0103
 class gens(Runner):
     '''Runner for Sega Genesis games'''
 

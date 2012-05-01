@@ -22,6 +22,7 @@
 from lutris.runners.runner import Runner
 import os
 
+# pylint: disable=C0103
 class hatari(Runner):
     '''Runner for intellivision games'''
 
