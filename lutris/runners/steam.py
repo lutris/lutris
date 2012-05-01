@@ -29,6 +29,7 @@ from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
 
 
+# pylint: disable=C0103
 class steam(wine):
     """Runner for the Steam platform."""
     def __init__(self, settings=None):

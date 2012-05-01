@@ -25,7 +25,6 @@ import subprocess
 
 from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
-from lutris.constants import *
 from ConfigParser import ConfigParser
 
 
@@ -47,18 +46,20 @@ class scummvm(Runner):
                                    'label': "Click on install to launch" \
                                           + "ScummVM and install the game"}]
         self.game_options = []
-        scaler_modes = [("2x", "2x"),
-                        ("3x", "3x"),
-                        ("2xsai", "2xsai"),
-                        ("advmame2x", "advmame2x"),
-                        ("advmame3x", "advmame3x"),
-                        ("dotmatrix", "dotmatrix"),
-                        ("hq2x", "hq2x"),
-                        ("hq3x", "hq3x"),
-                        ("normal", "normal"),
-                        ("super2xsai", "super2xsai"),
-                        ("supereagle", "supereagle"),
-                        ("tv2x", "tv2x")]
+        scaler_modes = [
+            ("2x", "2x"),
+            ("3x", "3x"),
+            ("2xsai", "2xsai"),
+            ("advmame2x", "advmame2x"),
+            ("advmame3x", "advmame3x"),
+            ("dotmatrix", "dotmatrix"),
+            ("hq2x", "hq2x"),
+            ("hq3x", "hq3x"),
+            ("normal", "normal"),
+            ("super2xsai", "super2xsai"),
+            ("supereagle", "supereagle"),
+            ("tv2x", "tv2x")
+        ]
         self.runner_options = [
             {"option": "fullscreen", "label": "Fullscreen", "type": "bool"},
             {"option": "gfx-mode",

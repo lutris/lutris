@@ -31,6 +31,7 @@ class sdlmame(Runner):
     """ Mame runner """
     def __init__(self, settings=None):
         """ Mame initialization """
+        super(sdlmame, self).__init__()
         self.executable = "mame"
         self.package = "sdlmame"
         self.description = "Runs arcade games with SDLMame"

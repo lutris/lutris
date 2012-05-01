@@ -19,10 +19,13 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for Dreamcast games """
+
 import os
 from lutris.runners.wine import wine
 from lutris.gui.common import DirectoryDialog
 from lutris.config import LutrisConfig
+
 
 # pylint: disable=C0103
 class nulldc(wine):
@@ -38,7 +41,7 @@ class nulldc(wine):
 
     """
 
-    def __init__(self,settings=None):
+    def __init__(self, settings=None):
         """Initialize NullDC
 
         TODO: Remove hardcoded stuff
@@ -77,11 +80,10 @@ class nulldc(wine):
             self.settings = settings
 
     def install(self):
-        d = DirectoryDialog('Where is NullDC located ?')
-
+        dlg = DirectoryDialog('Where is NullDC located ?')
         config = LutrisConfig(runner=self.__class__.__name__)
-        config.runner_config = {'system': {'game_path': d.folder}}
-        config.save(type='runner')
+        config.runner_config = {'system': {'game_path': dlg.folder}}
+        config.save(config_type='runner')
 
     def is_installed(self):
         if not self.check_depends():
@@ -97,7 +99,7 @@ class nulldc(wine):
         if not self.nulldc_path:
             return ""
         else:
-        	return os.path.join(self.nulldc_path, self.executable)
+            return os.path.join(self.nulldc_path, self.executable)
 
     def play(self):
         #-config ImageReader:DefaultImage="[rompath]/[romfile]"
@@ -106,9 +108,9 @@ class nulldc(wine):
         path = 'Z:' + path
 
         command = ["wine", self.get_nulldc_path(),
-                   "-config", "ImageReader:DefaultImage=\"%s\"" % path,]
+                   "-config", "ImageReader:DefaultImage=\"%s\"" % path]
 
-        self.check_regedit_keys() #From parent wine runner
+        self.check_regedit_keys()  # From parent wine runner
         return {'command': command,
                 'joy2key': {'buttons': 'y a b x c r l r o s',
                             'window': 'nullDC',

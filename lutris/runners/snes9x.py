@@ -19,15 +19,19 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Super Nintendo runner """
+
 from lutris.runners.runner import Runner
 
 
 # pylint: disable=C0103
 class snes9x(Runner):
+    """ Uses snes9x to run SNES games """
     def __init__(self, settings=None):
         """It seems that the best snes emulator around it snes9x-gtk
         zsnes has no 64bit port
         """
+        super(snes9x, self).__init__()
         self.executable = "snes9x-gtk"
         self.package = None
         self.description = "Runs Super Nintendo games with Snes9x"

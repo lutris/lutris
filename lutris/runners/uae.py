@@ -26,6 +26,7 @@ from lutris.runners.runner import Runner
 # pylint: disable=C0103
 class uae(Runner):
     def __init__(self, settings=None):
+        super(uae, self).__init__()
         self.package = "uae"
         self.executable = "uae"
         self.description = "Runs Amiga games with UAE"
