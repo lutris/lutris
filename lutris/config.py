@@ -155,6 +155,8 @@ class LutrisConfig():
     def get_system(self, key):
         try:
             value = self.config["system"][key]
+            if str(value).lower() in ("false", "none", "no"):
+                value = False
         except KeyError:
             value = None
         return value

@@ -4,7 +4,7 @@ __all__  = ["linux", "wine", 'steam',"sdlmame", "mednafen", "scummvm",
             'vice', 'hatari', 'stella', 'jzintv', 'o2em']
 
 
-def import_runner(runner_name):
+def import_runner(runner_name, config=None):
     try:
         runner_module = __import__('lutris.runners.%s' % runner_name,
                                 globals(), locals(), [runner_name], -1)
@@ -14,4 +14,4 @@ def import_runner(runner_name):
         logger.error("Invalid runner %s" % runner)
         logger.error(msg)
 
-    return runner_cls
+    return runner_cls(config)

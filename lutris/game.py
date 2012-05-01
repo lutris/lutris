@@ -112,7 +112,7 @@ class LutrisGame(object):
             raise ConfigurationException(
                 "Invalid configuration for %s" % self.name
             )
-        self.runner = import_runner(self.get_runner())
+        self.runner = import_runner(self.get_runner(), self.game_config)
 
     def prelaunch(self):
         """ Verify that the current game can be launched. """
@@ -158,7 +158,7 @@ class LutrisGame(object):
         nodecoration = self.game_config.get_system("compiz_nodecoration")
         if nodecoration:
             self.desktop.set_compiz_nodecoration(title=nodecoration)
-        
+
         fullscreen = self.game_config.get_system("compiz_fullscreen")
         if fullscreen:
             self.desktop.set_compiz_fullscreen(title=fullscreen)
@@ -214,6 +214,5 @@ class LutrisGame(object):
             for child in self.game_thread:
                 child.kill()
             os.kill(self.game_thread.pid + 1, SIGKILL)
-        if 'reset_desktop' in self.game_config.config['system']:
-            if self.game_config.config['system']['reset_desktop']:
-                self.desktop.reset_desktop()
+        if self.game_config.get_system('reset_desktop'):
+            self.desktop.reset_desktop()

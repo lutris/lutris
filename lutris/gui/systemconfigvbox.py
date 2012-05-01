@@ -89,5 +89,4 @@ class SystemConfigVBox(ConfigVBox):
                         {'option': 'killswitch',
                         'type': 'string',
                         'label': 'Killswitch file'}]
-
         self.generate_widgets()
