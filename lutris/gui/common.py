@@ -28,7 +28,7 @@ import gtk
 from lutris.gui.widgets import DownloadProgressBox
 
 
-class NoticeDialog:
+class NoticeDialog(object):
     def __init__(self, message):
         dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
         dialog.set_markup(message)
@@ -36,7 +36,7 @@ class NoticeDialog:
         dialog.destroy()
 
 
-class ErrorDialog:
+class ErrorDialog(object):
     def __init__(self, message):
         dialog = gtk.MessageDialog(buttons=gtk.BUTTONS_OK)
         dialog.set_markup(message)
@@ -44,7 +44,7 @@ class ErrorDialog:
         dialog.destroy()
 
 
-class QuestionDialog:
+class QuestionDialog(object):
     def __init__(self, settings):
         dialog = gtk.MessageDialog(
                 type=gtk.MESSAGE_QUESTION,

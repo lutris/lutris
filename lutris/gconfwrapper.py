@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+""" Convinience wrapper around the gconf module. """
 import os
 import gconf
 
@@ -25,11 +25,13 @@ from lutris.util.log import logger
 
 
 class GconfWrapper(object):
+    """ Gconf wrapper class. """
     def __init__(self):
         self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
         self.client = gconf.client_get_default()
 
     def has(self, key):
+        """ Test if key exists in gconf. """
         key = self.client.get_string(key)
         if key:
             return True
@@ -37,6 +39,7 @@ class GconfWrapper(object):
             return False
 
     def get_key(self, key):
+        """ Return gconf key. """
         try:
             key = self.client.get_string(key)
         except GError, err:
@@ -51,11 +54,12 @@ class GconfWrapper(object):
         return key
 
     def get_key_type(self, key):
+        """ Return key's type """
         value = self.get_key(key)
         return type(value)
 
     def all_dirs(self, base_dir):
-        """The same thing as gconftool --all-dirs <dir>"""
+        """ The same thing as gconftool --all-dirs <dir> """
         if base_dir[0] == "/":
             base_dir = base_dir[1:]
         path = os.path.join(self.gconf_path, base_dir)
@@ -67,26 +71,23 @@ class GconfWrapper(object):
             return False
 
     def set_key(self, key, value, override_type=False):
-        try:
-            success = True
-            #Get method according to incoming type
-            if isinstance(value, str):
-                method = self.client.set_string
-            elif isinstance(value, bool):
-                method = self.client.set_bool
-            elif isinstance(value, int):
-                method = self.client.set_int
-            else:
-                logger.log("Unknown type for %s" % value)
+        """ Sets the gconf key to value. """
+        success = True
+        #Get method according to incoming type
+        if isinstance(value, str):
+            method = self.client.set_string
+        elif isinstance(value, bool):
+            method = self.client.set_bool
+        elif isinstance(value, int):
+            method = self.client.set_int
+        else:
+            logger.log("Unknown type for %s" % value)
+            raise TypeError
+        if not override_type:
+            if not self.get_key_type(key) == type(value):
+                logger.log.error("Type mismatch for key %s : "\
+                                + "use override_type to force your way"\
+                                + "or leave it the way it is!" % key)
                 raise TypeError
-            if not override_type:
-                if not self.get_key_type(key) == type(value):
-                    logger.log.error("Type mismatch for key %s : "\
-                                     + "use override_type to force your way"\
-                                     + "or leave it the way it is!" % key)
-                    raise TypeError
-            method(key, value)
-        except Exception, err:
-            logger.log.error(err)
-            success = False
+        method(key, value)
         return success

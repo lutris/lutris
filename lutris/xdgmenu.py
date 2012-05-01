@@ -1,13 +1,11 @@
-from xdg.Menu import MenuEntryCache, Menu
-from xdg.Menu import xdg_config_dirs
 import xdg
-from xdg import BaseDirectory
 
-print xdg_config_dirs
+from xdg.Menu import xdg_config_dirs
+from xdg.Menu import Menu
 
-cache = xdg.Menu.parse("/etc/xdg/menus/applications.menu")
-print cache
-for entry in cache.getEntries():
+CACHE = xdg.Menu.parse("/etc/xdg/menus/applications.menu")
+print CACHE
+for entry in CACHE.getEntries():
     print entry
     if str(entry) in ('wine-wine'):
         print("youpi")
@@ -29,6 +27,6 @@ for entry in cache.getEntries():
             else:
                 print game.__class__
 
-r = xdg.Menu.Rule(cache)
-results = r.parseAll()
-print results
+RULE = xdg.Menu.Rule(CACHE)
+RESULTS = RULE.parseAll()
+print RESULTS

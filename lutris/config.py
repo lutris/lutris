@@ -23,15 +23,15 @@ import logging
 from os.path import join
 
 import lutris.pga as pga
-import lutris.constants as constants
 
 from lutris.util import log
+from lutris.util.strings import slugify
 from lutris.gconfwrapper import GconfWrapper
 from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
-from lutris.constants import GAME_CONFIG_PATH
 
 
 def register_handler():
+    """ Register the lutris: protocol to open with the application. """
     gconf = GconfWrapper()
     defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
                 ('/desktop/gnome/url-handlers/lutris/enabled', True),
@@ -70,7 +70,7 @@ def check_config(force_wipe=False):
 
         pga.create()
     if first_run:
-        register_handler
+        register_handler()
 
 
 class LutrisConfig():
@@ -95,57 +95,68 @@ class LutrisConfig():
         #By default config type is system, it can also be runner and game
         #this means that when you call lutris_config_instance["key"] is will
         #pick up the right configuration depending of config_type
-        if runner:
-            self.runner = runner
-            self.config_type = "runner"
-        elif game:
+        if game:
             self.game = game
             self.config_type = "game"
+        elif runner:
+            self.runner = runner
+            self.config_type = "runner"
         else:
             self.config_type = "system"
 
         #Read system configuration
-        if os.path.exists(constants.system_config_full_path):
-            content = file(constants.system_config_full_path, 'r').read()
-            self.system_config = yaml.load(content)
+        system_filename = join(CONFIG_DIR, "system.yml")
+        if os.path.exists(system_filename):
+            self.system_config = yaml.load(
+                file(system_filename, 'r').read()
+            )
             if self.system_config is None:
                 self.system_config = {}
-        else:
-            file(constants.system_config_full_path, "w+")
+
+        if self.runner:
+            runner_filename = join(CONFIG_DIR, "runners/%s.yml" % self.runner)
+            if os.path.exists(runner_filename):
+                self.runner_config = yaml.load(
+                    file(runner_filename, 'r').read()
+                )
 
         if self.game:
-            game_config_full_path = join(GAME_CONFIG_PATH,
-                                         self.game + ".yml")
+            game_config_full_path = join(CONFIG_DIR,
+                                         "games/%s.yml" % self.game)
             if os.path.exists(game_config_full_path):
                 try:
                     content = file(game_config_full_path, 'r').read()
                     self.game_config = yaml.load(content)
                     self.runner = self.game_config["runner"]
                 except yaml.scanner.ScannerError:
-                    logging.debug("error parsing config file %s",
-                                  game_config_full_path)
+                    log.logger.error("error parsing config file %s",
+                                     game_config_full_path)
                 except yaml.parser.ParserError:
-                    logging.debug("error parsing config file %s",
-                                  game_config_full_path)
+                    log.logger.error("error parsing config file %s",
+                                     game_config_full_path)
                 except KeyError:
-                    logging.debug("Runner key is mandatory !")
+                    log.logger.error("Runner key is mandatory !")
 
-        if self.runner:
-            runner_config_full_path = join(constants.runner_config_path,
-                                           self.runner + ".yml")
-            if os.path.exists(runner_config_full_path):
-                yaml_content = file(runner_config_full_path, 'r').read()
-                self.runner_config = yaml.load(yaml_content)
         self.update_global_config()
 
     def __getitem__(self, key):
         """Allow to access config data directly by keys."""
-        if self.config_type == "game":
-            value = self.game_config[key]
-        elif self.config_type == "runner":
-            value = self.runner_config[key]
-        else:
-            value = self.system_config[key]
+        try:
+            if self.config_type == "game":
+                value = self.game_config[key]
+            elif self.config_type == "runner":
+                value = self.runner_config[key]
+            else:
+                value = self.system_config[key]
+        except KeyError:
+            value = None
+        return value
+
+    def get_system(self, key):
+        try:
+            value = self.config["system"][key]
+        except KeyError:
+            value = None
         return value
 
     def __setitem__(self, key, value):
@@ -180,15 +191,16 @@ class LutrisConfig():
 
     def get_real_name(self):
         """Return the real name of a game."""
-
         return self.config["realname"]
 
-    def remove(self, game_name):
+    def remove(self, game=None):
         """Delete the configuration file from disk."""
-
-        logging.debug("removing %s", game_name)
-        os.remove(join(GAME_CONFIG_PATH,
-                       game_name + ".yml"))
+        if game is None:
+            game = self.game
+        else:
+            log.logger.warning("Called config/remove with deprecated usage")
+        logging.debug("removing config for %s", game)
+        os.remove(join(CONFIG_DIR, "games/%s.yml" % game))
 
     def is_valid(self):
         """Check the config data and return True if config is ok."""
@@ -214,18 +226,17 @@ class LutrisConfig():
         yaml_config = yaml.dump(self.config, default_flow_style=False)
 
         if config_type == "system":
-            file(constants.system_config_full_path, "w").write(yaml_config)
+            filename = join(CONFIG_DIR, "system.yml")
+            file(filename, "w").write(yaml_config)
         elif config_type == "runner":
-            runner_config_path = join(constants.runner_config_path,
-                                      self.runner + ".yml")
+            runner_config_path = join(CONFIG_DIR,
+                                      "runners/%s.yml" % self.runner)
             file(runner_config_path, "w").write(yaml_config)
         elif config_type == "game":
             if not self.game:
-                self.game = self.config["runner"] \
-                        + "-" + self.config["realname"].replace(" ", "_")
-            game_config_path = join(GAME_CONFIG_PATH,
-                                    self.game.replace('/', '_') + ".yml")
-            config_file = file(game_config_path, "w")
+                self.game = slugify(self.config['realname'])
+            config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
+            config_file = file(config_path, "w")
             config_file.write(yaml_config)
             return self.game
         else:

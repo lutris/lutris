@@ -27,6 +27,7 @@ import os.path
 from subprocess import Popen, PIPE
 
 from lutris.gconfwrapper import GconfWrapper
+from lutris.util.log import logger
 
 def make_compiz_rule(class_=None, title=None):
     """Return a string formated for the Window Rules plugin"""
@@ -59,9 +60,9 @@ def get_current_resolution():
 def change_resolution(resolution):
     """change desktop resolution"""
     if resolution not in get_resolutions():
-        return False
-    Popen("xrandr -s %s" % resolution, shell=True).communicate()[0]
-    return True
+        logger.warning("Resolution %s doesn't exist.")
+    else:
+        Popen("xrandr -s %s" % resolution, shell=True).communicate()[0]
 
 def check_joysticks():
     """Return list of connected joysticks."""
@@ -83,9 +84,9 @@ class LutrisDesktopControl():
         self.gconf = GconfWrapper()
         self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
         self.client = gconf.client_get_default ()
+        self.panels_hidden = False
 
     ### Compiz ###
-
     def set_compiz_fullscreen(self, class_=None, title=None):
         """Set a fullscreen rule for the plugin Window Rules"""
         rule = make_compiz_rule(class_, title)
@@ -115,10 +116,9 @@ class LutrisDesktopControl():
         This is useful with some games, mostly running with Wine,
         won't hide the panels in fullscreen mode.
         """
-        if not GCONF_CAPABLE:
-            return False
         base_dir = "/apps/panel/toplevels/"
         panels = self.gconf.all_dirs(base_dir)
+        self.panels_hidden = hide
         for panel in panels:
             if hide:
                 print "Hiding %s" % panel

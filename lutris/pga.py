@@ -39,6 +39,9 @@ def create():
         slug TEXT,
         machine TEXT,
         runner TEXT,
+        icon TEXT,
+        executable TEXT,
+        directory TEXT,
         lastplayed INTEGER)"""
     con.execute(query)
     con.commit()

@@ -14,6 +14,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+""" Constants module, soon to be deprecated. Replaced by settings module. """
 
 from os.path import realpath, normpath, dirname, join, exists, expanduser
 from xdg import BaseDirectory
@@ -51,20 +52,17 @@ if LAUNCH_PATH.startswith('/usr'):
 elif exists(normpath(join(sys.path[0], 'data'))):
     DATA_PATH = normpath(join(sys.path[0], 'data'))
 else:
-    lutris_path = dirname(lutris.__file__)
-    DATA_PATH = lutris_path
+    import lutris
+    DATA_PATH = dirname(lutris.__file__)
 if not exists(DATA_PATH):
     print "DATA_PATH can't be found at : %s" % DATA_PATH
     exit
 
 LUTRIS_ICON = join(DATA_PATH, "media/logo.svg")
-
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
 LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
 
-system_config_file = 'system' + CONFIG_EXTENSION
-system_config_full_path = join(LUTRIS_CONFIG_PATH, system_config_file)
 runner_config_path = join(LUTRIS_CONFIG_PATH, 'runners')
 GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
 COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')

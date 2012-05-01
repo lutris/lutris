@@ -85,6 +85,13 @@ class Runner(object):
     def get_runner_options(self):
         return None
 
+    def get_game_path(self):
+        if hasattr(self, 'game_path'):
+            path = self.game_path
+        else:
+            path = None
+        return path
+
     def md5sum(self, filename):
         md5check = hashlib.md5()
         file_ = open(filename, "rb")

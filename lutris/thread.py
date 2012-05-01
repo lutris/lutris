@@ -41,11 +41,15 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.pid = 99999
+        self.child_processes = []
         if type(killswitch) == type(str()) and not exists(killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
         else:
             self.killswitch = killswitch
+
+    def attach_thread(self, thread):
+        self.child_processes.append(thread)
 
     def run(self):
         gobject.timeout_add(2000, self.poke_process)
