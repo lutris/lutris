@@ -24,24 +24,30 @@ import gtk
 
 PADDING = 10
 
+
 class Label(gtk.Label):
+    """ Standardised label for config vboxes"""
     def __init__(self, str=None):
+        """ Custom init of label """
         super(Label, self).__init__(str)
         self.set_size_request(200, 30)
         self.set_alignment(0.0, 0.5)
         self.set_line_wrap(True)
 
+# pylint: disable=R0904
+# I know there are too many public methods, go complain to the GTK developers
 class ConfigVBox(gtk.VBox):
+    """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
         gtk.VBox.__init__(self)
         self.options = None
         #Section of the configuration file to save options in. Can be "game",
         #"runner" or "system" self.save_in_key= save_in_key
-        self.save_in_key= save_in_key
-
+        self.save_in_key = save_in_key
         self.caller = caller
 
     def generate_widgets(self):
+        """ Parses the config dict and generates widget accordingly."""
         #Select what data to load based on caller.
         if self.caller == "system":
             self.real_config = self.lutris_config.system_config
@@ -93,15 +99,17 @@ class ConfigVBox(gtk.VBox):
             elif option["type"] == "label":
                 self.generate_label(option["label"])
             else:
-                print "WTF is %s ?" % option["type"]
+                raise ValueError("Unknown widget type %s" % option["type"])
 
     def generate_label(self, text):
+        """ Generates a simple label. """
         label = Label(text)
         label.show()
         self.pack_start(label, True, True, PADDING)
 
     #Checkbox
     def generate_checkbox(self, option_name, label, value=None):
+        """ Generates a checkbox. """
         checkbox = gtk.CheckButton(label)
         checkbox.set_alignment(0.1, 0.5)
         if value:
@@ -111,10 +119,12 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(checkbox, True, True, PADDING * 2)
 
     def checkbox_toggle(self, widget, option_name):
+        """ Action for the checkbox's toggled signal."""
         self.real_config[self.save_in_key][option_name] = widget.get_active()
 
     #Entry
     def generate_entry(self, option_name, label, value=None):
+        """ Generates an entry box. """
         hbox = gtk.HBox()
         entry_label = Label(label)
         entry_label.set_size_request(200, 30)
@@ -128,11 +138,13 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox, False, True, PADDING)
 
     def entry_changed(self, entry, option_name):
+        """ Action triggered for entry 'changed' signal. """
         entry_text = entry.get_text()
         self.real_config[self.save_in_key][option_name] = entry_text
 
     #ComboBox
     def generate_combobox(self, option_name, choices, label, value=None):
+        """ Generates a combobox (drop-down menu). """
         hbox = gtk.HBox()
         liststore = gtk.ListStore(str, str)
         for choice in choices:
@@ -160,6 +172,7 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox, False, True, PADDING)
 
     def on_combobox_change(self, combobox, option):
+        """ Action triggered on combobox 'changed' signal. """
         model = combobox.get_model()
         active = combobox.get_active()
         if active < 0:
@@ -167,10 +180,10 @@ class ConfigVBox(gtk.VBox):
         option_value = model[active][1]
         self.real_config[self.save_in_key][option] = option_value
 
-    #Range
-    def generate_range(self, option_name, min, max, label, value=None):
-        adjustment = gtk.Adjustment(float(min), float(min), float(max),
-                                    1, 0, 0)
+    def generate_range(self, option_name, min_val, max_val, label, value=None):
+        """ Generates a ranged spin button. """
+        adjustment = gtk.Adjustment(float(min_val), float(min_val),
+                                    float(max_val), 1, 0, 0)
         spin_button = gtk.SpinButton(adjustment)
         if value:
             spin_button.set_value(value)
@@ -185,11 +198,12 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox, False, True, 5)
 
     def on_spin_button_changed(self, spin_button, option):
+        """ Action triggered on spin button 'changed' signal """
         value = spin_button.get_value_as_int()
         self.real_config[self.save_in_key][option] = value
 
     def generate_file_chooser(self, option_name, label, value=None):
-        """Generates a file chooser button to choose a file"""
+        """Generates a file chooser button to select a file"""
         hbox = gtk.HBox()
         gtklabel = Label(label)
         file_chooser = gtk.FileChooserButton("Choose a file for %s" % label)
@@ -205,7 +219,7 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox, False, True, PADDING)
 
     def generate_directory_chooser(self, option_name, label, value=None):
-        """Generates a file chooser button to choose a directory"""
+        """Generates a file chooser button to select a directory"""
         hbox = gtk.HBox()
         gtklabel = Label(label)
         directory_chooser = gtk.FileChooserButton("Choose a directory for %s"\
@@ -220,10 +234,12 @@ class ConfigVBox(gtk.VBox):
         self.pack_start(hbox, False, True, PADDING)
 
     def on_chooser_file_set(self, filechooser_widget, option):
+        """ Action triggered on file select dialog 'file-set' signal. """
         filename = filechooser_widget.get_filename()
         self.real_config[self.save_in_key][option] = filename
 
     def generate_multiple_file_chooser(self, option_name, label, value=None):
+        """ Generates a multiple file selector. """
         hbox = gtk.HBox()
         label = Label(label)
         hbox.pack_start(label, False, False, PADDING)
@@ -250,8 +266,8 @@ class ConfigVBox(gtk.VBox):
         else:
             self.files = []
         self.files_list_store = gtk.ListStore(str)
-        for file in self.files:
-            self.files_list_store.append([file])
+        for filename in self.files:
+            self.files_list_store.append([filename])
         files_column = gtk.TreeViewColumn("Files")
         cell_renderer = gtk.CellRendererText()
         files_column.pack_start(cell_renderer)
@@ -265,7 +281,8 @@ class ConfigVBox(gtk.VBox):
         treeview_scroll.add(files_treeview)
         self.pack_start(treeview_scroll, True, True)
 
-    def on_files_treeview_event(self, treeview, event):
+    def on_files_treeview_event(self, _, event):
+        """ Action triggered when a row is deleted from the filechooser. """
         key = event.keyval
         if key == gtk.keysyms.Delete:
             #TODO : Delete selected row
