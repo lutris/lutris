@@ -19,34 +19,45 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from os.path import exists, join, expanduser
+""" Runner for Sega Genesis games """
+
+import subprocess
+
 from os import mkdir
+from os.path import exists, join, expanduser
 
 from lutris.runners.runner import Runner
-from lutris.downloader import Downloader
 from lutris.gui.common import DownloadDialog
-import lutris.constants
-import subprocess
+from lutris.settings import CACHE_DIR
+
 
 # pylint: disable=C0103
 class gens(Runner):
     '''Runner for Sega Genesis games'''
-
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(gens,self).__init__()
+        super(gens, self).__init__()
         self.package = 'gens-gs'
-        self.package_url = 'http://segaretro.org/images/7/75/Gens_2.16.7_i386.deb'
         self.executable = 'gens'
         self.machine = 'Sega Genesis'
-        self.is_installable = True
         self.description = 'Sega Genesis emulator.'
-
-        self.game_options = [{'option': 'rom', 'type':'single', 'label':  'Rom File'}]
-
-        self.runner_options = [{'option': 'fullscreen', 'type':'bool', 'label': 'Fullscreen'},
-                               {'option': 'quickexit', 'type': 'bool', 'label': 'Exit emulator with Esc'}]
-
+        self.game_options = [{
+            'option': 'rom',
+            'type':'single',
+            'label':  'Rom File'
+        }]
+        self.runner_options = [
+            {
+                'option': 'fullscreen',
+                'type':'bool',
+                'label': 'Fullscreen'
+            },
+            {
+                'option': 'quickexit',
+                'type': 'bool',
+                'label': 'Exit emulator with Esc'
+            }
+        ]
         if settings:
             if 'fullscreen' in settings['gens']:
                 if settings['gens']['fullscreen']:
@@ -56,31 +67,29 @@ class gens(Runner):
             if 'quickexit' in settings['gens']:
                 if settings['gens']['quickexit']:
                     self.arguments = self.arguments + ['--quickexit']
-
             if 'rom' in settings['game']:
                 self.rom = settings['game']['rom']
 
     def install(self):
         """Downloads deb package and installs it"""
-        dest = join(lutris.constants.TMP_PATH, 'gens-gs.deb')
-        dialog = DownloadDialog(self.package_url, dest)
+        dest = join(CACHE_DIR, 'gens-gs.deb')
+        package = 'http://segaretro.org/images/7/75/Gens_2.16.7_i386.deb'
+        dialog = DownloadDialog(package, dest)
         dialog.run()
-
         subprocess.Popen(["software-center", dest],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-
     def play(self):
+        """ Run the game """
         plugins_dir = join(expanduser('~'), '.gens', 'plugins')
         if not exists(plugins_dir):
             mkdir(plugins_dir)
         if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
         if not exists(self.rom):
             return {'error': 'FILE_NOT_FOUND', 'file': self.rom}
-
-        self.arguments = self.arguments + [ "--game \"%s\"" % self.rom ]
+        self.arguments = self.arguments + ["--game \"%s\"" % self.rom]
         command = [self.executable] + self.arguments
-
-        return { "command": command }
+        return {"command": command}

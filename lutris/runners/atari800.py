@@ -28,7 +28,7 @@ from lutris.runners.runner import Runner
 from lutris.desktop_control import get_resolutions
 
 
-# pylint: disable: C0103
+# pylint: disable=C0103
 class atari800(Runner):
     """ Runs Atari800 games """
     def __init__(self, settings=None):
@@ -37,7 +37,6 @@ class atari800(Runner):
         self.package = "atari800"
         self.executable = "atari800"
         self.machine = "Atari 8bit computers"
-        self.is_installable = True
         self.atarixl_url = "http://kent.dl.sourceforge.net/project/atari800/" \
                          + "ROM/Original%20XL%20ROM/xf25.zip"
         self.description = "Atari 400,800 and XL emulator."
@@ -121,28 +120,23 @@ class atari800(Runner):
                 self.rom = ""
                 self.error_messages += ["No disk image given."]
 
-    def package_installed(self):
-        return  super(atari800, self).is_installed
-
     def is_installed(self):
-        if self.package_installed is False:
+        is_installed = super(atari800, self).is_installed()
+        if is_installed is False:
             return False
         if not os.path.exists(os.path.join(os.path.expanduser('~'),
                               '.config/lutris/runnerfiles/xf25.zip')):
             return False
 
-    def install(self):
-        if self.package_installed is False:
-            super(atari800, self).install()
 
-    def find_good_bioses(self, machine=None):
+    def find_good_bioses(self):
         """ Check for correct bios files """
         good_bios = {}
         for filename in os.listdir(self.bios_path):
             real_hash = self.md5sum(os.path.join(self.bios_path, filename))
             for bios_file in self.bios_checksums.keys():
                 if real_hash == self.bios_checksums[bios_file]:
-                    logging.debug("%s Checksum : OK" % filename)
+                    logging.debug("%s Checksum : OK", filename)
                     good_bios[bios_file] = filename
         return good_bios
 

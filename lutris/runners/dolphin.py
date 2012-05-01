@@ -19,8 +19,11 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for Gamecube and Wii """
+
 from lutris.runners.runner import Runner
 from lutris.gui.common import NoticeDialog
+
 
 # pylint: disable=C0103
 class dolphin(Runner):
@@ -28,25 +31,17 @@ class dolphin(Runner):
 
     Code repository: http://code.google.com/p/dolphin-emu/
     Download link : http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2
-
+    ppa : ppa:glennric/dolphin-emu
     """
     def __init__(self):
-
-        self.ppa = "ppa:glennric/dolphin-emu"
+        """ class initialization """
+        super(dolphin, self).__init__()
         self.package = "dolphin-emu"
         self.executable = "dolphin"
         self.machine = "Gamecube, Wii"
         self.description = "Emulator for Nintendo Gamecube and Wii games"
 
     def install(self):
-        NoticeDialog('Please activate the PlayDeb reposiories in order to install Dolphin')
+        NoticeDialog('Please activate the PlayDeb reposiories in order to ' + \
+                     'install Dolphin')
         super(dolphin, self).install()
-
-
-
-
-
-
-
-
-

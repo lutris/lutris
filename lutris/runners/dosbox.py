@@ -19,28 +19,33 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for MS Dos games """
+
 from lutris.runners.runner import Runner
+
 
 # pylint: disable=C0103
 class dosbox(Runner):
-    '''Runner for MSX games'''
-
-    def __init__(self,settings = None):
+    '''Runner for MS Dos games'''
+    def __init__(self, settings=None):
         '''Constructor'''
+        super(dosbox, self).__init__()
         self.package = "dosbox"
         self.executable = "dosbox"
         self.machine = "MS DOS"
-        self.is_installable = False
         self.description = "DOS Emulator"
-        self.game_options = [{"option":"exe","type":"single","label":"EXE File"}]
+        self.game_options = [{
+            "option":"exe",
+            "type":"single",
+            "label":"EXE File"
+        }]
         self.runner_options = []
         if settings:
             self.exe = settings["game"]["exe"]
 
-
     def play(self):
+        """ Run the game """
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED'}
-        command = [self.executable,"\""+self.exe+"\""]
+        command = [self.executable, "\"%s\"" % self.exe]
         return command
-

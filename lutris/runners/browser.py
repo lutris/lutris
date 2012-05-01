@@ -1,5 +1,4 @@
 # -*- coding:Utf-8 -*-
-# It is pitch black. You are likely to be eaten by a grue.
 ###############################################################################
 ## Lutris
 ##
@@ -20,24 +19,27 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for browser games """
+
 from lutris.runners.runner import Runner
 
+
+# pylint: disable=C0103
 class browser(Runner):
     '''Runner for browser games'''
 
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(browser,self).__init__()
+        super(browser, self).__init__()
         self.package = "x-www-browser"
         self.executable = "x-www-browser"
         self.machine = "Web Browser"
         self.description = "Run games in the browser"
-        self.game_options = [{"option":"url","type":"string","label":"URL"}]
+        self.game_options = [{"option":"url", "type":"string", "label":"URL"}]
         self.runner_options = []
         if settings:
             self.url = settings["game"]["url"]
 
-
     def play(self):
-        command = ['x-www-browser',"\""+self.url+"\""]
+        command = ['x-www-browser', "\"%s\"" % self.url]
         return command

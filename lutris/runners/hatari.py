@@ -19,75 +19,73 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for Atari ST computers """
+
 from lutris.runners.runner import Runner
 import os
 
+
 # pylint: disable=C0103
 class hatari(Runner):
-    '''Runner for intellivision games'''
-
-    def __init__(self,settings = None):
+    '''Atari ST computers'''
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(hatari,self).__init__()
+        super(hatari, self).__init__()
         self.package = "hatari"
         self.executable = "hatari"
         self.machine = "Atari ST computers"
         self.is_installable = True
         self.description = "AtariST emulator."
-
         self.settings = settings
-
         self.game_options = [
-                {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
-                {"option": "disk-b", "type":"single", "label": "Floppy Disk B"}
-            ]
-
+            {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
+            {"option": "disk-b", "type":"single", "label": "Floppy Disk B"}
+        ]
         joystick_choices = [
-                ('None','none'),
-                ('Keyboard','keys'),
-                ('Joystick','real')
-            ]
+            ('None', 'none'),
+            ('Keyboard', 'keys'),
+            ('Joystick', 'real')
+        ]
 
         self.runner_options = [
-                {
-                    "option": "bios_file",
-                    "type":"file_chooser",
-                    "label": "Bios File (TOS.img)"
-                },
-                {
-                    "option": "fullscreen",
-                    "type":"bool",
-                    "label": "Fullscreen"
-                },
-                {
-                    "option": "zoom",
-                    "type": "bool",
-                    "label": "Double ST low resolution"
-                },
-                {
-                    "option": "borders",
-                    "type": "bool",
-                    'label': 'Add borders to display'
-                },
-                {
-                    "option": "status",
-                    "type": "bool",
-                    'label': 'Display status bar'
-                },
-                {
-                    "option": "joy1",
-                    "type": "one_choice",
-                    "label": "Joystick 1",
-                    "choices": joystick_choices
-                },
-                {
-                    "option": "joy2",
-                    "type": "one_choice",
-                    "label": "Joystick 2",
-                    "choices": joystick_choices
-                },
-            ]
-
+            {
+                "option": "bios_file",
+                "type":"file_chooser",
+                "label": "Bios File (TOS.img)"
+            },
+            {
+                "option": "fullscreen",
+                "type":"bool",
+                "label": "Fullscreen"
+            },
+            {
+                "option": "zoom",
+                "type": "bool",
+                "label": "Double ST low resolution"
+            },
+            {
+                "option": "borders",
+                "type": "bool",
+                'label': 'Add borders to display'
+            },
+            {
+                "option": "status",
+                "type": "bool",
+                'label': 'Display status bar'
+            },
+            {
+                "option": "joy1",
+                "type": "one_choice",
+                "label": "Joystick 1",
+                "choices": joystick_choices
+            },
+            {
+                "option": "joy2",
+                "type": "one_choice",
+                "label": "Joystick 2",
+                "choices": joystick_choices
+            }
+        ]
 
     def play(self):
         settings = self.settings['hatari']
@@ -112,9 +110,9 @@ class hatari(Runner):
         else:
             self.arguments = self.arguments + ['--statusbar false']
         if "joy1" in settings:
-            self.arguments = self.arguments + ["--joy0 "+settings['joy1']]
+            self.arguments = self.arguments + ["--joy0 " + settings['joy1']]
         if "joy2" in settings:
-            self.arguments = self.arguments + ["--joy1 "+settings['joy2']]
+            self.arguments = self.arguments + ["--joy1 " + settings['joy2']]
 
         if "bios_file" in settings:
             if os.path.exists(settings['bios_file']):
@@ -127,14 +125,15 @@ class hatari(Runner):
                 }
         else:
             return {'error': 'NO_BIOS'}
-            self.error_messages = self.error_messages + [ "TOS path not set."]
+            self.error_messages = self.error_messages + ["TOS path not set."]
         if "disk-a" in game_settings:
             self.diska = game_settings['disk-a']
-        self.arguments = self.arguments + [ "--disk-a \"%s\"" % self.diska ]
+        self.arguments = self.arguments + ["--disk-a \"%s\"" % self.diska]
         if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED', 'runner': self.__class__.__name__}
+            return {'error': 'RUNNER_NOT_INSTALLED',
+                    'runner': self.__class__.__name__}
         if not os.path.exists(self.diska):
             return {'error': 'FILE_NOT_FOUND', 'file': self.diska}
         command = [self.executable] + self.arguments
 
-        return { "command": command }
+        return {"command": command}

@@ -20,31 +20,41 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+""" Runner for text based adventure games """
+
 import os
 
 from lutris.runners.runner import Runner
 
+
 # pylint: disable=C0103
 class frotz(Runner):
     '''Runner for z-code games such as Zork'''
-
-    def __init__(self,settings = None):
+    def __init__(self, settings=None):
         '''Constructor'''
-        super(frotz,self).__init__()
+        super(frotz, self).__init__()
         self.package = "frotz"
         self.executable = "frotz"
         self.machine = "Z-Code"
         self.description = "Z Code interpreter (Infocom interactive fictions)"
-        self.game_options = [{"option":"story","type":"single","label":"Story File"}]
+        self.game_options = [{
+            "option":"story",
+            "type":"single",
+            "label":"Story File"
+        }]
         self.runner_options = []
         if settings:
             self.story = settings["game"]["story"]
 
-
     def play(self):
+        """ Run the game """
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED'}
         if not os.path.exists(self.story):
             return {'error': 'FILE_NOT_FOUND', 'file': self.story}
-        command = ['x-terminal-emulator','-e',"\""+self.executable,"\""+self.story+"\"\""]
+        command = [
+            'x-terminal-emulator',
+            '-e', "\"" + self.executable,
+            "\"" + self.story + "\"\""
+        ]
         return command
