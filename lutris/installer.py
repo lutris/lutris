@@ -35,7 +35,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.shortcuts import create_launcher
-from lutris.settings import CACHE_DIR, DATA_DIR
+from lutris.settings import CONFIG_DIR, CACHE_DIR, DATA_DIR
 from lutris.constants import INSTALLER_URL, GAME_CONFIG_PATH
 
 
