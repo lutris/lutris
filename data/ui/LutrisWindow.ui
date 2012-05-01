@@ -174,21 +174,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="install_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Install game</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-cdrom</property>
-                <signal name="clicked" handler="install_game" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkSeparatorToolItem" id="toolbar_separator1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>

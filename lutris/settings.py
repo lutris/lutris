@@ -1,3 +1,4 @@
+# -*- coding:Utf-8 -*-
 """Settings module"""
 from os.path import join
 from xdg import BaseDirectory

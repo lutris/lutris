@@ -19,7 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
+"""Main window module"""
+
 try:
+    #pylint: disable=F0401
     import LaunchpadIntegration
     LAUNCHPAD_AVAILABLE = True
 except ImportError:
@@ -73,6 +76,7 @@ class LutrisWindow(gtk.Window):
 
         # https://wiki.ubuntu.com/UbuntuDevelopment/Internationalisation/Coding
         # for more information about LaunchpadIntegration
+        # pylint: disable=W0603
         global LAUNCHPAD_AVAILABLE
         if LAUNCHPAD_AVAILABLE:
             helpmenu = self.builder.get_object('help_menu')
@@ -142,6 +146,7 @@ class LutrisWindow(gtk.Window):
         self.timer_id = gobject.timeout_add(1000, self.refresh_status)
 
     def refresh_status(self):
+        """Refresh status bar"""
         if hasattr(self, "running_game"):
             if hasattr(self.running_game.game_thread, "pid"):
                 pid = self.running_game.game_thread.pid
@@ -173,17 +178,20 @@ class LutrisWindow(gtk.Window):
     # Menu action handlers
     # - Lutris Menu
     def on_connect(self, widget, data=None):
+        """Callback when a user connects to his account"""
         #ConnectDialog()
         NoticeDialog("This functionnality is not yet implemented.")
 
     def on_runners_activate(self, widget, data=None):
+        """Callback when manage runners is activated"""
         RunnersDialog()
 
     def on_preferences_activate(self, widget, data=None):
+        """Callback when preferences is activated"""
         SystemConfigDialog()
 
-    # -- Import menu
     def import_scummvm(self, widget, data=None):
+        """Callback for importing scummvm games"""
         from lutris.runners.scummvm import scummvm
         scummvm = scummvm()
         new_games = scummvm.import_games()
@@ -192,15 +200,18 @@ class LutrisWindow(gtk.Window):
         self.game_treeview.sort_rows()
 
     def import_steam(self, widget, data=None):
+        """Callback for importing Steam games"""
         NoticeDialog("Import from steam not yet implemented")
 
     # - Help menu
     def about(self, widget, data=None):
+        """Opens the about dialog"""
         about = NewAboutLutrisDialog(self.data_path)
         about.run()
         about.destroy()
 
     def mouse_menu(self, widget, event):
+        """Contextual menu"""
         if event.button == 3:
             (model, self.paths) = widget.get_selection().get_selected_rows()
             try:
@@ -224,6 +235,7 @@ class LutrisWindow(gtk.Window):
         self.status_label.set_text("Removed game")
 
     def get_selected_game(self):
+        """Return the currently selected game in the treeview"""
         gameSelection = self.game_treeview.get_selection()
         model, select_iter = gameSelection.get_selected()
         game_name = model.get_value(select_iter, 0)
@@ -244,6 +256,7 @@ class LutrisWindow(gtk.Window):
             self.game_cover.set_game_cover(self.game_name)
 
     def game_launch(self, treeview=None, arg1=None, arg2=None):
+        """Launch a game"""
         self.running_game = LutrisGame(self.get_selected_game())
         self.running_game.play()
 
@@ -252,15 +265,13 @@ class LutrisWindow(gtk.Window):
         self.game_launch()
 
     def reset(self, widget, data=None):
+        """Reset the desktop to it's initial state"""
         if hasattr(self, "running_game"):
             self.running_game.quit_game()
             self.status_label.set_text("Stopped %s"\
                                        % self.running_game.real_name)
         else:
             LutrisDesktopControl().reset_desktop()
-
-    def install_game(self, widget, data=None):
-        InstallerDialog(self)
 
     def add_game(self, widget, data=None):
         add_game_dialog = AddGameDialog(self)
