@@ -56,8 +56,7 @@ class AddGameDialog(gtk.Dialog):
         runner_liststore = gtk.ListStore(str, str)
         runner_liststore.append(("Choose a runner for the list", ""))
         for runner_name in lutris.runners.__all__:
-            runner_cls = import_runner(runner_name)
-            runner = runner_cls()
+            runner = import_runner(runner_name)
             if hasattr(runner, "description"):
                 description = runner.description
             else:

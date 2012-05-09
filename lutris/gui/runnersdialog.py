@@ -21,7 +21,6 @@
 
 import gtk
 import os
-from os.path import join, abspath
 
 import lutris.runners
 from lutris.runners import  import_runner
