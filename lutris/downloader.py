@@ -20,6 +20,8 @@
 import urllib
 import threading
 
+import re
+
 from lutris.util import log
 
 

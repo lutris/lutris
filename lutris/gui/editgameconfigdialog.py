@@ -22,7 +22,9 @@
 """Game edition dialog"""
 
 import logging
-import gtk
+
+from gi.repository import Gtk
+
 from lutris.config import LutrisConfig
 from lutris.gui.gameconfigvbox import GameConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
@@ -30,12 +32,12 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 # pylint: disable=R0904
-class EditGameConfigDialog(gtk.Dialog):
+class EditGameConfigDialog(Gtk.Dialog):
     """Game config edit dialog"""
     def __init__(self, parent, game):
         self.parent_window = parent
         self.game = game
-        gtk.Dialog.__init__(self)
+        Gtk.Dialog.__init__(self)
         self.set_title("Edit game configuration")
         self.set_size_request(500, 500)
 
@@ -43,44 +45,44 @@ class EditGameConfigDialog(gtk.Dialog):
         self.lutris_config = LutrisConfig(game=game)
         self.lutris_config.runner = self.lutris_config.config["runner"]
 
-        game_name_label = gtk.Label("Edit configuration for %s "\
+        game_name_label = Gtk.Label("Edit configuration for %s "\
                                     % self.lutris_config.config["realname"])
         self.vbox.pack_start(game_name_label, False, False, 10)
 
         #Notebook
-        config_notebook = gtk.Notebook()
+        config_notebook = Gtk.Notebook()
         self.vbox.pack_start(config_notebook)
 
         #Game configuration tab
         self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
-        game_config_scrolled_window = gtk.ScrolledWindow()
-        game_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
-                                               gtk.POLICY_AUTOMATIC)
+        game_config_scrolled_window = Gtk.ScrolledWindow()
+        game_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
+                                               Gtk.POLICY_AUTOMATIC)
         game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
         config_notebook.append_page(game_config_scrolled_window,
-                                    gtk.Label("Game Configuration"))
+                                    Gtk.Label("Game Configuration"))
 
         #Runner configuration tab
         self.runner_config_box = RunnerConfigVBox(self.lutris_config, "game")
-        runner_config_scrolled_window = gtk.ScrolledWindow()
-        runner_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
-                                                 gtk.POLICY_AUTOMATIC)
+        runner_config_scrolled_window = Gtk.ScrolledWindow()
+        runner_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
+                                                 Gtk.POLICY_AUTOMATIC)
         runner_config_scrolled_window.add_with_viewport(self.runner_config_box)
         config_notebook.append_page(runner_config_scrolled_window,
-                                    gtk.Label("Runner Configuration"))
+                                    Gtk.Label("Runner Configuration"))
 
         #System configuration tab
         self.system_config_box = SystemConfigVBox(self.lutris_config, "game")
-        system_config_scrolled_window = gtk.ScrolledWindow()
-        system_config_scrolled_window.set_policy(gtk.POLICY_AUTOMATIC,
-                                                 gtk.POLICY_AUTOMATIC)
+        system_config_scrolled_window = Gtk.ScrolledWindow()
+        system_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
+                                                 Gtk.POLICY_AUTOMATIC)
         system_config_scrolled_window.add_with_viewport(self.system_config_box)
         config_notebook.append_page(system_config_scrolled_window,
-                                    gtk.Label("Runner Configuration"))
+                                    Gtk.Label("Runner Configuration"))
 
         #Action Area
-        cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
-        add_button = gtk.Button(None, gtk.STOCK_EDIT)
+        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
+        add_button = Gtk.Button(None, Gtk.STOCK_EDIT)
         self.action_area.pack_start(cancel_button)
         self.action_area.pack_start(add_button)
         cancel_button.connect("clicked", self.close)

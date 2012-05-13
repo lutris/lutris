@@ -17,8 +17,7 @@
 """About dialog"""
 
 # pylint #37300 False positive F0401 on gtk.gdk import
-# pylint: disable=F0401  
-import gtk.gdk
+# pylint: disable=F0401
 import os
 
 from lutris import settings
@@ -49,20 +48,6 @@ class AboutLutrisDialog(gtk.AboutDialog):
 
         """
         #get a reference to the builder and set up the signals
-        self.builder = builder
-        self.builder.connect_signals(self)
-
-        #code for other initialization actions should be added here
-        self.set_position(gtk.WIN_POS_CENTER)
-        self.set_icon_from_file(LUTRIS_ICON)
-        self.set_logo(gtk.gdk.pixbuf_new_from_file(LUTRIS_ICON))
-        self.set_name(settings.PROJECT)
-        self.set_version(settings.VERSION)
-        self.set_copyright(settings.COPYRIGHT)
-        self.set_license(settings.LICENSE_TEXT)
-        self.set_authors(settings.AUTHORS)
-        self.set_artists(settings.ARTISTS)
-        self.set_website(settings.WEBSITE)
 
 
 def NewAboutLutrisDialog(data_path):
@@ -71,7 +56,7 @@ def NewAboutLutrisDialog(data_path):
     """
 
     #look for the ui file that describes the ui
-    ui_filename = os.path.join(data_path, 'ui', 'AboutLutrisDialog.ui')
+    ui_filename = os.path.join(get_data_path, 'ui', 'AboutLutrisDialog.ui')
     if not os.path.exists(ui_filename):
         ui_filename = None
 

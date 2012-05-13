@@ -13,39 +13,42 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Program entry point"""
+
 import os
 import sys
-import gtk
-import logging
 import optparse
+
+# pylint: disable=E0611
+from gi.repository import Gtk
 
 from os.path import realpath, dirname, normpath
 
-LAUNCH_PATH=dirname(realpath(__file__))
+LAUNCH_PATH = dirname(realpath(__file__))
 if LAUNCH_PATH != "/usr/bin":
-    SOURCE_PATH=normpath(os.path.join(LAUNCH_PATH, '..'))
+    SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
-from lutris.constants import DATA_PATH, CONFIG_EXTENSION, GAME_CONFIG_PATH
+from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util import log
-from lutris.installer import Installer
-from lutris.config import check_config
-from lutris.gui.lutriswindow import LutrisWindow
+#from lutris.installer import Installer
+#from lutris.config import check_config
+from lutris.gui.lutriswindow3 import LutrisWindow
 
 log.logger.name = "Lutris"
 
-def new_lutris_window():
-    """ Returns an instantiated LutrisWindow object. """
-    ui_filename = os.path.join(DATA_PATH, 'ui', 'LutrisWindow.ui')
-    if not os.path.exists(ui_filename):
-        msg = 'File %s not found' % ui_filename
-        log.logger.error(msg)
-        raise IOError(msg)
-    builder = gtk.Builder()
-    builder.add_from_file(ui_filename)
-    window = builder.get_object("lutris_window")
-    window.finish_initializing(builder, DATA_PATH)
-    return window
+#def new_lutris_window():
+#    """ Returns an instantiated LutrisWindow object. """
+#    ui_filename = os.path.join(DATA_PATH, 'ui', 'LutrisWindow.ui')
+#    if not os.path.exists(ui_filename):
+#        msg = 'File %s not found' % ui_filename
+#        log.logger.error(msg)
+#        raise IOError(msg)
+#    builder = gtk.Builder()
+#    builder.add_from_file(ui_filename)
+#    window = builder.get_object("lutris_window")
+#    window.finish_initializing(builder, DATA_PATH)
+#    return window
 
 
 # Support for command line options.
@@ -80,7 +83,7 @@ if options.verbose:
     console.setFormatter(formatter)
     log.logger.addHandler(console)
 
-check_config(force_wipe=True)
+#check_config(force_wipe=True)
 
 installer = False
 game = None
@@ -94,7 +97,6 @@ if options.installer_file:
         installer = os.path.abspath(options.installer_file)
         print "Installing game from %s" % installer
 
-gtk.gdk.threads_init()
 
 # Run the application.
 for arg in args:
@@ -114,13 +116,12 @@ if game is not None:
         lutris_game.play()
     else:
         log.logger.debug('Installing %s' % game)
-        installer = Installer(game, installer)
-        gtk.gdk.threads_enter()
-        gtk.main()
-        gtk.gdk.threads_leave()
+        #installer = Installer(game, installer)
+        Gtk.gdk.threads_enter()
+        Gtk.main()
+        Gtk.gdk.threads_leave()
 else:
-    lutris_window = new_lutris_window()
-    lutris_window.show()
-    gtk.gdk.threads_enter()
-    gtk.main()
-    gtk.gdk.threads_leave()
+    lutris_window = LutrisWindow()
+    #Gtk.gdk.threads_enter()
+    Gtk.main()
+    #Gtk.gdk.threads_leave()

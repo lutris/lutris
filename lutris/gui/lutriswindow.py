@@ -35,10 +35,7 @@ import gobject
 from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
-from lutris.gui.common import NoticeDialog
-from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 from lutris.desktop_control import LutrisDesktopControl
@@ -109,18 +106,11 @@ class LutrisWindow(gtk.Window):
 
 
         # Game list
-        self.game_list = get_list()
-        self.game_treeview = GameTreeView(self.game_list)
-        self.game_treeview.connect('row-activated', self.game_launch)
-        self.game_treeview.connect('cursor-changed', self.select_game)
-        self.game_treeview.connect('button-press-event', self.mouse_menu)
 
         self.game_column = self.game_treeview.get_column(1)
         self.game_cell = self.game_column.get_cell_renderers()[0]
         self.game_cell.connect('edited', self.game_name_edited_callback)
 
-        self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
-        self.games_scrollwindow.add_with_viewport(self.game_treeview)
 
         # Set buttons state
         self.play_button = self.builder.get_object('play_button')
@@ -153,134 +143,4 @@ class LutrisWindow(gtk.Window):
                 self.joystick_icons[index].hide()
         return True
 
-    def quit(self, _widget, _data=None):
-        """quit - signal handler for closing the LutrisWindow"""
-        self.destroy()
 
-    def on_destroy(self, _widget, _data=None):
-        """on_destroy - called when the LutrisWindow is close. """
-        gtk.main_quit()
-
-    # Menu action handlers
-    # - Lutris Menu
-    def on_connect(self, _widget, _data=None):
-        """Callback when a user connects to his account"""
-        #ConnectDialog()
-        NoticeDialog("This functionnality is not yet implemented.")
-
-    def on_runners_activate(self, _widget, _data=None):
-        """Callback when manage runners is activated"""
-        RunnersDialog()
-
-    def on_preferences_activate(self, _widget, _data=None):
-        """Callback when preferences is activated"""
-        SystemConfigDialog()
-
-    def import_scummvm(self, _widget, _data=None):
-        """Callback for importing scummvm games"""
-        from lutris.runners.scummvm import import_games
-        new_games = import_games()
-        for new_game in new_games:
-            self.game_treeview.add_row(new_game)
-        self.game_treeview.sort_rows()
-
-    def import_steam(self, _widget, _data=None):
-        """Callback for importing Steam games"""
-        NoticeDialog("Import from steam not yet implemented")
-
-    # - Help menu
-    def about(self, _widget, _data=None):
-        """Opens the about dialog"""
-        about = NewAboutLutrisDialog(self.data_path)
-        about.run()
-        about.destroy()
-
-    def mouse_menu(self, widget, event):
-        """Contextual menu"""
-        if event.button == 3:
-            (_, self.paths) = widget.get_selection().get_selected_rows()
-            try:
-                self.edited_game_index = self.paths[0][0]
-            except IndexError:
-                return
-            if len(self.paths) > 0:
-                self.menu.popup(None, None, None, event.button, event.time)
-
-    def remove_game(self, _widget, _data=None):
-        """Remove game configuration file
-
-        Note: this won't delete the actual game
-
-        """
-        game_selection = self.game_treeview.get_selection()
-        model, select_iter = game_selection.get_selected()
-        game_name = model.get_value(select_iter, 0)
-        self.lutris_config.remove(game_name)
-        self.game_treeview.remove_row(select_iter)
-        self.status_label.set_text("Removed game")
-
-    def get_selected_game(self):
-        """Return the currently selected game in the treeview"""
-        game_selection = self.game_treeview.get_selection()
-        model, select_iter = game_selection.get_selected()
-        game_name = model.get_value(select_iter, 0)
-        return game_name
-
-    def select_game(self, treeview):
-        """ Method triggered when a game is selected in the list. """
-        #Set buttons states
-        self.play_button.set_sensitive(True)
-        self.reset_button.set_sensitive(True)
-        self.delete_button.set_sensitive(True)
-        self.game_cover.activate_drop()
-
-        game_selected = treeview.get_selection()
-        model, select_iter = game_selected.get_selected()
-        if select_iter:
-            self.game_name = model.get_value(select_iter, 0)
-            self.game_cover.set_game_cover(self.game_name)
-
-    def game_launch(self, _treeview=None, _arg1=None, _arg2=None):
-        """Launch a game"""
-        self.running_game = LutrisGame(self.get_selected_game())
-        self.running_game.play()
-
-    def on_play_clicked(self, _widget):
-        """Callback for the play button"""
-        self.game_launch()
-
-    def reset(self, _widget, _data=None):
-        """Reset the desktop to it's initial state"""
-        if hasattr(self, "running_game"):
-            self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s"\
-                                       % self.running_game.get_real_name())
-        else:
-            LutrisDesktopControl().reset_desktop()
-
-    def add_game(self, _widget, _data=None):
-        """ MAnually add a game """
-        add_game_dialog = AddGameDialog(self)
-        if hasattr(add_game_dialog, "game_info"):
-            game_info = add_game_dialog.game_info
-            self.game_treeview.add_row(game_info)
-            self.game_treeview.sort_rows()
-
-    def edit_game_name(self, _button):
-        """Change game name"""
-        self.game_cell.set_property('editable', True)
-        self.game_treeview.set_cursor(self.paths[0][0], self.game_column, True)
-
-    def game_name_edited_callback(self, _widget, index, new_name):
-        """ Update the game's name """
-        self.game_treeview.get_model()[index][0] = new_name
-        new_name_game_config = LutrisConfig(game=self.get_selected_game())
-        new_name_game_config.config["realname"] = new_name
-        new_name_game_config.save(config_type="game")
-        self.game_cell.set_property('editable', False)
-
-    def edit_game_configuration(self, _button):
-        """Edit game preferences"""
-
-        game = self.get_selected_game()
-        EditGameConfigDialog(self, game)

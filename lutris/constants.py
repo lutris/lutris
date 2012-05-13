@@ -16,34 +16,21 @@
 #
 """ Constants module, soon to be deprecated. Replaced by settings module. """
 
-from os.path import realpath, normpath, dirname, join, exists, expanduser
+from os.path import join, expanduser
 from xdg import BaseDirectory
-import sys
 
-protocol_version = 1
+PROTOCOL_VERSION = 1
 INSTALLER_URL = "http://lutris.net/media/installers/"
 #installer_prefix = "http://localhost:8000/media/installers/"
 CONFIG_EXTENSION = ".yml"
-license_id = 'GPL-3'
+LICENSE_ID = 'GPL-3'
 
-LAUNCH_PATH = realpath(sys.path[0])
-if LAUNCH_PATH.startswith('/usr'):
-    DATA_PATH = '/usr/share/lutris'
-elif exists(normpath(join(sys.path[0], 'data'))):
-    DATA_PATH = normpath(join(sys.path[0], 'data'))
-else:
-    import lutris
-    DATA_PATH = dirname(lutris.__file__)
-if not exists(DATA_PATH):
-    print "DATA_PATH can't be found at : %s" % DATA_PATH
-    exit()
 
-LUTRIS_ICON = join(DATA_PATH, "media/logo.svg")
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')
 LUTRIS_DATA_PATH = join(BaseDirectory.xdg_data_home, 'lutris')
 LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
 
-runner_config_path = join(LUTRIS_CONFIG_PATH, 'runners')
+RUNNER_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'runners')
 GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
 COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')
 BANNER_PATH = join(LUTRIS_CONFIG_PATH, 'banners')

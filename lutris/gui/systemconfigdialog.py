@@ -1,11 +1,12 @@
+from gi.repository import Gtk
+
 from lutris.config import LutrisConfig
 from lutris.gui.systemconfigvbox import SystemConfigVBox
-import gtk
 
 
-class SystemConfigDialog(gtk.Dialog):
+class SystemConfigDialog(Gtk.Dialog):
     def __init__(self):
-        gtk.Dialog.__init__(self)
+        Gtk.Dialog.__init__(self)
         self.set_title("System preferences")
         self.set_size_request(400, 500)
         self.lutris_config = LutrisConfig()
@@ -14,8 +15,8 @@ class SystemConfigDialog(gtk.Dialog):
         self.vbox.pack_start(self.system_config_vbox)
 
         #Action area
-        cancel_button = gtk.Button(None, gtk.STOCK_CANCEL)
-        add_button = gtk.Button(None, gtk.STOCK_SAVE)
+        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
+        add_button = Gtk.Button(None, Gtk.STOCK_SAVE)
         self.action_area.pack_start(cancel_button)
         self.action_area.pack_start(add_button)
         cancel_button.connect("clicked", self.close)

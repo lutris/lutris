@@ -20,13 +20,13 @@
 
 """Widget generators and their signal handlers"""
 
-import gtk
+from gi.repository import Gtk
 
 PADDING = 10
 
 
 # pylint: disable=R0904
-class Label(gtk.Label):
+class Label(Gtk.Label):
     """ Standardised label for config vboxes"""
     def __init__(self, message=None):
         """ Custom init of label """
@@ -35,12 +35,13 @@ class Label(gtk.Label):
         self.set_alignment(0.0, 0.5)
         self.set_line_wrap(True)
 
+
 # pylint: disable=R0904
-# I know there are too many public methods, go complain to the GTK developers
-class ConfigVBox(gtk.VBox):
+# I know there are too many public methods, go complain to the Gtk developers
+class ConfigVBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
-        gtk.VBox.__init__(self)
+        Gtk.VBox.__init__(self)
         self.options = None
         #Section of the configuration file to save options in. Can be "game",
         #"runner" or "system" self.save_in_key= save_in_key
@@ -111,7 +112,7 @@ class ConfigVBox(gtk.VBox):
     #Checkbox
     def generate_checkbox(self, option_name, label, value=None):
         """ Generates a checkbox. """
-        checkbox = gtk.CheckButton(label)
+        checkbox = Gtk.CheckButton(label)
         checkbox.set_alignment(0.1, 0.5)
         if value:
             checkbox.set_active(value)
@@ -126,10 +127,10 @@ class ConfigVBox(gtk.VBox):
     #Entry
     def generate_entry(self, option_name, label, value=None):
         """ Generates an entry box. """
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
         entry_label = Label(label)
         entry_label.set_size_request(200, 30)
-        entry = gtk.Entry()
+        entry = Gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
@@ -146,15 +147,15 @@ class ConfigVBox(gtk.VBox):
     #ComboBox
     def generate_combobox(self, option_name, choices, label, value=None):
         """ Generates a combobox (drop-down menu). """
-        hbox = gtk.HBox()
-        liststore = gtk.ListStore(str, str)
+        hbox = Gtk.HBox()
+        liststore = Gtk.ListStore(str, str)
         for choice in choices:
             if type(choice) is str:
                 choice = [choice, choice]
             liststore.append(choice)
-        combobox = gtk.ComboBox(liststore)
+        combobox = Gtk.ComboBox(liststore)
         combobox.set_size_request(200, 30)
-        cell = gtk.CellRendererText()
+        cell = Gtk.CellRendererText()
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)
         index = selected_index = -1
@@ -183,14 +184,14 @@ class ConfigVBox(gtk.VBox):
 
     def generate_range(self, option_name, min_val, max_val, label, value=None):
         """ Generates a ranged spin button. """
-        adjustment = gtk.Adjustment(float(min_val), float(min_val),
+        adjustment = Gtk.Adjustment(float(min_val), float(min_val),
                                     float(max_val), 1, 0, 0)
-        spin_button = gtk.SpinButton(adjustment)
+        spin_button = Gtk.SpinButton(adjustment)
         if value:
             spin_button.set_value(value)
         spin_button.connect('changed',
                             self.on_spin_button_changed, option_name)
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
         label = Label(label)
         label.set_size_request(200, 30)
         hbox.pack_start(label)
@@ -205,32 +206,32 @@ class ConfigVBox(gtk.VBox):
 
     def generate_file_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to select a file"""
-        hbox = gtk.HBox()
-        gtklabel = Label(label)
-        file_chooser = gtk.FileChooserButton("Choose a file for %s" % label)
+        hbox = Gtk.HBox()
+        Gtklabel = Label(label)
+        file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
 
-        file_chooser.set_action(gtk.FILE_CHOOSER_ACTION_OPEN)
+        file_chooser.set_action(Gtk.FILE_CHOOSER_ACTION_OPEN)
         file_chooser.connect("file-set", self.on_chooser_file_set, option_name)
         if value:
             file_chooser.unselect_all()
             file_chooser.select_filename(value)
-        hbox.pack_start(gtklabel, False, False, PADDING)
+        hbox.pack_start(Gtklabel, False, False, PADDING)
         hbox.pack_start(file_chooser, True, True, PADDING)
         self.pack_start(hbox, False, True, PADDING)
 
     def generate_directory_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to select a directory"""
-        hbox = gtk.HBox()
-        gtklabel = Label(label)
-        directory_chooser = gtk.FileChooserButton("Choose a directory for %s"\
+        hbox = Gtk.HBox()
+        Gtklabel = Label(label)
+        directory_chooser = Gtk.FileChooserButton("Choose a directory for %s"\
                                                   % label)
-        directory_chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        directory_chooser.set_action(Gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)
         directory_chooser.connect("file-set",
                                   self.on_chooser_file_set, option_name)
-        hbox.pack_start(gtklabel, False, False, PADDING)
+        hbox.pack_start(Gtklabel, False, False, PADDING)
         hbox.pack_start(directory_chooser, True, True, PADDING)
         self.pack_start(hbox, False, True, PADDING)
 
@@ -241,19 +242,19 @@ class ConfigVBox(gtk.VBox):
 
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         """ Generates a multiple file selector. """
-        hbox = gtk.HBox()
+        hbox = Gtk.HBox()
         label = Label(label)
         hbox.pack_start(label, False, False, PADDING)
-        self.files_chooser_dialog = gtk.FileChooserDialog(title="Select files",
+        self.files_chooser_dialog = Gtk.FileChooserDialog(title="Select files",
                                 parent=self.get_parent_window(),
-                                action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                                buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE,
-                                         gtk.STOCK_ADD, gtk.RESPONSE_OK))
+                                action=Gtk.FILE_CHOOSER_ACTION_OPEN,
+                                buttons=(Gtk.STOCK_CLOSE, Gtk.RESPONSE_CLOSE,
+                                         Gtk.STOCK_ADD, Gtk.RESPONSE_OK))
         self.files_chooser_dialog.set_select_multiple(True)
         self.files_chooser_dialog.connect('response',
                                           self.add_files_callback, option_name)
 
-        files_chooser_button = gtk.FileChooserButton(self.files_chooser_dialog)
+        files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
         game_path = self.lutris_config.get_path(self.runner_class)
         if game_path:
             files_chooser_button.set_current_folder(game_path)
@@ -266,32 +267,32 @@ class ConfigVBox(gtk.VBox):
             self.files = value
         else:
             self.files = []
-        self.files_list_store = gtk.ListStore(str)
+        self.files_list_store = Gtk.ListStore(str)
         for filename in self.files:
             self.files_list_store.append([filename])
-        files_column = gtk.TreeViewColumn("Files")
-        cell_renderer = gtk.CellRendererText()
+        files_column = Gtk.TreeViewColumn("Files")
+        cell_renderer = Gtk.CellRendererText()
         files_column.pack_start(cell_renderer)
         files_column.set_attributes(cell_renderer, text=0)
-        files_treeview = gtk.TreeView(self.files_list_store)
+        files_treeview = Gtk.TreeView(self.files_list_store)
         files_treeview.append_column(files_column)
         files_treeview.set_size_request(10, 100)
         files_treeview.connect('key-press-event', self.on_files_treeview_event)
-        treeview_scroll = gtk.ScrolledWindow()
-        treeview_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        treeview_scroll = Gtk.ScrolledWindow()
+        treeview_scroll.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
         treeview_scroll.add(files_treeview)
         self.pack_start(treeview_scroll, True, True)
 
     def on_files_treeview_event(self, _, event):
         """ Action triggered when a row is deleted from the filechooser. """
         key = event.keyval
-        if key == gtk.keysyms.Delete:
+        if key == Gtk.keysyms.Delete:
             #TODO : Delete selected row
             print "you don't wanna delete this ... yet"
 
     def add_files_callback(self, dialog, response, option):
         """Add several files to the configuration"""
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.RESPONSE_OK:
             filenames = dialog.get_filenames()
             for filename in filenames:
                 self.files_list_store.append([filename])

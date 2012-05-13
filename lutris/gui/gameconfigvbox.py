@@ -21,7 +21,7 @@
 
 """Container for game config options"""
 
-import gtk
+from gi.repository import Gtk
 
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
@@ -41,7 +41,7 @@ class GameConfigVBox(ConfigVBox):
         if hasattr(runner, "game_options"):
             self.options = runner.game_options
         else:
-            no_option_label = gtk.Label("No game options")
+            no_option_label = Gtk.Label("No game options")
             self.pack_start(no_option_label)
             return
         self.generate_widgets()

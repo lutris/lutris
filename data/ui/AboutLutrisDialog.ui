@@ -1,8 +1,6 @@
 <interface>
-  <requires lib="gtk+" version="2.16" />
-
-
-  <object class="AboutLutrisDialog" id="about_lutris_dialog">
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkDialog" id="about_dialog">
     <property name="version">0.2-public5</property><property name="license" translatable="yes"># Copyright (C) 2010 Mathieu Comandon &lt;strycore@gmail.com&gt;
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published

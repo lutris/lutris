@@ -19,8 +19,10 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-import gtk
+from gi.repository import Gtk
+
 from lutris.runners import import_runner
+
 from lutris.gui.configvbox import ConfigVBox
 
 
@@ -39,7 +41,7 @@ class RunnerConfigVBox(ConfigVBox):
             self.lutris_config = lutris_config
             self.generate_widgets()
         else:
-            warningLabel = gtk.Label("This runner has no options yet\n"\
+            warningLabel = Gtk.Label("This runner has no options yet\n"\
                                      + "Please fix this")
             self.pack_start(warningLabel)
             return

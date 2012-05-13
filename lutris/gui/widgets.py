@@ -21,21 +21,20 @@
 """Misc widgets used in the GUI."""
 
 import os
-import gtk
-import gobject
-import pango
 import Image
+from gi.repository import Gtk, GObject, Pango
 
 from lutris.downloader import Downloader
-from lutris.constants import COVER_PATH, DATA_PATH
+from lutris.constants import COVER_PATH
 from lutris.util import log
+from lutris.settings import get_data_path
 import lutris.constants
 
 ICON_SIZE = 24
 MISSING_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
 
 
-class GameTreeView(gtk.TreeView):
+class GameTreeView(Gtk.TreeView):
     """
     Show the main list of games
     Some code inspired by Ubuntu Software Center
@@ -47,15 +46,15 @@ class GameTreeView(gtk.TreeView):
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        model = gtk.ListStore(str, gtk.gdk.Pixbuf, str)
-        model.set_sort_column_id(0, gtk.SORT_ASCENDING)
+        model = Gtk.ListStore(str, Gtk.gdk.Pixbuf, str)
+        model.set_sort_column_id(0, Gtk.SORT_ASCENDING)
         self.set_model(model)
-        image_cell = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
+        image_cell = Gtk.CellRendererPixbuf()
+        column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
         self.append_column(column)
-        text_cell = gtk.CellRendererText()
-        text_cell.set_property("ellipsize", pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn("Game", text_cell, markup=self.COL_TEXT)
+        text_cell = Gtk.CellRendererText()
+        text_cell.set_property("ellipsize", Pango.ELLIPSIZE_END)
+        column = Gtk.TreeViewColumn("Game", text_cell, markup=self.COL_TEXT)
         self.append_column(column)
         if games:
             for game in sorted(games):
@@ -67,10 +66,10 @@ class GameTreeView(gtk.TreeView):
         model = self.get_model()
         label = "%s \n<small>%s</small>" % \
                 (game['name'], game['runner'])
-        icon_path = os.path.join(lutris.constants.DATA_PATH,
+        icon_path = os.path.join(get_data_path(),
                                  'media/runner_icons',
                                  game['runner'] + '.png')
-        pix = gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
+        pix = Gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
                                                    ICON_SIZE, ICON_SIZE)
         row = model.append([game['id'], pix, label, ])
         return row
@@ -85,15 +84,15 @@ class GameTreeView(gtk.TreeView):
         """Sort the game list."""
 
         model = self.get_model()
-        gtk.TreeModelSort(model)
+        Gtk.TreeModelSort(model)
 
 
-class GameCover(gtk.Image):
+class GameCover(Gtk.Image):
     """Widget displaing the selected game's cover"""
     def __init__(self, parent=None):
         super(GameCover, self).__init__()
         self.parent_window = parent
-        self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
+        self.set_from_file(os.path.join(get_data_path(), "media/background.png"))
         self.connect('drag_data_received', self.on_cover_drop)
 
     def set_game_cover(self, name):
@@ -101,7 +100,7 @@ class GameCover(gtk.Image):
         cover_file = os.path.join(COVER_PATH, name + ".jpg")
         if os.path.exists(cover_file):
             #Resize the image
-            cover_pixbuf = gtk.gdk.pixbuf_new_from_file(cover_file)
+            cover_pixbuf = Gtk.gdk.pixbuf_new_from_file(cover_file)
             dest_w = 250.0
             height = cover_pixbuf.get_height()
             width = cover_pixbuf.get_width()
@@ -109,11 +108,11 @@ class GameCover(gtk.Image):
             self.set_from_pixbuf(cover_pixbuf.scale_simple(
                 int(dest_w),
                 int(dest_h),
-                gtk.gdk.INTERP_BILINEAR
+                Gtk.gdk.INTERP_BILINEAR
             ))
             return
         else:
-            self.set_from_file(os.path.join(DATA_PATH, "media/background.png"))
+            self.set_from_file(os.path.join(get_data_path(), "media/background.png"))
 
     def desactivate_drop(self):
         """Deactivate DnD for the widget."""
@@ -126,8 +125,8 @@ class GameCover(gtk.Image):
                    ('text/html', 0, 0),
                    ('text/unicode', 0, 0),
                    ('text/x-moz-url', 0, 0)]
-        self.drag_dest_set(gtk.DEST_DEFAULT_ALL, targets,
-            gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_DEFAULT | gtk.gdk.ACTION_MOVE)
+        self.drag_dest_set(Gtk.DEST_DEFAULT_ALL, targets,
+            Gtk.gdk.ACTION_COPY | Gtk.gdk.ACTION_DEFAULT | Gtk.gdk.ACTION_MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         """Take action based on a drop on the widget."""
@@ -153,22 +152,22 @@ class GameCover(gtk.Image):
         return True
 
 
-class DownloadProgressBox(gtk.HBox):
+class DownloadProgressBox(Gtk.HBox):
     """Progress bar used to monitor a file download."""
-    __gsignals__ = {'complete': (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
-                                 (gobject.TYPE_PYOBJECT,)),
-                    'cancelrequested': (gobject.SIGNAL_RUN_LAST,
-                                         gobject.TYPE_NONE,
-                                         (gobject.TYPE_PYOBJECT,))}
+    __gsignals__ = {'complete': (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
+                                 (GObject.TYPE_PYOBJECT,)),
+                    'cancelrequested': (GObject.SIGNAL_RUN_LAST,
+                                         GObject.TYPE_NONE,
+                                         (GObject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
-        gtk.HBox.__init__(self, False, 2)
+        Gtk.HBox.__init__(self, False, 2)
         self.downloader = None
-        self.progressbar = gtk.ProgressBar()
+        self.progressbar = Gtk.ProgressBar()
         self.progressbar.show()
         self.pack_start(self.progressbar, True)
-        self.cancel_button = gtk.Button(stock=gtk.STOCK_CANCEL)
+        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         if cancelable:
             self.cancel_button.show()
         self.cancel_button.set_sensitive(False)
@@ -182,7 +181,7 @@ class DownloadProgressBox(gtk.HBox):
         """Start downloading a file."""
         log.logger.debug("starting to download %s" % self.url)
         self.downloader = Downloader(self.url, self.dest)
-        timer_id = gobject.timeout_add(100, self.progress)
+        timer_id = GObject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()
         return timer_id

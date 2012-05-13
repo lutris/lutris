@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <!-- interface-local-resource-path ../media -->
+  <object class="GtkAboutDialog" id="about_dialog">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">About Lutris</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="icon">../media/logo.svg</property>
+    <property name="icon_name">lutris</property>
+    <property name="type_hint">dialog</property>
+    <property name="skip_taskbar_hint">True</property>
+    <property name="skip_pager_hint">True</property>
+    <property name="program_name">Lutris</property>
+    <property name="version">0.2.7</property>
+    <property name="copyright" translatable="yes">© 2010, 2012 Mathieu Comandon</property>
+    <property name="comments" translatable="yes">Open Source Gaming Platform</property>
+    <property name="website">http://lutris.net</property>
+    <property name="website_label" translatable="yes">http://lutris.net</property>
+    <property name="license" translatable="yes">This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</property>
+    <property name="authors">Mathieu Comandon &lt;strider@strycore. com&gt;</property>
+    <property name="artists">Ludovic Soulié &lt;contact@yudoh.com&gt;</property>
+    <property name="logo">../media/lutris.svg</property>
+    <property name="logo_icon_name">lutris</property>
+    <property name="wrap_license">True</property>
+    <property name="license_type">gpl-3-0</property>
+    <signal name="close" handler="destroy" swapped="no"/>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="vbox">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="aboutdialog-action_area1">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <signal name="destroy" handler="destroy" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

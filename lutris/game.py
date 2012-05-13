@@ -18,9 +18,8 @@
 """ Game module that actually runs the games. """
 
 import os
-import gtk
+from gi.repository import Gtk, GObject
 import time
-import gobject
 import subprocess
 from signal import SIGKILL
 from os.path import join
@@ -62,9 +61,9 @@ def get_list():
             except ConfigurationException:
                 message = "Error loading configuration for %s" % game_name
 
-                #error_dialog = gtk.MessageDialog(parent=None, flags=0,
-                #                                 type=gtk.MESSAGE_ERROR,
-                #                                 buttons=gtk.BUTTONS_OK,
+                #error_dialog = Gtk.MessageDialog(parent=None, flags=0,
+                #                                 type=Gtk.MESSAGE_ERROR,
+                #                                 buttons=Gtk.BUTTONS_OK,
                 #                                 message_format=message)
                 #error_dialog.run()
                 #error_dialog.destroy()
@@ -121,7 +120,7 @@ class LutrisGame(object):
                         do you wish to install it now ?"
             install_runner_dialog = QuestionDialog({'question': question,
                 'title': "Required runner unavailable"})
-            if gtk.RESPONSE_YES == install_runner_dialog.result:
+            if Gtk.RESPONSE_YES == install_runner_dialog.result:
                 self.runner.install()
             else:
                 return False
@@ -173,7 +172,7 @@ class LutrisGame(object):
         if oss_wrapper:
             command = oss_wrapper + " " + command
 
-        self.ticker = gobject.timeout_add(5000, self.poke_process)
+        self.ticker = GObject.timeout_add(5000, self.poke_process)
         logger.debug("Running : " + command)
         self.game_thread = LutrisThread(command, path, killswitch)
         self.game_thread.start()
