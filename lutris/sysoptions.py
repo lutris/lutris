@@ -72,10 +72,9 @@ system_options = [
     {
         'option': 'prefix_command',
         'type': 'string',
-        'label': 'Prefix command',
-        'help': ("Name of a program that will launch the game, making "
-                 "alterations to its behavior. \n"
-                 "Examples: padsp, glxosd, optirun")
+        'label': 'Command prefix',
+        'help': ("Command line instructions to add in front of the game's "
+                 "execution command.")
     },
     {
         'option': 'reset_pulse',

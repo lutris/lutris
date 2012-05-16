@@ -135,7 +135,7 @@ class Game(object):
             launch_arguments.insert(0, 'primusrun')
 
         prefix_command = system_config.get("prefix_command", '').strip()
-        if prefix_command and system.find_executable(prefix_command):
+        if prefix_command:
             launch_arguments.insert(0, prefix_command)
 
         ld_preload = gameplay_info.get('ld_preload')
