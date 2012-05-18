@@ -33,12 +33,7 @@ import os
 import gobject
 
 from lutris.gui.widgets import GameTreeView, GameCover
-from lutris.game import LutrisGame, get_list
-from lutris.config import LutrisConfig
-from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
-from lutris.desktop_control import LutrisDesktopControl
 
 
 class LutrisWindow(gtk.Window):
@@ -121,26 +116,5 @@ class LutrisWindow(gtk.Window):
 
         self.show_all()
 
-    def refresh_status(self):
-        """Refresh status bar"""
-        if hasattr(self, "running_game"):
-            if hasattr(self.running_game.game_thread, "pid"):
-                pid = self.running_game.game_thread.pid
-                name = self.running_game.get_real_name()
-                if pid == 99999:
-                    self.status_label.set_text("Preparing to launch %s" % name)
-                elif pid is None:
-                    self.status_label.set_text("Game has quit")
-                else:
-                    self.status_label.set_text("Playing %s (pid: %r)"\
-                                               % (name, pid))
-        else:
-            self.status_label.set_text("Welcome to Lutris")
-        for index in range(4):
-            if os.path.exists("/dev/input/js%d" % index):
-                self.joystick_icons[index].show()
-            else:
-                self.joystick_icons[index].hide()
-        return True
 
 

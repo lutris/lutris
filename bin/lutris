@@ -32,7 +32,7 @@ if LAUNCH_PATH != "/usr/bin":
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util import log
 #from lutris.installer import Installer
-#from lutris.config import check_config
+from lutris.config import check_config
 from lutris.gui.lutriswindow3 import LutrisWindow
 
 log.logger.name = "Lutris"
@@ -84,6 +84,7 @@ if options.verbose:
     log.logger.addHandler(console)
 
 #check_config(force_wipe=True)
+check_config(force_wipe=False)
 
 installer = False
 game = None

@@ -32,6 +32,7 @@ from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
 
 def register_handler():
     """ Register the lutris: protocol to open with the application. """
+    log.logger.info("registering protocol")
     gconf = GconfWrapper()
     defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
                 ('/desktop/gnome/url-handlers/lutris/enabled', True),
@@ -69,8 +70,8 @@ def check_config(force_wipe=False):
         log.logger.debug("creating PGA database in %s" % PGA_DB)
 
         pga.create()
-    if first_run:
-        register_handler()
+    #if first_run:
+    register_handler()
 
 
 class LutrisConfig():

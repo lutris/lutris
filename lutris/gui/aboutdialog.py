@@ -56,12 +56,4 @@ def NewAboutLutrisDialog(data_path):
     """
 
     #look for the ui file that describes the ui
-    ui_filename = os.path.join(get_data_path, 'ui', 'AboutLutrisDialog.ui')
-    if not os.path.exists(ui_filename):
-        ui_filename = None
-
-    builder = gtk.Builder()
-    builder.add_from_file(ui_filename)
-    dialog = builder.get_object("about_lutris_dialog")
-    dialog.finish_initializing(builder)
     return dialog

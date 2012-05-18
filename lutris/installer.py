@@ -24,7 +24,6 @@ import urllib
 import urllib2
 import platform
 import subprocess
-import lutris.constants
 
 from os.path import join, exists
 
@@ -351,21 +350,7 @@ class Installer(gtk.Dialog):
         installer_contents = file(self.installer_path, 'r').read()
         self.rules = yaml.load(installer_contents)
 
-        #Checking protocol
-        try:
-            protocol_version = self.rules['protocol']
-        except KeyError:
-            log.logger.error("No protocol version specified in installer")
-            log.logger.error("Please fix the installer for %s" % self.game)
-            return False
-        if protocol_version != lutris.constants.protocol_version:
-            log.logger.error(
-                "Wrong protocol version (Expected %d, got %d)" %
-                (lutris.constants.protocol_version, protocol_version)
-            )
-            return False
-
-        mandatory_fields = ['version', 'runner', 'name']
+        mandatory_fields = ['runner', 'name']
         optional_fields = ['exe', 'exe64', 'iso', 'rom']
         for field in mandatory_fields:
             self.game_info[field] = self.rules[field]
