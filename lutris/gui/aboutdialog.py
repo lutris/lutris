@@ -16,7 +16,7 @@
 
 """About dialog"""
 
-# pylint #37300 False positive F0401 on gtk.gdk import
+# pylint #37300 False positive F0401 on Gtk.gdk import
 # pylint: disable=F0401
 import os
 
@@ -25,7 +25,7 @@ from lutris.constants import LUTRIS_ICON
 
 
 # pylint: disable=R0904, R0901
-class AboutLutrisDialog(gtk.AboutDialog):
+class AboutLutrisDialog(Gtk.AboutDialog):
     """About dialog class"""
     __gtype_name__ = "AboutLutrisDialog"
 

@@ -28,15 +28,15 @@ try:
 except ImportError:
     LAUNCHPAD_AVAILABLE = False
 
-import gtk
+from gi.repository import Gtk
 import os
-import gobject
+from gi.repository import GObject
 
 from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.gui.aboutdialog import NewAboutLutrisDialog
 
 
-class LutrisWindow(gtk.Window):
+class LutrisWindow(Gtk.Window):
     """ Main Lutris window """
     __gtype_name__ = "LutrisWindow"
 
@@ -80,12 +80,12 @@ class LutrisWindow(gtk.Window):
         play = 'Play', self.game_launch
         rename = 'Rename', self.edit_game_name
         config = 'Configure', self.edit_game_configuration
-        self.menu = gtk.Menu()
+        self.menu = Gtk.Menu()
         for item in [play, rename, config]:
             if item == None:
-                subitem = gtk.SeparatorMenuItem()
+                subitem = Gtk.SeparatorMenuItem()
             else:
-                subitem = gtk.ImageMenuItem(item[0])
+                subitem = Gtk.ImageMenuItem(item[0])
                 subitem.connect('activate', item[1])
                 self.menu.append(subitem)
 
@@ -112,7 +112,7 @@ class LutrisWindow(gtk.Window):
         self.play_button.set_sensitive(False)
 
         #Timer
-        self.timer_id = gobject.timeout_add(1000, self.refresh_status)
+        self.timer_id = GObject.timeout_add(1000, self.refresh_status)
 
         self.show_all()
 

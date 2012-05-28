@@ -34,14 +34,13 @@ class RunnerConfigVBox(ConfigVBox):
     def __init__(self, lutris_config, caller):
         runner_classname = lutris_config.runner
         ConfigVBox.__init__(self, runner_classname, caller)
-        runner_class = import_runner(runner_classname)
-        runner = runner_class()
+        runner = import_runner(runner_classname)
         if hasattr(runner, "runner_options"):
             self.options = runner.runner_options
             self.lutris_config = lutris_config
             self.generate_widgets()
         else:
-            warningLabel = Gtk.Label("This runner has no options yet\n"\
+            warningLabel = Gtk.Label(label="This runner has no options yet\n"\
                                      + "Please fix this")
-            self.pack_start(warningLabel)
+            self.pack_start(warningLabel, True, True, 0)
             return

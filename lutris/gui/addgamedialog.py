@@ -42,10 +42,10 @@ class AddGameDialog(Gtk.Dialog):
 
         #Real name
         realname_hbox = Gtk.HBox()
-        realname_label = Gtk.Label("Name")
+        realname_label = Gtk.Label(label="Name")
         realname_hbox.pack_start(realname_label, False, False, 5)
         self.realname_entry = Gtk.Entry()
-        realname_hbox.pack_start(self.realname_entry)
+        realname_hbox.add(self.realname_entry)
         self.vbox.pack_start(realname_hbox, False, False, 5)
         self.lutris_config = LutrisConfig()
 
@@ -56,25 +56,24 @@ class AddGameDialog(Gtk.Dialog):
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Choose a runner for the list", ""))
         for runner_name in lutris.runners.__all__:
-            runner_cls = import_runner(runner_name)
-            runner = runner_cls()
+            runner = import_runner(runner_name)
             if hasattr(runner, "description"):
                 description = runner.description
             else:
                 logger.debug("Please fix %s and add a description attribute",
-                             runner_cls)
+                             runner.__name__)
                 description = ""
             if hasattr(runner, "machine"):
                 machine = runner.machine
             else:
                 logger.debug("Please fix % and add a machine attribute",
-                             runner_cls)
+                             runner.__name__)
                 machine = ""
             if runner.is_installed():
                 runner_liststore.append((machine + " (" + description + ")",
                                          runner_name))
 
-        runner_combobox = Gtk.ComboBox(runner_liststore)
+        runner_combobox = Gtk.ComboBox.new_with_model(runner_liststore)
         runner_combobox.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
         runner_combobox.pack_start(cell, True)
@@ -82,39 +81,40 @@ class AddGameDialog(Gtk.Dialog):
         self.vbox.pack_start(runner_combobox, False, True, 5)
 
         notebook = Gtk.Notebook()
-        self.vbox.pack_start(notebook)
+        self.vbox.pack_start(notebook, True, True, 0)
 
+        default_label = "Select a runner from the list"
         #Game configuration
-        self.game_config_vbox = Gtk.Label("Select a runner from the list")
+        self.game_config_vbox = Gtk.Label(label=default_label)
         self.conf_scroll_window = Gtk.ScrolledWindow()
-        self.conf_scroll_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                           Gtk.POLICY_AUTOMATIC)
+        self.conf_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                           Gtk.PolicyType.AUTOMATIC)
         self.conf_scroll_window.add_with_viewport(self.game_config_vbox)
         notebook.append_page(self.conf_scroll_window,
-                                  Gtk.Label("Game configuration"))
+                             Gtk.Label(label="Game configuration"))
 
         #Runner configuration
-        self.runner_config_vbox = Gtk.Label("Select a runner from the list")
+        self.runner_config_vbox = Gtk.Label(label=default_label)
         self.runner_scroll_window = Gtk.ScrolledWindow()
-        self.runner_scroll_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                             Gtk.POLICY_AUTOMATIC)
+        self.runner_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                             Gtk.PolicyType.AUTOMATIC)
         self.runner_scroll_window.add_with_viewport(self.runner_config_vbox)
         notebook.append_page(self.runner_scroll_window,
-                                  Gtk.Label("Runner configuration"))
+                             Gtk.Label(label="Runner configuration"))
 
         #System configuration
         self.system_config_vbox = SystemConfigVBox(self.lutris_config, "game")
         self.system_scroll_window = Gtk.ScrolledWindow()
-        self.system_scroll_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                             Gtk.POLICY_AUTOMATIC)
+        self.system_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                             Gtk.PolicyType.AUTOMATIC)
         self.system_scroll_window.add_with_viewport(self.system_config_vbox)
         notebook.append_page(self.system_scroll_window,
-                                  Gtk.Label("System configuration"))
+                                  Gtk.Label(label="System configuration"))
 
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
         add_button = Gtk.Button(None, Gtk.STOCK_ADD)
-        self.action_area.pack_start(cancel_button)
-        self.action_area.pack_start(add_button)
+        self.action_area.add(cancel_button)
+        self.action_area.add(add_button)
         cancel_button.connect("clicked", self.close)
         add_button.connect("clicked", self.add_game)
 
@@ -150,7 +150,7 @@ class AddGameDialog(Gtk.Dialog):
                 child.destroy()
 
         if selected_runner == 0:
-            no_runner_label = Gtk.Label("Choose a runner from the list")
+            no_runner_label = Gtk.Label(label="Choose a runner from the list")
             no_runner_label.show()
             self.runner_scroll_window.add_with_viewport(no_runner_label)
             return

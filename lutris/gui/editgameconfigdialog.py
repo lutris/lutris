@@ -37,7 +37,7 @@ class EditGameConfigDialog(Gtk.Dialog):
     def __init__(self, parent, game):
         self.parent_window = parent
         self.game = game
-        Gtk.Dialog.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_title("Edit game configuration")
         self.set_size_request(500, 500)
 
@@ -45,46 +45,46 @@ class EditGameConfigDialog(Gtk.Dialog):
         self.lutris_config = LutrisConfig(game=game)
         self.lutris_config.runner = self.lutris_config.config["runner"]
 
-        game_name_label = Gtk.Label("Edit configuration for %s "\
+        game_name_label = Gtk.Label(label="Edit configuration for %s "\
                                     % self.lutris_config.config["realname"])
         self.vbox.pack_start(game_name_label, False, False, 10)
 
         #Notebook
         config_notebook = Gtk.Notebook()
-        self.vbox.pack_start(config_notebook)
+        self.vbox.pack_start(config_notebook, True, True, 0)
 
         #Game configuration tab
         self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
         game_config_scrolled_window = Gtk.ScrolledWindow()
-        game_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                               Gtk.POLICY_AUTOMATIC)
+        game_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                               Gtk.PolicyType.AUTOMATIC)
         game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
         config_notebook.append_page(game_config_scrolled_window,
-                                    Gtk.Label("Game Configuration"))
+                                    Gtk.Label(label="Game Configuration"))
 
         #Runner configuration tab
         self.runner_config_box = RunnerConfigVBox(self.lutris_config, "game")
         runner_config_scrolled_window = Gtk.ScrolledWindow()
-        runner_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                                 Gtk.POLICY_AUTOMATIC)
+        runner_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                                 Gtk.PolicyType.AUTOMATIC)
         runner_config_scrolled_window.add_with_viewport(self.runner_config_box)
         config_notebook.append_page(runner_config_scrolled_window,
-                                    Gtk.Label("Runner Configuration"))
+                                    Gtk.Label(label="Runner Configuration"))
 
         #System configuration tab
         self.system_config_box = SystemConfigVBox(self.lutris_config, "game")
         system_config_scrolled_window = Gtk.ScrolledWindow()
-        system_config_scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC,
-                                                 Gtk.POLICY_AUTOMATIC)
+        system_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                                 Gtk.PolicyType.AUTOMATIC)
         system_config_scrolled_window.add_with_viewport(self.system_config_box)
         config_notebook.append_page(system_config_scrolled_window,
-                                    Gtk.Label("Runner Configuration"))
+                                    Gtk.Label(label="Runner Configuration"))
 
         #Action Area
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
         add_button = Gtk.Button(None, Gtk.STOCK_EDIT)
-        self.action_area.pack_start(cancel_button)
-        self.action_area.pack_start(add_button)
+        self.action_area.pack_start(cancel_button, True, True, 0)
+        self.action_area.pack_start(add_button, True, True, 0)
         cancel_button.connect("clicked", self.close)
         add_button.connect("clicked", self.edit_game)
 

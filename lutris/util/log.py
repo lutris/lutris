@@ -14,7 +14,7 @@ LOG_FILENAME = join(CACHE_DIR, "lutris.log")
 loghandler = logging.handlers.RotatingFileHandler(LOG_FILENAME,
                                                   maxBytes=20971520,
                                                   backupCount=5)
-logger = logging.getLogger('Lutris')
+logger = logging.getLogger(__name__)
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logformatter = logging.Formatter(log_format)
 loghandler.setFormatter(logformatter)

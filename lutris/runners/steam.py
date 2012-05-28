@@ -22,7 +22,7 @@
 """Runner for the Steam platform"""
 
 import os
-import gtk
+from gi.repository import Gtk
 
 from lutris.gui.common import QuestionDialog, DirectoryDialog
 from lutris.runners.wine import wine
@@ -74,7 +74,7 @@ class steam(wine):
             'title': 'Installing Steam',
             'question': 'Do you already have Steam on your computer ?'
             })
-        if dlg.result == gtk.RESPONSE_NO:
+        if dlg.result == Gtk.ResponseType.NO:
             print "!!! NOT IMPLEMENTED !!!"
 
         dlg = DirectoryDialog('Where is located Steam ?')

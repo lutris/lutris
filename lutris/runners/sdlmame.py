@@ -62,10 +62,10 @@ class sdlmame(Runner):
             subprocess.Popen([self.executable, "-createconfig"],
                              stdout=subprocess.PIPE)
             os.chdir(romdir)
-            arguments = []
-            if not fullscreen:
-                arguments = arguments + ["-window"]
-                return [self.executable,
-                        "-inipath", mameconfigdir,
-                        "-skip_gameinfo",
-                        "-rompath", romdir, rom] + arguments
+        arguments = []
+        if not fullscreen:
+            arguments = arguments + ["-window"]
+        return {'command': [self.executable,
+                "-inipath", mameconfigdir,
+                "-skip_gameinfo",
+                "-rompath", romdir, rom] + arguments}

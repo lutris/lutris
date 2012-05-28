@@ -35,13 +35,12 @@ class GameConfigVBox(ConfigVBox):
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
-        runner_cls = import_runner(self.runner_class)
-        runner = runner_cls()
+        runner = import_runner(self.runner_class)
 
         if hasattr(runner, "game_options"):
             self.options = runner.game_options
         else:
-            no_option_label = Gtk.Label("No game options")
-            self.pack_start(no_option_label)
+            no_option_label = Gtk.Label(label="No game options")
+            self.pack_start(no_option_label, True, True, 0)
             return
         self.generate_widgets()

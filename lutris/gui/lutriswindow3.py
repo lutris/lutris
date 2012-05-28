@@ -2,28 +2,27 @@
 import os
 
 # pylint: disable=E0611
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris.util import log
+from lutris.config import LutrisConfig
 from lutris.settings import get_data_path
-
 from lutris.game import LutrisGame, get_list
+from lutris.desktop_control import LutrisDesktopControl
 
 from lutris.gui.dialogs import AboutDialog
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
+from lutris.gui.widgets import GameTreeView, GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
-from lutris.config import LutrisConfig
-from lutris.desktop_control import LutrisDesktopControl
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
-#from lutris.game import get_list
-#from lutris.gui.widgets import GameTreeView
 
 
 class LutrisWindow:
     """Handler class for main window signals"""
     def __init__(self):
+        log.logger.debug("Creating main window")
         ui_filename = os.path.join(get_data_path(), 'ui', 'LutrisWindow.ui')
         if not os.path.exists(ui_filename):
             msg = 'File %s not found' % ui_filename
@@ -32,15 +31,46 @@ class LutrisWindow:
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.builder.connect_signals(self)
-        #game_list = get_list()
-        #game_treeview = GameTreeView(game_list)
-        #game_treeview.connect('row-activated', self.game_launch)
-        #game_treeview.connect('cursor-changed', self.select_game)
-        #game_treeview.connect('button-press-event', self.mouse_menu)
-        #games_scrollwindow = builder.get_object('games_scrollwindow')
-        #games_scrollwindow.add_with_viewport(game_treeview)
+        log.logger.debug("Fetching game list")
+        game_list = get_list()
 
+        log.logger.debug("Creating game list")
+        self.game_treeview = GameTreeView(game_list)
+        self.game_treeview.connect('row-activated', self.game_launch)
+        self.game_treeview.connect('cursor-changed', self.select_game)
+        self.game_treeview.connect('button-press-event', self.mouse_menu)
+        games_scrollwindow = self.builder.get_object('games_scrollwindow')
+        games_scrollwindow.add_with_viewport(self.game_treeview)
+
+        #Status bar
+        self.status_label = self.builder.get_object('status_label')
+        self.status_label.set_text('Insert coin')
+
+        self.joystick_icons = []
+
+        self.game_cover = GameCover(parent=self)
+        self.game_cover.desactivate_drop()
+        cover_alignment = self.builder.get_object('cover_alignment')
+        cover_alignment.add(self.game_cover)
+
+        self.reset_button = self.builder.get_object('reset_button')
+        self.reset_button.set_sensitive(False)
+        self.delete_button = self.builder.get_object('delete_button')
+        self.delete_button.set_sensitive(False)
+
+        # Game list
+        self.game_column = self.game_treeview.get_column(1)
+        self.game_cell = self.game_column.get_cells()[0]
+        self.game_cell.connect('edited', self.game_name_edited_callback)
+
+        # Set buttons state
+        self.play_button = self.builder.get_object('play_button')
+        self.play_button.set_sensitive(False)
+
+        #Timer
+        self.timer_id = GObject.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
+        log.logger.debug("Showing main window")
         self.window.show_all()
 
     def refresh_status(self):
@@ -59,10 +89,13 @@ class LutrisWindow:
         else:
             self.status_label.set_text("Welcome to Lutris")
         for index in range(4):
+            self.joystick_icons.append(
+                self.builder.get_object('js' + str(index) + 'image')
+            )
             if os.path.exists("/dev/input/js%d" % index):
-                self.joystick_icons[index].show()
+                self.joystick_icons[index].set_visible(True)
             else:
-                self.joystick_icons[index].hide()
+                self.joystick_icons[index].set_visible(False)
         return True
 
     def on_destroy(self, *args):
@@ -94,16 +127,17 @@ class LutrisWindow:
     def select_game(self, treeview):
         """ Method triggered when a game is selected in the list. """
         #Set buttons states
-        self.play_button.set_sensitive(True)
-        self.reset_button.set_sensitive(True)
-        self.delete_button.set_sensitive(True)
-        self.game_cover.activate_drop()
+        #self.play_button.set_sensitive(True)
+        #self.reset_button.set_sensitive(True)
+        #self.delete_button.set_sensitive(True)
+        #self.game_cover.activate_drop()
 
         game_selected = treeview.get_selection()
-        model, select_iter = game_selected.get_selected()
-        if select_iter:
-            self.game_name = model.get_value(select_iter, 0)
-            self.game_cover.set_game_cover(self.game_name)
+        if  game_selected:
+            model, select_iter = game_selected.get_selected()
+            if select_iter:
+                self.game_name = model.get_value(select_iter, 0)
+                self.game_cover.set_game_cover(self.game_name)
 
     def remove_game(self, _widget, _data=None):
         """Remove game configuration file

@@ -303,7 +303,6 @@
                 </child>
                 <child>
                   <object class="GtkImage" id="js0image">
-                    <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
@@ -315,7 +314,6 @@
                 </child>
                 <child>
                   <object class="GtkImage" id="js1image">
-                    <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
@@ -327,7 +325,6 @@
                 </child>
                 <child>
                   <object class="GtkImage" id="js2image">
-                    <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
@@ -339,7 +336,6 @@
                 </child>
                 <child>
                   <object class="GtkImage" id="js3image">
-                    <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>

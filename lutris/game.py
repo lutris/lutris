@@ -15,21 +15,23 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-""" Game module that actually runs the games. """
+""" Module that actually runs the games. """
 
 import os
-from gi.repository import Gtk, GObject
 import time
 import subprocess
+
 from signal import SIGKILL
 from os.path import join
+from gi.repository import Gtk, GObject
 
 from lutris.runners import import_runner
 from lutris.util.log import logger
+from lutris.util import log
 from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
-from lutris.desktop_control import LutrisDesktopControl, change_resolution
+from lutris.desktop_control import LutrisDesktopControl
 from lutris.settings import CONFIG_DIR
 
 
@@ -55,15 +57,15 @@ def get_list():
     for filename in os.listdir(join(CONFIG_DIR, "games")):
         if filename.endswith(".yml"):
             game_name = filename[:len(filename) - 4]
-            print "Loading %s ..." % game_name
+            logger.info("Loading %s ...", game_name)
             try:
                 game = LutrisGame(game_name)
             except ConfigurationException:
                 message = "Error loading configuration for %s" % game_name
 
                 #error_dialog = Gtk.MessageDialog(parent=None, flags=0,
-                #                                 type=Gtk.MESSAGE_ERROR,
-                #                                 buttons=Gtk.BUTTONS_OK,
+                #                                 type=Gtk.MessageType.ERROR,
+                #                                 buttons=Gtk.ButtonsType.OK,
                 #                                 message_format=message)
                 #error_dialog.run()
                 #error_dialog.destroy()
@@ -120,7 +122,7 @@ class LutrisGame(object):
                         do you wish to install it now ?"
             install_runner_dialog = QuestionDialog({'question': question,
                 'title': "Required runner unavailable"})
-            if Gtk.RESPONSE_YES == install_runner_dialog.result:
+            if Gtk.ResponseType.YES == install_runner_dialog.result:
                 self.runner.install()
             else:
                 return False
@@ -130,7 +132,7 @@ class LutrisGame(object):
         """ Launch the game. """
         if not self.prelaunch():
             return False
-        logger.debug("get ready for %s " % self.get_real_name())
+        log.logger.debug("get ready for %s " % self.get_real_name())
         gameplay_info = self.runner.play()
 
         if type(gameplay_info) == dict:
@@ -144,7 +146,7 @@ class LutrisGame(object):
 
         resolution = self.game_config.get_system("resolution")
         if resolution:
-            change_resolution(resolution)
+            LutrisDesktopControl.change_resolution(resolution)
 
         _reset_pulse = self.game_config.get_system("reset_pulse")
         if _reset_pulse:
@@ -166,6 +168,8 @@ class LutrisGame(object):
 
         path = self.runner.get_game_path()
 
+        logger.debug("Game args")
+        logger.debug(game_run_args)
         command = " " . join(game_run_args)
         #Setting OSS Wrapper
         oss_wrapper = self.game_config.get_system("oss_wrapper")

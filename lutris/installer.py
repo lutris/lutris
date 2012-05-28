@@ -17,13 +17,14 @@
 #
 """Installer module"""
 import os
-import gtk
 import yaml
 import shutil
 import urllib
 import urllib2
 import platform
 import subprocess
+
+from gi.repository import Gtk
 
 from os.path import join, exists
 
@@ -83,7 +84,7 @@ def reporthook(piece, received_bytes, total_size):
 
 
 # pylint: disable=R0904
-class Installer(gtk.Dialog):
+class Installer(Gtk.Dialog):
     """Installer class"""
     def __init__(self, game, installer=False):
         super(Installer, self).__init__()
@@ -111,13 +112,13 @@ class Installer(gtk.Dialog):
             self.installer_path = join(CACHE_DIR, self.game_name + ".yml")
         else:
             self.installer_path = installer
-        self.location_button = gtk.FileChooserButton("Select folder")
+        self.location_button = Gtk.FileChooserButton("Select folder")
 
         # FIXME: Wrong ! The runner should be loaded first in order to
         # determine its default location
 
         self.location_button.set_current_folder(default_path)
-        self.location_button.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        self.location_button.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
         self.location_button.connect("file-set", self.game_dir_set)
 
         success = self.pre_install()
@@ -127,44 +128,44 @@ class Installer(gtk.Dialog):
             log.logger.info("Ready! Launching installer.")
 
         self.download_progress = None
-        gtk.Dialog.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_default_size(600, 480)
         self.set_resizable(False)
-        self.connect('destroy', lambda q: gtk.main_quit())
+        self.connect('destroy', lambda q: Gtk.main_quit())
 
         banner_path = join(CACHE_DIR, "banners/%s.jpg" % self.game_slug)
         if os.path.exists(banner_path):
-            banner = gtk.Image()
+            banner = Gtk.Image()
             banner.set_from_file(banner_path)
             self.vbox.pack_start(banner, False, False)
 
         if self.description:
-            description = gtk.Label()
+            description = Gtk.Label()
             description.set_markup(self.description)
             description.set_padding(20, 20)
             self.vbox.pack_start(description, True, True)
 
         # Install location
-        self.status_label = gtk.Label()
+        self.status_label = Gtk.Label()
         self.status_label.set_markup('<b>Select installation directory:</b>')
         self.status_label.set_alignment(0, 0)
         self.status_label.set_padding(20, 0)
         self.vbox.pack_start(self.status_label, True, True, 2)
 
-        self.widget_box = gtk.HBox()
-        self.vbox.pack_start(self.widget_box)
+        self.widget_box = Gtk.HBox()
+        self.vbox.pack_start(self.widget_box, True, True, 0)
 
-        self.widget_box.pack_start(self.location_button)
+        self.widget_box.pack_start(self.location_button, True, True, 0)
 
-        separator = gtk.HSeparator()
+        separator = Gtk.HSeparator()
         self.vbox.pack_start(separator, True, True, 10)
 
         # Install button
-        self.install_button = gtk.Button('Install')
+        self.install_button = Gtk.Button('Install')
         self.install_button.connect('clicked', self.download_game_files)
         #self.install_button.set_sensitive(False)
 
-        self.action_buttons = gtk.Alignment()
+        self.action_buttons = Gtk.Alignment.new()
         self.action_buttons.set(0.95, 0.1, 0.15, 0)
         self.action_buttons.add(self.install_button)
 
@@ -324,15 +325,15 @@ class Installer(gtk.Dialog):
 
         self.status_label.set_text("Installation finished !")
 
-        desktop_btn = gtk.Button('Create a desktop shortcut')
+        desktop_btn = Gtk.Button('Create a desktop shortcut')
         desktop_btn.connect('clicked',
                                      lambda d: create_launcher(self.game_slug,
                                                                desktop=True))
-        menu_btn = gtk.Button('Create an icon in the application menu')
+        menu_btn = Gtk.Button('Create an icon in the application menu')
         menu_btn.connect('clicked',
                                   lambda m: create_launcher(self.game_slug,
                                                             menu=True))
-        buttons_box = gtk.HBox()
+        buttons_box = Gtk.HBox()
         buttons_box.pack_start(desktop_btn, False, False, 10)
         buttons_box.pack_start(menu_btn, False, False, 10)
         buttons_box.show_all()
@@ -340,7 +341,7 @@ class Installer(gtk.Dialog):
         self.widget_box.pack_start(buttons_box, True, True, 10)
 
         self.install_button.destroy()
-        play_button = gtk.Button("Launch game")
+        play_button = Gtk.Button("Launch game")
         play_button.show()
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)

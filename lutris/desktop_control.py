@@ -21,12 +21,11 @@
 This class interacts with the window manager, xrandr, gconf, ...
 """
 
-import gconf
 import os.path
 
 from subprocess import Popen, PIPE
 
-from lutris.gconfwrapper import GconfWrapper
+from lutris.gconf import GConfSetting
 from lutris.util.log import logger
 
 
@@ -87,9 +86,6 @@ class LutrisDesktopControl():
     experience """
     def __init__(self):
         self.default_resolution = None
-        self.gconf = GconfWrapper()
-        self.gconf_path = os.path.join(os.path.expanduser("~"), ".gconf")
-        self.client = gconf.client_get_default()
         self.panels_hidden = False
 
     def set_compiz_fullscreen(self, class_=None, title=None):
@@ -99,7 +95,8 @@ class LutrisDesktopControl():
             return False
         compiz_root = "/apps/compiz/plugins"
         key = compiz_root + "/winrules/screen0/options/fullscreen_match"
-        self.gconf.set_key(key, rule, True)
+        setting = GConfSetting(key, bool)
+        setting.set_value(rule)
         return True
 
     def set_compiz_nodecoration(self, class_=None, title=None):
@@ -110,35 +107,18 @@ class LutrisDesktopControl():
         rule = "(any) & !(%s)" % window_rule
         compiz_root = "/apps/compiz/plugins"
         key = compiz_root + "/decoration/allscreens/options/decoration_match"
-        self.gconf.set_key(key, rule, True)
+        setting = GConfSetting(key, bool)
+        setting.set_value(rule)
         return True
 
-    def hide_panels(self, hide=True):
-        """
-        Hide any panel that exists on the Gnome desktop.
-
-        This is useful with some games, mostly running with Wine,
-        won't hide the panels in fullscreen mode.
-        """
-        base_dir = "/apps/panel/toplevels/"
-        panels = self.gconf.all_dirs(base_dir)
-        self.panels_hidden = hide
-        for panel in panels:
-            if hide:
-                print "Hiding %s" % panel
-            else:
-                print "Showing %s" % panel
-            gconf_key = base_dir + panel + "/auto_hide"
-            self.gconf.set_key(gconf_key, hide)
-        return True
-
-    def set_keyboard_repeat(self, gconf_value=False):
+    def set_keyboard_repeat(self, value=False):
         """Desactivate key repeats.
 
         This is needed, for example, in Wolfenstein (2009)
         """
-        gconf_key = "/desktop/gnome/peripherals/keyboard/repeat"
-        self.gconf.set_key(gconf_key, gconf_value)
+        key = "/desktop/gnome/peripherals/keyboard/repeat"
+        setting = GConfSetting(key, bool)
+        setting.set_key(key, value)
         return True
 
     def reset_desktop(self):

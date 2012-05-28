@@ -22,13 +22,13 @@
 
 import os
 import Image
-from gi.repository import Gtk, GObject, Pango
+from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf
+from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
 from lutris.util import log
 from lutris.settings import get_data_path
-import lutris.constants
 
 ICON_SIZE = 24
 MISSING_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
@@ -46,14 +46,14 @@ class GameTreeView(Gtk.TreeView):
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        model = Gtk.ListStore(str, Gtk.gdk.Pixbuf, str)
-        model.set_sort_column_id(0, Gtk.SORT_ASCENDING)
+        model = Gtk.ListStore(str, Pixbuf, str)
+        model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
         self.set_model(model)
         image_cell = Gtk.CellRendererPixbuf()
         column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
         self.append_column(column)
         text_cell = Gtk.CellRendererText()
-        text_cell.set_property("ellipsize", Pango.ELLIPSIZE_END)
+        text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         column = Gtk.TreeViewColumn("Game", text_cell, markup=self.COL_TEXT)
         self.append_column(column)
         if games:
@@ -69,8 +69,7 @@ class GameTreeView(Gtk.TreeView):
         icon_path = os.path.join(get_data_path(),
                                  'media/runner_icons',
                                  game['runner'] + '.png')
-        pix = Gtk.gdk.pixbuf_new_from_file_at_size(icon_path,
-                                                   ICON_SIZE, ICON_SIZE)
+        pix = Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
         row = model.append([game['id'], pix, label, ])
         return row
 
@@ -82,9 +81,8 @@ class GameTreeView(Gtk.TreeView):
 
     def sort_rows(self):
         """Sort the game list."""
-
         model = self.get_model()
-        Gtk.TreeModelSort(model)
+        Gtk.TreeModel.sort_new_with_model(model)
 
 
 class GameCover(Gtk.Image):
@@ -92,7 +90,8 @@ class GameCover(Gtk.Image):
     def __init__(self, parent=None):
         super(GameCover, self).__init__()
         self.parent_window = parent
-        self.set_from_file(os.path.join(get_data_path(), "media/background.png"))
+        self.set_from_file(os.path.join(get_data_path(),
+                                        "media/background.png"))
         self.connect('drag_data_received', self.on_cover_drop)
 
     def set_game_cover(self, name):
@@ -100,7 +99,7 @@ class GameCover(Gtk.Image):
         cover_file = os.path.join(COVER_PATH, name + ".jpg")
         if os.path.exists(cover_file):
             #Resize the image
-            cover_pixbuf = Gtk.gdk.pixbuf_new_from_file(cover_file)
+            cover_pixbuf = Pixbuf.new_from_file(cover_file)
             dest_w = 250.0
             height = cover_pixbuf.get_height()
             width = cover_pixbuf.get_width()
@@ -108,11 +107,12 @@ class GameCover(Gtk.Image):
             self.set_from_pixbuf(cover_pixbuf.scale_simple(
                 int(dest_w),
                 int(dest_h),
-                Gtk.gdk.INTERP_BILINEAR
+                GdkPixbuf.InterpType.BILINEAR
             ))
             return
         else:
-            self.set_from_file(os.path.join(get_data_path(), "media/background.png"))
+            self.set_from_file(os.path.join(get_data_path(),
+                                            "media/background.png"))
 
     def desactivate_drop(self):
         """Deactivate DnD for the widget."""
@@ -125,8 +125,8 @@ class GameCover(Gtk.Image):
                    ('text/html', 0, 0),
                    ('text/unicode', 0, 0),
                    ('text/x-moz-url', 0, 0)]
-        self.drag_dest_set(Gtk.DEST_DEFAULT_ALL, targets,
-            Gtk.gdk.ACTION_COPY | Gtk.gdk.ACTION_DEFAULT | Gtk.gdk.ACTION_MOVE)
+        self.drag_dest_set(Gtk.DestDefaults.ALL, targets,
+            Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT | Gdk.DragAction.MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         """Take action based on a drop on the widget."""
@@ -154,15 +154,15 @@ class GameCover(Gtk.Image):
 
 class DownloadProgressBox(Gtk.HBox):
     """Progress bar used to monitor a file download."""
-    __gsignals__ = {'complete': (GObject.SIGNAL_RUN_LAST,
-                                 GObject.TYPE_NONE,
+    __gsignals__ = {'complete': (GObject.SignalFlags.RUN_LAST,
+                                 None,
                                  (GObject.TYPE_PYOBJECT,)),
-                    'cancelrequested': (GObject.SIGNAL_RUN_LAST,
-                                         GObject.TYPE_NONE,
+                    'cancelrequested': (GObject.SignalFlags.RUN_LAST,
+                                         None,
                                          (GObject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
-        Gtk.HBox.__init__(self, False, 2)
+        GObject.GObject.__init__(self, False, 2)
         self.downloader = None
         self.progressbar = Gtk.ProgressBar()
         self.progressbar.show()

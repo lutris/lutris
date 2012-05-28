@@ -32,7 +32,7 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 class RunnerConfigDialog(Gtk.Dialog):
     """ """
     def __init__(self, runner):
-        Gtk.Dialog.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_title("Configure %s" % (runner))
         self.set_size_request(570, 500)
         self.runner = runner
@@ -46,27 +46,27 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,
                                                    "runner")
         runner_scrollwindow = Gtk.ScrolledWindow()
-        runner_scrollwindow.set_policy(Gtk.POLICY_AUTOMATIC,
-                                                 Gtk.POLICY_AUTOMATIC)
+        runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                                 Gtk.PolicyType.AUTOMATIC)
         runner_scrollwindow.add_with_viewport(self.runner_config_vbox)
         self.config_notebook.append_page(runner_scrollwindow,
-                                         Gtk.Label("Runner configuration"))
+                                         Gtk.Label(label="Runner configuration"))
 
         #System configuration
         self.system_config_vbox = SystemConfigVBox(self.lutris_config,
                                                    "runner")
         system_scrollwindow = Gtk.ScrolledWindow()
-        system_scrollwindow.set_policy(Gtk.POLICY_AUTOMATIC,
-                                                 Gtk.POLICY_AUTOMATIC)
+        system_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                                 Gtk.PolicyType.AUTOMATIC)
         system_scrollwindow.add_with_viewport(self.system_config_vbox)
         self.config_notebook.append_page(system_scrollwindow,
-                                         Gtk.Label("System configuration"))
+                                         Gtk.Label(label="System configuration"))
 
         #Action buttons
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
         ok_button = Gtk.Button(None, Gtk.STOCK_OK)
-        self.action_area.pack_start(cancel_button)
-        self.action_area.pack_start(ok_button)
+        self.action_area.pack_start(cancel_button, True, True, 0)
+        self.action_area.pack_start(ok_button, True, True, 0)
         cancel_button.connect("clicked", self.close)
         ok_button.connect("clicked", self.ok_clicked)
 
@@ -86,7 +86,7 @@ class RunnersDialog(Gtk.Dialog):
     """Dialog for the runner preferences"""
 
     def __init__(self):
-        Gtk.Dialog.__init__(self)
+        GObject.GObject.__init__(self)
         self.set_title("Configure runners")
         self.set_size_request(570, 400)
 
@@ -96,7 +96,7 @@ class RunnersDialog(Gtk.Dialog):
         """)
 
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.POLICY_AUTOMATIC, Gtk.POLICY_AUTOMATIC)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.vbox.pack_start(label, False, True, 20)
         self.vbox.pack_start(scrolled_window, True, True)
 
@@ -132,7 +132,7 @@ class RunnersDialog(Gtk.Dialog):
             #Button
             button = Gtk.Button("Configure")
             button.set_size_request(100, 30)
-            button_align = Gtk.Alignment(0.0, 1.0, 0.0, 0.0)
+            button_align = Gtk.Alignment.new(0.0, 1.0, 0.0, 0.0)
             if runner_instance.is_installed():
                 button.set_label('Configure')
                 button.set_size_request(100, 30)
@@ -152,8 +152,7 @@ class RunnersDialog(Gtk.Dialog):
 
     def on_install_clicked(self, widget, runner_classname):
         """Install a runner"""
-        runner_class = import_runner(runner_classname)
-        runner = runner_class()
+        runner = import_runner(runner_classname)
         runner.install()
 
     def on_configure_clicked(self, widget, runner):

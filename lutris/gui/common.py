@@ -30,7 +30,7 @@ from lutris.gui.widgets import DownloadProgressBox
 class NoticeDialog(Gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
-        super(NoticeDialog, self).__init__(buttons=Gtk.BUTTONS_OK)
+        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -40,7 +40,7 @@ class NoticeDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """ Displays an error message. """
     def __init__(self, message):
-        super(ErrorDialog, self).__init__(buttons=Gtk.BUTTONS_OK)
+        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -50,8 +50,8 @@ class QuestionDialog(Gtk.MessageDialog):
     """ Asks a question. """
     def __init__(self, settings):
         super(QuestionDialog, self).__init__(
-            type=Gtk.MESSAGE_QUESTION,
-            buttons=Gtk.BUTTONS_YES_NO,
+            type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.YES_NO,
             message_format=settings['question']
         )
         self.set_title(settings['title'])
@@ -64,9 +64,9 @@ class DirectoryDialog(Gtk.FileChooserDialog):
     def __init__(self, message):
         super(DirectoryDialog, self).__init__(
             title=message,
-            action=Gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            buttons=(Gtk.STOCK_CLOSE, Gtk.RESPONSE_CLOSE,
-                     Gtk.STOCK_OK, Gtk.RESPONSE_OK)
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
+                     Gtk.STOCK_OK, Gtk.ResponseType.OK)
         )
         self.result = self.run()
         self.folder = self.get_current_folder()
@@ -78,13 +78,13 @@ class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
         print "creating download dialog"
-        Gtk.Dialog.__init__(self, "Downloading file")
+        GObject.GObject.__init__(self, "Downloading file")
         self.set_size_request(560, 100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
         #self.download_progress_box.connect('complete', self.download_complete)
-        label = Gtk.Label('Downloading %s' % url)
+        label = Gtk.Label(label='Downloading %s' % url)
         label.set_padding(0, 0)
         label.set_alignment(0.0, 1.0)
         self.vbox.pack_start(label, True, True, 0)

@@ -31,25 +31,11 @@ if LAUNCH_PATH != "/usr/bin":
 
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util import log
-#from lutris.installer import Installer
+from lutris.installer import Installer
 from lutris.config import check_config
 from lutris.gui.lutriswindow3 import LutrisWindow
 
 log.logger.name = "Lutris"
-
-#def new_lutris_window():
-#    """ Returns an instantiated LutrisWindow object. """
-#    ui_filename = os.path.join(DATA_PATH, 'ui', 'LutrisWindow.ui')
-#    if not os.path.exists(ui_filename):
-#        msg = 'File %s not found' % ui_filename
-#        log.logger.error(msg)
-#        raise IOError(msg)
-#    builder = gtk.Builder()
-#    builder.add_from_file(ui_filename)
-#    window = builder.get_object("lutris_window")
-#    window.finish_initializing(builder, DATA_PATH)
-#    return window
-
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog %ver")
@@ -123,6 +109,4 @@ if game is not None:
         Gtk.gdk.threads_leave()
 else:
     lutris_window = LutrisWindow()
-    #Gtk.gdk.threads_enter()
     Gtk.main()
-    #Gtk.gdk.threads_leave()

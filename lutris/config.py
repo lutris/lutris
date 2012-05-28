@@ -26,21 +26,21 @@ import lutris.pga as pga
 
 from lutris.util import log
 from lutris.util.strings import slugify
-from lutris.gconfwrapper import GconfWrapper
+from lutris.gconf import GConfSetting
 from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
 
 
 def register_handler():
     """ Register the lutris: protocol to open with the application. """
     log.logger.info("registering protocol")
-    gconf = GconfWrapper()
     defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
                 ('/desktop/gnome/url-handlers/lutris/enabled', True),
                 ('/desktop/gnome/url-handlers/lutris/needs-terminal', False),)
 
     for key, value in defaults:
         log.logger.debug("registering gconf key %s" % key)
-        gconf.set_key(key, value, override_type=True)
+        setting = GConfSetting(key, type(value))
+        setting.set_key(key, value, override_type=True)
 
 
 def check_config(force_wipe=False):
@@ -54,10 +54,6 @@ def check_config(force_wipe=False):
                    join(DATA_DIR, "icons"),
                    join(DATA_DIR, "banners"),
                    join(CACHE_DIR, "installer")]
-    if not os.path.exists(CONFIG_DIR) or force_wipe:
-        first_run = True
-    else:
-        first_run = False
     for directory in directories:
         if not os.path.exists(directory):
             log.logger.debug("creating directory %s" % directory)
@@ -68,10 +64,8 @@ def check_config(force_wipe=False):
 
     if not os.path.isfile(PGA_DB) or force_wipe:
         log.logger.debug("creating PGA database in %s" % PGA_DB)
-
         pga.create()
-    #if first_run:
-    register_handler()
+    #register_handler()
 
 
 class LutrisConfig():
