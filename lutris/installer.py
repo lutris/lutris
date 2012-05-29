@@ -243,7 +243,10 @@ class Installer(Gtk.Dialog):
             log.logger.debug('Creating destination directory %s' % dest_dir)
             os.mkdir(dest_dir)
         for fileinfo in self.rules["files"]:
-            key, url = fileinfo.items()[0]
+            key = fileinfo.keys()[0]
+            url = fileinfo.values()[0]
+            if isinstance(url, dict):
+                url = url['filename']
             filename = os.path.basename(url)
             self.gamefiles[key] = os.path.join(dest_dir, filename)
         self.location_entry.destroy()
@@ -269,20 +272,27 @@ class Installer(Gtk.Dialog):
         self.process_downloads()
 
     def download_game_file(self, game_file):
-        """Download a file referenced in the installer script"""
-        file_id = game_file.keys()[0]
-        # Game files can be either a string, containing the location of the
-        # file to fetch or a dict with the possible options :
-        # - url : location of file (mandatory)
-        # - filename : force destination filename
-        # - nocopy : don't copy the file in the cache (not for internet links)
+        """Download a file referenced in the installer script
+
+           Game files can be either a string, containing the location of the
+           file to fetch or a dict with the possible options :
+           - url : location of file, if not present, filename will be used
+                   this should be the case for local files
+           - filename : force destination filename when url is present or path
+                        of local file
+           - nocopy : don't copy the file in the cache (not for internet links)
+        """
         copyfile = True
+        file_id = game_file.keys()[0]
         if isinstance(game_file[file_id], dict):
-            url = game_file[file_id]['url']
             if 'filename' in game_file[file_id]:
                 filename = game_file[file_id]['filename']
             else:
                 filename = None
+            if 'url' in game_file[file_id]:
+                url = game_file[file_id]['url']
+            else:
+                url = filename
             if 'nocopy' in game_file[file_id]:
                 copyfile = False
         else:
@@ -411,6 +421,7 @@ class Installer(Gtk.Dialog):
             basename = url[9:]
             dlg = DirectoryDialog("Select location of file %s " % basename)
             file_path = dlg.folder
+            # TODO : store filepath somewhere useful
             if copyfile is True:
                 location = os.path.join(file_path, basename)
                 shutil.copy(location, dest_dir)
