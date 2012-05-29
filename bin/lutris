@@ -34,7 +34,6 @@ from lutris.util import log
 from lutris.installer import Installer
 from lutris.config import check_config
 from lutris.gui.lutriswindow import LutrisWindow
-
 log.logger.name = "Lutris"
 
 # Support for command line options.
@@ -103,10 +102,8 @@ if game is not None:
         lutris_game.play()
     else:
         log.logger.debug('Installing %s' % game)
-        #installer = Installer(game, installer)
-        Gtk.gdk.threads_enter()
+        installer = Installer(game, installer)
         Gtk.main()
-        Gtk.gdk.threads_leave()
 else:
     lutris_window = LutrisWindow()
     Gtk.main()

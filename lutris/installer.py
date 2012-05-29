@@ -33,7 +33,7 @@ from lutris.util.strings import slugify
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog, DirectoryDialog
-from lutris.gui.widgets import DownloadProgressBox
+from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris.settings import CONFIG_DIR, CACHE_DIR, DATA_DIR
 from lutris.constants import INSTALLER_URL
@@ -85,9 +85,12 @@ def reporthook(piece, received_bytes, total_size):
 
 # pylint: disable=R0904
 class Installer(Gtk.Dialog):
+    game_dir = None
+
     """Installer class"""
     def __init__(self, game, installer=False):
         super(Installer, self).__init__()
+        self.set_size_request(500, 400)
         self.lutris_config = None  # Internal game config
         if not game:
             msg = "No game specified in this installer"
@@ -97,9 +100,6 @@ class Installer(Gtk.Dialog):
         self.game_name = game  # Name of the game
         self.game_slug = slugify(self.game_name)
         self.description = False
-        default_path = join(os.path.expanduser('~'), self.game_slug)
-        log.logger.debug("default path set to %s " % default_path)
-        self.game_dir = default_path
         self.download_index = 0
         self.rules = {}  # Content of yaml file
         self.actions = []
@@ -108,27 +108,29 @@ class Installer(Gtk.Dialog):
         self.game_info = {}
         # Dictionary of the files needed to install the game
         self.gamefiles = {}
+
         if installer is False:
             self.installer_path = join(CACHE_DIR, self.game_name + ".yml")
         else:
             self.installer_path = installer
-        self.location_button = Gtk.FileChooserButton("Select folder")
 
-        # FIXME: Wrong ! The runner should be loaded first in order to
-        # determine its default location
-
-        self.location_button.set_current_folder(default_path)
-        self.location_button.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
-        self.location_button.connect("file-set", self.game_dir_set)
+        # Install location
+        self.status_label = Gtk.Label()
+        self.status_label.set_markup('<b>Select installation directory:</b>')
+        self.status_label.set_alignment(0, 0)
+        self.status_label.set_padding(20, 0)
+        self.vbox.pack_start(self.status_label, True, True, 2)
 
         success = self.pre_install()
+        self.location_entry = FileChooserEntry(default=self.game_dir)
+        self.location_entry.entry.connect('changed', self.set_game_dir)
+        self.vbox.add(self.location_entry)
         if not success:
             log.logger.error("Unable to install game")
         else:
             log.logger.info("Ready! Launching installer.")
 
         self.download_progress = None
-        GObject.GObject.__init__(self)
         self.set_default_size(600, 480)
         self.set_resizable(False)
         self.connect('destroy', lambda q: Gtk.main_quit())
@@ -145,17 +147,8 @@ class Installer(Gtk.Dialog):
             description.set_padding(20, 20)
             self.vbox.pack_start(description, True, True)
 
-        # Install location
-        self.status_label = Gtk.Label()
-        self.status_label.set_markup('<b>Select installation directory:</b>')
-        self.status_label.set_alignment(0, 0)
-        self.status_label.set_padding(20, 0)
-        self.vbox.pack_start(self.status_label, True, True, 2)
-
         self.widget_box = Gtk.HBox()
         self.vbox.pack_start(self.widget_box, True, True, 0)
-
-        self.widget_box.pack_start(self.location_button, True, True, 0)
 
         separator = Gtk.HSeparator()
         self.vbox.pack_start(separator, True, True, 10)
@@ -165,11 +158,10 @@ class Installer(Gtk.Dialog):
         self.install_button.connect('clicked', self.download_game_files)
         #self.install_button.set_sensitive(False)
 
-        self.action_buttons = Gtk.Alignment.new()
-        self.action_buttons.set(0.95, 0.1, 0.15, 0)
+        self.action_buttons = Gtk.Alignment.new(0.95, 0.1, 0.15, 0)
         self.action_buttons.add(self.install_button)
 
-        self.vbox.pack_start(self.action_buttons, False, False)
+        self.vbox.pack_start(self.action_buttons, False, False, 0)
         self.show_all()
 
     def download_installer(self):
@@ -180,7 +172,7 @@ class Installer(Gtk.Dialog):
         try:
             urllib2.urlopen(request)
         except urllib2.URLError:
-            log.logger.debug("Server is unreachable")
+            log.logger.debug("Server is unreachable at %s", full_url)
             self.errors.append("INSTALLER_UNREACHABLE")
             success = False
         else:
@@ -196,25 +188,26 @@ class Installer(Gtk.Dialog):
         # Fetch assets
         banner_url = 'http://lutris.net/media/banners/%s.jpg' % self.game_slug
         banner_dest = join(DATA_DIR, "banners/%s.jpg" % self.game_slug)
-        try:
-            urllib.urlretrieve(banner_url, banner_dest)
-        except IOError:
-            log.logger.warning("can't get banner for %s" % self.game_slug)
+        if not os.path.exists(banner_dest):
+            try:
+                log.logger.debug("Fetching banner : %s" % banner_url)
+                urllib.urlretrieve(banner_url, banner_dest)
+            except IOError:
+                log.logger.warning("can't get banner for %s" % self.game_slug)
 
-        icon_url = 'http://lutris.net/media/game_icons/%s.png' % self.game_slug
-        icon_path = join(DATA_DIR, "icons/%s.png" % self.game_slug)
-        try:
-            urllib.urlretrieve(icon_url, icon_path)
-        except IOError:
-            log.logger.warning("can't get icon for %s" % self.game_slug)
+        icon_url = 'http://lutris.net/media/icons/%s.png' % self.game_slug
+        icon_dest = join(DATA_DIR, "icons/%s.png" % self.game_slug)
+        if not os.path.exists(icon_dest):
+            try:
+                log.logger.debug("Fetching icon : %s" % icon_url)
+                urllib.urlretrieve(icon_url, icon_dest)
+            except IOError:
+                log.logger.warning("can't get icon for %s" % self.game_slug)
 
         # Download installer if not already there.
-        if not os.path.exists(self.installer_path):
-            success = self.download_installer()
-            if not success:
-                return False
-        else:
-            log.logger.debug('Using local copy of the installer')
+        success = self.download_installer()
+        if not success:
+            return False
 
         if 'INSTALLER_UNREACHABLE' in self.errors:
             ErrorDialog("Can't find an installer for \"%s\""
@@ -228,20 +221,19 @@ class Installer(Gtk.Dialog):
         if not games_dir:
             log.logger.debug("No default path for %s games"
                              % self.rules['runner'])
+            default_path = join(os.path.expanduser('~'), self.game_slug)
+            log.logger.debug("default path set to %s " % default_path)
+            self.game_dir = default_path
             return True
 
         self.game_dir = join(games_dir, self.game_slug)
+        log.logger.debug("Setting default path to : %s", self.game_dir)
         if not os.path.exists(self.game_dir):
             os.mkdir(self.game_dir)
-
-        self.location_button.set_current_folder(self.game_dir)
         return success
 
-    def game_dir_set(self, widget=None):
-        """Set the installation directory based on the user's choice"""
-        self.game_dir = widget.get_current_folder()
-        if os.path.exists(self.game_dir):
-            self.install_button.set_sensitive(True)
+    def set_game_dir(self, widget):
+        self.game_dir = widget.get_text()
 
     def download_game_files(self, _widget=None, _data=None):
         """ Runs the actions to complete the install. """
@@ -254,7 +246,7 @@ class Installer(Gtk.Dialog):
             key, url = fileinfo.items()[0]
             filename = os.path.basename(url)
             self.gamefiles[key] = os.path.join(dest_dir, filename)
-        self.location_button.destroy()
+        self.location_entry.destroy()
         self.install_button.set_sensitive(False)
         self.process_downloads()
 

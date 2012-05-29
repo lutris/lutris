@@ -219,3 +219,4 @@ class LutrisWindow:
 
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
+

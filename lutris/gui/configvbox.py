@@ -187,7 +187,8 @@ class ConfigVBox(Gtk.VBox):
         """ Generates a ranged spin button. """
         adjustment = Gtk.Adjustment(float(min_val), float(min_val),
                                     float(max_val), 1, 0, 0)
-        spin_button = Gtk.SpinButton(adjustment)
+        spin_button = Gtk.SpinButton()
+        spin_button.set_adjustment(adjustment)
         if value:
             spin_button.set_value(value)
         spin_button.connect('changed',
@@ -274,19 +275,18 @@ class ConfigVBox(Gtk.VBox):
         self.files_list_store = Gtk.ListStore(str)
         for filename in self.files:
             self.files_list_store.append([filename])
-        files_column = Gtk.TreeViewColumn("Files")
         cell_renderer = Gtk.CellRendererText()
-        files_column.pack_start(cell_renderer, True)
-        files_column.set_attributes(cell_renderer, text=0)
         files_treeview = Gtk.TreeView(self.files_list_store)
+        files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.set_size_request(10, 100)
+        #files_treeview.set_size_request(10, 100)
         files_treeview.connect('key-press-event', self.on_files_treeview_event)
         treeview_scroll = Gtk.ScrolledWindow()
+        treeview_scroll.set_min_content_height(200)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         treeview_scroll.add(files_treeview)
-        self.pack_start(treeview_scroll, True, True)
+        self.add(treeview_scroll)
 
     def on_files_treeview_event(self, _, event):
         """ Action triggered when a row is deleted from the filechooser. """

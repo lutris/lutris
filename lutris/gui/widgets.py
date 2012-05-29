@@ -208,3 +208,66 @@ class DownloadProgressBox(Gtk.HBox):
         """Cancel the current download."""
         print "cancelling download"
         self.downloader.kill()
+
+
+class FileChooserEntry(Gtk.Box):
+    def __init__(self, action=Gtk.FileChooserAction.SELECT_FOLDER,
+                 default=None):
+        super(FileChooserEntry, self).__init__()
+
+        self.entry = Gtk.Entry()
+        if default:
+            self.entry.set_text(default)
+        self.pack_start(self.entry, True, True, 0)
+
+        self.path_completion = Gtk.ListStore(str)
+        completion = Gtk.EntryCompletion()
+        completion.set_model(self.path_completion)
+        completion.set_text_column(0)
+        self.entry.set_completion(completion)
+        self.entry.connect("changed", self.entry_changed)
+
+        button = Gtk.Button()
+        button.set_label("Browse...")
+        button.connect('clicked', self.open_filechooser, action, default)
+        self.add(button)
+
+    def open_filechooser(self, widget, action, default):
+        dlg = Gtk.FileChooserDialog(
+            "Select folder", None, action,
+            (Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
+             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+        )
+        if default and os.path.exists(default):
+            dlg.set_current_folder(default)
+        dlg.connect('response', self.select_file)
+        dlg.run()
+
+    def entry_changed(self, widget):
+        self.path_completion.clear()
+        current_path = widget.get_text()
+        if not current_path:
+            current_path = "/"
+        if not os.path.exists(current_path):
+            current_path, filefilter = os.path.split(current_path)
+        else:
+            filefilter = None
+        if os.path.isdir(current_path):
+            index = 0
+            for filename in sorted(os.listdir(current_path)):
+                if filename.startswith("."):
+                    continue
+                if filefilter is not None and \
+                   not filename.startswith(filefilter):
+                    continue
+                self.path_completion.append(
+                    [os.path.join(current_path, filename)]
+                )
+                index = index + 1
+                if index > 15:
+                    break
+
+    def select_file(self, dialog, response):
+        if response == Gtk.ResponseType.OK:
+            self.entry.set_text(dialog.get_filename())
+        dialog.destroy()
