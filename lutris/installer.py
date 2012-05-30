@@ -37,6 +37,7 @@ from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris.settings import CONFIG_DIR, CACHE_DIR, DATA_DIR
 from lutris.constants import INSTALLER_URL
+from lutris.runners import import_task
 
 
 def unzip(filename, dest=None):
@@ -242,13 +243,6 @@ class Installer(Gtk.Dialog):
         if not exists(dest_dir):
             log.logger.debug('Creating destination directory %s' % dest_dir)
             os.mkdir(dest_dir)
-        for fileinfo in self.rules["files"]:
-            key = fileinfo.keys()[0]
-            url = fileinfo.values()[0]
-            if isinstance(url, dict):
-                url = url['filename']
-            filename = os.path.basename(url)
-            self.gamefiles[key] = os.path.join(dest_dir, filename)
         self.location_entry.destroy()
         self.install_button.set_sensitive(False)
         self.process_downloads()
@@ -257,8 +251,8 @@ class Installer(Gtk.Dialog):
         """Download each file needed for the game"""
         if self.download_index < len(self.rules["files"]):
             log.logger.info(
-                "Downloading file %d of %d" % (self.download_index + 1,
-                                            len(self.rules["files"]))
+                "Downloading file %d of %d",
+                self.download_index + 1, len(self.rules["files"])
             )
             log.logger.debug(self.rules["files"][self.download_index])
             self.download_game_file(self.rules["files"][self.download_index])
@@ -281,6 +275,8 @@ class Installer(Gtk.Dialog):
            - filename : force destination filename when url is present or path
                         of local file
            - nocopy : don't copy the file in the cache (not for internet links)
+
+            return the path of local file
         """
         copyfile = True
         file_id = game_file.keys()[0]
@@ -299,7 +295,50 @@ class Installer(Gtk.Dialog):
             url = game_file[file_id]
             filename = None
         log.logger.debug("Downloading %s" % url)
-        self._download(url, filename, copyfile)
+
+        if self.download_progress is not None:
+            self.download_progress.destroy()
+
+        self.status_label.set_text('Fetching %s' % url)
+        dest_dir = join(CACHE_DIR, "installer/%s" % self.game_slug)
+        if not filename:
+            filename = os.path.basename(url)
+        dest_file = os.path.join(dest_dir, filename)
+        if os.path.exists(dest_file):
+            log.logger.debug("Destination file exists")
+            self.download_complete(None, None)
+        elif url.startswith("file://"):
+            location = url[7:]
+            if copyfile is True:
+                shutil.copy(location, dest_dir)
+            self.download_complete(None, None)
+        elif url.startswith("$ASK_DIR"):
+            #Ask the user where is located the file
+            basename = url[9:]
+            dlg = DirectoryDialog("Select location of file %s " % basename)
+            file_path = dlg.folder
+            if os.path.exists(os.path.join(file_path, basename)):
+                log.logger.debug("File %s found", basename)
+                location = os.path.join(file_path, basename)
+            else:
+                log.logger.warning("Can't find file %s", basename)
+
+            if copyfile is True:
+                shutil.copy(location, dest_dir)
+                # TODO change location
+            self.gamefiles[file_id] = location
+            self.download_complete(None, None)
+        else:
+            self.gamefiles[file_id] = dest_file
+            self.download_progress = DownloadProgressBox({'url': url,
+                                                          'dest': dest_file},
+                                                         cancelable=False)
+            self.download_progress.connect('complete', self.download_complete)
+            self.widget_box.pack_start(self.download_progress, True, True)
+            self.download_progress.show()
+            self.download_progress.start()
+        log.logger.debug("Download for %s processed, stored in %s", file_id,
+                         self.gamefiles[file_id])
 
     def install(self):
         """Actual game installation"""
@@ -317,7 +356,9 @@ class Installer(Gtk.Dialog):
             mappings = {'extract': self._extract,
                         'move': self._move,
                         'request_media': self._request_media,
-                        'run': self._run}
+                        'run': self._run,
+                        'runner': self._runner_task
+                       }
             if action_name not in mappings.keys():
                 log.logger.error("Action " + action_name + " not supported !")
                 continue
@@ -393,47 +434,6 @@ class Installer(Gtk.Dialog):
         yaml_config = yaml.dump(config_data, default_flow_style=False)
         file(config_filename, "w").write(yaml_config)
 
-    def _download(self, url, filename=None, copyfile=True):
-        """ Downloads a file.
-        Not necessarily downloading a file but fetching it from anywhere.
-        url: location of the file to fetch
-        destfile: force filename of destfile
-
-        return the path of local file
-        """
-        if self.download_progress is not None:
-            self.download_progress.destroy()
-
-        self.status_label.set_text('Fetching %s' % url)
-        dest_dir = join(CACHE_DIR, "installer/%s" % self.game_slug)
-        if not filename:
-            filename = os.path.basename(url)
-        dest_file = os.path.join(dest_dir, filename)
-        if os.path.exists(dest_file):
-            log.logger.debug("Destination file exists")
-            self.download_complete(None, None)
-        elif url.startswith("file://"):
-            location = url[7:]
-            if copyfile is True:
-                shutil.copy(location, dest_dir)
-        elif url.startswith("$ASK_DIR"):
-            #Ask the user where is located the file
-            basename = url[9:]
-            dlg = DirectoryDialog("Select location of file %s " % basename)
-            file_path = dlg.folder
-            # TODO : store filepath somewhere useful
-            if copyfile is True:
-                location = os.path.join(file_path, basename)
-                shutil.copy(location, dest_dir)
-        else:
-            self.download_progress = DownloadProgressBox({'url': url,
-                                                          'dest': dest_file},
-                                                         cancelable=False)
-            self.download_progress.connect('complete', self.download_complete)
-            self.widget_box.pack_start(self.download_progress, True, True)
-            self.download_progress.show()
-            self.download_progress.start()
-
     def _get_path(self, data):
         """Return a filesystem path based on data"""
 
@@ -506,6 +506,23 @@ class Installer(Gtk.Dialog):
         else:
             os.popen('chmod +x %s' % exec_path)
             subprocess.call([exec_path])
+
+    def _runner_task(self, data):
+        """
+        This action triggers a task within a runner.
+
+        Mandatory parameters in data are 'task' and 'args'
+        """
+
+        log.logger.info("Called runner task")
+        log.logger.debug(data)
+        log.logger.debug("runner is %s", self.rules['runner'])
+        runner_name = self.rules["runner"]
+        task = import_task(runner_name, data['task'])
+        args = data['args']
+        log.logger.debug("args are %s", repr(args))
+        # FIXME pass args as kwargs and not args
+        task(args)
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""

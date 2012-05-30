@@ -51,6 +51,18 @@ def set_regedit(path, key, value):
     os.remove(reg_path)
 
 
+def create_prefix(*args, **kwargs):
+    logger.debug("Creating prefix")
+    print args
+    print kwargs
+    logger.debug("prefix created")
+
+
+def installer(*args, **kwargs):
+    print args
+    print kwargs
+
+
 def kill():
     """The kill command runs wineserver -k"""
     os.popen("winserver -k")
