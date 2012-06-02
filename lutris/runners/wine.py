@@ -20,7 +20,6 @@
 
 import os
 import subprocess
-import logging
 
 from os.path import exists
 
@@ -35,7 +34,7 @@ def set_regedit(path, key, value):
     path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
 
-    logging.debug("Setting wine registry key : %s\\%s to %s",
+    logger.debug("Setting wine registry key : %s\\%s to %s",
                     path, key, value)
     reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
     #Make temporary reg file
@@ -183,12 +182,12 @@ class wine(Runner):
         else:
             arguments = None
         if self.__class__.__name__ in settings.config:
-            logging.debug('loading wine specific settings')
+            logger.debug('loading wine specific settings')
             wine_config = settings.config[self.__class__.__name__]
-        game_path = os.path.dirname(game_exe)
+        self.game_path = os.path.dirname(game_exe)
         game_exe = os.path.basename(game_exe)
-        if not exists(game_path):
-            return {"error": "FILE_NOT_FOUND", "file": game_path}
+        if not exists(self.game_path):
+            return {"error": "FILE_NOT_FOUND", "file": self.game_path}
         command = []
         if "prefix" in wine_config and exists(wine_config['prefix']):
             logger.debug("using WINEPREFIX %s", wine_config["prefix"])

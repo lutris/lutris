@@ -67,6 +67,20 @@ class LutrisWindow:
         self.play_button = self.builder.get_object('play_button')
         self.play_button.set_sensitive(False)
 
+        #Contextual menu
+        play = 'Play', self.game_launch
+        rename = 'Rename', self.edit_game_name
+        config = 'Configure', self.edit_game_configuration
+        self.menu = Gtk.Menu()
+        for item in [play, rename, config]:
+            if item == None:
+                subitem = Gtk.SeparatorMenuItem()
+            else:
+                subitem = Gtk.ImageMenuItem(item[0])
+                subitem.connect('activate', item[1])
+                self.menu.append(subitem)
+        self.menu.show_all()
+
         #Timer
         self.timer_id = GObject.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
@@ -106,12 +120,9 @@ class LutrisWindow:
         """Contextual menu"""
         if event.button == 3:
             (_, self.paths) = widget.get_selection().get_selected_rows()
-            try:
-                self.edited_game_index = self.paths[0][0]
-            except IndexError:
-                return
             if len(self.paths) > 0:
-                self.menu.popup(None, None, None, event.button, event.time)
+                self.menu.popup(None, None, None, None, 
+                                event.button, event.time)
 
     def about(self, _widget, _data=None):
         """Opens the about dialog"""
@@ -219,4 +230,3 @@ class LutrisWindow:
 
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
-

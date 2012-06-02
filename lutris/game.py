@@ -27,11 +27,10 @@ from gi.repository import Gtk, GObject
 
 from lutris.runners import import_runner
 from lutris.util.log import logger
-from lutris.util import log
-from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.desktop_control import LutrisDesktopControl
+from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.settings import CONFIG_DIR
 
 
@@ -132,7 +131,7 @@ class LutrisGame(object):
         """ Launch the game. """
         if not self.prelaunch():
             return False
-        log.logger.debug("get ready for %s " % self.get_real_name())
+        logger.debug("get ready for %s " % self.get_real_name())
         gameplay_info = self.runner.play()
 
         if type(gameplay_info) == dict:
@@ -167,9 +166,9 @@ class LutrisGame(object):
         killswitch = self.game_config.get_system("killswitch")
 
         path = self.runner.get_game_path()
-
-        logger.debug("Game args")
-        logger.debug(game_run_args)
+        logger.debug("Game Path : %s", path)
+        logger.debug("Current dir : %s", os.path.abspath(os.curdir))
+        logger.debug("Game args : %s", str(game_run_args))
         command = " " . join(game_run_args)
         #Setting OSS Wrapper
         oss_wrapper = self.game_config.get_system("oss_wrapper")
@@ -177,7 +176,7 @@ class LutrisGame(object):
             command = oss_wrapper + " " + command
 
         self.ticker = GObject.timeout_add(5000, self.poke_process)
-        logger.debug("Running : " + command)
+        logger.debug("Running : %s", command)
         self.game_thread = LutrisThread(command, path, killswitch)
         self.game_thread.start()
         if 'joy2key' in gameplay_info:

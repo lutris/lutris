@@ -21,11 +21,10 @@
 
 """Game edition dialog"""
 
-import logging
-
 from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
+from lutris.util.log import logger
 from lutris.gui.gameconfigvbox import GameConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
@@ -35,9 +34,9 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 class EditGameConfigDialog(Gtk.Dialog):
     """Game config edit dialog"""
     def __init__(self, parent, game):
+        super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
         self.game = game
-        GObject.GObject.__init__(self)
         self.set_title("Edit game configuration")
         self.set_size_request(500, 500)
 
@@ -93,7 +92,7 @@ class EditGameConfigDialog(Gtk.Dialog):
 
     def edit_game(self, _widget=None):
         """Save the changes"""
-        logging.debug(self.lutris_config.config)
+        logger.debug(self.lutris_config.config)
         self.lutris_config.save(config_type="game")
         self.destroy()
 

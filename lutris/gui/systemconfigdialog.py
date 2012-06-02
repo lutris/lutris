@@ -1,12 +1,13 @@
 from gi.repository import Gtk
 
+from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 class SystemConfigDialog(Gtk.Dialog):
     def __init__(self):
-        GObject.GObject.__init__(self)
+        super(SystemConfigDialog, self).__init__()
         self.set_title("System preferences")
         self.set_size_request(400, 500)
         self.lutris_config = LutrisConfig()
@@ -25,8 +26,8 @@ class SystemConfigDialog(Gtk.Dialog):
         self.show_all()
 
     def save_config(self, widget):
-        # FIXME : Use logging system !
-        print "config", self.system_config_vbox.lutris_config.config
+        logger.debug("Config %s", 
+                     str(self.system_config_vbox.lutris_config.config))
         self.system_config_vbox.lutris_config.save()
         self.destroy()
 
