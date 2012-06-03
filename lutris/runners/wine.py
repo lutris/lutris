@@ -50,16 +50,26 @@ def set_regedit(path, key, value):
     os.remove(reg_path)
 
 
-def create_prefix(*args, **kwargs):
-    logger.debug("Creating prefix")
-    print args
-    print kwargs
-    logger.debug("prefix created")
+def create_prefix(prefix=None):
+    """Create a new wineprefix"""
+    if prefix is None:
+        logger.error("Prefix  path is required")
+        return False
+    os.system("export WINEARCH=win32; export WINEPREFIX=\"%s\"; wineboot" % \
+              prefix)
 
 
-def installer(*args, **kwargs):
-    print args
-    print kwargs
+def installer(filename=None, prefix=None):
+    """Runs a windows program"""
+    if filename is None or not os.path.exists(filename):
+        logger.error("Filename is required and must exist")
+        return False
+    if prefix:
+        prefix_export = "export WINEPREFIX=\"%s\";" % prefix
+    else:
+        prefix_export = None
+    os.system("%s export WINEARCH=win32; wine \"%s\"" % (prefix_export,
+                                                         filename))
 
 
 def kill():
@@ -184,6 +194,8 @@ class wine(Runner):
         if self.__class__.__name__ in settings.config:
             logger.debug('loading wine specific settings')
             wine_config = settings.config[self.__class__.__name__]
+        else:
+            wine_config = {}
         self.game_path = os.path.dirname(game_exe)
         game_exe = os.path.basename(game_exe)
         if not exists(self.game_path):
@@ -191,7 +203,7 @@ class wine(Runner):
         command = []
         if "prefix" in wine_config and exists(wine_config['prefix']):
             logger.debug("using WINEPREFIX %s", wine_config["prefix"])
-            command.append("WINEPREFIX=%s ", wine_config['prefix'])
+            command.append("WINEPREFIX=\"%s\" ", wine_config['prefix'])
         command.append(self.executable)
         command.append("\"" + game_exe + "\"")
         if arguments:

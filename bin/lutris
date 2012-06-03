@@ -58,10 +58,6 @@ else:
 if options.verbose:
     log.logger.info("Verbose mode enabled")
     console = log.logging.StreamHandler()
-    if options.debug:
-        console.setLevel(log.logging.DEBUG)
-    else:
-        console.setLevel(log.logging.INFO)
 
     fmt = '%(name)-12s: %(levelname)-8s %(message)s'
     formatter = log.logging.Formatter(fmt)

@@ -520,9 +520,15 @@ class Installer(Gtk.Dialog):
         runner_name = self.rules["runner"]
         task = import_task(runner_name, data['task'])
         args = data['args']
+        for key in args:
+            if args[key] in ("$GAME_DIR", "$GAMEDIR"):
+                args[key] = self.game_dir
+            if key == 'filename':
+                if args[key] in self.gamefiles.keys():
+                    args[key] = self.gamefiles[args[key]]
         log.logger.debug("args are %s", repr(args))
         # FIXME pass args as kwargs and not args
-        task(args)
+        task(**args)
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
