@@ -1,30 +1,30 @@
 #!/usr/bin/python
+import bootstrap
 
 import unittest
-import sys
 import os
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from lutris.config import LutrisConfig
-from lutris.settings import PGA_PATH
+from lutris.settings import PGA_DB
+from lutris import pga
 
 
 class TestPersonnalGameArchive(unittest.TestCase):
-    def setUp(self):
-        pass
+    def test_database(self):
+        pga_path = os.path.join(os.path.expanduser('~'),
+                                ".local/share/lutris/pga.db")
+        self.assertEqual(PGA_DB, pga_path)
+        self.assertTrue(os.path.exists(PGA_DB))
 
-    def tearDown(self):
-        pass
+    def test_add_game(self):
+        print "add game"
+        pga.add_game(name="LutrisTest", machine="Linux", runner="Linux")
+        game_list = pga.get_games()
+        print game_list
+        self.assertTrue("LutrisTest" in game_list)
 
-    def __init__(self):
-        pass
-
-    def runTest(self):
-        pga_path = os.path.join(os.path.expanduser('~'), ".local/share/pga.db")
-
-        self.assertEqual(PGA_PATH, pga_path)
+    def test_delete_game(self):
+        print "delete game"
+        pga.delete_game("LutrisTest")
 
 if __name__ == '__main__':
-    test = TestPersonnalGameArchive()
-    test.runTest()
+    unittest.main()

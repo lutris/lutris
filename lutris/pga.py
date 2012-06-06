@@ -53,13 +53,15 @@ def get_games(name_filter=None):
     con = connect()
     cur = con.cursor()
 
-    if filter is not None:
+    if name_filter is not None:
         query = "select * from where name LIKE = ?"
         rows = cur.execute(query, (name_filter, ))
     else:
         query = "select * from games"
         rows = cur.execute(query)
     results = rows.fetchall()
+    column_names = [column[0] for column in cur.description]
+    print column_names
     cur.close()
     con.close()
     return results
@@ -71,5 +73,13 @@ def add_game(name, machine, runner):
     con = connect()
     con.execute("""insert into games(name, slug, machine, runner) values
     (?, ?, ?, ?)""", (name, slug, machine, runner))
+    con.commit()
+    con.close()
+
+
+def delete_game(name):
+    """Deletes a game from the PGA"""
+    con = connect()
+    con.execute("""delete from games where name=?""", (name,))
     con.commit()
     con.close()
