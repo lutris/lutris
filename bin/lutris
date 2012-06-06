@@ -50,19 +50,20 @@ parser.add_option("-n", "--no-download",
 (options, args) = parser.parse_args()
 
 # Set the logging level to show debug messages.
+console = log.logging.StreamHandler()
+fmt = '%(name)-12s: %(levelname)-8s %(message)s'
+formatter = log.logging.Formatter(fmt)
+console.setFormatter(formatter)
+log.logger.addHandler(console)
+log.logger.setLevel(log.logging.ERROR)
+
+if options.verbose:
+    log.logger.info("Verbose mode enabled")
+    log.logger.setLevel(log.logging.INFO)
 if options.debug:
     log.logger.setLevel(log.logging.DEBUG)
     log.logger.debug('logging enabled')
-else:
-    log.logger.setLevel(log.logging.INFO)
-if options.verbose:
-    log.logger.info("Verbose mode enabled")
-    console = log.logging.StreamHandler()
 
-    fmt = '%(name)-12s: %(levelname)-8s %(message)s'
-    formatter = log.logging.Formatter(fmt)
-    console.setFormatter(formatter)
-    log.logger.addHandler(console)
 
 #check_config(force_wipe=True)
 check_config(force_wipe=False)
