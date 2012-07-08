@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 # Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
 # This program is free software: you can redistribute it and/or modify it
@@ -78,7 +78,7 @@ if options.installer_file:
     else:
         game, _ = os.path.splitext(options.installer_file)
         installer = os.path.abspath(options.installer_file)
-        print "Installing game from %s" % installer
+        print("Installing game from %s" % installer)
 
 
 # Run the application.

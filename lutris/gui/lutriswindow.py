@@ -121,7 +121,7 @@ class LutrisWindow:
         if event.button == 3:
             (_, self.paths) = widget.get_selection().get_selected_rows()
             if len(self.paths) > 0:
-                self.menu.popup(None, None, None, None, 
+                self.menu.popup(None, None, None, None,
                                 event.button, event.time)
 
     def about(self, _widget, _data=None):
@@ -230,3 +230,7 @@ class LutrisWindow:
 
         game = self.get_selected_game()
         EditGameConfigDialog(self, game)
+
+    def on_iconview_toggled(self, menuitem):
+        print "switch to icon view"
+        print menuitem.get_active()
