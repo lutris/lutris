@@ -104,3 +104,4 @@ if game is not None:
 else:
     lutris_window = LutrisWindow()
     Gtk.main()
+    log.logger.debug("Application exit")

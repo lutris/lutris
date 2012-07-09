@@ -70,12 +70,11 @@ class GameTreeView(Gtk.TreeView):
                                  'media/runner_icons',
                                  game['runner'] + '.png')
         pix = Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
-        row = model.append([game['id'], pix, label, ])
+        row = model.append([game['id'], pix, label])
         return row
 
     def remove_row(self, model_iter):
         """Remove a game from the treeview."""
-
         model = self.get_model()
         model.remove(model_iter)
 
@@ -85,8 +84,17 @@ class GameTreeView(Gtk.TreeView):
         Gtk.TreeModel.sort_new_with_model(model)
 
 
-class GameIconView(object):
-    def __init__(self):
+class GameIconView(Gtk.IconView):
+    def __init__(self, games):
+        super(GameIconView, self).__init__()
+        model = Gtk.ListStore(str, Pixbuf, str)
+        model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
+        self.set_model(model)
+        if games:
+            for game in games:
+                self.add_game(game)
+
+    def add_game(self, game):
         pass
 
 

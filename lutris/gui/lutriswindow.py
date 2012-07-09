@@ -18,6 +18,8 @@ from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
+GAME_VIEW = 'list'
+
 
 class LutrisWindow:
     """Handler class for main window signals"""
@@ -33,19 +35,25 @@ class LutrisWindow:
         self.builder.connect_signals(self)
         log.logger.debug("Fetching game list")
         game_list = get_list()
-
-        # List View
-        log.logger.debug("Creating game list")
-        self.game_treeview = GameTreeView(game_list)
-        self.game_treeview.connect('row-activated', self.game_launch)
-        self.game_treeview.connect('cursor-changed', self.select_game)
-        self.game_treeview.connect('button-press-event', self.mouse_menu)
         games_scrollwindow = self.builder.get_object('games_scrollwindow')
-        games_scrollwindow.add_with_viewport(self.game_treeview)
 
-        #Icon View
-        log.logger.debug("Creating icon view")
-        self.game_iconview = GameIconView()
+        if GAME_VIEW == 'list':
+            # List View
+            log.logger.debug("Creating game list")
+            self.game_treeview = GameTreeView(game_list)
+            self.game_treeview.connect('row-activated', self.game_launch)
+            self.game_treeview.connect('cursor-changed', self.select_game)
+            self.game_treeview.connect('button-press-event', self.mouse_menu)
+            games_scrollwindow.add_with_viewport(self.game_treeview)
+            # Game list
+            self.game_column = self.game_treeview.get_column(1)
+            self.game_cell = self.game_column.get_cells()[0]
+            self.game_cell.connect('edited', self.game_name_edited_callback)
+        else:
+            #Icon View
+            log.logger.debug("Creating icon view")
+            self.game_iconview = GameIconView(game_list)
+            games_scrollwindow.add_with_viewport(self.game_iconview)
 
         #Status bar
         self.status_label = self.builder.get_object('status_label')
@@ -62,11 +70,6 @@ class LutrisWindow:
         self.reset_button.set_sensitive(False)
         self.delete_button = self.builder.get_object('delete_button')
         self.delete_button.set_sensitive(False)
-
-        # Game list
-        self.game_column = self.game_treeview.get_column(1)
-        self.game_cell = self.game_column.get_cells()[0]
-        self.game_cell.connect('edited', self.game_name_edited_callback)
 
         # Set buttons state
         self.play_button = self.builder.get_object('play_button')
@@ -119,6 +122,7 @@ class LutrisWindow:
 
     def on_destroy(self, *args):
         """Signal for window close"""
+        log.logger.debug("Sending exit signal")
         Gtk.main_quit(*args)
 
     def mouse_menu(self, widget, event):
