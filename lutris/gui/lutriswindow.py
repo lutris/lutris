@@ -39,6 +39,7 @@ class LutrisWindow:
 
         if GAME_VIEW == 'list':
             # List View
+            self.game_iconview = None
             log.logger.debug("Creating game list")
             self.game_treeview = GameTreeView(game_list)
             self.game_treeview.connect('row-activated', self.game_launch)
@@ -51,9 +52,11 @@ class LutrisWindow:
             self.game_cell.connect('edited', self.game_name_edited_callback)
         else:
             #Icon View
+            self.game_treeview = None
             log.logger.debug("Creating icon view")
             self.game_iconview = GameIconView(game_list)
             games_scrollwindow.add_with_viewport(self.game_iconview)
+            self.game_iconview.connect("item-activated", self.game_launch)
 
         #Status bar
         self.status_label = self.builder.get_object('status_label')
@@ -139,7 +142,10 @@ class LutrisWindow:
 
     def get_selected_game(self):
         """Return the currently selected game in the treeview"""
-        game_selection = self.game_treeview.get_selection()
+        if self.game_treeview:
+            game_selection = self.game_treeview.get_selection()
+        else:
+            game_selection = self.game_iconview.get_selection()
         model, select_iter = game_selection.get_selected()
         game_name = model.get_value(select_iter, 0)
         return game_name

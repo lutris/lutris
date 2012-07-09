@@ -55,6 +55,7 @@ def sort_func(store, a_iter, b_iter, user_data):
     else:
         return 0
 
+
 def create_store():
     store = Gtk.ListStore(str, str, Pixbuf, str)
     store.set_default_sort_func(sort_func)
@@ -137,6 +138,9 @@ class GameIconView(Gtk.IconView):
         except GLib.GError:
             pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
         return pixbuf
+
+    def get_selection():
+        return None
 
 
 class GameCover(Gtk.Image):
