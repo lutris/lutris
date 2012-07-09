@@ -14,7 +14,7 @@ from lutris.gui.dialogs import AboutDialog
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.widgets import GameTreeView, GameCover
+from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
@@ -34,6 +34,7 @@ class LutrisWindow:
         log.logger.debug("Fetching game list")
         game_list = get_list()
 
+        # List View
         log.logger.debug("Creating game list")
         self.game_treeview = GameTreeView(game_list)
         self.game_treeview.connect('row-activated', self.game_launch)
@@ -42,16 +43,20 @@ class LutrisWindow:
         games_scrollwindow = self.builder.get_object('games_scrollwindow')
         games_scrollwindow.add_with_viewport(self.game_treeview)
 
+        #Icon View
+        log.logger.debug("Creating icon view")
+        self.game_iconview = GameIconView()
+
         #Status bar
         self.status_label = self.builder.get_object('status_label')
         self.status_label.set_text('Insert coin')
 
         self.joystick_icons = []
 
-        self.game_cover = GameCover(parent=self)
-        self.game_cover.desactivate_drop()
-        cover_alignment = self.builder.get_object('cover_alignment')
-        cover_alignment.add(self.game_cover)
+        #self.game_cover = GameCover(parent=self)
+        #self.game_cover.desactivate_drop()
+        #cover_alignment = self.builder.get_object('cover_alignment')
+        #cover_alignment.add(self.game_cover)
 
         self.reset_button = self.builder.get_object('reset_button')
         self.reset_button.set_sensitive(False)
@@ -148,7 +153,7 @@ class LutrisWindow:
             model, select_iter = game_selected.get_selected()
             if select_iter:
                 self.game_name = model.get_value(select_iter, 0)
-                self.game_cover.set_game_cover(self.game_name)
+                #self.game_cover.set_game_cover(self.game_name)
 
     def remove_game(self, _widget, _data=None):
         """Remove game configuration file
