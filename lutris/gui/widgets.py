@@ -22,16 +22,44 @@
 
 import os
 import Image
-from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf
+
+from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
 from lutris.util import log
-from lutris.settings import get_data_path
+from lutris.settings import get_data_path, DATA_DIR
 
 ICON_SIZE = 24
-MISSING_ICON = "/usr/share/icons/gnome/24x24/categories/applications-other.png"
+MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
+
+(COL_ID,
+ COL_NAME,
+ COL_ICON,
+ COL_RUNNER) = range(4)
+
+
+def sort_func(store, a_iter, b_iter, user_data):
+    (a_name, a_runner) = store.get(a_iter, COL_NAME, COL_RUNNER)
+    (b_name, b_runner) = store.get(b_iter, COL_NAME, COL_RUNNER)
+
+    if a_runner > b_runner:
+        return 1
+    elif a_runner < b_runner:
+        return -1
+    elif a_name > b_name:
+        return 1
+    elif a_name < b_name:
+        return -1
+    else:
+        return 0
+
+def create_store():
+    store = Gtk.ListStore(str, str, Pixbuf, str)
+    store.set_default_sort_func(sort_func)
+    store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
+    return store
 
 
 class GameTreeView(Gtk.TreeView):
@@ -87,15 +115,28 @@ class GameTreeView(Gtk.TreeView):
 class GameIconView(Gtk.IconView):
     def __init__(self, games):
         super(GameIconView, self).__init__()
-        model = Gtk.ListStore(str, Pixbuf, str)
-        model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
-        self.set_model(model)
-        if games:
-            for game in games:
-                self.add_game(game)
+        self.games = games if games else []
+        store = create_store()
+        self.fill_store(store)
+        self.set_model(store)
+        self.set_text_column(COL_NAME)
+        self.set_pixbuf_column(COL_ICON)
 
-    def add_game(self, game):
-        pass
+    def fill_store(self, store):
+        store.clear()
+        for game in self.games:
+            pixbuf = self.icon_to_pixbuf(game["id"])
+            store.append((game["id"], game["name"], pixbuf, game["runner"]))
+
+    def icon_to_pixbuf(self, game_id):
+        icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)
+        if not os.path.exists(icon_path):
+            icon_path = MISSING_ICON
+        try:
+            pixbuf = Pixbuf.new_from_file_at_size(icon_path, 128, 128)
+        except GLib.GError:
+            pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
+        return pixbuf
 
 
 class GameCover(Gtk.Image):

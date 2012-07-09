@@ -281,6 +281,7 @@
           <object class="GtkScrolledWindow" id="games_scrollwindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="shadow_type">etched-in</property>
             <child>
               <placeholder/>
             </child>
