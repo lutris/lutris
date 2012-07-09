@@ -85,6 +85,11 @@ class GameTreeView(Gtk.TreeView):
         Gtk.TreeModel.sort_new_with_model(model)
 
 
+class GameIconView(object):
+    def __init__(self):
+        pass
+
+
 class GameCover(Gtk.Image):
     """Widget displaing the selected game's cover"""
     def __init__(self, parent=None):
