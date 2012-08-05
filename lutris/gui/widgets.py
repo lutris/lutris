@@ -72,12 +72,16 @@ class GameTreeView(Gtk.TreeView):
     """
     COL_ICON = 1  # Column number for the icon
     COL_TEXT = 2  # Column number for the description
+    __gsignals__ = {
+      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        model = Gtk.ListStore(str, Pixbuf, str)
-        model.set_sort_column_id(0, Gtk.SortType.ASCENDING)
-        self.set_model(model)
+        self.selected_game = None
+        store = Gtk.ListStore(str, Pixbuf, str)
+        store.set_sort_column_id(0, Gtk.SortType.ASCENDING)
+        self.set_model(store)
         image_cell = Gtk.CellRendererPixbuf()
         column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
         self.append_column(column)
@@ -88,6 +92,8 @@ class GameTreeView(Gtk.TreeView):
         if games:
             for game in sorted(games):
                 self.add_row(game)
+
+        self.connect('row-activated', self.get_selected_game, store)
 
     def add_row(self, game):
         """Add a game in the treeview."""
@@ -112,16 +118,29 @@ class GameTreeView(Gtk.TreeView):
         model = self.get_model()
         Gtk.TreeModel.sort_new_with_model(model)
 
+    def get_selected_game(self, widget, line, column, store):
+        selection = self.get_selection()
+        model, select_iter = selection.get_selected()
+        self.selected_game = model.get_value(select_iter, COL_ID)
+        self.emit("game-selected")
+
 
 class GameIconView(Gtk.IconView):
+    __gsignals__ = {
+      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+
     def __init__(self, games):
         super(GameIconView, self).__init__()
+        self.selected_game = None
         self.games = games if games else []
         store = create_store()
         self.fill_store(store)
         self.set_model(store)
         self.set_text_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
+
+        self.connect('item-activated', self.get_selection, store)
 
     def fill_store(self, store):
         store.clear()
@@ -139,8 +158,10 @@ class GameIconView(Gtk.IconView):
             pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
         return pixbuf
 
-    def get_selection():
-        return None
+    def get_selection(self, icon_view, tree_path, store):
+        iter_ = store.get_iter(tree_path)
+        self.selected_game = store.get(iter_, COL_ID)
+        self.emit("game-selected")
 
 
 class GameCover(Gtk.Image):
