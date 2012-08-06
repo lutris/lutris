@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=0.2.1
+Name=Lutris
+GenericName=Lutris Gaming Platform
+Comment=Lutris application
+Categories=Game;
+Exec=lutris %U
+Icon=lutris
+Terminal=false
+Type=Application
+MimeType=application/x-lutris;x-scheme-handler/lutris;
