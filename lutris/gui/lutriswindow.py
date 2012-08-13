@@ -50,6 +50,7 @@ class LutrisWindow:
             #Icon View
             log.logger.debug("Creating icon view")
             iconview = GameIconView(game_list)
+
             games_scrollwindow.add_with_viewport(iconview)
             self.view = iconview
 
