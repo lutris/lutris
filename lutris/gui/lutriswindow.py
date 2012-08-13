@@ -162,7 +162,7 @@ class LutrisWindow:
         from lutris.runners.scummvm import import_games
         new_games = import_games()
         for new_game in new_games:
-            self.view.add_row(new_game)
+            self.view.add(new_game)
         self.game_treeview.sort_rows()
 
     def import_steam(self, _widget, _data=None):
@@ -195,7 +195,7 @@ class LutrisWindow:
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            self.view.add_row(game_info)
+            self.view.add(game_info)
 
     def edit_game_name(self, _button):
         pass
