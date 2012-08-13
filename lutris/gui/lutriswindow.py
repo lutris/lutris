@@ -50,7 +50,6 @@ class LutrisWindow:
             #Icon View
             log.logger.debug("Creating icon view")
             iconview = GameIconView(game_list)
-
             games_scrollwindow.add_with_viewport(iconview)
             self.view = iconview
 
@@ -163,7 +162,7 @@ class LutrisWindow:
         from lutris.runners.scummvm import import_games
         new_games = import_games()
         for new_game in new_games:
-            self.game_treeview.add_row(new_game)
+            self.view.add_row(new_game)
         self.game_treeview.sort_rows()
 
     def import_steam(self, _widget, _data=None):
@@ -196,8 +195,7 @@ class LutrisWindow:
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            self.game_treeview.add_row(game_info)
-            self.game_treeview.sort_rows()
+            self.view.add_row(game_info)
 
     def edit_game_name(self, _button):
         pass

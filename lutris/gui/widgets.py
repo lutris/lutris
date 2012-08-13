@@ -91,13 +91,12 @@ class GameTreeView(Gtk.TreeView):
         self.append_column(column)
         if games:
             for game in sorted(games):
-                self.add_row(game)
+                self.add(game)
 
         self.connect('row-activated', self.get_selected_game, store)
 
-    def add_row(self, game):
+    def add(self, game):
         """Add a game in the treeview."""
-
         model = self.get_model()
         label = "%s \n<small>%s</small>" % \
                 (game['name'], game['runner'])
@@ -135,8 +134,8 @@ class GameIconView(Gtk.IconView):
         self.selected_game = None
         self.games = games if games else []
         store = create_store()
-        self.fill_store(store)
         self.set_model(store)
+        self.fill_store(store)
         self.set_text_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
 
@@ -145,8 +144,13 @@ class GameIconView(Gtk.IconView):
     def fill_store(self, store):
         store.clear()
         for game in self.games:
-            pixbuf = self.icon_to_pixbuf(game["id"])
-            store.append((game["id"], game["name"], pixbuf, game["runner"]))
+            self.add(game)
+
+    def add(self, game):
+        """Adds a game into the icon view"""
+        store = self.get_model()
+        pixbuf = self.icon_to_pixbuf(game["id"])
+        store.append((game["id"], game["name"], pixbuf, game["runner"]))
 
     def icon_to_pixbuf(self, game_id):
         icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)
