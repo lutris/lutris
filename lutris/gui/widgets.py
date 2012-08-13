@@ -37,7 +37,8 @@ MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
 (COL_ID,
  COL_NAME,
  COL_ICON,
- COL_RUNNER) = range(4)
+ COL_RUNNER
+) = range(4)
 
 
 def sort_func(store, a_iter, b_iter, user_data):
@@ -61,6 +62,17 @@ def create_store():
     store.set_default_sort_func(sort_func)
     store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
     return store
+
+
+def filter_view(model, _iter, user_data):
+    filter_text = user_data(None)
+    if not filter_text:
+        return True
+    name = model.get(_iter, COL_NAME)[0]
+    if filter_text.lower() in name.lower():
+        return True
+    else:
+        return False
 
 
 class GameTreeView(Gtk.TreeView):
@@ -127,19 +139,29 @@ class GameTreeView(Gtk.TreeView):
 class GameIconView(Gtk.IconView):
     __gsignals__ = {
       "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+      "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
+    filter_text = ""
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
         self.selected_game = None
         self.games = games if games else []
         store = create_store()
-        self.set_model(store)
+        self.modelfilter = store.filter_new()
+        self.modelfilter.set_visible_func(filter_view,
+                                          lambda x: self.filter_text)
+        self.set_model(self.modelfilter)
         self.fill_store(store)
         self.set_text_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
 
         self.connect('item-activated', self.get_selection, store)
+        self.connect('filter-updated', self.update_filter)
+
+    def update_filter(self, widget, data=None):
+        self.filter_text = data
+        self.modelfilter.refilter()
 
     def fill_store(self, store):
         store.clear()
@@ -150,7 +172,8 @@ class GameIconView(Gtk.IconView):
         """Adds a game into the icon view"""
         store = self.get_model()
         pixbuf = self.icon_to_pixbuf(game["id"])
-        store.append((game["id"], game["name"], pixbuf, game["runner"]))
+        store.get_model().append((game["id"], game["name"],
+                                  pixbuf, game["runner"]))
 
     def icon_to_pixbuf(self, game_id):
         icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)

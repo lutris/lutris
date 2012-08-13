@@ -88,6 +88,16 @@ class LutrisWindow:
         self.timer_id = GObject.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
         log.logger.debug("Showing main window")
+
+        ## Test button
+        #def plop(widget):
+        #    print "plop"
+        #    print data
+        #toolbutton = Gtk.ToolButton('foo')
+        #toolbutton.connect('clicked', plop)
+        #toolbar = self.builder.get_object('lutris_toolbar')
+        #toolbar.insert(toolbutton, 5)
+
         self.window.show_all()
 
     def refresh_status(self):
@@ -165,9 +175,12 @@ class LutrisWindow:
             self.view.add(new_game)
         self.game_treeview.sort_rows()
 
-    def import_steam(self, _widget, _data=None):
+    def import_steam(self, _widget, data=None):
         """Callback for importing Steam games"""
         NoticeDialog("Import from steam not yet implemented")
+
+    def on_search_entry_changed(self, widget):
+        self.view.emit('filter-updated', widget.get_text())
 
     def on_play_clicked(self, _widget):
         """Callback for the play button"""
