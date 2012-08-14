@@ -57,20 +57,10 @@ class AddGameDialog(Gtk.Dialog):
         runner_liststore.append(("Choose a runner for the list", ""))
         for runner_name in lutris.runners.__all__:
             runner = import_runner(runner_name)
-            if hasattr(runner, "description"):
-                description = runner.description
-            else:
-                logger.debug("Please fix %s and add a description attribute",
-                             runner.__name__)
-                description = ""
-            if hasattr(runner, "machine"):
-                machine = runner.machine
-            else:
-                logger.debug("Please fix % and add a machine attribute",
-                             runner.__name__)
-                machine = ""
+            description = runner.description
             if runner.is_installed():
-                runner_liststore.append((machine + " (" + description + ")",
+                runner_liststore.append(("%s (%s)" % (runner_name,
+                                                      description),
                                          runner_name))
 
         runner_combobox = Gtk.ComboBox.new_with_model(runner_liststore)

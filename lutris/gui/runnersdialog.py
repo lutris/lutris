@@ -19,10 +19,11 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-from gi.repository import Gtk
 import os
+from gi.repository import Gtk, GObject
 
 import lutris.runners
+from lutris.settings import get_data_path
 from lutris.runners import  import_runner
 from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
@@ -30,17 +31,17 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 class RunnerConfigDialog(Gtk.Dialog):
-    """ """
+    """Runners management dialog"""
     def __init__(self, runner):
-        GObject.GObject.__init__(self)
+        Gtk.Dialog.__init__(self)
         self.set_title("Configure %s" % (runner))
         self.set_size_request(570, 500)
         self.runner = runner
         self.lutris_config = LutrisConfig(runner=runner)
 
         #Notebook for choosing between runner and system configuration
-        self.config_notebook = Gtk.Notebook()
-        self.vbox.pack_start(self.config_notebook, True, True, 0)
+        self.notebook = Gtk.Notebook()
+        self.vbox.pack_start(self.notebook, True, True, 0)
 
         #Runner configuration
         self.runner_config_vbox = RunnerConfigVBox(self.lutris_config,
@@ -49,8 +50,8 @@ class RunnerConfigDialog(Gtk.Dialog):
         runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
                                                  Gtk.PolicyType.AUTOMATIC)
         runner_scrollwindow.add_with_viewport(self.runner_config_vbox)
-        self.config_notebook.append_page(runner_scrollwindow,
-                                         Gtk.Label(label="Runner configuration"))
+        self.notebook.append_page(runner_scrollwindow,
+                                  Gtk.Label(label="Runner configuration"))
 
         #System configuration
         self.system_config_vbox = SystemConfigVBox(self.lutris_config,
@@ -59,8 +60,8 @@ class RunnerConfigDialog(Gtk.Dialog):
         system_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
                                                  Gtk.PolicyType.AUTOMATIC)
         system_scrollwindow.add_with_viewport(self.system_config_vbox)
-        self.config_notebook.append_page(system_scrollwindow,
-                                         Gtk.Label(label="System configuration"))
+        self.notebook.append_page(system_scrollwindow,
+                                  Gtk.Label(label="System configuration"))
 
         #Action buttons
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
@@ -96,9 +97,10 @@ class RunnersDialog(Gtk.Dialog):
         """)
 
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                   Gtk.PolicyType.AUTOMATIC)
         self.vbox.pack_start(label, False, True, 20)
-        self.vbox.pack_start(scrolled_window, True, True)
+        self.vbox.pack_start(scrolled_window, True, True, 10)
 
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
@@ -111,8 +113,7 @@ class RunnersDialog(Gtk.Dialog):
 
             hbox = Gtk.HBox()
             #Icon
-            icon_path = os.path.join(lutris.constants.DATA_PATH,
-                                     'media/runner_icons',
+            icon_path = os.path.join(get_data_path(), 'media/runner_icons',
                                      runner + '.png')
             icon = Gtk.Image()
             icon.set_from_file(icon_path)
@@ -128,7 +129,7 @@ class RunnersDialog(Gtk.Dialog):
             runner_label.set_line_wrap(True)
             runner_label.set_alignment(0.0, 0.0)
             runner_label.set_padding(25, 5)
-            hbox.pack_start(runner_label, True, True)
+            hbox.pack_start(runner_label, True, True, 5)
             #Button
             button = Gtk.Button("Configure")
             button.set_size_request(100, 30)
@@ -141,7 +142,7 @@ class RunnersDialog(Gtk.Dialog):
                 button.set_label('Install')
                 button.connect("clicked", self.on_install_clicked, runner)
             button_align.add(button)
-            hbox.pack_start(button_align, True, False)
+            hbox.pack_start(button_align, True, False, 5)
 
             runner_vbox.pack_start(hbox, True, True, 5)
         scrolled_window.add_with_viewport(runner_vbox)

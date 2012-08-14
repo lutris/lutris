@@ -31,14 +31,22 @@ from lutris.util.log import logger
 
 # pylint: disable=C0103
 class mednafen(Runner):
-    """Use Mednafen"""
+    """Mednafen is a multi-platform emulator, including NES, GB/A, PC Engine"""
     def __init__(self, settings=None):
         super(mednafen, self).__init__()
         self.executable = "mednafen"
         self.machine = """
-        Atari Lynx, Game Boy (Color), GameBoy Advance, NES,
-        PC Engine(TurboGrafx 16), SuperGrafx, Neo Geo Pocket (Color),
-        PC-FX, and WonderSwan (Color)"""
+ * Atari Lynx
+ * GameBoy
+ * GameBoy Color
+ * GameBoy Advance
+ * NES
+ * PC Engine (TurboGrafx 16)
+ * PC-FX
+ * SuperGrafx
+ * NeoGeo Pocket, NeoGeo Pocket Color
+ * WonderSwan
+"""
         self.package = "mednafen"
         machine_choices = [("NES", "nes"),
                            ("PC Engine", "pce"),
