@@ -200,6 +200,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Add game</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Add Game</property>
                 <property name="use_underline">True</property>
@@ -216,6 +217,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Play game</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Play</property>
                 <property name="use_underline">True</property>
@@ -232,6 +234,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Stop game</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Stop</property>
                 <property name="use_underline">True</property>
@@ -248,6 +251,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Remove game from library</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Remove</property>
                 <property name="use_underline">True</property>
@@ -260,10 +264,23 @@
               </packing>
             </child>
             <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton1">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolItem" id="search_area">
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="margin_right">10</property>
                 <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkEntry" id="search_entry">
@@ -279,7 +296,7 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="homogeneous">True</property>
               </packing>
             </child>

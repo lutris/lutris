@@ -17,7 +17,19 @@ from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
-GAME_VIEW = 'list'
+GAME_VIEW = 'icon'
+
+
+def switch_to_view(view=GAME_VIEW):
+    game_list = get_list()
+    if view == 'icon':
+        view = GameIconView(game_list)
+    elif view == 'list':
+        view = GameTreeView(game_list)
+    else:
+        raise ValueError('View type not supported')
+    view.show_all()
+    return view
 
 
 class LutrisWindow:
@@ -33,27 +45,21 @@ class LutrisWindow:
         self.builder.add_from_file(ui_filename)
         self.builder.connect_signals(self)
         log.logger.debug("Fetching game list")
-        game_list = get_list()
-        games_scrollwindow = self.builder.get_object('games_scrollwindow')
 
-        if GAME_VIEW == 'list':
-            # List View
-            treeview = GameTreeView(game_list)
-            treeview.connect('button-press-event', self.mouse_menu)
-            games_scrollwindow.add_with_viewport(treeview)
-            # Game list
-            #self.game_column = treeview.get_column(1)
-            #self.game_cell = self.game_column.get_cells()[0]
-            #self.game_cell.connect('edited', self.game_name_edited_callback)
-            self.view = treeview
-        else:
-            #Icon View
-            log.logger.debug("Creating icon view")
-            iconview = GameIconView(game_list)
-            games_scrollwindow.add_with_viewport(iconview)
-            self.view = iconview
+        # TODO : do something with this shit
+        # Game list
+        #self.game_column = treeview.get_column(1)
+        #self.game_cell = self.game_column.get_cells()[0]
+        #self.game_cell.connect('edited', self.game_name_edited_callback)
 
+        self.view = switch_to_view()
+
+        self.view.connect('button-press-event', self.mouse_menu)
         self.view.connect("game-selected", self.game_launch)
+
+        # Scroll window
+        self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
+        self.games_scrollwindow.add_with_viewport(self.view)
 
         #Status bar
         self.status_label = self.builder.get_object('status_label')
@@ -88,15 +94,6 @@ class LutrisWindow:
         self.timer_id = GObject.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
         log.logger.debug("Showing main window")
-
-        ## Test button
-        #def plop(widget):
-        #    print "plop"
-        #    print data
-        #toolbutton = Gtk.ToolButton('foo')
-        #toolbutton.connect('clicked', plop)
-        #toolbar = self.builder.get_object('lutris_toolbar')
-        #toolbar.insert(toolbutton, 5)
 
         self.window.show_all()
 
@@ -233,5 +230,8 @@ class LutrisWindow:
         EditGameConfigDialog(self, game)
 
     def on_iconview_toggled(self, menuitem):
-        print "switch to icon view"
-        print menuitem.get_active()
+        """Switches between icon view and list view"""
+        self.view.destroy()
+        self.view = None
+        self.view = switch_to_view('icon' if menuitem.get_active() else 'list')
+        self.games_scrollwindow.add_with_viewport(self.view)
