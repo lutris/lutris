@@ -198,6 +198,8 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def get_selected_game(self, widget, line=None, column=None, launch=False):
         selection = self.get_selection()
+        if not selection:
+            return
         model, select_iter = selection.get_selected()
         self.selected_game = model.get_value(select_iter, COL_ID)
         if launch:
@@ -218,8 +220,8 @@ class GameIconView(Gtk.IconView, GameView):
         self.set_item_width(150)
         self.set_spacing(21)
 
-        self.connect('item-activated', self.get_selected_game, True)
-        self.connect('selection-changed', self.get_selected_game)
+        self.connect('item-activated', self.on_item_activated)
+        self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
         self.connect('size-allocate', GameIconView.on_size_allocate)
 
@@ -229,11 +231,17 @@ class GameIconView(Gtk.IconView, GameView):
     def do_get_preferred_width(self):
         return (0, 0)
 
-    def get_selected_game(self, icon_view, path, launch=False):
-        self.current_path = path
+    def on_item_activated(self, view, path):
+        self.get_selected_game(True)
+
+    def on_selection_changed(self, view):
+        self.get_selected_game(False)
+
+    def get_selected_game(self, launch=False):
+        self.current_path = self.get_selected_items()[0]
         store = self.get_model()
-        iter_ = store.get_iter(path)
-        self.selected_game = store.get(iter_, COL_ID)
+        self.selected_game = store.get(store.get_iter(self.current_path),
+                                       COL_ID)
         if launch:
             self.emit("game-activated")
         else:
