@@ -19,6 +19,11 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 """Misc widgets used in the GUI."""
+# Ignoring pylint
+# E0611 : No name '...' in module '...'
+# F0401 : Unable to import '...'
+# E1101 : Instance of '...' has no '...' member
+# pylint: disable=E0611, F0401, E1101
 
 import os
 import Image
@@ -41,7 +46,8 @@ MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
 ) = range(4)
 
 
-def sort_func(store, a_iter, b_iter, user_data):
+def sort_func(store, a_iter, b_iter, _user_data):
+    """Default sort function"""
     (a_name, a_runner) = store.get(a_iter, COL_NAME, COL_RUNNER)
     (b_name, b_runner) = store.get(b_iter, COL_NAME, COL_RUNNER)
 
@@ -58,6 +64,7 @@ def sort_func(store, a_iter, b_iter, user_data):
 
 
 def create_store():
+    """Populates the game list"""
     store = Gtk.ListStore(str, str, Pixbuf, str)
     store.set_default_sort_func(sort_func)
     store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
@@ -65,6 +72,7 @@ def create_store():
 
 
 def filter_view(model, _iter, user_data):
+    """Filter the game list"""
     filter_text = user_data(None)
     if not filter_text:
         return True
@@ -75,6 +83,41 @@ def filter_view(model, _iter, user_data):
         return False
 
 
+def icon_to_pixbuf(game_id):
+    """Converts a png icon into a pixbuf ready to be used in widget"""
+    icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)
+    if not os.path.exists(icon_path):
+        icon_path = MISSING_ICON
+    try:
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, 128, 128)
+    except GLib.GError:
+        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
+    return pixbuf
+
+
+class GameModel(Gtk.ListStore):
+    def __init__(self, *args, **kwargs):
+        super(GameModel, self).__init__(*args, **kwargs)
+
+
+class GameView(object):
+    __gsignals__ = {
+      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+      "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+    }
+    selected_game = None
+    filter_text = ""
+
+    def update_filter(self, widget, data=None):
+        self.filter_text = data
+        self.modelfilter.refilter()
+
+    def fill_store(self, store):
+        store.clear()
+        for game in self.games:
+            self.add(game)
+
+
 class GameTreeView(Gtk.TreeView):
     """
     Show the main list of games
@@ -82,25 +125,25 @@ class GameTreeView(Gtk.TreeView):
     Many thanks to Michael Vogt
 
     """
-    COL_ICON = 1  # Column number for the icon
-    COL_TEXT = 2  # Column number for the description
-    __gsignals__ = {
-      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
+    __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        self.selected_game = None
-        store = Gtk.ListStore(str, Pixbuf, str)
+        store = create_store()
         store.set_sort_column_id(0, Gtk.SortType.ASCENDING)
         self.set_model(store)
+
+        # Icon column
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=self.COL_ICON)
+        column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=COL_ICON)
         self.append_column(column)
+
+        # Name column
         text_cell = Gtk.CellRendererText()
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        column = Gtk.TreeViewColumn("Game", text_cell, markup=self.COL_TEXT)
+        column = Gtk.TreeViewColumn("Game", text_cell, markup=COL_NAME)
         self.append_column(column)
+
         if games:
             for game in sorted(games):
                 self.add(game)
@@ -115,8 +158,8 @@ class GameTreeView(Gtk.TreeView):
         icon_path = os.path.join(get_data_path(),
                                  'media/runner_icons',
                                  game['runner'] + '.png')
-        pix = Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
-        row = model.append([game['id'], pix, label])
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
+        row = model.append([game['id'], label, pixbuf, game['runner']])
         return row
 
     def remove_row(self, model_iter):
@@ -136,16 +179,11 @@ class GameTreeView(Gtk.TreeView):
         self.emit("game-selected")
 
 
-class GameIconView(Gtk.IconView):
-    __gsignals__ = {
-      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
-      "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-    }
-    filter_text = ""
+class GameIconView(Gtk.IconView, GameView):
+    __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
-        self.selected_game = None
         self.games = games if games else []
         store = create_store()
         self.modelfilter = store.filter_new()
@@ -158,32 +196,15 @@ class GameIconView(Gtk.IconView):
 
         self.connect('item-activated', self.get_selection, store)
         self.connect('filter-updated', self.update_filter)
-
-    def update_filter(self, widget, data=None):
-        self.filter_text = data
-        self.modelfilter.refilter()
-
-    def fill_store(self, store):
-        store.clear()
-        for game in self.games:
-            self.add(game)
+        self.set_item_width(150)
+        self.set_spacing(21)
 
     def add(self, game):
         """Adds a game into the icon view"""
         store = self.get_model()
-        pixbuf = self.icon_to_pixbuf(game["id"])
+        pixbuf = icon_to_pixbuf(game["id"])
         store.get_model().append((game["id"], game["name"],
                                   pixbuf, game["runner"]))
-
-    def icon_to_pixbuf(self, game_id):
-        icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)
-        if not os.path.exists(icon_path):
-            icon_path = MISSING_ICON
-        try:
-            pixbuf = Pixbuf.new_from_file_at_size(icon_path, 128, 128)
-        except GLib.GError:
-            pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
-        return pixbuf
 
     def get_selection(self, icon_view, tree_path, store):
         iter_ = store.get_iter(tree_path)
