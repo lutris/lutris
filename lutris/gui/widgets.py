@@ -148,6 +148,7 @@ class GameView(object):
             return
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
+            view.select_path(view.current_path)
         except ValueError:
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
@@ -224,6 +225,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
         self.connect('size-allocate', GameIconView.on_size_allocate)
+        self.connect('button-press-event', self.popup_contextual_menu)
 
     def on_size_allocate(self, allocation):
         [self.set_columns(m) for m in [1, self.get_columns()]]
