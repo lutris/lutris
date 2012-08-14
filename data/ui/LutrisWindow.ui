@@ -270,6 +270,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">•</property>
+                    <property name="primary_icon_stock">gtk-find</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">False</property>
+                    <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>
                     <signal name="changed" handler="on_search_entry_changed" swapped="no"/>
                   </object>
                 </child>

@@ -17,7 +17,7 @@ from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
-GAME_VIEW = 'icon'
+GAME_VIEW = 'list'
 
 
 class LutrisWindow:

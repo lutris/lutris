@@ -36,14 +36,14 @@ from lutris.constants import COVER_PATH
 from lutris.util import log
 from lutris.settings import get_data_path, DATA_DIR
 
-ICON_SIZE = 24
 MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
 
 (COL_ID,
  COL_NAME,
  COL_ICON,
- COL_RUNNER
-) = range(4)
+ COL_RUNNER,
+ COL_RUNNER_ICON
+) = range(5)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -65,7 +65,7 @@ def sort_func(store, a_iter, b_iter, _user_data):
 
 def create_store():
     """Populates the game list"""
-    store = Gtk.ListStore(str, str, Pixbuf, str)
+    store = Gtk.ListStore(str, str, Pixbuf, str, Pixbuf)
     store.set_default_sort_func(sort_func)
     store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
     return store
@@ -83,21 +83,24 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def icon_to_pixbuf(game_id):
+def icon_to_pixbuf(icon_path, size=128):
     """Converts a png icon into a pixbuf ready to be used in widget"""
-    icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game_id)
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON
     try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, 128, 128)
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size, size)
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, 128, 128)
+        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size, size)
     return pixbuf
 
 
-class GameModel(Gtk.ListStore):
-    def __init__(self, *args, **kwargs):
-        super(GameModel, self).__init__(*args, **kwargs)
+def get_pixbuf_for_game(game):
+    runner_icon_path = os.path.join(get_data_path(), 'media/runner_icons',
+                                    '%s.png' % game['runner'])
+    game_icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game['id'])
+    game_pix = icon_to_pixbuf(game_icon_path)
+    runner_pix = icon_to_pixbuf(runner_icon_path, 24)
+    return game_pix, runner_pix
 
 
 class GameView(object):
@@ -107,18 +110,41 @@ class GameView(object):
     }
     selected_game = None
     filter_text = ""
+    games = []
+
+    def initialize_store(self, games):
+        self.games = games if games else []
+        store = create_store()
+        self.modelfilter = store.filter_new()
+        self.modelfilter.set_visible_func(filter_view,
+                                          lambda x: self.filter_text)
+        self.set_model(self.modelfilter)
+        self.fill_store(store)
+        return store
 
     def update_filter(self, widget, data=None):
         self.filter_text = data
         self.modelfilter.refilter()
 
+    def add_game(self, game):
+        """Adds a game into the icon view"""
+        store = self.get_model()
+        game_pix, runner_pix = get_pixbuf_for_game(game)
+        label = "%s \n<small>%s</small>" % \
+                (game['name'], game['runner'])
+        store.get_model().append((game["id"], label, game_pix,
+                                  game["runner"], runner_pix))
+
     def fill_store(self, store):
         store.clear()
         for game in self.games:
-            self.add(game)
+            self.add_game(game)
+
+    def get_selected_game(self):
+        raise NotImplemented('Implement this method in subclasses of GameView')
 
 
-class GameTreeView(Gtk.TreeView):
+class GameTreeView(Gtk.TreeView, GameView):
     """
     Show the main list of games
     Some code inspired by Ubuntu Software Center
@@ -129,13 +155,12 @@ class GameTreeView(Gtk.TreeView):
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        store = create_store()
-        store.set_sort_column_id(0, Gtk.SortType.ASCENDING)
-        self.set_model(store)
+        store = self.initialize_store(games)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("Runner", image_cell, pixbuf=COL_ICON)
+        column = Gtk.TreeViewColumn("Runner", image_cell,
+                                    pixbuf=COL_RUNNER_ICON)
         self.append_column(column)
 
         # Name column
@@ -144,23 +169,8 @@ class GameTreeView(Gtk.TreeView):
         column = Gtk.TreeViewColumn("Game", text_cell, markup=COL_NAME)
         self.append_column(column)
 
-        if games:
-            for game in sorted(games):
-                self.add(game)
-
         self.connect('row-activated', self.get_selected_game, store)
-
-    def add(self, game):
-        """Add a game in the treeview."""
-        model = self.get_model()
-        label = "%s \n<small>%s</small>" % \
-                (game['name'], game['runner'])
-        icon_path = os.path.join(get_data_path(),
-                                 'media/runner_icons',
-                                 game['runner'] + '.png')
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
-        row = model.append([game['id'], label, pixbuf, game['runner']])
-        return row
+        self.connect('filter-updated', self.update_filter)
 
     def remove_row(self, model_iter):
         """Remove a game from the treeview."""
@@ -184,27 +194,15 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
-        self.games = games if games else []
-        store = create_store()
-        self.modelfilter = store.filter_new()
-        self.modelfilter.set_visible_func(filter_view,
-                                          lambda x: self.filter_text)
-        self.set_model(self.modelfilter)
-        self.fill_store(store)
-        self.set_text_column(COL_NAME)
+        store = self.initialize_store(games)
+        self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
 
-        self.connect('item-activated', self.get_selection, store)
-        self.connect('filter-updated', self.update_filter)
         self.set_item_width(150)
         self.set_spacing(21)
 
-    def add(self, game):
-        """Adds a game into the icon view"""
-        store = self.get_model()
-        pixbuf = icon_to_pixbuf(game["id"])
-        store.get_model().append((game["id"], game["name"],
-                                  pixbuf, game["runner"]))
+        self.connect('item-activated', self.get_selection, store)
+        self.connect('filter-updated', self.update_filter)
 
     def get_selection(self, icon_view, tree_path, store):
         iter_ = store.get_iter(tree_path)
