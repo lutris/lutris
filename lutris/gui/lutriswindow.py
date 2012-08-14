@@ -4,7 +4,7 @@ import os
 # pylint: disable=E0611
 from gi.repository import Gtk, GObject
 
-from lutris.util import log
+#from lutris.util import log
 from lutris.settings import get_data_path
 from lutris.game import LutrisGame, get_list
 from lutris.desktop_control import LutrisDesktopControl
@@ -17,7 +17,7 @@ from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
-GAME_VIEW = 'icon'
+GAME_VIEW = 'list'
 
 
 def switch_to_view(view=GAME_VIEW):
@@ -35,67 +35,50 @@ def switch_to_view(view=GAME_VIEW):
 class LutrisWindow:
     """Handler class for main window signals"""
     def __init__(self):
-        log.logger.debug("Creating main window")
         ui_filename = os.path.join(get_data_path(), 'ui', 'LutrisWindow.ui')
         if not os.path.exists(ui_filename):
-            msg = 'File %s not found' % ui_filename
-            log.logger.error(msg)
-            raise IOError(msg)
+            raise IOError('File %s not found' % ui_filename)
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.builder.connect_signals(self)
-        log.logger.debug("Fetching game list")
-
-        # TODO : do something with this shit
-        # Game list
-        #self.game_column = treeview.get_column(1)
-        #self.game_cell = self.game_column.get_cells()[0]
-        #self.game_cell.connect('edited', self.game_name_edited_callback)
-
         self.view = switch_to_view()
-
-        self.view.connect('button-press-event', self.mouse_menu)
-        self.view.connect("game-selected", self.game_launch)
-
+        self.connect_signals()
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add_with_viewport(self.view)
-
         #Status bar
         self.status_label = self.builder.get_object('status_label')
-        self.status_label.set_text('Insert coin')
-
         self.joystick_icons = []
-
+        # Buttons
         self.reset_button = self.builder.get_object('reset_button')
         self.reset_button.set_sensitive(False)
         self.delete_button = self.builder.get_object('delete_button')
         self.delete_button.set_sensitive(False)
-
-        # Set buttons state
         self.play_button = self.builder.get_object('play_button')
         self.play_button.set_sensitive(False)
 
         #Contextual menu
-        play = 'Play', self.game_launch
-        rename = 'Rename', self.edit_game_name
-        config = 'Configure', self.edit_game_configuration
+        menu_actions = [('Play', self.game_launch),
+                        ('Configure', self.edit_game_configuration)]
         self.menu = Gtk.Menu()
-        for item in [play, rename, config]:
-            if item == None:
-                subitem = Gtk.SeparatorMenuItem()
-            else:
-                subitem = Gtk.ImageMenuItem(item[0])
-                subitem.connect('activate', item[1])
-                self.menu.append(subitem)
+        for action in menu_actions:
+            subitem = Gtk.ImageMenuItem(action[0])
+            subitem.connect('activate', action[1])
+            self.menu.append(subitem)
         self.menu.show_all()
+        self.view.contextual_menu = self.menu
 
         #Timer
         self.timer_id = GObject.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
-        log.logger.debug("Showing main window")
-
         self.window.show_all()
+
+    def connect_signals(self):
+        """Connects signals from the view with the main window.
+           This must be called each time the view is rebuilt.
+        """
+        self.view.connect("game-activated", self.game_launch)
+        self.view.connect("game-selected", self.game_selection_changed)
 
     def refresh_status(self):
         """Refresh status bar"""
@@ -111,7 +94,7 @@ class LutrisWindow:
                     self.status_label.set_text("Playing %s (pid: %r)"\
                                                % (name, pid))
         else:
-            self.status_label.set_text("Welcome to Lutris")
+            self.status_label.set_text("")
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -122,19 +105,6 @@ class LutrisWindow:
                 self.joystick_icons[index].set_visible(False)
         return True
 
-    def on_destroy(self, *args):
-        """Signal for window close"""
-        log.logger.debug("Sending exit signal")
-        Gtk.main_quit(*args)
-
-    def mouse_menu(self, widget, event):
-        """Contextual menu"""
-        if event.button == 3:
-            (_, self.paths) = widget.get_selection().get_selected_rows()
-            if len(self.paths) > 0:
-                self.menu.popup(None, None, None, None,
-                                event.button, event.time)
-
     def about(self, _widget, _data=None):
         """Opens the about dialog"""
         AboutDialog()
@@ -144,17 +114,19 @@ class LutrisWindow:
 
         Note: this won't delete the actual game
         """
-        #game_selection = self.game_treeview.get_selection()
-        #model, select_iter = game_selection.get_selected()
-        #game_name = model.get_value(select_iter, 0)
-        #self.lutris_config.remove(game_name)
-        #self.game_treeview.remove_row(select_iter)
-        #self.status_label.set_text("Removed game")
-        pass
+        raise NotImplemented("You gotta wait for it")
 
-    def on_connect(self, widget):
+    # =========
+    # Callbacks
+    # =========
+
+    def on_connect(self, *args):
         """Callback when a user connects to his account"""
         NoticeDialog("This functionnality is not yet implemented.")
+
+    def on_destroy(self, *args):
+        """Signal for window close"""
+        Gtk.main_quit(*args)
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated"""
@@ -172,66 +144,46 @@ class LutrisWindow:
             self.view.add(new_game)
         self.game_treeview.sort_rows()
 
-    def import_steam(self, _widget, data=None):
-        """Callback for importing Steam games"""
-        NoticeDialog("Import from steam not yet implemented")
-
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())
 
-    def on_play_clicked(self, _widget):
-        """Callback for the play button"""
-        self.game_launch()
-
-    def game_launch(self, data):
+    def game_launch(self, *args):
         """Launch a game"""
-        print "data", data
-        game_id = self.view.selected_game
-        if game_id:
-            self.running_game = LutrisGame(game_id)
+        if self.view.selected_game:
+            self.running_game = LutrisGame(self.view.selected_game)
             self.running_game.play()
 
-    def reset(self, _widget, _data=None):
+    def reset(self, *args):
         """Reset the desktop to it's initial state"""
-        if hasattr(self, "running_game"):
+        if self.running_game:
             self.running_game.quit_game()
             self.status_label.set_text("Stopped %s"\
                                        % self.running_game.get_real_name())
+            self.running_game = None
         else:
             LutrisDesktopControl().reset_desktop()
 
+    def game_selection_changed(self, _widget):
+        sensitive = True if self.view.selected_game else False
+        self.play_button.set_sensitive(sensitive)
+        self.delete_button.set_sensitive(sensitive)
+
     def add_game(self, _widget, _data=None):
-        """ MAnually add a game """
+        """ Manually add a game """
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
             self.view.add(game_info)
 
-    def edit_game_name(self, _button):
-        pass
-    #    """Change game name"""
-    #    self.game_cell.set_property('editable', True)
-    #    self.game_treeview.set_cursor(self.paths[0][0],
-    #                                  self.game_column, True)
-
-    def game_name_edited_callback(self, _widget, index, new_name):
-        """ Update the game's name """
-        #self.game_treeview.get_model()[index][0] = new_name
-        #new_name_game_config = LutrisConfig(game=self.get_selected_game())
-        #new_name_game_config.config["realname"] = new_name
-        #new_name_game_config.save(config_type="game")
-        #self.game_cell.set_property('editable', False)
-        pass
-
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
-
-        game = self.get_selected_game()
-        EditGameConfigDialog(self, game)
+        EditGameConfigDialog(self, self.view.selected_game)
 
     def on_iconview_toggled(self, menuitem):
         """Switches between icon view and list view"""
         self.view.destroy()
         self.view = None
         self.view = switch_to_view('icon' if menuitem.get_active() else 'list')
+        self.view.contextual_menu = self.menu
+        self.connect_signals()
         self.games_scrollwindow.add_with_viewport(self.view)

@@ -42,8 +42,7 @@ MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
  COL_NAME,
  COL_ICON,
  COL_RUNNER,
- COL_RUNNER_ICON
-) = range(5)
+ COL_RUNNER_ICON) = range(5)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -106,9 +105,12 @@ def get_pixbuf_for_game(game):
 class GameView(object):
     __gsignals__ = {
       "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+      "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
       "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
     selected_game = None
+    current_path = None
+    contextual_menu = None
     filter_text = ""
     games = []
 
@@ -140,22 +142,30 @@ class GameView(object):
         for game in self.games:
             self.add_game(game)
 
+    def popup_contextual_menu(self, view, event):
+        """Contextual menu"""
+        if event.button != 3:
+            return
+        try:
+            view.current_path = view.get_path_at_pos(event.x, event.y)
+        except ValueError:
+            (_, path) = view.get_selection().get_selected()
+            view.current_path = path
+        if view.current_path:
+            self.contextual_menu.popup(None, None, None, None,
+                                       event.button, event.time)
+
     def get_selected_game(self):
         raise NotImplemented('Implement this method in subclasses of GameView')
 
 
 class GameTreeView(Gtk.TreeView, GameView):
-    """
-    Show the main list of games
-    Some code inspired by Ubuntu Software Center
-    Many thanks to Michael Vogt
-
-    """
+    """Show the main list of games"""
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
-        store = self.initialize_store(games)
+        self.initialize_store(games)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
@@ -169,8 +179,12 @@ class GameTreeView(Gtk.TreeView, GameView):
         column = Gtk.TreeViewColumn("Game", text_cell, markup=COL_NAME)
         self.append_column(column)
 
-        self.connect('row-activated', self.get_selected_game, store)
+        self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
+
+        self.connect('row-activated', self.get_selected_game, True)
+        self.connect('cursor-changed', self.get_selected_game, False)
         self.connect('filter-updated', self.update_filter)
+        self.connect('button-press-event', self.popup_contextual_menu)
 
     def remove_row(self, model_iter):
         """Remove a game from the treeview."""
@@ -182,11 +196,14 @@ class GameTreeView(Gtk.TreeView, GameView):
         model = self.get_model()
         Gtk.TreeModel.sort_new_with_model(model)
 
-    def get_selected_game(self, widget, line, column, store):
+    def get_selected_game(self, widget, line=None, column=None, launch=False):
         selection = self.get_selection()
         model, select_iter = selection.get_selected()
         self.selected_game = model.get_value(select_iter, COL_ID)
-        self.emit("game-selected")
+        if launch:
+            self.emit("game-activated")
+        else:
+            self.emit("game-selected")
 
 
 class GameIconView(Gtk.IconView, GameView):
@@ -194,27 +211,33 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
-        store = self.initialize_store(games)
+        self.initialize_store(games)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
 
         self.set_item_width(150)
         self.set_spacing(21)
 
-        self.connect('item-activated', self.get_selection, store)
+        self.connect('item-activated', self.get_selected_game, True)
+        self.connect('selection-changed', self.get_selected_game)
         self.connect('filter-updated', self.update_filter)
-        self.connect ("size-allocate", GameIconView.on_size_allocate)
+        self.connect('size-allocate', GameIconView.on_size_allocate)
 
-    def on_size_allocate (self, allocation):
-        [self.set_columns (m) for m in [1,self.get_columns ()]]
+    def on_size_allocate(self, allocation):
+        [self.set_columns(m) for m in [1, self.get_columns()]]
 
-    def do_get_preferred_width (self):
-        return (0,0)
+    def do_get_preferred_width(self):
+        return (0, 0)
 
-    def get_selection(self, icon_view, tree_path, store):
-        iter_ = store.get_iter(tree_path)
+    def get_selected_game(self, icon_view, path, launch=False):
+        self.current_path = path
+        store = self.get_model()
+        iter_ = store.get_iter(path)
         self.selected_game = store.get(iter_, COL_ID)
-        self.emit("game-selected")
+        if launch:
+            self.emit("game-activated")
+        else:
+            self.emit("game-selected")
 
 
 class GameCover(Gtk.Image):
@@ -338,7 +361,6 @@ class DownloadProgressBox(Gtk.HBox):
 
     def cancel(self):
         """Cancel the current download."""
-        print "cancelling download"
         self.downloader.kill()
 
 
