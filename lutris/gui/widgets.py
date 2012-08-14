@@ -203,6 +203,13 @@ class GameIconView(Gtk.IconView, GameView):
 
         self.connect('item-activated', self.get_selection, store)
         self.connect('filter-updated', self.update_filter)
+        self.connect ("size-allocate", GameIconView.on_size_allocate)
+
+    def on_size_allocate (self, allocation):
+        [self.set_columns (m) for m in [1,self.get_columns ()]]
+
+    def do_get_preferred_width (self):
+        return (0,0)
 
     def get_selection(self, icon_view, tree_path, store):
         iter_ = store.get_iter(tree_path)
