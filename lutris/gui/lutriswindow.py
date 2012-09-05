@@ -114,7 +114,7 @@ class LutrisWindow:
 
         Note: this won't delete the actual game
         """
-        raise NotImplemented("You gotta wait for it")
+        NoticeDialog("This functionnality is not yet implemented.")
 
     # =========
     # Callbacks
