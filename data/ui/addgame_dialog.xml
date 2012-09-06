@@ -1,9 +1,0 @@
-<glade-catalog name="addgame_dialog" domain="glade-3" 
-               depends="gtk+" version="1.0">
-  <glade-widget-classes>
-    <glade-widget-class title="sentence_name Dialog" name="AddgameDialog" 
-                        generic-name="addgame_dialog" parent="GtkDialog"
-                        icon-name="widget-gtk-dialog"/>
-  </glade-widget-classes>
-
-</glade-catalog>
