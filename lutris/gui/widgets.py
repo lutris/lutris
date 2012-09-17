@@ -123,7 +123,8 @@ class GameView(object):
         self.modelfilter = store.filter_new()
         self.modelfilter.set_visible_func(filter_view,
                                           lambda x: self.filter_text)
-        self.set_model(self.modelfilter)
+        self.sorted_filtered_model = Gtk.TreeModelSort(model=self.modelfilter)
+        self.set_model(self.sorted_filtered_model)
         self.fill_store(store)
         return store
 
@@ -137,7 +138,7 @@ class GameView(object):
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
         label = "%s \n<small>%s</small>" % \
                 (game['name'], game['runner'])
-        store.get_model().append((game["id"], label, game_pix,
+        store.get_model().get_model().append((game["id"], label, game_pix,
                                   game["runner"], runner_pix))
 
     def fill_store(self, store):
@@ -183,6 +184,8 @@ class GameTreeView(Gtk.TreeView, GameView):
         text_cell = Gtk.CellRendererText()
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         column = Gtk.TreeViewColumn("Name", text_cell, markup=COL_NAME)
+        column.set_sort_indicator(True)
+        column.set_sort_column_id(1)
         self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
