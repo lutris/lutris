@@ -120,31 +120,33 @@ class GameView(object):
     def initialize_store(self, games):
         self.games = games if games else []
         store = create_store()
+        self.fill_store(store)
+        
         self.modelfilter = store.filter_new()
         self.modelfilter.set_visible_func(filter_view,
                                           lambda x: self.filter_text)
-        self.sorted_filtered_model = Gtk.TreeModelSort(model=self.modelfilter)
-        self.set_model(self.sorted_filtered_model)
-        self.fill_store(store)
+        """Wrap a TreeModelSort around the TreeModelFilter to allow both
+        sorting by clicking columns in the TreeView and filtering"""
+        self.sortable_filtered_model = Gtk.TreeModelSort(model=self.modelfilter)
+        self.set_model(self.sortable_filtered_model)
         return store
 
     def update_filter(self, widget, data=None):
         self.filter_text = data
         self.modelfilter.refilter()
 
-    def add_game(self, game):
+    def add_game(self, game, store):
         """Adds a game into the icon view"""
-        store = self.get_model()
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
         label = "%s \n<small>%s</small>" % \
                 (game['name'], game['runner'])
-        store.get_model().get_model().append((game["id"], label, game_pix,
+        store.append((game["id"], label, game_pix,
                                   game["runner"], runner_pix))
 
     def fill_store(self, store):
         store.clear()
         for game in self.games:
-            self.add_game(game)
+            self.add_game(game, store)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
