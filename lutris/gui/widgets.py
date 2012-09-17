@@ -131,9 +131,10 @@ class GameView(object):
         self.set_model(self.sortable_filtered_model)
         return store
 
-    def update_filter(self, widget, data=None):
-        self.filter_text = data
-        self.modelfilter.refilter()
+    def fill_store(self, store):
+        store.clear()
+        for game in self.games:
+            self.add_game(game, store)
 
     def add_game(self, game, store):
         """Adds a game into the icon view"""
@@ -143,10 +144,9 @@ class GameView(object):
         store.append((game["id"], label, game_pix,
                                   game["runner"], runner_pix))
 
-    def fill_store(self, store):
-        store.clear()
-        for game in self.games:
-            self.add_game(game, store)
+    def update_filter(self, widget, data=None):
+        self.filter_text = data
+        self.modelfilter.refilter()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
