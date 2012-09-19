@@ -40,6 +40,7 @@ class dolphin(Runner):
         self.executable = "dolphin"
         self.machine = "Gamecube, Wii"
         self.description = "Emulator for Nintendo Gamecube and Wii games"
+        self.is_installable = False
 
     def install(self):
         NoticeDialog('Please activate the PlayDeb reposiories in order to ' + \

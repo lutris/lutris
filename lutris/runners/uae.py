@@ -27,12 +27,14 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class uae(Runner):
-    """Runs Amiga games with UAE, yay"""
+
+    """Run Amiga games with UAE"""
     def __init__(self, settings=None):
         super(uae, self).__init__()
         self.package = "uae"
         self.executable = "uae"
         self.machine = "Amiga"
+        self.is_installable = True
         self.uae_options = {}
         control_choices = [("Mouse", "mouse"), ("Joystick 1", "joy0"),
                            ("Joystick 2", "joy1"),  ("Keyboard 1", "kbd1"),

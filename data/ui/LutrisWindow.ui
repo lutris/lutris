@@ -90,17 +90,6 @@
                                 <signal name="activate" handler="import_scummvm" swapped="no"/>
                               </object>
                             </child>
-                            <child>
-                              <object class="GtkMenuItem" id="steam_menuitem">
-                                <property name="use_action_appearance">False</property>
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Steam</property>
-                                <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_steam" swapped="no"/>
-                              </object>
-                            </child>
                           </object>
                         </child>
                       </object>
@@ -196,23 +185,6 @@
             <property name="toolbar_style">icons</property>
             <property name="icon_size">6</property>
             <child>
-              <object class="GtkToolButton" id="add_game_button">
-                <property name="use_action_appearance">False</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Add game</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Add Game</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-add</property>
-                <signal name="clicked" handler="add_game" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkToolButton" id="play_button">
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
@@ -222,7 +194,7 @@
                 <property name="label" translatable="yes">Play</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-play</property>
-                <signal name="clicked" handler="on_play_clicked" swapped="no"/>
+                <signal name="clicked" handler="game_launch" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -240,6 +212,23 @@
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-stop</property>
                 <signal name="clicked" handler="reset" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="add_game_button">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Add game</property>
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">Add Game</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-add</property>
+                <signal name="clicked" handler="add_game" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

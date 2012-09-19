@@ -37,7 +37,7 @@ class Runner(object):
     def __init__(self):
         """ Initialize runner """
         self.executable = None
-        self.is_installable = True
+        self.is_installable = False
         self.arguments = []
         self.error_messages = []
         self.game = None
