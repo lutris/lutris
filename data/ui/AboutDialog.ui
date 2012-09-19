@@ -35,10 +35,10 @@ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
     <property name="authors">Mathieu Comandon &lt;strider@strycore. com&gt;</property>
     <property name="artists">Ludovic Soulié &lt;contact@yudoh.com&gt;</property>
     <property name="logo">../media/lutris.svg</property>
-    <property name="logo_icon_name">lutris</property>
     <property name="wrap_license">True</property>
     <property name="license_type">gpl-3-0</property>
-    <signal name="close" handler="destroy" swapped="no"/>
+    <signal name="close" handler="on_close" swapped="no"/>
+    <signal name="response" handler="on_close" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="vbox">
         <property name="can_focus">False</property>
@@ -48,7 +48,6 @@ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
           <object class="GtkButtonBox" id="aboutdialog-action_area1">
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
-            <signal name="destroy" handler="destroy" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>

@@ -52,17 +52,6 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="preferences_menuitem">
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">configure the default options</property>
-                        <property name="label" translatable="yes">Global preferences</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_preferences_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkSeparatorMenuItem" id="separator">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -95,12 +84,41 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="quit_menuitem">
+                      <object class="GtkImageMenuItem" id="quit_menuitem">
+                        <property name="label">gtk-quit</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Quit</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
                         <signal name="activate" handler="on_destroy" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="edit_menuitem">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Edit</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="edit_menu">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="preferences_menuitem">
+                        <property name="label">gtk-preferences</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">configure the default options</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="on_preferences_activate" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -112,7 +130,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">View</property>
+                <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="view_menu">

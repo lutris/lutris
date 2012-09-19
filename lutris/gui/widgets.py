@@ -93,12 +93,12 @@ def icon_to_pixbuf(icon_path, size=128):
     return pixbuf
 
 
-def get_pixbuf_for_game(game):
+def get_pixbuf_for_game(game, icon_size):
     runner_icon_path = os.path.join(get_data_path(), 'media/runner_icons',
                                     '%s.png' % game['runner'])
     game_icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game['id'])
-    game_pix = icon_to_pixbuf(game_icon_path)
-    runner_pix = icon_to_pixbuf(runner_icon_path, 24)
+    game_pix = icon_to_pixbuf(game_icon_path, icon_size)
+    runner_pix = icon_to_pixbuf(runner_icon_path, icon_size)
     return game_pix, runner_pix
 
 
@@ -113,34 +113,40 @@ class GameView(object):
     contextual_menu = None
     filter_text = ""
     games = []
+    
+    def __init__(self):
+        self.icon_size = 32
 
     def initialize_store(self, games):
         self.games = games if games else []
         store = create_store()
+        self.fill_store(store)
+        
         self.modelfilter = store.filter_new()
         self.modelfilter.set_visible_func(filter_view,
                                           lambda x: self.filter_text)
-        self.set_model(self.modelfilter)
-        self.fill_store(store)
+        """Wrap a TreeModelSort around the TreeModelFilter to allow both
+        sorting by clicking columns in the TreeView and filtering"""
+        self.sortable_filtered_model = Gtk.TreeModelSort(model=self.modelfilter)
+        self.set_model(self.sortable_filtered_model)
         return store
-
-    def update_filter(self, widget, data=None):
-        self.filter_text = data
-        self.modelfilter.refilter()
-
-    def add_game(self, game):
-        """Adds a game into the icon view"""
-        store = self.get_model()
-        game_pix, runner_pix = get_pixbuf_for_game(game)
-        label = "%s \n<small>%s</small>" % \
-                (game['name'], game['runner'])
-        store.get_model().append((game["id"], label, game_pix,
-                                  game["runner"], runner_pix))
 
     def fill_store(self, store):
         store.clear()
         for game in self.games:
-            self.add_game(game)
+            self.add_game(game, store)
+
+    def add_game(self, game, store):
+        """Adds a game into the icon view"""
+        game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
+        label = "%s \n<small>%s</small>" % \
+                (game['name'], game['runner'])
+        store.append((game["id"], label, game_pix,
+                                  game["runner"], runner_pix))
+
+    def update_filter(self, widget, data=None):
+        self.filter_text = data
+        self.modelfilter.refilter()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
@@ -148,7 +154,8 @@ class GameView(object):
             return
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
-            view.select_path(view.current_path)
+            if type(view) is GameIconView:
+                view.select_path(view.current_path)
         except ValueError:
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
@@ -166,18 +173,21 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games):
         super(GameTreeView, self).__init__()
+        self.icon_size = 32
         self.initialize_store(games)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("Runner", image_cell,
-                                    pixbuf=COL_RUNNER_ICON)
+        column = Gtk.TreeViewColumn("", image_cell,
+                                    pixbuf=COL_ICON)
         self.append_column(column)
 
         # Name column
         text_cell = Gtk.CellRendererText()
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        column = Gtk.TreeViewColumn("Game", text_cell, markup=COL_NAME)
+        column = Gtk.TreeViewColumn("Name", text_cell, markup=COL_NAME)
+        column.set_sort_indicator(True)
+        column.set_sort_column_id(1)
         self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
@@ -214,12 +224,13 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
+        self.set_item_width(150)
+        self.set_spacing(21)
+        self.icon_size = 128
         self.initialize_store(games)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
 
-        self.set_item_width(150)
-        self.set_spacing(21)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)

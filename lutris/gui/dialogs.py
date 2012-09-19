@@ -19,5 +19,5 @@ class AboutDialog:
 
         self.dialog.show_all()
 
-    def destroy(self, widget):
+    def on_close(self, *args):
         self.dialog.destroy()
