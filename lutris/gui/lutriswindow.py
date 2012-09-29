@@ -7,7 +7,6 @@ from gi.repository import Gtk, GObject
 #from lutris.util import log
 from lutris.settings import get_data_path
 from lutris.game import LutrisGame, get_list
-from lutris.desktop_control import LutrisDesktopControl
 
 from lutris.gui.dialogs import AboutDialog
 from lutris.gui.common import NoticeDialog
@@ -160,8 +159,6 @@ class LutrisWindow:
             self.status_label.set_text("Stopped %s"\
                                        % self.running_game.get_real_name())
             self.running_game = None
-        else:
-            LutrisDesktopControl().reset_desktop()
 
     def game_selection_changed(self, _widget):
         sensitive = True if self.view.selected_game else False

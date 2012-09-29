@@ -80,55 +80,45 @@ def check_joysticks():
     return joysticks
 
 
-class LutrisDesktopControl():
+def set_compiz_nodecoration(klass=None, title=None):
+    """Remove the decorations for the game's window"""
+    window_rule = make_compiz_rule(klass, title)
+    if not window_rule:
+        return False
+    rule = "(any) & !(%s)" % window_rule
+    compiz_root = "/apps/compiz/plugins"
+    key = compiz_root + "/decoration/allscreens/options/decoration_match"
+    setting = GConfSetting(key, bool)
+    setting.set_value(rule)
+    return True
+
+
+def set_compiz_fullscreen(klass=None, title=None):
+    """Set a fullscreen rule for the plugin Window Rules"""
+    rule = make_compiz_rule(klass, title)
+    if not rule:
+        return False
+    compiz_root = "/apps/compiz/plugins"
+    key = compiz_root + "/winrules/screen0/options/fullscreen_match"
+    setting = GConfSetting(key, bool)
+    setting.set_value(rule)
+    return True
+
+
+def set_keyboard_repeat(value=False):
+    """Desactivate key repeats.
+
+    This is needed, for example, in Wolfenstein (2009)
     """
-    Change some settings in gconf that are useful to provide a good gaming
-    experience """
-    def __init__(self):
-        self.default_resolution = None
-        self.panels_hidden = False
+    key = "/desktop/gnome/peripherals/keyboard/repeat"
+    setting = GConfSetting(key, bool)
+    setting.set_key(key, value)
+    return True
 
-    def set_compiz_fullscreen(self, class_=None, title=None):
-        """Set a fullscreen rule for the plugin Window Rules"""
-        rule = make_compiz_rule(class_, title)
-        if not rule:
-            return False
-        compiz_root = "/apps/compiz/plugins"
-        key = compiz_root + "/winrules/screen0/options/fullscreen_match"
-        setting = GConfSetting(key, bool)
-        setting.set_value(rule)
-        return True
 
-    def set_compiz_nodecoration(self, class_=None, title=None):
-        """Remove the decorations for the game's window"""
-        window_rule = make_compiz_rule(class_, title)
-        if not window_rule:
-            return False
-        rule = "(any) & !(%s)" % window_rule
-        compiz_root = "/apps/compiz/plugins"
-        key = compiz_root + "/decoration/allscreens/options/decoration_match"
-        setting = GConfSetting(key, bool)
-        setting.set_value(rule)
-        return True
-
-    def set_keyboard_repeat(self, value=False):
-        """Desactivate key repeats.
-
-        This is needed, for example, in Wolfenstein (2009)
-        """
-        key = "/desktop/gnome/peripherals/keyboard/repeat"
-        setting = GConfSetting(key, bool)
-        setting.set_key(key, value)
-        return True
-
-    def reset_desktop(self):
-        """Restore the desktop to its original state."""
-        #Restore panels
-        self.hide_panels(False)
-        #Restore resolution
-        if self.default_resolution is None:
-            os.popen("xrandr -s 0")
-        else:
-            os.popen("xrandr -s %s" % self.default_resolution)
-        #Restore gamma
-        os.popen("xgamma -gamma 1.0")
+def reset_desktop():
+    """Restore the desktop to its original state."""
+    #Restore resolution
+    os.popen("xrandr -s 0")
+    #Restore gamma
+    os.popen("xgamma -gamma 1.0")

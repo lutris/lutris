@@ -29,7 +29,7 @@ from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
-from lutris.desktop_control import LutrisDesktopControl
+import lutris.desktop_control
 from lutris.gui.common import QuestionDialog, ErrorDialog
 from lutris.settings import CONFIG_DIR
 
@@ -91,7 +91,6 @@ class LutrisGame(object):
         self.name = name
         self.runner = None
         self.game_thread = None
-        self.desktop = LutrisDesktopControl()
         self.ticker = None
         self.game_config = None
         self.load_config()
@@ -145,7 +144,7 @@ class LutrisGame(object):
 
         resolution = self.game_config.get_system("resolution")
         if resolution:
-            LutrisDesktopControl.change_resolution(resolution)
+            lutris.desktop_control.change_resolution(resolution)
 
         _reset_pulse = self.game_config.get_system("reset_pulse")
         if _reset_pulse:
@@ -157,11 +156,11 @@ class LutrisGame(object):
 
         nodecoration = self.game_config.get_system("compiz_nodecoration")
         if nodecoration:
-            self.desktop.set_compiz_nodecoration(title=nodecoration)
+            lutris.desktop_control.set_compiz_nodecoration(title=nodecoration)
 
         fullscreen = self.game_config.get_system("compiz_fullscreen")
         if fullscreen:
-            self.desktop.set_compiz_fullscreen(title=fullscreen)
+            lutris.desktop_control.set_compiz_fullscreen(title=fullscreen)
 
         killswitch = self.game_config.get_system("killswitch")
 
@@ -217,4 +216,4 @@ class LutrisGame(object):
                 child.kill()
             os.kill(self.game_thread.pid + 1, SIGKILL)
         if self.game_config.get_system('reset_desktop'):
-            self.desktop.reset_desktop()
+            lutris.desktop_control.reset_desktop()
