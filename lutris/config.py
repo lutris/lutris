@@ -22,9 +22,8 @@ import yaml
 import logging
 from os.path import join
 
-import lutris.pga as pga
-
-from lutris.util import log
+from lutris import pga
+from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.gconf import GConfSetting
 from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
@@ -32,13 +31,13 @@ from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
 
 def register_handler():
     """ Register the lutris: protocol to open with the application. """
-    log.logger.info("registering protocol")
+    logger.info("registering protocol")
     defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
                 ('/desktop/gnome/url-handlers/lutris/enabled', True),
                 ('/desktop/gnome/url-handlers/lutris/needs-terminal', False),)
 
     for key, value in defaults:
-        log.logger.debug("registering gconf key %s" % key)
+        logger.debug("registering gconf key %s" % key)
         setting = GConfSetting(key, type(value))
         setting.set_key(key, value, override_type=True)
 
@@ -56,16 +55,15 @@ def check_config(force_wipe=False):
                    join(CACHE_DIR, "installer")]
     for directory in directories:
         if not os.path.exists(directory):
-            log.logger.debug("creating directory %s" % directory)
+            logger.debug("creating directory %s" % directory)
             os.mkdir(directory)
 
     if force_wipe:
         os.remove(PGA_DB)
 
     if not os.path.isfile(PGA_DB) or force_wipe:
-        log.logger.debug("creating PGA database in %s" % PGA_DB)
+        logger.debug("creating PGA database in %s" % PGA_DB)
         pga.create()
-    #register_handler()
 
 
 class LutrisConfig():
@@ -124,13 +122,13 @@ class LutrisConfig():
                     self.game_config = yaml.load(content)
                     self.runner = self.game_config["runner"]
                 except yaml.scanner.ScannerError:
-                    log.logger.error("error parsing config file %s",
+                    logger.error("error parsing config file %s",
                                      game_config_full_path)
                 except yaml.parser.ParserError:
-                    log.logger.error("error parsing config file %s",
+                    logger.error("error parsing config file %s",
                                      game_config_full_path)
                 except KeyError:
-                    log.logger.error("Runner key is mandatory !")
+                    logger.error("Runner key is mandatory !")
 
         self.update_global_config()
 
@@ -196,7 +194,7 @@ class LutrisConfig():
         if game is None:
             game = self.game
         else:
-            log.logger.warning("Called config/remove with deprecated usage")
+            logger.warning("Called config/remove with deprecated usage")
         logging.debug("removing config for %s", game)
         os.remove(join(CONFIG_DIR, "games/%s.yml" % game))
 
