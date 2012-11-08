@@ -34,6 +34,9 @@ def switch_to_view(view=GAME_VIEW):
 class LutrisWindow:
     """Handler class for main window signals"""
     def __init__(self):
+
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-application-prefer-dark-theme", True)
         ui_filename = os.path.join(get_data_path(), 'ui', 'LutrisWindow.ui')
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
