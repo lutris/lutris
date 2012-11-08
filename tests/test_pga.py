@@ -1,6 +1,4 @@
 #!/usr/bin/python
-import bootstrap
-
 import unittest
 import os
 
@@ -16,14 +14,12 @@ class TestPersonnalGameArchive(unittest.TestCase):
         self.assertTrue(os.path.exists(PGA_DB))
 
     def test_add_game(self):
-        print "add game"
         pga.add_game(name="LutrisTest", machine="Linux", runner="Linux")
         game_list = pga.get_games()
         print game_list
         self.assertTrue("LutrisTest" in game_list)
 
     def test_delete_game(self):
-        print "delete game"
         pga.delete_game("LutrisTest")
 
 if __name__ == '__main__':

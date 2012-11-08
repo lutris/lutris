@@ -16,19 +16,12 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
-import sys
-import logging
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from lutris.util.log import logger
 from lutris.config import LutrisConfig
 
-if  __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    logging.debug('logging enabled')
+if __name__ == "__main__":
     lc = LutrisConfig(runner="wine")
-    print "system config : "
+    logger.error("system config : ")
     print lc.system_config
     print "runner config : "
     print lc.runner_config
