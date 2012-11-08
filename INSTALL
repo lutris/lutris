@@ -1,28 +1,23 @@
 Installing Lutris
 =================
 
-  Requirements
-  ------------
+Requirements
+------------
 
-    These are the requirements I was able to find on the development machine.
-    Lutris should work on any Gnome system but the runner installation is 
-    currently tied to Software Center so it works only on Ubuntu and Debian.
-    In the future, the installation process will use a distro independent 
-    mechanism. 
-    In order to run Lutris, install the following packages.
+These are the requirements I was able to find on the development machine.
+Lutris should work on any Gnome system but the runner installation is currently
+tied to Software Center so it works only on Ubuntu and Debian.  In the future,
+the installation process will use a distro independent mechanism.
+In order to run Lutris, install the following packages.
 
-    * Python (>= 2.5) 
-    * python-gtk2
-    * python-glade2
-    * python-gconf (recommended but optional)
+    * python == 2.7
     * python-xdg
     * python-yaml
-    * joy2key (optional)
-    * python-pyglet (optional, for fullscreen coverflow)
+    * PyGobject
 
-    If you want to manually install runners you can choose from the list below
-    and install the ones you wish to use.
-    
+If you want to manually install runners you can choose from the list below
+and install the ones you wish to use.
+
     * wine
     * scummvm
     * uae
@@ -42,24 +37,23 @@ Installing Lutris
     * nulldc (1.0.3 only, using wine)
     * o2em
     * openmsx
-    * osmose 
+    * osmose
     * pcsx
-    * pcsx2 (not currently supported, but soon will be)
     * scummvm
 
-  Installation
-  ------------
+Installation
+------------
 
-    Lutris uses Python's distutils framework for installation. In order to
-    install Lutris, you will need root access. To install Lutris, perform
-    the following command as root:
+Lutris uses Python's distutils framework for installation. In order to
+install Lutris, you will need root access. To install Lutris, perform
+the following command as root:
 
       $ python setup.py install
 
-  Run Lutris
-  -----------
+Run Lutris
+-----------
 
-    If you installed Lutris using the setup.py script, you can launch the
-    program by typing "lutris" at the command line. If you want to run
-    Lutris without installing it, start "bin/lutris" from within the
-    Lutris directory.
+If you installed Lutris using the setup.py script, you can launch the
+program by typing "lutris" at the command line. If you want to run
+Lutris without installing it, start "bin/lutris" from within the
+Lutris directory.
