@@ -79,7 +79,7 @@ class EditGameConfigDialog(Gtk.Dialog):
                                                  Gtk.PolicyType.AUTOMATIC)
         system_config_scrolled_window.add_with_viewport(self.system_config_box)
         config_notebook.append_page(system_config_scrolled_window,
-                                    Gtk.Label(label="Runner Configuration"))
+                                    Gtk.Label(label="System Configuration"))
 
         #Action Area
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
