@@ -19,12 +19,10 @@ def create_launcher(game, desktop=False, menu=False):
     launcher_content = """[Desktop Entry]
 Type=Application
 Name=%s
-GenericName=%s
 Icon=%s
 Exec=lutris lutris:%s
 Categories=Game
 """ % (config.get_real_name(),
-       config.get_real_name(),
        os.path.join(DATA_DIR, "icons/%s.png" % game),
        game)
 

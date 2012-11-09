@@ -42,19 +42,18 @@ MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
  COL_NAME,
  COL_ICON,
  COL_RUNNER,
- COL_RUNNER_ICON) = range(5)
+ COL_RUNNER_ICON,
+ COL_GENRE,
+ COL_PLATFORM,
+ COL_YEAR) = range(8)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
     """Default sort function"""
-    (a_name, a_runner) = store.get(a_iter, COL_NAME, COL_RUNNER)
-    (b_name, b_runner) = store.get(b_iter, COL_NAME, COL_RUNNER)
+    a_name = store.get(a_iter, COL_NAME)
+    b_name = store.get(b_iter, COL_NAME)
 
-    if a_runner > b_runner:
-        return 1
-    elif a_runner < b_runner:
-        return -1
-    elif a_name > b_name:
+    if a_name > b_name:
         return 1
     elif a_name < b_name:
         return -1
@@ -64,7 +63,7 @@ def sort_func(store, a_iter, b_iter, _user_data):
 
 def create_store():
     """Populates the game list"""
-    store = Gtk.ListStore(str, str, Pixbuf, str, Pixbuf)
+    store = Gtk.ListStore(str, str, Pixbuf, str, Pixbuf, str, str, str)
     store.set_default_sort_func(sort_func)
     store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
     return store
@@ -149,10 +148,8 @@ class GameView(object):
         for key in ('name', 'runner', 'id'):
             assert key in game, "Game info must have %s" % key
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
-        label = "%s \n<small>%s</small>" % \
-                (game['name'], game['runner'])
-        store.append((game["id"], label, game_pix,
-                                  game["runner"], runner_pix))
+        store.append((game["id"], game['name'], game_pix, game["runner"],
+                        runner_pix, "Genre", "Platform", "Year"))
 
     def remove_game(self, removed_id):
         store = self.get_model().get_model().get_model()
@@ -198,21 +195,30 @@ class GameTreeView(Gtk.TreeView, GameView):
     def __init__(self, games):
         super(GameTreeView, self).__init__()
         self.icon_size = 32
+        self.set_rules_hint(True)
         self.initialize_store(games)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("", image_cell,
-                                    pixbuf=COL_ICON)
+        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+        column.set_reorderable(True)
         self.append_column(column)
 
         # Name column
-        text_cell = Gtk.CellRendererText()
-        text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        column = Gtk.TreeViewColumn("Name", text_cell, markup=COL_NAME)
-        column.set_sort_indicator(True)
-        column.set_sort_column_id(1)
+        column = self.setup_text_column("Name", COL_NAME)
         self.append_column(column)
+        # Genre column
+        #column = self.setup_text_column("Genre", COL_GENRE)
+        #self.append_column(column)
+        # Platform column
+        #column = self.setup_text_column("Platform", COL_PLATFORM)
+        #self.append_column(column)
+        # Runner column
+        column = self.setup_text_column("Runner", COL_RUNNER)
+        self.append_column(column)
+        # Year column
+        #column = self.setup_text_column("Year", COL_YEAR)
+        #self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -221,7 +227,23 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
+    def setup_text_column(self, header, column_id):
+        text_cell = Gtk.CellRendererText()
+        text_cell.set_padding(4, 10)
+        text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
+        text_cell.set_property("width-chars", 40)
 
+        column = Gtk.TreeViewColumn(header, text_cell, markup=column_id)
+        column.set_sort_indicator(True)
+        column.set_sort_column_id(column_id)
+        column.set_resizable(True)
+        column.set_reorderable(True)
+        return column
+
+    def remove_row(self, model_iter):
+        """Remove a game from the treeview."""
+        model = self.get_model()
+        model.remove(model_iter)
 
     def sort_rows(self):
         """Sort the game list."""

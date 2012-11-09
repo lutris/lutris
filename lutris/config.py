@@ -86,7 +86,7 @@ class LutrisConfig():
         self.runner = None
 
         #By default config type is system, it can also be runner and game
-        #this means that when you call lutris_config_instance["key"] is will
+        #this means that when you call lutris_config_instance["key"] it will
         #pick up the right configuration depending of config_type
         if game:
             self.game = game

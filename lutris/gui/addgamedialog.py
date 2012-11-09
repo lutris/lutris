@@ -53,7 +53,7 @@ class AddGameDialog(Gtk.Dialog):
         #Runner
         #get a list of available runners
         runner_liststore = Gtk.ListStore(str, str)
-        runner_liststore.append(("Choose a runner for the list", ""))
+        runner_liststore.append(("Select a runner from the list", ""))
         for runner_name in lutris.runners.__all__:
             runner_class = import_runner(runner_name)
             runner = runner_class()

@@ -8,6 +8,8 @@ from gi.repository import Gtk, GObject
 from lutris.settings import get_data_path
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
+from lutris.shortcuts import create_launcher
+from lutris.util.strings import slugify
 
 from lutris.util.log import logger
 from lutris.gui.dialogs import AboutDialog
@@ -62,8 +64,11 @@ class LutrisWindow:
         self.play_button.set_sensitive(False)
 
         #Contextual menu
-        menu_actions = [('Play', self.game_launch),
-                        ('Configure', self.edit_game_configuration)]
+        menu_actions = \
+            [('Play', self.game_launch),
+            ('Configure', self.edit_game_configuration),
+            ('Create desktop shortcut', self.create_desktop_shortcut),
+            ('Create global menu shortcut', self.create_menu_shortcut)]
         self.menu = Gtk.Menu()
         for action in menu_actions:
             subitem = Gtk.ImageMenuItem(action[0])
@@ -191,3 +196,16 @@ class LutrisWindow:
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add_with_viewport(self.view)
+
+    def create_menu_shortcut(self, *args):
+        """Adds the game to the system's Games menu"""
+        game_slug = slugify(self.view.selected_game)
+        create_launcher(game_slug, menu=True)
+        NoticeDialog('Shortcut added to the Games category of the\
+ global menu.')
+
+    def create_desktop_shortcut(self, *args):
+        """Adds the game to the system's Games menu"""
+        game_slug = slugify(self.view.selected_game)
+        create_launcher(game_slug, desktop=True)
+        NoticeDialog('Shortcut created on your desktop.')
