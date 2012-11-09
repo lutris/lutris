@@ -107,11 +107,9 @@ class LutrisGame(object):
     def load_config(self):
         """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.name)
-        if not self.game_config.is_valid():
-            raise ConfigurationException(
-                "Invalid configuration for %s" % self.name
-            )
-        self.runner = import_runner(self.get_runner(), self.game_config)
+        assert self.game_config.is_valid()
+        runner_class = import_runner(self.get_runner())
+        self.runner = runner_class(self.game_config)
 
     def prelaunch(self):
         """ Verify that the current game can be launched. """
