@@ -21,7 +21,7 @@
 
 """Common message dialogs"""
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 
 from lutris.gui.widgets import DownloadProgressBox
 
@@ -74,7 +74,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
-        GObject.GObject.__init__(self, "Downloading file")
+        super(DownloadDialog, self).__init__(self, "Downloading file")
         self.set_size_request(560, 100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
