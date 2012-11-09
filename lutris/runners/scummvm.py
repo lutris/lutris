@@ -98,13 +98,13 @@ class scummvm(Runner):
             ("supereagle", "supereagle"),
             ("tv2x", "tv2x")
         ]
-        self.runner_options = [
-            {"option": "fullscreen", "label": "Fullscreen", "type": "bool"},
-            {"option": "gfx-mode",
-             "label": "Graphics scaler",
-             "type": "one_choice",
-             "choices": scaler_modes}
-        ]
+        self.runner_options = [{"option": "windowed",
+                                "label": "Windowed",
+                                "type": "bool"},
+                               {"option": "gfx-mode",
+                                "label": "Graphics scaler",
+                                "type": "one_choice",
+                                "choices": scaler_modes}]
         self.settings = settings
 
     def play(self):
@@ -114,8 +114,8 @@ class scummvm(Runner):
         if isinstance(settings, LutrisConfig):
             config = settings.config
             if "scummvm" in config:
-                if "fullscreen" in config["scummvm"]:
-                    if config["scummvm"]["fullscreen"] is False:
+                if "windowed" in config["scummvm"]:
+                    if config["scummvm"]["windowed"] is True:
                         fullscreen = "-F"
                 if "gfx-mode" in config["scummvm"]:
                     mode = config["scummvm"]["gfx-mode"]
