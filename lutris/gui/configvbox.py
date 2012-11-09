@@ -1,7 +1,7 @@
 ###############################################################################
-## project
+## Lutris
 ##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
+## Copyright (C) 2009-2012 Mathieu Comandon strider@strycore.com
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -19,14 +19,12 @@
 ###############################################################################
 
 """Widget generators and their signal handlers"""
-
-# pylint: disable=E0611
 from gi.repository import Gtk, GObject, Gdk
+from lutris.util.log import logger
 
 PADDING = 10
 
 
-# pylint: disable=R0904
 class Label(Gtk.Label):
     """ Standardised label for config vboxes"""
     def __init__(self, message=None):
@@ -37,11 +35,12 @@ class Label(Gtk.Label):
         self.set_line_wrap(True)
 
 
-# pylint: disable=R0904
-# I know there are too many public methods, go complain to the Gtk developers
 class ConfigVBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
+        logger.debug("config vbox called with %s and %s", save_in_key, caller)
+        if hasattr('config', save_in_key):
+            logger.debug("config ? %s", save_in_key.config)
         GObject.GObject.__init__(self)
         self.options = None
         #Section of the configuration file to save options in. Can be "game",
@@ -52,12 +51,20 @@ class ConfigVBox(Gtk.VBox):
     def generate_widgets(self):
         """ Parses the config dict and generates widget accordingly."""
         #Select what data to load based on caller.
+
+        logger.debug("global: %s", self.lutris_config.config)
+        logger.debug("system: %s", self.lutris_config.system_config)
+        logger.debug("runner: %s", self.lutris_config.runner_config)
+        logger.debug("game: %s", self.lutris_config.game_config)
+
         if self.caller == "system":
             self.real_config = self.lutris_config.system_config
         elif self.caller == "runner":
             self.real_config = self.lutris_config.runner_config
         elif self.caller == "game":
             self.real_config = self.lutris_config.game_config
+
+        logger.debug("Real config: %s", self.real_config)
 
         #Select part of config to load or create it.
         if self.save_in_key in self.real_config:
@@ -94,8 +101,8 @@ class ConfigVBox(Gtk.VBox):
                 self.generate_directory_chooser(option_key,
                                                 option["label"],
                                                 value)
-            elif option["type"] in ("file_chooser", "single"):
-                self.generate_file_chooser(option_key, option["label"], value)
+            elif option["type"] == "file_chooser":
+                self.generate_file_chooser(option, value)
             elif option["type"] == "multiple":
                 self.generate_multiple_file_chooser(option_key,
                                                     option["label"], value)
@@ -206,12 +213,20 @@ class ConfigVBox(Gtk.VBox):
         value = spin_button.get_value_as_int()
         self.real_config[self.save_in_key][option] = value
 
-    def generate_file_chooser(self, option_name, label, value=None):
+    def generate_file_chooser(self, option, value=None):
         """Generates a file chooser button to select a file"""
+        logger.debug("file chooser option: %s value: %s", option, value)
+        option_name = option['option']
+        label = option['label']
         hbox = Gtk.HBox()
         Gtklabel = Label(label)
         file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
+        if 'default_path' in option:
+            config_key = option['default_path']
+            if config_key in self.lutris_config.config['system']:
+                default_path = self.lutris_config.config['system'][config_key]
+                file_chooser.set_current_folder(default_path)
 
         file_chooser.set_action(Gtk.FileChooserAction.OPEN)
         file_chooser.connect("file-set", self.on_chooser_file_set, option_name)
@@ -226,13 +241,13 @@ class ConfigVBox(Gtk.VBox):
         """Generates a file chooser button to select a directory"""
         hbox = Gtk.HBox()
         Gtklabel = Label(label)
-        directory_chooser = Gtk.FileChooserButton("Choose a directory for %s"\
+        directory_chooser = Gtk.FileChooserButton("Choose a directory for %s"
                                                   % label)
         directory_chooser.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)
-        directory_chooser.connect("file-set",
-                                  self.on_chooser_file_set, option_name)
+        directory_chooser.connect("file-set", self.on_chooser_file_set,
+                                  option_name)
         hbox.pack_start(Gtklabel, False, False, PADDING)
         hbox.pack_start(directory_chooser, True, True, PADDING)
         self.pack_start(hbox, False, True, PADDING)

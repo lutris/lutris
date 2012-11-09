@@ -113,7 +113,7 @@ class GameView(object):
     contextual_menu = None
     filter_text = ""
     games = []
-    
+
     def __init__(self):
         self.icon_size = 32
 
@@ -121,13 +121,15 @@ class GameView(object):
         self.games = games if games else []
         store = create_store()
         self.fill_store(store)
-        
+
         self.modelfilter = store.filter_new()
         self.modelfilter.set_visible_func(filter_view,
                                           lambda x: self.filter_text)
         """Wrap a TreeModelSort around the TreeModelFilter to allow both
         sorting by clicking columns in the TreeView and filtering"""
-        self.sortable_filtered_model = Gtk.TreeModelSort(model=self.modelfilter)
+        self.sortable_filtered_model = Gtk.TreeModelSort(
+            model=self.modelfilter
+        )
         self.set_model(self.sortable_filtered_model)
         return store
 
@@ -230,7 +232,6 @@ class GameIconView(Gtk.IconView, GameView):
         self.initialize_store(games)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
-
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)

@@ -34,7 +34,7 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 class EditGameConfigDialog(Gtk.Dialog):
     """Game config edit dialog"""
     def __init__(self, parent, game):
-        super(EditGameConfigDialog, self).__init__()
+        Gtk.Dialog.__init__()
         self.parent_window = parent
         self.game = game
         self.set_title("Edit game configuration")
@@ -44,7 +44,7 @@ class EditGameConfigDialog(Gtk.Dialog):
         self.lutris_config = LutrisConfig(game=game)
         self.lutris_config.runner = self.lutris_config.config["runner"]
 
-        game_name_label = Gtk.Label(label="Edit configuration for %s "\
+        game_name_label = Gtk.Label(label="Edit configuration for %s "
                                     % self.lutris_config.config["realname"])
         self.vbox.pack_start(game_name_label, False, False, 10)
 

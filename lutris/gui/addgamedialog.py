@@ -33,7 +33,6 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
-# pylint: disable=R0904
 class AddGameDialog(Gtk.Dialog):
     """ Add game dialog class"""
     def __init__(self, parent):
@@ -56,7 +55,8 @@ class AddGameDialog(Gtk.Dialog):
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Choose a runner for the list", ""))
         for runner_name in lutris.runners.__all__:
-            runner = import_runner(runner_name)
+            runner_class = import_runner(runner_name)
+            runner = runner_class()
             description = runner.description
             if runner.is_installed():
                 runner_liststore.append(("%s (%s)" % (runner_name,
@@ -147,7 +147,6 @@ class AddGameDialog(Gtk.Dialog):
 
         self.runner_class = widget.get_model()[selected_runner][1]
         self.lutris_config = LutrisConfig(self.runner_class)
-        logger.debug("loading config before adding game : ")
         logger.debug(self.lutris_config.config)
         self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
         self.conf_scroll_window.add_with_viewport(self.game_config_vbox)

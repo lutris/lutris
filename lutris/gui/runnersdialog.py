@@ -24,7 +24,7 @@ from gi.repository import Gtk, GObject
 
 import lutris.runners
 from lutris.settings import get_data_path
-from lutris.runners import  import_runner
+from lutris.runners import import_runner
 from lutris.config import LutrisConfig
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
@@ -107,9 +107,9 @@ class RunnersDialog(Gtk.Dialog):
 
         for runner in runner_list:
             # Get runner details
-            runner_instance = import_runner(runner)
-            machine = runner_instance.machine
-            description = runner_instance.description
+            runner = import_runner(runner)()
+            machine = runner.machine
+            description = runner.description
 
             hbox = Gtk.HBox()
             #Icon
@@ -134,7 +134,7 @@ class RunnersDialog(Gtk.Dialog):
             button = Gtk.Button("Configure")
             button.set_size_request(100, 30)
             button_align = Gtk.Alignment.new(0.0, 1.0, 0.0, 0.0)
-            if runner_instance.is_installed():
+            if runner.is_installed():
                 button.set_label('Configure')
                 button.set_size_request(100, 30)
                 button.connect("clicked", self.on_configure_clicked, runner)

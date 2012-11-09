@@ -27,7 +27,6 @@ from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
 
-# pylint: disable=R0901,R0904
 class GameConfigVBox(ConfigVBox):
     """VBox for game options"""
     def __init__(self, lutris_config, caller):
@@ -35,7 +34,7 @@ class GameConfigVBox(ConfigVBox):
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
-        runner = import_runner(self.runner_class)
+        runner = import_runner(self.runner_class)()
 
         if hasattr(runner, "game_options"):
             self.options = runner.game_options

@@ -21,26 +21,24 @@
 
 """Common message dialogs"""
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris.gui.widgets import DownloadProgressBox
 
 
-# pylint: disable=R0901, R0904
 class NoticeDialog(Gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
-        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
+        Gtk.MessageDialog.__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
 
 
-# pylint: disable=R0904
 class ErrorDialog(Gtk.MessageDialog):
     """ Displays an error message. """
     def __init__(self, message):
-        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
+        Gtk.MessageDialog.__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -73,17 +71,14 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         self.destroy()
 
 
-# pylint: disable=R0904
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
-        print "creating download dialog"
         GObject.GObject.__init__(self, "Downloading file")
         self.set_size_request(560, 100)
         self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
-        #self.download_progress_box.connect('complete', self.download_complete)
         label = Gtk.Label(label='Downloading %s' % url)
         label.set_padding(0, 0)
         label.set_alignment(0.0, 1.0)

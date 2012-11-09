@@ -8,6 +8,7 @@ from gi.repository import Gtk, GObject
 from lutris.settings import get_data_path
 from lutris.game import LutrisGame, get_list
 
+from lutris.util.log import logger
 from lutris.gui.dialogs import AboutDialog
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -173,6 +174,7 @@ class LutrisWindow:
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
+            logger.debug(game_info)
             self.view.add(game_info)
 
     def edit_game_configuration(self, _button):
