@@ -36,7 +36,7 @@ class GameConfigVBox(ConfigVBox):
         self.runner_class = self.lutris_config.runner
         runner = import_runner(self.runner_class)()
 
-        if hasattr(runner, "game_options"):
+        if runner.game_options:
             self.options = runner.game_options
             self.generate_widgets()
         else:

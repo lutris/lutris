@@ -33,12 +33,15 @@ from ConfigParser import ConfigParser
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
 
 
-def add_game(name, realname):
+def add_game(game_id, realname):
     """Add scummvm from the auto-import"""
     lutris_config = LutrisConfig()
     lutris_config.config = {"runner": "scummvm",
                             "realname": realname,
-                            "name": name}
+                            "name": slugify(realname),
+                            'game': {
+                                'game_id': game_id
+                            }}
     lutris_config.save("game")
 
 
@@ -58,7 +61,7 @@ def import_games():
     for section in config_sections:
         realname = config_parser.get(section, "description")
         logger.info("Found ScummVM game %s", realname)
-        add_game(slugify(realname), realname)
+        add_game(section, realname)
         imported_games.append({'id': slugify(realname),
                                 'name': realname,
                                 'runner': 'scummvm'})
@@ -78,7 +81,9 @@ class scummvm(Runner):
             'type': "label",
             'label': "Click on install to launch ScummVM and install the game"
         }]
-        self.game_options = []
+        self.game_options = [{'option': 'game_id',
+                              'type': 'string',
+                              'label': "Game identifier"}]
         scaler_modes = [
             ("2x", "2x"),
             ("3x", "3x"),
@@ -110,20 +115,13 @@ class scummvm(Runner):
             config = settings.config
             if "scummvm" in config:
                 if "fullscreen" in config["scummvm"]:
-                    if config["scummvm"]["fullscreen"] == False:
+                    if config["scummvm"]["fullscreen"] is False:
                         fullscreen = "-F"
                 if "gfx-mode" in config["scummvm"]:
                     mode = config["scummvm"]["gfx-mode"]
                     gfxmode = "--gfx-mode=%s" % mode
-            game = settings["name"]
+            game = settings["game"]["game_id"]
         return [self.executable, fullscreen, gfxmode, game]
-
-    # pylint: disable=R0201
-    def get_install_command(self):
-        """WTF is this shit ?"""
-        raise DeprecationWarning
-        #command = "%s" % (self.executable)
-        #return command
 
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """
@@ -139,7 +137,7 @@ class scummvm(Runner):
                     dir_limit = game.index(" ")
                 else:
                     dir_limit = None
-                if dir_limit is not  None:
+                if dir_limit is not None:
                     game_dir = game[0:dir_limit]
                     game_name = game[dir_limit + 1:len(game)].strip()
                     game_array.append([game_dir, game_name])
