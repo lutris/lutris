@@ -1,7 +1,6 @@
 [Desktop Entry]
-Version=0.2.1
+Version=0.2.7
 Name=Lutris
-GenericName=Lutris Gaming Platform
 Comment=Lutris application
 Categories=Game;
 Exec=lutris %U
