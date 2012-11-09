@@ -34,10 +34,11 @@ class RunnerConfigDialog(Gtk.Dialog):
     """Runners management dialog"""
     def __init__(self, runner):
         Gtk.Dialog.__init__(self)
-        self.set_title("Configure %s" % (runner))
+        runner_name = runner.__class__.__name__
+        self.set_title("Configure %s" % (runner_name))
         self.set_size_request(570, 500)
-        self.runner = runner
-        self.lutris_config = LutrisConfig(runner=runner)
+        self.runner = runner_name
+        self.lutris_config = LutrisConfig(runner=runner_name)
 
         #Notebook for choosing between runner and system configuration
         self.notebook = Gtk.Notebook()
@@ -105,16 +106,16 @@ class RunnersDialog(Gtk.Dialog):
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
 
-        for runner in runner_list:
+        for runner_name in runner_list:
             # Get runner details
-            runner = import_runner(runner)()
+            runner = import_runner(runner_name)()
             machine = runner.machine
             description = runner.description
 
             hbox = Gtk.HBox()
             #Icon
             icon_path = os.path.join(get_data_path(), 'media/runner_icons',
-                                     runner + '.png')
+                                     runner_name + '.png')
             icon = Gtk.Image()
             icon.set_from_file(icon_path)
             hbox.pack_start(icon, False, False, 10)
@@ -123,7 +124,7 @@ class RunnersDialog(Gtk.Dialog):
             runner_label = Gtk.Label()
             runner_label.set_markup(
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
-                (runner, description, machine)
+                (runner_name, description, machine)
             )
             runner_label.set_width_chars(38)
             runner_label.set_line_wrap(True)
@@ -151,9 +152,8 @@ class RunnersDialog(Gtk.Dialog):
     def close(self, widget=None, other=None):
         self.destroy()
 
-    def on_install_clicked(self, widget, runner_classname):
+    def on_install_clicked(self, widget, runner):
         """Install a runner"""
-        runner = import_runner(runner_classname)
         runner.install()
 
     def on_configure_clicked(self, widget, runner):

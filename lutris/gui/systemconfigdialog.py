@@ -26,7 +26,7 @@ class SystemConfigDialog(Gtk.Dialog):
         self.show_all()
 
     def save_config(self, widget):
-        logger.debug("Config %s", 
+        logger.debug("Config %s",
                      str(self.system_config_vbox.lutris_config.config))
         self.system_config_vbox.lutris_config.save()
         self.destroy()

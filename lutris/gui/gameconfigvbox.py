@@ -38,8 +38,7 @@ class GameConfigVBox(ConfigVBox):
 
         if hasattr(runner, "game_options"):
             self.options = runner.game_options
+            self.generate_widgets()
         else:
             no_option_label = Gtk.Label(label="No game options")
             self.pack_start(no_option_label, True, True, 0)
-            return
-        self.generate_widgets()

@@ -51,20 +51,12 @@ class ConfigVBox(Gtk.VBox):
     def generate_widgets(self):
         """ Parses the config dict and generates widget accordingly."""
         #Select what data to load based on caller.
-
-        logger.debug("global: %s", self.lutris_config.config)
-        logger.debug("system: %s", self.lutris_config.system_config)
-        logger.debug("runner: %s", self.lutris_config.runner_config)
-        logger.debug("game: %s", self.lutris_config.game_config)
-
         if self.caller == "system":
             self.real_config = self.lutris_config.system_config
         elif self.caller == "runner":
             self.real_config = self.lutris_config.runner_config
         elif self.caller == "game":
             self.real_config = self.lutris_config.game_config
-
-        logger.debug("Real config: %s", self.real_config)
 
         #Select part of config to load or create it.
         if self.save_in_key in self.real_config:
@@ -74,6 +66,7 @@ class ConfigVBox(Gtk.VBox):
 
         #Go thru all options.
         for option in self.options:
+            logger.debug("Building widget for %s" % option)
             option_key = option["option"]
 
             #Load value if there is one.

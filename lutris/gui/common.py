@@ -29,7 +29,7 @@ from lutris.gui.widgets import DownloadProgressBox
 class NoticeDialog(Gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
-        Gtk.MessageDialog.__init__(buttons=Gtk.ButtonsType.OK)
+        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -38,7 +38,7 @@ class NoticeDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """ Displays an error message. """
     def __init__(self, message):
-        Gtk.MessageDialog.__init__(buttons=Gtk.ButtonsType.OK)
+        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
         self.run()
         self.destroy()
