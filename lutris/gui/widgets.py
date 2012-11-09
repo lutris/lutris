@@ -133,13 +133,21 @@ class GameView(object):
         self.set_model(self.sortable_filtered_model)
         return store
 
-    def fill_store(self, store):
+    def fill_store(self, store=None):
+        if store is None:
+            store = self.get_model().get_model()
+        assert store is not None
         store.clear()
         for game in self.games:
             self.add_game(game, store)
 
-    def add_game(self, game, store):
-        """Adds a game into the icon view"""
+    def add_game(self, game, store=None):
+        """Adds a game into the view"""
+        if store is None:
+            store = self.get_model().get_model().get_model()
+        assert store is not None
+        for key in ('name', 'runner', 'id'):
+            assert key in game, "Game info must have %s" % key
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
         label = "%s \n<small>%s</small>" % \
                 (game['name'], game['runner'])
