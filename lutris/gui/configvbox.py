@@ -119,7 +119,7 @@ class ConfigVBox(Gtk.VBox):
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option_name)
         checkbox.show()
-        self.pack_start(checkbox, True, True, PADDING * 2)
+        self.pack_start(checkbox, False, False, PADDING * 2)
 
     def checkbox_toggle(self, widget, option_name):
         """ Action for the checkbox's toggled signal."""

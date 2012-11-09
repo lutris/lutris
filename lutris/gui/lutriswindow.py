@@ -123,6 +123,7 @@ class LutrisWindow:
         Note: this won't delete the actual game
         """
         game = self.view.selected_game[0]
+        logger.debug("removing %s", game)
         config = LutrisConfig(game=game)
         config.remove()
         self.view.remove_game(game)
@@ -152,6 +153,7 @@ class LutrisWindow:
             NoticeDialog("No ScummVM games found")
         else:
             for new_game in new_games:
+                logger.debug("Adding %s", new_game)
                 self.view.add_game(new_game)
 
     def on_search_entry_changed(self, widget):

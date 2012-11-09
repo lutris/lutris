@@ -25,6 +25,7 @@ import os
 import subprocess
 
 from lutris.util.log import logger
+from lutris.util.strings import slugify
 from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from ConfigParser import ConfigParser
@@ -57,8 +58,8 @@ def import_games():
     for section in config_sections:
         realname = config_parser.get(section, "description")
         logger.info("Found ScummVM game %s", realname)
-        add_game(section, realname)
-        imported_games.append({'id': section,
+        add_game(slugify(realname), realname)
+        imported_games.append({'id': slugify(realname),
                                 'name': realname,
                                 'runner': 'scummvm'})
     return imported_games

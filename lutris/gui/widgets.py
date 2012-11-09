@@ -154,7 +154,10 @@ class GameView(object):
     def remove_game(self, removed_id):
         store = self.get_model().get_model().get_model()
         for model_row in store:
+            logger.debug(model_row)
             game_id = model_row[COL_ID]
+            logger.debug(game_id)
+            logger.debug(removed_id)
             if game_id == removed_id:
                 logger.debug("removing %s", game_id)
                 self.remove_row(model_row.iter)

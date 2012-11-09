@@ -42,7 +42,9 @@ class EditGameConfigDialog(Gtk.Dialog):
 
         #Top label
         self.lutris_config = LutrisConfig(game=game)
-        self.lutris_config.runner = self.lutris_config.config["runner"]
+        logger.debug(self.lutris_config.config)
+
+        self.lutris_config.runner = self.lutris_config.runner
 
         game_name_label = Gtk.Label(label="Edit configuration for %s "
                                     % self.lutris_config.config["realname"])
