@@ -17,6 +17,7 @@
 
 import os
 import sys
+import logging
 import optparse
 import signal
 
@@ -31,11 +32,10 @@ if LAUNCH_PATH != "/usr/bin":
     sys.path.insert(0, SOURCE_PATH)
 
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
-from lutris.util import log
+from lutris.util.log import logger
 from lutris.installer import Installer
 from lutris.config import check_config
 from lutris.gui.lutriswindow import LutrisWindow
-log.logger.name = "Lutris"
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog %ver")
@@ -51,19 +51,19 @@ parser.add_option("-n", "--no-download",
 (options, args) = parser.parse_args()
 
 # Set the logging level to show debug messages.
-console = log.logging.StreamHandler()
+console = logging.StreamHandler()
 fmt = '%(name)-12s: %(levelname)-8s %(message)s'
-formatter = log.logging.Formatter(fmt)
+formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
-log.logger.addHandler(console)
-log.logger.setLevel(log.logging.ERROR)
+logger.addHandler(console)
+logger.setLevel(logging.ERROR)
 
 if options.verbose:
-    log.logger.info("Verbose mode enabled")
-    log.logger.setLevel(log.logging.INFO)
+    logger.info("Verbose mode enabled")
+    logger.setLevel(logging.INFO)
 if options.debug:
-    log.logger.setLevel(log.logging.DEBUG)
-    log.logger.debug('logging enabled')
+    logger.setLevel(logging.DEBUG)
+    logger.debug('logging enabled')
 
 
 #check_config(force_wipe=True)
@@ -73,8 +73,8 @@ installer = False
 game = None
 if options.installer_file:
     if not os.path.exists(options.installer_file):
-        log.logger.error("Unable to find installer at : %s"
-                         % options.installer_file)
+        logger.error("Unable to find installer at : %s",
+                     options.installer_file)
         exit()
     else:
         game, _ = os.path.splitext(options.installer_file)
@@ -96,15 +96,15 @@ if game is not None:
         file_path = None
     if file_path is not None and os.path.exists(file_path):
         import lutris.game
-        log.logger.info('Launching ' + game)
+        logger.info('Launching ' + game)
         lutris_game = lutris.game.LutrisGame(game)
         lutris_game.play()
     else:
-        log.logger.debug('Installing %s' % game)
+        logger.debug('Installing %s' % game)
         installer = Installer(game, installer)
         Gtk.main()
 else:
     lutris_window = LutrisWindow()
 
     Gtk.main()
-    log.logger.debug("Application exit")
+    logger.debug("Application exit")
