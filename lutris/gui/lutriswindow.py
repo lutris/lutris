@@ -143,9 +143,11 @@ class LutrisWindow:
         """Callback for importing scummvm games"""
         from lutris.runners.scummvm import import_games
         new_games = import_games()
-        for new_game in new_games:
-            self.view.add(new_game)
-        self.game_treeview.sort_rows()
+        if not new_games:
+            NoticeDialog("No ScummVM games found")
+        else:
+            for new_game in new_games:
+                self.view.add_game(new_game)
 
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())

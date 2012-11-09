@@ -24,6 +24,7 @@
 import os
 import subprocess
 
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from ConfigParser import ConfigParser
@@ -41,23 +42,25 @@ def add_game(name, realname):
 
 
 def import_games():
-    """
-    Parse the scummvm config file and imports
-    the games in Lutris config files.
-    """
+    """Parse the scummvm config file and imports the games in Lutris config
+    files."""
+    logger.info("Importing ScummVM games.")
     imported_games = []
-    if os.path.exists(SCUMMVM_CONFIG_FILE):
-        config_parser = ConfigParser()
-        config_parser.read(SCUMMVM_CONFIG_FILE)
-        config_sections = config_parser.sections()
-        if "scummvm" in config_sections:
-            config_sections.remove("scummvm")
-        for section in config_sections:
-            realname = config_parser.get(section, "description")
-            add_game(section, realname)
-            imported_games.append({'id': section,
-                                    'name': realname,
-                                    'runner': 'scummvm'})
+    if not os.path.exists(SCUMMVM_CONFIG_FILE):
+        logger.info("No ScummVM config found")
+        return None
+    config_parser = ConfigParser()
+    config_parser.read(SCUMMVM_CONFIG_FILE)
+    config_sections = config_parser.sections()
+    if "scummvm" in config_sections:
+        config_sections.remove("scummvm")
+    for section in config_sections:
+        realname = config_parser.get(section, "description")
+        logger.info("Found ScummVM game %s", realname)
+        add_game(section, realname)
+        imported_games.append({'id': section,
+                                'name': realname,
+                                'runner': 'scummvm'})
     return imported_games
 
 
