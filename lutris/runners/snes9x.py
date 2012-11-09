@@ -36,11 +36,9 @@ class snes9x(Runner):
         self.package = None
         self.machine = "Super Nintendo"
         self.is_installable = True
-        self.game_options = [{
-            "option": "rom",
-            "type": "single",
-            "label": "ROM"
-        }]
+        self.game_options = [{"option": "rom",
+                              "type": "file_chooser",
+                              "label": "ROM"}]
         self.runner_options = [{
             "option": "fullscreen",
             "type": "bool",

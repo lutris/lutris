@@ -38,9 +38,9 @@ class frotz(Runner):
         self.machine = "Z-Code"
         self.description = "Z Code interpreter (Infocom interactive fictions)"
         self.game_options = [{
-            "option":"story",
-            "type":"single",
-            "label":"Story File"
+            "option": "story",
+            "type": "file_chooser",
+            "label": "Story File"
         }]
         self.runner_options = []
         if settings:

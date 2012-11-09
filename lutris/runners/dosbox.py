@@ -34,11 +34,9 @@ class dosbox(Runner):
         self.executable = "dosbox"
         self.machine = "MS DOS"
         self.description = "DOS Emulator"
-        self.game_options = [{
-            "option":"exe",
-            "type":"single",
-            "label":"EXE File"
-        }]
+        self.game_options = [{"option":"exe",
+                              "type":"file_chooser",
+                              "label":"EXE File"}]
         self.runner_options = []
         if settings:
             self.exe = settings["game"]["exe"]

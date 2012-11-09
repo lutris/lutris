@@ -55,7 +55,7 @@ class mednafen(Runner):
         self.game_options = [
             {
                 "option": "rom",
-                "type": "single",
+                "type": "file_chooser",
                 "label": "Rom file"
             },
             {

@@ -35,7 +35,7 @@ class sdlmame(Runner):
         self.executable = "mame"
         self.machine = "Arcade"
         self.game_options = [{"option": "rom",
-                              "type":"single",
+                              "type":"file_chooser",
                               "label":"Rom file"}]
         self.runner_options = [{"option":"windowed",
                                 "type":"bool",

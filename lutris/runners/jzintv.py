@@ -40,7 +40,7 @@ class jzintv(Runner):
         self.is_installable = False
         self.game_options = [{
             "option":"rom",
-            "type":"single",
+            "type":"file_chooser",
             "label":"Rom File"
         }]
         self.runner_options = [

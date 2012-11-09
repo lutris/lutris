@@ -35,7 +35,7 @@ class openmsx(Runner):
         self.machine = "MSX"
         self.description = "MSX Emulator"
         self.game_options = [{"option":"rom",
-                              "type":"single",
+                              "type":"file_chooser",
                               "label":"ROM File"}]
         self.runner_options = []
         if settings:

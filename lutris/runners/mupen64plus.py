@@ -19,7 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-""" Runner for Nintendo64 """ 
+""" Runner for Nintendo64 """
 
 from lutris.runners.runner import Runner
 import os.path
@@ -37,7 +37,7 @@ class mupen64plus(Runner):
         self.arguments = ['--nogui']
         self.game_options = [{
             'option': 'rom',
-            'type':'single',
+            'type':'file_chooser',
             'label': 'Rom File'
         }]
 

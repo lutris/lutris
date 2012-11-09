@@ -51,7 +51,7 @@ class atari800(Runner):
 
         self.game_options = [{
             "option": "rom",
-            "type": "single",
+            "type": "file_chooser",
             "label": "Rom File"
         }]
 
@@ -127,7 +127,6 @@ class atari800(Runner):
         if not os.path.exists(os.path.join(os.path.expanduser('~'),
                               '.config/lutris/runnerfiles/xf25.zip')):
             return False
-
 
     def find_good_bioses(self):
         """ Check for correct bios files """

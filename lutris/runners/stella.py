@@ -25,7 +25,6 @@
 from lutris.runners.runner import Runner
 
 
-# pylint: disable=C0103
 class stella(Runner):
     """Atari 2600 games emulator"""
 
@@ -37,7 +36,7 @@ class stella(Runner):
         self.machine = "Atari 2600"
         self.game_options = [{
             "option": "cart",
-            "type": "single",
+            "type": "file_chooser",
             "label":"Cartridge"
         }]
         self.runner_options = []
@@ -46,4 +45,4 @@ class stella(Runner):
 
     def play(self):
         command = ['stella', "\"%s\"" % self.cart]
-        return  {'command': command}
+        return {'command': command}

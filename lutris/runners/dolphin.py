@@ -33,7 +33,7 @@ class dolphin(Runner):
     Download link : http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2
     ppa : ppa:glennric/dolphin-emu
     """
-    def __init__(self, config):
+    def __init__(self, config=None):
         """ class initialization """
         super(dolphin, self).__init__()
         self.package = "dolphin-emu"
@@ -41,6 +41,7 @@ class dolphin(Runner):
         self.machine = "Gamecube, Wii"
         self.description = "Emulator for Nintendo Gamecube and Wii games"
         self.is_installable = False
+        self.game_options = []
 
     def install(self):
         NoticeDialog('Please activate the PlayDeb reposiories in order to ' + \

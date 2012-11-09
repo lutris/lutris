@@ -37,28 +37,19 @@ class linux(Runner):
         self.machine = "Linux games"
         self.ld_preload = None
         self.game_path = None
-        self.installer_options = [{
-            "option": "installer",
-            "type": "single",
-            "label": "Executable"
-        }]
-        self.game_options = [
-            {
-                "option": "exe",
-                "type":"single",
-                "label":"Executable"
-            },
-            {
-                "option": "args",
-                "type": "string",
-                "label": "Arguments"
-            },
-            {
-                "option": "ld_preload",
-                "type": "single",
-                "label": "Preload library"
-            }
-        ]
+        self.installer_options = [{"option": "installer",
+                                   "type": "file_chooser",
+                                   "label": "Executable"}]
+        self.game_options = [{"option": "exe",
+                              "type": "file_chooser",
+                              "default_path": "game_path",
+                              "label":"Executable"},
+                             {"option": "args",
+                              "type": "string",
+                              "label": "Arguments"},
+                             {"option": "ld_preload",
+                              "type": "file_chooser",
+                              "label": "Preload library"}]
         self.runner_options = []
         self.config = config
 

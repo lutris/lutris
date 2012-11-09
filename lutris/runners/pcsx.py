@@ -39,7 +39,9 @@ class pcsx(Runner):
         self.executable = "pcsx"
         self.package = "pcsx-df"
         self.machine = "Playstation"
-        self.game_options = [{"option":"iso", "type":"single", "label":"iso"}]
+        self.game_options = [{"option": "iso",
+                              "type": "file_chooser",
+                              "label": "iso"}]
         self.runner_options = []
         #Load settings
         if settings:

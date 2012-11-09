@@ -37,7 +37,7 @@ class vice(Runner):
         self.arguments = []
         self.game_options = [{
             "option": "disk",
-            "type": "single",
+            "type": "file_chooser",
             "label": "Disk File"
         }]
         self.runner_options = [

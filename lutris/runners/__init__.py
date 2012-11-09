@@ -1,11 +1,11 @@
 """Generic runner functions"""
 __all__ = ["linux", "wine", 'steam', "sdlmame", "mednafen", "scummvm",
-            "snes9x", "gens", "uae", "nulldc", "openmsx", 'dolphin', "dosbox",
-            "pcsx", "atari800", "mupen64plus", "frotz", "browser", 'osmose',
-            'vice', 'hatari', 'stella', 'jzintv', 'o2em']
+           "snes9x", "gens", "uae", "nulldc", "openmsx", 'dolphin', "dosbox",
+           "pcsx", "atari800", "mupen64plus", "frotz", "browser", 'osmose',
+           'vice', 'hatari', 'stella', 'jzintv', 'o2em']
 
 
-def import_runner(runner_name, config=None):
+def import_runner(runner_name):
     """Dynamically import a runner class"""
     try:
         runner_module = __import__('lutris.runners.%s' % runner_name,
@@ -15,7 +15,7 @@ def import_runner(runner_name, config=None):
         from lutris.util.log import logger
         logger.error("Invalid runner %s" % runner_name)
         logger.error(msg)
-    return runner_cls(config)
+    return runner_cls
 
 
 def import_task(runner, task):

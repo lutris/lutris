@@ -35,10 +35,12 @@ class hatari(Runner):
         self.executable = "hatari"
         self.machine = "Atari ST computers"
         self.settings = settings
-        self.game_options = [
-            {"option": "disk-a", "type":"single", "label": "Floppy Disk A"},
-            {"option": "disk-b", "type":"single", "label": "Floppy Disk B"}
-        ]
+        self.game_options = [{"option": "disk-a",
+                              "type":"file_chooser",
+                              "label": "Floppy Disk A"},
+                             {"option": "disk-b",
+                              "type":"file_chooser",
+                              "label": "Floppy Disk B"}]
         joystick_choices = [
             ('None', 'none'),
             ('Keyboard', 'keys'),
