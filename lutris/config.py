@@ -193,8 +193,6 @@ class LutrisConfig():
         """Delete the configuration file from disk."""
         if game is None:
             game = self.game
-        else:
-            logger.warning("Called config/remove with deprecated usage")
         logging.debug("removing config for %s", game)
         os.remove(join(CONFIG_DIR, "games/%s.yml" % game))
 

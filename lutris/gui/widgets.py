@@ -33,7 +33,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
-from lutris.util import log
+from lutris.util.log import logger
 from lutris.settings import get_data_path, DATA_DIR
 
 MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
@@ -154,6 +154,20 @@ class GameView(object):
         store.append((game["id"], label, game_pix,
                                   game["runner"], runner_pix))
 
+    def remove_game(self, removed_id):
+        store = self.get_model().get_model().get_model()
+        for model_row in store:
+            game_id = model_row[COL_ID]
+            if game_id == removed_id:
+                logger.debug("removing %s", game_id)
+                self.remove_row(model_row.iter)
+                break
+
+    def remove_row(self, model_iter):
+        """Remove a game from the treeview."""
+        model = self.get_model().get_model().get_model()
+        model.remove(model_iter)
+
     def update_filter(self, widget, data=None):
         self.filter_text = data
         self.modelfilter.refilter()
@@ -207,10 +221,7 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
-    def remove_row(self, model_iter):
-        """Remove a game from the treeview."""
-        model = self.get_model()
-        model.remove(model_iter)
+
 
     def sort_rows(self):
         """Sort the game list."""
@@ -260,7 +271,10 @@ class GameIconView(Gtk.IconView, GameView):
         self.get_selected_game(False)
 
     def get_selected_game(self, launch=False):
-        self.current_path = self.get_selected_items()[0]
+        selection = self.get_selected_items()
+        if not selection:
+            return
+        self.current_path = selection[0]
         store = self.get_model()
         self.selected_game = store.get(store.get_iter(self.current_path),
                                        COL_ID)
@@ -364,7 +378,7 @@ class DownloadProgressBox(Gtk.HBox):
 
     def start(self):
         """Start downloading a file."""
-        log.logger.debug("starting to download %s" % self.url)
+        logger.debug("starting to download %s" % self.url)
         self.downloader = Downloader(self.url, self.dest)
         timer_id = GObject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
@@ -378,7 +392,7 @@ class DownloadProgressBox(Gtk.HBox):
         percent = progress * 100
         self.progressbar.set_text("%d %%" % percent)
         if progress >= 1.0:
-            log.logger.debug("download of %s has completed" % self.url)
+            logger.debug("download of %s has completed" % self.url)
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False

@@ -7,6 +7,7 @@ from gi.repository import Gtk, GObject
 #from lutris.util import log
 from lutris.settings import get_data_path
 from lutris.game import LutrisGame, get_list
+from lutris.config import LutrisConfig
 
 from lutris.util.log import logger
 from lutris.gui.dialogs import AboutDialog
@@ -94,7 +95,7 @@ class LutrisWindow:
                 elif pid is None:
                     self.status_label.set_text("Game has quit")
                 else:
-                    self.status_label.set_text("Playing %s (pid: %r)"\
+                    self.status_label.set_text("Playing %s (pid: %r)"
                                                % (name, pid))
         else:
             self.status_label.set_text("")
@@ -114,15 +115,14 @@ class LutrisWindow:
 
     def remove_game(self, _widget, _data=None):
         """Remove game configuration file
-
         Note: this won't delete the actual game
         """
-        NoticeDialog("This functionnality is not yet implemented.")
+        game = self.view.selected_game[0]
+        config = LutrisConfig(game=game)
+        config.remove()
+        self.view.remove_game(game)
 
-    # =========
     # Callbacks
-    # =========
-
     def on_connect(self, *args):
         """Callback when a user connects to his account"""
         NoticeDialog("This functionnality is not yet implemented.")
@@ -162,7 +162,7 @@ class LutrisWindow:
         """Reset the desktop to it's initial state"""
         if self.running_game:
             self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s"\
+            self.status_label.set_text("Stopped %s"
                                        % self.running_game.get_real_name())
             self.running_game = None
 
