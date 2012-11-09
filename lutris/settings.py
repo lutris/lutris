@@ -9,7 +9,7 @@ VERSION = "0.2.7"
 WEBSITE = "http://lutris.net"
 COPYRIGHT = "(c) 2010 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
-ARTISTS = ["Ludovic Soulié <contact@yudoh.com>"]
+ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
 CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')

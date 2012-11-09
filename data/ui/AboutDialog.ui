@@ -33,7 +33,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </property>
     <property name="authors">Mathieu Comandon &lt;strider@strycore. com&gt;</property>
-    <property name="artists">Ludovic Soulié &lt;contact@yudoh.com&gt;</property>
+    <property name="artists">Ludovic Soulié &lt;contact@ludal.net&gt;</property>
     <property name="logo">../media/lutris.svg</property>
     <property name="wrap_license">True</property>
     <property name="license_type">gpl-3-0</property>
