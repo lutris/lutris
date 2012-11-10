@@ -95,16 +95,6 @@ class Runner(object):
             is_installed = True
         return is_installed
 
-    # pylint: disable=R0201
-    def get_game_options(self):
-        """Not even sure that's used (well, let's see)"""
-        raise DeprecationWarning("WTF is this shit ?")
-
-    # pylint: disable=R0201
-    def get_runner_options(self):
-        """Not even sure that's used (well, let's see)"""
-        raise DeprecationWarning("WTF is this shit ?")
-
     def get_game_path(self):
         """Seems suspicious, but still useful"""
         logger.warning("get_game_path called, I'm 12 and what is this ?")
@@ -148,6 +138,10 @@ class Runner(object):
             logger.error("The distribution you're running is not supported.")
             logger.error("Edit runners/runner.py to add support for it")
             return False
+        if self.package is None:
+            logger.error("The requested runner %s can't be installed",
+                         self.__class__.__name__)
+            return
 
         subprocess.Popen("%s %s %s" % (package_manager, install_args,
                                        self.package),

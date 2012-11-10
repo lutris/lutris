@@ -36,6 +36,7 @@ class frotz(Runner):
         self.package = "frotz"
         self.executable = "frotz"
         self.machine = "Z-Code"
+        self.is_installable = True
         self.description = "Z Code interpreter (Infocom interactive fictions)"
         self.game_options = [{
             "option": "story",

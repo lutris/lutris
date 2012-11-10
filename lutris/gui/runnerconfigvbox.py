@@ -16,7 +16,7 @@ class RunnerConfigVBox(ConfigVBox):
         ConfigVBox.__init__(self, runner_classname, caller)
         runner = import_runner(runner_classname)()
         logger.debug("Building configvbox for runner %s", runner.machine)
-        if hasattr(runner, "runner_options"):
+        if "runner_options" is not None:
             self.options = runner.runner_options
             self.lutris_config = lutris_config
             logger.debug("Building widgets for runner %s", runner.machine)

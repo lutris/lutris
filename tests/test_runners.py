@@ -28,6 +28,7 @@ class ImportRunnerTest(TestCase):
             runner = runner_class()
             self.assertTrue(hasattr(runner, 'game_options'),
                             "%s doesn't have game options" % runner_name)
+            self.assertTrue(hasattr(runner, 'runner_options'))
             for option in runner.game_options:
                 self.assertIn('type', option)
                 self.assertFalse(option['type'] == 'single')

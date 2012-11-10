@@ -93,9 +93,7 @@ class RunnersDialog(Gtk.Dialog):
         self.set_size_request(570, 400)
 
         label = Gtk.Label()
-        label.set_markup("""
-        <b>Install and configure the game runners</b>
-        """)
+        label.set_markup("<b>Install and configure the game runners</b>")
 
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
