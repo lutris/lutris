@@ -5,21 +5,16 @@ Build-Depends: cdbs (>= 0.4.43),
  debhelper (>= 6),
  python,
  python-support (>= 0.6.4),
- python-distutils-extra (>= 2.10),
  python-xdg
-Maintainer: Mathieu Comandon <strycore@gmail.com>
+Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.1
 
 Package: lutris
 Architecture: all
 Depends: ${misc:Depends},
  ${python:Depends},
- python-xdg,
- python-gconf,
- python-gobject,
- python-gtk2,
  python-yaml
-Recommends: python-apport, joy2key
+Recommends: python-apport
 Description: Install and play any video game easily
  Lutris is a gaming platform for GNU/Linux. It's goal is to make
  gaming on Linux as easy as possible by taking care of installing

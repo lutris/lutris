@@ -1,3 +1,9 @@
+lutris (0.2.7ubuntu0) quantal; urgency=low
+
+  * Updated to version 0.2.7
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 10 Nov 2012 03:46:55 +0100
+
 lutris (0.2.6ubuntu1) natty; urgency=low
 
   * Forgot to actually remove cedega stuff ... Silly me
