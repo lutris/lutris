@@ -45,13 +45,15 @@ def register_handler():
 def check_config(force_wipe=False):
     """Check if initial configuration is correct."""
     directories = [CONFIG_DIR,
-                   CACHE_DIR,
-                   DATA_DIR,
                    join(CONFIG_DIR, "runners"),
                    join(CONFIG_DIR, "games"),
+                   DATA_DIR,
                    join(DATA_DIR, "covers"),
                    join(DATA_DIR, "icons"),
                    join(DATA_DIR, "banners"),
+                   join(DATA_DIR, "runners"),
+                   join(DATA_DIR, "lib"),
+                   CACHE_DIR,
                    join(CACHE_DIR, "installer")]
     for directory in directories:
         if not os.path.exists(directory):

@@ -357,8 +357,7 @@ class Installer(Gtk.Dialog):
                         'move': self._move,
                         'request_media': self._request_media,
                         'run': self._run,
-                        'runner': self._runner_task
-                       }
+                        'runner': self._runner_task}
             if action_name not in mappings.keys():
                 log.logger.error("Action " + action_name + " not supported !")
                 continue

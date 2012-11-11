@@ -1,26 +1,5 @@
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009, 2010 Mathieu Comandon <strycore@gmail.com>
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
 """ Generic runner """
-
 import subprocess
 import platform
 import hashlib
@@ -30,8 +9,6 @@ from lutris.gui.common import ErrorDialog
 from lutris.util.log import logger
 
 
-# Pylint, are you from the past ?
-# pylint: disable=R0921
 class Runner(object):
     """Generic runner (base class for other runners) """
     def __init__(self):
@@ -48,7 +25,6 @@ class Runner(object):
         """Return the class' docstring as the description"""
         return self.__doc__
 
-    # pylint: disable=E0102,E1101,W0201
     @description.setter
     def description(self, value):
         """Leave the ability to override the docstring"""
@@ -75,20 +51,15 @@ class Runner(object):
             module = getattr(module, component)
         runner = getattr(module, self.depends)
         runner_instance = runner()
-
         return runner_instance.is_installed()
 
     def is_installed(self):
-        """ Check if runner is installed
-
-        Return a boolean
-        """
+        """Return  True if runner is installed else False"""
         is_installed = False
         if not self.executable:
             return False
-        result = subprocess.Popen(
-                ['which', self.executable],
-                stdout=subprocess.PIPE).communicate()[0]
+        result = subprocess.Popen(['which', self.executable],
+                                  stdout=subprocess.PIPE).communicate()[0]
         if result == '':
             is_installed = False
         else:
@@ -139,6 +110,7 @@ class Runner(object):
             logger.error("Edit runners/runner.py to add support for it")
             return False
         if self.package is None:
+            ErrorDialog('This runner is not yet installable')
             logger.error("The requested runner %s can't be installed",
                          self.__class__.__name__)
             return

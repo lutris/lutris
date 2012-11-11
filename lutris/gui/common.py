@@ -75,11 +75,12 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):
-        super(DownloadDialog, self).__init__(self, "Downloading file")
+        super(DownloadDialog, self).__init__("Downloading file")
         self.set_size_request(560, 100)
-        self.connect('destroy', self.destroy_cb)
+        #self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
+        self.download_progress_box.connect('complete', self.download_complete)
         label = Gtk.Label(label='Downloading %s' % url)
         label.set_padding(0, 0)
         label.set_alignment(0.0, 1.0)
@@ -90,9 +91,12 @@ class DownloadDialog(Gtk.Dialog):
 
     def destroy_cb(self, widget, data=None):
         """Action triggered when window is closed"""
-        self.download_cancel(None)
+        self.destroy()
+
+    def download_complete(self, _widget, _data):
         self.destroy()
 
     def download_cancel(self, _widget, _data=None):
         """Action triggered when download is cancelled"""
-        self.download_progress_box.cancel()
+        #self.download_progress_box.cancel()
+        pass

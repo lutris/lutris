@@ -377,17 +377,18 @@ class DownloadProgressBox(Gtk.HBox):
                                         None, (GObject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
-        GObject.GObject.__init__(self, False, 2)
+        #GObject.GObject.__init__(self, False, 2)
+        super(DownloadProgressBox, self).__init__()
         self.downloader = None
         self.progressbar = Gtk.ProgressBar()
         self.progressbar.show()
-        self.pack_start(self.progressbar, True)
+        self.pack_start(self.progressbar, True, True, 10)
         self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         if cancelable:
             self.cancel_button.show()
         self.cancel_button.set_sensitive(False)
-        self.cancel_button.connect('clicked', self.__stop_download)
-        self.pack_end(self.cancel_button, False)
+        self.cancel_button.connect('clicked', self._stop_download)
+        self.pack_end(self.cancel_button, False, False, 10)
 
         self.url = params['url']
         self.dest = params['dest']
@@ -412,14 +413,15 @@ class DownloadProgressBox(Gtk.HBox):
             return False
         return True
 
-    def __stop_download(self):
+    def _stop_download(self):
         """Stop the current download."""
         self.downloader.kill = True
         self.cancel_button.set_sensitive(False)
 
     def cancel(self):
         """Cancel the current download."""
-        self.downloader.kill()
+        if self.downloader:
+            self.downloader.kill = True
 
 
 class FileChooserEntry(Gtk.Box):

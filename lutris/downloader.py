@@ -20,9 +20,7 @@
 import urllib
 import threading
 
-import re
-
-from lutris.util import log
+from lutris.util.log import logger
 
 
 class DownloadStoppedException(Exception):
@@ -45,7 +43,7 @@ class Downloader(threading.Thread):
 
     def run(self):
         """Start the download."""
-        log.logger.debug("Download of %s starting" % self.url)
+        logger.debug("Download of %s starting" % self.url)
         urllib.urlretrieve(self.url, self.dest, self._report_progress)
         return True
 
@@ -54,10 +52,9 @@ class Downloader(threading.Thread):
         old_progress = self.progress
         self.progress = ((piece * received_bytes)) / (total_size * 1.0)
         if self.progress - old_progress > 0.05:
-            log.logger.debug("Progress: %0.2f%%", self.progress * 100)
-
+            logger.debug("Progress: %0.2f%%", self.progress * 100)
         try:
             if self.kill is True:
                 raise DownloadStoppedException
         except DownloadStoppedException:
-            log.logger.debug("stopping download")
+            logger.debug("stopping download")
