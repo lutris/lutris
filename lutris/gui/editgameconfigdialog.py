@@ -1,24 +1,4 @@
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
 """Game edition dialog"""
 
 from gi.repository import Gtk
@@ -30,25 +10,16 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
-# pylint: disable=R0904
 class EditGameConfigDialog(Gtk.Dialog):
     """Game config edit dialog"""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
         self.game = game
-        self.set_title("Edit game configuration")
-        self.set_size_request(500, 500)
-
-        #Top label
         self.lutris_config = LutrisConfig(game=game)
-        logger.debug(self.lutris_config.config)
-
-        self.lutris_config.runner = self.lutris_config.runner
-
-        game_name_label = Gtk.Label(label="Edit configuration for %s "
-                                    % self.lutris_config.config["realname"])
-        self.vbox.pack_start(game_name_label, False, False, 10)
+        game_name = self.lutris_config.config["realname"]
+        self.set_title("Edit game configuration for %s" % game_name)
+        self.set_size_request(500, 500)
 
         #Notebook
         config_notebook = Gtk.Notebook()
