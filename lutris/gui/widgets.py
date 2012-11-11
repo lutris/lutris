@@ -103,9 +103,9 @@ def get_pixbuf_for_game(game, icon_size):
 
 class GameView(object):
     __gsignals__ = {
-      "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
-      "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-      "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
     selected_game = None
     current_path = None
@@ -149,17 +149,13 @@ class GameView(object):
             assert key in game, "Game info must have %s" % key
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
         store.append((game["id"], game['name'], game_pix, game["runner"],
-                        runner_pix, "Genre", "Platform", "Year"))
+                     runner_pix, "Genre", "Platform", "Year"))
 
     def remove_game(self, removed_id):
         store = self.get_model().get_model().get_model()
         for model_row in store:
-            logger.debug(model_row)
             game_id = model_row[COL_ID]
-            logger.debug(game_id)
-            logger.debug(removed_id)
             if game_id == removed_id:
-                logger.debug("removing %s", game_id)
                 self.remove_row(model_row.iter)
                 break
 
@@ -270,8 +266,6 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games):
         super(GameIconView, self).__init__()
-        self.set_item_width(150)
-        self.set_spacing(21)
         self.icon_size = 128
         self.initialize_store(games)
         self.set_markup_column(COL_NAME)
@@ -280,14 +274,11 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
-        self.connect('size-allocate', GameIconView.on_size_allocate)
+        #self.connect('size-allocate', self.on_size_allocate)
         self.connect('button-press-event', self.popup_contextual_menu)
 
-    def on_size_allocate(self, allocation):
+    def on_size_allocate(self, _widget, _rect):
         [self.set_columns(m) for m in [1, self.get_columns()]]
-
-    def do_get_preferred_width(self):
-        return (0, 0)
 
     def on_item_activated(self, view, path):
         self.get_selected_game(True)
@@ -350,7 +341,8 @@ class GameCover(Gtk.Image):
                    ('text/unicode', 0, 0),
                    ('text/x-moz-url', 0, 0)]
         self.drag_dest_set(Gtk.DestDefaults.ALL, targets,
-            Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT | Gdk.DragAction.MOVE)
+                           Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT |
+                           Gdk.DragAction.MOVE)
 
     def on_cover_drop(self, widget, context, x, y, selection, target, ts):
         """Take action based on a drop on the widget."""
@@ -382,8 +374,7 @@ class DownloadProgressBox(Gtk.HBox):
                                  None,
                                  (GObject.TYPE_PYOBJECT,)),
                     'cancelrequested': (GObject.SignalFlags.RUN_LAST,
-                                         None,
-                                         (GObject.TYPE_PYOBJECT,))}
+                                        None, (GObject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
         GObject.GObject.__init__(self, False, 2)
@@ -403,7 +394,6 @@ class DownloadProgressBox(Gtk.HBox):
 
     def start(self):
         """Start downloading a file."""
-        logger.debug("starting to download %s" % self.url)
         self.downloader = Downloader(self.url, self.dest)
         timer_id = GObject.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
@@ -417,7 +407,6 @@ class DownloadProgressBox(Gtk.HBox):
         percent = progress * 100
         self.progressbar.set_text("%d %%" % percent)
         if progress >= 1.0:
-            logger.debug("download of %s has completed" % self.url)
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False
@@ -480,8 +469,8 @@ class FileChooserEntry(Gtk.Box):
             for filename in sorted(os.listdir(current_path)):
                 if filename.startswith("."):
                     continue
-                if filefilter is not None and \
-                   not filename.startswith(filefilter):
+                if filefilter is not None \
+                        and not filename.startswith(filefilter):
                     continue
                 self.path_completion.append(
                     [os.path.join(current_path, filename)]

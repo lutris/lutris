@@ -10,13 +10,10 @@ from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
-
-from lutris.util.log import logger
-from lutris.gui.dialogs import AboutDialog
 from lutris.gui.common import NoticeDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.widgets import GameTreeView, GameIconView  # , GameCover
+from lutris.gui.widgets import GameTreeView, GameIconView
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
@@ -25,12 +22,11 @@ GAME_VIEW = 'icon'
 
 def switch_to_view(view=GAME_VIEW):
     game_list = get_list()
+    assert view in ('icon', 'list')
     if view == 'icon':
         view = GameIconView(game_list)
     elif view == 'list':
         view = GameTreeView(game_list)
-    else:
-        raise ValueError('View type not supported')
     view.show_all()
     return view
 
@@ -51,7 +47,7 @@ class LutrisWindow:
         self.connect_signals()
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
-        self.games_scrollwindow.add_with_viewport(self.view)
+        self.games_scrollwindow.add(self.view)
         #Status bar
         self.status_label = self.builder.get_object('status_label')
         self.joystick_icons = []
@@ -66,9 +62,9 @@ class LutrisWindow:
         #Contextual menu
         menu_actions = \
             [('Play', self.game_launch),
-            ('Configure', self.edit_game_configuration),
-            ('Create desktop shortcut', self.create_desktop_shortcut),
-            ('Create global menu shortcut', self.create_menu_shortcut)]
+             ('Configure', self.edit_game_configuration),
+             ('Create desktop shortcut', self.create_desktop_shortcut),
+             ('Create global menu shortcut', self.create_menu_shortcut)]
         self.menu = Gtk.Menu()
         for action in menu_actions:
             subitem = Gtk.ImageMenuItem(action[0])
@@ -123,7 +119,6 @@ class LutrisWindow:
         Note: this won't delete the actual game
         """
         game = self.view.selected_game[0]
-        logger.debug("removing %s", game)
         config = LutrisConfig(game=game)
         config.remove()
         self.view.remove_game(game)
@@ -153,7 +148,6 @@ class LutrisWindow:
             NoticeDialog("No ScummVM games found")
         else:
             for new_game in new_games:
-                logger.debug("Adding %s", new_game)
                 self.view.add_game(new_game)
 
     def on_search_entry_changed(self, widget):
@@ -183,7 +177,6 @@ class LutrisWindow:
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            logger.debug(game_info)
             self.view.add_game(game_info)
 
     def edit_game_configuration(self, _button):
@@ -203,8 +196,8 @@ class LutrisWindow:
         """Adds the game to the system's Games menu"""
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, menu=True)
-        NoticeDialog('Shortcut added to the Games category of the\
- global menu.')
+        NoticeDialog(
+            "Shortcut added to the Games category of the global menu.")
 
     def create_desktop_shortcut(self, *args):
         """Adds the game to the system's Games menu"""

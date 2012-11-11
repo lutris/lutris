@@ -8,8 +8,8 @@
     <property name="stock">gtk-media-play</property>
   </object>
   <object class="GtkWindow" id="window">
-    <property name="width_request">650</property>
-    <property name="height_request">500</property>
+    <property name="width_request">800</property>
+    <property name="height_request">600</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
     <property name="icon">../media/lutris.svg</property>
@@ -26,7 +26,6 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="lutris_menuitem">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Lutris</property>
@@ -37,7 +36,6 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkMenuItem" id="connect_menuitem">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Connect</property>
@@ -47,7 +45,6 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="runners_menuitem">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Install and configure runners</property>
@@ -64,7 +61,6 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="import_menuitem">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Import</property>
@@ -75,7 +71,6 @@
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkMenuItem" id="scummvm_menuitem">
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="tooltip_text" translatable="yes">Import games from ScummVM</property>
@@ -91,7 +86,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="quit_menuitem">
                         <property name="label">gtk-quit</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -105,7 +99,6 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="edit_menuitem">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Edit</property>
@@ -117,7 +110,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="preferences_menuitem">
                         <property name="label">gtk-preferences</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">configure the default options</property>
@@ -132,7 +124,6 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="view_menuitem">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_View</property>
@@ -143,7 +134,6 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkRadioMenuItem" id="iconview_menuitem">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Icons</property>
@@ -155,7 +145,6 @@
                     </child>
                     <child>
                       <object class="GtkRadioMenuItem" id="listview_menuitem">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">List</property>
@@ -170,7 +159,6 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="game_menuitem">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Game</property>
@@ -182,7 +170,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="playgame_menuitem">
                         <property name="label" translatable="yes">Start</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="image">image1</property>
@@ -193,7 +180,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="stopgame_menuitem">
                         <property name="label">gtk-media-stop</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -203,7 +189,6 @@
                     </child>
                     <child>
                       <object class="GtkSeparatorMenuItem" id="separator1">
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>
@@ -211,7 +196,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="addgame_menuitem">
                         <property name="label">gtk-add</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -222,7 +206,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="removegame_menuitem">
                         <property name="label">gtk-remove</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -236,7 +219,6 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="help_menuitem">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Help</property>
@@ -248,7 +230,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem10">
                         <property name="label">gtk-about</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
@@ -275,11 +256,9 @@
             <property name="icon_size">6</property>
             <child>
               <object class="GtkToolButton" id="play_button">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Play game</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Play</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-play</property>
@@ -292,11 +271,9 @@
             </child>
             <child>
               <object class="GtkToolButton" id="reset_button">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Stop game</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Stop</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-stop</property>
@@ -309,11 +286,9 @@
             </child>
             <child>
               <object class="GtkToolButton" id="add_game_button">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Add game</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Add Game</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-add</property>
@@ -326,11 +301,9 @@
             </child>
             <child>
               <object class="GtkToolButton" id="delete_button">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Remove game from library</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Remove</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-delete</property>
@@ -343,10 +316,8 @@
             </child>
             <child>
               <object class="GtkSeparatorToolItem" id="toolbutton1">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -355,11 +326,9 @@
             </child>
             <child>
               <object class="GtkToolItem" id="search_area">
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_right">10</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkEntry" id="search_entry">
                     <property name="visible">True</property>
