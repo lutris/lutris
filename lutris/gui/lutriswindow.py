@@ -10,7 +10,7 @@ from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
-from lutris.gui.common import NoticeDialog
+from lutris.gui.common import NoticeDialog, AboutDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
 from lutris.gui.widgets import GameTreeView, GameIconView
