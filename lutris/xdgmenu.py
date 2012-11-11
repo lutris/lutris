@@ -23,7 +23,6 @@ def get_xdg_games():
         entry_name = str(game)[:-(len(".desktop"))]
         if entry_name in IGNORED_ENTRIES:
             continue
-        print entry_name
         desktop_entry = game.DesktopEntry
         game_name = unicode(desktop_entry)
         exe = desktop_entry.getExec()
