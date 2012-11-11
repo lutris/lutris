@@ -66,6 +66,19 @@ def check_config(force_wipe=False):
         pga.create()
 
 
+def read_yaml_from_file(filename):
+    """Read filename and return parsed yaml"""
+    if not os.path.exists(filename):
+        return {}
+    try:
+        content = file(filename, 'r').read()
+        yaml_content = yaml.load(content) or {}
+    except (yaml.scanner.ScannerError, yaml.parser.ParserError):
+        logger.error("error parsing file %s", filename)
+        yaml_content = {}
+    return yaml_content
+
+
 class LutrisConfig():
     """Class where all the configuration handling happens.
 
@@ -98,38 +111,16 @@ class LutrisConfig():
             self.config_type = "system"
 
         #Read system configuration
-        system_filename = join(CONFIG_DIR, "system.yml")
-        if os.path.exists(system_filename):
-            self.system_config = yaml.load(
-                file(system_filename, 'r').read()
-            )
-            if self.system_config is None:
-                self.system_config = {}
-
-        if self.runner:
-            runner_filename = join(CONFIG_DIR, "runners/%s.yml" % self.runner)
-            if os.path.exists(runner_filename):
-                self.runner_config = yaml.load(
-                    file(runner_filename, 'r').read()
-                )
-
+        self.system_config = read_yaml_from_file(join(CONFIG_DIR,
+                                                      "system.yml"))
+        self.runner_config = read_yaml_from_file(join(CONFIG_DIR,
+                                                      "runners/%s.yml"
+                                                      % self.runner))
         if self.game:
-            game_config_full_path = join(CONFIG_DIR,
-                                         "games/%s.yml" % self.game)
-            if os.path.exists(game_config_full_path):
-                try:
-                    content = file(game_config_full_path, 'r').read()
-                    self.game_config = yaml.load(content)
-                    self.runner = self.game_config["runner"]
-                except yaml.scanner.ScannerError:
-                    logger.error("error parsing config file %s",
-                                     game_config_full_path)
-                except yaml.parser.ParserError:
-                    logger.error("error parsing config file %s",
-                                     game_config_full_path)
-                except KeyError:
-                    logger.error("Runner key is mandatory !")
-
+            game_config_path = join(CONFIG_DIR,
+                                    "games/%s.yml" % self.game)
+            self.game_config = read_yaml_from_file(game_config_path)
+            self.runner = self.game_config["runner"]
         self.update_global_config()
 
     def __getitem__(self, key):
@@ -187,7 +178,13 @@ class LutrisConfig():
 
     def get_real_name(self):
         """Return the real name of a game."""
-        return self.config["realname"]
+        logger.error("Deprecated get_real_name method called")
+        return self.get_name()
+
+    def get_name(self):
+        """Return name of game"""
+        name = self.config["realname"]
+        return name
 
     def remove(self, game=None):
         """Delete the configuration file from disk."""
