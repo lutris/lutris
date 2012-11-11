@@ -65,7 +65,7 @@ class linux(Runner):
             os.chmod(installer_path,
                         stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
-        return  "x-terminal-emulator -e %s" % installer_path
+        return "x-terminal-emulator -e %s" % installer_path
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""

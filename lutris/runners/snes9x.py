@@ -34,6 +34,7 @@ class snes9x(Runner):
         self.is_installable = True
         self.game_options = [{"option": "rom",
                               "type": "file_chooser",
+                              "default_path": "game_path",
                               "label": "ROM"}]
         self.runner_options = [{"option": "fullscreen",
                                 "type": "bool",
@@ -42,11 +43,16 @@ class snes9x(Runner):
             self.rom = settings["game"]["rom"]
 
     def play(self):
-        return [self.executable, "\"%s\"" % self.rom]
+        return self.get_executable() + ["\"%s\"" % self.rom]
 
-    def get_executable_path(self):
+    def get_executable(self):
         local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)
-        return local_path if os.path.exists(local_path) else self.executable
+        lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
+        if os.path.exists(local_path):
+            executable = ["LD_LIBRARY_PATH=%s" % lib_path, local_path]
+        else:
+            executable = [self.executable]
+        return executable
 
     def is_installed(self):
         installed = os.path.exists(os.path.join(SNES9X_RUNNER_DIR,

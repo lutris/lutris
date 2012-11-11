@@ -54,7 +54,8 @@ def check_config(force_wipe=False):
                    join(DATA_DIR, "runners"),
                    join(DATA_DIR, "lib"),
                    CACHE_DIR,
-                   join(CACHE_DIR, "installer")]
+                   join(CACHE_DIR, "installer"),
+                   join(CACHE_DIR, "tmp")]
     for directory in directories:
         if not os.path.exists(directory):
             logger.debug("creating directory %s" % directory)
