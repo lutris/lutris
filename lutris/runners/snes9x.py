@@ -20,7 +20,6 @@ RUNNER_DIR = os.path.join(LUTRIS_DATA_PATH, "runners/")
 SNES9X_RUNNER_DIR = os.path.join(RUNNER_DIR, SNES9X_VERSION)
 
 
-# pylint: disable=C0103
 class snes9x(Runner):
     """Runs Super Nintendo games with Snes9x"""
     def __init__(self, settings=None):
@@ -49,7 +48,7 @@ class snes9x(Runner):
         local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)
         lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
         if os.path.exists(local_path):
-            executable = ["LD_LIBRARY_PATH=%s" % lib_path, local_path]
+            executable = ["LD_LIBRARY_PATH=\"%s\"" % lib_path, local_path]
         else:
             executable = [self.executable]
         return executable
