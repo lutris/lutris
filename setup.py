@@ -74,7 +74,8 @@ for directory, _, filenames in os.walk(u'data'):
             filename = os.path.join(directory, filename)
             files.append(filename)
         data_files.append((os.path.join('share/lutris', dest), files))
-data_files.append(('share/icons', ['data/media/lutris.svg']))
+data_files.append(('share/icons/hicolor/scalable/apps', ['data/media/lutris.svg']))
+data_files.append(('share/pixmaps', ['data/media/lutris.png']))
 data_files.append(('share/applications', ['lutris.desktop']))
 
 setup(
