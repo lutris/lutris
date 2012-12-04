@@ -107,17 +107,20 @@ class LutrisGame(object):
     def load_config(self):
         """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.name)
-        assert self.game_config.is_valid()
-        runner_class = import_runner(self.get_runner())
-        self.runner = runner_class(self.game_config)
+        if not self.game_config.is_valid():
+            logger.error("Invalid game config for %s" % self.name)
+        else:
+            runner_class = import_runner(self.get_runner())
+            self.runner = runner_class(self.game_config)
 
     def prelaunch(self):
         """ Verify that the current game can be launched. """
         if not self.runner.is_installed():
             question = "The required runner is not installed,\
                         do you wish to install it now ?"
-            install_runner_dialog = QuestionDialog({'question': question,
-                'title': "Required runner unavailable"})
+            install_runner_dialog = QuestionDialog(
+                {'question': question,
+                 'title': "Required runner unavailable"})
             if Gtk.ResponseType.YES == install_runner_dialog.result:
                 self.runner.install()
             else:
