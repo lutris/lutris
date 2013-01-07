@@ -99,85 +99,90 @@ class uae(Runner):
             }
         ]
 
-        if settings:
-            if "uae" in settings.config:
-                config_keys = [
-                        "kickstart_rom_file",
-                        "gfx_fullscreen_amiga",
-                        "gfx_show_leds_fullscreen",
-                        "unix.rom_path",
-                        "unix.floppy_path",
-                        "joyport0",
-                        "joyport1",
-                        "use_gui"
-                    ]
+        self.settings = settings
 
-                for config_key in config_keys:
-                    if config_key in settings["uae"]:
-                        value = settings["uae"][config_key]
-                        if type(value) == bool:
-                            value = str(value).lower()
-                        self.uae_options.update({config_key: value})
-                if "machine" in settings["uae"]:
-                    machine = settings["uae"]["machine"].replace(" ",
-                                                                 "").lower()
-                    if machine == "amiga1200":
-                        amiga_settings = {
-                            "chipset": "aga",
-                            "cpu_speed": "15",
-                            "cpu_type": "68020",
-                            "chipmem_size": "4",
-                            "fastmem_size": "2"
-                        }
-                    else:
-                        #Load at least something by default !
-                        amiga_settings = {
-                            "chipset": "ocs",
-                            #CPU Speed is supposed to be set on "real"
-                            #for Amiga 500 speed, but it's simply too fast...
-                            #"cpu_speed":"real",
-                            "cpu_speed": "15",
-                            "cpu_type": "68000",
-                            "chipmem_size": "1",
-                            "fastmem_size": "0",
-                            "bogomem_size": "2"
-                        }
-                    self.uae_options.update(amiga_settings)
-            #Hardcoded stuff
-            #If you have some better settings or have any reason that this
-            #shouldn't be hardcoded, please let me know
-            sound_settings = {
-                "sound_output": "normal",
-                "sound_bits": "16",
-                "sound_frequency": "44100",
-                "sound_channels": "stereo",
-                "sound_interpolation": "rx"
-            }
-            gfx_settings = {
-                "gfx_width_windowed": "640",
-                "gfx_height_windowed": "512",
-                "gfx_linemode": "double",
-                "gfx_center_horizontal": "simple",
-                "gfx_center_vertical": "simple"
-            }
-            self.uae_options.update(sound_settings)
-            self.uae_options.update(gfx_settings)
+    def insert_floppies(self):
+        #Insert floppies
+        if "disk" in self.settings.config["game"]:
+            drives = self.settings["uae"]["nr_floppies"]
+            disks = len(self.settings["game"]["disk"])
+            inserted_disks = 0
+            for drive in range(0, drives):
+                self.uae_options.update({
+                    "floppy%s" % str(drive): "\"%s\"" %
+                    os.path.join(self.settings["game"]["disk"][drive])
+                })
+                inserted_disks = inserted_disks + 1
+                if inserted_disks == disks:
+                    break
 
-            #Insert floppies
-            if "disk" in settings.config["game"]:
-                drives = settings["uae"]["nr_floppies"]
-                disks = len(settings["game"]["disk"])
-                inserted_disks = 0
-                for drive in range(0, drives):
-                    self.uae_options.update({
-                        "floppy%s" % str(drive): "\"%s\"" % \
-                        os.path.join(settings["game"]["disk"][drive])
-                    })
-                    inserted_disks = inserted_disks + 1
-                    if inserted_disks == disks:
-                        break
+    def handle_settings(self):
+        if "uae" in self.settings.config:
+            config_keys = [
+                "kickstart_rom_file",
+                "gfx_fullscreen_amiga",
+                "gfx_show_leds_fullscreen",
+                "unix.rom_path",
+                "unix.floppy_path",
+                "joyport0",
+                "joyport1",
+                "use_gui",
+            ]
+
+            for config_key in config_keys:
+                if config_key in self.settings["uae"]:
+                    value = self.settings["uae"][config_key]
+                    if type(value) == bool:
+                        value = str(value).lower()
+                    self.uae_options.update({config_key: value})
+            if "machine" in self.settings["uae"]:
+                machine = self.settings["uae"]["machine"].replace(" ",
+                                                                  "").lower()
+                if machine == "amiga1200":
+                    amiga_settings = {
+                        "chipset": "aga",
+                        "cpu_speed": "15",
+                        "cpu_type": "68020",
+                        "chipmem_size": "4",
+                        "fastmem_size": "2"
+                    }
+                else:
+                    #Load at least something by default !
+                    amiga_settings = {
+                        "chipset": "ocs",
+                        #CPU Speed is supposed to be set on "real"
+                        #for Amiga 500 speed, but it's simply too fast...
+                        #"cpu_speed":"real",
+                        "cpu_speed": "15",
+                        "cpu_type": "68000",
+                        "chipmem_size": "1",
+                        "fastmem_size": "0",
+                        "bogomem_size": "2"
+                    }
+                self.uae_options.update(amiga_settings)
+        #Hardcoded stuff
+        #If you have some better settings or have any reason that this
+        #shouldn't be hardcoded, please let me know
+        sound_settings = {
+            "sound_output": "normal",
+            "sound_bits": "16",
+            "sound_frequency": "44100",
+            "sound_channels": "stereo",
+            "sound_interpolation": "rx"
+        }
+        gfx_settings = {
+            "gfx_width_windowed": "640",
+            "gfx_height_windowed": "512",
+            "gfx_linemode": "double",
+            "gfx_center_horizontal": "simple",
+            "gfx_center_vertical": "simple"
+        }
+        self.uae_options.update(sound_settings)
+        self.uae_options.update(gfx_settings)
 
     def play(self):
+        self.handle_settings()
+        self.insert_floppies()
         command = [self.executable]
         for option in self.uae_options:
             command.append("-s")
