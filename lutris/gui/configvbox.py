@@ -308,9 +308,10 @@ class ConfigVBox(Gtk.VBox):
     def add_files_callback(self, button, option=None):
         """Add several files to the configuration"""
         filenames = button.get_filenames()
+        files = self.real_config[self.save_in_key].get(option, [])
         for filename in filenames:
             self.files_list_store.append([filename])
-            if not filename in self.files:
-                self.files.append(filename)
-        self.real_config[self.save_in_key][option] = self.files
-        self.files_chooser_dialog = None
+            if not filename in files:
+                files.append(filename)
+        #self.real_config[self.save_in_key][option] = self.files
+        #self.files_chooser_dialog = None

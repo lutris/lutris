@@ -103,18 +103,16 @@ class uae(Runner):
 
     def insert_floppies(self):
         #Insert floppies
-        if "disk" in self.settings.config["game"]:
-            drives = self.settings["uae"]["nr_floppies"]
-            disks = len(self.settings["game"]["disk"])
-            inserted_disks = 0
-            for drive in range(0, drives):
-                self.uae_options.update({
-                    "floppy%s" % str(drive): "\"%s\"" %
-                    os.path.join(self.settings["game"]["disk"][drive])
-                })
-                inserted_disks = inserted_disks + 1
-                if inserted_disks == disks:
-                    break
+        inserted_disks = 0
+        drives = self.settings["uae"]["nr_floppies"]
+        for drive, disk in enumerate(self.settings['game'].get('disk', [])):
+            self.uae_options.update({
+                "floppy%s" % str(drive): "\"%s\"" %
+                os.path.join(self.settings["game"]["disk"][drive])
+            })
+            inserted_disks = inserted_disks + 1
+            if inserted_disks == drives:
+                break
 
     def handle_settings(self):
         if "uae" in self.settings.config:
