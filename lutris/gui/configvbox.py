@@ -20,7 +20,7 @@
 
 """Widget generators and their signal handlers"""
 from gi.repository import Gtk, GObject, Gdk
-from lutris.util.log import logger
+#from lutris.util.log import logger
 
 PADDING = 10
 
@@ -38,9 +38,6 @@ class Label(Gtk.Label):
 class ConfigVBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
-        logger.debug("config vbox called with %s and %s", save_in_key, caller)
-        if hasattr('config', save_in_key):
-            logger.debug("config ? %s", save_in_key.config)
         GObject.GObject.__init__(self)
         self.options = None
         #Section of the configuration file to save options in. Can be "game",
@@ -66,7 +63,6 @@ class ConfigVBox(Gtk.VBox):
 
         #Go thru all options.
         for option in self.options:
-            logger.debug("Building widget for %s" % option)
             option_key = option["option"]
 
             #Load value if there is one.
@@ -208,7 +204,6 @@ class ConfigVBox(Gtk.VBox):
 
     def generate_file_chooser(self, option, value=None):
         """Generates a file chooser button to select a file"""
-        logger.debug("file chooser option: %s value: %s", option, value)
         option_name = option['option']
         label = option['label']
         hbox = Gtk.HBox()
@@ -264,10 +259,11 @@ class ConfigVBox(Gtk.VBox):
                      Gtk.STOCK_ADD, Gtk.ResponseType.OK)
         )
         self.files_chooser_dialog.set_select_multiple(True)
-        self.files_chooser_dialog.connect('response',
-                                          self.add_files_callback, option_name)
 
         files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
+        files_chooser_button.connect('file-set', self.add_files_callback,
+                                     option_name)
+        files_chooser_button.set_select_multiple(True)
         game_path = self.lutris_config.get_path(self.runner_class)
         if game_path:
             files_chooser_button.set_current_folder(game_path)
@@ -288,7 +284,8 @@ class ConfigVBox(Gtk.VBox):
         files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
         #files_treeview.set_size_request(10, 100)
-        files_treeview.connect('key-press-event', self.on_files_treeview_event)
+        files_treeview.connect('key-press-event', self.on_files_treeview_event,
+                               option_name)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(200)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
@@ -296,20 +293,24 @@ class ConfigVBox(Gtk.VBox):
         treeview_scroll.add(files_treeview)
         self.add(treeview_scroll)
 
-    def on_files_treeview_event(self, _, event):
+    def on_files_treeview_event(self, treeview, event, option):
         """ Action triggered when a row is deleted from the filechooser. """
         key = event.keyval
         if key == Gdk.KEY_Delete:
-            #TODO : Delete selected row
-            print "you don't wanna delete this ... yet"
+            selection = treeview.get_selection()
+            (model, treepaths) = selection.get_selected_rows()
+            for treepath in treepaths:
+                row_index = int(str(treepath))
+                treeiter = model.get_iter(treepath)
+                model.remove(treeiter)
+                self.real_config[self.save_in_key][option].pop(row_index)
 
-    def add_files_callback(self, dialog, response, option):
+    def add_files_callback(self, button, option=None):
         """Add several files to the configuration"""
-        if response == Gtk.ResponseType.OK:
-            filenames = dialog.get_filenames()
-            for filename in filenames:
-                self.files_list_store.append([filename])
-                if not filename in self.files:
-                    self.files.append(filename)
+        filenames = button.get_filenames()
+        for filename in filenames:
+            self.files_list_store.append([filename])
+            if not filename in self.files:
+                self.files.append(filename)
         self.real_config[self.save_in_key][option] = self.files
         self.files_chooser_dialog = None
