@@ -267,6 +267,8 @@ class GameIconView(Gtk.IconView, GameView):
     def __init__(self, games):
         super(GameIconView, self).__init__()
         self.icon_size = 128
+        self.set_item_width(140)
+        self.set_column_spacing(20)
         self.initialize_store(games)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
@@ -274,7 +276,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
-        #self.connect('size-allocate', self.on_size_allocate)
+        self.connect('size-allocate', self.on_size_allocate)
         self.connect('button-press-event', self.popup_contextual_menu)
 
     def on_size_allocate(self, _widget, _rect):
