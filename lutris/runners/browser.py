@@ -36,10 +36,16 @@ class browser(Runner):
         self.machine = "Web Browser"
         self.description = "Run games in the browser"
         self.game_options = [{"option":"url", "type":"string", "label":"URL"}]
-        self.runner_options = []
+        self.runner_options = [{
+            'option': 'browser',
+            'type': "file_chooser",
+            'label': "Web Browser"
+        }]
         if settings:
             self.url = settings["game"]["url"]
+            runner_settings = settings["browser"]
+            self.browser = runner_settings.get('browser', self.executable)
 
     def play(self):
-        command = ['x-www-browser', "\"%s\"" % self.url]
+        command = [self.browser, "\"%s\"" % self.url]
         return command
