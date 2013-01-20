@@ -177,7 +177,7 @@ class LutrisWindow:
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            self.view.add_game(game_info)
+            self.view.game_store.add_game(game_info)
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""

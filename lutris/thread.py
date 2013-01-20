@@ -21,7 +21,7 @@ Threading module, used to launch games while keeping Lutris operational.
 
 import sys
 import logging
-from gi.repository import GObject, GLib
+from gi.repository import GLib
 import threading
 import subprocess
 from os.path import exists

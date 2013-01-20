@@ -33,7 +33,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
-from lutris.util.log import logger
+#from lutris.util.log import logger
 from lutris.settings import get_data_path, DATA_DIR
 
 MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
@@ -59,14 +59,6 @@ def sort_func(store, a_iter, b_iter, _user_data):
         return -1
     else:
         return 0
-
-
-def create_store():
-    """Populates the game list"""
-    store = Gtk.ListStore(str, str, Pixbuf, str, Pixbuf, str, str, str)
-    store.set_default_sort_func(sort_func)
-    store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
-    return store
 
 
 def filter_view(model, _iter, user_data):
@@ -101,6 +93,34 @@ def get_pixbuf_for_game(game, icon_size):
     return game_pix, runner_pix
 
 
+class GameStore(object):
+    filter_text = ""
+
+    def __init__(self, games, icon_size=32):
+        self.icon_size = icon_size
+        self.store = Gtk.ListStore(str, str, Pixbuf, str,
+                                   Pixbuf, str, str, str)
+        self.store.set_default_sort_func(sort_func)
+        self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
+        self.fill_store(games)
+        self.modelfilter = self.store.filter_new()
+        self.modelfilter.set_visible_func(filter_view,
+                                          lambda x: self.filter_text)
+
+    def fill_store(self, games):
+        self.store.clear()
+        for game in games:
+            self.add_game(game)
+
+    def add_game(self, game):
+        """Adds a game into the view"""
+        for key in ('name', 'runner', 'id'):
+            assert key in game, "Game info must have %s" % key
+        game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
+        self.store.append((game["id"], game['name'], game_pix, game["runner"],
+                           runner_pix, "Genre", "Platform", "Year"))
+
+
 class GameView(object):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -113,46 +133,8 @@ class GameView(object):
     filter_text = ""
     games = []
 
-    def __init__(self):
-        self.icon_size = 32
-
-    def initialize_store(self, games):
-        self.games = games if games else []
-        store = create_store()
-        self.fill_store(store)
-
-        self.modelfilter = store.filter_new()
-        self.modelfilter.set_visible_func(filter_view,
-                                          lambda x: self.filter_text)
-        """Wrap a TreeModelSort around the TreeModelFilter to allow both
-        sorting by clicking columns in the TreeView and filtering"""
-        self.sortable_filtered_model = Gtk.TreeModelSort(
-            model=self.modelfilter
-        )
-        self.set_model(self.sortable_filtered_model)
-        return store
-
-    def fill_store(self, store=None):
-        if store is None:
-            store = self.get_model().get_model()
-        assert store is not None
-        store.clear()
-        for game in self.games:
-            self.add_game(game, store)
-
-    def add_game(self, game, store=None):
-        """Adds a game into the view"""
-        if store is None:
-            store = self.get_model().get_model().get_model()
-        assert store is not None
-        for key in ('name', 'runner', 'id'):
-            assert key in game, "Game info must have %s" % key
-        game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
-        store.append((game["id"], game['name'], game_pix, game["runner"],
-                     runner_pix, "Genre", "Platform", "Year"))
-
     def remove_game(self, removed_id):
-        store = self.get_model().get_model().get_model()
+        store = self.game_store.store
         for model_row in store:
             game_id = model_row[COL_ID]
             if game_id == removed_id:
@@ -161,12 +143,12 @@ class GameView(object):
 
     def remove_row(self, model_iter):
         """Remove a game from the treeview."""
-        model = self.get_model().get_model().get_model()
-        model.remove(model_iter)
+        store = self.game_store.store
+        store.remove(model_iter)
 
     def update_filter(self, widget, data=None):
-        self.filter_text = data
-        self.modelfilter.refilter()
+        self.game_store.filter_text = data
+        self.get_model().refilter()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
@@ -192,10 +174,9 @@ class GameTreeView(Gtk.TreeView, GameView):
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
-        super(GameTreeView, self).__init__()
-        self.icon_size = 32
+        self.game_store = GameStore(games, icon_size=32)
+        super(GameTreeView, self).__init__(self.game_store.modelfilter)
         self.set_rules_hint(True)
-        self.initialize_store(games)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
@@ -265,22 +246,16 @@ class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
-        super(GameIconView, self).__init__()
-        self.icon_size = 128
-        self.initialize_store(games)
+        self.game_store = GameStore(games, icon_size=128)
+        super(GameIconView, self).__init__(self.game_store.modelfilter)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
-        self.set_margin(1)
-        self.set_item_padding(1)
+        self.set_item_padding(10)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
-        #self.connect('size-allocate', self.on_size_allocate)
         self.connect('button-press-event', self.popup_contextual_menu)
-
-    def on_size_allocate(self, _widget, _rect):
-        [self.set_columns(m) for m in [1, self.get_columns()]]
 
     def on_item_activated(self, view, path):
         self.get_selected_game(True)
