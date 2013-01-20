@@ -68,7 +68,8 @@ class mednafen(Runner):
         self.runner_options = [{
             "option": "fs",
             "type": "bool",
-            "label": "Fullscreen"
+            "label": "Fullscreen",
+            "default": True,
         }]
         self.settings = settings
 

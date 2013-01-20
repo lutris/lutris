@@ -77,7 +77,9 @@ class ConfigVBox(Gtk.VBox):
                                        option["choices"],
                                        option["label"], value)
             elif option["type"] == "bool":
-                self.generate_checkbox(option_key, option["label"], value)
+                if value is None and 'default' in option:
+                    value = option['default']
+                self.generate_checkbox(option, value)
             elif option["type"] == "range":
                 self.generate_range(option_key,
                                     option["min"],
@@ -107,13 +109,13 @@ class ConfigVBox(Gtk.VBox):
         self.pack_start(label, True, True, PADDING)
 
     #Checkbox
-    def generate_checkbox(self, option_name, label, value=None):
+    def generate_checkbox(self, option, value=None):
         """ Generates a checkbox. """
-        checkbox = Gtk.CheckButton(label)
+        checkbox = Gtk.CheckButton(option["label"])
         checkbox.set_alignment(0.1, 0.5)
         if value:
             checkbox.set_active(value)
-        checkbox.connect("toggled", self.checkbox_toggle, option_name)
+        checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         checkbox.show()
         self.pack_start(checkbox, False, False, PADDING * 2)
 
