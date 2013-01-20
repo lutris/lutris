@@ -1,11 +1,12 @@
 """ Main window for the Lutris interface """
-import os
-
 # pylint: disable=E0611
-from gi.repository import Gtk, GObject, GLib
+import os
+import json
+
+from gi.repository import Gtk, GLib
 
 #from lutris.util import log
-from lutris.settings import get_data_path
+from lutris import settings
 from lutris.game import LutrisGame, get_list
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
@@ -35,16 +36,27 @@ class LutrisWindow:
     """Handler class for main window signals"""
     def __init__(self):
 
-        settings = Gtk.Settings.get_default()
-        settings.set_property("gtk-application-prefer-dark-theme", True)
-        ui_filename = os.path.join(get_data_path(), 'ui', 'LutrisWindow.ui')
+        ui_filename = os.path.join(settings.get_data_path(), 'ui', 'LutrisWindow.ui')
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
+
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.builder.connect_signals(self)
-        self.view = switch_to_view()
-        self.connect_signals()
+
+        # load config
+        window_config = self.load_view()
+        width = window_config.get('width', 800)
+        height = window_config.get('height', 600)
+        self.window_size = (width, height)
+        view_type = window_config.get('view_type', 'icon')
+
+        view_menuitem = self.builder.get_object("iconview_menuitem")
+        view_menuitem.set_active(view_type == 'icon')
+        view_menuitem = self.builder.get_object("listview_menuitem")
+        view_menuitem.set_active(view_type == 'list')
+
+        self.view = switch_to_view(view_type)
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
@@ -76,7 +88,9 @@ class LutrisWindow:
         #Timer
         self.timer_id = GLib.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
+        self.window.resize_to_geometry(width, height)
         self.window.show_all()
+        self.connect_signals()
 
     def connect_signals(self):
         """Connects signals from the view with the main window.
@@ -84,6 +98,10 @@ class LutrisWindow:
         """
         self.view.connect("game-activated", self.game_launch)
         self.view.connect("game-selected", self.game_selection_changed)
+        self.window.connect("configure-event", self.get_size)
+
+    def get_size(self, widget, _):
+        self.window_size = widget.get_size()
 
     def refresh_status(self):
         """Refresh status bar"""
@@ -130,6 +148,7 @@ class LutrisWindow:
 
     def on_destroy(self, *args):
         """Signal for window close"""
+        self.save_view()
         Gtk.main_quit(*args)
 
     def on_runners_activate(self, _widget, _data=None):
@@ -186,7 +205,6 @@ class LutrisWindow:
     def on_iconview_toggled(self, menuitem):
         """Switches between icon view and list view"""
         self.view.destroy()
-        self.view = None
         self.view = switch_to_view('icon' if menuitem.get_active() else 'list')
         self.view.contextual_menu = self.menu
         self.connect_signals()
@@ -204,3 +222,23 @@ class LutrisWindow:
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, desktop=True)
         NoticeDialog('Shortcut created on your desktop.')
+
+    def get_config_path(self):
+        return os.path.join(settings.CONFIG_DIR, "lutris.config")
+
+    def save_view(self):
+        config_path = self.get_config_path()
+        window_config = {}
+        window_config['view_type'] = 'icon' \
+            if 'IconView' in str(type(self.view)) else 'list'
+        window_config['width'], window_config['height'] = self.window_size
+        with open(config_path, 'w') as config_handler:
+            config_handler.write(json.dumps(window_config))
+
+    def load_view(self):
+        config_path = self.get_config_path()
+        if not os.path.exists(config_path):
+            return {}
+        with open(config_path, 'r') as config_file:
+            config = json.loads(config_file.read())
+        return config
