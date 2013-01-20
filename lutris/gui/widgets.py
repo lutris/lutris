@@ -270,6 +270,8 @@ class GameIconView(Gtk.IconView, GameView):
         self.initialize_store(games)
         self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
+        self.set_margin(1)
+        self.set_item_padding(1)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
@@ -396,7 +398,7 @@ class DownloadProgressBox(Gtk.HBox):
     def start(self):
         """Start downloading a file."""
         self.downloader = Downloader(self.url, self.dest)
-        timer_id = GObject.timeout_add(100, self.progress)
+        timer_id = GLib.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()
         return timer_id

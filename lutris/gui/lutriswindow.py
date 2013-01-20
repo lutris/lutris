@@ -2,7 +2,7 @@
 import os
 
 # pylint: disable=E0611
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GLib
 
 #from lutris.util import log
 from lutris.settings import get_data_path
@@ -74,7 +74,7 @@ class LutrisWindow:
         self.view.contextual_menu = self.menu
 
         #Timer
-        self.timer_id = GObject.timeout_add(1000, self.refresh_status)
+        self.timer_id = GLib.timeout_add(1000, self.refresh_status)
         self.window = self.builder.get_object("window")
         self.window.show_all()
 

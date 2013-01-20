@@ -21,7 +21,7 @@ Threading module, used to launch games while keeping Lutris operational.
 
 import sys
 import logging
-from gi.repository import GObject
+from gi.repository import GObject, GLib
 import threading
 import subprocess
 from os.path import exists
@@ -53,7 +53,7 @@ class LutrisThread(threading.Thread):
         self.child_processes.append(thread)
 
     def run(self):
-        GObject.timeout_add(2000, self.poke_process)
+        GLib.timeout_add(2000, self.poke_process)
         logging.debug(self.command)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,

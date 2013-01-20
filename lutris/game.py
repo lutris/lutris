@@ -23,7 +23,7 @@ import subprocess
 
 from signal import SIGKILL
 from os.path import join
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GLib
 
 from lutris.runners import import_runner
 from lutris.util.log import logger
@@ -175,7 +175,7 @@ class LutrisGame(object):
         if oss_wrapper:
             command = oss_wrapper + " " + command
 
-        self.ticker = GObject.timeout_add(5000, self.poke_process)
+        self.ticker = GLib.timeout_add(5000, self.poke_process)
         logger.debug("Running : %s", command)
         self.game_thread = LutrisThread(command, path, killswitch)
         self.game_thread.start()
