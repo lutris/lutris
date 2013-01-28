@@ -15,7 +15,6 @@
     <property name="icon">../media/lutris.svg</property>
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
-    <signal name="size-allocate" handler="size-allocate" swapped="no"/>
     <child>
       <object class="GtkVBox" id="main_vbox">
         <property name="visible">True</property>
