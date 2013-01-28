@@ -28,6 +28,7 @@
 import os
 import Image
 
+from gi import version_info
 from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
@@ -256,6 +257,11 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('selection-changed', self.on_selection_changed)
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
+        if version_info[1] < 4:
+            self.connect('size-allocate', self.on_size_allocate)
+
+    def on_size_allocate(self, _widget, _rect):
+        [self.set_columns(m) for m in [1, self.get_columns()]]
 
     def on_item_activated(self, view, path):
         self.get_selected_game(True)
