@@ -354,7 +354,6 @@ class DownloadProgressBox(Gtk.HBox):
                                         None, (GObject.TYPE_PYOBJECT,))}
 
     def __init__(self, params, cancelable=True):
-        #GObject.GObject.__init__(self, False, 2)
         super(DownloadProgressBox, self).__init__()
         self.downloader = None
         self.progressbar = Gtk.ProgressBar()
@@ -382,8 +381,21 @@ class DownloadProgressBox(Gtk.HBox):
         """Show download progress."""
         progress = min(self.downloader.progress, 1)
         self.progressbar.set_fraction(progress)
-        percent = progress * 100
-        self.progressbar.set_text("%d %%" % percent)
+        total_downloaded = self.downloader.total_downloaded
+        elapsed_seconds = self.downloader.elapsed_time.seconds or 1
+        total_size = self.downloader.total_size
+        speed = total_downloaded / elapsed_seconds or 1
+        time_left = (total_size - total_downloaded) / speed
+        megabytes = 1024 * 1024
+        progress_label = ("%0.2fMb out of %0.2fMb (%0.2fMb/s), "
+                          "%d seconds remaining"
+                          % (float(total_downloaded) / megabytes,
+                             float(total_size) / megabytes,
+                             float(speed) / megabytes,
+                             time_left))
+        print progress_label
+        self.progressbar.set_text(progress_label)
+        self.progressbar.set_fraction(progress)
         if progress >= 1.0:
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})

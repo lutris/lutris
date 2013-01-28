@@ -249,7 +249,8 @@ class Installer(Gtk.Dialog):
 
     def process_downloads(self):
         """Download each file needed for the game"""
-        if self.download_index < len(self.rules["files"]):
+        files = self.rules.get('files')
+        if self.download_index < len(files):
             log.logger.info(
                 "Downloading file %d of %d",
                 self.download_index + 1, len(self.rules["files"])
@@ -334,7 +335,7 @@ class Installer(Gtk.Dialog):
                                                           'dest': dest_file},
                                                          cancelable=False)
             self.download_progress.connect('complete', self.download_complete)
-            self.widget_box.pack_start(self.download_progress, True, True)
+            self.widget_box.pack_start(self.download_progress, True, True, 10)
             self.download_progress.show()
             self.download_progress.start()
         log.logger.debug("Download for %s processed, stored in %s", file_id,
