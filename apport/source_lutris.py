@@ -19,7 +19,7 @@ try:
     import apport
     HAS_APPORT = True
 except ImportError:
-    print "Apport not installed"
+    print("Apport not installed")
     
 def add_info(report):
     """add report info"""

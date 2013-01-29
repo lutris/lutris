@@ -77,7 +77,7 @@ class mednafen(Runner):
         """ Detect connected joysticks and return their ids """
         joy_ids = []
         if not self.is_installed:
-            return False
+            return []
         output = subprocess.Popen(["mednafen", "dummy"],
                                   stdout=subprocess.PIPE).communicate()[0]
         ouput = str.split(output, "\n")

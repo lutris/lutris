@@ -36,9 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 def get_data_path():
     """docstring for get_data_path"""
     launch_path = os.path.realpath(sys.path[0])
-    if launch_path.startswith('/usr/local'):
+    if launch_path.startswith("/usr/local"):
         data_path = '/usr/local/share/lutris'
-    elif launch_path.startswith('/usr'):
+    elif launch_path.startswith("/usr"):
         data_path = '/usr/share/lutris'
     elif os.path.exists(os.path.normpath(os.path.join(sys.path[0], 'data'))):
         data_path = os.path.normpath(os.path.join(sys.path[0], 'data'))
@@ -46,6 +46,6 @@ def get_data_path():
         import lutris
         data_path = os.path.dirname(lutris.__file__)
     if not os.path.exists(data_path):
-        print "data_path can't be found at : %s" % data_path
+        print("data_path can't be found at : %s" % data_path)
         exit()
     return data_path

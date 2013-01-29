@@ -56,6 +56,7 @@ class mupen64plus(Runner):
                 self.rom = settings['game']['rom']
 
     def play(self):
+        """Run Nintendo 64 game"""
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}

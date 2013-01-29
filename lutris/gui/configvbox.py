@@ -162,7 +162,7 @@ class ConfigVBox(Gtk.VBox):
             for choice in choices:
                 if choice[1] == value:
                     selected_index = index + 1
-                index = index + 1
+                index += 1
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)

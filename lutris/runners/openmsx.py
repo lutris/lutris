@@ -26,9 +26,9 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class openmsx(Runner):
-    '''Runner for MSX games'''
+    """Runner for MSX games"""
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(openmsx, self).__init__()
         self.package = "openmsx"
         self.executable = "openmsx"
@@ -42,5 +42,6 @@ class openmsx(Runner):
             self.rom = settings["game"]["rom"]
 
     def play(self):
+        """Run MSX game"""
         command = [self.executable, "\"%s\"" % self.rom]
         return command

@@ -32,7 +32,7 @@ def switch_to_view(view=GAME_VIEW):
     return view
 
 
-class LutrisWindow:
+class LutrisWindow(object):
     """Handler class for main window signals"""
     def __init__(self):
 

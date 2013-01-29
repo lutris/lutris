@@ -19,7 +19,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-'''Runner for intellivision games'''
+"""Runner for intellivision games"""
 
 from lutris.runners.runner import Runner
 import os.path
@@ -30,7 +30,7 @@ class jzintv(Runner):
     """Intellivision Emulator"""
 
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(jzintv, self).__init__()
         self.package = "jzintv"
         self.executable = "jzintv"
@@ -73,5 +73,6 @@ class jzintv(Runner):
             self.arguments += ["\"%s\"" % romfile]
 
     def play(self):
+        """Run Intellivision game"""
         command = [self.executable] + self.arguments
         return command

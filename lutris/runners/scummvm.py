@@ -108,19 +108,18 @@ class scummvm(Runner):
         self.settings = settings
 
     def play(self):
-        settings = self.settings
+        """Run ScummVM game"""
         gfxmode = "--gfx-mode=normal"
         fullscreen = "-f"  # -F for windowed
-        if isinstance(settings, LutrisConfig):
-            config = settings.config
-            if "scummvm" in config:
-                if "windowed" in config["scummvm"]:
-                    if config["scummvm"]["windowed"] is True:
-                        fullscreen = "-F"
-                if "gfx-mode" in config["scummvm"]:
-                    mode = config["scummvm"]["gfx-mode"]
-                    gfxmode = "--gfx-mode=%s" % mode
-            game = settings["game"]["game_id"]
+        config = self.settings.config
+        if "scummvm" in self.settings.config:
+            if "windowed" in config["scummvm"]:
+                if self.settings.config["scummvm"]["windowed"] is True:
+                    fullscreen = "-F"
+            if "gfx-mode" in self.settings.config["scummvm"]:
+                mode = self.settings.config["scummvm"]["gfx-mode"]
+                gfxmode = "--gfx-mode=%s" % mode
+        game = self.settings["game"]["game_id"]
         return [self.executable, fullscreen, gfxmode, game]
 
     def get_game_list(self):

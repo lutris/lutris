@@ -82,7 +82,7 @@ def read_yaml_from_file(filename):
     return yaml_content
 
 
-class LutrisConfig():
+class LutrisConfig(object):
     """Class where all the configuration handling happens.
 
     Lutris configuration uses a cascading mecanism where
@@ -202,7 +202,7 @@ class LutrisConfig():
         if "runner" in self.game_config:
             return True
         else:
-            print "Error in %s config file : No runner" % self.game
+            print("Error in %s config file : No runner" % self.game)
             return False
 
     def save(self, config_type=None):
@@ -221,21 +221,25 @@ class LutrisConfig():
 
         if config_type == "system":
             filename = join(CONFIG_DIR, "system.yml")
-            file(filename, "w").write(yaml_config)
+            self.write_to_disk(filename, yaml_config)
         elif config_type == "runner":
             runner_config_path = join(CONFIG_DIR,
                                       "runners/%s.yml" % self.runner)
-            file(runner_config_path, "w").write(yaml_config)
+            self.write_to_disk(runner_config_path, yaml_config)
+
         elif config_type == "game":
             if not self.game:
                 self.game = slugify(self.config['realname'])
             config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
-            config_file = file(config_path, "w")
-            config_file.write(yaml_config)
+            self.write_to_disk(config_path, yaml_config)
             return self.game
         else:
-            print "Config type is %s or %s" % (self.config_type, type)
-            print "i don't know how to save this yet"
+            print("Config type is %s or %s" % (self.config_type, type))
+            print("i don't know how to save this yet")
+
+    def write_to_disk(self, filepath, content):
+        with open(filepath, "w") as filehandler:
+            filehandler.write(content)
 
     def get_path(self, default=None):
         """Get the path to install games for a given runner.

@@ -42,6 +42,7 @@ class snes9x(Runner):
             self.rom = settings["game"]["rom"]
 
     def play(self):
+        """Run Super Nintendo game"""
         return self.get_executable() + ["\"%s\"" % self.rom]
 
     def get_executable(self):

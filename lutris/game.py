@@ -68,7 +68,7 @@ def get_list():
                 #                                 message_format=message)
                 #error_dialog.run()
                 #error_dialog.destroy()
-                print message
+                print(message)
             else:
                 game_list.append({"name": game.get_real_name(),
                                   "runner": game.get_runner(),
@@ -116,8 +116,8 @@ class LutrisGame(object):
     def prelaunch(self):
         """ Verify that the current game can be launched. """
         if not self.runner.is_installed():
-            question = "The required runner is not installed,\
-                        do you wish to install it now ?"
+            question = ("The required runner is not installed.\n"
+                        "Do you wish to install it now ?")
             install_runner_dialog = QuestionDialog(
                 {'question': question,
                  'title': "Required runner unavailable"})

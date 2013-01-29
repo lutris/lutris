@@ -23,7 +23,7 @@ from gi.repository import GConf
 from lutris.util.log import logger
 
 
-class GConfSetting:
+class GConfSetting(object):
     """ GConf wrapper class. """
     def __init__(self, key, _type):
         self._key = key
@@ -43,7 +43,7 @@ class GConfSetting:
         elif self._type == str:
             return self._client.get_string(self._key)
         else:
-            assert(False)
+            raise TypeError
 
     def _run_gconftool(self, command):
         if command not in self._cmd_cache:
@@ -78,7 +78,7 @@ class GConfSetting:
         elif self._type == str:
             self._client.set_string(self._key, value)
         else:
-            assert(False)
+            raise TypeError
 
     def set_key(self, key, value, override_type=False):
         """ Sets the GConf key to value. """

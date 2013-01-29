@@ -20,7 +20,7 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ###############################################################################
 
-'''Runner for stella Atari 2600 emulator'''
+"""Runner for stella Atari 2600 emulator"""
 
 from lutris.runners.runner import Runner
 
@@ -29,7 +29,7 @@ class stella(Runner):
     """Atari 2600 games emulator"""
 
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(stella, self).__init__()
         self.package = "stella"
         self.executable = "stella"

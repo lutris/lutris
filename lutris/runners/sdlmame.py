@@ -46,13 +46,12 @@ class sdlmame(Runner):
         """ Launch the game. """
         settings = self.settings
         fullscreen = True
-        if settings:
-            romdir = os.path.dirname(settings["game"]["rom"])
-            rom = os.path.basename(settings["game"]["rom"])
-            mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
-            if "sdlmame" in settings.config:
-                if "windowed" in settings["sdlmame"]:
-                    fullscreen = not settings["sdlmame"]["windowed"]
+        romdir = os.path.dirname(settings["game"]["rom"])
+        rom = os.path.basename(settings["game"]["rom"])
+        mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
+        if "sdlmame" in settings.config:
+            if "windowed" in settings["sdlmame"]:
+                fullscreen = not settings["sdlmame"]["windowed"]
         if not os.path.exists(os.path.join(mameconfigdir, "mame.ini")):
             try:
                 os.makedirs(mameconfigdir)

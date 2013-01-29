@@ -27,9 +27,9 @@ import os
 
 # pylint: disable=C0103
 class hatari(Runner):
-    '''Atari ST computers'''
+    """Atari ST computers"""
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(hatari, self).__init__()
         self.package = "hatari"
         self.executable = "hatari"
@@ -88,6 +88,7 @@ class hatari(Runner):
         ]
 
     def play(self):
+        """Run Atari ST game"""
         settings = self.settings['hatari']
         game_settings = self.settings['game']
         if "fullscreen" in settings and settings["fullscreen"]:
@@ -125,8 +126,7 @@ class hatari(Runner):
                 }
         else:
             return {'error': 'NO_BIOS'}
-        if "disk-a" in game_settings:
-            diska = game_settings['disk-a']
+        diska = game_settings.get('disk-a')
         self.arguments = self.arguments + ["--disk-a \"%s\"" % diska]
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',

@@ -49,6 +49,7 @@ class osmose(Runner):
         self.settings = settings
 
     def play(self):
+        """Run Sega Master System game"""
         arguments = []
         if 'fullscreen' in self.settings['osmose']:
             if self.settings['osmose']['fullscreen']:

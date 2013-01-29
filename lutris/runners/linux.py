@@ -72,6 +72,7 @@ class linux(Runner):
         return True
 
     def play(self):
+        """Run native game."""
         executable = self.config["game"]["exe"]
         if 'args' in self.config['game']:
             args = self.config['game']['args']

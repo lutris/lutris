@@ -81,7 +81,7 @@ def run_installer(filename):
 
 def reporthook(piece, received_bytes, total_size):
     """Follows the progress of a download"""
-    print "%d %%" % ((piece * received_bytes) * 100 / total_size)
+    print("%d %%" % ((piece * received_bytes) * 100 / total_size))
 
 
 # pylint: disable=R0904
@@ -318,12 +318,7 @@ class Installer(Gtk.Dialog):
             basename = url[9:]
             dlg = DirectoryDialog("Select location of file %s " % basename)
             file_path = dlg.folder
-            if os.path.exists(os.path.join(file_path, basename)):
-                log.logger.debug("File %s found", basename)
-                location = os.path.join(file_path, basename)
-            else:
-                log.logger.warning("Can't find file %s", basename)
-
+            location = os.path.join(file_path, basename)
             if copyfile is True:
                 shutil.copy(location, dest_dir)
                 # TODO change location
@@ -419,9 +414,7 @@ class Installer(Gtk.Dialog):
             exe = "exe64"
         else:
             exe = "exe"
-        launchers = [exe, 'iso', 'rom']
-
-        for launcher in launchers:
+        for launcher in [exe, 'iso', 'rom']:
             if launcher in self.game_info:
                 if launcher == "exe64":
                     key = "exe"
@@ -436,7 +429,6 @@ class Installer(Gtk.Dialog):
 
     def _get_path(self, data):
         """Return a filesystem path based on data"""
-
         if data == 'parent':
             path = os.path.dirname(self.game_dir)
         else:
@@ -489,8 +481,7 @@ class Installer(Gtk.Dialog):
 
     def _request_media(self, data):
         """Prompt user to insert a removable media"""
-        if 'default' in data:
-            path = data['default']
+        path = data.get('default', '')
         if os.path.exists(os.path.join(path, data['contains'])):
             return True
         else:
@@ -501,17 +492,15 @@ class Installer(Gtk.Dialog):
         exec_path = os.path.join(CACHE_DIR, self.game_slug,
                                  self.gamefiles[data['file']])
         if not os.path.exists(exec_path):
-            print "unable to find %s" % exec_path
+            print("unable to find %s" % exec_path)
             exit()
         else:
             os.popen('chmod +x %s' % exec_path)
             subprocess.call([exec_path])
 
     def _runner_task(self, data):
-        """
-        This action triggers a task within a runner.
-
-        Mandatory parameters in data are 'task' and 'args'
+        """ This action triggers a task within a runner.
+            Mandatory parameters in data are 'task' and 'args'
         """
 
         log.logger.info("Called runner task")

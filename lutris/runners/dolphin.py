@@ -45,6 +45,7 @@ class dolphin(Runner):
         self.runner_options = []
 
     def install(self):
-        NoticeDialog('Please activate the PlayDeb reposiories in order to ' + \
+        """Run Gamecube or Wii game"""
+        NoticeDialog('Please activate the Dolphin PPA reposiories in order to ' + \
                      'install Dolphin')
         super(dolphin, self).install()

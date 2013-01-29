@@ -29,9 +29,9 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class frotz(Runner):
-    '''Runner for z-code games such as Zork'''
+    """Runner for z-code games such as Zork"""
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(frotz, self).__init__()
         self.package = "frotz"
         self.executable = "frotz"

@@ -32,7 +32,7 @@ from lutris.desktop_control import get_resolutions
 class atari800(Runner):
     """ Runs Atari800 games """
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(atari800, self).__init__()
         self.package = "atari800"
         self.executable = "atari800"
@@ -121,6 +121,7 @@ class atari800(Runner):
                 self.error_messages += ["No disk image given."]
 
     def is_installed(self):
+        """Checks if atari800 is installed"""
         is_installed = super(atari800, self).is_installed()
         if is_installed is False:
             return False

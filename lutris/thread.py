@@ -53,6 +53,7 @@ class LutrisThread(threading.Thread):
         self.child_processes.append(thread)
 
     def run(self):
+        """Run the thread"""
         GLib.timeout_add(2000, self.poke_process)
         logging.debug(self.command)
         self.game_process = subprocess.Popen(self.command, shell=True,

@@ -43,13 +43,13 @@ class Runner(object):
         if not self.depends:
             return True
 
-        classname = "lutris.runners." + self.depends
+        classname = "lutris.runners.%s" % str(self.depends)
         parts = classname.split('.')
         module = ".".join(parts[:-1])
         module = __import__(module)
         for component in parts[1:]:
             module = getattr(module, component)
-        runner = getattr(module, self.depends)
+        runner = getattr(module, str(self.depends))
         runner_instance = runner()
         return runner_instance.is_installed()
 

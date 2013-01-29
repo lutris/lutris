@@ -26,9 +26,9 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class dosbox(Runner):
-    '''Runner for MS Dos games'''
+    """Runner for MS Dos games"""
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(dosbox, self).__init__()
         self.package = "dosbox"
         self.executable = "dosbox"

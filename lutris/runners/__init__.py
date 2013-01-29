@@ -1,4 +1,6 @@
 """Generic runner functions"""
+from lutris.util.log import logger
+
 __all__ = ["linux", "wine", 'steam', "sdlmame", "mednafen", "scummvm",
            "snes9x", "gens", "uae", "nulldc", "openmsx", 'dolphin', "dosbox",
            "pcsx", "atari800", "mupen64plus", "frotz", "browser", 'osmose',
@@ -11,10 +13,9 @@ def import_runner(runner_name):
         runner_module = __import__('lutris.runners.%s' % runner_name,
                                 globals(), locals(), [runner_name], -1)
         runner_cls = getattr(runner_module, runner_name)
-    except ImportError, msg:
-        from lutris.util.log import logger
+    except ImportError:
         logger.error("Invalid runner %s" % runner_name)
-        logger.error(msg)
+        raise
     return runner_cls
 
 
@@ -24,8 +25,7 @@ def import_task(runner, task):
         runner_module = __import__('lutris.runners.%s' % runner,
                                 globals(), locals(), [runner], -1)
         runner_task = getattr(runner_module, task)
-    except ImportError, msg:
-        from lutris.util.log import logger
+    except ImportError:
         logger.error("Invalid runner %s" % runner)
-        logger.error(msg)
+        raise
     return runner_task

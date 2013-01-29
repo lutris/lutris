@@ -48,4 +48,5 @@ class pcsx(Runner):
             self.iso = settings["game"]["iso"]
 
     def play(self):
+        """Run Playstation game"""
         return [self.executable, " -nogui -cdfile \"" + self.iso + "\" -runcd"]

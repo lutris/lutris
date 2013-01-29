@@ -33,9 +33,9 @@ from lutris.settings import CACHE_DIR
 
 # pylint: disable=C0103
 class gens(Runner):
-    '''Runner for Sega Genesis games'''
+    """Runner for Sega Genesis games"""
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(gens, self).__init__()
         self.package = 'gens-gs'
         self.executable = 'gens'

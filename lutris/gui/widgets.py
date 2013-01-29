@@ -26,7 +26,7 @@
 # pylint: disable=E0611, F0401, E1101
 
 import os
-import Image
+#import Image
 
 from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -166,7 +166,7 @@ class GameView(object):
                                        event.button, event.time)
 
     def get_selected_game(self):
-        raise NotImplemented('Implement this method in subclasses of GameView')
+        raise NotImplementedError('Implement this method in subclasses of GameView')
 
 
 class GameTreeView(Gtk.TreeView, GameView):
@@ -174,7 +174,7 @@ class GameTreeView(Gtk.TreeView, GameView):
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games):
-        self.game_store = GameStore(games, icon_size=32)
+        self.game_store = GameStore(games)
         super(GameTreeView, self).__init__(self.game_store.modelfilter)
         self.set_rules_hint(True)
 
@@ -334,11 +334,12 @@ class GameCover(Gtk.Image):
             return True
         game = self.parent_window.get_selected_game()
         if file_path.startswith('file://'):
-            image_path = file_path[7:]
-            im = Image.open(image_path)
-            im.thumbnail((400, 600), Image.ANTIALIAS)
-            dest_image = os.path.join(COVER_PATH, game + ".jpg")
-            im.save(dest_image, "JPEG")
+            #image_path = file_path[7:]
+            #im = Image.open(image_path)
+            #im.thumbnail((400, 600), Image.ANTIALIAS)
+            #dest_image = os.path.join(COVER_PATH, game + ".jpg")
+            #im.save(dest_image, "JPEG")
+            pass
         elif file_path.startswith('http://'):
             # TODO : Download file to cache directory
             pass
@@ -397,7 +398,6 @@ class DownloadProgressBox(Gtk.HBox):
                              float(total_size) / megabytes,
                              float(speed) / megabytes,
                              time_left))
-        print progress_label
         self.progressbar.set_text(progress_label)
         self.progressbar.set_fraction(progress)
         if progress >= 1.0:
@@ -470,7 +470,7 @@ class FileChooserEntry(Gtk.Box):
                 self.path_completion.append(
                     [os.path.join(current_path, filename)]
                 )
-                index = index + 1
+                index += 1
                 if index > 15:
                     break
 

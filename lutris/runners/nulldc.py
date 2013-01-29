@@ -76,12 +76,14 @@ class nulldc(wine):
             self.settings = settings
 
     def install(self):
+        """Install NullDC"""
         dlg = DirectoryDialog('Where is NullDC located ?')
         config = LutrisConfig(runner=self.__class__.__name__)
         config.runner_config = {'system': {'game_path': dlg.folder}}
         config.save(config_type='runner')
 
     def is_installed(self):
+        """Check if NullDC is installed"""
         if not self.check_depends():
             return False
         nulldc_path = self.get_nulldc_path()
@@ -98,6 +100,7 @@ class nulldc(wine):
             return os.path.join(self.nulldc_path, self.executable)
 
     def play(self):
+        """Run Dreamcast game"""
         #-config ImageReader:DefaultImage="[rompath]/[romfile]"
         path = self.settings['game']['iso']
         path = path.replace("/", "\\")

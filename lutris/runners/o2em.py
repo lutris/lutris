@@ -30,7 +30,7 @@ class o2em(Runner):
     """Magnavox Oyssey² Emulator"""
 
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(o2em, self).__init__()
         self.package = "o2em"
         self.executable = "o2em"
@@ -107,5 +107,6 @@ class o2em(Runner):
             self.arguments = self.arguments + ["\"%s\"" % romfile]
 
     def play(self):
+        """Run Odyssey 2 game"""
         command = [self.executable] + self.arguments
         return command

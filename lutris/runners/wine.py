@@ -171,7 +171,7 @@ class wine(Runner):
         if exe:
             command = "%s %s" % (self.executable, exe)
         else:
-            print "Need an executable file"
+            print("Need an executable file")
             return False
         return command
 
@@ -182,16 +182,10 @@ class wine(Runner):
                 set_regedit(self.reg_keys[key], key, wine_config[key])
 
     def play(self):
-        settings = self.settings
-        if 'exe' in settings['game']:
-            game_exe = settings['game']['exe']
-        if 'args' in settings.config['game']:
-            arguments = settings['game']['args']
-        else:
-            arguments = None
-        if self.__class__.__name__ in settings.config:
-            logger.debug('loading wine specific settings')
-            wine_config = settings.config[self.__class__.__name__]
+        game_exe = self.settings['game'].get('exe')
+        arguments = self.settings['game'].get('args', "")
+        if self.__class__.__name__ in self.settings.config:
+            wine_config = self.settings.config[self.__class__.__name__]
         else:
             wine_config = {}
         self.game_path = os.path.dirname(game_exe)

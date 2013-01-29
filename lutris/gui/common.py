@@ -1,4 +1,4 @@
-# -*- coding:Utf-8 -*-
+# -*- coding: utf-8 -*-
 """Common message dialogs"""
 import os
 from gi.repository import Gtk
@@ -9,7 +9,7 @@ from lutris.gui.widgets import DownloadProgressBox
 from lutris import settings
 
 
-class AboutDialog:
+class AboutDialog(object):
     def __init__(self):
         ui_filename = os.path.join(settings.get_data_path(), 'ui',
                                    'AboutDialog.ui')

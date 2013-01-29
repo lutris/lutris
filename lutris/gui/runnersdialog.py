@@ -35,7 +35,7 @@ class RunnerConfigDialog(Gtk.Dialog):
     def __init__(self, runner):
         Gtk.Dialog.__init__(self)
         runner_name = runner.__class__.__name__
-        self.set_title("Configure %s" % (runner_name))
+        self.set_title("Configure %s" % runner_name)
         self.set_size_request(570, 500)
         self.runner = runner_name
         self.lutris_config = LutrisConfig(runner=runner_name)

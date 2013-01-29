@@ -61,7 +61,6 @@ def get_games(name_filter=None):
         rows = cur.execute(query)
     results = rows.fetchall()
     column_names = [column[0] for column in cur.description]
-    print column_names
     cur.close()
     con.close()
     return results

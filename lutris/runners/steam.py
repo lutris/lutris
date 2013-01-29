@@ -39,7 +39,7 @@ def get_name(steam_file):
         name = ""
         while ord(char) != 0x0:
             char = data[index]
-            index = index + 1
+            index += 1
             name = name + char
         return name[:-1]
 
@@ -50,6 +50,8 @@ def get_appid_from_filename(filename):
         appid = filename[filename.find("_") + 1:filename.find(".")]
     elif filename.endswith('.pkv'):
         appid = filename[:filename.find("_")]
+    else:
+        raise ValueError("Bad filename")
     return appid
 
 
@@ -75,7 +77,7 @@ class steam(wine):
             'question': 'Do you already have Steam on your computer ?'
             })
         if dlg.result == Gtk.ResponseType.NO:
-            print "!!! NOT IMPLEMENTED !!!"
+            return
 
         dlg = DirectoryDialog('Where is located Steam ?')
 
@@ -131,13 +133,11 @@ class steam(wine):
         return game_list
 
     def play(self):
-        settings = self.settings
-        if settings:
-            appid = settings['game']['appid']
-            if 'args' in settings['game']:
-                self.args = settings['game']['args']
-            else:
-                self.args = ""
+        appid = self.settings['game']['appid']
+        if 'args' in self.settings['game']:
+            self.args = self.settings['game']['args']
+        else:
+            self.args = ""
         if not self.check_depends():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.depends}

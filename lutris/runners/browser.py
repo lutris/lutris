@@ -26,10 +26,10 @@ from lutris.runners.runner import Runner
 
 # pylint: disable=C0103
 class browser(Runner):
-    '''Runner for browser games'''
+    """Runner for browser games"""
 
     def __init__(self, settings=None):
-        '''Constructor'''
+        """Constructor"""
         super(browser, self).__init__()
         self.package = "x-www-browser"
         self.executable = "x-www-browser"
@@ -44,8 +44,9 @@ class browser(Runner):
         if settings:
             self.url = settings["game"]["url"]
             runner_settings = settings["browser"]
-            self.browser = runner_settings.get('browser', self.executable)
+            self.browser_exec = runner_settings.get('browser', self.executable)
 
     def play(self):
-        command = [self.browser, "\"%s\"" % self.url]
+        """Run a browser game"""
+        command = [self.browser_exec, "\"%s\"" % self.url]
         return command
