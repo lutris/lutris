@@ -5,6 +5,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
+
 class SystemConfigDialog(Gtk.Dialog):
     def __init__(self):
         super(SystemConfigDialog, self).__init__()
@@ -22,6 +23,7 @@ class SystemConfigDialog(Gtk.Dialog):
         self.action_area.pack_start(add_button, True, True, 0)
         cancel_button.connect("clicked", self.close)
         add_button.connect("clicked", self.save_config)
+
 
         self.show_all()
 

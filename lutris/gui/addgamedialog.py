@@ -33,6 +33,7 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
+
 class AddGameDialog(Gtk.Dialog):
     """ Add game dialog class"""
     def __init__(self, parent):
