@@ -256,16 +256,13 @@ class ConfigVBox(Gtk.VBox):
             title="Select files",
             parent=self.get_parent_window(),
             action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CLOSE,
-                     Gtk.ResponseType.CLOSE,
+            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
                      Gtk.STOCK_ADD, Gtk.ResponseType.OK)
         )
         self.files_chooser_dialog.set_select_multiple(True)
-
         files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
         files_chooser_button.connect('file-set', self.add_files_callback,
                                      option_name)
-        files_chooser_button.set_select_multiple(True)
         game_path = self.lutris_config.get_path(self.runner_class)
         if game_path:
             files_chooser_button.set_current_folder(game_path)
@@ -280,6 +277,7 @@ class ConfigVBox(Gtk.VBox):
             self.files = []
         self.files_list_store = Gtk.ListStore(str)
         for filename in self.files:
+            print filename
             self.files_list_store.append([filename])
         cell_renderer = Gtk.CellRendererText()
         files_treeview = Gtk.TreeView(self.files_list_store)
@@ -315,5 +313,5 @@ class ConfigVBox(Gtk.VBox):
             self.files_list_store.append([filename])
             if not filename in files:
                 files.append(filename)
-        #self.real_config[self.save_in_key][option] = self.files
-        #self.files_chooser_dialog = None
+        self.real_config[self.save_in_key][option] = files
+        self.files_chooser_dialog = None

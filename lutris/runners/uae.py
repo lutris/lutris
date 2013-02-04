@@ -39,8 +39,25 @@ class uae(Runner):
         control_choices = [("Mouse", "mouse"), ("Joystick 1", "joy0"),
                            ("Joystick 2", "joy1"),  ("Keyboard 1", "kbd1"),
                            ("Keyboard 2", "kbd2"),  ("Keyboard 3", "kbd3")]
-        amiga_choices = [("Amiga 500", "amiga500"),
-                         ("Amiga 1200", "amiga1200")]
+        amiga_choices = [
+            {"A500": "Amiga 500 with 512 KB chip RAM and 512 KB slow RAM, "
+                     "defaulting to Kickstart 1.3"},
+            {"A500+": "Amiga 500+ with 1 MB chip RAM, "
+                      "defaulting to Kickstart 2.04"},
+            {"A600": "Amiga 600 with 1 MB chip RAM, "
+                     "defaulting to Kickstart 2.05"},
+            {"A1000": "Amiga 1000 with 512 KB chip RAM, "
+                      "defaulting to Kickstart 1.2"},
+            {"A1200": "Amiga 1200 with 2 MB chip RAM, "
+                      "defaulting to Kickstart 3.1"},
+            {"A1200/020": "Amiga 1200 but with 68020 processor instead of "
+                          "68ec020 – allows the use of Zorro III RAM"},
+            {"A4000/040": "Amiga 4000 with 2 MB chip RAM and a 68040 "
+                          "processor running as fast as possible, "
+                          "defaulting to Kickstart 3.1"},
+            {"CD32": "CD32 unit"},
+            {"CDTV": "Commodore CDTV unit"},
+        ]
         self.game_options = [{
             "option": "disk",
             "type":"multiple",
@@ -77,7 +94,8 @@ class uae(Runner):
                 "option": "machine",
                 "label":"Type of Amiga",
                 "type":"one_choice",
-                "choices": amiga_choices
+                "choices": [(choice.values()[0], choice.keys()[0])
+                            for choice in amiga_choices]
             },
             {
                 "option": "joyport0",
@@ -104,18 +122,23 @@ class uae(Runner):
     def insert_floppies(self):
         #Insert floppies
         inserted_disks = 0
-        drives = self.settings["uae"]["nr_floppies"]
-        for drive, disk in enumerate(self.settings['game'].get('disk', [])):
-            self.uae_options.update({
-                "floppy%s" % str(drive): "\"%s\"" %
-                os.path.join(self.settings["game"]["disk"][drive])
-            })
+        runner = self.__class__.__name__
+        drives = self.settings[runner].get("nr_floppies")
+        disks = []
+        floppies = self.settings['game'].get('disk', [])
+        for drive, disk in enumerate(floppies):
+            disks.append('-s')
+            disks.append('floppy%s' % str(drive))
+            disks.append(os.path.join(self.settings["game"]["disk"][drive]))
             inserted_disks = inserted_disks + 1
             if inserted_disks == drives:
                 break
+        return disks
 
-    def handle_settings(self):
-        if "uae" in self.settings.config:
+    def get_params(self):
+        raise ValueError
+        runner = self.__class__.__name__
+        if runner in self.settings.config:
             config_keys = [
                 "kickstart_rom_file",
                 "gfx_fullscreen_amiga",
@@ -128,15 +151,15 @@ class uae(Runner):
             ]
 
             for config_key in config_keys:
-                if config_key in self.settings["uae"]:
-                    value = self.settings["uae"][config_key]
+                if config_key in self.settings[runner]:
+                    value = self.settings[runner][config_key]
                     if type(value) == bool:
                         value = str(value).lower()
                     self.uae_options.update({config_key: value})
-            if "machine" in self.settings["uae"]:
-                machine = self.settings["uae"]["machine"].replace(" ",
-                                                                  "").lower()
-                if machine == "amiga1200":
+            if "machine" in self.settings[runner]:
+                machine = self.settings[runner]["machine"].replace(" ",
+                                                                   "").lower()
+                if machine == "A1200":
                     amiga_settings = {
                         "chipset": "aga",
                         "cpu_speed": "15",
@@ -177,12 +200,18 @@ class uae(Runner):
         }
         self.uae_options.update(sound_settings)
         self.uae_options.update(gfx_settings)
+        params = []
+        for option in self.uae_options:
+            params.append('-s')
+            params.append(option + "=" + self.uae_options[option])
+        return self.uae_options
 
     def play(self):
-        self.handle_settings()
-        self.insert_floppies()
+        params = self.get_params()
+        disks = self.insert_floppies()
         command = [self.executable]
-        for option in self.uae_options:
-            command.append("-s")
-            command.append(option + "=" + self.uae_options[option])
+        for param in params:
+            command.append(param)
+        for disk in disks:
+            command.append(disk)
         return command

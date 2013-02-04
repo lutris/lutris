@@ -5,7 +5,7 @@ lutris (0.2.8) quantal; urgency=low
   * Let user choose which Web browser to use for Browser runner
   * Fix search in icon view
 
- -- Mathieu Comandon <strider@strycore.com>  Mon, 04 Feb 2013 15:02:47 +0100
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 04 Feb 2013 15:02:47 +0100
 
 lutris (0.2.7ubuntu0) quantal; urgency=low
 
