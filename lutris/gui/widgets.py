@@ -78,9 +78,9 @@ def icon_to_pixbuf(icon_path, size=128):
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON
     try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size, size)
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size * 2, size)
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size, size)
+        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size * 2, size)
     return pixbuf
 
 
@@ -96,7 +96,7 @@ def get_pixbuf_for_game(game, icon_size):
 class GameStore(object):
     filter_text = ""
 
-    def __init__(self, games, icon_size=32):
+    def __init__(self, games, icon_size=48):
         self.icon_size = icon_size
         self.store = Gtk.ListStore(str, str, Pixbuf, str,
                                    Pixbuf, str, str, str)
