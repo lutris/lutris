@@ -49,7 +49,7 @@ class QuestionDialog(Gtk.MessageDialog):
     """ Asks a question. """
     def __init__(self, settings):
         super(QuestionDialog, self).__init__(
-            type=Gtk.MessageType.QUESTION,
+            message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.YES_NO,
             message_format=settings['question']
         )
