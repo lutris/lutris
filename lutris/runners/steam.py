@@ -75,7 +75,7 @@ class steam(wine):
         dlg = QuestionDialog({
             'title': 'Installing Steam',
             'question': 'Do you already have Steam on your computer ?'
-            })
+        })
         if dlg.result == Gtk.ResponseType.NO:
             return
 
@@ -91,11 +91,8 @@ class steam(wine):
         """
         if not self.check_depends():
             return False
-        if not self.game_path or \
-           not os.path.exists(os.path.join(self.game_path, self.executable)):
-            return False
-        else:
-            return True
+        exe_path = os.path.join(self.game_path, self.executable)
+        return self.game_path and os.path.exists(exe_path)
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
@@ -145,8 +142,7 @@ class steam(wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        self.check_regedit_keys()  # From parent wine runner
         steam_full_path = os.path.join(self.game_path, self.executable)
-        command = ['wine', '"%s"' % steam_full_path,
+        command = ['wine', '"%s"' % steam_full_path, '-no-dwrite'
                    '-applaunch', appid, self.args]
         return {'command': command}

@@ -35,7 +35,7 @@ def set_regedit(path, key, value):
     """
 
     logger.debug("Setting wine registry key : %s\\%s to %s",
-                    path, key, value)
+                 path, key, value)
     reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
     #Make temporary reg file
     reg_file = open(reg_path, "w")
@@ -55,8 +55,8 @@ def create_prefix(prefix=None):
     if prefix is None:
         logger.error("Prefix  path is required")
         return False
-    os.system("export WINEARCH=win32; export WINEPREFIX=\"%s\"; wineboot" % \
-              prefix)
+    os.system("export WINEARCH=win32; export WINEPREFIX=\"%s\"; wineboot"
+              % prefix)
 
 
 def installer(filename=None, prefix=None):
@@ -125,33 +125,47 @@ class wine(Runner):
         desktop_choices = [('Yes', 'Default'),
                            ('No', 'None')]
         self.runner_options = [
-            {'option': 'cdrom_path',
-            'label': 'CDRom mount point',
-            'type': 'directory_chooser'},
-            {'option': 'MouseWarpOverride',
-            'label': 'Mouse Warp Override',
-            'type': 'one_choice',
-            'choices': mouse_warp_choices},
-            {'option': 'Multisampling',
-            'label': 'Multisampling',
-            'type': 'one_choice',
-            'choices': multisampling_choices},
-            {'option': 'OffscreenRenderingMode',
-            'label': 'Offscreen Rendering Mode',
-            'type': 'one_choice',
-            'choices': orm_choices},
-            {'option': 'RenderTargetLockMode',
-            'label': 'Render Target Lock Mode',
-            'type': 'one_choice',
-            'choices': rtlm_choices},
-            {'option': 'Audio',
-            'label': 'Audio driver',
-            'type': 'one_choice',
-            'choices': audio_choices},
-            {'option': 'Desktop',
-            'label': 'Virtual desktop',
-            'type': 'one_choice',
-            'choices': desktop_choices}
+            {
+                'option': 'cdrom_path',
+                'label': 'CDRom mount point',
+                'type': 'directory_chooser'
+            },
+            {
+                'option': 'MouseWarpOverride',
+                'label': 'Mouse Warp Override',
+                'type': 'one_choice',
+                'choices': mouse_warp_choices
+            },
+            {
+                'option': 'Multisampling',
+                'label': 'Multisampling',
+                'type': 'one_choice',
+                'choices': multisampling_choices
+            },
+            {
+                'option': 'OffscreenRenderingMode',
+                'label': 'Offscreen Rendering Mode',
+                'type': 'one_choice',
+                'choices': orm_choices
+            },
+            {
+                'option': 'RenderTargetLockMode',
+                'label': 'Render Target Lock Mode',
+                'type': 'one_choice',
+                'choices': rtlm_choices
+            },
+            {
+                'option': 'Audio',
+                'label': 'Audio driver',
+                'type': 'one_choice',
+                'choices': audio_choices
+            },
+            {
+                'option': 'Desktop',
+                'label': 'Virtual desktop',
+                'type': 'one_choice',
+                'choices': desktop_choices
+            }
         ]
         self.settings = settings
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
