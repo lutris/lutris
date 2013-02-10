@@ -31,11 +31,25 @@ if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
+from lutris.gui.common import QuestionDialog
+
+try:
+    import yaml as _
+except ImportError:
+    q = QuestionDialog({'title': "Dependency not available",
+                        'question': "PythonYAML is not installed,\n"
+                                    "do you want to install it now?"})
+    if q.result == Gtk.ResponseType.YES:
+        os.system('software-center python-yaml')
+    else:
+        sys.exit()
+
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util.log import logger
 from lutris.installer import Installer
 from lutris.config import check_config
 from lutris.gui.lutriswindow import LutrisWindow
+
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog %ver")
