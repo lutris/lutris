@@ -93,6 +93,17 @@ def get_pixbuf_for_game(game, icon_size):
     return game_pix, runner_pix
 
 
+class IconViewCellRenderer(Gtk.CellRendererText):
+    def __init__(self, *args, **kwargs):
+        super(IconViewCellRenderer, self).__init__(*args, **kwargs)
+        self.props.alignment = Pango.Alignment.CENTER
+        self.props.wrap_mode = Pango.WrapMode.WORD
+        self.props.xalign = 0.5
+        self.props.yalign = 0
+        self.props.width = 256
+        self.props.wrap_width = 256
+
+
 class GameStore(object):
     filter_text = ""
 
@@ -248,9 +259,11 @@ class GameIconView(Gtk.IconView, GameView):
     def __init__(self, games):
         self.game_store = GameStore(games, icon_size=128)
         super(GameIconView, self).__init__(self.game_store.modelfilter)
-        self.set_markup_column(COL_NAME)
         self.set_pixbuf_column(COL_ICON)
-        self.set_item_padding(10)
+        iconview_cell_renderer = IconViewCellRenderer()
+        self.pack_end(iconview_cell_renderer, False)
+        self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
+        self.set_item_padding(8)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
