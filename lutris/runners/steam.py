@@ -143,6 +143,6 @@ class steam(wine):
                     'runner': self.__class__.__name__}
 
         steam_full_path = os.path.join(self.game_path, self.executable)
-        command = ['wine', '"%s"' % steam_full_path, '-no-dwrite'
+        command = ['wine', '"%s"' % steam_full_path, '-no-dwrite',
                    '-applaunch', appid, self.args]
         return {'command': command}

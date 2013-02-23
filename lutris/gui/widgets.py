@@ -34,9 +34,9 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
 #from lutris.util.log import logger
-from lutris.settings import get_data_path, DATA_DIR
+from lutris import settings
 
-MISSING_ICON = os.path.join(get_data_path(), 'media/lutris.svg')
+MISSING_ICON = os.path.join(settings.get_data_path(), 'media/lutris.svg')
 
 (COL_ID,
  COL_NAME,
@@ -85,9 +85,12 @@ def icon_to_pixbuf(icon_path, size=128):
 
 
 def get_pixbuf_for_game(game, icon_size):
-    runner_icon_path = os.path.join(get_data_path(), 'media/runner_icons',
+    runner_icon_path = os.path.join(settings.get_data_path(),
+                                    'media/runner_icons',
                                     '%s.png' % game['runner'])
-    game_icon_path = os.path.join(DATA_DIR, "icons", "%s.png" % game['id'])
+    game_icon_path = os.path.join(settings.DATA_DIR,
+                                  "icons",
+                                  "%s.png" % game['id'])
     game_pix = icon_to_pixbuf(game_icon_path, icon_size)
     runner_pix = icon_to_pixbuf(runner_icon_path, icon_size)
     return game_pix, runner_pix
@@ -175,9 +178,6 @@ class GameView(object):
         if view.current_path:
             self.contextual_menu.popup(None, None, None, None,
                                        event.button, event.time)
-
-    def get_selected_game(self):
-        raise NotImplementedError('Implement this method in subclasses of GameView')
 
 
 class GameTreeView(Gtk.TreeView, GameView):
@@ -299,7 +299,7 @@ class GameCover(Gtk.Image):
     def __init__(self, parent=None):
         super(GameCover, self).__init__()
         self.parent_window = parent
-        self.set_from_file(os.path.join(get_data_path(),
+        self.set_from_file(os.path.join(settings.get_data_path(),
                                         "media/background.png"))
         self.connect('drag_data_received', self.on_cover_drop)
 
@@ -320,7 +320,7 @@ class GameCover(Gtk.Image):
             ))
             return
         else:
-            self.set_from_file(os.path.join(get_data_path(),
+            self.set_from_file(os.path.join(settings.get_data_path(),
                                             "media/background.png"))
 
     def desactivate_drop(self):
