@@ -77,10 +77,11 @@ def icon_to_pixbuf(icon_path, size=128):
     """Converts a png icon into a pixbuf ready to be used in widget"""
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON
+    size = (184, 69)
     try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size * 2, size)
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size * 2, size)
+        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size[0], size[1])
     return pixbuf
 
 
@@ -89,8 +90,8 @@ def get_pixbuf_for_game(game, icon_size):
                                     'media/runner_icons',
                                     '%s.png' % game['runner'])
     game_icon_path = os.path.join(settings.DATA_DIR,
-                                  "icons",
-                                  "%s.png" % game['id'])
+                                  "banners",
+                                  "%s.jpg" % game['id'])
     game_pix = icon_to_pixbuf(game_icon_path, icon_size)
     runner_pix = icon_to_pixbuf(runner_icon_path, icon_size)
     return game_pix, runner_pix
@@ -103,8 +104,8 @@ class IconViewCellRenderer(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
-        self.props.width = 256
-        self.props.wrap_width = 256
+        self.props.width = 184
+        self.props.wrap_width = 184
 
 
 class GameStore(object):
@@ -263,7 +264,7 @@ class GameIconView(Gtk.IconView, GameView):
         iconview_cell_renderer = IconViewCellRenderer()
         self.pack_end(iconview_cell_renderer, False)
         self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
-        self.set_item_padding(8)
+        self.set_item_padding(2)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)

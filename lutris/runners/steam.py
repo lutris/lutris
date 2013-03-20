@@ -89,8 +89,10 @@ class steam(wine):
         """Checks if wine is installed and if the steam executable is on the
         harddrive
         """
-        if not self.check_depends():
+        if not self.check_depends() or not self.game_path:
             return False
+        print self.game_path
+        print self.executable
         exe_path = os.path.join(self.game_path, self.executable)
         return self.game_path and os.path.exists(exe_path)
 
