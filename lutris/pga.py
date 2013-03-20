@@ -56,7 +56,7 @@ def get_games(name_filter=None):
     cur = con.cursor()
 
     if name_filter is not None:
-        query = "select * from where name LIKE = ?"
+        query = "select * from games where name LIKE = ?"
         rows = cur.execute(query, (name_filter, ))
     else:
         query = "select * from games"

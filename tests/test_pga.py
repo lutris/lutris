@@ -32,5 +32,12 @@ class TestPersonnalGameArchive(unittest.TestCase):
         self.assertEqual(game_list[0]['name'], 'LutrisTest')
         self.assertEqual(game_list[0]['runner'], 'Linux')
 
+    def test_filter(self):
+        pga.add_game(name="foobar", machine="Linux", runner="Linux")
+        pga.add_game(name="bang", machine="Linux", runner="Linux")
+        game_list = pga.get_games(name_filter='bang')
+        self.assertEqual(len(game_list), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
