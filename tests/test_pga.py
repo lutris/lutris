@@ -1,23 +1,21 @@
 #!/usr/bin/python
 import unittest
 import os
-
-from lutris.settings import PGA_DB
+from lutris import settings
 from lutris import pga
+
+TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'fixtures/pga.db')
 
 
 class TestPersonnalGameArchive(unittest.TestCase):
-    def test_database(self):
-        pga_path = os.path.join(os.path.expanduser('~'),
-                                ".local/share/lutris/pga.db")
-        self.assertEqual(PGA_DB, pga_path)
-        self.assertTrue(os.path.exists(PGA_DB))
+    def setUp(self):
+        settings.PGA_DB = TEST_PGA_PATH
 
     def test_add_game(self):
         pga.add_game(name="LutrisTest", machine="Linux", runner="Linux")
         game_list = pga.get_games()
-        print(game_list)
-        #self.assertTrue("LutrisTest" in game_list)
+        game_names = [item[1] for item in game_list]
+        self.assertTrue("LutrisTest" in game_names)
 
     def test_delete_game(self):
         pga.delete_game("LutrisTest")

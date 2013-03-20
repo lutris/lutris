@@ -23,9 +23,9 @@ class TestUae(TestCase):
             }
         }
         uae_runner = uae.uae(config)
-        uae_runner.insert_floppies()
-        self.assertIn('floppy0', uae_runner.uae_options)
-        self.assertNotIn('floppy1', uae_runner.uae_options)
+        disks = uae_runner.insert_floppies()
+        self.assertIn('floppy0', disks)
+        self.assertNotIn('floppy1', disks)
 
         # Two disks, two floppy drives
         config = {
@@ -37,9 +37,9 @@ class TestUae(TestCase):
             }
         }
         uae_runner = uae.uae(config)
-        uae_runner.insert_floppies()
-        self.assertIn('floppy0', uae_runner.uae_options)
-        self.assertIn('floppy1', uae_runner.uae_options)
+        disks = uae_runner.insert_floppies()
+        self.assertIn('floppy0', disks)
+        self.assertIn('floppy1', disks)
 
         # Zero disk, two floppy drives
         config = {

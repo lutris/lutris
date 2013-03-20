@@ -60,8 +60,8 @@ class uae(Runner):
         ]
         self.game_options = [{
             "option": "disk",
-            "type":"multiple",
-            "label":"Floppies"
+            "type": "multiple",
+            "label": "Floppies"
         }]
 
         self.runner_options = [
@@ -72,28 +72,28 @@ class uae(Runner):
             },
             {
                 "option": "x11.floppy_path",
-                "label":"Floppy path",
+                "label": "Floppy path",
                 "type": "directory_chooser"
             },
             {
                 "option": "use_gui",
                 "label": "Show UAE gui",
-                "type":"bool"
+                "type": "bool"
             },
             {
                 "option": "gfx_fullscreen_amiga",
                 "label": "Fullscreen (F12 + s to Switch)",
-                "type":"bool"
+                "type": "bool"
             },
             {
                 "option": "gfx_show_leds_fullscreen",
                 "label": "Show LEDs",
-                "type":"bool"
+                "type": "bool"
             },
             {
                 "option": "machine",
-                "label":"Type of Amiga",
-                "type":"one_choice",
+                "label": "Type of Amiga",
+                "type": "one_choice",
                 "choices": [(choice.values()[0], choice.keys()[0])
                             for choice in amiga_choices]
             },
@@ -105,7 +105,7 @@ class uae(Runner):
             },
             {
                 "option": "joyport1",
-                "label":"Player 2 Control",
+                "label": "Player 2 Control",
                 "type": "one_choice",
                 "choices": control_choices
             },
