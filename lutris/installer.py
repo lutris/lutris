@@ -30,6 +30,7 @@ from os.path import join, exists
 
 from lutris.util import log
 from lutris.util.strings import slugify
+from lutris.util.files import calculate_md5
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.common import ErrorDialog, DirectoryDialog
@@ -165,6 +166,10 @@ class Installer(Gtk.Dialog):
         self.vbox.pack_start(self.action_buttons, False, False, 0)
         self.show_all()
 
+    def display_errors(self):
+        full_message = "\n\n".join(self.errors)
+        ErrorDialog(full_message)
+
     def download_installer(self):
         """ Save the downloaded installer to disk. """
 
@@ -173,8 +178,9 @@ class Installer(Gtk.Dialog):
         try:
             urllib2.urlopen(request)
         except urllib2.URLError:
-            log.logger.debug("Server is unreachable at %s", full_url)
-            self.errors.append("INSTALLER_UNREACHABLE")
+            error_msg = "Server is unreachable at %s", full_url
+            log.logger.error(error_msg)
+            self.errors.append(error_msg)
             success = False
         else:
             urllib.urlretrieve(full_url, self.installer_path)
@@ -182,8 +188,9 @@ class Installer(Gtk.Dialog):
         return success
 
     def pre_install(self):
-        """Reads the installer and checks everything is OK
-        before beginning the install process
+        """
+            Reads the installer and checks everything is OK before beginning
+            the install process.
         """
 
         # Fetch assets
@@ -208,11 +215,7 @@ class Installer(Gtk.Dialog):
         # Download installer if not already there.
         success = self.download_installer()
         if not success:
-            return False
-
-        if 'INSTALLER_UNREACHABLE' in self.errors:
-            ErrorDialog("Can't find an installer for \"%s\""
-                            % self.game_slug)
+            self.display_errors()
             return False
 
         # Parse installer file
@@ -249,7 +252,7 @@ class Installer(Gtk.Dialog):
 
     def process_downloads(self):
         """Download each file needed for the game"""
-        files = self.rules.get('files')
+        files = self.rules.get('files', [])
         if self.download_index < len(files):
             log.logger.info(
                 "Downloading file %d of %d",
@@ -261,8 +264,10 @@ class Installer(Gtk.Dialog):
             log.logger.debug("All files downloaded")
             self.install()
 
-    def download_complete(self, _widget, _data):
+    def download_complete(self, widget=None, data=None):
         """Action called on a completed download"""
+        log.logger.debug("widget: %s", widget)
+        log.logger.debug("data: %s", data)
         self.download_index += 1
         self.process_downloads()
 
@@ -281,6 +286,8 @@ class Installer(Gtk.Dialog):
         """
         copyfile = True
         file_id = game_file.keys()[0]
+        print game_file
+        print file_id
         if isinstance(game_file[file_id], dict):
             if 'filename' in game_file[file_id]:
                 filename = game_file[file_id]['filename']
@@ -307,25 +314,23 @@ class Installer(Gtk.Dialog):
         dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
             log.logger.debug("Destination file exists")
-            self.download_complete(None, None)
+            self.download_complete(data=dest_file)
         elif url.startswith("file://"):
             location = url[7:]
             if copyfile is True:
                 shutil.copy(location, dest_dir)
-            self.download_complete(None, None)
+            self.download_complete(data=dest_file)
         elif url.startswith("$ASK_DIR"):
             #Ask the user where is located the file
             basename = url[9:]
             dlg = DirectoryDialog("Select location of file %s " % basename)
             file_path = dlg.folder
-            location = os.path.join(file_path, basename)
+            dest_file = os.path.join(file_path, basename)
             if copyfile is True:
                 shutil.copy(location, dest_dir)
                 # TODO change location
-            self.gamefiles[file_id] = location
-            self.download_complete(None, None)
+            self.download_complete(data=dest_file)
         else:
-            self.gamefiles[file_id] = dest_file
             self.download_progress = DownloadProgressBox({'url': url,
                                                           'dest': dest_file},
                                                          cancelable=False)
@@ -333,8 +338,10 @@ class Installer(Gtk.Dialog):
             self.widget_box.pack_start(self.download_progress, True, True, 10)
             self.download_progress.show()
             self.download_progress.start()
+        self.gamefiles[file_id] = dest_file
+        print self.gamefiles
         log.logger.debug("Download for %s processed, stored in %s", file_id,
-                         self.gamefiles[file_id])
+                         self.gamefiles.get(file_id))
 
     def install(self):
         """Actual game installation"""
@@ -349,11 +356,15 @@ class Installer(Gtk.Dialog):
         for action in self.actions:
             action_name = action.keys()[0]
             action_data = action[action_name]
-            mappings = {'extract': self._extract,
-                        'move': self._move,
-                        'request_media': self._request_media,
-                        'run': self._run,
-                        'runner': self._runner_task}
+            mappings = {
+                'extract': self._extract,
+                'move': self._move,
+                'request_media': self._request_media,
+                'run': self._run,
+                'runner': self._runner_task,
+                'check_md5': self._check_md5,
+                'delete': self._delete,
+            }
             if action_name not in mappings.keys():
                 log.logger.error("Action " + action_name + " not supported !")
                 continue
@@ -364,13 +375,15 @@ class Installer(Gtk.Dialog):
         self.status_label.set_text("Installation finished !")
 
         desktop_btn = Gtk.Button('Create a desktop shortcut')
-        desktop_btn.connect('clicked',
-                                     lambda d: create_launcher(self.game_slug,
-                                                               desktop=True))
+        desktop_btn.connect(
+            'clicked',
+            lambda d: create_launcher(self.game_slug, desktop=True)
+        )
         menu_btn = Gtk.Button('Create an icon in the application menu')
-        menu_btn.connect('clicked',
-                                  lambda m: create_launcher(self.game_slug,
-                                                            menu=True))
+        menu_btn.connect(
+            'clicked',
+            lambda m: create_launcher(self.game_slug, menu=True)
+        )
         buttons_box = Gtk.HBox()
         buttons_box.pack_start(desktop_btn, False, False, 10)
         buttons_box.pack_start(menu_btn, False, False, 10)
@@ -407,13 +420,13 @@ class Installer(Gtk.Dialog):
     def write_config(self):
         """Write the game configuration as a Lutris launcher."""
         config_filename = join(CONFIG_DIR, "games/%s.yml" % self.game_slug)
-        config_data = {'game': {},
-                       'realname': self.game_info['name'],
-                       'runner': self.game_info['runner']}
-        if 'exe64' in self.game_info and platform.machine() == "x86_64":
-            exe = "exe64"
-        else:
-            exe = "exe"
+        config_data = {
+            'game': {},
+            'realname': self.game_info['name'],
+            'runner': self.game_info['runner']
+        }
+        is_64bit = platform.machine() == "x86_64"
+        exe = 'exe64' if 'exe64' in self.game_info and is_64bit else 'exe'
         for launcher in [exe, 'iso', 'rom']:
             if launcher in self.game_info:
                 if launcher == "exe64":
@@ -435,9 +448,17 @@ class Installer(Gtk.Dialog):
             path = self.game_dir
         return path
 
+    def _check_md5(self, data):
+        print "MD5"
+        print self.gamefiles
+        print data
+
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
-        filename = self.gamefiles[data['file']]
+        filename = self.gamefiles.get(data['file'])
+        if not filename:
+            log.logger.error("No file for '%s' in game files" % data['file'])
+            return False
         if not os.path.exists(filename):
             log.logger.error("%s does not exists" % filename)
             return False
@@ -478,6 +499,9 @@ class Installer(Gtk.Dialog):
             log.logger.error("Couln't move file, destination already exists ?")
             return False
         return True
+
+    def _delete(self, data):
+        print "Script has requested to delete %s" % data
 
     def _request_media(self, data):
         """Prompt user to insert a removable media"""

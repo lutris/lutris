@@ -34,7 +34,7 @@ if LAUNCH_PATH != "/usr/bin":
 from lutris.gui.common import QuestionDialog
 
 try:
-    import yaml as _
+    import yaml as _yaml
 except ImportError:
     q = QuestionDialog({'title': "Dependency not available",
                         'question': "PythonYAML is not installed,\n"
@@ -59,10 +59,14 @@ parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
+parser.add_option("-f", "--force-install", action="store_true",
+                  help="Force installation even if game is installed")
 parser.add_option("-n", "--no-download",
                   action="store_true", dest="no_download",
                   help="Don't download anything when installing")
 (options, args) = parser.parse_args()
+
+print options
 
 # Set the logging level to show debug messages.
 console = logging.StreamHandler()
@@ -79,8 +83,6 @@ if options.debug:
     logger.setLevel(logging.DEBUG)
     logger.debug('logging enabled')
 
-
-#check_config(force_wipe=True)
 check_config(force_wipe=False)
 
 installer = False
@@ -91,9 +93,9 @@ if options.installer_file:
                      options.installer_file)
         exit()
     else:
-        game, _ = os.path.splitext(options.installer_file)
+        game, _ext = os.path.splitext(options.installer_file)
         installer = os.path.abspath(options.installer_file)
-        print("Installing game from %s" % installer)
+        logger.info("Installing game from %s" % installer)
 
 
 # Run the application.
@@ -102,13 +104,10 @@ for arg in args:
     if arg.startswith('lutris:'):
         game = arg[7:]
         break
-if game is not None:
-    if isinstance(game, str):
-        file_path = os.path.join(GAME_CONFIG_PATH,
-                                 game + CONFIG_EXTENSION)
-    else:
-        file_path = None
-    if file_path is not None and os.path.exists(file_path):
+
+if game:
+    file_path = os.path.join(GAME_CONFIG_PATH, game + CONFIG_EXTENSION)
+    if os.path.exists(file_path) and not options.force_install:
         import lutris.game
         logger.info('Launching ' + game)
         lutris_game = lutris.game.LutrisGame(game)
