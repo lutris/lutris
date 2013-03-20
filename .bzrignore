@@ -9,4 +9,6 @@ tags
 *.pyc
 PYSMELLTAGS
 lutris.e4p
+.coverage
 tests/fixtures/pga.db
+tests/coverage/*
