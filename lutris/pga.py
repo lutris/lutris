@@ -28,7 +28,6 @@ PGA_DB = settings.PGA_DB
 
 def connect():
     """Connect to the local PGA database."""
-    print PGA_DB
     return sqlite3.connect(PGA_DB)
 
 
@@ -56,7 +55,7 @@ def get_games(name_filter=None):
     cur = con.cursor()
 
     if name_filter is not None:
-        query = "select * from games where name LIKE = ?"
+        query = "select * from games where name LIKE ?"
         rows = cur.execute(query, (name_filter, ))
     else:
         query = "select * from games"
