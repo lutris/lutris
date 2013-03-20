@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import unittest
 import os
-from lutris import settings
 from lutris import pga
 
 TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'fixtures/pga.db')
@@ -9,7 +8,11 @@ TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'fixtures/pga.db')
 
 class TestPersonnalGameArchive(unittest.TestCase):
     def setUp(self):
-        settings.PGA_DB = TEST_PGA_PATH
+        pga.PGA_DB = TEST_PGA_PATH
+        pga.create()
+
+    def tearDown(self):
+        os.remove(TEST_PGA_PATH)
 
     def test_add_game(self):
         pga.add_game(name="LutrisTest", machine="Linux", runner="Linux")

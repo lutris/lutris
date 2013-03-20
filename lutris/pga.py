@@ -21,11 +21,14 @@ import sqlite3
 
 from lutris.util.strings import slugify
 from lutris.util import log
-from lutris.settings import PGA_DB
+from lutris import settings
+
+PGA_DB = settings.PGA_DB
 
 
 def connect():
     """Connect to the local PGA database."""
+    print PGA_DB
     return sqlite3.connect(PGA_DB)
 
 
@@ -61,6 +64,7 @@ def get_games(name_filter=None):
         rows = cur.execute(query)
     results = rows.fetchall()
     column_names = [column[0] for column in cur.description]
+    print column_names
     cur.close()
     con.close()
     return results

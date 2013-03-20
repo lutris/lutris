@@ -8,5 +8,5 @@ tags
 .ropeproject
 *.pyc
 PYSMELLTAGS
-.eric4project
 lutris.e4p
+tests/fixtures/pga.db
