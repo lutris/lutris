@@ -42,7 +42,6 @@ def create():
         slug TEXT,
         machine TEXT,
         runner TEXT,
-        icon TEXT,
         executable TEXT,
         directory TEXT,
         lastplayed INTEGER)"""
@@ -64,10 +63,15 @@ def get_games(name_filter=None):
         rows = cur.execute(query)
     results = rows.fetchall()
     column_names = [column[0] for column in cur.description]
-    print column_names
     cur.close()
     con.close()
-    return results
+    game_list = []
+    for row in results:
+        game_info = {}
+        for index, column in enumerate(column_names):
+            game_info[column] = row[index]
+        game_list.append(game_info)
+    return game_list
 
 
 def add_game(name, machine, runner):
