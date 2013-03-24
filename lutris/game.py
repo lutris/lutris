@@ -23,7 +23,7 @@ import subprocess
 
 from signal import SIGKILL
 from os.path import join
-from gi.repository import Gtk, GObject, GLib
+from gi.repository import Gtk, GLib
 
 from lutris.runners import import_runner
 from lutris.util.log import logger
@@ -122,8 +122,7 @@ class LutrisGame(object):
                  'title': "Required runner unavailable"})
             if Gtk.ResponseType.YES == install_runner_dialog.result:
                 self.runner.install()
-            else:
-                return False
+            return False
         return True
 
     def play(self):

@@ -27,7 +27,7 @@ class fsuae(uae):
 
     def install(self):
         """Downloads deb package and installs it"""
-        download_url = self.package.get(self.arch())
+        download_url = self.package.get(self.arch)
         if not download_url:
             ErrorDialog(
                 "Runner not available on your architecture"

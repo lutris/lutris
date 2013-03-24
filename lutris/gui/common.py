@@ -97,7 +97,7 @@ class DownloadDialog(Gtk.Dialog):
         self.download_progress_box = DownloadProgressBox(params)
         self.download_progress_box.connect('complete', self.download_complete)
         label = Gtk.Label(label='Downloading %s' % url)
-        label.set_selectable()
+        label.set_selectable(True)
         label.set_padding(0, 0)
         label.set_alignment(0.0, 1.0)
         self.vbox.pack_start(label, True, True, 0)
