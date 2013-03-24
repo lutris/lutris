@@ -1,4 +1,9 @@
+import os
+import subprocess
+
 from lutris.runners.uae import uae
+from lutris.gui.common import ErrorDialog, DownloadDialog
+from lutris.settings import CACHE_DIR
 
 
 class fsuae(uae):
@@ -9,7 +14,7 @@ class fsuae(uae):
         self.executable = 'fs-uae'
         self.homepage = 'http://fengestad.no/fs-uae'
         self.package = {
-            'x86': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_i386.deb',
+            'i686': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_i386.deb',
             'x64': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_amd64.deb'
         }
 
@@ -19,6 +24,21 @@ class fsuae(uae):
         for drive, disk in enumerate(floppies):
             params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))
         return params
+
+    def install(self):
+        """Downloads deb package and installs it"""
+        download_url = self.package.get(self.arch())
+        if not download_url:
+            ErrorDialog(
+                "Runner not available on your architecture"
+            )
+        deb_filename = os.path.basename(download_url)
+        dest = os.path.join(CACHE_DIR, deb_filename)
+        dialog = DownloadDialog(download_url, dest)
+        dialog.run()
+        subprocess.Popen(["software-center", dest],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
 
     def get_params(self):
         runner = self.__class__.__name__

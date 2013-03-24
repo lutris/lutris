@@ -72,6 +72,21 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         self.destroy()
 
 
+class FileDialog(Gtk.FileChooserDialog):
+    def __init__(self):
+        super(FileDialog, self).__init__(
+            "Please choose a file", None, Gtk.FileChooserAction.OPEN,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+        )
+        response = self.run()
+        if response == Gtk.ResponseType.OK:
+            self.filename = self.get_filename()
+        elif response == Gtk.ResponseType.CANCEL:
+            self.filename = False
+        self.destroy()
+
+
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
     def __init__(self, url, dest):

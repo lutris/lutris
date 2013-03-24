@@ -19,6 +19,8 @@ class Runner(object):
         self.error_messages = []
         self.game = None
         self.depends = None
+        self.arch = platform.machine()
+        self.logger = logger
 
     @property
     def description(self):

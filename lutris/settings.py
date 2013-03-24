@@ -11,6 +11,12 @@ COPYRIGHT = "(c) 2010 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
+SITE_URL = "http://dev.lutris.net/"
+INSTALLER_URL = SITE_URL + "games/install/"
+BANNER_URL = SITE_URL + "media/games/banners/"
+ICONS_URL = SITE_URL + "media/games/icons/"
+
+
 CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
