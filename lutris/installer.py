@@ -324,9 +324,8 @@ class Installer(Gtk.Dialog):
         dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
             log.logger.debug("Destination file exists")
-            self.gamefiles[file_id] = dest_file
-            self.download_complete(data=dest_file)
-        elif url == "N/A":
+            os.remove(dest_file)
+        if url == "N/A":
             #Ask the user where is located the file
             dlg = FileDialog()
             filename = dlg.filename
@@ -452,11 +451,21 @@ class Installer(Gtk.Dialog):
                     key = "exe"
                 else:
                     key = launcher
-                game_ressouce = self.game_info[launcher]
-                if game_ressouce in self.gamefiles:
-                    game_ressouce = self.gamefiles[game_ressouce]
-                launcher_path = join(self.game_dir, game_ressouce)
-                config_data['game'][key] = launcher_path
+                game_resource = self.game_info[launcher]
+                if type(game_resource) == list:
+                    resource_paths = []
+                    for res in game_resource:
+                        if res in self.gamefiles:
+                            resource_paths.append(self.gamefiles[res])
+                        else:
+                            resource_paths.append(res)
+                    config_data['game'][key] = resource_paths
+                else:
+                    if game_resource in self.gamefiles:
+                        game_resource = self.gamefiles[game_resource]
+                    else:
+                        game_resource = join(self.game_dir, game_resource)
+                    config_data['game'][key] = game_resource
 
         yaml_config = yaml.safe_dump(config_data, default_flow_style=False)
         with open(config_filename, "w") as config_file:
@@ -471,6 +480,7 @@ class Installer(Gtk.Dialog):
         return path
 
     def _check_md5(self, data):
+        return True
         print "MD5"
         calculate_md5(self.gamefiles.get(data))
         print self.gamefiles
