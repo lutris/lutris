@@ -185,6 +185,7 @@ class Installer(Gtk.Dialog):
             self.errors.append(error_msg)
             success = False
         else:
+            logger.debug("Downloading installer: %s" % full_url)
             urllib.urlretrieve(full_url, self.installer_path)
             success = True
         return success
@@ -196,9 +197,10 @@ class Installer(Gtk.Dialog):
         """
 
         # Fetch assets
-        banner_url = settings.BANNER_URL + '/%s.jpg' % self.game_slug
+        banner_url = settings.BANNER_URL + '%s.jpg' % self.game_slug
         banner_dest = join(settings.DATA_DIR,
                            "banners/%s.jpg" % self.game_slug)
+        logger.debug("Downloading banner: %s" % banner_url)
         if not os.path.exists(banner_dest):
             try:
                 logger.debug("Fetching banner : %s" % banner_url)
@@ -323,7 +325,7 @@ class Installer(Gtk.Dialog):
                 self.errors.append("Installation cancelled")
                 return False
             shutil.copy(filename, dest_dir)
-            dest_file = os.path.join(dest_dir, filename)
+            dest_file = os.path.join(dest_dir, os.path.basename(filename))
             self.gamefiles[file_id] = dest_file
 
             self.download_complete(data=os.path.join(
@@ -365,6 +367,15 @@ class Installer(Gtk.Dialog):
                 log.logger.error("Action " + action_name + " not supported !")
                 continue
             mappings[action_name](action_data)
+        if self.errors:
+            self.status_label.set_text("Installation error")
+            error_label = Gtk.Label()
+            error_label.set_line_wrap(True)
+            error_label.set_selectable(True)
+            error_label.set_markup("\n".join(self.errors))
+            error_label.show()
+            self.widget_box.pack_start(error_label, True, True, 20)
+            return False
         self.status_label.set_text("Writing configuration")
         self.write_config()
 
@@ -396,10 +407,11 @@ class Installer(Gtk.Dialog):
     def parse_config(self):
         """ Reads the installer file. """
         installer_contents = file(self.installer_path, 'r').read()
-        self.rules = yaml.load(installer_contents)
+        self.rules = yaml.safe_load(installer_contents)
+        logger.debug("Installer content:\n %s" % installer_contents)
 
         mandatory_fields = ['runner', 'name']
-        optional_fields = ['exe', 'exe64', 'iso', 'rom']
+        optional_fields = ['exe', 'exe64', 'iso', 'rom', 'disk']
         for field in mandatory_fields:
             self.game_info[field] = self.rules[field]
         for field in optional_fields:
@@ -498,10 +510,17 @@ class Installer(Gtk.Dialog):
             logger.error(msg)
             self.errors.append(msg)
             return False
+        dest_filename = os.path.join(dst, os.path.basename(src))
+        if os.path.exists(dest_filename):
+            os.remove(dest_filename)
         try:
             shutil.move(src, dst)
         except shutil.Error:
-            logger.error("Couln't move file, destination already exists ?")
+            msg = "Couln't move %s to destination %s" % (
+                src, dst
+            )
+            logger.error(msg)
+            self.errors.append(msg)
             return False
         return True
 

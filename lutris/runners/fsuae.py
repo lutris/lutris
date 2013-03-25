@@ -17,6 +17,8 @@ class fsuae(uae):
             'i686': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_i386.deb',
             'x64': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_amd64.deb'
         }
+        print settings
+        self.settings = settings
 
     def insert_floppies(self):
         floppies = self.settings['game'].get('disk', [])
@@ -43,9 +45,10 @@ class fsuae(uae):
     def get_params(self):
         runner = self.__class__.__name__
         params = []
-        if "machine" in self.settings[runner]:
-            machine = self.settings[runner]['machine']
+        runner_config = self.settings[runner] or {}
+        machine = runner_config.get('machine')
+        if machine:
             params.append('--amiga_model=%s' % machine)
-        if self.settings[runner].get("gfx_fullscreen_amiga", False):
+        if runner_config.get("gfx_fullscreen_amiga", False):
             params.append("--fullscreen")
         return params
