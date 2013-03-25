@@ -7,7 +7,7 @@ from gi.repository import Gtk, GLib
 
 #from lutris.util import log
 from lutris import settings
-from lutris.game import LutrisGame, get_list
+from lutris import game
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
@@ -22,7 +22,7 @@ GAME_VIEW = 'icon'
 
 
 def switch_to_view(view=GAME_VIEW):
-    game_list = get_list()
+    game_list = game.get_list()
     assert view in ('icon', 'list')
     if view == 'icon':
         view = GameIconView(game_list)
@@ -36,7 +36,9 @@ class LutrisWindow(object):
     """Handler class for main window signals"""
     def __init__(self):
 
-        ui_filename = os.path.join(settings.get_data_path(), 'ui', 'LutrisWindow.ui')
+        ui_filename = os.path.join(
+            settings.get_data_path(), 'ui', 'LutrisWindow.ui'
+        )
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
@@ -55,6 +57,9 @@ class LutrisWindow(object):
         view_menuitem.set_active(view_type == 'icon')
         view_menuitem = self.builder.get_object("listview_menuitem")
         view_menuitem.set_active(view_type == 'list')
+
+        game_list = game.get_list()
+        game.get_banners(game_list)
 
         self.view = switch_to_view(view_type)
         # Scroll window
@@ -175,7 +180,7 @@ class LutrisWindow(object):
     def game_launch(self, *args):
         """Launch a game"""
         if self.view.selected_game:
-            self.running_game = LutrisGame(self.view.selected_game)
+            self.running_game = game.LutrisGame(self.view.selected_game)
             self.running_game.play()
 
     def reset(self, *args):
