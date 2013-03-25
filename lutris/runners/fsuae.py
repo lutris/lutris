@@ -17,11 +17,12 @@ class fsuae(uae):
             'i686': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_i386.deb',
             'x64': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_amd64.deb'
         }
-        print settings
         self.settings = settings
 
     def insert_floppies(self):
         floppies = self.settings['game'].get('disk', [])
+        if type(floppies) == str:
+            floppies = [floppies]
         params = []
         for drive, disk in enumerate(floppies):
             params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))

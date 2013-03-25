@@ -116,7 +116,6 @@ class uae(Runner):
                 "min": "1", "max": "4"
             }
         ]
-
         self.settings = settings
 
     def insert_floppies(self):

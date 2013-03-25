@@ -272,12 +272,14 @@ class ConfigVBox(Gtk.VBox):
         hbox.pack_start(files_chooser_button, True, True, 0)
         self.pack_start(hbox, False, True, PADDING)
         if value:
-            self.files = value
+            if type(value) == str:
+                self.files = [value]
+            else:
+                self.files = value
         else:
             self.files = []
         self.files_list_store = Gtk.ListStore(str)
         for filename in self.files:
-            print filename
             self.files_list_store.append([filename])
         cell_renderer = Gtk.CellRendererText()
         files_treeview = Gtk.TreeView(self.files_list_store)

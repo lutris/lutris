@@ -85,6 +85,12 @@ def reporthook(piece, received_bytes, total_size):
     print("%d %%" % ((piece * received_bytes) * 100 / total_size))
 
 
+class RessourceOpener(urllib.FancyURLopener):
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        if errcode == 404:
+            raise IOError(errmsg, errcode, url)
+
+
 # pylint: disable=R0904
 class Installer(Gtk.Dialog):
     game_dir = None
@@ -191,7 +197,7 @@ class Installer(Gtk.Dialog):
         return success
 
     def download_asset(self, url, dest, remove_existing=False):
-        asset_opener = urllib.URLopener()
+        asset_opener = RessourceOpener()
         if os.path.exists(dest):
             if remove_existing:
                 os.remove(dest)
@@ -201,10 +207,11 @@ class Installer(Gtk.Dialog):
         try:
             asset_opener.retrieve(url, dest)
         except IOError as ex:
+            print ex
             if ex[1] == 404:
                 logger.warning("Asset %s not found" % url)
             else:
-                logger.error("Error while fetching %s" % url)
+                logger.error("Error while fetching %s: %s" % (url, ex))
 
     def pre_install(self):
         """
@@ -212,13 +219,13 @@ class Installer(Gtk.Dialog):
             the install process.
         """
         # Fetch assets
-        banner_url = settings.BANNER_URL + '%s.jpg' % self.game_slug
+        banner_url = settings.INSTALLER_URL + '%s.jpg' % self.game_slug
         banner_dest = join(settings.DATA_DIR,
                            "banners/%s.jpg" % self.game_slug)
-        self.download_asset(banner_url, banner_dest)
-        icon_url = settings.ICONS_URL + '%s.png' % self.game_slug
+        self.download_asset(banner_url, banner_dest, True)
+        icon_url = settings.INSTALLER_URL + 'icon/%s.jpg' % self.game_slug
         icon_dest = join(settings.DATA_DIR, "icons/%s.png" % self.game_slug)
-        self.download_asset(icon_url, icon_dest)
+        self.download_asset(icon_url, icon_dest, True)
 
         # Download installer if not already there.
         success = self.download_installer()
@@ -439,18 +446,21 @@ class Installer(Gtk.Dialog):
         }
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.game_info and is_64bit else 'exe'
-        for launcher in [exe, 'iso', 'rom']:
+        for launcher in [exe, 'iso', 'rom', 'disk']:
             if launcher in self.game_info:
                 if launcher == "exe64":
                     key = "exe"
                 else:
                     key = launcher
-                launcher_path = join(self.game_dir,
-                                     self.game_info[launcher])
+                game_ressouce = self.game_info[launcher]
+                if game_ressouce in self.gamefiles:
+                    game_ressouce = self.gamefiles[game_ressouce]
+                launcher_path = join(self.game_dir, game_ressouce)
                 config_data['game'][key] = launcher_path
 
-        yaml_config = yaml.dump(config_data, default_flow_style=False)
-        file(config_filename, "w").write(yaml_config)
+        yaml_config = yaml.safe_dump(config_data, default_flow_style=False)
+        with open(config_filename, "w") as config_file:
+            config_file.write(yaml_config)
 
     def _get_path(self, data):
         """Return a filesystem path based on data"""
@@ -525,6 +535,7 @@ class Installer(Gtk.Dialog):
             logger.error(msg)
             self.errors.append(msg)
             return False
+        self.gamefiles[file_id] = dest_filename
         return True
 
     def _delete(self, data):
