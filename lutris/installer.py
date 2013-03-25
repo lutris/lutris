@@ -190,32 +190,35 @@ class Installer(Gtk.Dialog):
             success = True
         return success
 
+    def download_asset(self, url, dest, remove_existing=False):
+        asset_opener = urllib.URLopener()
+        if os.path.exists(dest):
+            if remove_existing:
+                os.remove(dest)
+            else:
+                logger.info("Destination %s exists, not overwritting" % dest)
+                return
+        try:
+            asset_opener.retrieve(url, dest)
+        except IOError as ex:
+            if ex[1] == 404:
+                logger.warning("Asset %s not found" % url)
+            else:
+                logger.error("Error while fetching %s" % url)
+
     def pre_install(self):
         """
             Reads the installer and checks everything is OK before beginning
             the install process.
         """
-
         # Fetch assets
         banner_url = settings.BANNER_URL + '%s.jpg' % self.game_slug
         banner_dest = join(settings.DATA_DIR,
                            "banners/%s.jpg" % self.game_slug)
-        logger.debug("Downloading banner: %s" % banner_url)
-        if not os.path.exists(banner_dest):
-            try:
-                logger.debug("Fetching banner : %s" % banner_url)
-                urllib.urlretrieve(banner_url, banner_dest)
-            except IOError:
-                logger.warning("can't get banner for %s" % self.game_slug)
-
+        self.download_asset(banner_url, banner_dest)
         icon_url = settings.ICONS_URL + '%s.png' % self.game_slug
         icon_dest = join(settings.DATA_DIR, "icons/%s.png" % self.game_slug)
-        if not os.path.exists(icon_dest):
-            try:
-                logger.debug("Fetching icon : %s" % icon_url)
-                urllib.urlretrieve(icon_url, icon_dest)
-            except IOError:
-                logger.warning("can't get icon for %s" % self.game_slug)
+        self.download_asset(icon_url, icon_dest)
 
         # Download installer if not already there.
         success = self.download_installer()
