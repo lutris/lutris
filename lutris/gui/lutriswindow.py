@@ -11,7 +11,7 @@ from lutris import game
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
-from lutris.gui.common import NoticeDialog, AboutDialog
+from lutris.gui import dialogs
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
 from lutris.gui.widgets import GameTreeView, GameIconView
@@ -135,7 +135,7 @@ class LutrisWindow(object):
 
     def about(self, _widget, _data=None):
         """Opens the about dialog"""
-        AboutDialog()
+        dialogs.AboutDialog()
 
     def remove_game(self, _widget, _data=None):
         """Remove game configuration file
@@ -149,7 +149,7 @@ class LutrisWindow(object):
     # Callbacks
     def on_connect(self, *args):
         """Callback when a user connects to his account"""
-        NoticeDialog("This functionnality is not yet implemented.")
+        dialogs.NoticeDialog("This functionnality is not yet implemented.")
 
     def on_destroy(self, *args):
         """Signal for window close"""
@@ -164,12 +164,15 @@ class LutrisWindow(object):
         """Callback when preferences is activated"""
         SystemConfigDialog()
 
+    def on_pga_menuitem_activate(self, _widget, _data=None):
+        dialogs.PgaSourceDialog()
+
     def import_scummvm(self, _widget, _data=None):
         """Callback for importing scummvm games"""
         from lutris.runners.scummvm import import_games
         new_games = import_games()
         if not new_games:
-            NoticeDialog("No ScummVM games found")
+            dialogs.NoticeDialog("No ScummVM games found")
         else:
             for new_game in new_games:
                 self.view.add_game(new_game)
@@ -219,14 +222,14 @@ class LutrisWindow(object):
         """Adds the game to the system's Games menu"""
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, menu=True)
-        NoticeDialog(
+        dialogs.NoticeDialog(
             "Shortcut added to the Games category of the global menu.")
 
     def create_desktop_shortcut(self, *args):
         """Adds the game to the system's Games menu"""
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, desktop=True)
-        NoticeDialog('Shortcut created on your desktop.')
+        dialogs.NoticeDialog('Shortcut created on your desktop.')
 
     def get_config_path(self):
         return os.path.join(settings.CONFIG_DIR, "lutris.config")

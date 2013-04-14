@@ -5,26 +5,31 @@ from gi.repository import Gtk
 
 from lutris.gui.widgets import DownloadProgressBox
 
-
 from lutris import settings
+from lutris import pga
 
 
-class AboutDialog(object):
+class GtkBuilderDialog(object):
+
     def __init__(self):
         ui_filename = os.path.join(settings.get_data_path(), 'ui',
-                                   'AboutDialog.ui')
+                                   self.glade_file)
         if not os.path.exists(ui_filename):
             ui_filename = None
 
-        builder = Gtk.Builder()
-        builder.add_from_file(ui_filename)
-        self.dialog = builder.get_object("about_dialog")
-        builder.connect_signals(self)
-
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(ui_filename)
+        self.dialog = self.builder.get_object(self.dialog_object)
+        self.builder.connect_signals(self)
         self.dialog.show_all()
 
     def on_close(self, *args):
         self.dialog.destroy()
+
+
+class AboutDialog(GtkBuilderDialog):
+    glade_file = 'AboutDialog.ui'
+    dialog_object = "about_dialog"
 
 
 class NoticeDialog(Gtk.MessageDialog):
@@ -116,3 +121,65 @@ class DownloadDialog(Gtk.Dialog):
         """Action triggered when download is cancelled"""
         #self.download_progress_box.cancel()
         pass
+
+
+class PgaSourceDialog(GtkBuilderDialog):
+    glade_file = 'dialog-pga-sources.ui'
+    dialog_object = 'pga_dialog'
+
+    def __init__(self):
+        super(PgaSourceDialog, self).__init__()
+
+        # GtkBuilder Objects
+        self.sources_selection = self.builder.get_object("sources_selection")
+        self.sources_treeview = self.builder.get_object("sources_treeview")
+        self.remove_source_button = self.builder.get_object("remove_source_button")
+
+        # Treeview setup
+        self.sources_liststore = Gtk.ListStore(str)
+        renderer = Gtk.CellRendererText()
+        renderer.set_padding(4, 10)
+        uri_column = Gtk.TreeViewColumn("URI", renderer, text=0)
+        self.sources_treeview.append_column(uri_column)
+        self.sources_treeview.set_model(self.sources_liststore)
+        sources = pga.read_sources()
+        for index, source in enumerate(sources):
+            self.sources_liststore.append((source, ))
+
+        self.remove_source_button.set_sensitive(False)
+        self.dialog.show_all()
+
+    @property
+    def sources_list(self):
+        return [source[0] for source in self.sources_liststore]
+
+    def on_apply(self, widget, data=None):
+        pga.write_sources(self.sources_list)
+        self.on_close(widget, data)
+
+    def on_add_source_button_clicked(self, widget, data=None):
+        chooser = Gtk.FileChooserDialog(
+            "Select directory", self.dialog,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            "Select", Gtk.ResponseType.OK)
+        )
+        chooser.set_local_only(False)
+        response = chooser.run()
+        if response == Gtk.ResponseType.OK:
+            uri = chooser.get_uri()
+            if uri not in self.sources_list:
+                self.sources_liststore.append((uri, ))
+        chooser.destroy()
+
+    def on_remove_source_button_clicked(self, widget, data=None):
+        """ Remove a source """
+        (model, treeiter) = self.sources_selection.get_selected()
+        if treeiter:
+            # TODO : Add confirmation
+            model.remove(treeiter)
+
+    def on_sources_selection_changed(self, widget, data=None):
+        """ Set sentivity of remove source button """
+        (model, treeiter) = self.sources_selection.get_selected()
+        self.remove_source_button.set_sensitive(treeiter is not None)

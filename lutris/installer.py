@@ -34,7 +34,7 @@ from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
-from lutris.gui.common import ErrorDialog, FileDialog
+from lutris.gui.dialogs import ErrorDialog, FileDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris import settings

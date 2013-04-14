@@ -35,7 +35,7 @@ def create():
     """Create the local PGA database."""
     log.logger.debug("Running CREATE statement...")
     con = connect()
-    query = """CREATE TABLE games (
+    create_game_table_query = """CREATE TABLE games (
         id INTEGER PRIMARY KEY,
         name TEXT,
         slug TEXT,
@@ -44,7 +44,12 @@ def create():
         executable TEXT,
         directory TEXT,
         lastplayed INTEGER)"""
-    con.execute(query)
+    con.execute(create_game_table_query)
+    create_sources_table_query = """CREATE TABLE sources (
+        id INTEGER PRIMARY KEY,
+        uri TEXT
+    )"""
+    con.execute(create_sources_table_query)
     con.commit()
     con.close()
 
@@ -89,3 +94,12 @@ def delete_game(name):
     con.execute("""delete from games where name=?""", (name,))
     con.commit()
     con.close()
+
+
+def read_sources():
+    return ['ftp://newport/games', '/media/sourcecode/data/lutris/game-cloud/']
+
+
+def write_sources(sources):
+    for source in sources:
+        print "Writing {0}".format(source)

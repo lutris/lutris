@@ -5,7 +5,7 @@ import platform
 import hashlib
 
 from lutris.config import LutrisConfig
-from lutris.gui.common import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
 
 

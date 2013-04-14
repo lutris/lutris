@@ -30,7 +30,7 @@ from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 import lutris.desktop_control
-from lutris.gui.common import QuestionDialog, ErrorDialog
+from lutris.gui.dialogs import QuestionDialog, ErrorDialog
 from lutris.settings import CONFIG_DIR
 
 

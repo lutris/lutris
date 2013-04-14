@@ -22,7 +22,7 @@
 """ Runner for Gamecube and Wii """
 
 from lutris.runners.runner import Runner
-from lutris.gui.common import NoticeDialog
+from lutris.gui.dialogs import NoticeDialog
 
 
 # pylint: disable=C0103

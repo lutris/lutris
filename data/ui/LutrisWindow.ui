@@ -54,6 +54,15 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="pga_menuitem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Manage Game Archives</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_pga_menuitem_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="separator">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

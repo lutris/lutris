@@ -27,7 +27,7 @@ from os import mkdir
 from os.path import exists, join, expanduser
 
 from lutris.runners.runner import Runner
-from lutris.gui.common import DownloadDialog
+from lutris.gui.dialogs import DownloadDialog
 from lutris.settings import CACHE_DIR
 
 

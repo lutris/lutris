@@ -23,7 +23,7 @@
 
 import os
 from lutris.runners.wine import wine
-from lutris.gui.common import DirectoryDialog
+from lutris.gui.dialogs import DirectoryDialog
 from lutris.config import LutrisConfig
 
 

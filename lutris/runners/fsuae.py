@@ -2,7 +2,7 @@ import os
 import subprocess
 
 from lutris.runners.uae import uae
-from lutris.gui.common import ErrorDialog, DownloadDialog
+from lutris.gui.dialogs import ErrorDialog, DownloadDialog
 from lutris.settings import CACHE_DIR
 
 

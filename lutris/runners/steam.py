@@ -20,11 +20,10 @@
 ###############################################################################
 
 """Runner for the Steam platform"""
-
 import os
 from gi.repository import Gtk
 
-from lutris.gui.common import QuestionDialog, DirectoryDialog
+from lutris.gui.dialogs import QuestionDialog, DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
 
