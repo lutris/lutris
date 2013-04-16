@@ -28,6 +28,7 @@ from gi.repository import Gtk
 
 from os.path import join, exists
 
+from lutris import pga
 from lutris.util import log
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -105,8 +106,8 @@ class Installer(Gtk.Dialog):
             logger.error(msg)
             ErrorDialog(msg)
             return
-        self.game_name = game  # Name of the game
-        self.game_slug = slugify(self.game_name)
+        self.game = game
+        self.game_slug = slugify(self.game)
         self.description = False
         self.download_index = 0
         self.rules = {}  # Content of yaml file
@@ -119,7 +120,7 @@ class Installer(Gtk.Dialog):
 
         if installer is False:
             self.installer_path = join(settings.CACHE_DIR,
-                                       self.game_name + ".yml")
+                                       self.game + ".yml")
         else:
             self.installer_path = installer
 
@@ -326,13 +327,15 @@ class Installer(Gtk.Dialog):
             log.logger.debug("Destination file exists")
             os.remove(dest_file)
         if url == "N/A":
-            #Ask the user where is located the file
-            dlg = FileDialog()
-            filename = dlg.filename
-            logger.debug("[%s]: %s" % (file_id, filename))
+            filename = pga.check_for_file(self.game, file_id)
             if not filename:
-                self.errors.append("Installation cancelled")
-                return False
+                #Ask the user where is located the file
+                dlg = FileDialog()
+                filename = dlg.filename
+                logger.debug("[%s]: %s" % (file_id, filename))
+                if not filename:
+                    self.errors.append("Installation cancelled")
+                    return False
             shutil.copy(filename, dest_dir)
             dest_file = os.path.join(dest_dir, os.path.basename(filename))
             self.gamefiles[file_id] = dest_file
@@ -427,7 +430,8 @@ class Installer(Gtk.Dialog):
             if field in self.rules:
                 self.game_info[field] = self.rules[field]
 
-        self.game_name = self.rules['name']
+        # FIXME : weird redefinition of self.game
+        self.game = self.rules['name']
         self.game_slug = os.path.basename(self.installer_path)[:-4]
 
         self.actions = self.rules['installer']

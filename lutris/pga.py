@@ -17,10 +17,11 @@
 #
 """Personnal Game Archive module. Handle local database of user's games."""
 
+import os
 import sqlite3
 
 from lutris.util.strings import slugify
-from lutris.util import log
+from lutris.util.log import logger
 from lutris import settings
 
 PGA_DB = settings.PGA_DB
@@ -141,3 +142,27 @@ def write_sources(sources):
     for uri in sources:
         if uri not in db_sources:
             db_insert("sources", {'uri': uri})
+
+
+def check_for_file(game, file_id):
+    for source in read_sources():
+        if source.startswith("file://"):
+            source = source[7:]
+        else:
+            protocol = source[:7]
+            logger.warn(
+                "PGA source protocol {} not implemented".format(protocol)
+            )
+            continue
+        if not os.path.exists(source):
+            logger.info("PGA source {} unavailable".format(source))
+            continue
+        game_dir = os.path.join(source, game)
+        if not os.path.exists(game_dir):
+            continue
+        game_files = os.listdir(game_dir)
+        for game_file in game_files:
+            game_base, _ext = os.path.splitext(game_file)
+            if game_base == file_id:
+                return os.path.join(game_dir, game_file)
+    return False
