@@ -26,15 +26,18 @@ from lutris import settings
 PGA_DB = settings.PGA_DB
 
 
-def connect():
-    """Connect to the local PGA database."""
-    return sqlite3.connect(PGA_DB)
+class db_cursor():
+    def __enter__(self):
+        self.db_conn = sqlite3.connect(PGA_DB)
+        cursor = self.db_conn.cursor()
+        return cursor
+
+    def __exit__(self, type, value, traceback):
+        self.db_conn.commit()
+        self.db_conn.close()
 
 
-def create():
-    """Create the local PGA database."""
-    log.logger.debug("Running CREATE statement...")
-    con = connect()
+def create_games(cursor):
     create_game_table_query = """CREATE TABLE games (
         id INTEGER PRIMARY KEY,
         name TEXT,
@@ -44,31 +47,55 @@ def create():
         executable TEXT,
         directory TEXT,
         lastplayed INTEGER)"""
-    con.execute(create_game_table_query)
+    cursor.execute(create_game_table_query)
+
+
+def create_sources(cursor):
     create_sources_table_query = """CREATE TABLE sources (
         id INTEGER PRIMARY KEY,
         uri TEXT
     )"""
-    con.execute(create_sources_table_query)
-    con.commit()
-    con.close()
+    cursor.execute(create_sources_table_query)
+
+
+def create():
+    """Create the local PGA database."""
+    log.logger.debug("Running CREATE statement...")
+    with db_cursor() as cursor:
+        create_games(cursor)
+        create_sources(cursor)
+
+
+def db_insert(table, fields):
+    field_names = ", ".join(fields.keys())
+    placeholders = ("?, " * len(fields))[:-2]
+    field_values = tuple(fields.values())
+    with db_cursor() as cursor:
+        cursor.execute(
+            "insert into {0}({1}) values ({2})".format(table,
+                                                    field_names,
+                                                    placeholders),
+            field_values
+        )
+
+
+def db_delete(table, field, value):
+    with db_cursor() as cursor:
+        cursor.execute("delete from {0} where {1}=?".format(table, field),
+                       (value,))
 
 
 def get_games(name_filter=None):
     """Get the list of every game in database."""
-    con = connect()
-    cur = con.cursor()
-
-    if name_filter is not None:
-        query = "select * from games where name LIKE ?"
-        rows = cur.execute(query, (name_filter, ))
-    else:
-        query = "select * from games"
-        rows = cur.execute(query)
-    results = rows.fetchall()
-    column_names = [column[0] for column in cur.description]
-    cur.close()
-    con.close()
+    with db_cursor() as cursor:
+        if name_filter is not None:
+            query = "select * from games where name LIKE ?"
+            rows = cursor.execute(query, (name_filter, ))
+        else:
+            query = "select * from games"
+            rows = cursor.execute(query)
+        results = rows.fetchall()
+        column_names = [column[0] for column in cursor.description]
     game_list = []
     for row in results:
         game_info = {}
@@ -80,26 +107,37 @@ def get_games(name_filter=None):
 
 def add_game(name, machine, runner):
     """Adds a game to the PGA database."""
-    slug = slugify(name)
-    con = connect()
-    con.execute("""insert into games(name, slug, machine, runner) values
-    (?, ?, ?, ?)""", (name, slug, machine, runner))
-    con.commit()
-    con.close()
+    db_insert("games", {'name': name,
+                        'slug': slugify(name),
+                        'machine': machine,
+                        'runner': runner})
 
 
 def delete_game(name):
     """Deletes a game from the PGA"""
-    con = connect()
-    con.execute("""delete from games where name=?""", (name,))
-    con.commit()
-    con.close()
+    db_delete("games", 'name', name)
+
+
+def add_source(uri):
+    db_insert("sources", {"uri": uri})
+
+
+def delete_source(uri):
+    db_delete("sources", 'uri', uri)
 
 
 def read_sources():
-    return ['ftp://newport/games', '/media/sourcecode/data/lutris/game-cloud/']
+    with db_cursor() as cursor:
+        rows = cursor.execute("select uri from sources")
+        results = rows.fetchall()
+    return [row[0] for row in results]
 
 
 def write_sources(sources):
-    for source in sources:
-        print "Writing {0}".format(source)
+    db_sources = read_sources()
+    for uri in db_sources:
+        if uri not in sources:
+            db_delete("sources", 'uri', uri)
+    for uri in sources:
+        if uri not in db_sources:
+            db_insert("sources", {'uri': uri})
