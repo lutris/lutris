@@ -76,11 +76,6 @@ def get_list():
     return game_list
 
 
-def get_banners(game_list):
-    for game in game_list:
-        print("Fetching icon for %s" % game)
-
-
 def reset_pulse():
     """ Reset pulseaudio. """
     pulse_reset = "pulseaudio --kill && sleep 1 && pulseaudio --start"

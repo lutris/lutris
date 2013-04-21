@@ -11,6 +11,7 @@ from lutris import game
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
+from lutris.util import resources
 from lutris.gui import dialogs
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
@@ -59,7 +60,7 @@ class LutrisWindow(object):
         view_menuitem.set_active(view_type == 'list')
 
         game_list = game.get_list()
-        game.get_banners(game_list)
+        resources.fetch_banners([game_info['id'] for game_info in game_list])
 
         self.view = switch_to_view(view_type)
         # Scroll window
@@ -77,11 +78,12 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(False)
 
         #Contextual menu
-        menu_actions = \
-            [('Play', self.game_launch),
-             ('Configure', self.edit_game_configuration),
-             ('Create desktop shortcut', self.create_desktop_shortcut),
-             ('Create global menu shortcut', self.create_menu_shortcut)]
+        menu_actions = [
+            ('Play', self.game_launch),
+            ('Configure', self.edit_game_configuration),
+            ('Create desktop shortcut', self.create_desktop_shortcut),
+            ('Create global menu shortcut', self.create_menu_shortcut)
+        ]
         self.menu = Gtk.Menu()
         for action in menu_actions:
             subitem = Gtk.ImageMenuItem(action[0])

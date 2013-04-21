@@ -30,6 +30,7 @@ from os.path import join, exists
 
 from lutris import pga
 from lutris.util import log
+from lutris.util import http
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
@@ -86,12 +87,6 @@ def reporthook(piece, received_bytes, total_size):
     print("%d %%" % ((piece * received_bytes) * 100 / total_size))
 
 
-class RessourceOpener(urllib.FancyURLopener):
-    def http_error_default(self, url, fp, errcode, errmsg, headers):
-        if errcode == 404:
-            raise IOError(errmsg, errcode, url)
-
-
 # pylint: disable=R0904
 class Installer(Gtk.Dialog):
     game_dir = None
@@ -119,8 +114,7 @@ class Installer(Gtk.Dialog):
         self.gamefiles = {}
 
         if installer is False:
-            self.installer_path = join(settings.CACHE_DIR,
-                                       self.game + ".yml")
+            self.installer_path = join(settings.CACHE_DIR, self.game + ".yml")
         else:
             self.installer_path = installer
 
@@ -197,23 +191,6 @@ class Installer(Gtk.Dialog):
             success = True
         return success
 
-    def download_asset(self, url, dest, remove_existing=False):
-        asset_opener = RessourceOpener()
-        if os.path.exists(dest):
-            if remove_existing:
-                os.remove(dest)
-            else:
-                logger.info("Destination %s exists, not overwritting" % dest)
-                return
-        try:
-            asset_opener.retrieve(url, dest)
-        except IOError as ex:
-            print ex
-            if ex[1] == 404:
-                logger.warning("Asset %s not found" % url)
-            else:
-                logger.error("Error while fetching %s: %s" % (url, ex))
-
     def pre_install(self):
         """
             Reads the installer and checks everything is OK before beginning
@@ -221,12 +198,11 @@ class Installer(Gtk.Dialog):
         """
         # Fetch assets
         banner_url = settings.INSTALLER_URL + '%s.jpg' % self.game_slug
-        banner_dest = join(settings.DATA_DIR,
-                           "banners/%s.jpg" % self.game_slug)
-        self.download_asset(banner_url, banner_dest, True)
+        banner_dest = join(settings.DATA_DIR, "banners/%s.jpg" % self.game_slug)
+        http.download_asset(banner_url, banner_dest, True)
         icon_url = settings.INSTALLER_URL + 'icon/%s.jpg' % self.game_slug
         icon_dest = join(settings.DATA_DIR, "icons/%s.png" % self.game_slug)
-        self.download_asset(icon_url, icon_dest, True)
+        http.download_asset(icon_url, icon_dest, True)
 
         # Download installer if not already there.
         success = self.download_installer()
