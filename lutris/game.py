@@ -90,7 +90,7 @@ class LutrisGame(object):
         self.name = name
         self.runner = None
         self.game_thread = None
-        self.ticker = None
+        self.heartbeat = None
         self.game_config = None
         self.load_config()
 
@@ -173,7 +173,7 @@ class LutrisGame(object):
         if oss_wrapper:
             command = oss_wrapper + " " + command
 
-        self.ticker = GLib.timeout_add(5000, self.poke_process)
+        self.heartbeat = GLib.timeout_add(5000, self.poke_process)
         logger.debug("Running : %s", command)
         self.game_thread = LutrisThread(command, path, killswitch)
         self.game_thread.start()
@@ -207,7 +207,7 @@ class LutrisGame(object):
 
     def quit_game(self):
         """ Quit the game and cleanup. """
-        self.ticker = None
+        self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
         if self.game_thread is not None and self.game_thread.pid:

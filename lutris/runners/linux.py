@@ -73,16 +73,16 @@ class linux(Runner):
 
     def play(self):
         """Run native game."""
-        executable = self.config["game"]["exe"]
-        if 'args' in self.config['game']:
-            args = self.config['game']['args']
-        else:
-            args = ""
-        if 'ld_preload' in self.config['game']:
-            self.ld_preload = self.config['game']['ld_preload']
-        self.game_path = os.path.dirname(executable)
+        game_config = self.config.get('game')
+        if not game_config:
+            return {'error': 'INVALID_CONFIG'}
+
+        executable = game_config.get("exe")
+        args = game_config.get('args', "")
+        self.ld_preload = game_config.get('ld_preload', None)
         if not os.path.exists(executable):
             return {'error': 'FILE_NOT_FOUND', 'file': executable}
+        self.game_path = os.path.dirname(executable)
         command = []
         if self.ld_preload:
             command.append("LD_PRELOAD=%s " % self.ld_preload)

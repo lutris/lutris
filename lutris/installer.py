@@ -276,23 +276,20 @@ class Installer(Gtk.Dialog):
         """
         file_id = game_file.keys()[0]
         if isinstance(game_file[file_id], dict):
-            if 'filename' in game_file[file_id]:
-                filename = game_file[file_id]['filename']
-            else:
-                filename = None
-            if 'url' in game_file[file_id]:
-                url = game_file[file_id]['url']
-            else:
-                url = filename
+            filename = game_file[file_id].get('filename')
+            url = game_file[file_id].get('url', filename)
         else:
             url = game_file[file_id]
             filename = None
 
         log.logger.debug("Fetching [%s]: %s" % (file_id, url))
+        pga_url = pga.check_for_file(self.game_slug, file_id)
+        if pga_url:
+            url = pga_url
 
         # wat?
-        if self.download_progress is not None:
-            self.download_progress.destroy()
+        #if self.download_progress is not None:
+        #    self.download_progress.destroy()
 
         self.status_label.set_text('Fetching %s' % url)
         dest_dir = join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
@@ -303,27 +300,24 @@ class Installer(Gtk.Dialog):
             log.logger.debug("Destination file exists")
             os.remove(dest_file)
         if url == "N/A":
-            filename = pga.check_for_file(self.game, file_id)
             if not filename:
                 #Ask the user where is located the file
                 dlg = FileDialog()
-                filename = dlg.filename
-                logger.debug("[%s]: %s" % (file_id, filename))
+                url = dlg.filename
                 if not filename:
                     self.errors.append("Installation cancelled")
                     return False
-            shutil.copy(filename, dest_dir)
-            dest_file = os.path.join(dest_dir, os.path.basename(filename))
-            self.gamefiles[file_id] = dest_file
-
+        self.gamefiles[file_id] = dest_file
+        if url.startswith('/'):
+            shutil.copy(url, dest_dir)
+            dest_file = os.path.join(dest_dir, os.path.basename(url))
             self.download_complete(data=os.path.join(
                 dest_dir, os.path.basename(filename)
             ))
-        else:
+        elif url.startswith("http"):
             self.download_progress = DownloadProgressBox({'url': url,
                                                           'dest': dest_file},
                                                          cancelable=False)
-            self.gamefiles[file_id] = dest_file
             self.download_progress.connect('complete', self.download_complete)
             self.widget_box.pack_start(self.download_progress, True, True, 10)
             self.download_progress.show()
@@ -468,9 +462,9 @@ class Installer(Gtk.Dialog):
 
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
-        filename = self.gamefiles.get(data['file'])
+        filename = self.gamefiles.get(data.get('file'))
         if not filename:
-            log.logger.error("No file for '%s' in game files" % data['file'])
+            log.logger.error("No file for '%s' in game files" % data)
             return False
         if not os.path.exists(filename):
             log.logger.error("%s does not exists" % filename)

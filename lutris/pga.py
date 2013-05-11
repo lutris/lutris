@@ -61,7 +61,7 @@ def create_sources(cursor):
 
 def create():
     """Create the local PGA database."""
-    log.logger.debug("Running CREATE statement...")
+    logger.debug("Running CREATE statement...")
     with db_cursor() as cursor:
         create_games(cursor)
         create_sources(cursor)
@@ -159,9 +159,11 @@ def check_for_file(game, file_id):
             continue
         game_dir = os.path.join(source, game)
         if not os.path.exists(game_dir):
+            print "dir", game_dir
             continue
         game_files = os.listdir(game_dir)
         for game_file in game_files:
+            print "file", game_file
             game_base, _ext = os.path.splitext(game_file)
             if game_base == file_id:
                 return os.path.join(game_dir, game_file)

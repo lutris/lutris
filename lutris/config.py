@@ -139,6 +139,18 @@ class LutrisConfig(object):
             value = None
         return value
 
+    def __setitem__(self, key, value):
+        if self.config_type == "game":
+            self.game_config[key] = value
+        elif self.config_type == "runner":
+            self.runner_config[key] = value
+        elif self.config_type == "system":
+            self.system_config = value
+        self.update_global_config()
+
+    def get(self, key):
+        return self.__getitem__(key)
+
     def get_system(self, key):
         """Return the value of 'key' for system config"""
         try:
@@ -148,15 +160,6 @@ class LutrisConfig(object):
         except KeyError:
             value = None
         return value
-
-    def __setitem__(self, key, value):
-        if self.config_type == "game":
-            self.game_config[key] = value
-        elif self.config_type == "runner":
-            self.runner_config[key] = value
-        elif self.config_type == "system":
-            self.system_config = value
-        self.update_global_config()
 
     def update_global_config(self):
         """Update the global config dict."""
