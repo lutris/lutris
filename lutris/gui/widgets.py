@@ -36,7 +36,7 @@ from lutris.constants import COVER_PATH
 #from lutris.util.log import logger
 from lutris import settings
 
-MISSING_ICON = os.path.join(settings.get_data_path(), 'media/lutris.svg')
+MISSING_ICON = os.path.join(settings.get_data_path(), 'media/banner.png')
 
 (COL_ID,
  COL_NAME,
@@ -264,7 +264,7 @@ class GameIconView(Gtk.IconView, GameView):
         iconview_cell_renderer = IconViewCellRenderer()
         self.pack_end(iconview_cell_renderer, False)
         self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
-        self.set_item_padding(2)
+        self.set_item_padding(10)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
