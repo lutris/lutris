@@ -3,6 +3,8 @@
 import os
 import urllib
 import platform
+import subprocess
+import xml.etree.ElementTree as etree
 
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
@@ -15,7 +17,7 @@ SNES9X_64 = settings.RUNNERS_URL + "%s-gtk-81-x86_64.tar.bz2" % SNES9X_VERSION
 LIBPNG_32 = NotImplemented
 LIBPNG_64 = settings.LIB64_URL + "libpng14.so.14.12.0.gz"
 
-RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners/")
+RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
 SNES9X_RUNNER_DIR = os.path.join(RUNNER_DIR, SNES9X_VERSION)
 
 
@@ -34,14 +36,47 @@ class snes9x(Runner):
                               "type": "file_chooser",
                               "default_path": "game_path",
                               "label": "ROM"}]
-        self.runner_options = [{"option": "fullscreen",
-                                "type": "bool",
-                                "label": "Fullscreen"}]
+        self.runner_options = [
+            {
+                "option": "fullscreen",
+                "type": "bool",
+                "label": "Fullscreen",
+                "default": "1"
+            },
+            {
+                "option": "maintain_aspect_ratio",
+                "type": "bool",
+                "label": "Maintain aspect ratio",
+                "default": "1"
+            },
+            {
+                "option": "sound_driver",
+                "type": "one_choice",
+                "label": "Sound driver",
+                "choices": (("OSS", "0"), ("SDL", "1"), ("ALSA", "2")),
+                "default": "1"
+            }
+        ]
         if settings:
             self.rom = settings["game"]["rom"]
+            self.settings = settings
+
+    def options_as_dict(self):
+        option_dict = {}
+        for option in self.runner_options:
+            option_dict[option['option']] = option
+        return option_dict
 
     def play(self):
         """Run Super Nintendo game"""
+        options = self.options_as_dict()
+        for option_name in options:
+            self.set_option(
+                option_name,
+                self.settings['snes9x'].get(
+                    option_name, options[option_name].get('default')
+                )
+            )
         return self.get_executable() + ["\"%s\"" % self.rom]
 
     def get_executable(self):
@@ -49,7 +84,7 @@ class snes9x(Runner):
         lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
         if os.path.exists(local_path):
             executable = ["LD_LIBRARY_PATH=\"%s\"" % lib_path, local_path]
-        else:
+        elif self.is_installed():
             executable = [self.executable]
         return executable
 
@@ -60,7 +95,22 @@ class snes9x(Runner):
             installed = super(snes9x, self).is_installed()
         return installed
 
+    def set_option(self, option, value):
+        config_file = os.path.join(os.path.expanduser("~"),
+                                   ".snes9x/snes9x.xml")
+        if not os.path.exists(config_file):
+            logger.debug("Creating new config file")
+            subprocess.Popen(" ".join(self.get_executable()) + " -help",
+                             shell=True)
+        tree = etree.parse(config_file)
+        node = tree.find("./preferences/option[@name='%s']" % option)
+        if value.__class__.__name__ == "bool":
+            value = "1" if value else "0"
+        node.attrib['value'] = value
+        tree.write(config_file)
+
     def install(self):
+        """ Install snes9x from lutris.net """
         logger.debug("Installing snes9x")
         arch = platform.architecture()[0]
         tarball_url = SNES9X_64 if arch == '64bit' else SNES9X_32

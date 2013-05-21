@@ -126,6 +126,9 @@ class LutrisConfig(object):
             self.runner = self.game_config["runner"]
         self.update_global_config()
 
+    def __str__(self):
+        return str(self.config)
+
     def __getitem__(self, key):
         """Allow to access config data directly by keys."""
         try:
