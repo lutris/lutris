@@ -13,12 +13,9 @@ ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
 SITE_URL = "http://dev.lutris.net/"
 INSTALLER_URL = SITE_URL + "games/install/"
-
-CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
-DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
-CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
-
-PGA_DB = os.path.join(DATA_DIR, 'pga.db')
+RUNNERS_URL = SITE_URL + "files/runners/"
+LIB32_URL = SITE_URL + "files/lib32/"
+LIB64_URL = SITE_URL + "files/lib64/"
 
 LICENSE_TEXT = """
 This program is free software: you can redistribute it and/or modify
@@ -34,6 +31,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+
+## Paths
+CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
+DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
+CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
+
+TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
+PGA_DB = os.path.join(DATA_DIR, 'pga.db')
 
 
 def get_data_path():
