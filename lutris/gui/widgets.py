@@ -256,6 +256,8 @@ class GameTreeView(Gtk.TreeView, GameView):
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
+    icon_width = 184
+    icon_padding = 5
 
     def __init__(self, games):
         self.game_store = GameStore(games, icon_size=128)
@@ -264,7 +266,7 @@ class GameIconView(Gtk.IconView, GameView):
         iconview_cell_renderer = IconViewCellRenderer()
         self.pack_end(iconview_cell_renderer, False)
         self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
-        self.set_item_padding(10)
+        self.set_item_padding(self.icon_padding)
 
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
@@ -272,8 +274,14 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('button-press-event', self.popup_contextual_menu)
         self.connect('size-allocate', self.on_size_allocate)
 
-    def on_size_allocate(self, _widget, _rect):
-        [self.set_columns(m) for m in [1, self.get_columns()]]
+    def on_size_allocate(self, _widget, rect):
+        """ Recalculate the colum spacing based on total widget width """
+        width = rect.width - 20
+        icon_width = self.icon_width + self.icon_padding * 2
+        nb_columns = width / icon_width
+        extra_space = width - nb_columns * icon_width
+        spacing = (extra_space / max(nb_columns - 1, 1))
+        self.set_column_spacing(spacing - 2)
 
     def on_item_activated(self, view, path):
         self.get_selected_game(True)
