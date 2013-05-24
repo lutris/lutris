@@ -253,6 +253,7 @@ class GameTreeView(Gtk.TreeView, GameView):
         else:
             self.emit("game-selected")
 
+import datetime
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
@@ -274,7 +275,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('button-press-event', self.popup_contextual_menu)
         self.connect('size-allocate', self.on_size_allocate)
 
-    def on_size_allocate(self, _widget, rect):
+    def on_size_allocate(self, widget, rect):
         """ Recalculate the colum spacing based on total widget width """
         width = rect.width - 20
         icon_width = self.icon_width + self.icon_padding * 2
@@ -282,6 +283,8 @@ class GameIconView(Gtk.IconView, GameView):
         extra_space = width - nb_columns * icon_width
         spacing = (extra_space / max(nb_columns - 1, 1))
         self.set_column_spacing(spacing - 2)
+        self.set_columns(nb_columns)
+        self.do_size_allocate(widget, rect)
 
     def on_item_activated(self, view, path):
         self.get_selected_game(True)
