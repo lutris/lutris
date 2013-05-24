@@ -48,6 +48,7 @@ from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util.log import logger
 from lutris.installer import Installer
 from lutris.config import check_config
+from lutris.pga import get_games
 from lutris.gui.lutriswindow import LutrisWindow
 
 
@@ -59,14 +60,14 @@ parser.add_option("-d", "--debug", action="store_true",
                   dest="debug", help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
+parser.add_option("-l", "--list-games", action="store_true",
+                  help="List all games in database")
 parser.add_option("-f", "--force-install", action="store_true",
                   help="Force installation even if game is installed")
 parser.add_option("-n", "--no-download",
                   action="store_true", dest="no_download",
                   help="Don't download anything when installing")
 (options, args) = parser.parse_args()
-
-print options
 
 # Set the logging level to show debug messages.
 console = logging.StreamHandler()
@@ -82,6 +83,9 @@ if options.verbose:
 if options.debug:
     logger.setLevel(logging.DEBUG)
     logger.debug('logging enabled')
+if options.list_games:
+    print get_games()
+    exit()
 
 check_config(force_wipe=False)
 

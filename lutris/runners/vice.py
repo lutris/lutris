@@ -33,18 +33,18 @@ class vice(Runner):
         super(vice, self).__init__()
         self.package = "vice"
         self.executable = "x64"
-        self.machine = "Commodore 64"
+        self.platform = "Commodore 64"
         self.arguments = []
         self.game_options = [{
-            "option": "disk",
+            "option": "main_file",
             "type": "file_chooser",
             "label": "Disk File"
         }]
         self.runner_options = [
             {
                 "option": "joy",
-                "type":"bool",
-                "label":"Use joysticks"
+                "type": "bool",
+                "label": "Use joysticks"
             },
             {
                 "option": "fullscreen",
@@ -53,8 +53,8 @@ class vice(Runner):
             },
             {
                 "option": "double",
-                "type":"bool",
-                "label":"Double Size"
+                "type": "bool",
+                "label": "Double Size"
             }
         ]
 
@@ -68,10 +68,9 @@ class vice(Runner):
             if "joy" in settings["vice"]:
                 if settings["vice"]["joy"]:
                     self.arguments = self.arguments + \
-                            ["-joydev2", "4", "-joydev1", "5"]
+                        ["-joydev2", "4", "-joydev1", "5"]
             self.arguments = self.arguments + \
-                    ["\"%s\"" % settings['game']['disk']]
+                ["\"%s\"" % settings['game']['main_file']]
 
     def play(self):
-        command = [self.executable] + self.arguments
-        return command
+        return [self.executable] + self.arguments

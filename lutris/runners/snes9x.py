@@ -30,7 +30,7 @@ class snes9x(Runner):
         super(snes9x, self).__init__()
         self.executable = "snes9x-gtk"
         self.package = None
-        self.machine = "Super Nintendo"
+        self.platform = "Super Nintendo"
         self.is_installable = True
         self.game_options = [{"option": "rom",
                               "type": "file_chooser",

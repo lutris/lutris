@@ -43,7 +43,7 @@ def create_games(cursor):
         id INTEGER PRIMARY KEY,
         name TEXT,
         slug TEXT,
-        machine TEXT,
+        platform TEXT,
         runner TEXT,
         executable TEXT,
         directory TEXT,
@@ -74,8 +74,8 @@ def db_insert(table, fields):
     with db_cursor() as cursor:
         cursor.execute(
             "insert into {0}({1}) values ({2})".format(table,
-                                                    field_names,
-                                                    placeholders),
+                                                       field_names,
+                                                       placeholders),
             field_values
         )
 
@@ -106,12 +106,11 @@ def get_games(name_filter=None):
     return game_list
 
 
-def add_game(name, machine, runner):
+def add_game(name, runner, slug=None):
     """Adds a game to the PGA database."""
-    db_insert("games", {'name': name,
-                        'slug': slugify(name),
-                        'machine': machine,
-                        'runner': runner})
+    if not slug:
+        slug = slugify(name)
+    db_insert("games", {'name': name, 'slug': slug, 'runner': runner})
 
 
 def delete_game(name):

@@ -63,8 +63,8 @@ def import_games():
         logger.info("Found ScummVM game %s", realname)
         add_game(section, realname)
         imported_games.append({'id': slugify(realname),
-                                'name': realname,
-                                'runner': 'scummvm'})
+                               'name': realname,
+                               'runner': 'scummvm'})
     return imported_games
 
 
@@ -75,7 +75,7 @@ class scummvm(Runner):
         super(scummvm, self).__init__()
         self.executable = "scummvm"
         self.package = "scummvm"
-        self.machine = "LucasArts point and click games"
+        self.platform = "LucasArts point and click games"
         self.installer_options = [{
             'option': 'foo',
             'type': "label",
@@ -125,8 +125,8 @@ class scummvm(Runner):
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """
         scumm_output = subprocess.Popen(
-                ["scummvm", "-z"],
-                stdout=subprocess.PIPE).communicate()[0]
+            ["scummvm", "-z"], stdout=subprocess.PIPE
+        ).communicate()[0]
         game_list = str.split(scumm_output, "\n")
         game_array = []
         game_list_start = False

@@ -33,11 +33,11 @@ class stella(Runner):
         super(stella, self).__init__()
         self.package = "stella"
         self.executable = "stella"
-        self.machine = "Atari 2600"
+        self.platform = "Atari 2600"
         self.game_options = [{
             "option": "cart",
             "type": "file_chooser",
-            "label":"Cartridge"
+            "label": "Cartridge"
         }]
         self.runner_options = []
         if settings:

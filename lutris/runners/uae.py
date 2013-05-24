@@ -33,7 +33,7 @@ class uae(Runner):
         super(uae, self).__init__()
         self.package = "uae"
         self.executable = "uae"
-        self.machine = "Amiga"
+        self.platform = "Amiga"
         self.is_installable = True
         self.uae_options = {}
         control_choices = [("Mouse", "mouse"), ("Joystick 1", "joy0"),

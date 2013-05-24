@@ -34,7 +34,7 @@ class linux(Runner):
     """Runs native games"""
     def __init__(self, config=None):
         super(linux, self).__init__()
-        self.machine = "Linux games"
+        self.platform = "Linux games"
         self.ld_preload = None
         self.game_path = None
         self.installer_options = [{"option": "installer",
@@ -43,7 +43,7 @@ class linux(Runner):
         self.game_options = [{"option": "exe",
                               "type": "file_chooser",
                               "default_path": "game_path",
-                              "label":"Executable"},
+                              "label": "Executable"},
                              {"option": "args",
                               "type": "string",
                               "label": "Arguments"},

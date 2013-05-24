@@ -33,13 +33,13 @@ class hatari(Runner):
         super(hatari, self).__init__()
         self.package = "hatari"
         self.executable = "hatari"
-        self.machine = "Atari ST computers"
+        self.platform = "Atari ST computers"
         self.settings = settings
         self.game_options = [{"option": "disk-a",
-                              "type":"file_chooser",
+                              "type": "file_chooser",
                               "label": "Floppy Disk A"},
                              {"option": "disk-b",
-                              "type":"file_chooser",
+                              "type": "file_chooser",
                               "label": "Floppy Disk B"}]
         joystick_choices = [
             ('None', 'none'),
@@ -50,12 +50,12 @@ class hatari(Runner):
         self.runner_options = [
             {
                 "option": "bios_file",
-                "type":"file_chooser",
+                "type": "file_chooser",
                 "label": "Bios File (TOS.img)"
             },
             {
                 "option": "fullscreen",
-                "type":"bool",
+                "type": "bool",
                 "label": "Fullscreen"
             },
             {

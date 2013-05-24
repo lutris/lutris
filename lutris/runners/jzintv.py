@@ -34,14 +34,14 @@ class jzintv(Runner):
         super(jzintv, self).__init__()
         self.package = "jzintv"
         self.executable = "jzintv"
-        self.machine = "Intellivision"
+        self.platform = "Intellivision"
         #jzintv is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
         self.is_installable = False
         self.game_options = [{
-            "option":"rom",
-            "type":"file_chooser",
-            "label":"Rom File"
+            "option": "rom",
+            "type": "file_chooser",
+            "label": "Rom File"
         }]
         self.runner_options = [
             {
@@ -52,7 +52,7 @@ class jzintv(Runner):
             {
                 "option": "fullscreen",
                 "type": "bool",
-                "label":"Fullscreen"
+                "label": "Fullscreen"
             }
         ]
         self.arguments = []
@@ -61,10 +61,10 @@ class jzintv(Runner):
                 if settings["jzintv"]["fullscreen"]:
                     self.arguments = self.arguments + ["-f"]
             if "bios_path" in settings["jzintv"]:
-                self.arguments += ["--execimg=\"%s/exec.bin\"" % \
-                        settings["jzintv"]["bios_path"]]
-                self.arguments += ["--gromimg=\"%s/grom.bin\"" % \
-                        settings["jzintv"]["bios_path"]]
+                self.arguments += ["--execimg=\"%s/exec.bin\"" %
+                                   settings["jzintv"]["bios_path"]]
+                self.arguments += ["--gromimg=\"%s/grom.bin\"" %
+                                   settings["jzintv"]["bios_path"]]
             else:
                 self.error_message = "Bios path not set"
             romdir = os.path.dirname(settings["game"]["rom"])

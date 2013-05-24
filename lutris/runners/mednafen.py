@@ -35,7 +35,7 @@ class mednafen(Runner):
     def __init__(self, settings=None):
         super(mednafen, self).__init__()
         self.executable = "mednafen"
-        self.machine = """
+        self.platform = """
  * Atari Lynx
  * GameBoy
  * GameBoy Color
@@ -48,13 +48,15 @@ class mednafen(Runner):
  * WonderSwan
 """
         self.package = "mednafen"
-        machine_choices = [("NES", "nes"),
-                           ("PC Engine", "pce"),
-                           ('Game Boy', 'gb'),
-                           ('Game Boy Advance', 'gba')]
+        machine_choices = (
+            ("NES", "nes"),
+            ("PC Engine", "pce"),
+            ('Game Boy', 'gb'),
+            ('Game Boy Advance', 'gba')
+        )
         self.game_options = [
             {
-                "option": "rom",
+                "option": "main_file",
                 "type": "file_chooser",
                 "label": "Rom file"
             },
@@ -65,12 +67,14 @@ class mednafen(Runner):
                 "choices": machine_choices
             }
         ]
-        self.runner_options = [{
-            "option": "fs",
-            "type": "bool",
-            "label": "Fullscreen",
-            "default": True,
-        }]
+        self.runner_options = [
+            {
+                "option": "fs",
+                "type": "bool",
+                "label": "Fullscreen",
+                "default": True,
+            }
+        ]
         self.settings = settings
 
     def find_joysticks(self):
@@ -194,7 +198,7 @@ class mednafen(Runner):
 
     def play(self):
         """Runs the game"""
-        rom = self.settings["game"]["rom"]
+        rom = self.settings["game"]["main_file"]
         machine = self.settings["game"]["machine"]
         #Defaults
         fullscreen = "1"
@@ -231,5 +235,5 @@ class mednafen(Runner):
         command = [self.executable]
         for option in options:
             command.append(option)
-        command.append("\"" + rom + "\"")
+        command.append("\"%s\"" % rom)
         return {'command': command}

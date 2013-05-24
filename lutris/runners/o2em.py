@@ -34,7 +34,7 @@ class o2em(Runner):
         super(o2em, self).__init__()
         self.package = "o2em"
         self.executable = "o2em"
-        self.machine = "Odyssey 2"
+        self.platform = "Odyssey 2"
         #o2em is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
         self.bios_path = os.path.join(os.path.expanduser("~"), ".o2em/bios/")

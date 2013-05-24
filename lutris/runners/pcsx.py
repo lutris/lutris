@@ -38,7 +38,7 @@ class pcsx(Runner):
         super(pcsx, self).__init__()
         self.executable = "pcsx"
         self.package = "pcsx-df"
-        self.machine = "Playstation"
+        self.platform = "Playstation"
         self.game_options = [{"option": "iso",
                               "type": "file_chooser",
                               "label": "iso"}]
