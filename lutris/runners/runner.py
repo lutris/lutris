@@ -13,7 +13,8 @@ class Runner(object):
     """Generic runner (base class for other runners) """
     def __init__(self):
         """ Initialize runner """
-        self.executable = None
+        self.executable = NotImplemented
+        self.platform = NotImplemented
         self.is_installable = False
         self.arguments = []
         self.error_messages = []
@@ -31,6 +32,11 @@ class Runner(object):
     def description(self, value):
         """Leave the ability to override the docstring"""
         self.__doc__ = value
+
+    @property
+    def machine(self):
+        self.logger.error("runner.machine accessed, please use platform")
+        return self.platform
 
     def load(self, game):
         """ Load a game """
@@ -70,7 +76,6 @@ class Runner(object):
 
     def get_game_path(self):
         """Seems suspicious, but still useful"""
-        logger.warning("get_game_path called, I'm 12 and what is this ?")
         if hasattr(self, 'game_path'):
             path = self.game_path
         else:

@@ -35,7 +35,7 @@ class frotz(Runner):
         super(frotz, self).__init__()
         self.package = "frotz"
         self.executable = "frotz"
-        self.machine = "Z-Code"
+        self.platform = "Z-Code"
         self.is_installable = True
         self.description = "Z Code interpreter (Infocom interactive fictions)"
         self.game_options = [{

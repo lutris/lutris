@@ -39,7 +39,7 @@ class gens(Runner):
         super(gens, self).__init__()
         self.package = 'gens-gs'
         self.executable = 'gens'
-        self.machine = 'Sega Genesis'
+        self.platform = 'Sega Genesis'
         self.description = 'Sega Genesis emulator.'
         self.game_options = [{
             'option': 'rom',

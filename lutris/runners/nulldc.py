@@ -51,7 +51,7 @@ class nulldc(wine):
         """
         super(nulldc, self).__init__(settings)
         self.description = "Runs Dreamcast games with nullDC emulator"
-        self.machine = "Sega Dreamcast"
+        self.platform = "Sega Dreamcast"
 
         self.is_installable = False
 

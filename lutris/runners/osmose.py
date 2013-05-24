@@ -34,7 +34,7 @@ class osmose(Runner):
         super(osmose, self).__init__()
         self.package = "osmose"
         self.executable = "osmose"
-        self.machine = "Sega Master System"
+        self.platform = "Sega Master System"
         #osmose is not yet available as a package  in Debian and Ubuntu,
         #it requires some packaging
         self.game_options = [{

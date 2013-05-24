@@ -32,14 +32,16 @@ class dosbox(Runner):
         super(dosbox, self).__init__()
         self.package = "dosbox"
         self.executable = "dosbox"
-        self.machine = "MS DOS"
+        self.platform = "MS DOS"
         self.description = "DOS Emulator"
-        self.game_options = [{"option":"exe",
-                              "type":"file_chooser",
-                              "label":"EXE File"}]
+        self.game_options = [{
+            "option": "main_file",
+            "type": "file_chooser",
+            "label": "EXE File"
+        }]
         self.runner_options = []
         if settings:
-            self.exe = settings["game"]["exe"]
+            self.exe = settings["game"]["main_file"]
 
     def play(self):
         """ Run the game """

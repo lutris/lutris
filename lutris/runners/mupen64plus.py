@@ -33,17 +33,17 @@ class mupen64plus(Runner):
         super(mupen64plus, self).__init__()
         self.package = 'mupen64plus'
         self.executable = 'mupen64plus'
-        self.machine = "Nintendo 64"
+        self.platform = "Nintendo 64"
         self.arguments = ['--nogui']
         self.game_options = [{
-            'option': 'rom',
-            'type':'file_chooser',
+            'option': 'main_file',
+            'type': 'file_chooser',
             'label': 'Rom File'
         }]
 
         self.runner_options = [{
             'option': 'fullscreen',
-            'type':'bool',
+            'type': 'bool',
             'label': 'Fullscreen'
         }]
 

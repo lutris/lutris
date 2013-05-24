@@ -32,14 +32,18 @@ class openmsx(Runner):
         super(openmsx, self).__init__()
         self.package = "openmsx"
         self.executable = "openmsx"
-        self.machine = "MSX"
+        self.platform = "MSX"
         self.description = "MSX Emulator"
-        self.game_options = [{"option":"rom",
-                              "type":"file_chooser",
-                              "label":"ROM File"}]
+        self.game_options = [
+            {
+                "option": "main_file",
+                "type": "file_chooser",
+                "label": "ROM File"
+            }
+        ]
         self.runner_options = []
         if settings:
-            self.rom = settings["game"]["rom"]
+            self.rom = settings["game"]["main_file"]
 
     def play(self):
         """Run MSX game"""

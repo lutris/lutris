@@ -33,21 +33,29 @@ class sdlmame(Runner):
         """ Mame initialization """
         super(sdlmame, self).__init__()
         self.executable = "mame"
-        self.machine = "Arcade"
-        self.game_options = [{"option": "rom",
-                              "type":"file_chooser",
-                              "label":"Rom file"}]
-        self.runner_options = [{"option":"windowed",
-                                "type":"bool",
-                                "label":"Windowed"}]
+        self.platform = "Arcade"
+        self.game_options = [
+            {
+                "option": "main_file",
+                "type": "file_chooser",
+                "label": "Rom file"
+            }
+        ]
+        self.runner_options = [
+            {
+                "option": "windowed",
+                "type": "bool",
+                "label": "Windowed"
+            }
+        ]
         self.settings = settings
 
     def play(self):
         """ Launch the game. """
         settings = self.settings
         fullscreen = True
-        romdir = os.path.dirname(settings["game"]["rom"])
-        rom = os.path.basename(settings["game"]["rom"])
+        romdir = os.path.dirname(settings["game"]["main_file"])
+        rom = os.path.basename(settings["game"]["main_file"])
         mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
         if "sdlmame" in settings.config:
             if "windowed" in settings["sdlmame"]:

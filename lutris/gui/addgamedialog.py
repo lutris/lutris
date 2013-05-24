@@ -26,12 +26,11 @@ from gi.repository import Gtk
 import lutris.runners
 from lutris.runners import import_runner
 from lutris.config import LutrisConfig
-from lutris.util.log import logger
+#from lutris.util.log import logger
 
 from lutris.gui.gameconfigvbox import GameConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
-
 
 
 class AddGameDialog(Gtk.Dialog):
@@ -100,7 +99,7 @@ class AddGameDialog(Gtk.Dialog):
                                              Gtk.PolicyType.AUTOMATIC)
         self.system_scroll_window.add_with_viewport(self.system_config_vbox)
         notebook.append_page(self.system_scroll_window,
-                                  Gtk.Label(label="System configuration"))
+                             Gtk.Label(label="System configuration"))
 
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
         add_button = Gtk.Button(None, Gtk.STOCK_ADD)
@@ -119,9 +118,6 @@ class AddGameDialog(Gtk.Dialog):
         #Get runner
         self.lutris_config.config["realname"] = realname
         self.lutris_config.config["runner"] = self.runner_class
-        logger.debug("saving")
-        logger.debug(self.lutris_config.config)
-        logger.debug(self.lutris_config.game_config)
 
         if self.runner_class and realname:
             game_identifier = self.lutris_config.save(config_type="game")
@@ -148,7 +144,6 @@ class AddGameDialog(Gtk.Dialog):
 
         self.runner_class = widget.get_model()[selected_runner][1]
         self.lutris_config = LutrisConfig(self.runner_class)
-        logger.debug(self.lutris_config.config)
         self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
         self.conf_scroll_window.add_with_viewport(self.game_config_vbox)
         self.conf_scroll_window.show_all()

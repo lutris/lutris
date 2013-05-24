@@ -83,7 +83,7 @@ class wine(Runner):
     def __init__(self, settings=None):
         super(wine, self).__init__()
         self.executable = 'wine'
-        self.machine = 'Windows games'
+        self.platform = 'Windows'
         self.installer_options = [{'option': 'installer',
                                    'type': 'file_chooser',
                                    'label': 'Executable'}]

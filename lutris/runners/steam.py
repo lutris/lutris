@@ -60,7 +60,7 @@ class steam(wine):
     def __init__(self, settings=None):
         super(steam, self).__init__(settings)
         self.executable = "Steam.exe"
-        self.machine = "Steam Platform"
+        self.platform = "Steam (Windows)"
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
         self.arguments = []

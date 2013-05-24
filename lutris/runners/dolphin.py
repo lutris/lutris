@@ -38,7 +38,7 @@ class dolphin(Runner):
         super(dolphin, self).__init__()
         self.package = "dolphin-emu"
         self.executable = "dolphin"
-        self.machine = "Gamecube, Wii"
+        self.platform = "Gamecube, Wii"
         self.description = "Emulator for Nintendo Gamecube and Wii games"
         self.is_installable = False
         self.game_options = []
@@ -46,6 +46,8 @@ class dolphin(Runner):
 
     def install(self):
         """Run Gamecube or Wii game"""
-        NoticeDialog('Please activate the Dolphin PPA reposiories in order to ' + \
-                     'install Dolphin')
+        NoticeDialog(
+            'Please activate the Dolphin PPA reposiories in order to '
+            'install Dolphin'
+        )
         super(dolphin, self).install()

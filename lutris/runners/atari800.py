@@ -1,3 +1,4 @@
+
 # -*- coding:Utf-8 -*-
 ###############################################################################
 ## Lutris, get_resolutions
@@ -36,9 +37,11 @@ class atari800(Runner):
         super(atari800, self).__init__()
         self.package = "atari800"
         self.executable = "atari800"
-        self.machine = "Atari 8bit computers"
-        self.atarixl_url = "http://kent.dl.sourceforge.net/project/atari800/" \
-                         + "ROM/Original%20XL%20ROM/xf25.zip"
+        self.platform = "Atari 8bit computers"
+        self.atarixl_url = (
+            "http://kent.dl.sourceforge.net/project/atari800/"
+            "ROM/Original%20XL%20ROM/xf25.zip"
+        )
         self.description = "Atari 400,800 and XL emulator."
         self.bios = None
         self.bios_checksums = {
@@ -49,40 +52,45 @@ class atari800(Runner):
             "5200_rom": ""
         }
 
-        self.game_options = [{
-            "option": "rom",
-            "type": "file_chooser",
-            "label": "Rom File"
-        }]
+        self.game_options = [
+            {
+                "option": "main_file",
+                "type": "file_chooser",
+                "label": "Rom File"
+            }
+        ]
 
         # protip : list comprehensions !
         self.screen_resolutions = []
         resolutions_available = get_resolutions()
         for resolution in resolutions_available:
             self.screen_resolutions = self.screen_resolutions + \
-                    [(resolution, resolution)]
+                [(resolution, resolution)]
 
-        machine_choices = [("Emulate Atari 800", "atari"),
-                           ("Emulate Atari 800 XL", "xl"),
-                           ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
-                           ("Emulate Atari 320 XE (Rambo)", "rambo"),
-                           ("Emulate Atari 5200", "5200")]
+        machine_choices = (
+            ("Emulate Atari 800", "atari"),
+            ("Emulate Atari 800 XL", "xl"),
+            ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
+            ("Emulate Atari 320 XE (Rambo)", "rambo"),
+            ("Emulate Atari 5200", "5200")
+        )
 
         self.runner_options = [
             {
                 "option": "bios_path",
                 "type": "directory_chooser",
-                "label":"Bios Path"
+                "label": "Bios Path"
             },
             {
                 "option": "machine",
                 "type": "one_choice",
-                "choices": machine_choices, "label":"Machine"
+                "choices": machine_choices,
+                "label": "Machine"
             },
             {
                 "option": "fullscreen",
-                "type":"bool",
-                "label":"Fullscreen"
+                "type": "bool",
+                "label": "Fullscreen"
             },
             {
                 "option": "resolution",
@@ -114,10 +122,8 @@ class atari800(Runner):
             if "machine" in settings["atari800"]:
                 self.arguments += ["-%s" % settings["atari800"]["machine"]]
 
-            if "rom" in settings["game"]:
-                self.rom = settings["game"]["rom"]
-            else:
-                self.rom = ""
+            self.rom = settings["game"].get("rom")
+            if not self.rom:
                 self.error_messages += ["No disk image given."]
 
     def is_installed(self):
