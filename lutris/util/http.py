@@ -6,7 +6,7 @@ from lutris.util.log import logger
 
 class RessourceOpener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
-        if errcode == 404:
+        if errcode in (404, 500):
             raise IOError(errmsg, errcode, url)
 
 

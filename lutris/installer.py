@@ -29,13 +29,12 @@ from gi.repository import Gtk
 from os.path import join, exists
 
 from lutris import pga
-from lutris.util import log
-from lutris.util import http
 from lutris.util.log import logger
+from lutris.util import http
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
 from lutris.game import LutrisGame
-from lutris.config import LutrisConfig
+#from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog, FileDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
@@ -71,7 +70,7 @@ def untar(filename, dest=None, method='gzip'):
     else:
         compression_flag = ''
     cmd = "tar x%sf %s" % (compression_flag, filename)
-    log.logger.debug(cmd)
+    logger.debug(cmd)
     subprocess.Popen(cmd, shell=True)
     os.chdir(cwd)
 
@@ -85,6 +84,88 @@ def run_installer(filename):
 def reporthook(piece, received_bytes, total_size):
     """Follows the progress of a download"""
     print("%d %%" % ((piece * received_bytes) * 100 / total_size))
+
+
+class ScriptingError(Exception):
+    def __init__(self, message, faulty_data=None):
+        self.message = message
+        self.faulty_data = faulty_data
+        logger.error(self.message + repr(self.faulty_data))
+
+    def __str__(self):
+        return self.message + "\n" + repr(self.faulty_data)
+
+
+class ScriptInterpreter(object):
+    game_name = None
+    errors = []
+
+    def __init__(self, script):
+        self.script = yaml.safe_load(script)
+
+    def is_valid(self):
+        required_fields = ('runner', 'name', 'installer')
+        for field in required_fields:
+            if not self.script.get(field):
+                self.errors.append("Missing field '%s'" % field)
+        print self.errors
+        return not bool(self.errors)
+
+    #def parse_config(self):
+    #    """ Reads the installer file. """
+    #    self.game = self.rules['name']
+    #    self.game_slug = os.path.basename(self.installer_path)[:-4]
+
+    #    self.actions = self.rules['installer']
+    #    self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
+    #    return True
+    def substitute(self, path_ref, path_type):
+        if not path_ref.startswith("$%s" % path_type):
+            return
+        if path_type == "GAMEDIR":
+            if not self.gamedir:
+                raise ValueError("No gamedir set")
+            else:
+                return path_ref.replace("$GAMEDIR", self.gamedir)
+        if path_type == "CACHE":
+            return path_ref.replace("$CACHE", settings.DATA_DIR)
+        if path_type == "HOME":
+            return path_ref.replace("$HOME", os.path.expanduser("~"))
+
+    def _get_move_paths(self, params):
+        for required_param in ('dst', 'src'):
+            if required_param not in params:
+                raise ScriptingError(
+                    "The '%s' parameter is required for 'move'"
+                    % required_param, params
+                )
+        src_ref = params['src']
+        src = (self.files.get(src_ref)
+               or self.substitute(src_ref, 'CACHE')
+               or self.substitute(src_ref, 'GAMEDIR'))
+        if not src:
+            raise ScriptingError("Wrong value for 'src' param", src_ref)
+        dst_ref = params['dst']
+        dst = (self.substitute(dst_ref, 'GAMEDIR')
+               or self.substitute(dst_ref, 'HOME'))
+        if not dst:
+            raise ScriptingError("Wrong value for 'dst' param", dst_ref)
+        return (src, dst)
+
+    def move(self, params):
+        src, dst = self._get_move_paths(params)
+        if not os.path.exists(src):
+            self.errors.append("I can't move %s, it does not exist" % src)
+            return False
+        target = os.path.join(dst, os.path.basename(src))
+        if os.path.exists(target):
+            self.errors.append("Destination %s already exists" % target)
+        try:
+            shutil.move(src, target)
+        except shutil.Error:
+            self.errors.append("Can't move %s to destination %s" % (src, dst))
+            return False
+        return True
 
 
 # pylint: disable=R0904
@@ -211,6 +292,11 @@ class Installer(Gtk.Dialog):
             return False
 
         # Parse installer file
+        script_data = file(self.installer_path, 'r').read()
+        self.interpreter = ScriptInterpreter(script_data)
+        if not self.interpreter.is_valid():
+            raise ScriptingError("Installation script contains errors",
+                                 self.interpreter.errors)
         success = self.parse_config()
         games_dir = self.lutris_config.get_path()
 
@@ -222,7 +308,7 @@ class Installer(Gtk.Dialog):
             return True
 
         self.game_dir = join(games_dir, self.game_slug)
-        log.logger.debug("Setting default path to : %s", self.game_dir)
+        logger.debug("Setting default path to : %s", self.game_dir)
         if not os.path.exists(self.game_dir):
             os.mkdir(self.game_dir)
         return success
@@ -235,7 +321,7 @@ class Installer(Gtk.Dialog):
 
         dest_dir = join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
         if not exists(dest_dir):
-            log.logger.debug('Creating destination directory %s' % dest_dir)
+            logger.debug('Creating destination directory %s' % dest_dir)
             os.mkdir(dest_dir)
         self.location_entry.destroy()
         self.install_button.set_sensitive(False)
@@ -279,14 +365,10 @@ class Installer(Gtk.Dialog):
             url = game_file[file_id]
             filename = None
 
-        log.logger.debug("Fetching [%s]: %s" % (file_id, url))
+        logger.debug("Fetching [%s]: %s" % (file_id, url))
         pga_url = pga.check_for_file(self.game_slug, file_id)
         if pga_url:
             url = pga_url
-
-        # wat?
-        #if self.download_progress is not None:
-        #    self.download_progress.destroy()
 
         self.status_label.set_text('Fetching %s' % url)
         dest_dir = join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
@@ -294,7 +376,7 @@ class Installer(Gtk.Dialog):
             filename = os.path.basename(url)
         dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
-            log.logger.debug("Destination file exists")
+            logger.debug("Destination file exists")
             os.remove(dest_file)
         if url == "N/A":
             if not filename:
@@ -312,6 +394,9 @@ class Installer(Gtk.Dialog):
                 dest_dir, os.path.basename(filename)
             ))
         elif url.startswith("http"):
+            if self.download_progress:
+                # Remove existing progress bar
+                self.download_progress.destroy()
             self.download_progress = DownloadProgressBox(
                 {'url': url, 'dest': dest_file}, cancelable=True
             )
@@ -324,8 +409,6 @@ class Installer(Gtk.Dialog):
         """Actual game installation"""
         logger.debug("Running installation")
 
-        if self.download_progress is not None:
-            self.download_progress.destroy()
         if not os.path.exists(self.game_dir):
             os.makedirs(self.game_dir)
         os.chdir(self.game_dir)
@@ -348,8 +431,11 @@ class Installer(Gtk.Dialog):
                 'check_md5': self._check_md5,
                 'delete': self._delete,
             }
+            if not hasattr(ScriptInterpreter, action_name):
+                raise ScriptingError("The command %s does not exists"
+                                     % action_name)
             if action_name not in mappings.keys():
-                log.logger.error("Action " + action_name + " not supported !")
+                logger.error("Action " + action_name + " not supported !")
                 continue
             mappings[action_name](action_data)
         if self.errors:
@@ -388,28 +474,6 @@ class Installer(Gtk.Dialog):
         play_button.show()
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)
-
-    def parse_config(self):
-        """ Reads the installer file. """
-        installer_contents = file(self.installer_path, 'r').read()
-        self.rules = yaml.safe_load(installer_contents)
-        logger.debug("Installer content:\n %s" % installer_contents)
-
-        mandatory_fields = ['runner', 'name']
-        optional_fields = ['exe', 'exe64', 'iso', 'rom', 'disk']
-        for field in mandatory_fields:
-            self.game_info[field] = self.rules[field]
-        for field in optional_fields:
-            if field in self.rules:
-                self.game_info[field] = self.rules[field]
-
-        # FIXME : weird redefinition of self.game
-        self.game = self.rules['name']
-        self.game_slug = os.path.basename(self.installer_path)[:-4]
-
-        self.actions = self.rules['installer']
-        self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
-        return True
 
     def write_config(self):
         """Write the game configuration as a Lutris launcher."""
@@ -476,7 +540,7 @@ class Installer(Gtk.Dialog):
             logger.error("%s does not exists" % filename)
             return False
         msg = "Extracting %s" % filename
-        log.logger.debug(msg)
+        logger.debug(msg)
         self.status_label.set_text(msg)
         _, extension = os.path.splitext(filename)
         if extension == ".zip":
@@ -486,47 +550,8 @@ class Installer(Gtk.Dialog):
         elif filename.endswith('.tar.bz2'):
             untar(filename, None, 'bzip2')
         else:
-            log.logger.error("unrecognised file extension %s" % extension)
+            logger.error("unrecognised file extension %s" % extension)
             return False
-
-    def _move(self, data):
-        """ Moves a file. """
-        file_id = data['src']
-        src = self.gamefiles.get(file_id)
-        if not src:
-            msg = "Can't find %s in %s" % (file_id, self.gamefiles)
-            logger.error(msg)
-            self.errors.append(msg)
-            return False
-
-        if data['dst'] == 'gamedir':
-            dst = self.game_dir
-        else:
-            dst = data['dst'].replace('homedir', os.path.expanduser('~'))
-            if not os.path.exists(dst):
-                dst = '/tmp'
-
-        self.status_label.set_text("Moving %s" % src)
-        logger.debug("[%s] Moving to %s" % (src, dst))
-        if not os.path.exists(src):
-            msg = "I can't move %s, it does not exist" % src
-            logger.error(msg)
-            self.errors.append(msg)
-            return False
-        dest_filename = os.path.join(dst, os.path.basename(src))
-        if os.path.exists(dest_filename):
-            os.remove(dest_filename)
-        try:
-            shutil.move(src, dst)
-        except shutil.Error:
-            msg = "Couln't move %s to destination %s" % (
-                src, dst
-            )
-            logger.error(msg)
-            self.errors.append(msg)
-            return False
-        self.gamefiles[file_id] = dest_filename
-        return True
 
     def _delete(self, data):
         print "Script has requested to delete %s" % data
