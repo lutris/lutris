@@ -253,7 +253,6 @@ class GameTreeView(Gtk.TreeView, GameView):
         else:
             self.emit("game-selected")
 
-import datetime
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
@@ -377,24 +376,32 @@ class GameCover(Gtk.Image):
 
 class DownloadProgressBox(Gtk.HBox):
     """Progress bar used to monitor a file download."""
-    __gsignals__ = {'complete': (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 (GObject.TYPE_PYOBJECT,)),
-                    'cancelrequested': (GObject.SignalFlags.RUN_LAST,
-                                        None, (GObject.TYPE_PYOBJECT,))}
+    __gsignals__ = {
+        'complete': (GObject.SignalFlags.RUN_LAST, None,
+                     (GObject.TYPE_PYOBJECT,)),
+        'cancelrequested': (GObject.SignalFlags.RUN_LAST, None,
+                            (GObject.TYPE_PYOBJECT,))
+    }
 
     def __init__(self, params, cancelable=True):
         super(DownloadProgressBox, self).__init__()
         self.downloader = None
+
+        self.progress_box = Gtk.VBox()
+
         self.progressbar = Gtk.ProgressBar()
-        self.progressbar.show()
-        self.pack_start(self.progressbar, True, True, 10)
+        self.progress_box.pack_start(self.progressbar, True, True, 10)
+        self.progress_label = Gtk.Label()
+        self.progress_box.pack_start(self.progress_label, True, True, 10)
+        self.pack_start(self.progress_box, True, True, 10)
+        self.progress_box.show_all()
+
         self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         if cancelable:
             self.cancel_button.show()
-        self.cancel_button.set_sensitive(False)
-        self.cancel_button.connect('clicked', self._stop_download)
-        self.pack_end(self.cancel_button, False, False, 10)
+            self.cancel_button.set_sensitive(False)
+            self.cancel_button.connect('clicked', self.cancel)
+            self.pack_end(self.cancel_button, False, False, 10)
 
         self.url = params['url']
         self.dest = params['dest']
@@ -411,19 +418,16 @@ class DownloadProgressBox(Gtk.HBox):
         """Show download progress."""
         progress = min(self.downloader.progress, 1)
         self.progressbar.set_fraction(progress)
-        total_downloaded = self.downloader.total_downloaded
-        elapsed_seconds = self.downloader.elapsed_time.seconds or 1
-        total_size = self.downloader.total_size
-        speed = total_downloaded / elapsed_seconds or 1
-        time_left = (total_size - total_downloaded) / speed
         megabytes = 1024 * 1024
-        progress_label = ("%0.2fMb out of %0.2fMb (%0.2fMb/s), "
-                          "%d seconds remaining"
-                          % (float(total_downloaded) / megabytes,
-                             float(total_size) / megabytes,
-                             float(speed) / megabytes,
-                             time_left))
-        self.progressbar.set_text(progress_label)
+        progress_text = (
+            "%0.2fMb out of %0.2fMb (%0.2fMb/s), %d seconds remaining" % (
+                float(self.downloader.downloaded_bytes) / megabytes,
+                float(self.downloader.total_bytes) / megabytes,
+                float(self.downloader.speed) / megabytes,
+                self.downloader.time_remaining
+            )
+        )
+        self.progress_label.set_text(progress_text)
         self.progressbar.set_fraction(progress)
         if progress >= 1.0:
             self.cancel_button.set_sensitive(False)
@@ -431,15 +435,11 @@ class DownloadProgressBox(Gtk.HBox):
             return False
         return True
 
-    def _stop_download(self):
-        """Stop the current download."""
-        self.downloader.kill = True
-        self.cancel_button.set_sensitive(False)
-
-    def cancel(self):
+    def cancel(self, _widget):
         """Cancel the current download."""
         if self.downloader:
-            self.downloader.kill = True
+            self.downloader.cancel()
+            self.cancel_button.set_sensitive(False)
 
 
 class FileChooserEntry(Gtk.Box):

@@ -22,7 +22,7 @@ import optparse
 import signal
 
 # pylint: disable=E0611
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from os.path import realpath, dirname, normpath
 
@@ -122,6 +122,6 @@ if game:
         Gtk.main()
 else:
     lutris_window = LutrisWindow()
-
+    GObject.threads_init()
     Gtk.main()
     logger.debug("Application exit")

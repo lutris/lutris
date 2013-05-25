@@ -249,16 +249,13 @@ class Installer(Gtk.Dialog):
                 "Downloading file %d of %d",
                 self.download_index + 1, len(self.rules["files"])
             )
-            logger.debug(self.rules["files"][self.download_index])
             self.download_game_file(self.rules["files"][self.download_index])
         else:
-            logger.debug("All files downloaded")
+            logger.info("All files downloaded")
             self.install()
 
     def download_complete(self, widget=None, data=None):
         """Action called on a completed download"""
-        logger.debug("widget: %s", widget)
-        logger.debug("data: %s", data)
         self.download_index += 1
         self.process_downloads()
 
@@ -315,9 +312,9 @@ class Installer(Gtk.Dialog):
                 dest_dir, os.path.basename(filename)
             ))
         elif url.startswith("http"):
-            self.download_progress = DownloadProgressBox({'url': url,
-                                                          'dest': dest_file},
-                                                         cancelable=False)
+            self.download_progress = DownloadProgressBox(
+                {'url': url, 'dest': dest_file}, cancelable=True
+            )
             self.download_progress.connect('complete', self.download_complete)
             self.widget_box.pack_start(self.download_progress, True, True, 10)
             self.download_progress.show()
@@ -334,9 +331,15 @@ class Installer(Gtk.Dialog):
         os.chdir(self.game_dir)
 
         for action in self.actions:
-            action_name = action.keys()[0]
-            action_data = action[action_name]
+            print action
+            if isinstance(action, dict):
+                action_name = action.keys()[0]
+                action_data = action[action_name]
+            else:
+                action_name = action
+                action_data = None
             mappings = {
+                'insert-disc': self._insert_disc,
                 'extract': self._extract,
                 'move': self._move,
                 'request_media': self._request_media,
@@ -460,14 +463,17 @@ class Installer(Gtk.Dialog):
         print self.gamefiles
         print data
 
+    def _insert_disc(self, _data):
+        print "Insert disc"
+
     def _extract(self, data):
         """ Extracts a file, guessing the compression method """
         filename = self.gamefiles.get(data.get('file'))
         if not filename:
-            log.logger.error("No file for '%s' in game files" % data)
+            logger.error("No file for '%s' in game files" % data)
             return False
         if not os.path.exists(filename):
-            log.logger.error("%s does not exists" % filename)
+            logger.error("%s does not exists" % filename)
             return False
         msg = "Extracting %s" % filename
         log.logger.debug(msg)
@@ -533,10 +539,10 @@ class Installer(Gtk.Dialog):
         else:
             return False
 
-    def _run(self, data):
+    def _run(self, executable):
         """Run an executable script"""
         exec_path = os.path.join(settings.CACHE_DIR, self.game_slug,
-                                 self.gamefiles[data['file']])
+                                 self.gamefiles[executable])
         if not os.path.exists(exec_path):
             print("unable to find %s" % exec_path)
             exit()
@@ -549,9 +555,9 @@ class Installer(Gtk.Dialog):
             Mandatory parameters in data are 'task' and 'args'
         """
 
-        log.logger.info("Called runner task")
-        log.logger.debug(data)
-        log.logger.debug("runner is %s", self.rules['runner'])
+        logger.info("Called runner task")
+        logger.debug(data)
+        logger.debug("runner is %s", self.rules['runner'])
         runner_name = self.rules["runner"]
         task = import_task(runner_name, data['task'])
         args = data['args']
@@ -561,7 +567,7 @@ class Installer(Gtk.Dialog):
             if key == 'filename':
                 if args[key] in self.gamefiles.keys():
                     args[key] = self.gamefiles[args[key]]
-        log.logger.debug("args are %s", repr(args))
+        logger.debug("args are %s", repr(args))
         # FIXME pass args as kwargs and not args
         task(**args)
 
