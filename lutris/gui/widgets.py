@@ -417,6 +417,10 @@ class DownloadProgressBox(Gtk.HBox):
     def progress(self):
         """Show download progress."""
         progress = min(self.downloader.progress, 1)
+        if self.downloader.cancelled:
+            self.progressbar.set_fraction(0)
+            self.progress_label.set_text("Download canceled")
+            return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = (

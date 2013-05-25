@@ -102,6 +102,7 @@ if options.installer_file:
         logger.info("Installing game from %s" % installer)
 
 
+GObject.threads_init()
 # Run the application.
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 for arg in args:
