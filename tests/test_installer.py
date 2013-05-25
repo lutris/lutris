@@ -17,3 +17,17 @@ class TestScriptInterpreter(TestCase):
         interpreter = ScriptInterpreter("")
         with self.assertRaises(ScriptingError):
             interpreter._get_move_paths({})
+
+    def test_get_command_returns_a_method(self):
+        command, params = ScriptInterpreter._map_command({'move': 'whatever'})
+        self.assertIn("bound method ScriptInterpreter.move", str(command))
+        self.assertEqual(params, "whatever")
+
+    def test_get_command_doesnt_return_private_methods(self):
+        """ """
+        with self.assertRaises(ScriptingError) as ex:
+            command, params = ScriptInterpreter._map_command(
+                {'_substitute': 'foo'}
+            )
+        self.assertEqual(ex.exception.message,
+                         "The command substitute does not exists")

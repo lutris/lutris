@@ -3,6 +3,17 @@ Writing installers
 ==================
 
 
+Displaying an 'Insert disc' dialog
+----------------------------------
+
+The ``insert-disc`` command will display a message box to the user requesting 
+him to insert the game's disc into the optical drive. A link to CDEmu homepage's
+and PPA will also be displayed if the program isn't detected on the machine, 
+otherwise it will be replaced with a button to open gCDEmu.
+
+An optional parameter ``message`` will override the default text if given.
+
+
 Moving files
 ------------
 

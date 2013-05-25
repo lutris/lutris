@@ -33,6 +33,7 @@ from lutris.util.log import logger
 from lutris.util import http
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
+from lutris.util import extract
 from lutris.game import LutrisGame
 #from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog, FileDialog
@@ -40,39 +41,6 @@ from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris import settings
 from lutris.runners import import_task
-
-
-def unzip(filename, dest=None):
-    """Unzips a file"""
-    command = ["unzip", '-o', filename]
-    if dest:
-        command = command + ['-d', dest]
-    subprocess.call(command)
-
-
-def unrar(filename):
-    """Unrar a file"""
-
-    subprocess.call(["unrar", "x", filename])
-
-
-def untar(filename, dest=None, method='gzip'):
-    """Untar a file"""
-    cwd = os.getcwd()
-    if dest is None or not os.path.exists(dest):
-        dest = cwd
-    logger.debug("Will extract to %s" % dest)
-    os.chdir(dest)
-    if method == 'gzip':
-        compression_flag = 'z'
-    elif method == 'bzip2':
-        compression_flag = 'j'
-    else:
-        compression_flag = ''
-    cmd = "tar x%sf %s" % (compression_flag, filename)
-    logger.debug(cmd)
-    subprocess.Popen(cmd, shell=True)
-    os.chdir(cwd)
 
 
 def run_installer(filename):
@@ -108,18 +76,24 @@ class ScriptInterpreter(object):
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
-        print self.errors
         return not bool(self.errors)
 
-    #def parse_config(self):
-    #    """ Reads the installer file. """
-    #    self.game = self.rules['name']
-    #    self.game_slug = os.path.basename(self.installer_path)[:-4]
+    @classmethod
+    def _map_command(cls, command_data):
+        if isinstance(command_data, dict):
+            command_name = command_data.keys()[0]
+            command_params = command_data[command_name]
+        else:
+            command_name = command_data
+            command_params = ""
+        command_name = command_name.replace("-", "_")
+        command_name = command_name.strip("_")
+        if not hasattr(cls, command_name):
+            raise ScriptingError("The command %s does not exists"
+                                 % command_name)
+        return getattr(cls, command_name), command_params
 
-    #    self.actions = self.rules['installer']
-    #    self.lutris_config = LutrisConfig(runner=self.game_info['runner'])
-    #    return True
-    def substitute(self, path_ref, path_type):
+    def _substitute(self, path_ref, path_type):
         if not path_ref.startswith("$%s" % path_type):
             return
         if path_type == "GAMEDIR":
@@ -141,13 +115,13 @@ class ScriptInterpreter(object):
                 )
         src_ref = params['src']
         src = (self.files.get(src_ref)
-               or self.substitute(src_ref, 'CACHE')
-               or self.substitute(src_ref, 'GAMEDIR'))
+               or self._substitute(src_ref, 'CACHE')
+               or self._substitute(src_ref, 'GAMEDIR'))
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
         dst_ref = params['dst']
-        dst = (self.substitute(dst_ref, 'GAMEDIR')
-               or self.substitute(dst_ref, 'HOME'))
+        dst = (self._substitute(dst_ref, 'GAMEDIR')
+               or self._substitute(dst_ref, 'HOME'))
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
         return (src, dst)
@@ -166,6 +140,32 @@ class ScriptInterpreter(object):
             self.errors.append("Can't move %s to destination %s" % (src, dst))
             return False
         return True
+
+    def extract(self, data):
+        """ Extracts a file, guessing the compression method """
+        filename = self.files.get(data.get('file'))
+        if not filename:
+            logger.error("No file for '%s' in game files" % data)
+            return False
+        if not os.path.exists(filename):
+            logger.error("%s does not exists" % filename)
+            return False
+        msg = "Extracting %s" % filename
+        logger.debug(msg)
+        self.set_status(msg)
+        _, extension = os.path.splitext(filename)
+        if extension == ".zip":
+            extract.unzip(filename, self.game_dir)
+        elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
+            extract.untar(filename, None)
+        elif filename.endswith('.tar.bz2'):
+            extract.untar(filename, None, 'bzip2')
+        else:
+            logger.error("unrecognised file extension %s" % extension)
+            return False
+
+    def _delete(self, data):
+        print "Script has requested to delete %s" % data
 
 
 # pylint: disable=R0904
@@ -425,7 +425,6 @@ class Installer(Gtk.Dialog):
                 'insert-disc': self._insert_disc,
                 'extract': self._extract,
                 'move': self._move,
-                'request_media': self._request_media,
                 'run': self._run,
                 'runner': self._runner_task,
                 'check_md5': self._check_md5,
@@ -526,43 +525,6 @@ class Installer(Gtk.Dialog):
         calculate_md5(self.gamefiles.get(data))
         print self.gamefiles
         print data
-
-    def _insert_disc(self, _data):
-        print "Insert disc"
-
-    def _extract(self, data):
-        """ Extracts a file, guessing the compression method """
-        filename = self.gamefiles.get(data.get('file'))
-        if not filename:
-            logger.error("No file for '%s' in game files" % data)
-            return False
-        if not os.path.exists(filename):
-            logger.error("%s does not exists" % filename)
-            return False
-        msg = "Extracting %s" % filename
-        logger.debug(msg)
-        self.status_label.set_text(msg)
-        _, extension = os.path.splitext(filename)
-        if extension == ".zip":
-            unzip(filename, self.game_dir)
-        elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-            untar(filename, None)
-        elif filename.endswith('.tar.bz2'):
-            untar(filename, None, 'bzip2')
-        else:
-            logger.error("unrecognised file extension %s" % extension)
-            return False
-
-    def _delete(self, data):
-        print "Script has requested to delete %s" % data
-
-    def _request_media(self, data):
-        """Prompt user to insert a removable media"""
-        path = data.get('default', '')
-        if os.path.exists(os.path.join(path, data['contains'])):
-            return True
-        else:
-            return False
 
     def _run(self, executable):
         """Run an executable script"""

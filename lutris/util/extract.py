@@ -2,6 +2,7 @@ import os
 import tarfile
 import zipfile
 import gzip
+import subprocess
 from lutris.util.log import logger
 
 
@@ -42,3 +43,36 @@ def decompress_gz(file_path):
     dest_file.close()
 
     return dest_path
+
+
+def unzip(filename, dest=None):
+    """Unzips a file"""
+    command = ["unzip", '-o', filename]
+    if dest:
+        command = command + ['-d', dest]
+    subprocess.call(command)
+
+
+def unrar(filename):
+    """Unrar a file"""
+
+    subprocess.call(["unrar", "x", filename])
+
+
+def untar(filename, dest=None, method='gzip'):
+    """Untar a file"""
+    cwd = os.getcwd()
+    if dest is None or not os.path.exists(dest):
+        dest = cwd
+    logger.debug("Will extract to %s" % dest)
+    os.chdir(dest)
+    if method == 'gzip':
+        compression_flag = 'z'
+    elif method == 'bzip2':
+        compression_flag = 'j'
+    else:
+        compression_flag = ''
+    cmd = "tar x%sf %s" % (compression_flag, filename)
+    logger.debug(cmd)
+    subprocess.Popen(cmd, shell=True)
+    os.chdir(cwd)
