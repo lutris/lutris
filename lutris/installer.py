@@ -6,6 +6,7 @@ import yaml
 import shutil
 import urllib2
 import platform
+import subprocess
 
 from gi.repository import Gtk
 
@@ -18,7 +19,7 @@ from lutris.util.files import calculate_md5
 from lutris.util import extract
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import FileDialog, ErrorDialog
+from lutris.gui.dialogs import FileDialog, ErrorDialog, NoticeDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris import settings
@@ -37,9 +38,18 @@ class ScriptingError(Exception):
     def __str__(self):
         return self.message + "\n" + repr(self.faulty_data)
 
+_excepthook = sys.excepthook
+
 
 def error_handler(error_type, value, traceback):
-    ErrorDialog(value.message + "\n<b>" + str(value.faulty_data) + "</b>")
+    if error_type == ScriptingError:
+        message = value.message
+        if value.faulty_data:
+            message += "\n<b>" + str(value.faulty_data) + "</b>"
+        ErrorDialog(message)
+    else:
+        _excepthook(error_type, value, traceback)
+sys.excepthook = error_handler
 
 
 class ScriptInterpreter(object):
@@ -86,7 +96,7 @@ class ScriptInterpreter(object):
                 self.errors.append("Missing field '%s'" % field)
         return not bool(self.errors)
 
-    def run(self):
+    def _start_install(self):
         """ Launch the install process """
         if not os.path.exists(self.target_path):
             os.makedirs(self.target_path)
@@ -178,8 +188,8 @@ class ScriptInterpreter(object):
 
     def _cleanup(self):
         print "To delete:"
-        for game_file in self.game_files:
-            print game_file
+        for file_id in self.game_files:
+            print self.game_files[file_id]
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
@@ -190,6 +200,8 @@ class ScriptInterpreter(object):
             'realname': self.script['name'],
             'runner': self.script['runner']
         }
+        if 'system' in self.script:
+            config_data['system'] = self.script['system']
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
@@ -234,10 +246,10 @@ class ScriptInterpreter(object):
                                  % command_name)
         return getattr(cls, command_name), command_params
 
-    def _substitute(self, path_ref, path_type):
+    def _substitute(self, path_ref, path_type, safe=True):
         """ Replace path aliases with real paths """
-        if not path_ref.startswith("$%s" % path_type):
-            return
+        if safe and not path_ref.startswith("$%s" % path_type):
+            return ""
         if path_type == "GAMEDIR":
             return path_ref.replace("$GAMEDIR", self.target_path)
         if path_type == "CACHE":
@@ -265,6 +277,25 @@ class ScriptInterpreter(object):
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
         return (src, dst)
+
+    def insert_disc(self, data):
+        NoticeDialog("Insert game disc to continue")
+
+    def execute(self, data):
+        """Run an executable script"""
+        if isinstance(data, dict):
+            exec_id = data['file']
+            args = self._substitute(data['args'], 'GAMEDIR', safe=False).split()
+        else:
+            exec_id = data
+            args = []
+        exec_path = self.game_files[exec_id]
+        if not os.path.exists(exec_path):
+            raise ScriptingError("Unable to find required executable",
+                                 exec_path)
+        else:
+            os.popen('chmod +x %s' % exec_path)
+            subprocess.call([exec_path] + args)
 
     def check_md5(self, data):
         filename = self.game_files.get(data['file'])
@@ -349,9 +380,6 @@ class InstallerDialog(Gtk.Dialog):
     # http.download_asset(icon_url, icon_dest, True)
 
     def __init__(self, game_ref):
-
-        sys.excepthook = error_handler
-
         Gtk.Dialog.__init__(self)
 
         # Dialog properties
@@ -403,7 +431,7 @@ class InstallerDialog(Gtk.Dialog):
         self.interpreter.target_path = text_entry.get_text()
 
     def on_install_clicked(self, button):
-        self.interpreter.run()
+        self.interpreter._start_install()
 
     def ask_user_for_file(self):
         dlg = FileDialog()
@@ -458,7 +486,6 @@ class InstallerDialog(Gtk.Dialog):
         play_button.show()
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)
-
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
