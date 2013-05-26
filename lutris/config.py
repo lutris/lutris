@@ -18,28 +18,26 @@
 """Handle the basic configuration of Lutris."""
 
 import os
+import sys
 import yaml
 import logging
 from os.path import join
 
+from gi.repository import Gio
+
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.gconf import GConfSetting
 from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
 
 
 def register_handler():
     """ Register the lutris: protocol to open with the application. """
     logger.info("registering protocol")
-    defaults = (('/desktop/gnome/url-handlers/lutris/command', "lutris '%s'"),
-                ('/desktop/gnome/url-handlers/lutris/enabled', True),
-                ('/desktop/gnome/url-handlers/lutris/needs-terminal', False),)
-
-    for key, value in defaults:
-        logger.debug("registering gconf key %s" % key)
-        setting = GConfSetting(key, type(value))
-        setting.set_key(key, value, override_type=True)
+    executable = os.path.abspath(sys.argv[0])
+    base_key = "desktop.gnome.url-handlers.lutris"
+    settings = Gio.Settings.new(base_key)
+    settings.set_string('command', executable)
 
 
 def check_config(force_wipe=False):

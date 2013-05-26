@@ -32,6 +32,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+## Default config options
+KEEP_CACHED_ASSETS = True
 
 ## Paths
 CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')

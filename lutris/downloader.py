@@ -66,6 +66,5 @@ class Downloader():
                                                Gio.Cancellable(),
                                                self.mount_cb,
                                                None)
-
         else:
             GLib.idle_add(self.schedule_download)

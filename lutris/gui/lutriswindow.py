@@ -3,6 +3,7 @@
 import os
 import json
 
+
 from gi.repository import Gtk, GLib
 
 #from lutris.util import log

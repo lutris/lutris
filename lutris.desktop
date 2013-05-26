@@ -7,4 +7,4 @@ Exec=lutris %U
 Icon=lutris
 Terminal=false
 Type=Application
-MimeType=application/x-lutris;x-scheme-handler/lutris;
+MimeType=x-scheme-handler/lutris;

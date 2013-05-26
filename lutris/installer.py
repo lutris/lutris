@@ -269,6 +269,8 @@ class ScriptInterpreter(object):
         if not os.path.exists(src):
             self.errors.append("I can't move %s, it does not exist" % src)
             return False
+        if not os.path.exists(dst):
+            os.makedirs(dst)
         target = os.path.join(dst, os.path.basename(src))
         if os.path.exists(target):
             self.errors.append("Destination %s already exists" % target)

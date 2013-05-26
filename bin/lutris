@@ -47,7 +47,7 @@ except ImportError:
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util.log import logger
 from lutris.installer import InstallerDialog
-from lutris.config import check_config
+from lutris.config import check_config, register_handler
 from lutris.game import LutrisGame
 from lutris.pga import get_games
 from lutris.gui.lutriswindow import LutrisWindow
@@ -89,6 +89,7 @@ check_config(force_wipe=False)
 installer = False
 game = None
 
+register_handler()
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 GObject.threads_init()
 
