@@ -343,14 +343,15 @@ class InstallerDialog(Gtk.Dialog):
         self.status_label.set_padding(20, 0)
         self.vbox.add(self.status_label)
 
+        # Main widget box
+        self.widget_box = Gtk.VBox()
+        self.vbox.pack_start(self.widget_box, True, True, 10)
+
         # Target chooser
         default_path = self.interpreter.default_target
         location_entry = FileChooserEntry(default=default_path)
         location_entry.entry.connect('changed', self.on_target_changed)
-        self.vbox.add(location_entry)
-
-        self.widget_box = Gtk.HBox()
-        self.vbox.pack_start(self.widget_box, True, True, 0)
+        self.widget_box.pack_start(location_entry, False, False, 10)
 
         # Separator
         self.vbox.pack_start(Gtk.HSeparator(), True, True, 10)
@@ -376,18 +377,20 @@ class InstallerDialog(Gtk.Dialog):
         dlg = FileDialog()
         return dlg.get_uri()
 
+    def clean_widgets(self):
+        for child_widget in self.widget_box.get_children():
+            child_widget.destroy()
+
     def set_status(self, text):
         self.status_label.set_text(text)
 
     def start_download(self, file_uri, dest_file):
-        if self.download_progress:
-            # Remove existing progress bar
-            self.download_progress.destroy()
+        self.clean_widgets()
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
         self.download_progress.connect('complete', self.download_complete)
-        self.widget_box.pack_start(self.download_progress, True, True, 10)
+        self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
 
@@ -399,19 +402,21 @@ class InstallerDialog(Gtk.Dialog):
         """Actual game installation"""
         self.status_label.set_text("Installation finished !")
 
+        self.clean_widgets()
         desktop_btn = Gtk.Button('Create a desktop shortcut')
         desktop_btn.connect(
             'clicked',
-            lambda d: create_launcher(self.game_slug, desktop=True)
+            lambda d: create_launcher(self.interpreter.game_slug, desktop=True)
         )
         menu_btn = Gtk.Button('Create an icon in the application menu')
         menu_btn.connect(
             'clicked',
-            lambda m: create_launcher(self.game_slug, menu=True)
+            lambda m: create_launcher(self.interpreter.game_slug, menu=True)
         )
         buttons_box = Gtk.HBox()
-        buttons_box.pack_start(desktop_btn, False, False, 10)
-        buttons_box.pack_start(menu_btn, False, False, 10)
+        buttons_box.set_homogeneous(True)
+        buttons_box.pack_start(desktop_btn, True, True, 10)
+        buttons_box.pack_start(menu_btn, True, True, 10)
         buttons_box.show_all()
 
         self.widget_box.pack_start(buttons_box, True, True, 10)
@@ -444,5 +449,5 @@ class InstallerDialog(Gtk.Dialog):
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
-        lutris_game = LutrisGame(self.game_slug)
+        lutris_game = LutrisGame(self.interpreter.game_slug)
         lutris_game.play()
