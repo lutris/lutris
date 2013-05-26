@@ -1,11 +1,11 @@
 # pylint: disable=E1101, E0611
 """Installer module"""
 import os
+import sys
 import yaml
 import shutil
 import urllib2
 import platform
-import subprocess
 
 from gi.repository import Gtk
 
@@ -17,8 +17,8 @@ from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
 from lutris.util import extract
 from lutris.game import LutrisGame
-#from lutris.config import LutrisConfig
-from lutris.gui.dialogs import FileDialog
+from lutris.config import LutrisConfig
+from lutris.gui.dialogs import FileDialog, ErrorDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.shortcuts import create_launcher
 from lutris import settings
@@ -36,6 +36,10 @@ class ScriptingError(Exception):
 
     def __str__(self):
         return self.message + "\n" + repr(self.faulty_data)
+
+
+def error_handler(error_type, value, traceback):
+    ErrorDialog(value.message + "\n<b>" + str(value.faulty_data) + "</b>")
 
 
 class ScriptInterpreter(object):
@@ -57,8 +61,9 @@ class ScriptInterpreter(object):
 
     @property
     def default_target(self):
-        #games_dir = self.lutris_config.get_path()
-        return join(os.path.expanduser('~'), self.game_slug)
+        lutris_config = LutrisConfig(runner=self.script['runner'])
+        games_dir = lutris_config.get_path() or os.path.expanduser('~')
+        return join(games_dir, self.game_slug)
 
     def _fetch_script(self, game_ref):
         if os.path.exists(game_ref):
@@ -150,6 +155,10 @@ class ScriptInterpreter(object):
         if file_uri == "N/A":
             #Ask the user where is located the file
             file_uri = self.parent.ask_user_for_file()
+            if not file_uri:
+                raise ScriptingError(
+                    "Can't continue installation without file", file_id
+                )
 
         # Change parent's status
         self.parent.set_status('Fetching %s' % file_uri)
@@ -304,6 +313,26 @@ class ScriptInterpreter(object):
             logger.error("unrecognised file extension %s" % extension)
             return False
 
+    def runner_task(self, data):
+        """ This action triggers a task within a runner.
+            Mandatory parameters in data are 'task' and 'args'
+        """
+        logger.info("Called runner task")
+        logger.debug(data)
+        logger.debug("runner is %s", self.script['runner'])
+        runner_name = self.script["runner"]
+        task = import_task(runner_name, data['task'])
+        args = data['args']
+        for key in args:
+            if args[key] == "$GAMEDIR":
+                args[key] = self.game_dir
+            if key == 'filename':
+                if args[key] in self.game_files.keys():
+                    args[key] = self.game_files[args[key]]
+        logger.debug("args are %s", repr(args))
+        # FIXME pass args as kwargs and not args
+        task(**args)
+
 
 # pylint: disable=R0904
 class InstallerDialog(Gtk.Dialog):
@@ -320,6 +349,9 @@ class InstallerDialog(Gtk.Dialog):
     # http.download_asset(icon_url, icon_dest, True)
 
     def __init__(self, game_ref):
+
+        sys.excepthook = error_handler
+
         Gtk.Dialog.__init__(self)
 
         # Dialog properties
@@ -427,25 +459,6 @@ class InstallerDialog(Gtk.Dialog):
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)
 
-    def _runner_task(self, data):
-        """ This action triggers a task within a runner.
-            Mandatory parameters in data are 'task' and 'args'
-        """
-        logger.info("Called runner task")
-        logger.debug(data)
-        logger.debug("runner is %s", self.script['runner'])
-        runner_name = self.script["runner"]
-        task = import_task(runner_name, data['task'])
-        args = data['args']
-        for key in args:
-            if args[key] in ("$GAME_DIR", "$GAMEDIR"):
-                args[key] = self.game_dir
-            if key == 'filename':
-                if args[key] in self.game_files.keys():
-                    args[key] = self.game_files[args[key]]
-        logger.debug("args are %s", repr(args))
-        # FIXME pass args as kwargs and not args
-        task(**args)
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
