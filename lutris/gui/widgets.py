@@ -420,6 +420,7 @@ class DownloadProgressBox(Gtk.HBox):
         if self.downloader.cancelled:
             self.progressbar.set_fraction(0)
             self.progress_label.set_text("Download canceled")
+            self.emit('cancelrequested', {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024

@@ -97,10 +97,10 @@ class DownloadDialog(Gtk.Dialog):
     def __init__(self, url, dest):
         super(DownloadDialog, self).__init__("Downloading file")
         self.set_size_request(560, 100)
-        #self.connect('destroy', self.destroy_cb)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
         self.download_progress_box.connect('complete', self.download_complete)
+        self.download_progress_box.connect('cancelrequested', self.download_cancelled)
         label = Gtk.Label(label='Downloading %s' % url)
         label.set_selectable(True)
         label.set_padding(0, 0)
@@ -110,17 +110,11 @@ class DownloadDialog(Gtk.Dialog):
         self.show_all()
         self.download_progress_box.start()
 
-    def destroy_cb(self, widget, data=None):
-        """Action triggered when window is closed"""
-        self.destroy()
-
     def download_complete(self, _widget, _data):
         self.destroy()
 
-    def download_cancel(self, _widget, _data=None):
-        """Action triggered when download is cancelled"""
-        #self.download_progress_box.cancel()
-        pass
+    def download_cancelled(self, _widget, data):
+        self.destroy()
 
 
 class PgaSourceDialog(GtkBuilderDialog):

@@ -1,6 +1,6 @@
 """ Non-blocking Gio Downloader  """
 import time
-from gi.repository import Gio, GLib, GObject
+from gi.repository import Gio, GLib, Gtk
 
 
 class Downloader():
@@ -14,7 +14,6 @@ class Downloader():
     def __init__(self, url, dest):
         self.remote = Gio.File.new_for_uri(url)
         self.local = Gio.File.new_for_path(dest)
-        self.job_cancellable = Gio.Cancellable()
         self.cancellable = Gio.Cancellable()
         self.progress = 0
         self.start_time = None
@@ -29,22 +28,44 @@ class Downloader():
 
     def cancel(self):
         self.cancellable.cancel()
-        self.job_cancellable.cancel()
         self.cancelled = True
 
-    def download(self, job, cancellable, user_data):
+    def download(self, job, cancellable, _data):
         flags = Gio.FileCopyFlags.OVERWRITE
         try:
             self.remote.copy(self.local, flags, self.cancellable,
-                            self.progress_callback, None)
-        except GLib.GError:
-            print "Download canceled"
-            self.cancelled = True
+                             self.progress_callback, None)
+        except GLib.GError as ex:
+            print "transfer error:", ex.message
+            if ex.code == Gio.IOErrorEnum.TIMED_OUT:
+                # For unknown reasons, FTP transfers times out at 25 seconds
+                # Hint: 25 seconds is the default timeout of GDusProxy
+                # https://developer.gnome.org/gio/2.26/GDBusProxy.html#GDBusProxy--g-default-timeout
+                print "FTP tranfers not supported yet"
 
-    def schedule_download(self, data):
+    def mount_cb(self, fileobj, result, _data):
+        try:
+            mount_success = fileobj.mount_enclosing_volume_finish(result)
+            if mount_success:
+                GLib.idle_add(self.schedule_download)
+        except GLib.GError as ex:
+            if(ex.code != Gio.IOErrorEnum.ALREADY_MOUNTED and
+               ex.code != Gio.IOErrorEnum.NOT_SUPPORTED):
+                print ex.message
+
+    def schedule_download(self):
         Gio.io_scheduler_push_job(self.download, None,
-                                  GLib.PRIORITY_HIGH, self.job_cancellable)
+                                  GLib.PRIORITY_DEFAULT_IDLE,
+                                  Gio.Cancellable())
 
     def start(self):
         self.start_time = time.time()
-        GLib.idle_add(self.schedule_download, None)
+        if not self.remote.query_exists(Gio.Cancellable()):
+            self.remote.mount_enclosing_volume(Gio.MountMountFlags.NONE,
+                                               Gtk.MountOperation(),
+                                               Gio.Cancellable(),
+                                               self.mount_cb,
+                                               None)
+
+        else:
+            GLib.idle_add(self.schedule_download)
