@@ -18,6 +18,7 @@
 """ Module that actually runs the games. """
 
 import os
+import sys
 import time
 import subprocess
 
@@ -83,6 +84,15 @@ def reset_pulse():
     logger.debug("PulseAudio restarted")
 
 
+def setup_padsp(setting, command):
+    command = command.split()[0]
+    if setting == 'padsp32':
+        launch_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        return os.path.join(launch_dir, 'padsp32')
+    elif setting == 'padsp':
+        return 'padsp'
+
+
 class LutrisGame(object):
     """"This class takes cares about loading the configuration for a game
     and running it."""
@@ -132,14 +142,14 @@ class LutrisGame(object):
         logger.debug("get ready for %s " % self.get_real_name())
         gameplay_info = self.runner.play()
 
-        if type(gameplay_info) == dict:
+        if isinstance(gameplay_info, dict):
             if 'error' in gameplay_info:
                 show_error_message(gameplay_info)
                 return False
             game_run_args = gameplay_info["command"]
         else:
-            game_run_args = gameplay_info
             logger.debug("Old method used for returning gameplay infos")
+            game_run_args = gameplay_info
 
         resolution = self.game_config.get_system("resolution")
         if resolution:
@@ -169,7 +179,8 @@ class LutrisGame(object):
         logger.debug("Game args : %s", str(game_run_args))
         command = " " . join(game_run_args)
         #Setting OSS Wrapper
-        oss_wrapper = self.game_config.get_system("oss_wrapper")
+        oss_wrapper = setup_padsp(self.game_config.get_system("oss_wrapper"),
+                                  command)
         if oss_wrapper:
             command = oss_wrapper + " " + command
 
