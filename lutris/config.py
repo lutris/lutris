@@ -33,11 +33,19 @@ from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
 
 def register_handler():
     """ Register the lutris: protocol to open with the application. """
-    logger.info("registering protocol")
+    logger.debug("registering protocol")
     executable = os.path.abspath(sys.argv[0])
     base_key = "desktop.gnome.url-handlers.lutris"
-    settings = Gio.Settings.new(base_key)
-    settings.set_string('command', executable)
+    schema_directory = "/usr/share/glib-2.0/schemas/"
+    schema_source = Gio.SettingsSchemaSource.new_from_directory(
+        schema_directory, None, True
+    )
+    schema = schema_source.lookup(base_key, True)
+    if schema:
+        settings = Gio.Settings.new(base_key)
+        settings.set_string('command', executable)
+    else:
+        logger.warning("Schema not installed, cannot register url-handler")
 
 
 def check_config(force_wipe=False):
