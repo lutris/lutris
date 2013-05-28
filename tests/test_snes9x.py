@@ -9,4 +9,7 @@ LOGGER = logging.getLogger(__name__)
 class TestUae(TestCase):
     def test_set_option(self):
         snes9x_runner = snes9x()
-        snes9x_runner.set_option("full_screen_on_open", "1")
+        if snes9x_runner.is_installed():
+            snes9x_runner.set_option("full_screen_on_open", "1")
+        else:
+            LOGGER.info("snes9x not installed can't run test")

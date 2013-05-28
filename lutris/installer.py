@@ -54,17 +54,17 @@ sys.excepthook = error_handler
 
 class ScriptInterpreter(object):
     """ Class that converts raw script data to actions """
-    game_name = None
-    game_slug = None
-    game_files = {}
-    target_path = None
-    errors = []
 
     def __init__(self, game_ref, parent):
+        self.errors = []
+        self.target_path = None
         self.parent = parent
+        self.game_name = None
+        self.game_slug = None
+        self.game_files = {}
         self.script = self._fetch_script(game_ref)
         if not self.is_valid():
-            raise ScriptingError("Invalid script", self.script)
+            raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
         self.game_slug = slugify(self.game_name)
         self.target_path = self.default_target

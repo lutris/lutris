@@ -28,7 +28,7 @@ PGA_DB = settings.PGA_DB
 
 
 def create_games(cursor):
-    create_game_table_query = """CREATE TABLE games (
+    create_game_table_query = """CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY,
         name TEXT,
         slug TEXT,
@@ -41,7 +41,7 @@ def create_games(cursor):
 
 
 def create_sources(cursor):
-    create_sources_table_query = """CREATE TABLE sources (
+    create_sources_table_query = """CREATE TABLE IF NOT EXISTS sources (
         id INTEGER PRIMARY KEY,
         uri TEXT
     )"""
@@ -80,7 +80,8 @@ def add_game(name, runner, slug=None):
     """Adds a game to the PGA database."""
     if not slug:
         slug = slugify(name)
-    sql.db_insert("games", {'name': name, 'slug': slug, 'runner': runner})
+    sql.db_insert(PGA_DB, "games",
+                  {'name': name, 'slug': slug, 'runner': runner})
 
 
 def delete_game(name):
