@@ -40,7 +40,3 @@ class TestPersonnalGameArchive(unittest.TestCase):
         game_list = pga.get_games(name_filter='bang')
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'bang')
-
-
-if __name__ == '__main__':
-    unittest.main()
