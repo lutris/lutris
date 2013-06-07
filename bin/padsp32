@@ -75,11 +75,17 @@ done
 
 shift $(( $OPTIND - 1 ))
 
+if [ -e "/usr/lib/i386-linux-gnu/pulseaudio/libpulsedsp.so" ]; then
+    libpulsedsp="/usr/lib/i386-linux-gnu/pulseaudio/libpulsedsp.so"
+elif [ -e "/usr/lib/pulseaudio/libpulsedsp.so" ]; then
+    libpulsedsp="/usr/lib/pulseaudio/libpulsedsp.so"
+fi
+
 if `pgrep -f /usr/bin/pulseaudio 1>/dev/null` ; then
   if [ x"$LD_PRELOAD" = x ] ; then
-     LD_PRELOAD="/usr/lib/i386-linux-gnu/pulseaudio/libpulsedsp.so"
+     LD_PRELOAD=$libpulsedsp
   else
-     LD_PRELOAD="$LD_PRELOAD /usr/lib/i386-linux-gnu/pulseaudio/libpulsedsp.so"
+     LD_PRELOAD="$LD_PRELOAD $libpulsedsp"
   fi
 fi
 

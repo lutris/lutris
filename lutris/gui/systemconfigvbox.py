@@ -33,34 +33,19 @@ class SystemConfigVBox(ConfigVBox):
         ConfigVBox.__init__(self, "system", caller)
         self.lutris_config = lutris_config
 
-        #TODO : Move the list of window manager somewhere else, in
-        #       lutris_desktop_control for example.
-        #TODO : Auto detect the installed WMs on the user's machine
-        #TODO : If the user_wm has not yet been set, detect the WM currently
-        #       running
-        wm_list = [("Compiz", "compiz"),  ("OpenBox", "openbox"),
-                   ("KWin", "kwin"), ("Metacity", "metacity"),
-                   ("Metacity (Composited)", "metacity_composited")]
-
-        #TODO : Same thing for OSS Wrappers
-        oss_list = [("None (don't use OSS)", "none"),
-                    ("aoss (OSS Wrapper for Alsa)", "aoss"),
-                    ("esddsp (OSS Wrapper for esound)", "esddsp"),
-                    ("padsp (OSS Wrapper for PulseAudio)", "padsp")]
+        oss_list = [
+            ("None (don't use OSS)", "none"),
+            ("padsp (PulseAudio OSS Wrapper)", "padsp"),
+            ("padsp32 (PulseAudio OSS Wrapper for 32bit apps)", "padsp32"),
+            ("aoss (OSS Wrapper for Alsa)", "aoss"),
+            ("esddsp (OSS Wrapper for esound)", "esddsp"),
+        ]
 
         resolution_list = get_resolutions()
 
         self.options = [{'option': 'game_path',
                         'type': 'directory_chooser',
                         'label': 'Default game path'},
-                        {'option': 'user_wm',
-                        'type': 'one_choice',
-                        'label': 'Desktop Window Manager',
-                        'choices': wm_list},
-                        {'option': 'game_wm',
-                        'type': 'one_choice',
-                        'label': 'Gaming Window Manager',
-                        'choices': wm_list},
                         {'option': 'resolution',
                         'type': 'one_choice',
                         'label': 'Resolution',
