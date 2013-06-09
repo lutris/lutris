@@ -17,6 +17,8 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
 from lutris.util import extract
+
+from lutris.runners.steam import steam
 from lutris.game import LutrisGame
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import FileDialog, ErrorDialog, NoticeDialog
@@ -137,11 +139,24 @@ class ScriptInterpreter(object):
         if isinstance(game_file[file_id], dict):
             filename = game_file[file_id]['filename']
             file_uri = game_file[file_id]['url']
-            if file_uri.startswith("/"):
-                file_uri = "file://" + file_uri
         else:
             file_uri = game_file[file_id]
             filename = os.path.basename(file_uri)
+        if file_uri.startswith("/"):
+            file_uri = "file://" + file_uri
+        elif file_uri.startswith("$WINESTEAM"):
+            parts = file_uri.split(":", 2)
+            appid = parts[1]
+            steam_runner = steam()
+            if not steam_runner.is_installed():
+                steam_runner.install()
+            game_path = steam_runner.get_game_data_path(appid)
+            if not game_path:
+                steam_runner.install_game(appid)
+                game_path = steam_runner.get_game_data_path(appid)
+            self.game_files[file_id] = os.path.join(game_path, parts[2])
+            self.iter_game_files()
+            return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
         # Check for file availability in PGA
@@ -246,16 +261,15 @@ class ScriptInterpreter(object):
                                  % command_name)
         return getattr(cls, command_name), command_params
 
-    def _substitute(self, path_ref, path_type, safe=True):
+    def _substitute(self, path_ref):
         """ Replace path aliases with real paths """
-        if safe and not path_ref.startswith("$%s" % path_type):
-            return ""
-        if path_type == "GAMEDIR":
-            return path_ref.replace("$GAMEDIR", self.target_path)
-        if path_type == "CACHE":
-            return path_ref.replace("$CACHE", settings.DATA_DIR)
-        if path_type == "HOME":
-            return path_ref.replace("$HOME", os.path.expanduser("~"))
+        if path_ref.startswith("$GAMEDIR"):
+            path_ref = path_ref.replace("$GAMEDIR", self.target_path)
+        elif path_ref.startswith("$CACHE"):
+            path_ref = path_ref.replace("$CACHE", settings.DATA_DIR)
+        elif path_ref.startswith("$HOME"):
+            path_ref = path_ref.replace("$HOME", os.path.expanduser("~"))
+        return path_ref
 
     def _get_move_paths(self, params):
         """ Validate and converts raw data passed to 'move' """
@@ -266,14 +280,11 @@ class ScriptInterpreter(object):
                     % required_param, params
                 )
         src_ref = params['src']
-        src = (self.game_files.get(src_ref)
-               or self._substitute(src_ref, 'CACHE')
-               or self._substitute(src_ref, 'GAMEDIR'))
+        src = (self.game_files.get(src_ref) or self._substitute(src_ref))
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
         dst_ref = params['dst']
-        dst = (self._substitute(dst_ref, 'GAMEDIR')
-               or self._substitute(dst_ref, 'HOME'))
+        dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
         return (src, dst)
@@ -285,7 +296,7 @@ class ScriptInterpreter(object):
         """Run an executable script"""
         if isinstance(data, dict):
             exec_id = data['file']
-            args = self._substitute(data['args'], 'GAMEDIR', safe=False).split()
+            args = self._substitute(data['args']).split()
         else:
             exec_id = data
             args = []
@@ -302,6 +313,10 @@ class ScriptInterpreter(object):
         _hash = calculate_md5(filename)
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
+
+    def mergecopy(self, params):
+        src, dst = self._get_move_paths(params)
+        raise ScriptingError("%s, %s" % (str(src), str(dst)))
 
     def move(self, params):
         """ Move a file or directory """
@@ -325,7 +340,7 @@ class ScriptInterpreter(object):
         """ Extracts a file, guessing the compression method """
         filename = self.game_files.get(data['file'])
         if not filename:
-            logger.error("No file for '%s' in game files" % data)
+            raise ScriptingError("No file for '%s' in game files %s " % (data, self.game_files))
             return False
         if not os.path.exists(filename):
             logger.error("%s does not exists" % filename)

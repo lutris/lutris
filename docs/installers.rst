@@ -2,6 +2,24 @@
 Writing installers
 ==================
 
+Fetching required files
+=======================
+
+The ``files`` section of the installer references every file needed for 
+installing the game. The section's keys are an unique identifier used later by 
+the installer. The value can be either a string containing an URI pointing at 
+the required file or a dictionnary containing the ``filename`` and ``uri`` keys.
+The ``uri`` key is equivalent to passing only a string to the installer and the 
+``filename`` key will be used to give the local copy another name.
+
+If the game contains copyrighted files that cannot be redistributed, the value 
+should be ``N\A``. When the installer encounter this value, it will prompt the 
+user for the location of the file.
+
+If the game makes use of (Windows) Steam data, the value should be 
+``$WINESTEAM:appid:/path/to/data``. This will check that the data is available 
+or install it otherwise.
+
 
 Displaying an 'Insert disc' dialog
 ----------------------------------
@@ -36,5 +54,5 @@ The ``move`` command cannot overwrite files.
 Calling the installer
 =====================
 
-The installer can be called with the ``lutris:<game-slug>`` url scheme or by 
+The installer can be called with the ``lutris:<game-slug>`` url scheme or by
 specifying the path to an installer script.

@@ -21,6 +21,7 @@
 
 """Runner for the Steam platform"""
 import os
+import subprocess
 from gi.repository import Gtk
 
 from lutris.gui.dialogs import QuestionDialog, DirectoryDialog
@@ -54,6 +55,22 @@ def get_appid_from_filename(filename):
     return appid
 
 
+def vdf_parse(steam_config_file, config):
+    line = " "
+    while line:
+        line = steam_config_file.readline()
+        if not line or line.strip() == "}":
+            return config
+        line_elements = line.strip().split("\"")
+        if len(line_elements) == 3:
+            key = line_elements[1]
+            steam_config_file.readline()  # skip '{'
+            config[key] = vdf_parse(steam_config_file, {})
+        else:
+            config[line_elements[1]] = line_elements[3]
+    return config
+
+
 # pylint: disable=C0103
 class steam(wine):
     """Runs Steam games with Wine"""
@@ -79,9 +96,9 @@ class steam(wine):
             return
 
         dlg = DirectoryDialog('Where is located Steam ?')
-
+        self.game_path = dlg.folder
         config = LutrisConfig(runner='steam')
-        config.runner_config = {'system': {'game_path': dlg.folder}}
+        config.runner_config = {'system': {'game_path': self.game_path}}
         config.save(config_type='runner')
 
     def is_installed(self):
@@ -90,45 +107,41 @@ class steam(wine):
         """
         if not self.check_depends() or not self.game_path:
             return False
-        print self.game_path
-        print self.executable
         exe_path = os.path.join(self.game_path, self.executable)
         return self.game_path and os.path.exists(exe_path)
 
+    def get_steam_config(self):
+        if not self.game_path:
+            self.install()
+        config_filename = os.path.join(self.game_path, "config/config.vdf")
+        with open(config_filename, "r") as steam_config_file:
+            config = vdf_parse(steam_config_file, {})
+        return config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
+
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        game_list = []
-        os.chdir(os.path.join(self.game_path, "appcache"))
-        max_counter = 10010
-        files = []
-        counter = 0
-        for filename in os.listdir("."):
-            counter = counter + 1
-            if counter < max_counter:
-                files.append(filename)
-            else:
-                break
+        config = self.get_steam_config()
+        apps = config["apps"]
+        return apps.keys()
 
-        steam_apps = []
-        for filename in files:
-            if filename.endswith(".vdf"):
-                test_file = open(filename, "rb")
-                appid = get_appid_from_filename(filename)
-                appname = get_name(test_file)
-                if appname:
-                    steam_apps.append((appid, appname, filename))
-                test_file.close()
+    def get_game_data_path(self, appid):
+        steam_config = self.get_steam_config()
+        game_config = steam_config["apps"].get(appid)
+        if not game_config:
+            return False
+        if game_config.get('HasAllLocalContent'):
+            installdir = game_config['installdir'].replace("\\\\", "/")[2:]
+            if os.path.exists(installdir):
+                return installdir
+        return False
 
-        steam_apps.sort()
-        steam_apps_file = open(
-            os.path.join(os.path.expanduser("~"), "steamapps.txt"), "w"
+    def install_game(self, appid):
+        #print "Q2", apps["2320"]
+        #print "Shadow", apps["238070"]
+        subprocess.call(
+            ["wine", '"%s"' % os.path.join(self.game_path, self.executable),
+             "-no-drwite", "steam://install/%s" % appid]
         )
-        for steam_app in steam_apps:
-            #steam_apps_file.write("%d\t%s\n" % (steam_app[0],steam_app[1]))
-            #print ("%d\t%s\n" % (steam_app[0],steam_app[1]))
-            game_list.append((steam_app[0], steam_app[1]))
-        steam_apps_file.close()
-        return game_list
 
     def play(self):
         appid = self.settings['game']['appid']
