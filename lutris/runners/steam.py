@@ -24,9 +24,12 @@ import os
 import subprocess
 from gi.repository import Gtk
 
-from lutris.gui.dialogs import QuestionDialog, DirectoryDialog
+from lutris.gui.dialogs import QuestionDialog, DirectoryDialog, DownloadDialog
 from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
+from lutris import settings
+
+STEAM_INSTALLER_URL = "http://cdn.steampowered.com/download/SteamInstall.msi"
 
 
 def get_name(steam_file):
@@ -93,7 +96,11 @@ class steam(wine):
             'question': 'Do you already have Steam on your computer ?'
         })
         if dlg.result == Gtk.ResponseType.NO:
-            return
+            installer_dest_path = os.path.join(settings.TMP_PATH,
+                                               "SteamInstall.msi")
+            DownloadDialog(STEAM_INSTALLER_URL, installer_dest_path)
+            print "download_complete"
+            self.msi_exec(installer_dest_path)
 
         dlg = DirectoryDialog('Where is located Steam ?')
         self.game_path = dlg.folder

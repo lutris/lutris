@@ -189,6 +189,12 @@ class wine(Runner):
             return False
         return command
 
+    def msi_exec(self, msi_file):
+        return self.wine_exec(["msiexec", "/i", msi_file])
+
+    def wine_exec(self, params):
+        subprocess.call(["wine"] + params)
+
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
         for key in self.reg_keys.keys():
