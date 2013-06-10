@@ -22,14 +22,11 @@
 """Runner for the Steam platform"""
 import os
 import subprocess
-from gi.repository import Gtk
 
-from lutris.gui.dialogs import QuestionDialog, DirectoryDialog, DownloadDialog
+from lutris.gui.dialogs import QuestionDialog, DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.config import LutrisConfig
-from lutris import settings
 
-STEAM_INSTALLER_URL = "http://cdn.steampowered.com/download/SteamInstall.msi"
 
 
 def get_name(steam_file):
@@ -76,6 +73,9 @@ def vdf_parse(steam_config_file, config):
 
 # pylint: disable=C0103
 class steam(wine):
+
+    installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
+
     """Runs Steam games with Wine"""
     def __init__(self, settings=None):
         super(steam, self).__init__(settings)
@@ -90,18 +90,9 @@ class steam(wine):
         ]
         self.settings = settings
 
-    def install(self):
-        dlg = QuestionDialog({
-            'title': 'Installing Steam',
-            'question': 'Do you already have Steam on your computer ?'
-        })
-        if dlg.result == Gtk.ResponseType.NO:
-            installer_dest_path = os.path.join(settings.TMP_PATH,
-                                               "SteamInstall.msi")
-            DownloadDialog(STEAM_INSTALLER_URL, installer_dest_path)
-            print "download_complete"
-            self.msi_exec(installer_dest_path)
-
+    def install(self, installer_path=None):
+        if installer_path:
+            self.msi_exec(installer_path)
         dlg = DirectoryDialog('Where is located Steam ?')
         self.game_path = dlg.folder
         config = LutrisConfig(runner='steam')
@@ -118,8 +109,6 @@ class steam(wine):
         return self.game_path and os.path.exists(exe_path)
 
     def get_steam_config(self):
-        if not self.game_path:
-            self.install()
         config_filename = os.path.join(self.game_path, "config/config.vdf")
         with open(config_filename, "r") as steam_config_file:
             config = vdf_parse(steam_config_file, {})
@@ -145,8 +134,8 @@ class steam(wine):
     def install_game(self, appid):
         #print "Q2", apps["2320"]
         #print "Shadow", apps["238070"]
-        subprocess.call(
-            ["wine", '"%s"' % os.path.join(self.game_path, self.executable),
+        subprocess.Popen(
+            ["wine", '%s' % os.path.join(self.game_path, self.executable),
              "-no-drwite", "steam://install/%s" % appid]
         )
 

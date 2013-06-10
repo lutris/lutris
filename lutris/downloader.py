@@ -47,6 +47,7 @@ class Downloader():
         try:
             mount_success = fileobj.mount_enclosing_volume_finish(result)
             if mount_success:
+
                 GLib.idle_add(self.schedule_download)
         except GLib.GError as ex:
             if(ex.code != Gio.IOErrorEnum.ALREADY_MOUNTED and

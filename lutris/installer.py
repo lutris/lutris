@@ -123,6 +123,10 @@ class ScriptInterpreter(object):
         else:
             self._iter_commands()
 
+    def install_steam_game(self, appid):
+        steam_runner = steam()
+        steam_runner.install_game(appid)
+
     def _download_file(self, game_file):
         """Download a file referenced in the installer script
 
@@ -133,6 +137,13 @@ class ScriptInterpreter(object):
            - filename : force destination filename when url is present or path
                         of local file
         """
+        def on_steam_installed(appid):
+            game_path = steam_runner.get_game_data_path(appid)
+            if not game_path:
+                steam_runner.install_game(appid)
+                game_path = steam_runner.get_game_data_path(appid)
+            self.game_files[file_id] = os.path.join(game_path, parts[2])
+            self.iter_game_files()
 
         # Setup file_id, file_uri and local filename
         file_id = game_file.keys()[0]
@@ -149,13 +160,17 @@ class ScriptInterpreter(object):
             appid = parts[1]
             steam_runner = steam()
             if not steam_runner.is_installed():
-                steam_runner.install()
-            game_path = steam_runner.get_game_data_path(appid)
-            if not game_path:
-                steam_runner.install_game(appid)
-                game_path = steam_runner.get_game_data_path(appid)
-            self.game_files[file_id] = os.path.join(game_path, parts[2])
-            self.iter_game_files()
+                steam_installer_path = os.path.join(
+                    settings.TMP_PATH, "SteamInstall.msi"
+                )
+                self.parent.start_download(
+                    steam.installer_url,
+                    steam_installer_path,
+                    self.parent.on_steam_downloaded,
+                    appid
+                )
+            else:
+                self.install_steam_game(appid)
             return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -459,18 +474,26 @@ class InstallerDialog(Gtk.Dialog):
     def set_status(self, text):
         self.status_label.set_text(text)
 
-    def start_download(self, file_uri, dest_file):
+    def start_download(self, file_uri, dest_file, callback=None, data=None):
         self.clean_widgets()
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
-        self.download_progress.connect('complete', self.download_complete)
+        on_download_complete_cb = callback or self.download_complete
+        self.download_progress.connect('complete', on_download_complete_cb,
+                                       (dest_file, data))
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
 
-    def download_complete(self, widget=None, data=None):
+    def download_complete(self, widget, data=None):
         """Action called on a completed download"""
+        self.interpreter.iter_game_files()
+
+    def on_steam_downloaded(self, widget, data, steam_info):
+        steam_runner = steam()
+        steam_runner.install(steam_info[0])
+        steam_runner.install_game(steam_info[1])
         self.interpreter.iter_game_files()
 
     def on_install_finished(self):

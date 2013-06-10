@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Common message dialogs"""
 import os
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris.gui.widgets import DownloadProgressBox
 
@@ -94,13 +94,16 @@ class FileDialog(Gtk.FileChooserDialog):
 
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
+
     def __init__(self, url, dest):
         super(DownloadDialog, self).__init__("Downloading file")
         self.set_size_request(560, 100)
         params = {'url': url, 'dest': dest}
         self.download_progress_box = DownloadProgressBox(params)
-        self.download_progress_box.connect('complete', self.download_complete)
-        self.download_progress_box.connect('cancelrequested', self.download_cancelled)
+        self.download_progress_box.connect('complete',
+                                           self.download_complete)
+        self.download_progress_box.connect('cancelrequested',
+                                           self.download_cancelled)
         label = Gtk.Label(label='Downloading %s' % url)
         label.set_selectable(True)
         label.set_padding(0, 0)
