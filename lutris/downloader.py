@@ -1,6 +1,6 @@
 """ Non-blocking Gio Downloader  """
 import time
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, Gtk, Gdk
 
 
 class Downloader():
@@ -47,14 +47,14 @@ class Downloader():
         try:
             mount_success = fileobj.mount_enclosing_volume_finish(result)
             if mount_success:
-
-                GLib.idle_add(self.schedule_download)
+                Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT,
+                                     self.schedule_download, None)
         except GLib.GError as ex:
             if(ex.code != Gio.IOErrorEnum.ALREADY_MOUNTED and
                ex.code != Gio.IOErrorEnum.NOT_SUPPORTED):
                 print ex.message
 
-    def schedule_download(self):
+    def schedule_download(self, *args):
         Gio.io_scheduler_push_job(self.download, None,
                                   GLib.PRIORITY_DEFAULT_IDLE,
                                   Gio.Cancellable())
@@ -68,4 +68,5 @@ class Downloader():
                                                self.mount_cb,
                                                None)
         else:
-            GLib.idle_add(self.schedule_download)
+            Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT,
+                                 self.schedule_download, None)
