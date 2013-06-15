@@ -46,7 +46,6 @@ class LutrisWindow(object):
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
-        self.builder.connect_signals(self)
 
         # load config
         window_config = self.load_view()
@@ -54,6 +53,8 @@ class LutrisWindow(object):
         height = window_config.get('height', 600)
         self.window_size = (width, height)
         view_type = window_config.get('view_type', 'icon')
+
+        self.view = switch_to_view(view_type)
 
         view_menuitem = self.builder.get_object("iconview_menuitem")
         view_menuitem.set_active(view_type == 'icon')
@@ -63,7 +64,6 @@ class LutrisWindow(object):
         game_list = game.get_list()
         resources.fetch_banners([game_info['id'] for game_info in game_list])
 
-        self.view = switch_to_view(view_type)
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
@@ -98,6 +98,7 @@ class LutrisWindow(object):
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
+        self.builder.connect_signals(self)
         self.connect_signals()
 
     def connect_signals(self):

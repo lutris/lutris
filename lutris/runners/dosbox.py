@@ -55,7 +55,7 @@ class dosbox(Runner):
         """ Run the game """
         logger.debug(self.settings)
         self.exe = self.settings["game"]["main_file"]
-
+        self.game_path = os.path.dirname(self.exe)
         if not os.path.exists(self.exe):
             return {'error': "FILE_NOT_FOUND", 'file': self.exe}
         if self.exe.endswith(".conf"):
@@ -66,4 +66,4 @@ class dosbox(Runner):
             params = ["-conf", self.settings["game"]["config_file"]]
         else:
             params = []
-        return [self.executable] + params + exe
+        return {'command': [self.executable] + params + exe}
