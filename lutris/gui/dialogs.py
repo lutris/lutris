@@ -7,11 +7,13 @@ from lutris.gui.widgets import DownloadProgressBox
 
 from lutris import settings
 from lutris import pga
+from lutris import api
 
 
-class GtkBuilderDialog(object):
+class GtkBuilderDialog(GObject.Object):
 
     def __init__(self):
+        super(GtkBuilderDialog, self).__init__()
         ui_filename = os.path.join(settings.get_data_path(), 'ui',
                                    self.glade_file)
         if not os.path.exists(ui_filename):
@@ -36,6 +38,7 @@ class NoticeDialog(Gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
         super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
+        from lutris import api
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -130,7 +133,9 @@ class PgaSourceDialog(GtkBuilderDialog):
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
         self.sources_treeview = self.builder.get_object("sources_treeview")
-        self.remove_source_button = self.builder.get_object("remove_source_button")
+        self.remove_source_button = self.builder.get_object(
+            "remove_source_button"
+        )
 
         # Treeview setup
         self.sources_liststore = Gtk.ListStore(str)
@@ -180,3 +185,32 @@ class PgaSourceDialog(GtkBuilderDialog):
         """ Set sentivity of remove source button """
         (model, treeiter) = self.sources_selection.get_selected()
         self.remove_source_button.set_sensitive(treeiter is not None)
+
+
+class ClientLoginDialog(GtkBuilderDialog):
+    glade_file = 'dialog-lutris-login.ui'
+    dialog_object = 'lutris-login'
+    __gsignals__ = {
+        "connected": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
+    def __init__(self):
+        super(ClientLoginDialog, self).__init__()
+
+        cancel_button = self.builder.get_object('cancel_button')
+        cancel_button.connect('clicked', self.on_cancel)
+        connect_button = self.builder.get_object('connect_button')
+        connect_button.connect('clicked', self.on_connect)
+
+    def on_cancel(self, widget):
+        self.dialog.destroy()
+
+    def on_connect(self, widget):
+        username = self.builder.get_object('username_entry').get_text()
+        password = self.builder.get_object('password_entry').get_text()
+        token = api.connect(username, password)
+        if not token:
+            NoticeDialog("Login failed")
+        else:
+            self.emit('connected', token)
+        self.dialog.destroy()

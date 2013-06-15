@@ -123,9 +123,15 @@ class ScriptInterpreter(object):
         else:
             self._iter_commands()
 
-    def install_steam_game(self, appid):
+    def get_steam_game_path(self, appid, file_id, steam_rel_path):
         steam_runner = steam()
-        steam_runner.install_game(appid)
+        data_path = steam_runner.get_game_data_path(appid)
+        if not data_path:
+            steam_runner.install_game(appid)
+            data_path = steam_runner.get_game_data_path(appid)
+        logger.debug("got data path: %s" % data_path)
+        self.game_files[file_id] = os.path.join(data_path, steam_rel_path)
+        self.iter_game_files()
 
     def _download_file(self, game_file):
         """Download a file referenced in the installer script
@@ -137,14 +143,6 @@ class ScriptInterpreter(object):
            - filename : force destination filename when url is present or path
                         of local file
         """
-        def on_steam_installed(appid):
-            game_path = steam_runner.get_game_data_path(appid)
-            if not game_path:
-                steam_runner.install_game(appid)
-                game_path = steam_runner.get_game_data_path(appid)
-            self.game_files[file_id] = os.path.join(game_path, parts[2])
-            self.iter_game_files()
-
         # Setup file_id, file_uri and local filename
         file_id = game_file.keys()[0]
         if isinstance(game_file[file_id], dict):
@@ -158,6 +156,7 @@ class ScriptInterpreter(object):
         elif file_uri.startswith("$WINESTEAM"):
             parts = file_uri.split(":", 2)
             appid = parts[1]
+            steam_rel_path = parts[2]
             steam_runner = steam()
             if not steam_runner.is_installed():
                 steam_installer_path = os.path.join(
@@ -170,7 +169,8 @@ class ScriptInterpreter(object):
                     appid
                 )
             else:
-                self.install_steam_game(appid)
+                logger.debug("Steam already installed, installing game")
+                self.get_steam_game_path(appid, file_id, steam_rel_path)
             return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -225,13 +225,21 @@ class ScriptInterpreter(object):
         """Write the game configuration as a Lutris launcher."""
         config_filename = join(settings.CONFIG_DIR,
                                "games/%s.yml" % self.game_slug)
+        runner_name = self.script['runner']
         config_data = {
             'game': {},
             'realname': self.script['name'],
-            'runner': self.script['runner']
+            'runner': runner_name
         }
         if 'system' in self.script:
             config_data['system'] = self.script['system']
+        if runner_name in self.script:
+            config_data[runner_name] = self.script[runner_name]
+        if 'game' in self.script:
+            for key in self.script['game']:
+                value = self._substitute(self.script['game'][key])
+                config_data['game'][key] = value
+
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
@@ -257,6 +265,7 @@ class ScriptInterpreter(object):
                     config_data['game'][key] = game_resource
 
         yaml_config = yaml.safe_dump(config_data, default_flow_style=False)
+        logger.debug(yaml_config)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
 
@@ -330,8 +339,20 @@ class ScriptInterpreter(object):
             raise ScriptingError("MD5 checksum mismatch", data)
 
     def mergecopy(self, params):
+        logger.debug("Merging %s" % str(params))
         src, dst = self._get_move_paths(params)
-        raise ScriptingError("%s, %s" % (str(src), str(dst)))
+        if not os.path.exists(dst):
+            raise ValueError(dst)
+        for (dirpath, dirnames, filenames) in os.walk(src):
+            src_relpath = dirpath[len(src) + 1:]
+            dst_abspath = os.path.join(dst, src_relpath)
+            for dirname in dirnames:
+                new_dir = os.path.join(dst_abspath, dirname)
+                logger.debug("creating dir: %s" % new_dir)
+                os.mkdir(new_dir)
+            for filename in filenames:
+                shutil.copy(os.path.join(dirpath, filename),
+                            os.path.join(dst_abspath, filename))
 
     def move(self, params):
         """ Move a file or directory """
@@ -353,9 +374,11 @@ class ScriptInterpreter(object):
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
+        logger.debug("extracting file %s" % str(data))
         filename = self.game_files.get(data['file'])
         if not filename:
-            raise ScriptingError("No file for '%s' in game files %s " % (data, self.game_files))
+            raise ScriptingError("No file for '%s' in game files %s "
+                                 % (data, self.game_files))
             return False
         if not os.path.exists(filename):
             logger.error("%s does not exists" % filename)
@@ -373,6 +396,8 @@ class ScriptInterpreter(object):
         else:
             logger.error("unrecognised file extension %s" % extension)
             return False
+        import time
+        time.sleep(1)
 
     def runner_task(self, data):
         """ This action triggers a task within a runner.
@@ -461,6 +486,7 @@ class InstallerDialog(Gtk.Dialog):
         self.interpreter.target_path = text_entry.get_text()
 
     def on_install_clicked(self, button):
+        button.set_sensitive(False)
         self.interpreter._start_install()
 
     def ask_user_for_file(self):
@@ -491,6 +517,7 @@ class InstallerDialog(Gtk.Dialog):
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, data, steam_info):
+        logger.debug("Steam downloaded")
         steam_runner = steam()
         steam_runner.install(steam_info[0])
         steam_runner.install_game(steam_info[1])

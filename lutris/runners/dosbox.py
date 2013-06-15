@@ -21,6 +21,8 @@
 
 """ Runner for MS Dos games """
 
+import os
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -34,18 +36,34 @@ class dosbox(Runner):
         self.executable = "dosbox"
         self.platform = "MS DOS"
         self.description = "DOS Emulator"
-        self.game_options = [{
-            "option": "main_file",
-            "type": "file_chooser",
-            "label": "EXE File"
-        }]
+        self.game_options = [
+            {
+                "option": "main_file",
+                "type": "file_chooser",
+                "label": "EXE File"
+            },
+            {
+                "option": "config_file",
+                "type": "file_chooser",
+                "label": "Configuration file"
+            }
+        ]
         self.runner_options = []
-        if settings:
-            self.exe = settings["game"]["main_file"]
+        self.settings = settings
 
     def play(self):
         """ Run the game """
-        if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED'}
-        command = [self.executable, "\"%s\"" % self.exe]
-        return command
+        logger.debug(self.settings)
+        self.exe = self.settings["game"]["main_file"]
+
+        if not os.path.exists(self.exe):
+            return {'error': "FILE_NOT_FOUND", 'file': self.exe}
+        if self.exe.endswith(".conf"):
+            exe = ["-conf", self.exe]
+        else:
+            exe = [self.exe]
+        if "config_file" in self.settings["game"]:
+            params = ["-conf", self.settings["game"]["config_file"]]
+        else:
+            params = []
+        return [self.executable] + params + exe

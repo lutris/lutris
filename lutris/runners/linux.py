@@ -24,8 +24,8 @@
 import os
 import stat
 import os.path
-import logging
 
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -61,7 +61,7 @@ class linux(Runner):
 
         #Check if script is executable and make it executable if not
         if not os.access(installer_path, os.X_OK):
-            logging.debug("%s is not executable, setting it executable")
+            logger.debug("%s is not executable, setting it executable")
             os.chmod(installer_path,
                      stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
@@ -73,6 +73,7 @@ class linux(Runner):
 
     def play(self):
         """Run native game."""
+        logger.debug("Launching Linux game")
         game_config = self.config.get('game')
         if not game_config:
             return {'error': 'INVALID_CONFIG'}
@@ -89,4 +90,5 @@ class linux(Runner):
         command.append("./%s" % os.path.basename(executable))
         for arg in args.split():
             command.append(arg)
+        logger.debug("Linux runner args: %s" % command)
         return {'command': command}

@@ -23,10 +23,10 @@
 import os
 import subprocess
 
-from lutris.gui.dialogs import QuestionDialog, DirectoryDialog
+from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners.wine import wine
+from lutris.util.log import logger
 from lutris.config import LutrisConfig
-
 
 
 def get_name(steam_file):
@@ -74,7 +74,8 @@ def vdf_parse(steam_config_file, config):
 # pylint: disable=C0103
 class steam(wine):
 
-    installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
+    #installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
+    installer_url = "http://lutris.net/files/runners/SteamInstall.msi"
 
     """Runs Steam games with Wine"""
     def __init__(self, settings=None):
@@ -134,10 +135,10 @@ class steam(wine):
     def install_game(self, appid):
         #print "Q2", apps["2320"]
         #print "Shadow", apps["238070"]
-        subprocess.Popen(
-            ["wine", '%s' % os.path.join(self.game_path, self.executable),
-             "-no-drwite", "steam://install/%s" % appid]
-        )
+        args = ["wine", '%s' % os.path.join(self.game_path, self.executable),
+             "-no-dwrite", "steam://install/%s" % appid]
+        logger.debug(args)
+        subprocess.Popen(args)
 
     def play(self):
         appid = self.settings['game']['appid']

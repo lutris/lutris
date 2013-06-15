@@ -141,7 +141,7 @@ class LutrisGame(object):
             return False
         logger.debug("get ready for %s " % self.get_real_name())
         gameplay_info = self.runner.play()
-
+        logger.debug("gameplay_info: %s" % gameplay_info)
         if isinstance(gameplay_info, dict):
             if 'error' in gameplay_info:
                 show_error_message(gameplay_info)

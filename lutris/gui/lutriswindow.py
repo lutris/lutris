@@ -152,7 +152,11 @@ class LutrisWindow(object):
     # Callbacks
     def on_connect(self, *args):
         """Callback when a user connects to his account"""
-        dialogs.NoticeDialog("This functionnality is not yet implemented.")
+        login_dialog = dialogs.ClientLoginDialog()
+        login_dialog.connect('connected', self.on_connect_success)
+
+    def on_connect_success(self, dialog, token):
+        self.status_label.set_text("Connected")
 
     def on_destroy(self, *args):
         """Signal for window close"""
