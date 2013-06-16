@@ -3,12 +3,12 @@
 import os
 import json
 
+from gi.repository import Gtk, GLib, Gio, GObject
 
-from gi.repository import Gtk, GLib
-
-#from lutris.util import log
-from lutris import settings
+from lutris import api
+from lutris import pga
 from lutris import game
+from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
@@ -24,8 +24,7 @@ GAME_VIEW = 'icon'
 
 
 def switch_to_view(view=GAME_VIEW):
-    game_list = game.get_list()
-    assert view in ('icon', 'list')
+    game_list = pga.get_games()
     if view == 'icon':
         view = GameIconView(game_list)
     elif view == 'list':
@@ -61,9 +60,6 @@ class LutrisWindow(object):
         view_menuitem = self.builder.get_object("listview_menuitem")
         view_menuitem.set_active(view_type == 'list')
 
-        game_list = game.get_list()
-        resources.fetch_banners([game_info['id'] for game_info in game_list])
-
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
@@ -98,8 +94,17 @@ class LutrisWindow(object):
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
+
         self.builder.connect_signals(self)
         self.connect_signals()
+
+        GObject.idle_add(self.sync_db, None)
+
+    def sync_db(self, data=None):
+        game_list = pga.get_games()
+        Gio.io_scheduler_push_job(api.get_library, None,
+                                  GLib.PRIORITY_DEFAULT_IDLE, None)
+        resources.fetch_banners([game_info['slug'] for game_info in game_list])
 
     def connect_signals(self):
         """Connects signals from the view with the main window.

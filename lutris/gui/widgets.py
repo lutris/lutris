@@ -31,6 +31,7 @@ import os
 from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
+from lutris.util.log import logger
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
 #from lutris.util.log import logger
@@ -91,7 +92,7 @@ def get_pixbuf_for_game(game, icon_size):
                                     '%s.png' % game['runner'])
     game_icon_path = os.path.join(settings.DATA_DIR,
                                   "banners",
-                                  "%s.jpg" % game['id'])
+                                  "%s.jpg" % game['slug'])
     game_pix = icon_to_pixbuf(game_icon_path, icon_size)
     runner_pix = icon_to_pixbuf(runner_icon_path, icon_size)
     return game_pix, runner_pix
@@ -129,11 +130,12 @@ class GameStore(object):
 
     def add_game(self, game):
         """Adds a game into the view"""
-        for key in ('name', 'runner', 'id'):
+        for key in ('name', 'runner', 'slug'):
             assert key in game, "Game info must have %s" % key
         game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
-        self.store.append((game["id"], game['name'], game_pix, game["runner"],
-                           runner_pix, "Genre", "Platform", "Year"))
+        self.store.append((game["slug"], game['name'], game_pix,
+                           game["runner"], runner_pix,
+                           "Genre", "Platform", "Year"))
 
 
 class GameView(object):

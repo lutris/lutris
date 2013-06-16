@@ -103,7 +103,7 @@ class ScriptInterpreter(object):
         if not os.path.exists(self.target_path):
             os.makedirs(self.target_path)
         else:
-            raise ScriptingError("Target path already exists",
+            raise ScriptingError("Target path already exists ",
                                  self.target_path)
         self.iter_game_files()
 
@@ -231,6 +231,7 @@ class ScriptInterpreter(object):
             'realname': self.script['name'],
             'runner': runner_name
         }
+        pga.add_game(self.script['name'], runner_name, slug=self.game_slug)
         if 'system' in self.script:
             config_data['system'] = self.script['system']
         if runner_name in self.script:
@@ -500,14 +501,13 @@ class InstallerDialog(Gtk.Dialog):
     def set_status(self, text):
         self.status_label.set_text(text)
 
-    def start_download(self, file_uri, dest_file, callback=None, data=None):
+    def start_download(self, file_uri, dest_file):
         self.clean_widgets()
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
         on_download_complete_cb = callback or self.download_complete
-        self.download_progress.connect('complete', on_download_complete_cb,
-                                       (dest_file, data))
+        self.download_progress.connect('complete', on_download_complete_cb)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()

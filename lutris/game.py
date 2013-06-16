@@ -30,9 +30,10 @@ from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
-import lutris.desktop_control
 from lutris.gui.dialogs import QuestionDialog, ErrorDialog
 from lutris.settings import CONFIG_DIR
+from lutris import pga
+import lutris.desktop_control
 
 
 class ConfigurationException(Exception):
@@ -54,6 +55,7 @@ def show_error_message(message):
 def get_list():
     """Get the list of all installed games"""
     game_list = []
+    return pga.get_games()
     for filename in os.listdir(join(CONFIG_DIR, "games")):
         if filename.endswith(".yml"):
             game_name = filename[:len(filename) - 4]
