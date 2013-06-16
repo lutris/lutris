@@ -8,7 +8,7 @@ import urllib2
 import platform
 import subprocess
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio, GLib
 
 from os.path import join, exists
 
@@ -64,6 +64,7 @@ class ScriptInterpreter(object):
         self.game_name = None
         self.game_slug = None
         self.game_files = {}
+        self.steam_data = {}
         self.script = self._fetch_script(game_ref)
         if not self.is_valid():
             raise ScriptingError("Invalid script", (self.script, self.errors))
@@ -123,16 +124,6 @@ class ScriptInterpreter(object):
         else:
             self._iter_commands()
 
-    def get_steam_game_path(self, appid, file_id, steam_rel_path):
-        steam_runner = steam()
-        data_path = steam_runner.get_game_data_path(appid)
-        if not data_path:
-            steam_runner.install_game(appid)
-            data_path = steam_runner.get_game_data_path(appid)
-        logger.debug("got data path: %s" % data_path)
-        self.game_files[file_id] = os.path.join(data_path, steam_rel_path)
-        self.iter_game_files()
-
     def _download_file(self, game_file):
         """Download a file referenced in the installer script
 
@@ -169,8 +160,9 @@ class ScriptInterpreter(object):
                     appid
                 )
             else:
+                self.steam_install_game(appid)
                 logger.debug("Steam already installed, installing game")
-                self.get_steam_game_path(appid, file_id, steam_rel_path)
+                self._get_steam_game_path(appid, file_id, steam_rel_path)
             return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -400,6 +392,17 @@ class ScriptInterpreter(object):
         import time
         time.sleep(1)
 
+    def _get_steam_game_path(self, appid, file_id, steam_rel_path):
+        steam_runner = steam()
+        data_path = steam_runner.get_game_data_path(appid)
+        if not data_path:
+            self.steam_install_game(appid)
+            return
+            data_path = steam_runner.get_game_data_path(appid)
+        logger.debug("got data path: %s" % data_path)
+        self.game_files[file_id] = os.path.join(data_path, steam_rel_path)
+        self.iter_game_files()
+
     def runner_task(self, data):
         """ This action triggers a task within a runner.
             Mandatory parameters in data are 'task' and 'args'
@@ -419,6 +422,44 @@ class ScriptInterpreter(object):
         logger.debug("args are %s", repr(args))
         # FIXME pass args as kwargs and not args
         task(**args)
+
+    def complete_steam_install(self, dest, appid):
+        self.parent.wait_for_user_action(
+            "Steam will now install, press Ok when install is finished",
+            self.on_steam_game_installed,
+            appid
+        )
+        steam_runner = steam()
+        Gio.io_scheduler_push_job(background_job,
+                                  {'task': steam_runner.install, 'args': dest},
+                                  GLib.PRIORITY_DEFAULT_IDLE, None)
+
+    def steam_install_game(self, appid):
+        self.parent.wait_for_user_action(
+            "Steam will now install %s, press Ok when install is finished",
+            self.on_steam_game_installed,
+            appid
+        )
+        steam_runner = steam()
+        steam_runner.appid = appid
+
+        Gio.io_scheduler_push_job(
+            background_job,
+            {'task': steam_runner.install_game, 'args': appid},
+            GLib.PRIORITY_DEFAULT_IDLE, None
+        )
+
+    def on_steam_installed(self, *args):
+        logger.debug("Steam is installed yay")
+
+    def on_steam_game_installed(self, *args):
+        self.iter_game_files()
+
+
+def background_job(job, cancellable, data):
+    task = data['task']
+    args = data['args']
+    task(args)
 
 
 # pylint: disable=R0904
@@ -501,26 +542,33 @@ class InstallerDialog(Gtk.Dialog):
     def set_status(self, text):
         self.status_label.set_text(text)
 
-    def start_download(self, file_uri, dest_file):
+    def start_download(self, file_uri, dest_file, callback=None, data=None):
         self.clean_widgets()
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
-        self.download_progress.connect('complete', self.download_complete)
+        callback_function = callback or self.download_complete
+        self.download_progress.connect('complete', callback_function, data)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
+
+    def wait_for_user_action(self, message, callback, data):
+        self.clean_widgets()
+        label = Gtk.Label(message)
+        self.widget_box.add(label)
+        label.show()
+        button = Gtk.Button('Ok')
+        button.connect('clicked', callback, data)
+        self.widget_box.add(button)
+        button.show()
 
     def download_complete(self, widget, data=None):
         """Action called on a completed download"""
         self.interpreter.iter_game_files()
 
-    def on_steam_downloaded(self, widget, data, steam_info):
-        logger.debug("Steam downloaded")
-        steam_runner = steam()
-        steam_runner.install(steam_info[0])
-        steam_runner.install_game(steam_info[1])
-        self.interpreter.iter_game_files()
+    def on_steam_downloaded(self, widget, data, appid):
+        self.interpreter.complete_steam_install(widget.dest, appid)
 
     def on_install_finished(self):
         """Actual game installation"""

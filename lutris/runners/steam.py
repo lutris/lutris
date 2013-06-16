@@ -23,6 +23,8 @@
 import os
 import subprocess
 
+from gi.repository import Gdk
+
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.util.log import logger
@@ -93,9 +95,11 @@ class steam(wine):
 
     def install(self, installer_path=None):
         if installer_path:
-            self.msi_exec(installer_path)
+            self.msi_exec(installer_path, quiet=True)
+        Gdk.threads_enter()
         dlg = DirectoryDialog('Where is located Steam ?')
         self.game_path = dlg.folder
+        Gdk.threads_leave()
         config = LutrisConfig(runner='steam')
         config.runner_config = {'system': {'game_path': self.game_path}}
         config.save(config_type='runner')
@@ -109,7 +113,8 @@ class steam(wine):
         exe_path = os.path.join(self.game_path, self.executable)
         return self.game_path and os.path.exists(exe_path)
 
-    def get_steam_args(self):
+    @property
+    def launch_args(self):
         return ["wine", '%s' % os.path.join(self.game_path, self.executable),
                 "-no-dwrite"]
 
@@ -137,10 +142,10 @@ class steam(wine):
         return False
 
     def install_game(self, appid):
-        subprocess.Popen(self.get_steam_args + ["steam://install/%s" % appid])
+        subprocess.Popen(self.launch_args + ["steam://install/%s" % appid])
 
     def validate_game(self, appid):
-        subprocess.Popen(self.get_steam_args + ["steam://validate/%s" % appid])
+        subprocess.Popen(self.launch_args + ["steam://validate/%s" % appid])
 
     def play(self):
         appid = self.settings['game']['appid']

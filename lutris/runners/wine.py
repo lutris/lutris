@@ -190,8 +190,11 @@ class wine(Runner):
         return command
 
     @classmethod
-    def msi_exec(cls, msi_file):
-        return cls.wine_exec(["msiexec", "/i", msi_file])
+    def msi_exec(cls, msi_file, quiet=False):
+        msi_args = ["msiexec", "/i", msi_file]
+        if quiet:
+            msi_args.append("/q")
+        return cls.wine_exec(msi_args)
 
     @staticmethod
     def wine_exec(params):
