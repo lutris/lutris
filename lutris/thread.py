@@ -19,15 +19,15 @@
 Threading module, used to launch games while keeping Lutris operational.
 """
 
+import os
 import sys
-import logging
-from gi.repository import GLib
 import threading
 import subprocess
-from os.path import exists
 from signal import SIGKILL
 
-from os import kill
+from gi.repository import GLib
+
+from lutris.util.log import logger
 
 
 class LutrisThread(threading.Thread):
@@ -42,7 +42,7 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.pid = 99999
         self.child_processes = []
-        if type(killswitch) == type(str()) and not exists(killswitch):
+        if type(killswitch) == type(str()) and not os.path.exists(killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
         else:
@@ -54,8 +54,8 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread"""
+        logger.debug(self.command)
         GLib.timeout_add(2000, self.poke_process)
-        logging.debug(self.command)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
@@ -69,18 +69,18 @@ class LutrisThread(threading.Thread):
     def poke_process(self):
         """pokes at the running process"""
         if not self.game_process:
-            logging.debug("game not running")
+            logger.debug("game not running")
             return True
         else:
-            if self.killswitch is not None and not exists(self.killswitch):
+            if self.killswitch and not os.path.exists(self.killswitch):
                 # How are we sure that pid + 1 is actually the game process ?
-                kill(self.game_process.pid + 1, SIGKILL)
+                os.kill(self.game_process.pid + 1, SIGKILL)
                 self.pid = None
                 return False
         self.pid = self.game_process.pid
         self.return_code = self.game_process.poll()
         if self.return_code is not None:
-            logging.debug("Game quit")
+            logger.debug("Game quit")
             self.pid = None
             return False
         return True

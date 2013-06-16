@@ -506,8 +506,7 @@ class InstallerDialog(Gtk.Dialog):
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
-        on_download_complete_cb = callback or self.download_complete
-        self.download_progress.connect('complete', on_download_complete_cb)
+        self.download_progress.connect('complete', self.download_complete)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()

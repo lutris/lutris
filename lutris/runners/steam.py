@@ -109,6 +109,10 @@ class steam(wine):
         exe_path = os.path.join(self.game_path, self.executable)
         return self.game_path and os.path.exists(exe_path)
 
+    def get_steam_args(self):
+        return ["wine", '%s' % os.path.join(self.game_path, self.executable),
+                "-no-dwrite"]
+
     def get_steam_config(self):
         config_filename = os.path.join(self.game_path, "config/config.vdf")
         with open(config_filename, "r") as steam_config_file:
@@ -133,12 +137,10 @@ class steam(wine):
         return False
 
     def install_game(self, appid):
-        #print "Q2", apps["2320"]
-        #print "Shadow", apps["238070"]
-        args = ["wine", '%s' % os.path.join(self.game_path, self.executable),
-             "-no-dwrite", "steam://install/%s" % appid]
-        logger.debug(args)
-        subprocess.Popen(args)
+        subprocess.Popen(self.get_steam_args + ["steam://install/%s" % appid])
+
+    def validate_game(self, appid):
+        subprocess.Popen(self.get_steam_args + ["steam://validate/%s" % appid])
 
     def play(self):
         appid = self.settings['game']['appid']
@@ -153,7 +155,6 @@ class steam(wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        steam_full_path = os.path.join(self.game_path, self.executable)
-        command = ['wine', '"%s"' % steam_full_path, '-no-dwrite',
-                   '-applaunch', appid, self.args]
-        return {'command': command}
+        return {
+            'command': self.get_steam_args() + ['-applaunch', appid, self.args]
+        }
