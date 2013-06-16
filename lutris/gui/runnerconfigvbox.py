@@ -1,7 +1,6 @@
 # -*- coding:Utf-8 -*-
 from gi.repository import Gtk
 
-from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris.gui.configvbox import ConfigVBox
 
@@ -15,11 +14,9 @@ class RunnerConfigVBox(ConfigVBox):
         runner_classname = lutris_config.runner
         ConfigVBox.__init__(self, runner_classname, caller)
         runner = import_runner(runner_classname)()
-        logger.debug("Building configvbox for runner %s", runner.machine)
         if "runner_options" is not None:
             self.options = runner.runner_options
             self.lutris_config = lutris_config
-            logger.debug("Building widgets for runner %s", runner.machine)
             self.generate_widgets()
         else:
             warningLabel = Gtk.Label(label="This runner has no options yet\n"

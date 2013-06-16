@@ -174,11 +174,7 @@ class LutrisGame(object):
         killswitch = self.game_config.get_system("killswitch")
 
         path = self.runner.get_game_path()
-        logger.debug("Game Path : %s", path)
-        logger.debug("Current dir : %s", os.path.abspath(os.curdir))
-        logger.debug("Game args : %s", str(game_run_args))
         command = " " . join(game_run_args)
-        #Setting OSS Wrapper
         oss_wrapper = setup_padsp(self.game_config.get_system("oss_wrapper"),
                                   command)
         if oss_wrapper:

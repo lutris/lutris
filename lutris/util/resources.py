@@ -16,9 +16,7 @@ def has_banner(game_id):
 def fetch_banners(games):
     no_banners = []
     for game in games:
-        if has_banner(game):
-            print "{} OK".format(game)
-        else:
+        if not has_banner(game):
             no_banners.append(game)
     for game in no_banners:
         download_banner(game)

@@ -70,7 +70,7 @@ parser.add_option("--reinstall", action="store_true", help="Reinstall game")
 
 # Set the logging level to show debug messages.
 console = logging.StreamHandler()
-fmt = '%(name)-12s: %(levelname)-8s %(message)s'
+fmt = '%(levelname)-8s %(asctime)s [%(module)s]:%(message)s'
 formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
 logger.addHandler(console)

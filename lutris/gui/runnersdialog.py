@@ -107,7 +107,7 @@ class RunnersDialog(Gtk.Dialog):
         for runner_name in runner_list:
             # Get runner details
             runner = import_runner(runner_name)()
-            machine = runner.machine
+            platform = runner.platform
             description = runner.description
 
             hbox = Gtk.HBox()
@@ -122,7 +122,7 @@ class RunnersDialog(Gtk.Dialog):
             runner_label = Gtk.Label()
             runner_label.set_markup(
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
-                (runner_name, description, machine)
+                (runner_name, description, platform)
             )
             runner_label.set_width_chars(38)
             runner_label.set_line_wrap(True)
