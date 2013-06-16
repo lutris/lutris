@@ -24,6 +24,7 @@
 from gi.repository import Gtk
 
 import lutris.runners
+from lutris import pga
 from lutris.runners import import_runner
 from lutris.config import LutrisConfig
 #from lutris.util.log import logger
@@ -123,7 +124,8 @@ class AddGameDialog(Gtk.Dialog):
             game_identifier = self.lutris_config.save(config_type="game")
             self.game_info = {"name": realname,
                               "runner": self.runner_class,
-                              "id": game_identifier}
+                              "slug": game_identifier}
+            pga.add_game(**self.game_info)
             self.destroy()
 
     def on_runner_changed(self, widget):

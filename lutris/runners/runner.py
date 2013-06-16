@@ -67,7 +67,8 @@ class Runner(object):
         if not self.executable:
             return False
         result = subprocess.Popen(['which', self.executable],
-                                  stdout=subprocess.PIPE).communicate()[0]
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE).communicate()[0]
         if result == '':
             is_installed = False
         else:

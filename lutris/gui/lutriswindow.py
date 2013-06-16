@@ -98,12 +98,12 @@ class LutrisWindow(object):
         self.builder.connect_signals(self)
         self.connect_signals()
 
-        GObject.idle_add(self.sync_db, None)
-
-    def sync_db(self, data=None):
-        game_list = pga.get_games()
-        Gio.io_scheduler_push_job(api.get_library, None,
+        Gio.io_scheduler_push_job(self.sync_db, None,
                                   GLib.PRIORITY_DEFAULT_IDLE, None)
+
+    def sync_db(self, *args):
+        api.get_library()
+        game_list = pga.get_games()
         resources.fetch_banners([game_info['slug'] for game_info in game_list])
 
     def connect_signals(self):
