@@ -134,11 +134,25 @@ class steam(wine):
         steam_config = self.get_steam_config()
         game_config = steam_config["apps"].get(appid)
         if not game_config:
+            logger.debug("No steam config available")
             return False
         if game_config.get('HasAllLocalContent'):
-            installdir = game_config['installdir'].replace("\\\\", "/")[2:]
+            installdir = game_config['installdir'].replace("\\\\", "/")
+            logger.debug("Raw installdir %s" % installdir)
+            if installdir.startswith('C'):
+                logger.debug("Inside wineprefix")
+                installdir = os.path.join(os.path.expanduser('~'),
+                                          '.wine/drive_c',
+                                          installdir[3:])
+            else:
+                installdir = installdir[2:]
+            logger.debug("Steam game found at %s" % installdir)
             if os.path.exists(installdir):
                 return installdir
+            elif os.path.exists(installdir.replace('steamapps', 'SteamApps')):
+                return installdir.replace('steamapps', 'SteamApps')
+            else:
+                logger.debug("Path %s not found" % installdir)
         return False
 
     def install_game(self, appid):

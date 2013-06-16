@@ -146,8 +146,11 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith("$WINESTEAM"):
             parts = file_uri.split(":", 2)
-            appid = parts[1]
-            steam_rel_path = parts[2]
+            self.steam_data = {
+                'appid': parts[1],
+                'steam_rel_path': parts[2],
+                'file_id': file_id
+            }
             steam_runner = steam()
             if not steam_runner.is_installed():
                 steam_installer_path = os.path.join(
@@ -157,12 +160,15 @@ class ScriptInterpreter(object):
                     steam.installer_url,
                     steam_installer_path,
                     self.parent.on_steam_downloaded,
-                    appid
+                    self.steam_data['appid']
                 )
+                return
+            logger.debug("Steam already installed, installing game %s"
+                         % self.steam_data['appid'])
+            if not steam_runner.get_game_data_path(self.steam_data['appid']):
+                self.steam_install_game(self.steam_data['appid'])
             else:
-                self.steam_install_game(appid)
-                logger.debug("Steam already installed, installing game")
-                self._get_steam_game_path(appid, file_id, steam_rel_path)
+                self._get_steam_game_path()
             return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -392,15 +398,18 @@ class ScriptInterpreter(object):
         import time
         time.sleep(1)
 
-    def _get_steam_game_path(self, appid, file_id, steam_rel_path):
+    def _get_steam_game_path(self):
+        logger.debug("get steam path")
         steam_runner = steam()
-        data_path = steam_runner.get_game_data_path(appid)
+        data_path = steam_runner.get_game_data_path(self.steam_data['appid'])
         if not data_path:
-            self.steam_install_game(appid)
+            logger.debug("Game not installed")
             return
-            data_path = steam_runner.get_game_data_path(appid)
         logger.debug("got data path: %s" % data_path)
-        self.game_files[file_id] = os.path.join(data_path, steam_rel_path)
+        self.game_files[self.steam_data['file_id']] = os.path.join(
+            data_path,
+            self.steam_data['steam_rel_path']
+        )
         self.iter_game_files()
 
     def runner_task(self, data):
@@ -426,7 +435,7 @@ class ScriptInterpreter(object):
     def complete_steam_install(self, dest, appid):
         self.parent.wait_for_user_action(
             "Steam will now install, press Ok when install is finished",
-            self.on_steam_game_installed,
+            self.on_steam_installed,
             appid
         )
         steam_runner = steam()
@@ -435,8 +444,10 @@ class ScriptInterpreter(object):
                                   GLib.PRIORITY_DEFAULT_IDLE, None)
 
     def steam_install_game(self, appid):
+        logger.debug("Installing steam game %s" % self.steam_data['appid'])
         self.parent.wait_for_user_action(
-            "Steam will now install %s, press Ok when install is finished",
+            "Steam will now install game %s, "
+            "press Ok when install is finished" % self.steam_data['appid'],
             self.on_steam_game_installed,
             appid
         )
@@ -453,7 +464,8 @@ class ScriptInterpreter(object):
         logger.debug("Steam is installed yay")
 
     def on_steam_game_installed(self, *args):
-        self.iter_game_files()
+        logger.debug("Steam game installed")
+        self._get_steam_game_path()
 
 
 def background_job(job, cancellable, data):
@@ -563,8 +575,9 @@ class InstallerDialog(Gtk.Dialog):
         self.widget_box.add(button)
         button.show()
 
-    def download_complete(self, widget, data=None):
+    def download_complete(self, widget, data, fucks=None):
         """Action called on a completed download"""
+        print fucks
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, data, appid):
