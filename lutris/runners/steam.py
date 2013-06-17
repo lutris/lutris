@@ -120,6 +120,8 @@ class steam(wine):
 
     def get_steam_config(self):
         config_filename = os.path.join(self.game_path, "config/config.vdf")
+        if not os.path.exists(config_filename):
+            return
         with open(config_filename, "r") as steam_config_file:
             config = vdf_parse(steam_config_file, {})
         return config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
@@ -127,14 +129,16 @@ class steam(wine):
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
         config = self.get_steam_config()
-        apps = config["apps"]
-        return apps.keys()
+        if config:
+            apps = config["apps"]
+            return apps.keys()
 
     def get_game_data_path(self, appid):
         steam_config = self.get_steam_config()
+        if not steam_config:
+            return False
         game_config = steam_config["apps"].get(appid)
         if not game_config:
-            logger.debug("No steam config available")
             return False
         if game_config.get('HasAllLocalContent'):
             installdir = game_config['installdir'].replace("\\\\", "/")

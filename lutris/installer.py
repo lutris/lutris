@@ -54,6 +54,12 @@ def error_handler(error_type, value, traceback):
 sys.excepthook = error_handler
 
 
+def background_job(job, cancellable, data):
+    task = data['task']
+    args = data['args']
+    task(args)
+
+
 class ScriptInterpreter(object):
     """ Class that converts raw script data to actions """
 
@@ -163,12 +169,7 @@ class ScriptInterpreter(object):
                     self.steam_data['appid']
                 )
                 return
-            logger.debug("Steam already installed, installing game %s"
-                         % self.steam_data['appid'])
-            if not steam_runner.get_game_data_path(self.steam_data['appid']):
-                self.steam_install_game(self.steam_data['appid'])
-            else:
-                self._get_steam_game_path()
+            self.install_steam_game()
             return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -432,6 +433,13 @@ class ScriptInterpreter(object):
         # FIXME pass args as kwargs and not args
         task(**args)
 
+    def install_steam_game(self):
+        steam_runner = steam()
+        if not steam_runner.get_game_data_path(self.steam_data['appid']):
+            self.steam_install_game(self.steam_data['appid'])
+        else:
+            self._get_steam_game_path()
+
     def complete_steam_install(self, dest, appid):
         self.parent.wait_for_user_action(
             "Steam will now install, press Ok when install is finished",
@@ -442,6 +450,9 @@ class ScriptInterpreter(object):
         Gio.io_scheduler_push_job(background_job,
                                   {'task': steam_runner.install, 'args': dest},
                                   GLib.PRIORITY_DEFAULT_IDLE, None)
+
+    def on_steam_installed(self, *args):
+        self.install_steam_game()
 
     def steam_install_game(self, appid):
         logger.debug("Installing steam game %s" % self.steam_data['appid'])
@@ -460,18 +471,9 @@ class ScriptInterpreter(object):
             GLib.PRIORITY_DEFAULT_IDLE, None
         )
 
-    def on_steam_installed(self, *args):
-        logger.debug("Steam is installed yay")
-
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
         self._get_steam_game_path()
-
-
-def background_job(job, cancellable, data):
-    task = data['task']
-    args = data['args']
-    task(args)
 
 
 # pylint: disable=R0904
