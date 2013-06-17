@@ -5,21 +5,27 @@ Writing installers
 Fetching required files
 =======================
 
-The ``files`` section of the installer references every file needed for 
-installing the game. The section's keys are an unique identifier used later by 
-the installer. The value can be either a string containing an URI pointing at 
+The ``files`` section of the installer references every file needed for
+installing the game. The section's keys are an unique identifier used later by
+the installer. The value can be either a string containing an URI pointing at
 the required file or a dictionnary containing the ``filename`` and ``uri`` keys.
-The ``uri`` key is equivalent to passing only a string to the installer and the 
+The ``uri`` key is equivalent to passing only a string to the installer and the
 ``filename`` key will be used to give the local copy another name.
 
-If the game contains copyrighted files that cannot be redistributed, the value 
-should be ``N\A``. When the installer encounter this value, it will prompt the 
+If the game contains copyrighted files that cannot be redistributed, the value
+should be ``N\A``. When the installer encounter this value, it will prompt the
 user for the location of the file.
 
-If the game makes use of (Windows) Steam data, the value should be 
-``$WINESTEAM:appid:/path/to/data``. This will check that the data is available 
+If the game makes use of (Windows) Steam data, the value should be
+``$WINESTEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
+Writing the installation script
+===============================
+
+After every file needed by the game have been aquired, the actual installation
+can take place. A series of directives will tell the installer how to set up
+the game correctly.
 
 Displaying an 'Insert disc' dialog
 ----------------------------------
@@ -32,8 +38,8 @@ otherwise it will be replaced with a button to open gCDEmu.
 An optional parameter ``message`` will override the default text if given.
 
 
-Moving files
-------------
+Moving files and directories
+----------------------------
 
 Move files by using the ``move`` command. ``move``  requires two parameters:
 ``src`` and ``dst``.
@@ -49,7 +55,20 @@ directory.
 
 The ``move`` command cannot overwrite files.
 
+Copying and merging directories
+-------------------------------
 
+Both merging and copying actions are done with the ``merge`` directive. 
+Whether the actions acts as merge or copy depends of the existence of the 
+destination directory. When merging into an existing directory, original files 
+with the same as ones present in the merged directory will be overwritten, take
+this into account when writing your script and order your actions accordingly.
+
+Extracting archives
+-------------------
+
+Extracting archives is done with the ``extract`` directive, the ``file`` 
+argument is a ``file id``.
 
 Calling the installer
 =====================
