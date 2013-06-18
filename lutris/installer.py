@@ -76,13 +76,25 @@ class ScriptInterpreter(object):
             raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
         self.game_slug = slugify(self.game_name)
-        self.target_path = self.default_target
+        self.requires = self.script.get('requires')
+        if self.requires:
+            self._check_dependecy()
+        else:
+            self.target_path = self.default_target
 
     @property
     def default_target(self):
         lutris_config = LutrisConfig(runner=self.script['runner'])
         games_dir = lutris_config.get_path() or os.path.expanduser('~')
         return join(games_dir, self.game_slug)
+
+    def _check_dependecy(self):
+        game = pga.get_game_by_slug(self.requires)
+        if not game or not game['directory']:
+            raise ScriptingError(
+                "You need to install {} before".format(self.requires)
+            )
+        self.target_path = game['directory']
 
     def _fetch_script(self, game_ref):
         if os.path.exists(game_ref):
@@ -230,7 +242,10 @@ class ScriptInterpreter(object):
             'realname': self.script['name'],
             'runner': runner_name
         }
-        pga.add_game(self.script['name'], runner_name, slug=self.game_slug)
+        pga.add_game(self.script['name'],
+                     runner_name,
+                     slug=self.game_slug,
+                     directory=self.target_path)
         if 'system' in self.script:
             config_data['system'] = self.script['system']
         if runner_name in self.script:
@@ -503,38 +518,45 @@ class InstallerDialog(Gtk.Dialog):
 
         # Interpreter
         self.interpreter = ScriptInterpreter(game_ref, self)
-        self.interpreter.is_valid()
 
         ## GUI Setup
 
-        # Top label
+        # Title label
         self.status_label = Gtk.Label()
-        self.status_label.set_markup('<b>Select installation directory:</b>')
-        self.status_label.set_alignment(0, 0)
-        self.status_label.set_padding(20, 0)
-        self.vbox.add(self.status_label)
+        self.status_label.set_markup("<b>Installing %s</b>"
+                                     % self.interpreter.game_name)
 
         # Main widget box
         self.widget_box = Gtk.VBox()
+        self.widget_box.set_margin_right(25)
+        self.widget_box.set_margin_left(25)
         self.vbox.pack_start(self.widget_box, True, True, 10)
 
-        # Target chooser
-        default_path = self.interpreter.default_target
-        location_entry = FileChooserEntry(default=default_path)
-        location_entry.entry.connect('changed', self.on_target_changed)
-        self.widget_box.pack_start(location_entry, False, False, 10)
-
         # Separator
-        self.vbox.pack_start(Gtk.HSeparator(), True, True, 10)
+        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
         # Install button
         self.install_button = Gtk.Button('Install')
         self.install_button.connect('clicked', self.on_install_clicked)
 
-        self.action_buttons = Gtk.Alignment.new(0.95, 0.1, 0.15, 0)
+        self.action_buttons = Gtk.Alignment.new(0.95, 0, 0.15, 0)
         self.action_buttons.add(self.install_button)
 
-        self.vbox.pack_start(self.action_buttons, False, False, 0)
+        self.vbox.pack_start(self.action_buttons, False, False, 25)
+
+        # Target chooser
+        if not self.interpreter.requires:
+            # Top label
+            label = Gtk.Label()
+            label.set_markup('<b>Select installation directory:</b>')
+            label.set_alignment(0, 0)
+            self.widget_box.pack_start(label, False, False, 10)
+            default_path = self.interpreter.default_target
+            location_entry = FileChooserEntry(default=default_path)
+            location_entry.entry.connect('changed', self.on_target_changed)
+            self.widget_box.pack_start(location_entry, False, False, 0)
+        else:
+            label = Gtk.Label("Click install to continue")
         self.show_all()
 
     def on_target_changed(self, text_entry):

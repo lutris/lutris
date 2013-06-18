@@ -34,10 +34,22 @@ def db_delete(db_path, table, field, value):
                        (value,))
 
 
-def db_select(db_path, table, fields):
-    field_names = ", ".join(fields)
+def db_select(db_path, table, fields=None, condition=None):
+    if fields:
+        field_names = ", ".join(fields)
+    else:
+        field_names = "*"
+    print field_names
     with db_cursor(db_path) as cursor:
-        cursor.execute("SELECT {0} FROM {1}".format(field_names, table))
+        if condition:
+            assert len(condition) == 2
+            cursor.execute(
+                "SELECT {0} FROM {1} where {2}=?".format(
+                    field_names, table, condition[0]
+                ), (condition[1], )
+            )
+        else:
+            cursor.execute("SELECT {0} FROM {1}".format(field_names, table))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
     results = []

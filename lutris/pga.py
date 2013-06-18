@@ -76,12 +76,20 @@ def get_games(name_filter=None):
     return game_list
 
 
-def add_game(name, runner, slug=None):
+def get_game_by_slug(slug):
+    game_result = sql.db_select(PGA_DB, "games", condition=('slug', slug))
+    if game_result:
+        return game_result[0]
+
+
+def add_game(name, runner, slug=None, directory=None):
     """Adds a game to the PGA database."""
     if not slug:
         slug = slugify(name)
-    sql.db_insert(PGA_DB, "games",
-                  {'name': name, 'slug': slug, 'runner': runner})
+    game_data = {'name': name, 'slug': slug, 'runner': runner}
+    if directory:
+        game_data['directory'] = directory
+    sql.db_insert(PGA_DB, "games", game_data)
 
 
 def delete_game(name):

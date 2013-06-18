@@ -20,6 +20,20 @@ If the game makes use of (Windows) Steam data, the value should be
 ``$WINESTEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
+Installer meta data
+===================
+
+Installing mods and add-ons
+---------------------------
+
+Mods and add-ons require that a base game is already available on the system.
+You can let now the installer that you want to install an add-on by specifying 
+the ``requires`` directive. The value of ``requires`` must be the canonical 
+slug name of a game, not one of its aliases. For example, to install the add-on
+"The reckoning" for Quake 2, you should add: 
+
+``requires: quake-2``
+
 Writing the installation script
 ===============================
 
