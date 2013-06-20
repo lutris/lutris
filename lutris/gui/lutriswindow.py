@@ -59,6 +59,10 @@ class LutrisWindow(object):
         view_menuitem.set_active(view_type == 'icon')
         view_menuitem = self.builder.get_object("listview_menuitem")
         view_menuitem.set_active(view_type == 'list')
+        switch_grid_view_btn = self.builder.get_object('switch_grid_view_btn')
+        switch_grid_view_btn.set_active(view_type == 'icon')
+        switch_list_view_btn = self.builder.get_object('switch_list_view_btn')
+        switch_list_view_btn.set_active(view_type == 'list')
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')

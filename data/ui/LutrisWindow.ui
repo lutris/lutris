@@ -2,13 +2,31 @@
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <!-- interface-local-resource-path ../media -->
+  <object class="GtkRadioAction" id="radioaction1">
+    <property name="hide_if_empty">False</property>
+    <property name="draw_as_radio">True</property>
+  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
   </object>
+  <object class="GtkImage" id="view_list_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-list-symbolic</property>
+  </object>
+  <object class="GtkImage" id="viwe_grid_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-grid-symbolic</property>
+  </object>
   <object class="GtkWindow" id="window">
-    <property name="width_request">400</property>
+    <property name="width_request">640</property>
     <property name="height_request">300</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
@@ -169,7 +187,6 @@
                         <property name="label" translatable="yes">Start</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="image">image1</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="game_launch" swapped="no"/>
                       </object>
@@ -249,8 +266,10 @@
           <object class="GtkToolbar" id="lutris_toolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="margin_left">5</property>
+            <property name="margin_right">5</property>
             <property name="toolbar_style">icons</property>
-            <property name="icon_size">5</property>
+            <property name="icon_size">4</property>
             <child>
               <object class="GtkToolButton" id="play_button">
                 <property name="visible">True</property>
@@ -338,6 +357,59 @@
                     <property name="primary_icon_sensitive">False</property>
                     <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>
                     <signal name="changed" handler="on_search_entry_changed" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkBox" id="view_switcher_box">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                    <child>
+                      <object class="GtkRadioButton" id="switch_list_view_btn">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="image">view_list_symbolic</property>
+                        <property name="xalign">0</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">False</property>
+                        <property name="group">switch_grid_view_btn</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkRadioButton" id="switch_grid_view_btn">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="image">viwe_grid_symbolic</property>
+                        <property name="xalign">0</property>
+                        <property name="active">True</property>
+                        <property name="draw_indicator">False</property>
+                        <signal name="toggled" handler="on_iconview_toggled" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                 </child>
               </object>
