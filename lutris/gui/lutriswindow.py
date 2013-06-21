@@ -3,7 +3,7 @@
 import os
 import json
 
-from gi.repository import Gtk, GLib, Gio, GObject
+from gi.repository import Gtk, GLib, Gio
 
 from lutris import api
 from lutris import pga
@@ -13,6 +13,7 @@ from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
 from lutris.util import resources
+from lutris.util.log import logger
 from lutris.gui import dialogs
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
@@ -94,7 +95,7 @@ class LutrisWindow(object):
         self.view.contextual_menu = self.menu
 
         #Timer
-        self.timer_id = GLib.timeout_add(1000, self.refresh_status)
+        self.timer_id = GLib.timeout_add(2000, self.refresh_status)
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
@@ -134,8 +135,6 @@ class LutrisWindow(object):
                 else:
                     self.status_label.set_text("Playing %s (pid: %r)"
                                                % (name, pid))
-        else:
-            self.status_label.set_text("")
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -154,8 +153,8 @@ class LutrisWindow(object):
         """Remove game configuration file
         Note: this won't delete the actual game
         """
-        game = self.view.selected_game[0]
-        config = LutrisConfig(game=game)
+        selected_game = self.view.selected_game[0]
+        config = LutrisConfig(game=selected_game)
         config.remove()
         self.view.remove_game(game)
 
@@ -166,6 +165,7 @@ class LutrisWindow(object):
         login_dialog.connect('connected', self.on_connect_success)
 
     def on_connect_success(self, dialog, token):
+        logger.info("Successfully connected to Lutris.net")
         self.status_label.set_text("Connected")
 
     def on_destroy(self, *args):
