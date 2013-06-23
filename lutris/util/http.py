@@ -21,7 +21,7 @@ def download_asset(url, dest, overwrite=False):
     try:
         asset_opener.retrieve(url, dest)
     except IOError as ex:
-        if ex[1] == 404:
-            logger.warning("Asset %s not found" % url)
-        else:
+        if ex[1] != 404:
             logger.error("Error while fetching %s: %s" % (url, ex))
+        return False
+    return True

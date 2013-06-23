@@ -74,11 +74,10 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def icon_to_pixbuf(icon_path, size=128):
+def icon_to_pixbuf(icon_path, size):
     """Converts a png icon into a pixbuf ready to be used in widget"""
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON
-    size = (184, 69)
     try:
         pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
     except GLib.GError:
@@ -86,16 +85,10 @@ def icon_to_pixbuf(icon_path, size=128):
     return pixbuf
 
 
-def get_pixbuf_for_game(game, icon_size):
-    runner_icon_path = os.path.join(settings.get_data_path(),
-                                    'media/runner_icons',
-                                    '%s.png' % game['runner'])
-    game_icon_path = os.path.join(settings.DATA_DIR,
-                                  "banners",
-                                  "%s.jpg" % game['slug'])
-    game_pix = icon_to_pixbuf(game_icon_path, icon_size)
-    runner_pix = icon_to_pixbuf(runner_icon_path, icon_size)
-    return game_pix, runner_pix
+def get_pixbuf_for_game(game_slug, icon_size=(184, 69)):
+    game_icon_path = os.path.join(settings.DATA_DIR, "banners",
+                                  "%s.jpg" % game_slug)
+    return icon_to_pixbuf(game_icon_path, icon_size)
 
 
 class IconViewCellRenderer(Gtk.CellRendererText):
@@ -112,10 +105,10 @@ class IconViewCellRenderer(Gtk.CellRendererText):
 class GameStore(object):
     filter_text = ""
 
-    def __init__(self, games, icon_size=48):
+    def __init__(self, games, icon_size=(184, 69)):
         self.icon_size = icon_size
         self.store = Gtk.ListStore(str, str, Pixbuf, str,
-                                   Pixbuf, str, str, str)
+                                   str, str, str)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
         self.fill_store(games)
@@ -132,9 +125,9 @@ class GameStore(object):
         """Adds a game into the view"""
         for key in ('name', 'runner', 'slug'):
             assert key in game, "Game info must have %s" % key
-        game_pix, runner_pix = get_pixbuf_for_game(game, self.icon_size)
+        game_pix = get_pixbuf_for_game(game['slug'], self.icon_size)
         self.store.append((game["slug"], game['name'], game_pix,
-                           game["runner"], runner_pix,
+                           game["runner"],
                            "Genre", "Platform", "Year"))
 
 
@@ -150,13 +143,17 @@ class GameView(object):
     filter_text = ""
     games = []
 
+    def get_row_by_slug(self, game_slug):
+        game_row = None
+        for model_row in self.game_store.store:
+            if model_row[COL_ID] == game_slug:
+                game_row = model_row
+        return game_row
+
     def remove_game(self, removed_id):
-        store = self.game_store.store
-        for model_row in store:
-            game_id = model_row[COL_ID]
-            if game_id == removed_id:
-                self.remove_row(model_row.iter)
-                break
+        row = self.get_row_by_slug(removed_id)
+        if row:
+            self.remove_row(row.iter)
 
     def remove_row(self, model_iter):
         """Remove a game from the treeview."""
@@ -166,6 +163,12 @@ class GameView(object):
     def update_filter(self, widget, data=None):
         self.game_store.filter_text = data
         self.get_model().refilter()
+
+    def update_image(self, game_slug):
+        row = self.get_row_by_slug(game_slug)
+        if row:
+            game_pixpuf = get_pixbuf_for_game(game_slug)
+            row[2] = game_pixpuf
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
@@ -262,7 +265,7 @@ class GameIconView(Gtk.IconView, GameView):
     icon_padding = 5
 
     def __init__(self, games):
-        self.game_store = GameStore(games, icon_size=128)
+        self.game_store = GameStore(games, icon_size=(184, 69))
         super(GameIconView, self).__init__(self.game_store.modelfilter)
         self.set_pixbuf_column(COL_ICON)
         iconview_cell_renderer = IconViewCellRenderer()

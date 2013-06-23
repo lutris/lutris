@@ -13,15 +13,18 @@ def has_banner(game_id):
     return os.path.exists(banner_path)
 
 
-def fetch_banners(games):
+def fetch_banners(games, callback=None):
     no_banners = []
     for game in games:
         if not has_banner(game):
             no_banners.append(game)
     for game in no_banners:
-        download_banner(game)
+        download_banner(game, callback=callback)
 
 
-def download_banner(game, overwrite=False):
+def download_banner(game, overwrite=False, callback=None):
     banner_url = settings.INSTALLER_URL + '%s.jpg' % game
-    http.download_asset(banner_url, get_banner_path(game), overwrite)
+    banner_path = get_banner_path(game)
+    cover_downloaded = http.download_asset(banner_url, banner_path, overwrite)
+    if cover_downloaded and callback:
+        callback(game)

@@ -109,7 +109,8 @@ class LutrisWindow(object):
     def sync_db(self, *args):
         api.get_library()
         game_list = pga.get_games()
-        resources.fetch_banners([game_info['slug'] for game_info in game_list])
+        resources.fetch_banners([game_info['slug'] for game_info in game_list],
+                                callback=self.on_image_downloaded)
 
     def connect_signals(self):
         """Connects signals from the view with the main window.
@@ -183,6 +184,9 @@ class LutrisWindow(object):
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
+
+    def on_image_downloaded(self, game_slug):
+        self.view.update_image(game_slug)
 
     def import_scummvm(self, _widget, _data=None):
         """Callback for importing scummvm games"""
