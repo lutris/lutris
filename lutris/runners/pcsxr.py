@@ -24,20 +24,13 @@ from lutris.runners.runner import Runner
 
 
 #pylint: disable=C0103
-class pcsx(Runner):
+class pcsxr(Runner):
     """PlayStation emulator"""
     def __init__(self, settings=None):
-        """
-        pcsx-df is what seems the best candidate for a playstation emulator.
-        Sadly, it was removed from the Debian archives and thus Ubuntu because
-        of a small licensing issue :
-        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=514446
-        The package also lacks a maintainer :
-        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510530
-        """
-        super(pcsx, self).__init__()
-        self.executable = "pcsx"
-        self.package = "pcsx-df"
+        super(pcsxr, self).__init__()
+        self.executable = "pcsxr"
+        self.package = "pcsxr"
+        self.is_installable = True
         self.platform = "Playstation"
         self.game_options = [{"option": "iso",
                               "type": "file_chooser",

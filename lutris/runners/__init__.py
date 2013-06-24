@@ -3,7 +3,7 @@ from lutris.util.log import logger
 
 __all__ = ["linux", "wine", "steam", "sdlmame", "mednafen", "scummvm",
            "snes9x", "gens", "uae", "fsuae", "nulldc", "openmsx", 'dolphin',
-           "dosbox", "pcsx", "atari800", "mupen64plus", "frotz", "browser",
+           "dosbox", "pcsxr", "atari800", "mupen64plus", "frotz", "browser",
            "osmose", "vice", "hatari", "stella", "jzintv", "o2em"]
 
 

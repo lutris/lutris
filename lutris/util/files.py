@@ -1,4 +1,5 @@
 import hashlib
+import subprocess
 
 
 def calculate_md5(filename):
@@ -12,3 +13,10 @@ def calculate_md5(filename):
         print "Error reading %s" % filename
         return False
     return md5.hexdigest()
+
+
+def find_executable(exec_name):
+    result = subprocess.Popen(['which', exec_name],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE).communicate()[0]
+    return result

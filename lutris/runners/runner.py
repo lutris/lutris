@@ -7,6 +7,7 @@ import hashlib
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
+from lutris.util.files import find_executable
 
 
 class Runner(object):
@@ -66,9 +67,7 @@ class Runner(object):
         is_installed = False
         if not self.executable:
             return False
-        result = subprocess.Popen(['which', self.executable],
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE).communicate()[0]
+        result = find_executable(self.executable)
         if result == '':
             is_installed = False
         else:
@@ -104,27 +103,29 @@ class Runner(object):
         if self.is_installable is False:
             ErrorDialog('This runner is not yet installable')
             return False
-        linux_dist = platform.dist()[0]
 
-        #Add the package manager with arguments for your favorite distro :)
-        if linux_dist == 'Ubuntu' or linux_dist == 'Debian':
-            package_manager = 'software-center'
-            install_args = ''
-        elif linux_dist == 'Fedora':
-            package_manager = 'yum'
-            install_args = 'install'
-        else:
+        package_installer_candidates = (
+            'gpk-install-package-name'
+            'software-center',
+        )
+        package_installer = None
+        for candidate in package_installer_candidates:
+            if find_executable(candidate):
+                package_installer = candidate
+                break
+
+        if not package_installer:
             logger.error("The distribution you're running is not supported.")
             logger.error("Edit runners/runner.py to add support for it")
             return False
-        if self.package is None:
+
+        if not self.package:
             ErrorDialog('This runner is not yet installable')
             logger.error("The requested runner %s can't be installed",
                          self.__class__.__name__)
-            return
+            return False
 
-        subprocess.Popen("%s %s %s" % (package_manager, install_args,
-                                       self.package),
+        subprocess.Popen("%s %s" % (package_installer, self.package),
                          shell=True, stderr=subprocess.PIPE)
         return True
 
