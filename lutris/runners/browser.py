@@ -10,8 +10,8 @@ class browser(Runner):
     def __init__(self, settings=None):
         """Constructor"""
         super(browser, self).__init__()
-        self.package = "x-www-browser"
-        self.executable = "x-www-browser"
+        self.package = None
+        self.executable = "xdg-open"
         self.platform = "Web Browser"
         self.description = "Run games in the browser"
         self.game_options = [
@@ -31,7 +31,14 @@ class browser(Runner):
         if settings:
             self.settings = settings
             runner_settings = settings["browser"]
-            self.browser_exec = runner_settings.get('browser', self.executable)
+            if runner_settings:
+                self.browser_exec = runner_settings.get('browser',
+                                                        self.executable)
+            else:
+                self.browser_exec = self.executable
+
+    def is_installed(self):
+        return True
 
     def play(self):
         """Run a browser game"""

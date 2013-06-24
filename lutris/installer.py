@@ -11,13 +11,11 @@ import subprocess
 
 from gi.repository import Gtk, Gio, GLib
 
-from os.path import join, exists
-
 from lutris import pga
+from lutris.util import extract
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
-from lutris.util import extract
 
 from lutris.runners.steam import steam
 from lutris.game import LutrisGame
@@ -87,7 +85,7 @@ class ScriptInterpreter(object):
     def default_target(self):
         lutris_config = LutrisConfig(runner=self.script['runner'])
         games_dir = lutris_config.get_path() or os.path.expanduser('~')
-        return join(games_dir, self.game_slug)
+        return os.path.join(games_dir, self.game_slug)
 
     def _check_dependecy(self):
         game = pga.get_game_by_slug(self.requires)
@@ -112,7 +110,7 @@ class ScriptInterpreter(object):
 
     def is_valid(self):
         """ Return True if script is usable """
-        required_fields = ('runner', 'name', 'installer')
+        required_fields = ('runner', 'name')
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
@@ -125,12 +123,13 @@ class ScriptInterpreter(object):
         self.iter_game_files()
 
     def iter_game_files(self):
-        dest_dir = join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
-        if not exists(dest_dir):
+        files = self.script.get('files', [])
+        dest_dir = os.path.join(settings.CACHE_DIR,
+                                "installer/%s" % self.game_slug)
+        if not os.path.exists(dest_dir) and files:
             logger.debug('Creating destination directory %s' % dest_dir)
             os.mkdir(dest_dir)
 
-        files = self.script.get('files', [])
         if len(self.game_files) < len(files):
             logger.info(
                 "Downloading file %d of %d",
@@ -192,7 +191,8 @@ class ScriptInterpreter(object):
             file_uri = pga_uri
 
         # Setup destination path
-        dest_dir = join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
+        dest_dir = os.path.join(settings.CACHE_DIR,
+                                "installer/%s" % self.game_slug)
         dest_file = os.path.join(dest_dir, filename)
         if os.path.exists(dest_file):
             logger.debug("Destination file exists")
@@ -219,7 +219,7 @@ class ScriptInterpreter(object):
 
     def _iter_commands(self):
         os.chdir(self.target_path)
-        for command in self.script['installer']:
+        for command in self.script.get('installer', []):
             method, params = self._map_command(command)
             method(self, params)
         self.parent.set_status("Writing configuration")
@@ -235,8 +235,8 @@ class ScriptInterpreter(object):
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
-        config_filename = join(settings.CONFIG_DIR,
-                               "games/%s.yml" % self.game_slug)
+        config_filename = os.path.join(settings.CONFIG_DIR,
+                                       "games/%s.yml" % self.game_slug)
         runner_name = self.script['runner']
         config_data = {
             'game': {},
@@ -276,8 +276,12 @@ class ScriptInterpreter(object):
                 else:
                     if game_resource in self.game_files:
                         game_resource = self.game_files[game_resource]
+                    elif os.path.exists(os.path.join(self.target_path,
+                                                     game_resource)):
+                        game_resource = os.path.join(self.target_path,
+                                                     game_resource)
                     else:
-                        game_resource = join(self.target_path, game_resource)
+                        game_resource = game_resource
                     config_data['game'][key] = game_resource
 
         yaml_config = yaml.safe_dump(config_data, default_flow_style=False)
@@ -336,7 +340,8 @@ class ScriptInterpreter(object):
         """Run an executable script"""
         if isinstance(data, dict):
             exec_id = data['file']
-            args = self._substitute(data['args']).split()
+            args = [self._substitute(arg)
+                    for arg in data.get('args', '').split()]
         else:
             exec_id = data
             args = []
@@ -346,6 +351,7 @@ class ScriptInterpreter(object):
                                  exec_path)
         else:
             os.popen('chmod +x %s' % exec_path)
+            logger.debug("Executing %s %s" % (exec_path, args))
             subprocess.call([exec_path] + args)
 
     def check_md5(self, data):
@@ -354,9 +360,18 @@ class ScriptInterpreter(object):
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
 
+    def mkdir(self, directory):
+        directory = self._substitute(directory)
+        try:
+            os.makedirs(directory)
+        except OSError:
+            logger.debug("Directory %s already exists" % directory)
+        else:
+            logger.debug("Created directory %s" % directory)
+
     def merge(self, params):
-        logger.debug("Merging %s" % str(params))
         src, dst = self._get_move_paths(params)
+        logger.debug("Merging %s into %s" % (src, dst))
         if not os.path.exists(dst):
             os.makedirs(dst)
         for (dirpath, dirnames, filenames) in os.walk(src):
@@ -370,6 +385,7 @@ class ScriptInterpreter(object):
                 except OSError:
                     pass
             for filename in filenames:
+                logger.debug("Copying %s" % filename)
                 shutil.copy(os.path.join(dirpath, filename),
                             os.path.join(dst_abspath, filename))
 
