@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import time
 import shutil
 import urllib2
 import platform
@@ -121,9 +122,6 @@ class ScriptInterpreter(object):
         """ Launch the install process """
         if not os.path.exists(self.target_path):
             os.makedirs(self.target_path)
-        else:
-            raise ScriptingError("Target path already exists ",
-                                 self.target_path)
         self.iter_game_files()
 
     def iter_game_files(self):
@@ -164,9 +162,12 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith("$WINESTEAM"):
             parts = file_uri.split(":", 2)
+            steam_rel_path = parts[2].strip()
+            if steam_rel_path == "/":
+                steam_rel_path = "."
             self.steam_data = {
                 'appid': parts[1],
-                'steam_rel_path': parts[2],
+                'steam_rel_path': steam_rel_path,
                 'file_id': file_id
             }
             steam_runner = steam()
@@ -353,18 +354,21 @@ class ScriptInterpreter(object):
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
 
-    def mergecopy(self, params):
+    def merge(self, params):
         logger.debug("Merging %s" % str(params))
         src, dst = self._get_move_paths(params)
         if not os.path.exists(dst):
-            raise ValueError(dst)
+            os.makedirs(dst)
         for (dirpath, dirnames, filenames) in os.walk(src):
             src_relpath = dirpath[len(src) + 1:]
             dst_abspath = os.path.join(dst, src_relpath)
             for dirname in dirnames:
                 new_dir = os.path.join(dst_abspath, dirname)
                 logger.debug("creating dir: %s" % new_dir)
-                os.mkdir(new_dir)
+                try:
+                    os.mkdir(new_dir)
+                except OSError:
+                    pass
             for filename in filenames:
                 shutil.copy(os.path.join(dirpath, filename),
                             os.path.join(dst_abspath, filename))
@@ -398,20 +402,23 @@ class ScriptInterpreter(object):
         if not os.path.exists(filename):
             logger.error("%s does not exists" % filename)
             return False
+        if 'dst' in data:
+            dest_path = self._substitute(data['dst'])
+        else:
+            dest_path = self.target_path
         msg = "Extracting %s" % filename
         logger.debug(msg)
         self.parent.set_status(msg)
         _, extension = os.path.splitext(filename)
         if extension == ".zip":
-            extract.unzip(filename, self.target_path)
+            extract.unzip(filename, dest_path)
         elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-            extract.untar(filename, None)
+            extract.untar(filename, dest_path)
         elif filename.endswith('.tar.bz2'):
-            extract.untar(filename, None, 'bzip2')
+            extract.untar(filename, dest_path, 'bzip2')
         else:
             logger.error("unrecognised file extension %s" % extension)
             return False
-        import time
         time.sleep(1)
 
     def _get_steam_game_path(self):
