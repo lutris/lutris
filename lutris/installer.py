@@ -194,6 +194,20 @@ class ScriptInterpreter(object):
         dest_dir = os.path.join(settings.CACHE_DIR,
                                 "installer/%s" % self.game_slug)
         dest_file = os.path.join(dest_dir, filename)
+
+        if file_uri == "N/A":
+            #Ask the user where is located the file
+            file_uri = self.parent.ask_user_for_file()
+            print file_uri
+            if not file_uri:
+                raise ScriptingError(
+                    "Can't continue installation without file", file_id
+                )
+            if file_uri.startswith("file://"):
+                self.game_files[file_id] = file_uri[7:]
+                self.iter_game_files()
+                return
+
         if os.path.exists(dest_file):
             logger.debug("Destination file exists")
             if settings.KEEP_CACHED_ASSETS:
@@ -203,14 +217,6 @@ class ScriptInterpreter(object):
                 return
             else:
                 os.remove(dest_file)
-
-        if file_uri == "N/A":
-            #Ask the user where is located the file
-            file_uri = self.parent.ask_user_for_file()
-            if not file_uri:
-                raise ScriptingError(
-                    "Can't continue installation without file", file_id
-                )
 
         # Change parent's status
         self.parent.set_status('Fetching %s' % file_uri)
@@ -336,6 +342,10 @@ class ScriptInterpreter(object):
     def insert_disc(self, data):
         NoticeDialog("Insert game disc to continue")
 
+    def chmodx(self, filename):
+        filename = self._substitute(filename)
+        os.popen('chmod +x %s' % filename)
+
     def execute(self, data):
         """Run an executable script"""
         if isinstance(data, dict):
@@ -350,7 +360,7 @@ class ScriptInterpreter(object):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
         else:
-            os.popen('chmod +x %s' % exec_path)
+            self.chmodx(exec_path)
             logger.debug("Executing %s %s" % (exec_path, args))
             subprocess.call([exec_path] + args)
 
@@ -592,7 +602,7 @@ class InstallerDialog(Gtk.Dialog):
 
     def ask_user_for_file(self):
         dlg = FileDialog()
-        return dlg.get_uri()
+        return dlg.filename
 
     def clean_widgets(self):
         for child_widget in self.widget_box.get_children():
