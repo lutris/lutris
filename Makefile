@@ -19,4 +19,7 @@ upload-ppa:
 	dput ppa:strycore/ppa ../lutris_0.3.0_i386.changes
 
 rpm:
-	sudo alien lutris_0.3.0_all.deb --scripts --to-rpm
+	sudo alien ../lutris_0.3.0_all.deb --scripts --to-rpm
+
+clean:
+	debclean
