@@ -249,10 +249,9 @@ class ScriptInterpreter(object):
             'realname': self.script['name'],
             'runner': runner_name
         }
-        pga.add_game(self.script['name'],
-                     runner_name,
-                     slug=self.game_slug,
-                     directory=self.target_path)
+        pga.add_or_update(self.script['name'], runner_name,
+                          slug=self.game_slug,
+                          directory=self.target_path)
         if 'system' in self.script:
             config_data['system'] = self.script['system']
         if runner_name in self.script:

@@ -13,7 +13,7 @@ class ImportRunnerTest(TestCase):
         runner_list = runners.__all__
         self.assertIn("linux", runner_list)
         self.assertIn("wine", runner_list)
-        self.assertIn("pcsx", runner_list)
+        self.assertIn("pcsxr", runner_list)
         self.assertIn("uae", runner_list)
 
     def test_import_module(self):

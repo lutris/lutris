@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import unittest
 import os
+from sqlite3 import IntegrityError
 from lutris import pga
 
 TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'fixtures/pga.db')
@@ -40,3 +41,16 @@ class TestPersonnalGameArchive(unittest.TestCase):
         game_list = pga.get_games(name_filter='bang')
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'bang')
+
+    def test_game_slugs_must_be_unique(self):
+        pga.add_game(name="unique game", runner="Linux")
+        with self.assertRaises(IntegrityError):
+            pga.add_game(name="unique game", runner="Linux")
+
+    def test_game_with_same_slug_is_updated(self):
+        pga.add_game(name="some game", runner="linux")
+        game = pga.get_game_by_slug("some-game")
+        self.assertFalse(game['directory'])
+        pga.add_or_update(name="some game", runner='linux', directory="/foo")
+        game = pga.get_game_by_slug("some-game")
+        self.assertEqual(game['directory'], '/foo')

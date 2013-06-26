@@ -31,7 +31,7 @@ def create_games(cursor):
     create_game_table_query = """CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY,
         name TEXT,
-        slug TEXT,
+        slug TEXT UNIQUE,
         platform TEXT,
         runner TEXT,
         executable TEXT,
@@ -43,7 +43,7 @@ def create_games(cursor):
 def create_sources(cursor):
     create_sources_table_query = """CREATE TABLE IF NOT EXISTS sources (
         id INTEGER PRIMARY KEY,
-        uri TEXT
+        uri TEXT UNIQUE
     )"""
     cursor.execute(create_sources_table_query)
 
@@ -90,6 +90,19 @@ def add_game(name, runner, slug=None, directory=None):
     if directory:
         game_data['directory'] = directory
     sql.db_insert(PGA_DB, "games", game_data)
+
+
+def add_or_update(name, runner, slug=None, **kwargs):
+    if not slug:
+        slug = slugify(name)
+    game = get_game_by_slug(slug)
+    kwargs['name'] = name
+    kwargs['runner'] = runner
+    if game:
+        sql.db_update(PGA_DB, "games", kwargs, ('slug', slug))
+        pass
+    else:
+        add_game(name, runner, slug, **kwargs)
 
 
 def delete_game(name):
