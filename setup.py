@@ -77,6 +77,7 @@ for directory, _, filenames in os.walk(u'data'):
 data_files.append(('share/icons/hicolor/scalable/apps', ['data/media/lutris.svg']))
 data_files.append(('share/pixmaps', ['data/media/lutris.png']))
 data_files.append(('share/applications', ['lutris.desktop']))
+data_files.append(('share/glib-2.0/schemas', ['data/apps.lutris.gschema.xml']))
 
 setup(
     name='lutris',
