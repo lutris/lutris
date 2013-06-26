@@ -150,7 +150,7 @@ class LutrisGame(object):
                 return False
             game_run_args = gameplay_info["command"]
         else:
-            logger.debug("Old method used for returning gameplay infos")
+            logger.warning("Old method used for returning gameplay infos")
             game_run_args = gameplay_info
 
         resolution = self.game_config.get_system("resolution")

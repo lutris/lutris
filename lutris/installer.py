@@ -434,16 +434,10 @@ class ScriptInterpreter(object):
         msg = "Extracting %s" % filename
         logger.debug(msg)
         self.parent.set_status(msg)
-        _, extension = os.path.splitext(filename)
-        if extension == ".zip":
-            extract.unzip(filename, dest_path)
-        elif filename.endswith('.tgz') or filename.endswith('.tar.gz'):
-            extract.untar(filename, dest_path)
-        elif filename.endswith('.tar.bz2'):
-            extract.untar(filename, dest_path, 'bzip2')
-        else:
-            logger.error("unrecognised file extension %s" % extension)
-            return False
+        try:
+            extract.extract_archive(filename, dest_path)
+        except RuntimeError as ex:
+            raise ScriptingError("Failed to extract %s" % filename, ex.message)
         time.sleep(1)
 
     def _get_steam_game_path(self):
@@ -631,9 +625,9 @@ class InstallerDialog(Gtk.Dialog):
         self.widget_box.add(button)
         button.show()
 
-    def download_complete(self, widget, data, fucks=None):
+    def download_complete(self, widget, data, more_data=None):
         """Action called on a completed download"""
-        print fucks
+        print "WTF?", more_data
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, data, appid):

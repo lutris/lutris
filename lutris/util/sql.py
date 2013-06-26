@@ -53,7 +53,6 @@ def db_select(db_path, table, fields=None, condition=None):
         field_names = ", ".join(fields)
     else:
         field_names = "*"
-    print field_names
     with db_cursor(db_path) as cursor:
         if condition:
             assert len(condition) == 2

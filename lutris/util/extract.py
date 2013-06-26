@@ -13,10 +13,13 @@ def extract_archive(path, to_directory='.'):
         opener, mode = zipfile.ZipFile, 'r'
     elif path.endswith('.tar.gz') or path.endswith('.tgz'):
         opener, mode = tarfile.open, 'r:gz'
+    elif path.endswith('.gz'):
+        decompress_gz(path, to_directory)
+
     elif path.endswith('.tar.bz2') or path.endswith('.tbz'):
         opener, mode = tarfile.open, 'r:bz2'
     else:
-        raise ValueError(
+        raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
             % path)
     cwd = os.getcwd()
@@ -27,18 +30,19 @@ def extract_archive(path, to_directory='.'):
     os.chdir(cwd)
 
 
-def decompress_gz(file_path):
+def decompress_gz(file_path, dest_path=None):
     """Decompress a gzip file"""
-    if file_path.endswith('.gz'):
-        dest_path = file_path[:-3]
+    if dest_path:
+        dest_filename = os.path.join(dest_path,
+                                     os.path.basename(file_path[:-3]))
     else:
-        raise ValueError("unsupported file type")
+        dest_filename = file_path[:-3]
 
-    f = gzip.open(file_path, 'rb')
-    file_content = f.read()
-    f.close()
+    gzipped_file = gzip.open(file_path, 'rb')
+    file_content = gzipped_file.read()
+    gzipped_file.close()
 
-    dest_file = open(dest_path, 'wb')
+    dest_file = open(dest_filename, 'wb')
     dest_file.write(file_content)
     dest_file.close()
 
