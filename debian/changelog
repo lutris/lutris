@@ -1,3 +1,13 @@
+lutris (0.3.0) precise; urgency=low
+
+  * Initial release of Lutris 0.3
+  * Support for game installers
+  * Support for lutris.net authentication
+  * Games are now stored in SQLite database
+  * Basic support for Personnal Game Archives
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jun 2013 12:05:22 +0200
+
 lutris (0.2.8) quantal; urgency=low
 
   * Bump version to 0.2.8
