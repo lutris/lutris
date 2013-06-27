@@ -7,9 +7,9 @@ from gi.repository import Gtk, GLib, Gio
 
 from lutris import api
 from lutris import pga
-from lutris import game
 from lutris import settings
-from lutris.config import LutrisConfig
+from lutris.game import Game
+#from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
 from lutris.util.strings import slugify
 from lutris.util import resources
@@ -153,11 +153,14 @@ class LutrisWindow(object):
 
     def remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game[0]
-        dlg = UninstallGameDialog(game=selected_game)
-        print dlg
+        UninstallGameDialog(game=selected_game, callback=self.on_game_deleted)
         #config = LutrisConfig(game=selected_game)
         #config.remove()
-        #self.view.remove_game(game)
+
+    def on_game_deleted(self, game_slug, from_library, from_disk):
+        game = Game(game_slug)
+        game.remove(from_library=from_library, from_disk=from_disk)
+        self.view.remove_game(game)
 
     # Callbacks
     def on_connect(self, *args):
@@ -204,7 +207,7 @@ class LutrisWindow(object):
     def game_launch(self, *args):
         """Launch a game"""
         if self.view.selected_game:
-            self.running_game = game.LutrisGame(self.view.selected_game)
+            self.running_game = Game(self.view.selected_game)
             self.running_game.play()
 
     def reset(self, *args):

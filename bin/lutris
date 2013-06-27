@@ -48,7 +48,7 @@ from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util.log import logger
 from lutris.installer import InstallerDialog
 from lutris.config import check_config, register_handler
-from lutris.game import LutrisGame
+from lutris.game import Game
 from lutris.pga import get_games
 from lutris.gui.lutriswindow import LutrisWindow
 
@@ -112,7 +112,7 @@ for arg in args:
 if game_slug or options.installer_file:
     file_path = os.path.join(GAME_CONFIG_PATH, game_slug + CONFIG_EXTENSION)
     if os.path.exists(file_path) and not options.reinstall:
-        lutris_game = LutrisGame(game_slug)
+        lutris_game = Game(game_slug)
         lutris_game.play()
     else:
         InstallerDialog(options.installer_file or game_slug)

@@ -18,7 +18,7 @@ from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
 
 from lutris.runners.steam import steam
-from lutris.game import LutrisGame
+from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import FileDialog, ErrorDialog, NoticeDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
@@ -668,5 +668,5 @@ class InstallerDialog(Gtk.Dialog):
 
     def launch_game(self, _widget, _data=None):
         """Launch a game after it's been installed"""
-        lutris_game = LutrisGame(self.interpreter.game_slug)
-        lutris_game.play()
+        game = Game(self.interpreter.game_slug)
+        game.play()

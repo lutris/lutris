@@ -1,22 +1,6 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
-#
-#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 """ Module that actually runs the games. """
-
 import os
 import time
 
@@ -42,7 +26,7 @@ def show_error_message(message):
         ErrorDialog("The file %s could not be found" % message['file'])
 
 
-class LutrisGame(object):
+class Game(object):
     """" This class takes cares about loading the configuration for a game
          and running it.
     """
@@ -71,6 +55,12 @@ class LutrisGame(object):
         else:
             runner_class = import_runner(self.get_runner())
             self.runner = runner_class(self.game_config)
+
+    def remove(self, from_library=False, from_disk=False):
+        print "Removing %s " % self.name
+        print "Removing from library: %s" % from_library
+        print "Removing form disk: %s" % from_disk
+        self.game_config.remove()
 
     def prelaunch(self):
         """ Verify that the current game can be launched. """
