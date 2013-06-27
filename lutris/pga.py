@@ -82,7 +82,7 @@ def get_game_by_slug(slug):
         return game_result[0]
 
 
-def add_game(name, runner, slug=None, directory=None):
+def add_game(name, runner=None, slug=None, directory=None):
     """Adds a game to the PGA database."""
     if not slug:
         slug = slugify(name)
@@ -98,11 +98,12 @@ def add_or_update(name, runner, slug=None, **kwargs):
     game = get_game_by_slug(slug)
     kwargs['name'] = name
     kwargs['runner'] = runner
+    kwargs['slug'] = slug
     if game:
         sql.db_update(PGA_DB, "games", kwargs, ('slug', slug))
         pass
     else:
-        add_game(name, runner, slug, **kwargs)
+        add_game(**kwargs)
 
 
 def delete_game(slug):

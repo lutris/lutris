@@ -124,11 +124,11 @@ class Game(object):
         if oss_wrapper:
             command = oss_wrapper + " " + command
 
-        ld_preload = self.gameplay_info.get('ld_preload')
+        ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             command = " ".join('LD_PRELOAD="{}"'.format(ld_preload), command)
 
-        ld_library_path = self.gameplay_info.get('ld_library_path')
+        ld_library_path = gameplay_info.get('ld_library_path')
         if ld_library_path:
             command = " ".join('LD_LIBRARY_PATH="{}"'.format(ld_library_path),
                                command)

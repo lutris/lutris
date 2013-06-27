@@ -56,7 +56,10 @@ sys.excepthook = error_handler
 def background_job(job, cancellable, data):
     task = data['task']
     args = data['args']
+    callback = data.get('callback')
     task(args)
+    if callback:
+        callback()
 
 
 class ScriptInterpreter(object):
@@ -137,6 +140,7 @@ class ScriptInterpreter(object):
             )
             self._download_file(self.script["files"][len(self.game_files)])
         else:
+            self.current_command = 0
             self._iter_commands()
 
     def _download_file(self, game_file):
@@ -225,9 +229,22 @@ class ScriptInterpreter(object):
 
     def _iter_commands(self):
         os.chdir(self.target_path)
-        for command in self.script.get('installer', []):
+        self.parent.set_status("Installing game data")
+        self.parent.add_spinner()
+
+        commands = self.script.get('installer', [])
+        if self.current_command < len(commands):
+            command = commands[self.current_command]
+            self.current_command += 1
             method, params = self._map_command(command)
-            method(self, params)
+            Gio.io_scheduler_push_job(background_job,
+                                      {'task': method, 'args': params,
+                                       'callback': self._iter_commands},
+                                      GLib.PRIORITY_DEFAULT_IDLE, None)
+        else:
+            self._finish_install()
+
+    def _finish_install(self):
         self.parent.set_status("Writing configuration")
         self._write_config()
         self._cleanup()
@@ -294,8 +311,7 @@ class ScriptInterpreter(object):
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
 
-    @classmethod
-    def _map_command(cls, command_data):
+    def _map_command(self, command_data):
         """ Converts a line from the installer directive an internal method """
         if isinstance(command_data, dict):
             command_name = command_data.keys()[0]
@@ -305,10 +321,10 @@ class ScriptInterpreter(object):
             command_params = ""
         command_name = command_name.replace("-", "_")
         command_name = command_name.strip("_")
-        if not hasattr(cls, command_name):
+        if not hasattr(self, command_name):
             raise ScriptingError("The command %s does not exists"
                                  % command_name)
-        return getattr(cls, command_name), command_params
+        return getattr(self, command_name), command_params
 
     def _substitute(self, path_ref):
         """ Replace path aliases with real paths """
@@ -551,16 +567,16 @@ class InstallerDialog(Gtk.Dialog):
         title_label = Gtk.Label()
         game_name = self.interpreter.game_name
         title_label.set_markup("<b>Installing {}</b>".format(game_name))
-        self.vbox.pack_start(title_label, False, False, 25)
+        self.vbox.pack_start(title_label, False, False, 20)
 
         self.status_label = Gtk.Label()
-        self.vbox.pack_start(self.status_label, True, True, 25)
+        self.vbox.pack_start(self.status_label, False, False, 15)
 
         # Main widget box
         self.widget_box = Gtk.VBox()
         self.widget_box.set_margin_right(25)
         self.widget_box.set_margin_left(25)
-        self.vbox.pack_start(self.widget_box, True, True, 10)
+        self.vbox.pack_start(self.widget_box, True, True, 15)
 
         # Separator
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
@@ -608,6 +624,13 @@ class InstallerDialog(Gtk.Dialog):
     def set_status(self, text):
         self.status_label.set_text(text)
 
+    def add_spinner(self):
+        self.clean_widgets()
+        spinner = Gtk.Spinner()
+        self.widget_box.pack_start(spinner, True, False, 10)
+        spinner.show()
+        spinner.start()
+
     def start_download(self, file_uri, dest_file, callback=None, data=None):
         self.clean_widgets()
         self.download_progress = DownloadProgressBox(
@@ -642,23 +665,6 @@ class InstallerDialog(Gtk.Dialog):
         self.status_label.set_text("Installation finished !")
 
         self.clean_widgets()
-        desktop_btn = Gtk.Button('Create a desktop shortcut')
-        desktop_btn.connect(
-            'clicked',
-            lambda d: create_launcher(self.interpreter.game_slug, desktop=True)
-        )
-        menu_btn = Gtk.Button('Create an icon in the application menu')
-        menu_btn.connect(
-            'clicked',
-            lambda m: create_launcher(self.interpreter.game_slug, menu=True)
-        )
-        buttons_box = Gtk.HBox()
-        buttons_box.set_homogeneous(True)
-        buttons_box.pack_start(desktop_btn, True, True, 10)
-        buttons_box.pack_start(menu_btn, True, True, 10)
-        buttons_box.show_all()
-
-        self.widget_box.pack_start(buttons_box, True, True, 10)
 
         self.install_button.destroy()
         play_button = Gtk.Button("Launch game")
