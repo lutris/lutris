@@ -76,11 +76,6 @@ class scummvm(Runner):
         self.executable = "scummvm"
         self.package = "scummvm"
         self.platform = "LucasArts point and click games"
-        self.installer_options = [{
-            'option': 'foo',
-            'type': "label",
-            'label': "Click on install to launch ScummVM and install the game"
-        }]
         self.game_options = [{'option': 'game_id',
                               'type': 'string',
                               'label': "Game identifier"}]

@@ -37,58 +37,64 @@ class linux(Runner):
         self.platform = "Linux games"
         self.ld_preload = None
         self.game_path = None
-        self.installer_options = [{"option": "installer",
-                                   "type": "file_chooser",
-                                   "label": "Executable"}]
-        self.game_options = [{"option": "exe",
-                              "type": "file_chooser",
-                              "default_path": "game_path",
-                              "label": "Executable"},
-                             {"option": "args",
-                              "type": "string",
-                              "label": "Arguments"},
-                             {"option": "ld_preload",
-                              "type": "file_chooser",
-                              "label": "Preload library"}]
+        self.game_options = [
+            {
+                "option": "exe",
+                "type": "file_chooser",
+                "default_path": "game_path",
+                "label": "Executable"
+            },
+            {
+                "option": "args",
+                "type": "string",
+                "label": "Arguments"
+            },
+            {
+                "option": "ld_preload",
+                "type": "file_chooser",
+                "label": "Preload library"
+            },
+            {
+                "option": "ld_library_path",
+                "type": "directory_chooser",
+                "label": "Add directory to LD_LIBRARY_PATH"
+            }
+        ]
         self.runner_options = []
         self.config = config
-
-    def get_install_command(self, installer_path):
-        """ Launch install script (usually .bin or .sh) """
-        #Check if installer exists
-        if not os.path.exists(installer_path):
-            raise IOError
-
-        #Check if script is executable and make it executable if not
-        if not os.access(installer_path, os.X_OK):
-            logger.debug("%s is not executable, setting it executable")
-            os.chmod(installer_path,
-                     stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
-
-        return "x-terminal-emulator -e %s" % installer_path
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
     def play(self):
-        """Run native game."""
-        logger.debug("Launching Linux game")
+        """ Run native game. """
         game_config = self.config.get('game')
         if not game_config:
             return {'error': 'INVALID_CONFIG'}
 
         executable = game_config.get("exe")
-        args = game_config.get('args', "")
-        self.ld_preload = game_config.get('ld_preload', None)
         if not os.path.exists(executable):
             return {'error': 'FILE_NOT_FOUND', 'file': executable}
+
+        launch_info = {}
+
         self.game_path = os.path.dirname(executable)
+        launch_info['game_path'] = self.game_path
+
+        ld_preload = game_config.get('ld_preload')
+        if ld_preload:
+            launch_info['ld_preload'] = ld_preload
+
+        ld_library_path = game_config.get('ld_library_path')
+        if ld_library_path:
+            launch_info['ld_library_path'] = ld_library_path
+
         command = []
-        if self.ld_preload:
-            command.append("LD_PRELOAD=%s " % self.ld_preload)
         command.append("./%s" % os.path.basename(executable))
+
+        args = game_config.get('args', "")
         for arg in args.split():
             command.append(arg)
-        logger.debug("Linux runner args: %s" % command)
-        return {'command': command}
+        launch_info['command'] = command
+        return launch_info

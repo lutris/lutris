@@ -157,12 +157,10 @@ class LutrisGame(object):
         if resolution:
             lutris.desktop_control.change_resolution(resolution)
 
-        _reset_pulse = self.game_config.get_system("reset_pulse")
-        if _reset_pulse:
+        if self.game_config.get_system("reset_pulse"):
             reset_pulse()
 
-        hide_panels = self.game_config.get_system("hide_panels")
-        if hide_panels:
+        if self.game_config.get_system("hide_panels"):
             self.desktop.hide_panels()
 
         nodecoration = self.game_config.get_system("compiz_nodecoration")
@@ -181,6 +179,15 @@ class LutrisGame(object):
                                   command)
         if oss_wrapper:
             command = oss_wrapper + " " + command
+
+        ld_preload = self.gameplay_info.get('ld_preload')
+        if ld_preload:
+            command = " ".join('LD_PRELOAD="{}"'.format(ld_preload), command)
+
+        ld_library_path = self.gameplay_info.get('ld_library_path')
+        if ld_library_path:
+            command = " ".join('LD_LIBRARY_PATH="{}"'.format(ld_library_path),
+                               command)
 
         self.heartbeat = GLib.timeout_add(5000, self.poke_process)
         logger.debug("Running : %s", command)
