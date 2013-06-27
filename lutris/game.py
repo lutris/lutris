@@ -18,12 +18,9 @@
 """ Module that actually runs the games. """
 
 import os
-import sys
 import time
-import subprocess
 
 from signal import SIGKILL
-from os.path import join
 from gi.repository import Gtk, GLib
 
 from lutris.runners import import_runner
@@ -31,16 +28,8 @@ from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import QuestionDialog, ErrorDialog
-from lutris.settings import CONFIG_DIR
 
-from lutris import pga
 from lutris import desktop_control
-
-
-class ConfigurationException(Exception):
-    """ Dummy exception for bad config files """
-    def __init__(self):
-        super(ConfigurationException, self).__init__()
 
 
 def show_error_message(message):
@@ -53,52 +42,10 @@ def show_error_message(message):
         ErrorDialog("The file %s could not be found" % message['file'])
 
 
-def get_list():
-    """Get the list of all installed games"""
-    game_list = []
-    return pga.get_games()
-    for filename in os.listdir(join(CONFIG_DIR, "games")):
-        if filename.endswith(".yml"):
-            game_name = filename[:len(filename) - 4]
-            logger.info("Loading %s ...", game_name)
-            try:
-                game = LutrisGame(game_name)
-            except ConfigurationException:
-                message = "Error loading configuration for %s" % game_name
-
-                #error_dialog = Gtk.MessageDialog(parent=None, flags=0,
-                #                                 type=Gtk.MessageType.ERROR,
-                #                                 buttons=Gtk.ButtonsType.OK,
-                #                                 message_format=message)
-                #error_dialog.run()
-                #error_dialog.destroy()
-                print(message)
-            else:
-                game_list.append({"name": game.get_real_name(),
-                                  "runner": game.get_runner(),
-                                  "id": game_name})
-    return game_list
-
-
-def reset_pulse():
-    """ Reset pulseaudio. """
-    pulse_reset = "pulseaudio --kill && sleep 1 && pulseaudio --start"
-    subprocess.Popen(pulse_reset, shell=True)
-    logger.debug("PulseAudio restarted")
-
-
-def setup_padsp(setting, command):
-    command = command.split()[0]
-    if setting == 'padsp32':
-        launch_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        return os.path.join(launch_dir, 'padsp32')
-    elif setting == 'padsp':
-        return 'padsp'
-
-
 class LutrisGame(object):
-    """"This class takes cares about loading the configuration for a game
-    and running it."""
+    """" This class takes cares about loading the configuration for a game
+         and running it.
+    """
     def __init__(self, name):
         self.name = name
         self.runner = None
@@ -159,7 +106,7 @@ class LutrisGame(object):
             desktop_control.change_resolution(resolution)
 
         if self.game_config.get_system("reset_pulse"):
-            reset_pulse()
+            desktop_control.reset_pulse()
 
         if self.game_config.get_system("hide_panels"):
             self.desktop.hide_panels()
@@ -176,8 +123,9 @@ class LutrisGame(object):
 
         path = self.runner.get_game_path()
         command = " " . join(game_run_args)
-        oss_wrapper = setup_padsp(self.game_config.get_system("oss_wrapper"),
-                                  command)
+        oss_wrapper = desktop_control.setup_padsp(
+            self.game_config.get_system("oss_wrapper"), command
+        )
         if oss_wrapper:
             command = oss_wrapper + " " + command
 

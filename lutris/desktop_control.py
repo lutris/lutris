@@ -1,29 +1,13 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
-#
-#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+""" Utilities to control the user's desktop in many aspects
 
-"""Class to control the user's desktop in many aspects
-
-This class interacts with the window manager, xrandr, gconf, ...
+    This class interacts with the window manager, xrandr, gconf, ...
 """
 
+import sys
 import os.path
-
-from subprocess import Popen, PIPE
+import subprocess
 
 from lutris.gconf import GConfSetting
 from lutris.util.log import logger
@@ -42,8 +26,9 @@ def make_compiz_rule(class_=None, title=None):
 
 def get_resolutions():
     """Return the list of supported screen resolutions."""
-    xrandr_output = Popen("xrandr",
-                          stdout=PIPE, stderr=PIPE).communicate()[0]
+    xrandr_output = subprocess.Popen("xrandr",
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE).communicate()[0]
     resolution_list = []
     for line in xrandr_output.split("\n"):
         if line.startswith("  "):
@@ -53,7 +38,8 @@ def get_resolutions():
 
 def get_current_resolution():
     """Return the current resolution for the desktop."""
-    xrandr_output = Popen("xrandr", stdout=PIPE).communicate()[0]
+    xrandr_output = subprocess.Popen("xrandr",
+                                     stdout=subprocess.PIPE).communicate()[0]
     for line in xrandr_output.split("\n"):
         if line.startswith("  ") and "*" in line:
             return line.split()[0]
@@ -65,7 +51,7 @@ def change_resolution(resolution):
     if resolution not in get_resolutions():
         logger.warning("Resolution %s doesn't exist.")
     else:
-        Popen("xrandr -s %s" % resolution, shell=True)
+        subprocess.Popen("xrandr -s %s" % resolution, shell=True)
 
 
 def check_joysticks():
@@ -122,3 +108,19 @@ def reset_desktop():
     os.popen("xrandr -s 0")
     #Restore gamma
     os.popen("xgamma -gamma 1.0")
+
+
+def setup_padsp(setting, command):
+    command = command.split()[0]
+    if setting == 'padsp32':
+        launch_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        return os.path.join(launch_dir, 'padsp32')
+    elif setting == 'padsp':
+        return 'padsp'
+
+
+def reset_pulse():
+    """ Reset pulseaudio. """
+    pulse_reset = "pulseaudio --kill && sleep 1 && pulseaudio --start"
+    subprocess.Popen(pulse_reset, shell=True)
+    logger.debug("PulseAudio restarted")
