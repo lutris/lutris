@@ -548,9 +548,13 @@ class InstallerDialog(Gtk.Dialog):
         ## GUI Setup
 
         # Title label
+        title_label = Gtk.Label()
+        game_name = self.interpreter.game_name
+        title_label.set_markup("<b>Installing {}</b>".format(game_name))
+        self.vbox.pack_start(title_label, False, False, 25)
+
         self.status_label = Gtk.Label()
-        self.status_label.set_markup("<b>Installing %s</b>"
-                                     % self.interpreter.game_name)
+        self.vbox.pack_start(self.status_label, True, True, 25)
 
         # Main widget box
         self.widget_box = Gtk.VBox()
