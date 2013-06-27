@@ -12,18 +12,22 @@ from lutris import api
 
 class GtkBuilderDialog(GObject.Object):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(GtkBuilderDialog, self).__init__()
         ui_filename = os.path.join(settings.get_data_path(), 'ui',
                                    self.glade_file)
         if not os.path.exists(ui_filename):
-            ui_filename = None
+            raise ValueError("ui file does not exists: %s" % ui_filename)
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
         self.builder.connect_signals(self)
         self.dialog.show_all()
+        self.initialize(**kwargs)
+
+    def initialize(self, **kwargs):
+        pass
 
     def on_close(self, *args):
         self.dialog.destroy()
@@ -38,7 +42,6 @@ class NoticeDialog(Gtk.MessageDialog):
     """ Displays a message to the user. """
     def __init__(self, message):
         super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
-        from lutris import api
         self.set_markup(message)
         self.run()
         self.destroy()

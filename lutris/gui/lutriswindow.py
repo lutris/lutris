@@ -15,6 +15,7 @@ from lutris.util.strings import slugify
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.gui import dialogs
+from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
 from lutris.gui.widgets import GameTreeView, GameIconView
@@ -151,13 +152,12 @@ class LutrisWindow(object):
         dialogs.AboutDialog()
 
     def remove_game(self, _widget, _data=None):
-        """Remove game configuration file
-        Note: this won't delete the actual game
-        """
         selected_game = self.view.selected_game[0]
-        config = LutrisConfig(game=selected_game)
-        config.remove()
-        self.view.remove_game(game)
+        dlg = UninstallGameDialog(game=selected_game)
+        print dlg
+        #config = LutrisConfig(game=selected_game)
+        #config.remove()
+        #self.view.remove_game(game)
 
     # Callbacks
     def on_connect(self, *args):

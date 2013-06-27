@@ -32,8 +32,9 @@ from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import QuestionDialog, ErrorDialog
 from lutris.settings import CONFIG_DIR
+
 from lutris import pga
-import lutris.desktop_control
+from lutris import desktop_control
 
 
 class ConfigurationException(Exception):
@@ -155,7 +156,7 @@ class LutrisGame(object):
 
         resolution = self.game_config.get_system("resolution")
         if resolution:
-            lutris.desktop_control.change_resolution(resolution)
+            desktop_control.change_resolution(resolution)
 
         if self.game_config.get_system("reset_pulse"):
             reset_pulse()
@@ -165,11 +166,11 @@ class LutrisGame(object):
 
         nodecoration = self.game_config.get_system("compiz_nodecoration")
         if nodecoration:
-            lutris.desktop_control.set_compiz_nodecoration(title=nodecoration)
+            desktop_control.set_compiz_nodecoration(title=nodecoration)
 
         fullscreen = self.game_config.get_system("compiz_fullscreen")
         if fullscreen:
-            lutris.desktop_control.set_compiz_fullscreen(title=fullscreen)
+            desktop_control.set_compiz_fullscreen(title=fullscreen)
 
         killswitch = self.game_config.get_system("killswitch")
 
@@ -231,4 +232,4 @@ class LutrisGame(object):
                 child.kill()
             os.kill(self.game_thread.pid + 1, SIGKILL)
         if self.game_config.get_system('reset_desktop'):
-            lutris.desktop_control.reset_desktop()
+            desktop_control.reset_desktop()
