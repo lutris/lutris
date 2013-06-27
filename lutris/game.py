@@ -126,12 +126,12 @@ class Game(object):
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
-            command = " ".join('LD_PRELOAD="{}"'.format(ld_preload), command)
+            command = " ".join(('LD_PRELOAD="{}"'.format(ld_preload), command))
 
         ld_library_path = gameplay_info.get('ld_library_path')
         if ld_library_path:
-            command = " ".join('LD_LIBRARY_PATH="{}"'.format(ld_library_path),
-                               command)
+            command = " ".join(('LD_LIBRARY_PATH="{}"'.format(ld_library_path),
+                               command))
 
         self.heartbeat = GLib.timeout_add(5000, self.poke_process)
         logger.debug("Running : %s", command)

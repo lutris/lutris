@@ -15,6 +15,7 @@ def extract_archive(path, to_directory='.'):
         opener, mode = tarfile.open, 'r:gz'
     elif path.endswith('.gz'):
         decompress_gz(path, to_directory)
+        return
 
     elif path.endswith('.tar.bz2') or path.endswith('.tbz'):
         opener, mode = tarfile.open, 'r:bz2'
