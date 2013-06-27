@@ -55,4 +55,4 @@ class UninstallGameDialog(GtkBuilderDialog):
         remove_contents = remove_contents_button.get_active()
         self.callback(self.game_slug, remove_from_library, remove_contents)
 
-        self.destroy()
+        self.on_close()

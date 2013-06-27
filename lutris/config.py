@@ -129,7 +129,7 @@ class LutrisConfig(object):
             game_config_path = join(CONFIG_DIR,
                                     "games/%s.yml" % self.game)
             self.game_config = read_yaml_from_file(game_config_path)
-            self.runner = self.game_config["runner"]
+            self.runner = self.game_config.get("runner")
         self.update_global_config()
 
     def __str__(self):
@@ -159,6 +159,10 @@ class LutrisConfig(object):
 
     def get(self, key):
         return self.__getitem__(key)
+
+    @property
+    def game_config_file(self):
+        return join(CONFIG_DIR, "games/%s.yml" % self.game)
 
     def get_system(self, key):
         """Return the value of 'key' for system config"""
@@ -191,11 +195,6 @@ class LutrisConfig(object):
             else:
                 self.config[key] = self.game_config[key]
 
-    def get_real_name(self):
-        """Return the real name of a game."""
-        logger.error("Deprecated get_real_name method called")
-        return self.get_name()
-
     def get_name(self):
         """Return name of game"""
         name = self.config["realname"]
@@ -206,7 +205,10 @@ class LutrisConfig(object):
         if game is None:
             game = self.game
         logging.debug("removing config for %s", game)
-        os.remove(join(CONFIG_DIR, "games/%s.yml" % game))
+        if os.path.exists(self.game_config_file):
+            os.remove(self.game_config_file)
+        else:
+            logger.debug("No config file at %s" % self.game_config_file)
 
     def is_valid(self):
         """Check the config data and return True if config is ok."""
@@ -242,8 +244,7 @@ class LutrisConfig(object):
         elif config_type == "game":
             if not self.game:
                 self.game = slugify(self.config['realname'])
-            config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
-            self.write_to_disk(config_path, yaml_config)
+            self.write_to_disk(self.game_config_file, yaml_config)
             return self.game
         else:
             print("Config type is %s or %s" % (self.config_type, type))

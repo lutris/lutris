@@ -2,19 +2,19 @@
 import os
 import stat
 import shutil
+import subprocess
 
 from xdg import BaseDirectory
-from subprocess import Popen, PIPE
 
 from lutris.config import LutrisConfig
-from lutris.settings  import CACHE_DIR, DATA_DIR
+from lutris.settings import CACHE_DIR, DATA_DIR
 
 
 def create_launcher(game, desktop=False, menu=False):
     """ Create desktop file """
     config = LutrisConfig(game=game)
-    desktop_dir = Popen(['xdg-user-dir', 'DESKTOP'],
-                        stdout=PIPE).communicate()[0]
+    desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
+                                   stdout=subprocess.PIPE).communicate()[0]
     desktop_dir = desktop_dir.strip()
     launcher_content = """[Desktop Entry]
 Type=Application
@@ -22,7 +22,7 @@ Name=%s
 Icon=%s
 Exec=lutris lutris:%s
 Categories=Game
-""" % (config.get_real_name(),
+""" % (config.get_name(),
        os.path.join(DATA_DIR, "icons/%s.png" % game),
        game)
 
@@ -31,7 +31,7 @@ Categories=Game
     tmp_launcher = open(tmp_launcher_path,  "w")
     tmp_launcher.write(launcher_content)
     tmp_launcher.close()
-    os.chmod(tmp_launcher_path, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC | \
+    os.chmod(tmp_launcher_path, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC |
              stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
 
     if desktop:
