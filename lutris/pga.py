@@ -105,9 +105,9 @@ def add_or_update(name, runner, slug=None, **kwargs):
         add_game(name, runner, slug, **kwargs)
 
 
-def delete_game(name):
+def delete_game(slug):
     """Deletes a game from the PGA"""
-    sql.db_delete(PGA_DB, "games", 'name', name)
+    sql.db_delete(PGA_DB, "games", 'slug', slug)
 
 
 def add_source(uri):

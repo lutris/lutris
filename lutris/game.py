@@ -2,11 +2,13 @@
 # -*- coding:Utf-8 -*-
 """ Module that actually runs the games. """
 import os
+import shutil
 import time
 
 from signal import SIGKILL
 from gi.repository import Gtk, GLib
 
+from lutris import pga
 from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
@@ -57,9 +59,12 @@ class Game(object):
             self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
-        print "Removing %s " % self.name
-        print "Removing from library: %s" % from_library
-        print "Removing form disk: %s" % from_disk
+        logger.debug("Uninstalling %s" % self.name)
+        if from_disk:
+            game_info = pga.get_game_by_slug(self.name)
+            shutil.rmtree(game_info['directory'])
+        if from_library:
+            pga.delete_game(self.name)
         self.game_config.remove()
 
     def prelaunch(self):

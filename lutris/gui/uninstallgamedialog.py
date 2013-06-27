@@ -1,5 +1,6 @@
 from lutris.gui.dialogs import GtkBuilderDialog
 from lutris import pga
+from lutris.game import Game
 
 
 class UninstallGameDialog(GtkBuilderDialog):
@@ -31,10 +32,14 @@ class UninstallGameDialog(GtkBuilderDialog):
             self.builder.get_object('remove_from_library_button'),
             'game', game_name
         )
-        self.substitute_label(
-            self.builder.get_object('remove_contents_button'),
-            'path', game_info['directory']
+        game_directory = game_info['directory']
+        remove_contents_button = self.builder.get_object(
+            'remove_contents_button'
         )
+        if not game_directory:
+            remove_contents_button.set_sensitive(False)
+            game_directory = "disk"
+        self.substitute_label(remove_contents_button, 'path', game_directory)
 
         cancel_button = self.builder.get_object('cancel_button')
         cancel_button.connect('clicked', self.on_close)
@@ -53,6 +58,8 @@ class UninstallGameDialog(GtkBuilderDialog):
             'remove_contents_button'
         )
         remove_contents = remove_contents_button.get_active()
-        self.callback(self.game_slug, remove_from_library, remove_contents)
+        game = Game(self.game_slug)
+        game.remove(remove_from_library, remove_contents)
+        self.callback(self.game_slug)
 
         self.on_close()

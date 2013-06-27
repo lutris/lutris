@@ -154,13 +154,9 @@ class LutrisWindow(object):
     def remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game[0]
         UninstallGameDialog(game=selected_game, callback=self.on_game_deleted)
-        #config = LutrisConfig(game=selected_game)
-        #config.remove()
 
-    def on_game_deleted(self, game_slug, from_library, from_disk):
-        game = Game(game_slug)
-        game.remove(from_library=from_library, from_disk=from_disk)
-        self.view.remove_game(game)
+    def on_game_deleted(self, game_slug):
+        self.view.remove_game(game_slug)
 
     # Callbacks
     def on_connect(self, *args):
