@@ -176,7 +176,7 @@ class GameView(object):
             return
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
-            if type(view) is GameIconView:
+            if type(view) is GameIconView and view.current_path:
                 view.select_path(view.current_path)
         except ValueError:
             (_, path) = view.get_selection().get_selected()

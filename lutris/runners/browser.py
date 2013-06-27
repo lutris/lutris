@@ -43,5 +43,4 @@ class browser(Runner):
     def play(self):
         """Run a browser game"""
         url = self.settings["game"]["main_file"]
-        command = [self.browser_exec, "\"%s\"" % url]
-        return command
+        return {'command': [self.browser_exec, "\"%s\"" % url]}

@@ -22,7 +22,6 @@ from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import FileDialog, ErrorDialog, NoticeDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
-from lutris.shortcuts import create_launcher
 from lutris import settings
 from lutris.runners import import_task
 
@@ -90,6 +89,11 @@ class ScriptInterpreter(object):
         games_dir = lutris_config.get_path() or os.path.expanduser('~')
         return os.path.join(games_dir, self.game_slug)
 
+    @property
+    def download_cache_path(self):
+        return os.path.join(settings.CACHE_DIR,
+                            "installer/%s" % self.game_slug)
+
     def _check_dependecy(self):
         game = pga.get_game_by_slug(self.requires)
         if not game or not game['directory']:
@@ -119,19 +123,13 @@ class ScriptInterpreter(object):
                 self.errors.append("Missing field '%s'" % field)
         return not bool(self.errors)
 
-    def _start_install(self):
-        """ Launch the install process """
-        if not os.path.exists(self.target_path):
-            os.makedirs(self.target_path)
-        self.iter_game_files()
-
     def iter_game_files(self):
         files = self.script.get('files', [])
-        dest_dir = os.path.join(settings.CACHE_DIR,
-                                "installer/%s" % self.game_slug)
-        if not os.path.exists(dest_dir) and files:
-            logger.debug('Creating destination directory %s' % dest_dir)
-            os.mkdir(dest_dir)
+        if not os.path.exists(self.download_cache_path) and files:
+            os.mkdir(self.download_cache_path)
+
+        if not os.path.exists(self.target_path) and files:
+            os.makedirs(self.target_path)
 
         if len(self.game_files) < len(files):
             logger.info(
@@ -195,14 +193,11 @@ class ScriptInterpreter(object):
             file_uri = pga_uri
 
         # Setup destination path
-        dest_dir = os.path.join(settings.CACHE_DIR,
-                                "installer/%s" % self.game_slug)
-        dest_file = os.path.join(dest_dir, filename)
+        dest_file = os.path.join(self.download_cache_path, filename)
 
         if file_uri == "N/A":
             #Ask the user where is located the file
             file_uri = self.parent.ask_user_for_file()
-            print file_uri
             if not file_uri:
                 raise ScriptingError(
                     "Can't continue installation without file", file_id
@@ -252,9 +247,8 @@ class ScriptInterpreter(object):
         self.parent.on_install_finished()
 
     def _cleanup(self):
-        print "To delete:"
-        for file_id in self.game_files:
-            print self.game_files[file_id]
+        if os.path.exists(self.download_cache_path):
+            shutil.rmtree(self.download_cache_path)
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
@@ -331,7 +325,7 @@ class ScriptInterpreter(object):
         if path_ref.startswith("$GAMEDIR"):
             path_ref = path_ref.replace("$GAMEDIR", self.target_path)
         elif path_ref.startswith("$CACHE"):
-            path_ref = path_ref.replace("$CACHE", settings.DATA_DIR)
+            path_ref = path_ref.replace("$CACHE", settings.CACHE_DIR)
         elif path_ref.startswith("$HOME"):
             path_ref = path_ref.replace("$HOME", os.path.expanduser("~"))
         return path_ref
@@ -611,7 +605,7 @@ class InstallerDialog(Gtk.Dialog):
 
     def on_install_clicked(self, button):
         button.set_sensitive(False)
-        self.interpreter._start_install()
+        self.interpreter.iter_game_files()
 
     def ask_user_for_file(self):
         dlg = FileDialog()
@@ -654,7 +648,6 @@ class InstallerDialog(Gtk.Dialog):
 
     def download_complete(self, widget, data, more_data=None):
         """Action called on a completed download"""
-        print "WTF?", more_data
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, data, appid):
