@@ -1,9 +1,11 @@
 import os
-import subprocess
 
 from lutris.runners.uae import uae
 from lutris.gui.dialogs import ErrorDialog, DownloadDialog
-from lutris.settings import CACHE_DIR
+from lutris.util.extract import extract_archive
+from lutris import settings
+
+RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
 
 
 class fsuae(uae):
@@ -12,44 +14,87 @@ class fsuae(uae):
     def __init__(self, settings=None):
         super(fsuae, self).__init__(settings)
         self.executable = 'fs-uae'
-        self.homepage = 'http://fengestad.no/fs-uae'
-        self.package = {
-            'i686': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_i386.deb',
-            'x64': self.homepage + '/stable/2.0.1/fs-uae_2.0.1-0_amd64.deb'
-        }
+        self.game_options = [
+            {
+                'option': "main_file",
+                'type': "file",
+                'label': "Boot disk"
+            },
+            {
+                "option": "disks",
+                "type": "multiple",
+                "label": "Additionnal floppies"
+            }
+        ]
+
+        self.runner_options = [
+            {
+                "option": "kickstart_file",
+                "label": "Rom Path",
+                "type": "file_chooser"
+            }
+        ]
         self.settings = settings
 
     def insert_floppies(self):
-        floppies = self.settings['game'].get('disk', [])
-        if type(floppies) == str:
-            floppies = [floppies]
-        params = []
-        for drive, disk in enumerate(floppies):
-            params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))
-        return params
+        disks = []
+        main_disk = self.settings['game'].get('main_file')
+        if main_disk:
+            disks.append(main_disk)
+
+        additional_disks = self.settings['game'].get('disks', [])
+        disks += additional_disks
+        floppy_params = []
+        for drive, disk in enumerate(disks):
+            floppy_params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))
+        return floppy_params
+
+    def is_installed(self):
+        if os.path.exists(self.get_executable()):
+            return True
+        return super(fsuae, self).is_installed()
 
     def install(self):
         """Downloads deb package and installs it"""
-        download_url = self.package.get(self.arch)
+        runner_urls = {
+            'i686': settings.RUNNERS_URL + "fs-uae-i386.tar.gz",
+            'x64': settings.RUNNERS_URL + "fs-uae-x86_64.tar.gz",
+            'x86_64': settings.RUNNERS_URL + "fs-uae-x86_64.tar.gz"
+        }
+        download_url = runner_urls.get(self.arch)
         if not download_url:
             ErrorDialog(
-                "Runner not available on your architecture"
+                "Runner not available for architecture %s" % self.arch
             )
-        deb_filename = os.path.basename(download_url)
-        dest = os.path.join(CACHE_DIR, deb_filename)
+        runner_filename = os.path.basename(download_url)
+        dest = os.path.join(settings.CACHE_DIR, runner_filename)
         dialog = DownloadDialog(download_url, dest)
         dialog.run()
-        subprocess.Popen(["software-center", dest],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
+        extract_archive(dest, RUNNER_DIR)
+
+    def get_executable(self):
+        return os.path.join(RUNNER_DIR, 'fs-uae/bin/fs-uae')
 
     def get_params(self):
         runner = self.__class__.__name__
         params = []
         runner_config = self.settings[runner] or {}
         machine = runner_config.get('machine')
+        kickstart_file = runner_config.get('kickstart_file')
+        if kickstart_file:
+            params.append("--kickstart_file=\"%s\"" % kickstart_file)
         if machine:
             params.append('--amiga_model=%s' % machine)
         if runner_config.get("gfx_fullscreen_amiga", False):
             params.append("--fullscreen")
         return params
+
+    def play(self):
+        params = self.get_params()
+        disks = self.insert_floppies()
+        command = [self.get_executable()]
+        for param in params:
+            command.append(param)
+        for disk in disks:
+            command.append(disk)
+        return {'command': command}

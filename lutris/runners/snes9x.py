@@ -86,6 +86,8 @@ class snes9x(Runner):
             executable = ["LD_LIBRARY_PATH=\"%s\"" % lib_path, local_path]
         elif self.is_installed():
             executable = [self.executable]
+        else:
+            executable = ""
         return executable
 
     def is_installed(self):
