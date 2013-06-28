@@ -27,10 +27,10 @@ Installing mods and add-ons
 ---------------------------
 
 Mods and add-ons require that a base game is already available on the system.
-You can let now the installer that you want to install an add-on by specifying 
-the ``requires`` directive. The value of ``requires`` must be the canonical 
+You can let now the installer that you want to install an add-on by specifying
+the ``requires`` directive. The value of ``requires`` must be the canonical
 slug name of a game, not one of its aliases. For example, to install the add-on
-"The reckoning" for Quake 2, you should add: 
+"The reckoning" for Quake 2, you should add:
 
 ``requires: quake-2``
 
@@ -69,20 +69,55 @@ directory.
 
 The ``move`` command cannot overwrite files.
 
+Example:
+
+::
+    
+    move:
+      src: game-file-id
+      dst: $GAMEDIR/location
+    
 Copying and merging directories
 -------------------------------
 
-Both merging and copying actions are done with the ``merge`` directive. 
-Whether the actions acts as merge or copy depends of the existence of the 
-destination directory. When merging into an existing directory, original files 
+Both merging and copying actions are done with the ``merge`` directive.
+Whether the actions acts as merge or copy depends of the existence of the
+destination directory. When merging into an existing directory, original files
 with the same as ones present in the merged directory will be overwritten, take
 this into account when writing your script and order your actions accordingly.
+
+Example:
+
+::
+    
+    merge:
+      src: game-file-id
+      dst: $GAMEDIR/location
+    
 
 Extracting archives
 -------------------
 
-Extracting archives is done with the ``extract`` directive, the ``file`` 
-argument is a ``file id``.
+Extracting archives is done with the ``extract`` directive, the ``file``
+argument is a ``file id``. If the archive should be extracted in some other 
+location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
+
+Example: 
+
+::
+
+    extract:
+      file: game-archive
+      dst: $GAMEDIR/datadir/ 
+
+Making a file executable
+------------------------
+
+Marking the file as executable is done with the ``chmodx`` command. It is often
+needed for games that ships in a zip file which does not retain file permissions.
+
+Example: ``chmodx: $GAMEDIR/game_binary``
+
 
 Calling the installer
 =====================

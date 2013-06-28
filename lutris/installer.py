@@ -210,7 +210,6 @@ class ScriptInterpreter(object):
         if os.path.exists(dest_file):
             logger.debug("Destination file exists")
             if settings.KEEP_CACHED_ASSETS:
-                # Fast !
                 self.game_files[file_id] = dest_file
                 self.iter_game_files()
                 return
