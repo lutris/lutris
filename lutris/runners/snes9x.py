@@ -32,7 +32,7 @@ class snes9x(Runner):
         self.package = None
         self.platform = "Super Nintendo"
         self.is_installable = True
-        self.game_options = [{"option": "rom",
+        self.game_options = [{"option": "main_file",
                               "type": "file_chooser",
                               "default_path": "game_path",
                               "label": "ROM"}]
@@ -58,7 +58,7 @@ class snes9x(Runner):
             }
         ]
         if settings:
-            self.rom = settings["game"]["rom"]
+            self.rom = settings["game"]["main_file"]
             self.settings = settings
 
     def options_as_dict(self):
@@ -70,14 +70,16 @@ class snes9x(Runner):
     def play(self):
         """Run Super Nintendo game"""
         options = self.options_as_dict()
+        runner_options = self.settings.get('snes9x')
         for option_name in options:
-            self.set_option(
-                option_name,
-                self.settings['snes9x'].get(
-                    option_name, options[option_name].get('default')
+            if runner_options:
+                self.set_option(
+                    option_name,
+                    runner_options.get(
+                        option_name, options[option_name].get('default')
+                    )
                 )
-            )
-        return self.get_executable() + ["\"%s\"" % self.rom]
+        return {'command': self.get_executable() + ["\"%s\"" % self.rom]}
 
     def get_executable(self):
         local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)

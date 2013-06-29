@@ -203,6 +203,7 @@ class ScriptInterpreter(object):
                     "Can't continue installation without file", file_id
                 )
             if file_uri.startswith("file://"):
+                print file_uri
                 self.game_files[file_id] = file_uri[7:]
                 self.iter_game_files()
                 return
@@ -222,7 +223,8 @@ class ScriptInterpreter(object):
         self.parent.start_download(file_uri, dest_file)
 
     def _iter_commands(self):
-        os.chdir(self.target_path)
+        if os.path.exists(self.target_path):
+            os.chdir(self.target_path)
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
 

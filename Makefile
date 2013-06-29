@@ -8,6 +8,7 @@ deb-source:
 
 deb:
 	debuild
+	mv ../lutris_0* build
 
 changelog-add:
 	dch -i
@@ -19,7 +20,7 @@ upload-ppa:
 	dput ppa:strycore/ppa ../lutris_0.3.0_i386.changes
 
 rpm:
-	sudo alien ../lutris_0.3.0_all.deb --scripts --to-rpm
+	cd build && sudo alien lutris_0.3.0_all.deb --scripts --to-rpm 
 
 clean:
 	debclean
