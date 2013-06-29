@@ -24,3 +24,10 @@ rpm:
 
 clean:
 	debclean
+
+build-all: deb rpm
+
+upload:
+	scp build/lutris_0.3.0_all.deb strycore.com:/srv/releases/lutris/
+	scp build/lutris_0.3.0.tar.gz strycore:/srv/releases/lutris/
+	scp build/lutris-0.3.0-2.noarch.rpm strycore.com:/srv/releases/lutris/
