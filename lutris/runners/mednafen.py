@@ -225,10 +225,6 @@ class mednafen(Runner):
         else:
             logger.debug("No Joystick found")
 
-        if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.__class__.__name__}
-
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 

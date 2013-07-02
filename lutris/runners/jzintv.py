@@ -55,24 +55,24 @@ class jzintv(Runner):
                 "label": "Fullscreen"
             }
         ]
-        self.arguments = []
-        if settings:
-            if "fullscreen" in settings["jzintv"]:
-                if settings["jzintv"]["fullscreen"]:
-                    self.arguments = self.arguments + ["-f"]
-            if "bios_path" in settings["jzintv"]:
-                self.arguments += ["--execimg=\"%s/exec.bin\"" %
-                                   settings["jzintv"]["bios_path"]]
-                self.arguments += ["--gromimg=\"%s/grom.bin\"" %
-                                   settings["jzintv"]["bios_path"]]
-            else:
-                self.error_message = "Bios path not set"
-            romdir = os.path.dirname(settings["game"]["rom"])
-            romfile = os.path.basename(settings["game"]["rom"])
-            self.arguments += ["--rom-path=\"%s/\"" % romdir]
-            self.arguments += ["\"%s\"" % romfile]
+        self.settings = settings
 
     def play(self):
         """Run Intellivision game"""
-        command = [self.executable] + self.arguments
-        return command
+        arguments = []
+        if self.settings.get('jzintv'):
+            if self.settings["jzintv"].get("fullscreen"):
+                arguments = arguments + ["-f"]
+        if "bios_path" in self.settings["jzintv"]:
+            arguments += ["--execimg=\"%s/exec.bin\"" %
+                          self.settings["jzintv"]["bios_path"]]
+            arguments += ["--gromimg=\"%s/grom.bin\"" %
+                          self.settings["jzintv"]["bios_path"]]
+        else:
+            self.error_message = "Bios path not set"
+        romdir = os.path.dirname(self.settings["game"]["rom"])
+        romfile = os.path.basename(self.settings["game"]["rom"])
+        arguments += ["--rom-path=\"%s/\"" % romdir]
+        arguments += ["\"%s\"" % romfile]
+        command = [self.executable] + arguments
+        return {'command': command}

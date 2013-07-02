@@ -48,4 +48,4 @@ class openmsx(Runner):
     def play(self):
         """Run MSX game"""
         command = [self.executable, "\"%s\"" % self.rom]
-        return command
+        return {'command': command}

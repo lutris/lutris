@@ -1,28 +1,36 @@
 # -*- coding:Utf-8 -*-
 """ Generic runner """
+import os
 import subprocess
 import platform
 import hashlib
 
+from lutris import settings
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, DownloadDialog
+from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util.files import find_executable
 
 
+def get_arch():
+    machine = platform.machine()
+    if '64' in machine:
+        return 'x64'
+    elif '86' in machine:
+        return 'i386'
+
+
 class Runner(object):
     """Generic runner (base class for other runners) """
-    def __init__(self):
+    def __init__(self, settings=None):
         """ Initialize runner """
-        self.executable = NotImplemented
-        self.platform = NotImplemented
         self.is_installable = False
-        self.arguments = []
-        self.error_messages = []
         self.game = None
         self.depends = None
-        self.arch = platform.machine()
+        self.arch = get_arch()
         self.logger = logger
+        self.settings = settings
 
     @property
     def description(self):
@@ -128,6 +136,14 @@ class Runner(object):
         subprocess.Popen("%s %s" % (package_installer, self.package),
                          shell=True, stderr=subprocess.PIPE)
         return True
+
+    def download_and_extract(self, tarball):
+        dest = os.path.join(settings.CACHE_DIR, tarball)
+
+        dialog = DownloadDialog(settings.RUNNERS_URL + tarball, dest)
+        dialog.run()
+
+        extract_archive(dest, settings.RUNNER_DIR)
 
     def write_config(self, _id, name, fullpath):
         """Write game configuration to settings directory."""

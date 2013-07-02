@@ -23,30 +23,48 @@
 
 import os
 
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
 # pylint: disable=C0103
 class osmose(Runner):
     """Sega Master System Emulator"""
-    def __init__(self, settings=None):
-        '''Constructor'''
-        super(osmose, self).__init__()
-        self.package = "osmose"
-        self.executable = "osmose"
-        self.platform = "Sega Master System"
-        #osmose is not yet available as a package  in Debian and Ubuntu,
-        #it requires some packaging
-        self.game_options = [{
-            'option': 'rom',
+
+    package = "osmose"
+    executable = "osmose"
+    platform = "Sega Master System"
+
+    game_options = [
+        {
+            'option': 'main_file',
             'type': 'file_chooser',
             'label': 'Rom File'
-        }]
-        self.runner_options = [
-            {'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen'},
-            {'option': 'joy', 'type': 'bool', 'label': 'Use joystick'}
-        ]
-        self.settings = settings
+        }
+    ]
+
+    runner_options = [
+        {'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen'},
+        {'option': 'joy', 'type': 'bool', 'label': 'Use joystick'}
+    ]
+
+    def is_installed(self):
+        print self.get_executable()
+        if os.path.exists(self.get_executable()):
+            return True
+        else:
+            return super(osmose, self).is_installed()
+
+    def install(self):
+        self.logger.debug("Installing osmose")
+        if self.arch == 'x64':
+            tarball = "osmose-0.9.96-x64.tar.gz"
+        else:
+            return False
+        self.download_and_extract(tarball)
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'osmose/osmose')
 
     def play(self):
         """Run Sega Master System game"""
@@ -58,13 +76,10 @@ class osmose(Runner):
             if self.settings['osmose']['joy']:
                 arguments = arguments + ['-joy']
 
-        rom = self.settings['game']['rom']
-        arguments = arguments + ["\"" + rom + "\""]
+        rom = self.settings['game']['main_file']
+        arguments = arguments + ["\"%s\"" % rom]
 
-        if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.__class__.__name__}
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND',
                     'file': rom}
-        return {'command': [self.executable] + arguments}
+        return {'command': [self.get_executable()] + arguments}

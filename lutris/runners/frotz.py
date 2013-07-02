@@ -58,4 +58,4 @@ class frotz(Runner):
             '-e', "\"" + self.executable,
             "\"" + self.story + "\"\""
         ]
-        return command
+        return {'command': command}

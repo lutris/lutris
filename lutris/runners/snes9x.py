@@ -67,20 +67,6 @@ class snes9x(Runner):
             option_dict[option['option']] = option
         return option_dict
 
-    def play(self):
-        """Run Super Nintendo game"""
-        options = self.options_as_dict()
-        runner_options = self.settings.get('snes9x')
-        for option_name in options:
-            if runner_options:
-                self.set_option(
-                    option_name,
-                    runner_options.get(
-                        option_name, options[option_name].get('default')
-                    )
-                )
-        return {'command': self.get_executable() + ["\"%s\"" % self.rom]}
-
     def get_executable(self):
         local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)
         lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
@@ -93,11 +79,10 @@ class snes9x(Runner):
         return executable
 
     def is_installed(self):
-        installed = os.path.exists(os.path.join(SNES9X_RUNNER_DIR,
-                                                self.executable))
-        if not installed:
-            installed = super(snes9x, self).is_installed()
-        return installed
+        if os.path.exists(os.path.join(SNES9X_RUNNER_DIR, self.executable)):
+            return True
+        else:
+            return super(snes9x, self).is_installed()
 
     def set_option(self, option, value):
         config_file = os.path.join(os.path.expanduser("~"),
@@ -117,7 +102,7 @@ class snes9x(Runner):
         """ Install snes9x from lutris.net """
         logger.debug("Installing snes9x")
         arch = platform.architecture()[0]
-        tarball_url = SNES9X_64 if arch == '64bit' else SNES9X_32
+        tarball_url = SNES9X_64 if arch == 'x64' else SNES9X_32
         tarball_file = os.path.basename(tarball_url)
         dest = os.path.join(settings.TMP_PATH, tarball_file)
         logger.debug("Downloading %s" % tarball_url)
@@ -128,7 +113,7 @@ class snes9x(Runner):
 
         lib_dir = os.path.join(SNES9X_RUNNER_DIR, "lib")
         os.mkdir(lib_dir)
-        libpng_url = LIBPNG_64 if arch == '64bit' else LIBPNG_32
+        libpng_url = LIBPNG_64 if arch == 'x64' else LIBPNG_32
         libpng_file = os.path.basename(libpng_url)
         lib_abspath = os.path.join(lib_dir, libpng_file)
         logger.debug("Downloading %s" % libpng_url)
@@ -138,3 +123,17 @@ class snes9x(Runner):
         logger.debug("Creating lib symlinks")
         os.link(lib_abspath, lib_abspath[:-5])
         os.link(lib_abspath, lib_abspath[:-8])
+
+    def play(self):
+        """Run Super Nintendo game"""
+        options = self.options_as_dict()
+        runner_options = self.settings.get('snes9x')
+        for option_name in options:
+            if runner_options:
+                self.set_option(
+                    option_name,
+                    runner_options.get(
+                        option_name, options[option_name].get('default')
+                    )
+                )
+        return {'command': self.get_executable() + ["\"%s\"" % self.rom]}

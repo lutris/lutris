@@ -7,11 +7,11 @@ from xdg import BaseDirectory
 PROJECT = "Lutris"
 VERSION = "0.3.0"
 WEBSITE = "http://lutris.net"
-COPYRIGHT = "(c) 2010 Lutris Gaming Platform"
+COPYRIGHT = "(c) 2010-2013 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
-SITE_URL = "http://dev.lutris.net/"
+SITE_URL = "http://lutris.net/"
 INSTALLER_URL = SITE_URL + "games/install/"
 RUNNERS_URL = SITE_URL + "files/runners/"
 LIB32_URL = SITE_URL + "files/lib32/"
@@ -38,6 +38,7 @@ KEEP_CACHED_ASSETS = True
 ## Paths
 CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
+RUNNER_DIR = os.path.join(DATA_DIR, "runners")
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')

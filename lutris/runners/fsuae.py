@@ -1,11 +1,8 @@
 import os
 
-from lutris.runners.uae import uae
-from lutris.gui.dialogs import ErrorDialog, DownloadDialog
-from lutris.util.extract import extract_archive
 from lutris import settings
-
-RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
+from lutris.runners.uae import uae
+from lutris.gui.dialogs import ErrorDialog
 
 
 class fsuae(uae):
@@ -56,24 +53,19 @@ class fsuae(uae):
 
     def install(self):
         """Downloads deb package and installs it"""
-        runner_urls = {
-            'i686': settings.RUNNERS_URL + "fs-uae-i386.tar.gz",
-            'x64': settings.RUNNERS_URL + "fs-uae-x86_64.tar.gz",
-            'x86_64': settings.RUNNERS_URL + "fs-uae-x86_64.tar.gz"
+        tarballs = {
+            'i386': "fs-uae-i386.tar.gz",
+            'x64': "fs-uae-x86_64.tar.gz",
         }
-        download_url = runner_urls.get(self.arch)
-        if not download_url:
+        tarball = tarballs.get(self.arch)
+        if not tarball:
             ErrorDialog(
                 "Runner not available for architecture %s" % self.arch
             )
-        runner_filename = os.path.basename(download_url)
-        dest = os.path.join(settings.CACHE_DIR, runner_filename)
-        dialog = DownloadDialog(download_url, dest)
-        dialog.run()
-        extract_archive(dest, RUNNER_DIR)
+        self.download_and_extract(tarball)
 
     def get_executable(self):
-        return os.path.join(RUNNER_DIR, 'fs-uae/bin/fs-uae')
+        return os.path.join(settings.RUNNER_DIR, 'fs-uae/bin/fs-uae')
 
     def get_params(self):
         runner = self.__class__.__name__

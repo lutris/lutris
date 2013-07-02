@@ -73,4 +73,4 @@ class vice(Runner):
                 ["\"%s\"" % settings['game']['main_file']]
 
     def play(self):
-        return [self.executable] + self.arguments
+        return {'command': [self.executable] + self.arguments}

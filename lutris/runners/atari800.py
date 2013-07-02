@@ -155,6 +155,4 @@ class atari800(Runner):
                                                        good_bios[bios])]
         self.arguments = self.arguments + ["\"%s\"" % self.rom]
         command = [self.executable] + self.arguments
-        return_val = {"command": command,
-                      "error_messages": self.error_messages}
-        return return_val
+        return {"command": command, "error_messages": self.error_messages}

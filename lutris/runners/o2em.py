@@ -60,14 +60,14 @@ class o2em(Runner):
             {
                 "option": "bios",
                 "type": "one_choice",
-                "choices":bios_choices,
-                "label":"Bios"
+                "choices": bios_choices,
+                "label": "Bios"
             },
             {
                 "option": "first_controller",
                 "type": "one_choice",
                 "choices": controller_choices,
-                "label":"First controller"
+                "label": "First controller"
             },
             {
                 "option": "second_controller",
@@ -96,10 +96,10 @@ class o2em(Runner):
                 if settings["o2em"]["scanlines"]:
                     self.arguments = self.arguments + ["-scanlines"]
             if "first_controller" in settings["o2em"]:
-                self.arguments += ["-s1=%s" % \
+                self.arguments += ["-s1=%s" %
                                    settings["o2em"]["first_controller"]]
             if "second_controller" in settings["o2em"]:
-                self.arguments += ["-s2=%s" % \
+                self.arguments += ["-s2=%s" %
                                    settings["o2em"]["second_controller"]]
             romdir = os.path.dirname(settings["game"]["rom"])
             romfile = os.path.basename(settings["game"]["rom"])
@@ -109,4 +109,4 @@ class o2em(Runner):
     def play(self):
         """Run Odyssey 2 game"""
         command = [self.executable] + self.arguments
-        return command
+        return {'command': command}

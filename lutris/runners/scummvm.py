@@ -115,7 +115,7 @@ class scummvm(Runner):
                 mode = self.settings.config["scummvm"]["gfx-mode"]
                 gfxmode = "--gfx-mode=%s" % mode
         game = self.settings["game"]["game_id"]
-        return [self.executable, fullscreen, gfxmode, game]
+        return {'command': [self.executable, fullscreen, gfxmode, game]}
 
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """
