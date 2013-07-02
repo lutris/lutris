@@ -20,7 +20,7 @@ upload-ppa:
 	dput ppa:strycore/ppa ../lutris_0.3.0_i386.changes
 
 rpm:
-	cd build && sudo alien lutris_0.3.0_all.deb --scripts --to-rpm 
+	cd build && sudo alien lutris_0.3.0_all.deb --scripts --to-rpm
 
 clean:
 	debclean
@@ -29,5 +29,5 @@ build-all: deb rpm
 
 upload:
 	scp build/lutris_0.3.0_all.deb strycore.com:/srv/releases/lutris/
-	scp build/lutris_0.3.0.tar.gz strycore:/srv/releases/lutris/
+	scp build/lutris_0.3.0.tar.gz strycore.com:/srv/releases/lutris/
 	scp build/lutris-0.3.0-2.noarch.rpm strycore.com:/srv/releases/lutris/
