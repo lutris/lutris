@@ -6,7 +6,7 @@ import subprocess
 from lutris.util.log import logger
 
 
-def extract_archive(path, to_directory='.'):
+def extract_archive(path, to_directory='.', merge_single=True):
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
     if path.endswith('.zip'):
@@ -23,12 +23,20 @@ def extract_archive(path, to_directory='.'):
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
             % path)
-    cwd = os.getcwd()
-    os.chdir(to_directory)
+    destination = os.path.join(to_directory, ".lutris_extracted")
     handler = opener(path, mode)
-    handler.extractall()
+    handler.extractall(destination)
     handler.close()
-    os.chdir(cwd)
+    if merge_single:
+        extracted = os.listdir(destination)
+        if len(extracted) == 1:
+            destination = os.path.join(destination, extracted[0])
+    for f in os.listdir(destination):
+        try:
+            os.renames(os.path.join(destination, f),
+                       os.path.join(to_directory, f))
+        except OSError:
+            return False
 
 
 def decompress_gz(file_path, dest_path=None):
