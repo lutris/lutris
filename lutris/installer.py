@@ -9,7 +9,7 @@ import urllib2
 import platform
 import subprocess
 
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk, Gio, GLib, Gdk
 
 from lutris import pga
 from lutris.util import extract
@@ -52,19 +52,20 @@ def error_handler(error_type, value, traceback):
 sys.excepthook = error_handler
 
 
-def background_job(job, cancellable, data):
+def background_job(data):
     task = data['task']
     args = data['args']
     callback = data.get('callback')
-    task(args)
+    retval = task(args)
     if callback:
-        callback()
+        callback(retval)
 
 
 class ScriptInterpreter(object):
     """ Class that converts raw script data to actions """
 
     def __init__(self, game_ref, parent):
+        self.error = None
         self.errors = []
         self.target_path = None
         self.parent = parent
@@ -222,21 +223,24 @@ class ScriptInterpreter(object):
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
 
-    def _iter_commands(self):
+    def _iter_commands(self, exception=None):
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
 
         commands = self.script.get('installer', [])
-        if self.current_command < len(commands):
+        if isinstance(exception, ScriptingError):
+            self.parent.on_install_error(exception.message)
+        elif self.current_command < len(commands):
             command = commands[self.current_command]
+            logger.debug(command)
             self.current_command += 1
             method, params = self._map_command(command)
-            Gio.io_scheduler_push_job(background_job,
-                                      {'task': method, 'args': params,
-                                       'callback': self._iter_commands},
-                                      GLib.PRIORITY_DEFAULT_IDLE, None)
+
+            GLib.idle_add(background_job, {'task': method, 'args': params,
+                                           'callback': self._iter_commands,
+                                           'caller': self})
         else:
             self._finish_install()
 
@@ -247,9 +251,13 @@ class ScriptInterpreter(object):
         self.parent.set_status("Installation finished !")
         self.parent.on_install_finished()
 
+    def _install_error(self, message):
+        self.parent.set_status(message)
+
     def _cleanup(self):
         if os.path.exists(self.download_cache_path):
-            shutil.rmtree(self.download_cache_path)
+            #shutil.rmtree(self.download_cache_path)
+            pass
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
@@ -413,31 +421,27 @@ class ScriptInterpreter(object):
         """ Move a file or directory """
         src, dst = self._get_move_paths(params)
         if not os.path.exists(src):
-            self.errors.append("I can't move %s, it does not exist" % src)
-            return False
+            return ScriptingError("I can't move %s, it does not exist" % src)
         if not os.path.exists(dst):
             os.makedirs(dst)
         target = os.path.join(dst, os.path.basename(src))
         if os.path.exists(target):
-            self.errors.append("Destination %s already exists" % target)
+            return ScriptingError("Destination %s already exists" % target)
         try:
             shutil.move(src, target)
         except shutil.Error:
-            self.errors.append("Can't move %s to destination %s" % (src, dst))
-            return False
-        return True
+            return ScriptingError("Can't move %s to destination %s"
+                                  % (src, dst))
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
         logger.debug("extracting file %s" % str(data))
         filename = self.game_files.get(data['file'])
         if not filename:
-            raise ScriptingError("No file for '%s' in game files %s "
-                                 % (data, self.game_files))
-            return False
+            return ScriptingError("No file for '%s' in game files %s "
+                                  % (data, self.game_files))
         if not os.path.exists(filename):
-            logger.error("%s does not exists" % filename)
-            return False
+            return ScriptingError("%s does not exists" % filename)
         if 'dst' in data:
             dest_path = self._substitute(data['dst'])
         else:
@@ -445,10 +449,9 @@ class ScriptInterpreter(object):
         msg = "Extracting %s" % filename
         logger.debug(msg)
         self.parent.set_status(msg)
-        try:
-            extract.extract_archive(filename, dest_path)
-        except RuntimeError as ex:
-            raise ScriptingError("Failed to extract %s" % filename, ex.message)
+        retval = extract.extract_archive(filename, dest_path)
+        if retval is False:
+            return ScriptingError("Failed to extract %s" % filename)
         time.sleep(1)
 
     def _get_steam_game_path(self):
@@ -499,9 +502,8 @@ class ScriptInterpreter(object):
             appid
         )
         steam_runner = steam()
-        Gio.io_scheduler_push_job(background_job,
-                                  {'task': steam_runner.install, 'args': dest},
-                                  GLib.PRIORITY_DEFAULT_IDLE, None)
+        GLib.idle_add(background_job,
+                      {'task': steam_runner.install, 'args': dest})
 
     def on_steam_installed(self, *args):
         self.install_steam_game()
@@ -517,11 +519,8 @@ class ScriptInterpreter(object):
         steam_runner = steam()
         steam_runner.appid = appid
 
-        Gio.io_scheduler_push_job(
-            background_job,
-            {'task': steam_runner.install_game, 'args': appid},
-            GLib.PRIORITY_DEFAULT_IDLE, None
-        )
+        GLib.idle_add(background_job,
+                      {'task': steam_runner.install_game, 'args': appid})
 
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
@@ -580,10 +579,12 @@ class InstallerDialog(Gtk.Dialog):
         self.install_button = Gtk.Button('Install')
         self.install_button.connect('clicked', self.on_install_clicked)
 
-        self.action_buttons = Gtk.Alignment.new(0.95, 0, 0.15, 0)
+        action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
+        self.action_buttons = Gtk.HBox()
+        action_buttons_alignment.add(self.action_buttons)
         self.action_buttons.add(self.install_button)
 
-        self.vbox.pack_start(self.action_buttons, False, False, 25)
+        self.vbox.pack_start(action_buttons_alignment, False, False, 25)
 
         # Target chooser
         if not self.interpreter.requires:
@@ -666,7 +667,24 @@ class InstallerDialog(Gtk.Dialog):
         play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(play_button)
 
-    def launch_game(self, _widget, _data=None):
+        close_button = Gtk.Button("Close")
+        close_button.show()
+        close_button.connect('clicked', self.close)
+        self.action_buttons.add(close_button)
+
+    def on_install_error(self, message):
+        self.status_label.set_text(message)
+        self.clean_widgets()
+        close_button = Gtk.Button("Close")
+        close_button.show()
+        close_button.connect('clicked', self.close)
+        self.action_buttons.add(close_button)
+
+    def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed"""
+        widget.set_sensitive(False)
         game = Game(self.interpreter.game_slug)
         game.play()
+
+    def close(self, _widget):
+        self.destroy()
