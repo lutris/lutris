@@ -101,8 +101,7 @@ class snes9x(Runner):
     def install(self):
         """ Install snes9x from lutris.net """
         logger.debug("Installing snes9x")
-        arch = platform.architecture()[0]
-        tarball_url = SNES9X_64 if arch == 'x64' else SNES9X_32
+        tarball_url = SNES9X_64 if self.arch == 'x64' else SNES9X_32
         tarball_file = os.path.basename(tarball_url)
         dest = os.path.join(settings.TMP_PATH, tarball_file)
         logger.debug("Downloading %s" % tarball_url)
@@ -113,7 +112,7 @@ class snes9x(Runner):
 
         lib_dir = os.path.join(SNES9X_RUNNER_DIR, "lib")
         os.mkdir(lib_dir)
-        libpng_url = LIBPNG_64 if arch == 'x64' else LIBPNG_32
+        libpng_url = LIBPNG_64 if self.arch == 'x64' else LIBPNG_32
         libpng_file = os.path.basename(libpng_url)
         lib_abspath = os.path.join(lib_dir, libpng_file)
         logger.debug("Downloading %s" % libpng_url)
