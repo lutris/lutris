@@ -665,12 +665,12 @@ class InstallerDialog(Gtk.Dialog):
         play_button = Gtk.Button("Launch game")
         play_button.show()
         play_button.connect('clicked', self.launch_game)
-        self.action_buttons.add(play_button)
+        self.action_buttons.pack_start(play_button, True, True, 10)
 
         close_button = Gtk.Button("Close")
         close_button.show()
         close_button.connect('clicked', self.close)
-        self.action_buttons.add(close_button)
+        self.action_buttons.pack_start(close_button, True, True, 10)
 
     def on_install_error(self, message):
         self.status_label.set_text(message)
@@ -678,7 +678,7 @@ class InstallerDialog(Gtk.Dialog):
         close_button = Gtk.Button("Close")
         close_button.show()
         close_button.connect('clicked', self.close)
-        self.action_buttons.add(close_button)
+        self.action_buttons.pack_start(close_button, True, True, 10)
 
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed"""
