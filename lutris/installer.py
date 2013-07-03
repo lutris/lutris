@@ -9,7 +9,7 @@ import urllib2
 import platform
 import subprocess
 
-from gi.repository import Gtk, Gio, GLib, Gdk
+from gi.repository import Gtk, GLib, Gdk
 
 from lutris import pga
 from lutris.util import extract
@@ -56,7 +56,9 @@ def background_job(data):
     task = data['task']
     args = data['args']
     callback = data.get('callback')
+    Gdk.threads_enter()
     retval = task(args)
+    Gdk.threads_leave()
     if callback:
         callback(retval)
 
@@ -129,7 +131,8 @@ class ScriptInterpreter(object):
         if not os.path.exists(self.download_cache_path) and files:
             os.mkdir(self.download_cache_path)
 
-        if not os.path.exists(self.target_path) and files:
+        if(not os.path.exists(self.target_path) and files
+           and 'nocreatedir' not in self.script):
             os.makedirs(self.target_path)
 
         if len(self.game_files) < len(files):
@@ -331,12 +334,9 @@ class ScriptInterpreter(object):
 
     def _substitute(self, path_ref):
         """ Replace path aliases with real paths """
-        if path_ref.startswith("$GAMEDIR"):
-            path_ref = path_ref.replace("$GAMEDIR", self.target_path)
-        elif path_ref.startswith("$CACHE"):
-            path_ref = path_ref.replace("$CACHE", settings.CACHE_DIR)
-        elif path_ref.startswith("$HOME"):
-            path_ref = path_ref.replace("$HOME", os.path.expanduser("~"))
+        path_ref = path_ref.replace("$GAMEDIR", self.target_path)
+        path_ref = path_ref.replace("$CACHE", settings.CACHE_DIR)
+        path_ref = path_ref.replace("$HOME", os.path.expanduser("~"))
         return path_ref
 
     def _get_move_paths(self, params):
@@ -449,7 +449,8 @@ class ScriptInterpreter(object):
         msg = "Extracting %s" % filename
         logger.debug(msg)
         self.parent.set_status(msg)
-        retval = extract.extract_archive(filename, dest_path)
+        merge_single = not 'nomerge' in data
+        retval = extract.extract_archive(filename, dest_path, merge_single)
         if retval is False:
             return ScriptingError("Failed to extract %s" % filename)
         time.sleep(1)
