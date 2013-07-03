@@ -14,7 +14,7 @@ from lutris.util.extract import extract_archive, decompress_gz
 SNES9X_VERSION = "snes9x-1.53"
 SNES9X_32 = settings.RUNNERS_URL + "%s-gtk-81-i386.tar.bz2" % SNES9X_VERSION
 SNES9X_64 = settings.RUNNERS_URL + "%s-gtk-81-x86_64.tar.bz2" % SNES9X_VERSION
-LIBPNG_32 = NotImplemented
+LIBPNG_32 = settings.LIB32_URL + "libpng14.so.14.12.0.gz"
 LIBPNG_64 = settings.LIB64_URL + "libpng14.so.14.12.0.gz"
 
 RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
