@@ -2,7 +2,6 @@
 """ Super Nintendo runner """
 import os
 import urllib
-import platform
 import subprocess
 import xml.etree.ElementTree as etree
 
@@ -18,54 +17,47 @@ LIBPNG_32 = settings.LIB32_URL + "libpng14.so.14.12.0.gz"
 LIBPNG_64 = settings.LIB64_URL + "libpng14.so.14.12.0.gz"
 
 RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
-SNES9X_RUNNER_DIR = os.path.join(RUNNER_DIR, SNES9X_VERSION)
+SNES9X_RUNNER_DIR = os.path.join(RUNNER_DIR, "snes9x")
 
 
 class snes9x(Runner):
     """Runs Super Nintendo games with Snes9x"""
-    def __init__(self, settings=None):
-        """It seems that the best snes emulator around it snes9x-gtk
-        zsnes has no 64bit port
-        """
-        super(snes9x, self).__init__()
-        self.executable = "snes9x-gtk"
-        self.package = None
-        self.platform = "Super Nintendo"
-        self.is_installable = True
-        self.game_options = [{"option": "main_file",
-                              "type": "file_chooser",
-                              "default_path": "game_path",
-                              "label": "ROM"}]
-        self.runner_options = [
-            {
-                "option": "fullscreen",
-                "type": "bool",
-                "label": "Fullscreen",
-                "default": "1"
-            },
-            {
-                "option": "maintain_aspect_ratio",
-                "type": "bool",
-                "label": "Maintain aspect ratio",
-                "default": "1"
-            },
-            {
-                "option": "sound_driver",
-                "type": "one_choice",
-                "label": "Sound driver",
-                "choices": (("OSS", "0"), ("SDL", "1"), ("ALSA", "2")),
-                "default": "1"
-            }
-        ]
-        if settings:
-            self.rom = settings["game"]["main_file"]
-            self.settings = settings
 
-    def options_as_dict(self):
-        option_dict = {}
-        for option in self.runner_options:
-            option_dict[option['option']] = option
-        return option_dict
+    executable = "snes9x-gtk"
+    package = None
+    platform = "Super Nintendo"
+    is_installable = True
+
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file_chooser",
+            "default_path": "game_path",
+            "label": "ROM"
+        }
+    ]
+
+    runner_options = [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": "1"
+        },
+        {
+            "option": "maintain_aspect_ratio",
+            "type": "bool",
+            "label": "Maintain aspect ratio",
+            "default": "1"
+        },
+        {
+            "option": "sound_driver",
+            "type": "one_choice",
+            "label": "Sound driver",
+            "choices": (("OSS", "0"), ("SDL", "1"), ("ALSA", "2")),
+            "default": "1"
+        }
+    ]
 
     def get_executable(self):
         local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)
@@ -108,23 +100,33 @@ class snes9x(Runner):
         urllib.urlretrieve(tarball_url, dest)
 
         logger.debug("Extracting %s" % dest)
-        extract_archive(dest, RUNNER_DIR)
+        extract_archive(dest, SNES9X_RUNNER_DIR)
 
         lib_dir = os.path.join(SNES9X_RUNNER_DIR, "lib")
         os.mkdir(lib_dir)
+
         libpng_url = LIBPNG_64 if self.arch == 'x64' else LIBPNG_32
         libpng_file = os.path.basename(libpng_url)
         lib_abspath = os.path.join(lib_dir, libpng_file)
         logger.debug("Downloading %s" % libpng_url)
         urllib.urlretrieve(libpng_url, lib_abspath)
         logger.debug("Extracting %s" % lib_abspath)
-        lib_abspath = decompress_gz(lib_abspath)
+        decompress_gz(lib_abspath)
         logger.debug("Creating lib symlinks")
-        os.link(lib_abspath, lib_abspath[:-5])
-        os.link(lib_abspath, lib_abspath[:-8])
+        os.link(lib_abspath[:-3], lib_abspath[:-5])
+        os.link(lib_abspath[:-3], lib_abspath[:-8])
+
+    def options_as_dict(self):
+        """ Return the `runner_options` class attribute as a dictionnary with
+            option name as key.
+        """
+        option_dict = {}
+        for option in self.runner_options:
+            option_dict[option['option']] = option
+        return option_dict
 
     def play(self):
-        """Run Super Nintendo game"""
+        """ Run Super Nintendo game """
         options = self.options_as_dict()
         runner_options = self.settings.get('snes9x')
         for option_name in options:
@@ -135,4 +137,9 @@ class snes9x(Runner):
                         option_name, options[option_name].get('default')
                     )
                 )
-        return {'command': self.get_executable() + ["\"%s\"" % self.rom]}
+
+        rom = self.settings["game"].get("main_file")
+        if not os.path.exists(rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom}
+
+        return {'command': self.get_executable() + ["\"%s\"" % rom]}
