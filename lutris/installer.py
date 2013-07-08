@@ -7,9 +7,10 @@ import time
 import shutil
 import urllib2
 import platform
+import threading
 import subprocess
 
-from gi.repository import Gtk, GLib, Gdk
+from gi.repository import Gtk, GObject
 
 from lutris import pga
 from lutris.util import extract
@@ -52,15 +53,23 @@ def error_handler(error_type, value, traceback):
 sys.excepthook = error_handler
 
 
-def background_job(data):
-    task = data['task']
-    args = data['args']
-    callback = data.get('callback')
-    Gdk.threads_enter()
-    retval = task(args)
-    Gdk.threads_leave()
-    if callback:
-        callback(retval)
+def async_call(func, on_done, *args, **kwargs):
+    """ Launch given function `func` in a new thread """
+    if not on_done:
+        on_done = lambda r, e: None
+
+    def do_call(*args, **kwargs):
+        result = None
+        error = None
+
+        try:
+            result = func(*args, **kwargs)
+        except Exception, err:
+            error = err
+        GObject.idle_add(lambda: on_done(result, error))
+
+    thread = threading.Thread(target=do_call, args=args, kwargs=kwargs)
+    thread.start()
 
 
 class ScriptInterpreter(object):
@@ -241,9 +250,7 @@ class ScriptInterpreter(object):
             self.current_command += 1
             method, params = self._map_command(command)
 
-            GLib.idle_add(background_job, {'task': method, 'args': params,
-                                           'callback': self._iter_commands,
-                                           'caller': self})
+            async_call(method, self._iter_commands, params)
         else:
             self._finish_install()
 
@@ -503,8 +510,7 @@ class ScriptInterpreter(object):
             appid
         )
         steam_runner = steam()
-        GLib.idle_add(background_job,
-                      {'task': steam_runner.install, 'args': dest})
+        async_call(steam_runner.install, None, dest)
 
     def on_steam_installed(self, *args):
         self.install_steam_game()
@@ -519,9 +525,7 @@ class ScriptInterpreter(object):
         )
         steam_runner = steam()
         steam_runner.appid = appid
-
-        GLib.idle_add(background_job,
-                      {'task': steam_runner.install_game, 'args': appid})
+        async_call(steam_runner.install_game, None, appid)
 
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
