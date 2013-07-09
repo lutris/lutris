@@ -89,6 +89,7 @@ def add_game(name, runner=None, slug=None, directory=None):
     game_data = {'name': name, 'slug': slug, 'runner': runner}
     if directory:
         game_data['directory'] = directory
+    print game_data
     sql.db_insert(PGA_DB, "games", game_data)
 
 

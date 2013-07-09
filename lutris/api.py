@@ -4,6 +4,8 @@ import urllib
 import urllib2
 
 from lutris import settings
+from lutris import pga
+
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
 
@@ -31,7 +33,7 @@ def connect(username, password):
     return False
 
 
-def get_library(*args):
+def get_library():
     username, api_key = read_api_key()
     library_url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.urlencode({'api_key': api_key, 'username': username,
@@ -39,4 +41,16 @@ def get_library(*args):
 
     request = urllib2.urlopen(library_url + "?" + params)
     response = json.loads(request.read())
-    print response
+    return response
+
+
+def sync():
+    remote_library = get_library()['games']
+    remote_slugs = set([game['slug'] for game in remote_library])
+    local_libray = pga.get_games()
+    local_slugs = set([game['slug'] for game in local_libray])
+    not_in_local = remote_slugs.difference(local_slugs)
+    for game in remote_library:
+        if game['slug'] in not_in_local:
+            pga.add_game(game['name'], slug=game['slug'])
+    return not_in_local

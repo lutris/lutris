@@ -38,6 +38,8 @@ from lutris.constants import COVER_PATH
 from lutris import settings
 
 MISSING_ICON = os.path.join(settings.get_data_path(), 'media/banner.png')
+UNAVAILABLE_GAME_OVERLAY = os.path.join(settings.get_data_path(),
+                                        'media/unavailable.png')
 
 (COL_ID,
  COL_NAME,
@@ -74,21 +76,28 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def icon_to_pixbuf(icon_path, size):
-    """Converts a png icon into a pixbuf ready to be used in widget"""
+def get_pixbuf_for_game(game_slug, size=(184, 69), is_installed=True):
+    width = size[0]
+    height = size[1]
+    icon_path = os.path.join(settings.DATA_DIR, "banners",
+                             "%s.jpg" % game_slug)
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON
     try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, width, height)
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, size[0], size[1])
+        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, width, height)
+    if not is_installed:
+        transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+            UNAVAILABLE_GAME_OVERLAY, width, height
+        )
+        transparent_pixbuf = transparent_pixbuf.scale_simple(
+            width, height, GdkPixbuf.InterpType.NEAREST
+        )
+        pixbuf.composite(transparent_pixbuf, 0, 0, width, height,
+                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
+        return transparent_pixbuf
     return pixbuf
-
-
-def get_pixbuf_for_game(game_slug, icon_size=(184, 69)):
-    game_icon_path = os.path.join(settings.DATA_DIR, "banners",
-                                  "%s.jpg" % game_slug)
-    return icon_to_pixbuf(game_icon_path, icon_size)
 
 
 class IconViewCellRenderer(Gtk.CellRendererText):
@@ -125,7 +134,11 @@ class GameStore(object):
         """Adds a game into the view"""
         for key in ('name', 'runner', 'slug'):
             assert key in game, "Game info must have %s" % key
-        game_pix = get_pixbuf_for_game(game['slug'], self.icon_size)
+        game_directory = game['directory']
+        is_installed = game_directory and os.path.exists(game_directory)
+        game_pix = get_pixbuf_for_game(game['slug'],
+                                       self.icon_size,
+                                       is_installed)
         self.store.append((game["slug"], game['name'], game_pix,
                            game["runner"],
                            "Genre", "Platform", "Year"))

@@ -3,17 +3,19 @@
 import os
 import json
 
-from gi.repository import Gtk, GLib, Gio
+from gi.repository import Gtk, GLib
 
 from lutris import api
 from lutris import pga
 from lutris import settings
 from lutris.game import Game
-#from lutris.config import LutrisConfig
 from lutris.shortcuts import create_launcher
-from lutris.util.strings import slugify
+
 from lutris.util import resources
 from lutris.util.log import logger
+from lutris.util.jobs import async_call
+from lutris.util.strings import slugify
+
 from lutris.gui import dialogs
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -103,12 +105,10 @@ class LutrisWindow(object):
 
         self.builder.connect_signals(self)
         self.connect_signals()
-
-        Gio.io_scheduler_push_job(self.sync_db, None,
-                                  GLib.PRIORITY_DEFAULT_IDLE, None)
+        async_call(self.sync_db, None)
 
     def sync_db(self, *args):
-        api.get_library()
+        api.sync()
         game_list = pga.get_games()
         resources.fetch_banners([game_info['slug'] for game_info in game_list],
                                 callback=self.on_image_downloaded)

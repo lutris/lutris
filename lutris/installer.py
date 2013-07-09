@@ -7,13 +7,13 @@ import time
 import shutil
 import urllib2
 import platform
-import threading
 import subprocess
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 
 from lutris import pga
 from lutris.util import extract
+from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5
@@ -51,25 +51,6 @@ def error_handler(error_type, value, traceback):
     else:
         _excepthook(error_type, value, traceback)
 sys.excepthook = error_handler
-
-
-def async_call(func, on_done, *args, **kwargs):
-    """ Launch given function `func` in a new thread """
-    if not on_done:
-        on_done = lambda r, e: None
-
-    def do_call(*args, **kwargs):
-        result = None
-        error = None
-
-        try:
-            result = func(*args, **kwargs)
-        except Exception, err:
-            error = err
-        GObject.idle_add(lambda: on_done(result, error))
-
-    thread = threading.Thread(target=do_call, args=args, kwargs=kwargs)
-    thread.start()
 
 
 class ScriptInterpreter(object):
