@@ -218,7 +218,7 @@ class ScriptInterpreter(object):
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
 
-    def _iter_commands(self, exception=None):
+    def _iter_commands(self, result=None, exception=None):
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
         self.parent.set_status("Installing game data")
