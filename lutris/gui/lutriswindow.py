@@ -168,6 +168,7 @@ class LutrisWindow(object):
     def on_connect_success(self, dialog, token):
         logger.info("Successfully connected to Lutris.net")
         self.status_label.set_text("Connected")
+        self.sync_db()
 
     def on_destroy(self, *args):
         """Signal for window close"""
