@@ -132,15 +132,9 @@ class GameStore(object):
 
     def add_game(self, game):
         """Adds a game into the view"""
-        for key in ('name', 'runner', 'slug'):
-            assert key in game, "Game info must have %s" % key
-        game_directory = game['directory']
-        is_installed = game_directory and os.path.exists(game_directory)
-        game_pix = get_pixbuf_for_game(game['slug'],
-                                       self.icon_size,
-                                       is_installed)
-        self.store.append((game["slug"], game['name'], game_pix,
-                           game["runner"],
+        pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
+                                     game.is_installed)
+        self.store.append((game.slug, game.name, pixbuf, game.runner_name,
                            "Genre", "Platform", "Year"))
 
 

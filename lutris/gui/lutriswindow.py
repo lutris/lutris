@@ -29,7 +29,7 @@ GAME_VIEW = 'icon'
 
 
 def switch_to_view(view=GAME_VIEW):
-    game_list = pga.get_games()
+    game_list = [Game(game['slug']) for game in pga.get_games()]
     if view == 'icon':
         view = GameIconView(game_list)
     elif view == 'list':
@@ -130,7 +130,7 @@ class LutrisWindow(object):
         if hasattr(self, "running_game"):
             if hasattr(self.running_game.game_thread, "pid"):
                 pid = self.running_game.game_thread.pid
-                name = self.running_game.get_real_name()
+                name = self.running_game.name
                 if pid == 99999:
                     self.status_label.set_text("Preparing to launch %s" % name)
                 elif pid is None:
@@ -215,8 +215,7 @@ class LutrisWindow(object):
         """Reset the desktop to it's initial state"""
         if self.running_game:
             self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s"
-                                       % self.running_game.get_real_name())
+            self.status_label.set_text("Stopped %s" % self.running_game.name)
             self.running_game = None
 
     def game_selection_changed(self, _widget):
@@ -229,7 +228,8 @@ class LutrisWindow(object):
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            self.view.game_store.add_game(game_info)
+            game = Game(game_info['slug'])
+            self.view.game_store.add_game(game)
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""

@@ -39,20 +39,21 @@ class Game(object):
         self.game_config = None
 
         game_data = pga.get_game_by_slug(slug)
-        self.runner = game_data['runner']
+        self.runner_name = game_data['runner']
         self.directory = game_data['directory']
+        self.name = game_data['name']
 
         if self.is_installed:
             self.load_config()
 
     @property
     def is_installed(self):
-        return bool(self.runner) and os.path.exists(self.directory)
-
-    def get_real_name(self):
-        """ Return the real game's name if available. """
-        return self.game_config['realname'] \
-            if "realname" in self.game_config.config else self.slug
+        if not self.runner_name:
+            return False
+        if self.runner_name == 'browser':
+            return True
+        else:
+            return os.path.exists(self.directory)
 
     def get_runner(self):
         """ Return the runner's name """
@@ -64,7 +65,7 @@ class Game(object):
         if not self.game_config.is_valid():
             logger.error("Invalid game config for %s" % self.slug)
         else:
-            runner_class = import_runner(self.runner)
+            runner_class = import_runner(self.runner_name)
             self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
@@ -91,7 +92,7 @@ class Game(object):
         """ Launch the game. """
         if not self.prelaunch():
             return False
-        logger.debug("get ready for %s " % self.get_real_name())
+        logger.debug("get ready for %s " % self.name)
         gameplay_info = self.runner.play()
         logger.debug("gameplay_info: %s" % gameplay_info)
         if isinstance(gameplay_info, dict):

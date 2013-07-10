@@ -59,6 +59,7 @@ class ScriptInterpreter(object):
     def __init__(self, game_ref, parent):
         self.error = None
         self.errors = []
+        self.files = []
         self.target_path = None
         self.parent = parent
         self.game_name = None
@@ -114,18 +115,19 @@ class ScriptInterpreter(object):
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
+
+        self.files = self.script.get('files', [])
         return not bool(self.errors)
 
     def iter_game_files(self):
-        files = self.script.get('files', [])
-        if not os.path.exists(self.download_cache_path) and files:
+        if not os.path.exists(self.download_cache_path) and self.files:
             os.mkdir(self.download_cache_path)
 
-        if(not os.path.exists(self.target_path) and files
+        if(not os.path.exists(self.target_path) and self.files
            and 'nocreatedir' not in self.script):
             os.makedirs(self.target_path)
 
-        if len(self.game_files) < len(files):
+        if len(self.game_files) < len(self.files):
             logger.info(
                 "Downloading file %d of %d",
                 len(self.game_files) + 1, len(self.script["files"])
@@ -573,7 +575,7 @@ class InstallerDialog(Gtk.Dialog):
         self.vbox.pack_start(action_buttons_alignment, False, False, 25)
 
         # Target chooser
-        if not self.interpreter.requires:
+        if not self.interpreter.requires and self.interpreter.files:
             # Top label
             label = Gtk.Label()
             label.set_markup('<b>Select installation directory:</b>')
