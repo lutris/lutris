@@ -188,7 +188,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="game_launch" swapped="no"/>
+                        <signal name="activate" handler="on_game_clicked" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -278,7 +278,7 @@
                 <property name="label" translatable="yes">Play</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-play</property>
-                <signal name="clicked" handler="game_launch" swapped="no"/>
+                <signal name="clicked" handler="on_game_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

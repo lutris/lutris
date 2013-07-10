@@ -32,18 +32,27 @@ class Game(object):
     """" This class takes cares about loading the configuration for a game
          and running it.
     """
-    def __init__(self, name):
-        self.name = name
-        self.runner = None
+    def __init__(self, slug):
+        self.slug = slug
         self.game_thread = None
         self.heartbeat = None
         self.game_config = None
-        self.load_config()
+
+        game_data = pga.get_game_by_slug(slug)
+        self.runner = game_data['runner']
+        self.directory = game_data['directory']
+
+        if self.is_installed:
+            self.load_config()
+
+    @property
+    def is_installed(self):
+        return bool(self.runner) and os.path.exists(self.directory)
 
     def get_real_name(self):
         """ Return the real game's name if available. """
         return self.game_config['realname'] \
-            if "realname" in self.game_config.config else self.name
+            if "realname" in self.game_config.config else self.slug
 
     def get_runner(self):
         """ Return the runner's name """
@@ -51,20 +60,18 @@ class Game(object):
 
     def load_config(self):
         """ Load the game's configuration. """
-        self.game_config = LutrisConfig(game=self.name)
+        self.game_config = LutrisConfig(game=self.slug)
         if not self.game_config.is_valid():
-            logger.error("Invalid game config for %s" % self.name)
+            logger.error("Invalid game config for %s" % self.slug)
         else:
-            runner_class = import_runner(self.get_runner())
+            runner_class = import_runner(self.runner)
             self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
-        logger.debug("Uninstalling %s" % self.name)
         if from_disk:
-            game_info = pga.get_game_by_slug(self.name)
-            shutil.rmtree(game_info['directory'])
+            shutil.rmtree(self.directory)
         if from_library:
-            pga.delete_game(self.name)
+            pga.delete_game(self.slug)
         self.game_config.remove()
 
     def prelaunch(self):

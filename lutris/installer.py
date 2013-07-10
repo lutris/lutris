@@ -527,16 +527,16 @@ class InstallerDialog(Gtk.Dialog):
     # icon_dest = join(settings.DATA_DIR, "icons/%s.png" % self.game_slug)
     # http.download_asset(icon_url, icon_dest, True)
 
-    def __init__(self, game_ref):
+    def __init__(self, game_ref, parent=None):
         Gtk.Dialog.__init__(self)
-
+        self.parent = parent
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
         self.set_resizable(False)
 
         # Default signals
-        self.connect('destroy', lambda q: Gtk.main_quit())
+        self.connect('destroy', self.on_destroy)
 
         # Interpreter
         self.interpreter = ScriptInterpreter(game_ref, self)
@@ -587,6 +587,12 @@ class InstallerDialog(Gtk.Dialog):
             label = Gtk.Label("Click install to continue")
         self.show_all()
 
+    def on_destroy(self, widget):
+        if self.parent:
+            self.destroy()
+        else:
+            Gtk.main_quit()
+
     def on_target_changed(self, text_entry):
         """ Sets the installation target for the game """
         self.interpreter.target_path = text_entry.get_text()
@@ -597,7 +603,8 @@ class InstallerDialog(Gtk.Dialog):
 
     def ask_user_for_file(self):
         dlg = FileDialog()
-        return dlg.filename
+        filename = getattr(dlg, 'filename', '')
+        return filename
 
     def clean_widgets(self):
         for child_widget in self.widget_box.get_children():

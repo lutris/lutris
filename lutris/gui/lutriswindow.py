@@ -10,6 +10,7 @@ from lutris import pga
 from lutris import settings
 from lutris.game import Game
 from lutris.shortcuts import create_launcher
+from lutris.installer import InstallerDialog
 
 from lutris.util import resources
 from lutris.util.log import logger
@@ -84,7 +85,7 @@ class LutrisWindow(object):
 
         #Contextual menu
         menu_actions = [
-            ('Play', self.game_launch),
+            ('Play', self.on_game_clicked),
             ('Configure', self.edit_game_configuration),
             ('Create desktop shortcut', self.create_desktop_shortcut),
             ('Create global menu shortcut', self.create_menu_shortcut)
@@ -117,7 +118,7 @@ class LutrisWindow(object):
         """Connects signals from the view with the main window.
            This must be called each time the view is rebuilt.
         """
-        self.view.connect("game-activated", self.game_launch)
+        self.view.connect("game-activated", self.on_game_clicked)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.get_size)
 
@@ -200,11 +201,15 @@ class LutrisWindow(object):
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())
 
-    def game_launch(self, *args):
+    def on_game_clicked(self, *args):
         """Launch a game"""
-        if self.view.selected_game:
-            self.running_game = Game(self.view.selected_game)
-            self.running_game.play()
+        game_slug = self.view.selected_game[0]
+        if game_slug:
+            self.running_game = Game(game_slug)
+            if self.running_game.is_installed:
+                self.running_game.play()
+            else:
+                InstallerDialog(game_slug, self)
 
     def reset(self, *args):
         """Reset the desktop to it's initial state"""
