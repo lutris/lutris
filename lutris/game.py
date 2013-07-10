@@ -53,7 +53,7 @@ class Game(object):
         if self.runner_name == 'browser':
             return True
         else:
-            return os.path.exists(self.directory)
+            return self.directory and os.path.exists(self.directory)
 
     def get_runner(self):
         """ Return the runner's name """
