@@ -15,6 +15,8 @@ def async_call(func, on_done, *args, **kwargs):
             result = func(*args, **kwargs)
         except Exception, err:
             error = err
+            raise
+
         GObject.idle_add(lambda: on_done(result, error))
 
     thread = threading.Thread(target=do_call, args=args, kwargs=kwargs)

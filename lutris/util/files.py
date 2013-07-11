@@ -1,3 +1,4 @@
+import re
 import hashlib
 import subprocess
 
@@ -20,3 +21,14 @@ def find_executable(exec_name):
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE).communicate()[0]
     return result
+
+
+def python_identifier(string):
+    def dashrepl(matchobj):
+        return matchobj.group(0).replace('-', '_')
+
+    return re.sub(r'(\${)([\w-]*)(})', dashrepl, string)
+
+
+def substitute(fileid, files):
+    fileid = python_identifier(fileid)

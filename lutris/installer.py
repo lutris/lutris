@@ -5,6 +5,7 @@ import sys
 import yaml
 import time
 import shutil
+import string
 import urllib2
 import platform
 import subprocess
@@ -116,7 +117,11 @@ class ScriptInterpreter(object):
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
 
-        self.files = self.script.get('files', [])
+        self.files = {}
+        for f in self.script.get('files', []):
+            item = f.items()[0]
+            self.files[item[0]] = item[1]
+
         return not bool(self.errors)
 
     def iter_game_files(self):
@@ -191,6 +196,7 @@ class ScriptInterpreter(object):
         # Setup destination path
         dest_file = os.path.join(self.download_cache_path, filename)
 
+        file_id = file_id.replace('-', '_')
         if file_uri == "N/A":
             #Ask the user where is located the file
             file_uri = self.parent.ask_user_for_file()
@@ -199,7 +205,6 @@ class ScriptInterpreter(object):
                     "Can't continue installation without file", file_id
                 )
             if file_uri.startswith("file://"):
-                print file_uri
                 self.game_files[file_id] = file_uri[7:]
                 self.iter_game_files()
                 return
@@ -225,7 +230,7 @@ class ScriptInterpreter(object):
         self.parent.add_spinner()
 
         commands = self.script.get('installer', [])
-        if isinstance(exception, ScriptingError):
+        if exception:
             self.parent.on_install_error(exception.message)
         elif self.current_command < len(commands):
             command = commands[self.current_command]
@@ -322,12 +327,22 @@ class ScriptInterpreter(object):
                                  % command_name)
         return getattr(self, command_name), command_params
 
-    def _substitute(self, path_ref):
+    def _substitute(self, template_string):
         """ Replace path aliases with real paths """
-        path_ref = path_ref.replace("$GAMEDIR", self.target_path)
-        path_ref = path_ref.replace("$CACHE", settings.CACHE_DIR)
-        path_ref = path_ref.replace("$HOME", os.path.expanduser("~"))
-        return path_ref
+        replacements = {
+            "GAMEDIR": self.target_path,
+            "CACHE": settings.CACHE_DIR,
+            "HOME": os.path.expanduser("~")
+        }
+        replacements.update(self.game_files)
+        template = string.Template(template_string)
+        retval = template.safe_substitute(replacements)
+        logger.info("++++++++++++++")
+        logger.info(template_string)
+        logger.info(replacements)
+        logger.info(retval)
+        logger.info("++++++++++++++")
+        return retval
 
     def _get_move_paths(self, params):
         """ Validate and converts raw data passed to 'move' """
@@ -347,6 +362,9 @@ class ScriptInterpreter(object):
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
         return (src, dst)
 
+    def _get_file(self, fileid):
+        return self.game_files.get(fileid.replace('-', '_'))
+
     def insert_disc(self, data):
         NoticeDialog("Insert game disc to continue")
 
@@ -363,7 +381,7 @@ class ScriptInterpreter(object):
         else:
             exec_id = data
             args = []
-        exec_path = self.game_files[exec_id]
+        exec_path = self._get_file(exec_id)
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
@@ -373,7 +391,7 @@ class ScriptInterpreter(object):
             subprocess.call([exec_path] + args)
 
     def check_md5(self, data):
-        filename = self.game_files.get(data['file'])
+        filename = self._get_file(data['file'])
         _hash = calculate_md5(filename)
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
@@ -426,7 +444,7 @@ class ScriptInterpreter(object):
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
         logger.debug("extracting file %s" % str(data))
-        filename = self.game_files.get(data['file'])
+        filename = self._get_file(data['file'])
         if not filename:
             return ScriptingError("No file for '%s' in game files %s "
                                   % (data, self.game_files))
@@ -453,31 +471,27 @@ class ScriptInterpreter(object):
             logger.debug("Game not installed")
             return
         logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id']] = os.path.join(
-            data_path,
-            self.steam_data['steam_rel_path']
-        )
+        self.game_files[self.steam_data['file_id'].replace('-', '_')] = \
+            os.path.join(data_path, self.steam_data['steam_rel_path'])
         self.iter_game_files()
 
-    def runner_task(self, data):
+    def task(self, data):
         """ This action triggers a task within a runner.
-            Mandatory parameters in data are 'task' and 'args'
+            The 'name' parameter is mandatory. If 'args' is provided it will be
+            passed to the runner task.
         """
-        logger.info("Called runner task")
-        logger.debug(data)
-        logger.debug("runner is %s", self.script['runner'])
+        task_name = data.pop('name')
         runner_name = self.script["runner"]
-        task = import_task(runner_name, data['task'])
-        args = data['args']
-        for key in args:
-            if args[key] == "$GAMEDIR":
-                args[key] = self.game_dir
-            if key == 'filename':
-                if args[key] in self.game_files.keys():
-                    args[key] = self.game_files[args[key]]
-        logger.debug("args are %s", repr(args))
-        # FIXME pass args as kwargs and not args
-        task(**args)
+
+        for key in data:
+            logger.debug(key)
+            data[key] = self._substitute(data[key])
+        logger.debug("-----------")
+        logger.debug(data)
+        logger.debug(self.game_files)
+        logger.debug("-----------")
+        task = import_task(runner_name, task_name)
+        #task(**data)
 
     def install_steam_game(self):
         steam_runner = steam()

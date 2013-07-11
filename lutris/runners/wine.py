@@ -30,13 +30,24 @@ def set_regedit(path, key, value):
     os.remove(reg_path)
 
 
-def create_prefix(prefix=None):
+def create_prefix(prefix_path):
     """Create a new wineprefix"""
-    if prefix is None:
-        logger.error("Prefix  path is required")
-        return False
-    os.system("export WINEARCH=win32; export WINEPREFIX=\"%s\"; wineboot"
-              % prefix)
+    os.system("export WINEPREFIX=\"%s\"; wineboot"
+              % prefix_path)
+
+
+def wineexec(params, prefix=None):
+    if not prefix:
+        prefix = ""
+    else:
+        prefix = "WINEPREFIX=\"%s\" " % prefix
+    command = prefix + "wine" + " ".join(params)
+    subprocess.Popen(command, stdout=subprocess.PIPE).communicate()
+
+
+def winetricks(arg):
+    print "WINETRICKS"
+    print arg
 
 
 def installer(filename=None, prefix=None):
@@ -167,15 +178,11 @@ class wine(Runner):
         return command
 
     @classmethod
-    def msi_exec(cls, msi_file, quiet=False):
+    def msi_exec(cls, msi_file, quiet=False, prefix=None):
         msi_args = ["msiexec", "/i", msi_file]
         if quiet:
             msi_args.append("/q")
-        return cls.wine_exec(msi_args)
-
-    @staticmethod
-    def wine_exec(params):
-        subprocess.call(["wine"] + params)
+        return wine_exec(msi_args, prefix)
 
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
