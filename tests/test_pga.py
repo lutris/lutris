@@ -24,7 +24,7 @@ class TestPersonnalGameArchive(unittest.TestCase):
         self.assertTrue("LutrisTest" in game_names)
 
     def test_delete_game(self):
-        pga.delete_game("LutrisTest")
+        pga.delete_game("lutristest")
         game_list = pga.get_games()
         self.assertEqual(len(game_list), 0)
         pga.add_game(name="LutrisTest", runner="Linux")
