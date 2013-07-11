@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+
+ <vendor>Lutris</vendor>
+ <vendor_url>http://lutris.net</vendor_url>
+
+ <action id="net.lutris.xboxdrv.pkexec.run">
+    <description>Run xboxdrv</description>
+    <message>Authentication is required to run xboxdrv</message>
+    <defaults>
+     <allow_any>yes</allow_any>
+     <allow_inactive>yes</allow_inactive>
+     <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/xboxdrv</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+ </action>
+</policyconfig>

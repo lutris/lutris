@@ -43,33 +43,58 @@ class SystemConfigVBox(ConfigVBox):
 
         resolution_list = get_resolutions()
 
-        self.options = [{'option': 'game_path',
-                        'type': 'directory_chooser',
-                        'label': 'Default game path'},
-                        {'option': 'resolution',
-                        'type': 'one_choice',
-                        'label': 'Resolution',
-                        'choices': resolution_list},
-                        {'option': 'oss_wrapper',
-                        'type': 'one_choice',
-                        'label': 'OSS Wrapper',
-                        'choices': oss_list},
-                        {'option': 'reset_pulse',
-                        'type': 'bool',
-                        'label': 'Reset PulseAudio'},
-                        {'option': 'hide_panels',
-                        'type': 'bool',
-                        'label': 'Hide Gnome Panels'},
-                        {'option': 'reset_desktop',
-                        'type': 'bool',
-                        'label': 'Reset resolution when game quits'},
-                        {'option': 'compiz_nodecoration',
-                        'type': 'string',
-                        'label': 'Remove window decoration with compiz'},
-                        {'option': 'compiz_fullscreen',
-                        'type': 'string',
-                        'label': 'Make a fullscreen window with compiz'},
-                        {'option': 'killswitch',
-                        'type': 'string',
-                        'label': 'Killswitch file'}]
+        self.options = [
+            {
+                'option': 'game_path',
+                'type': 'directory_chooser',
+                'label': 'Default game path'
+            },
+            {
+                'option': 'resolution',
+                'type': 'one_choice',
+                'label': 'Resolution',
+                'choices': resolution_list
+            },
+            {
+                'option': 'oss_wrapper',
+                'type': 'one_choice',
+                'label': 'OSS Wrapper',
+                'choices': oss_list
+            },
+            {
+                'option': 'reset_pulse',
+                'type': 'bool',
+                'label': 'Reset PulseAudio'
+            },
+            {
+                'option': 'hide_panels',
+                'type': 'bool',
+                'label': 'Hide Gnome Panels'
+            },
+            {
+                'option': 'reset_desktop',
+                'type': 'bool',
+                'label': 'Reset resolution when game quits'
+            },
+            {
+                'option': 'compiz_nodecoration',
+                'type': 'string',
+                'label': 'Remove window decoration with compiz'
+            },
+            {
+                'option': 'compiz_fullscreen',
+                'type': 'string',
+                'label': 'Make a fullscreen window with compiz'
+            },
+            {
+                'option': 'killswitch',
+                'type': 'string',
+                'label': 'Killswitch file'
+            },
+            {
+                'option': 'xboxdrv',
+                'type': 'string',
+                'label': 'xboxdrv config'
+            }
+        ]
         self.generate_widgets()

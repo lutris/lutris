@@ -48,6 +48,7 @@ def get_current_resolution():
 
 def change_resolution(resolution):
     """change desktop resolution"""
+    logger.debug("Switching resolution to %s", resolution)
     if resolution not in get_resolutions():
         logger.warning("Resolution %s doesn't exist.")
     else:
@@ -105,7 +106,8 @@ def set_keyboard_repeat(value=False):
 def reset_desktop():
     """Restore the desktop to its original state."""
     #Restore resolution
-    os.popen("xrandr -s 0")
+    resolution = get_resolutions()[0]
+    change_resolution(resolution)
     #Restore gamma
     os.popen("xgamma -gamma 1.0")
 

@@ -2,8 +2,8 @@
 # -*- coding:Utf-8 -*-
 """ Module that actually runs the games. """
 import os
-import shutil
 import time
+import shutil
 
 from signal import SIGKILL
 from gi.repository import Gtk, GLib
@@ -146,9 +146,12 @@ class Game(object):
         self.game_thread = LutrisThread(command, path, killswitch)
         self.game_thread.start()
         if 'joy2key' in gameplay_info:
-            self.run_joy2key(gameplay_info['joy2key'])
+            self.joy2key(gameplay_info['joy2key'])
+        xboxdrv_config = self.game_config.get_system('xboxdrv')
+        if xboxdrv_config:
+            self.xboxdrv(xboxdrv_config)
 
-    def run_joy2key(self, config):
+    def joy2key(self, config):
         """ Run a joy2key thread. """
         win = "grep %s" % config['window']
         if 'notwindow' in config:
@@ -165,6 +168,14 @@ class Game(object):
         self.game_thread.attach_thread(joy2key_thread)
         joy2key_thread.start()
 
+    def xboxdrv(self, config):
+        command = ("pkexec xboxdrv --daemon --detach-kernel-driver "
+                   "--dbus session --silent %s"
+                   % config)
+        logger.debug("xboxdrv command: %s", command)
+        thread = LutrisThread(command, "/tmp")
+        thread.start()
+
     def poke_process(self):
         """ Watch game's process. """
         if not self.game_thread.pid:
@@ -178,9 +189,18 @@ class Game(object):
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
+
+        if self.game_config.get_system('resolution'):
+            desktop_control.reset_desktop()
+
+        if self.game_config.get_system('xboxdrv'):
+            os.system("pkexec xboxdrvctl --shutdown")
+
         if self.game_thread is not None and self.game_thread.pid:
             for child in self.game_thread:
                 child.kill()
-            os.kill(self.game_thread.pid + 1, SIGKILL)
-        if self.game_config.get_system('reset_desktop'):
-            desktop_control.reset_desktop()
+            pid = self.game_thread.pid + 1
+            try:
+                os.kill(pid, SIGKILL)
+            except OSError:
+                logger.error("Could not kill PID %s", pid)
