@@ -228,10 +228,11 @@ class ScriptInterpreter(object):
             self.parent.on_install_error(exception.message)
         elif self.current_command < len(commands):
             command = commands[self.current_command]
-            logger.debug(command)
             self.current_command += 1
             method, params = self._map_command(command)
-
+            status_text = params.pop("description", None)
+            if status_text:
+                self.parent.set_status(status_text)
             async_call(method, self._iter_commands, params)
         else:
             self._finish_install()
@@ -469,16 +470,10 @@ class ScriptInterpreter(object):
         """
         task_name = data.pop('name')
         runner_name = self.script["runner"]
-
         for key in data:
-            logger.debug(key)
             data[key] = self._substitute(data[key])
-        logger.debug("-----------")
-        logger.debug(data)
-        logger.debug(self.game_files)
-        logger.debug("-----------")
         task = import_task(runner_name, task_name)
-        #task(**data)
+        task(**data)
 
     def install_steam_game(self):
         steam_runner = steam()

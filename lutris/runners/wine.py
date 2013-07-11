@@ -36,18 +36,22 @@ def create_prefix(prefix_path):
               % prefix_path)
 
 
-def wineexec(params, prefix=None):
+def wineexec(executable, args="", prefix=None):
     if not prefix:
         prefix = ""
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
-    command = prefix + "wine" + " ".join(params)
-    subprocess.Popen(command, stdout=subprocess.PIPE).communicate()
+    command = prefix + "wine \"%s\" %s" % (executable, args)
+    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
-def winetricks(arg):
-    print "WINETRICKS"
-    print arg
+def winetricks(app, prefix=None):
+    if not prefix:
+        prefix = ""
+    else:
+        prefix = "WINEPREFIX=\"%s\" " % prefix
+    command = prefix + "winetricks %s" % app
+    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
 def installer(filename=None, prefix=None):
