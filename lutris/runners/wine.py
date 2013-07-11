@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-from os.path import exists
-
 from lutris.util.log import logger
 from lutris.settings import CACHE_DIR
 from lutris.runners.runner import Runner
@@ -42,6 +40,7 @@ def wineexec(executable, args="", prefix=None):
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
     command = prefix + "wine \"%s\" %s" % (executable, args)
+    logger.debug("Running wine command: %s", command)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
@@ -51,20 +50,8 @@ def winetricks(app, prefix=None):
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
     command = prefix + "winetricks %s" % app
+    logger.debug("Running winetricks command: %s", command)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
-
-
-def installer(filename=None, prefix=None):
-    """Runs a windows program"""
-    if filename is None or not os.path.exists(filename):
-        logger.error("Filename is required and must exist")
-        return False
-    if prefix:
-        prefix_export = "export WINEPREFIX=\"%s\";" % prefix
-    else:
-        prefix_export = None
-    os.system("%s export WINEARCH=win32; wine \"%s\"" % (prefix_export,
-                                                         filename))
 
 
 def kill():
@@ -75,27 +62,28 @@ def kill():
 # pylint: disable=C0103
 class wine(Runner):
     '''Run Windows games with Wine'''
+    executable = 'wine'
+    platform = 'Windows'
+    game_options = [
+        {
+            'option': 'exe',
+            'type': 'file_chooser',
+            'label': 'Executable'
+        },
+        {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Arguments'
+        },
+        {
+            'option': 'prefix',
+            'type': 'directory_chooser',
+            'label': 'Prefix'
+        }
+    ]
+
     def __init__(self, settings=None):
         super(wine, self).__init__()
-        self.executable = 'wine'
-        self.platform = 'Windows'
-        self.game_options = [
-            {
-                'option': 'exe',
-                'type': 'file_chooser',
-                'label': 'Executable'
-            },
-            {
-                'option': 'args',
-                'type': 'string',
-                'label': 'Arguments'
-            },
-            {
-                'option': 'prefix',
-                'type': 'directory_chooser',
-                'label': 'Prefix'
-            }
-        ]
 
         mouse_warp_choices = [('Disable', 'disable'),
                               ('Enable', 'enable'),
@@ -186,7 +174,7 @@ class wine(Runner):
         msi_args = ["msiexec", "/i", msi_file]
         if quiet:
             msi_args.append("/q")
-        return wine_exec(msi_args, prefix)
+        return wineexec(msi_args, prefix)
 
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
@@ -201,14 +189,20 @@ class wine(Runner):
             wine_config = self.settings.config[self.__class__.__name__]
         else:
             wine_config = {}
+
+        command = []
+        prefix = self.settings['game'].get('prefix', "")
+        if os.path.exists(prefix):
+            command.append("WINEPREFIX=\"%s\" " % prefix)
+
         self.game_path = os.path.dirname(game_exe)
         game_exe = os.path.basename(game_exe)
-        if not exists(self.game_path):
-            return {"error": "FILE_NOT_FOUND", "file": self.game_path}
-        command = []
-        if "prefix" in wine_config and exists(wine_config['prefix']):
-            logger.debug("using WINEPREFIX %s", wine_config["prefix"])
-            command.append("WINEPREFIX=\"%s\" ", wine_config['prefix'])
+        if not os.path.exists(self.game_path):
+            if prefix:
+                self.game_path = os.path.join(prefix, self.game_path)
+            if not os.path.exists(self.game_path):
+                return {"error": "FILE_NOT_FOUND", "file": self.game_path}
+
         command.append(self.executable)
         command.append("\"" + game_exe + "\"")
         if arguments:
