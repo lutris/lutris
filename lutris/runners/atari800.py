@@ -32,99 +32,64 @@ from lutris.desktop_control import get_resolutions
 # pylint: disable=C0103
 class atari800(Runner):
     """ Runs Atari800 games """
-    def __init__(self, settings=None):
-        """Constructor"""
-        super(atari800, self).__init__()
-        self.package = "atari800"
-        self.executable = "atari800"
-        self.platform = "Atari 8bit computers"
-        self.atarixl_url = (
-            "http://kent.dl.sourceforge.net/project/atari800/"
-            "ROM/Original%20XL%20ROM/xf25.zip"
-        )
-        self.description = "Atari 400,800 and XL emulator."
-        self.bios = None
-        self.bios_checksums = {
-            "xlxe_rom": "06daac977823773a3eea3422fd26a703",
-            "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
-            "osa_rom": "",
-            "osb_rom": "a3e8d617c95d08031fe1b20d541434b2",
-            "5200_rom": ""
+    package = "atari800"
+    executable = "atari800"
+    platform = "Atari 8bit computers"
+    atarixl_url = (
+        "http://kent.dl.sourceforge.net/project/atari800/"
+        "ROM/Original%20XL%20ROM/xf25.zip"
+    )
+    description = "Atari 400,800 and XL emulator."
+    bios_checksums = {
+        "xlxe_rom": "06daac977823773a3eea3422fd26a703",
+        "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
+        "osa_rom": "",
+        "osb_rom": "a3e8d617c95d08031fe1b20d541434b2",
+        "5200_rom": ""
+    }
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file_chooser",
+            "label": "Rom File"
         }
+    ]
+    try:
+        screen_resolutions = [(resolution, resolution)
+                              for resolution in get_resolutions()]
+    except OSError:
+        screen_resolutions = []
 
-        self.game_options = [
-            {
-                "option": "main_file",
-                "type": "file_chooser",
-                "label": "Rom File"
-            }
-        ]
-
-        # protip : list comprehensions !
-        self.screen_resolutions = []
-        resolutions_available = get_resolutions()
-        for resolution in resolutions_available:
-            self.screen_resolutions = self.screen_resolutions + \
-                [(resolution, resolution)]
-
-        machine_choices = (
-            ("Emulate Atari 800", "atari"),
-            ("Emulate Atari 800 XL", "xl"),
-            ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
-            ("Emulate Atari 320 XE (Rambo)", "rambo"),
-            ("Emulate Atari 5200", "5200")
-        )
-
-        self.runner_options = [
-            {
-                "option": "bios_path",
-                "type": "directory_chooser",
-                "label": "Bios Path"
-            },
-            {
-                "option": "machine",
-                "type": "one_choice",
-                "choices": machine_choices,
-                "label": "Machine"
-            },
-            {
-                "option": "fullscreen",
-                "type": "bool",
-                "label": "Fullscreen"
-            },
-            {
-                "option": "resolution",
-                "type": "one_choice",
-                "choices": self.screen_resolutions,
-                "label": "Fullscreen resolution"
-            }
-        ]
-
-        if settings:
-            if "fullscreen" in settings["atari800"]:
-                if settings["atari800"]["fullscreen"]:
-                    self.arguments = self.arguments + ["-fullscreen"]
-                else:
-                    self.arguments = self.arguments + ["-windowed"]
-
-            if "resolution" in settings["atari800"]:
-                resol = settings["atari800"]["resolution"]
-                width = resol[:resol.find("x")]
-                height = resol[resol.find("x") + 1:]
-                self.arguments += ["-width", "%s" % str(width),
-                                   "-height", "%s" % str(height)]
-
-            if "bios_path" in settings["atari800"]:
-                self.bios_path = settings["atari800"]["bios_path"]
-            else:
-                self.error_messages += ["Bios path not set."]
-
-            if "machine" in settings["atari800"]:
-                self.arguments += ["-%s" % settings["atari800"]["machine"]]
-
-            self.rom = settings["game"].get("rom")
-            if not self.rom:
-                self.error_messages += ["No disk image given."]
+    runner_options = [
+        {
+            "option": "bios_path",
+            "type": "directory_chooser",
+            "label": "Bios Path"
+        },
+        {
+            "option": "machine",
+            "type": "one_choice",
+            "choices": (
+                ("Emulate Atari 800", "atari"),
+                ("Emulate Atari 800 XL", "xl"),
+                ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
+                ("Emulate Atari 320 XE (Rambo)", "rambo"),
+                ("Emulate Atari 5200", "5200")
+            ),
+            "label": "Machine"
+        },
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen"
+        },
+        {
+            "option": "resolution",
+            "type": "one_choice",
+            "choices": screen_resolutions,
+            "label": "Fullscreen resolution"
+        }
+    ]
 
     def is_installed(self):
         """Checks if atari800 is installed"""
@@ -148,6 +113,31 @@ class atari800(Runner):
 
     def play(self):
         """ Run the game. """
+
+        if "fullscreen" in self.settings["atari800"]:
+            if self.settings["atari800"]["fullscreen"]:
+                self.arguments = self.arguments + ["-fullscreen"]
+            else:
+                self.arguments = self.arguments + ["-windowed"]
+
+        if "resolution" in self.settings["atari800"]:
+            resol = self.settings["atari800"]["resolution"]
+            width = resol[:resol.find("x")]
+            height = resol[resol.find("x") + 1:]
+            self.arguments += ["-width", "%s" % str(width),
+                               "-height", "%s" % str(height)]
+
+        if "bios_path" in self.settings["atari800"]:
+            self.bios_path = self.settings["atari800"]["bios_path"]
+        else:
+            self.error_messages += ["Bios path not set."]
+
+        if "machine" in self.settings["atari800"]:
+            self.arguments += ["-%s" % self.settings["atari800"]["machine"]]
+
+            self.rom = self.settings["game"].get("rom")
+            if not self.rom:
+                self.error_messages += ["No disk image given."]
         good_bios = self.find_good_bioses()
         for bios in good_bios.keys():
             self.arguments += ["-%s" % bios,
