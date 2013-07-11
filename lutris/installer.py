@@ -191,9 +191,14 @@ class ScriptInterpreter(object):
         # Setup destination path
         dest_file = os.path.join(self.download_cache_path, filename)
 
-        if file_uri == "N/A":
+        if file_uri.startswith("N/A"):
             #Ask the user where is located the file
-            file_uri = self.parent.ask_user_for_file()
+            parts = file_uri.split(":", 1)
+            if len(parts) == 2:
+                message = parts[1]
+            else:
+                message = file_id
+            file_uri = self.parent.ask_user_for_file(message)
             if not file_uri:
                 raise ScriptingError(
                     "Can't continue installation without file", file_id
@@ -599,8 +604,8 @@ class InstallerDialog(Gtk.Dialog):
         button.set_sensitive(False)
         self.interpreter.iter_game_files()
 
-    def ask_user_for_file(self):
-        dlg = FileDialog()
+    def ask_user_for_file(self, message=None):
+        dlg = FileDialog(message)
         filename = getattr(dlg, 'filename', '')
         return filename
 

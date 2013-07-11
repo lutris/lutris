@@ -13,8 +13,11 @@ The ``uri`` key is equivalent to passing only a string to the installer and the
 ``filename`` key will be used to give the local copy another name.
 
 If the game contains copyrighted files that cannot be redistributed, the value
-should be ``N\A``. When the installer encounter this value, it will prompt the
-user for the location of the file.
+should begin with ``N/A``. When the installer encounter this value, it will
+prompt the user for the location of the file. To indicate to the user what file
+to select, append a message to ``N/A`` like this: 
+``N/A:Please select the installer for this game``
+
 
 If the game makes use of (Windows) Steam data, the value should be
 ``$WINESTEAM:appid:path/to/data``. This will check that the data is available
@@ -72,11 +75,11 @@ The ``move`` command cannot overwrite files.
 Example:
 
 ::
-    
+
     move:
       src: game-file-id
       dst: $GAMEDIR/location
-    
+
 Copying and merging directories
 -------------------------------
 
@@ -89,26 +92,26 @@ this into account when writing your script and order your actions accordingly.
 Example:
 
 ::
-    
+
     merge:
       src: game-file-id
       dst: $GAMEDIR/location
-    
+
 
 Extracting archives
 -------------------
 
 Extracting archives is done with the ``extract`` directive, the ``file``
-argument is a ``file id``. If the archive should be extracted in some other 
+argument is a ``file id``. If the archive should be extracted in some other
 location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
 
-Example: 
+Example:
 
 ::
 
     extract:
       file: game-archive
-      dst: $GAMEDIR/datadir/ 
+      dst: $GAMEDIR/datadir/
 
 Making a file executable
 ------------------------
@@ -117,6 +120,22 @@ Marking the file as executable is done with the ``chmodx`` command. It is often
 needed for games that ships in a zip file which does not retain file permissions.
 
 Example: ``chmodx: $GAMEDIR/game_binary``
+
+Running a task provided by a runner
+-----------------------------------
+
+Some actions are specific to some runners, you can call them with th ``task`` 
+command. You must at least provide the ``name`` parameter which is the function
+that will be called. Other parameters depend on the task being called.
+
+Currently, the following tasks are implemented:
+
+wine: ``wineexec`` Runs a windows executable. Parameters are ``executable``,
+``args`` (optional arguments passed to the executable), ``prefix`` (optional
+WINEPREFIX).
+
+wine: ``winetricks`` Runs winetricks with the ``app`` argument. ``prefix`` is
+an optional WINEPREFIX path.
 
 
 Calling the installer
