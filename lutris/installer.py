@@ -5,7 +5,6 @@ import sys
 import yaml
 import time
 import shutil
-import string
 import urllib2
 import platform
 import subprocess
@@ -17,7 +16,7 @@ from lutris.util import extract
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.util.files import calculate_md5
+from lutris.util.files import calculate_md5, substitute
 
 from lutris.runners.steam import steam
 from lutris.game import Game
@@ -117,11 +116,7 @@ class ScriptInterpreter(object):
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
 
-        self.files = {}
-        for f in self.script.get('files', []):
-            item = f.items()[0]
-            self.files[item[0]] = item[1]
-
+        self.files = self.script.get('files', [])
         return not bool(self.errors)
 
     def iter_game_files(self):
@@ -196,7 +191,6 @@ class ScriptInterpreter(object):
         # Setup destination path
         dest_file = os.path.join(self.download_cache_path, filename)
 
-        file_id = file_id.replace('-', '_')
         if file_uri == "N/A":
             #Ask the user where is located the file
             file_uri = self.parent.ask_user_for_file()
@@ -335,14 +329,7 @@ class ScriptInterpreter(object):
             "HOME": os.path.expanduser("~")
         }
         replacements.update(self.game_files)
-        template = string.Template(template_string)
-        retval = template.safe_substitute(replacements)
-        logger.info("++++++++++++++")
-        logger.info(template_string)
-        logger.info(replacements)
-        logger.info(retval)
-        logger.info("++++++++++++++")
-        return retval
+        return substitute(template_string, replacements)
 
     def _get_move_paths(self, params):
         """ Validate and converts raw data passed to 'move' """
@@ -363,7 +350,7 @@ class ScriptInterpreter(object):
         return (src, dst)
 
     def _get_file(self, fileid):
-        return self.game_files.get(fileid.replace('-', '_'))
+        return self.game_files.get(fileid)
 
     def insert_disc(self, data):
         NoticeDialog("Insert game disc to continue")
