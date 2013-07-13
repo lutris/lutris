@@ -14,6 +14,7 @@ def async_call(func, on_done, *args, **kwargs):
         try:
             result = func(*args, **kwargs)
         except Exception, err:
+            #raise  # Uncomment this to inspect errors
             error = err
         GObject.idle_add(lambda: on_done(result, error))
 

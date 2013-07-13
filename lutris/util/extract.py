@@ -37,6 +37,7 @@ def extract_archive(path, to_directory='.', merge_single=True):
                        os.path.join(to_directory, f))
         except OSError:
             return False
+    logger.debug("Finished extracting %s", path)
 
 
 def decompress_gz(file_path, dest_path=None):

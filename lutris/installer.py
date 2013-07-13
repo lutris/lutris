@@ -3,7 +3,6 @@
 import os
 import sys
 import yaml
-import time
 import shutil
 import urllib2
 import platform
@@ -21,7 +20,7 @@ from lutris.util.files import calculate_md5, substitute
 from lutris.runners.steam import steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import FileDialog, ErrorDialog, NoticeDialog
+from lutris.gui.dialogs import FileDialog, ErrorDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris import settings
 from lutris.runners import import_task
@@ -135,7 +134,7 @@ class ScriptInterpreter(object):
             self._download_file(self.script["files"][len(self.game_files)])
         else:
             self.current_command = 0
-            self._iter_commands()
+            self._prepare_commands()
 
     def _download_file(self, game_file):
         """Download a file referenced in the installer script
@@ -222,20 +221,29 @@ class ScriptInterpreter(object):
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
 
-    def _iter_commands(self, result=None, exception=None):
+    def _prepare_commands(self):
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
+        self._iter_commands()
+
+    def _iter_commands(self, result=None, exception=None):
+        if result == 'STOP':
+            return
+
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
 
         commands = self.script.get('installer', [])
         if exception:
-            self.parent.on_install_error(exception.message)
+            self.parent.on_install_error(repr(exception))
         elif self.current_command < len(commands):
             command = commands[self.current_command]
             self.current_command += 1
             method, params = self._map_command(command)
-            status_text = params.pop("description", None)
+            if isinstance(params, dict):
+                status_text = params.pop("description", None)
+            else:
+                status_text = None
             if status_text:
                 self.parent.set_status(status_text)
             async_call(method, self._iter_commands, params)
@@ -319,7 +327,7 @@ class ScriptInterpreter(object):
             command_params = command_data[command_name]
         else:
             command_name = command_data
-            command_params = ""
+            command_params = {}
         command_name = command_name.replace("-", "_")
         command_name = command_name.strip("_")
         if not hasattr(self, command_name):
@@ -359,7 +367,19 @@ class ScriptInterpreter(object):
         return self.game_files.get(fileid)
 
     def insert_disc(self, data):
-        NoticeDialog("Insert game disc to continue")
+        message = data.get('message', "Insert game disc to continue")
+        requires = data['requires']
+        self.parent.wait_for_user_action(message, self.on_cd_mounted, requires)
+        logger.debug(message)
+        return 'STOP'
+
+    def on_cd_mounted(self, widget, requires):
+        paths = ['/mnt', '/media/cdrom', '/cdrom']
+        for path in paths:
+            required_abspath = os.path.join(path, requires)
+            if os.path.exists(required_abspath):
+                self.game_files['CDROM'] = path
+                self._iter_commands()
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
@@ -436,13 +456,12 @@ class ScriptInterpreter(object):
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
-        logger.debug("extracting file %s" % str(data))
         filename = self._get_file(data['file'])
         if not filename:
-            return ScriptingError("No file for '%s' in game files %s "
-                                  % (data, self.game_files))
+            filename = self._substitute(data['file'])
+
         if not os.path.exists(filename):
-            return ScriptingError("%s does not exists" % filename)
+            raise ScriptingError("%s does not exists" % filename)
         if 'dst' in data:
             dest_path = self._substitute(data['dst'])
         else:
@@ -451,10 +470,8 @@ class ScriptInterpreter(object):
         logger.debug(msg)
         self.parent.set_status(msg)
         merge_single = not 'nomerge' in data
-        retval = extract.extract_archive(filename, dest_path, merge_single)
-        if retval is False:
-            return ScriptingError("Failed to extract %s" % filename)
-        time.sleep(1)
+        logger.debug("extracting file %s to %s", filename, dest_path)
+        extract.extract_archive(filename, dest_path, merge_single)
 
     def _get_steam_game_path(self):
         logger.debug("get steam path")
@@ -634,7 +651,7 @@ class InstallerDialog(Gtk.Dialog):
         self.download_progress.show()
         self.download_progress.start()
 
-    def wait_for_user_action(self, message, callback, data):
+    def wait_for_user_action(self, message, callback, data=None):
         self.clean_widgets()
         label = Gtk.Label(message)
         self.widget_box.add(label)

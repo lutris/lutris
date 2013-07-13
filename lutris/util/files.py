@@ -3,6 +3,8 @@ import string
 import hashlib
 import subprocess
 
+from lutris.util.log import logger
+
 
 def calculate_md5(filename):
     """ Return the md5 hash of filename. """
@@ -25,6 +27,10 @@ def find_executable(exec_name):
 
 
 def python_identifier(string):
+    if not isinstance(string, basestring):
+        logger.error("python_identifier requires a string, got %s", string)
+        return
+
     def dashrepl(matchobj):
         return matchobj.group(0).replace('-', '_')
 
