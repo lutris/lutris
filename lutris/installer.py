@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import time
 import shutil
 import urllib2
 import platform
@@ -652,6 +653,7 @@ class InstallerDialog(Gtk.Dialog):
         self.download_progress.start()
 
     def wait_for_user_action(self, message, callback, data=None):
+        time.sleep(0.3)
         self.clean_widgets()
         label = Gtk.Label(message)
         self.widget_box.add(label)

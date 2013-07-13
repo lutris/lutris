@@ -103,7 +103,7 @@ Gdk.threads_init()
 
 register_handler()
 
-game_slug = []
+game_slug = ""
 for arg in args:
     if arg.startswith('lutris:'):
         game_slug = arg[7:]
