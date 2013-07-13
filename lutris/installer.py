@@ -427,6 +427,15 @@ class ScriptInterpreter(object):
         logger.debug("Merging %s into %s" % (src, dst))
         if not os.path.exists(dst):
             os.makedirs(dst)
+        if os.path.isfile(src):
+            # If single file, copy it and change reference in game file so it
+            # can be used as executable.
+            shutil.copy(src, dst)
+            if params['src'] in self.game_files.keys():
+                self.game_files[params['src']] = os.path.join(
+                    dst, os.path.basename(src)
+                )
+            return
         for (dirpath, dirnames, filenames) in os.walk(src):
             src_relpath = dirpath[len(src) + 1:]
             dst_abspath = os.path.join(dst, src_relpath)
@@ -455,8 +464,11 @@ class ScriptInterpreter(object):
         try:
             shutil.move(src, target)
         except shutil.Error:
-            return ScriptingError("Can't move %s to destination %s"
-                                  % (src, dst))
+            raise ScriptingError("Can't move %s to destination %s"
+                                 % (src, dst))
+        if os.path.isfile(src) and params['src'] in self.game_files.keys():
+            # Change game file reference so it can be used as executable
+            self.game_files['src'] = src
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
