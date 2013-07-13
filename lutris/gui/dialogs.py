@@ -85,6 +85,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 
 class FileDialog(Gtk.FileChooserDialog):
     def __init__(self, message=None):
+        self.filename = None
         if not message:
             message = "Please choose a file"
         super(FileDialog, self).__init__(
@@ -92,11 +93,11 @@ class FileDialog(Gtk.FileChooserDialog):
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
              Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
         )
+        self.set_local_only(False)
         response = self.run()
         if response == Gtk.ResponseType.OK:
-            self.filename = self.get_uri()
-        elif response == Gtk.ResponseType.CANCEL:
-            self.filename = False
+            self.filename = self.get_filename()
+
         self.destroy()
 
 

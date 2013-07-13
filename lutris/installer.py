@@ -39,6 +39,9 @@ class ScriptingError(Exception):
     def __str__(self):
         return self.message + "\n" + repr(self.faulty_data)
 
+    def __repr__(self):
+        return self.message
+
 _excepthook = sys.excepthook
 
 
@@ -203,10 +206,10 @@ class ScriptInterpreter(object):
                 raise ScriptingError(
                     "Can't continue installation without file", file_id
                 )
-            if file_uri.startswith("file://"):
-                self.game_files[file_id] = file_uri[7:]
-                self.iter_game_files()
-                return
+
+            self.game_files[file_id] = file_uri
+            self.iter_game_files()
+            return
 
         if os.path.exists(dest_file):
             logger.debug("Destination file exists")
@@ -443,12 +446,12 @@ class ScriptInterpreter(object):
         """ Move a file or directory """
         src, dst = self._get_move_paths(params)
         if not os.path.exists(src):
-            return ScriptingError("I can't move %s, it does not exist" % src)
+            raise ScriptingError("I can't move %s, it does not exist" % src)
         if not os.path.exists(dst):
             os.makedirs(dst)
         target = os.path.join(dst, os.path.basename(src))
         if os.path.exists(target):
-            return ScriptingError("Destination %s already exists" % target)
+            raise ScriptingError("Destination %s already exists" % target)
         try:
             shutil.move(src, target)
         except shutil.Error:
