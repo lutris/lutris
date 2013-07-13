@@ -535,7 +535,7 @@ class ScriptInterpreter(object):
 
 
 # pylint: disable=R0904
-class InstallerDialog(Gtk.Dialog):
+class InstallerDialog(Gtk.Window):
     """ Gtk Dialog used during the install process """
     game_dir = None
     download_progress = None
@@ -549,12 +549,16 @@ class InstallerDialog(Gtk.Dialog):
     # http.download_asset(icon_url, icon_dest, True)
 
     def __init__(self, game_ref, parent=None):
-        Gtk.Dialog.__init__(self)
+        Gtk.Window.__init__(self)
         self.parent = parent
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
+        self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
+
+        self.vbox = Gtk.VBox()
+        self.add(self.vbox)
 
         # Default signals
         self.connect('destroy', self.on_destroy)
