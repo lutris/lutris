@@ -497,7 +497,7 @@ class ScriptInterpreter(object):
             logger.debug("Game not installed")
             return
         logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id'].replace('-', '_')] = \
+        self.game_files[self.steam_data['file_id']] = \
             os.path.join(data_path, self.steam_data['steam_rel_path'])
         self.iter_game_files()
 
