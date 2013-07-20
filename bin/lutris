@@ -81,7 +81,13 @@ if options.verbose:
 if options.debug:
     logger.setLevel(logging.DEBUG)
 if options.list_games:
-    print get_games()
+    for game in get_games():
+        print "{:<30} | {:<30} | {:<15} | {:<64}".format(
+            game['name'],
+            game['slug'],
+            game['runner'],
+            game['directory']
+        )
     exit()
 if options.list_steam:
     from lutris.runners import winesteam
