@@ -178,6 +178,7 @@ class winesteam(wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
+        self.prepare_launch()
         return {
             'command': self.launch_args + ['-applaunch', appid, self.args]
         }

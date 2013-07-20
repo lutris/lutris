@@ -182,13 +182,17 @@ class wine(Runner):
             if key in wine_config:
                 set_regedit(self.reg_keys[key], key, wine_config[key])
 
-    def play(self):
-        game_exe = self.settings['game'].get('exe')
-        arguments = self.settings['game'].get('args', "")
+    def prepare_launch(self):
         if self.__class__.__name__ in self.settings.config:
             wine_config = self.settings.config[self.__class__.__name__]
         else:
             wine_config = {}
+        self.check_regedit_keys(wine_config)
+
+    def play(self):
+        game_exe = self.settings['game'].get('exe')
+        arguments = self.settings['game'].get('args', "")
+        self.prepare_launch()
 
         command = []
         prefix = self.settings['game'].get('prefix', "")
@@ -208,5 +212,4 @@ class wine(Runner):
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
-        self.check_regedit_keys(wine_config)
         return {'command': command}
