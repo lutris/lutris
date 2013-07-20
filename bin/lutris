@@ -77,17 +77,15 @@ logger.addHandler(console)
 logger.setLevel(logging.ERROR)
 
 if options.verbose:
-    logger.info("Verbose mode enabled")
     logger.setLevel(logging.INFO)
 if options.debug:
     logger.setLevel(logging.DEBUG)
-    logger.debug('logging enabled')
 if options.list_games:
     print get_games()
     exit()
 if options.list_steam:
-    from lutris.runners.steam import steam
-    steam_runner = steam()
+    from lutris.runners import winesteam
+    steam_runner = winesteam.winesteam()
     print steam_runner.get_appid_list()
     exit()
 

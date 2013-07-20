@@ -18,7 +18,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.files import calculate_md5, substitute
 
-from lutris.runners.steam import steam
+from lutris.runners import winesteam
 from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import FileDialog, ErrorDialog
@@ -170,13 +170,13 @@ class ScriptInterpreter(object):
                 'steam_rel_path': steam_rel_path,
                 'file_id': file_id
             }
-            steam_runner = steam()
+            steam_runner = winesteam.winesteam()
             if not steam_runner.is_installed():
                 steam_installer_path = os.path.join(
                     settings.TMP_PATH, "SteamInstall.msi"
                 )
                 self.parent.start_download(
-                    steam.installer_url,
+                    winesteam.winesteam.installer_url,
                     steam_installer_path,
                     self.parent.on_steam_downloaded,
                     self.steam_data['appid']
@@ -491,7 +491,7 @@ class ScriptInterpreter(object):
 
     def _get_steam_game_path(self):
         logger.debug("get steam path")
-        steam_runner = steam()
+        steam_runner = winesteam.winesteam()
         data_path = steam_runner.get_game_data_path(self.steam_data['appid'])
         if not data_path:
             logger.debug("Game not installed")
@@ -514,7 +514,7 @@ class ScriptInterpreter(object):
         task(**data)
 
     def install_steam_game(self):
-        steam_runner = steam()
+        steam_runner = winesteam.winesteam()
         if not steam_runner.get_game_data_path(self.steam_data['appid']):
             self.steam_install_game(self.steam_data['appid'])
         else:
@@ -526,7 +526,7 @@ class ScriptInterpreter(object):
             self.on_steam_installed,
             appid
         )
-        steam_runner = steam()
+        steam_runner = winesteam.winesteam()
         async_call(steam_runner.install, None, dest)
 
     def on_steam_installed(self, *args):
@@ -540,7 +540,7 @@ class ScriptInterpreter(object):
             self.on_steam_game_installed,
             appid
         )
-        steam_runner = steam()
+        steam_runner = winesteam.winesteam()
         steam_runner.appid = appid
         async_call(steam_runner.install_game, None, appid)
 

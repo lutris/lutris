@@ -74,14 +74,14 @@ def vdf_parse(steam_config_file, config):
 
 
 # pylint: disable=C0103
-class steam(wine):
+class winesteam(wine):
 
     #installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
     installer_url = "http://lutris.net/files/runners/SteamInstall.msi"
 
     """Runs Steam games with Wine"""
     def __init__(self, settings=None):
-        super(steam, self).__init__(settings)
+        super(winesteam, self).__init__(settings)
         self.executable = "Steam.exe"
         self.platform = "Steam (Windows)"
         config = LutrisConfig(runner=self.__class__.__name__)
@@ -179,5 +179,5 @@ class steam(wine):
                     'runner': self.__class__.__name__}
 
         return {
-            'command': self.get_steam_args() + ['-applaunch', appid, self.args]
+            'command': self.launch_args + ['-applaunch', appid, self.args]
         }

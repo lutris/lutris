@@ -52,6 +52,8 @@ class Game(object):
             return False
         if self.runner_name == 'browser':
             return True
+        elif self.runner_name == 'winesteam':
+            return True
         else:
             return self.directory and os.path.exists(self.directory)
 

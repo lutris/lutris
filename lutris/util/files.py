@@ -38,6 +38,7 @@ def python_identifier(string):
 
 
 def substitute(fileid, files):
+    fileid = str(fileid)
     fileid = python_identifier(fileid)
     files = dict((k.replace('-', '_'), v) for k, v in files.items())
     template = string.Template(fileid)
