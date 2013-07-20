@@ -5,7 +5,7 @@ import sys
 from xdg import BaseDirectory
 
 PROJECT = "Lutris"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 WEBSITE = "http://lutris.net"
 COPYRIGHT = "(c) 2010-2013 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]

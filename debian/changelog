@@ -1,4 +1,12 @@
-lutris (0.3.0) precise; urgency=low
+lutris (0.3.1) quantal; urgency=low
+
+  * Support for Wine installers
+  * Library sync with Lutris.net
+  * Misc bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Jul 2013 21:55:37 +0200
+
+lutris (0.3.0) quantal; urgency=low
 
   * Initial release of Lutris 0.3
   * Support for game installers

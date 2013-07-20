@@ -91,7 +91,7 @@ data_files.append((
 
 setup(
     name='lutris',
-    version='0.3.0',
+    version='0.3.1',
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',

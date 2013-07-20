@@ -17,10 +17,10 @@ changelog-edit:
 	dch -e
 
 upload-ppa:
-	dput ppa:strycore/ppa ../lutris_0.3.0_i386.changes
+	dput ppa:strycore/ppa ../lutris_0.3.1_i386.changes
 
 rpm:
-	cd build && sudo alien lutris_0.3.0_all.deb --scripts --to-rpm
+	cd build && sudo alien lutris_0.3.1_all.deb --scripts --to-rpm
 
 clean:
 	debclean
@@ -28,6 +28,6 @@ clean:
 build-all: deb rpm
 
 upload:
-	scp build/lutris_0.3.0_all.deb strycore.com:/srv/releases/lutris/
-	scp build/lutris_0.3.0.tar.gz strycore.com:/srv/releases/lutris/
-	scp build/lutris-0.3.0-2.noarch.rpm strycore.com:/srv/releases/lutris/
+	scp build/lutris_0.3.1_all.deb strycore.com:/srv/releases/lutris/
+	scp build/lutris_0.3.1.tar.gz strycore.com:/srv/releases/lutris/
+	scp build/lutris-0.3.1-2.noarch.rpm strycore.com:/srv/releases/lutris/
