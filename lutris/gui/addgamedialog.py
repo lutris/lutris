@@ -114,17 +114,20 @@ class AddGameDialog(Gtk.Dialog):
 
     def add_game(self, _button):
         """OK button pressed in the Add Game Dialog"""
-        #Get name
-        realname = self.realname_entry.get_text()
-        #Get runner
-        self.lutris_config.config["realname"] = realname
+        name = self.realname_entry.get_text()
+        self.lutris_config.config["realname"] = name
         self.lutris_config.config["runner"] = self.runner_class
 
-        if self.runner_class and realname:
+        if self.runner_class and name:
+
             game_identifier = self.lutris_config.save(config_type="game")
-            self.game_info = {"name": realname,
+            self.game_info = {"name": name,
                               "runner": self.runner_class,
                               "slug": game_identifier}
+
+            runner = import_runner(self.runner_class)(self.lutris_config)
+            if hasattr(runner, 'get_game_path'):
+                self.game_info['directory'] = runner.get_game_path()
             pga.add_game(**self.game_info)
             self.destroy()
 

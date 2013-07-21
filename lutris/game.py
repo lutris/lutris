@@ -196,6 +196,7 @@ class Game(object):
             desktop_control.reset_desktop()
 
         if self.game_config.get_system('xboxdrv'):
+            logger.debug("Shutting down xboxdrv")
             os.system("pkexec xboxdrvctl --shutdown")
 
         if self.game_thread is not None and self.game_thread.pid:

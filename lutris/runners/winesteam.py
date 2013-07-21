@@ -186,7 +186,7 @@ class winesteam(wine):
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
-        command.append(self.launch_args)
+        command += self.launch_args
         return {
             'command': command + ['-applaunch', appid, self.args]
         }

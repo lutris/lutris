@@ -22,10 +22,8 @@
 """ Linux runner """
 
 import os
-import stat
 import os.path
 
-from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -67,6 +65,9 @@ class linux(Runner):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
+    def get_game_path(self):
+        return os.path.dirname(self.config['game']['exe'])
+
     def play(self):
         """ Run native game. """
         game_config = self.config.get('game')
@@ -79,7 +80,7 @@ class linux(Runner):
 
         launch_info = {}
 
-        self.game_path = os.path.dirname(executable)
+        self.game_path = self.get_game_path()
         launch_info['game_path'] = self.game_path
 
         ld_preload = game_config.get('ld_preload')
