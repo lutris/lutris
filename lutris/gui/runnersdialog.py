@@ -101,6 +101,10 @@ class RunnersDialog(Gtk.Dialog):
         self.vbox.pack_start(label, False, True, 20)
         self.vbox.pack_start(scrolled_window, True, True, 10)
 
+        close_button = Gtk.Button("Close")
+        close_button.connect('clicked', self.close)
+
+        self.action_area.pack_start(close_button, False, False, 10)
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
 
@@ -147,7 +151,7 @@ class RunnersDialog(Gtk.Dialog):
         scrolled_window.add_with_viewport(runner_vbox)
         self.show_all()
 
-    def close(self, widget=None, other=None):
+    def close(self, widget, other=None):
         self.destroy()
 
     def on_install_clicked(self, widget, runner):
