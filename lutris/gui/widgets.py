@@ -134,7 +134,8 @@ class GameStore(object):
         """Adds a game into the view"""
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
                                      game.is_installed)
-        self.store.append((game.slug, game.name, pixbuf, game.runner_name,
+        name = game.name.replace('&', "&amp;")
+        self.store.append((game.slug, name, pixbuf, game.runner_name,
                            "Genre", "Platform", "Year"))
 
 

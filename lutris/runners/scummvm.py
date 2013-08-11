@@ -24,6 +24,7 @@
 import os
 import subprocess
 
+from lutris import settings
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.runners.runner import Runner
@@ -76,9 +77,18 @@ class scummvm(Runner):
         self.executable = "scummvm"
         self.package = "scummvm"
         self.platform = "LucasArts point and click games"
-        self.game_options = [{'option': 'game_id',
-                              'type': 'string',
-                              'label': "Game identifier"}]
+        self.game_options = [
+            {
+                'option': 'game_id',
+                'type': 'string',
+                'label': "Game identifier"
+            },
+            {
+                'option': 'path',
+                'type': 'directory_chooser',
+                'label': "Path for the game"
+            }
+        ]
         scaler_modes = [
             ("2x", "2x"),
             ("3x", "3x"),
@@ -93,14 +103,29 @@ class scummvm(Runner):
             ("supereagle", "supereagle"),
             ("tv2x", "tv2x")
         ]
-        self.runner_options = [{"option": "windowed",
-                                "label": "Windowed",
-                                "type": "bool"},
-                               {"option": "gfx-mode",
-                                "label": "Graphics scaler",
-                                "type": "one_choice",
-                                "choices": scaler_modes}]
+        self.runner_options = [
+            {
+                "option": "windowed",
+                "label": "Windowed",
+                "type": "bool"
+            },
+            {
+                "option": "gfx-mode",
+                "label": "Graphics scaler",
+                "type": "one_choice",
+                "choices": scaler_modes
+            }
+        ]
         self.settings = settings
+
+    def install(self):
+        self.download_and_extract("scummvm.x86.tar.gz")
+
+    def get_executable(self):
+        return os.path.join(settings.DATA_DIR, 'runners/scummvm/scummvm')
+
+    def get_game_path(self):
+        return self.settings['game']['path']
 
     def play(self):
         """Run ScummVM game"""
@@ -115,7 +140,18 @@ class scummvm(Runner):
                 mode = self.settings.config["scummvm"]["gfx-mode"]
                 gfxmode = "--gfx-mode=%s" % mode
         game = self.settings["game"]["game_id"]
-        return {'command': [self.executable, fullscreen, gfxmode, game]}
+
+        launch_info = {'command': [
+            self.get_executable(),
+            "--path=\"%s\"" % self.settings['game']['path'],
+            fullscreen, gfxmode, game
+        ]}
+
+        lib_dir = os.path.join(settings.DATA_DIR, 'runners/scummvm/lib')
+        if os.path.exists(lib_dir):
+            launch_info['ld_library_path'] = lib_dir
+
+        return launch_info
 
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """

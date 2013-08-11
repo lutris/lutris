@@ -75,6 +75,9 @@ class Runner(object):
         is_installed = False
         if not self.executable:
             return False
+        if hasattr(self, 'get_executable'):
+            if os.path.exists(self.get_executable()):
+                return True
         result = find_executable(self.executable)
         if result == '':
             is_installed = False
@@ -138,12 +141,14 @@ class Runner(object):
         return True
 
     def download_and_extract(self, tarball):
-        dest = os.path.join(settings.CACHE_DIR, tarball)
+        runner_archive = os.path.join(settings.CACHE_DIR, tarball)
 
-        dialog = DownloadDialog(settings.RUNNERS_URL + tarball, dest)
+        dialog = DownloadDialog(settings.RUNNERS_URL + tarball, runner_archive)
         dialog.run()
 
-        extract_archive(dest, settings.RUNNER_DIR)
+        extract_archive(runner_archive, settings.RUNNER_DIR,
+                        merge_single=False)
+        os.remove(runner_archive)
 
     def write_config(self, _id, name, fullpath):
         """Write game configuration to settings directory."""

@@ -60,15 +60,7 @@ class snes9x(Runner):
     ]
 
     def get_executable(self):
-        local_path = os.path.join(SNES9X_RUNNER_DIR, self.executable)
-        lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
-        if os.path.exists(local_path):
-            executable = ["LD_LIBRARY_PATH=\"%s\"" % lib_path, local_path]
-        elif self.is_installed():
-            executable = [self.executable]
-        else:
-            executable = ""
-        return executable
+        return os.path.join(SNES9X_RUNNER_DIR, self.executable)
 
     def is_installed(self):
         if os.path.exists(os.path.join(SNES9X_RUNNER_DIR, self.executable)):
@@ -142,4 +134,10 @@ class snes9x(Runner):
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
-        return {'command': self.get_executable() + ["\"%s\"" % rom]}
+        launch_info = {'command': self.get_executable() + ["\"%s\"" % rom]}
+
+        lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
+        if os.path.exists(lib_path):
+            launch_info['ld_library_path'] = lib_path
+
+        return launch_info
