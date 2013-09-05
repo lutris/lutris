@@ -43,8 +43,7 @@ class Game(object):
         self.directory = game_data['directory']
         self.name = game_data['name']
 
-        if self.is_installed:
-            self.load_config()
+        self.load_config()
 
     @property
     def is_installed(self):
@@ -64,11 +63,12 @@ class Game(object):
     def load_config(self):
         """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.slug)
-        if not self.game_config.is_valid():
-            logger.error("Invalid game config for %s" % self.slug)
-        else:
-            runner_class = import_runner(self.runner_name)
-            self.runner = runner_class(self.game_config)
+        if self.is_installed:
+            if not self.game_config.is_valid():
+                logger.error("Invalid game config for %s" % self.slug)
+            else:
+                runner_class = import_runner(self.runner_name)
+                self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:

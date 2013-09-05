@@ -126,10 +126,10 @@ class LutrisConfig(object):
                                                       "runners/%s.yml"
                                                       % self.runner))
         if self.game:
-            game_config_path = join(CONFIG_DIR,
-                                    "games/%s.yml" % self.game)
-            self.game_config = read_yaml_from_file(game_config_path)
-            self.runner = self.game_config.get("runner")
+            game_config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
+            if os.path.exists(game_config_path):
+                self.game_config = read_yaml_from_file(game_config_path)
+                self.runner = self.game_config.get("runner")
         self.update_global_config()
 
     def __str__(self):
@@ -214,12 +214,7 @@ class LutrisConfig(object):
 
     def is_valid(self):
         """Check the config data and return True if config is ok."""
-
-        if "runner" in self.game_config:
-            return True
-        else:
-            print("Error in %s config file : No runner" % self.game)
-            return False
+        return "runner" in self.game_config
 
     def save(self, config_type=None):
         """Save configuration file
