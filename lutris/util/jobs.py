@@ -1,5 +1,5 @@
 import threading
-from gi.repository import GObject
+from gi.repository import GObject, GLib
 
 
 def async_call(func, on_done, *args, **kwargs):
@@ -16,7 +16,7 @@ def async_call(func, on_done, *args, **kwargs):
         except Exception, err:
             #raise  # Uncomment this to inspect errors
             error = err
-        GObject.idle_add(lambda: on_done(result, error))
+        GLib.idle_add(lambda: on_done(result, error))
 
     thread = threading.Thread(target=do_call, args=args, kwargs=kwargs)
     thread.start()

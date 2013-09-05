@@ -102,8 +102,6 @@ installer = False
 game = None
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-GObject.threads_init()
-Gdk.threads_init()
 
 register_handler()
 
