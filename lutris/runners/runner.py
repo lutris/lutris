@@ -86,11 +86,11 @@ class Runner(object):
         return is_installed
 
     def get_game_path(self):
-        """Seems suspicious, but still useful"""
+        """ Return the directory where the game is installed. """
         if hasattr(self, 'game_path'):
             path = self.game_path
         else:
-            path = None
+            path = self.settings['system'].get('game_path')
         return path
 
     def md5sum(self, filename):

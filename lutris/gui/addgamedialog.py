@@ -51,8 +51,8 @@ class AddGameDialog(Gtk.Dialog):
 
         self.set_title("Add a new game")
         self.set_size_request(600, 500)
-        #Runner
-        #get a list of available runners
+
+        #Runners: get a list of available runners
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
         for runner_name in lutris.runners.__all__:
@@ -60,9 +60,9 @@ class AddGameDialog(Gtk.Dialog):
             runner = runner_class()
             description = runner.description
             if runner.is_installed():
-                runner_liststore.append(("%s (%s)" % (runner_name,
-                                                      description),
-                                         runner_name))
+                runner_liststore.append(
+                    ("%s (%s)" % (runner_name, description), runner_name)
+                )
 
         runner_combobox = Gtk.ComboBox.new_with_model(runner_liststore)
         runner_combobox.connect("changed", self.on_runner_changed)
@@ -126,8 +126,7 @@ class AddGameDialog(Gtk.Dialog):
                               "slug": game_identifier}
 
             runner = import_runner(self.runner_class)(self.lutris_config)
-            if hasattr(runner, 'get_game_path'):
-                self.game_info['directory'] = runner.get_game_path()
+            self.game_info['directory'] = runner.get_game_path()
             pga.add_game(**self.game_info)
             self.destroy()
 
