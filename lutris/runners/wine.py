@@ -34,12 +34,12 @@ def create_prefix(prefix_path):
               % prefix_path)
 
 
-def wineexec(executable, args="", prefix=None):
+def wineexec(executable, args="", prefix=None, wine_path='wine'):
     if not prefix:
         prefix = ""
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
-    command = prefix + "wine \"%s\" %s" % (executable, args)
+    command = prefix + "%s \"%s\" %s" % (wine_path, executable, args)
     logger.debug("Running wine command: %s", command)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
@@ -52,11 +52,6 @@ def winetricks(app, prefix=None):
     command = prefix + "winetricks %s" % app
     logger.debug("Running winetricks command: %s", command)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
-
-
-def kill():
-    """The kill command runs wineserver -k"""
-    os.popen("winserver -k")
 
 
 # pylint: disable=C0103
@@ -85,9 +80,6 @@ class wine(Runner):
     def __init__(self, settings=None):
         super(wine, self).__init__()
 
-        mouse_warp_choices = [('Disable', 'disable'),
-                              ('Enable', 'enable'),
-                              ('Force', 'force')]
         orm_choices = [('BackBuffer', 'backbuffer'),
                        ('FBO', 'fbo'),
                        ('PBuffer', 'pbuffer')]
@@ -97,14 +89,17 @@ class wine(Runner):
                         ('ReadTex', 'readtex'),
                         ('TexDraw', 'texdraw'),
                         ('TexTex', 'textex')]
-        multisampling_choices = [('Enabled', 'enabled'),
-                                 ("Disabled", "disabled")]
         audio_choices = [('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
         desktop_choices = [('Yes', 'Default'),
                            ('No', 'None')]
         self.runner_options = [
+            {
+                'option': 'wine_path',
+                'label': "Path to Wine executable",
+                'type': 'file_chooser'
+            },
             {
                 'option': 'cdrom_path',
                 'label': 'CDRom mount point',
@@ -114,13 +109,20 @@ class wine(Runner):
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
                 'type': 'one_choice',
-                'choices': mouse_warp_choices
+                'choices': [
+                    ('Disable', 'disable'),
+                    ('Enable', 'enable'),
+                    ('Force', 'force')
+                ]
             },
             {
                 'option': 'Multisampling',
                 'label': 'Multisampling',
                 'type': 'one_choice',
-                'choices': multisampling_choices
+                'choices': [
+                    ('Enabled', 'enabled'),
+                    ('Disabled', 'disabled')
+                ]
             },
             {
                 'option': 'OffscreenRenderingMode',
@@ -147,7 +149,7 @@ class wine(Runner):
                 'choices': desktop_choices
             }
         ]
-        self.settings = settings
+        self.settings = settings or {}
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
             "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
@@ -165,9 +167,14 @@ class wine(Runner):
         if exe:
             command = "%s %s" % (self.executable, exe)
         else:
-            print("Need an executable file")
             return False
         return command
+
+    def get_wine_path(self):
+        runner_name = self.__class__.__name__
+        if runner_name in self.settings.config:
+            return self.settings[runner_name].get('wine_path', self.executable)
+        return self.executable
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None):
@@ -207,9 +214,17 @@ class wine(Runner):
             if not os.path.exists(self.game_path):
                 return {"error": "FILE_NOT_FOUND", "file": self.game_path}
 
-        command.append(self.executable)
+        command.append(self.get_wine_path())
         command.append("\"" + game_exe + "\"")
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
         return {'command': command}
+
+    def stop(self):
+        """The kill command runs wineserver -k"""
+        wine_path = self.get_wine_path()
+        wine_root = os.path.dirname(wine_path)
+        wineserver = os.path.join(wine_root, wine_root)
+        logger.debug("Killing wineserver")
+        os.popen(wineserver + " -k")
