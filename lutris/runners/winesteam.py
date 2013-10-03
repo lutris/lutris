@@ -107,8 +107,8 @@ class winesteam(wine):
         config.save(config_type='runner')
 
     def is_installed(self):
-        """Checks if wine is installed and if the steam executable is on the
-        harddrive
+        """ Checks if wine is installed and if the steam executable is on the
+            harddrive.
         """
         if not self.check_depends() or not self.game_path:
             return False
@@ -117,22 +117,24 @@ class winesteam(wine):
 
     @property
     def launch_args(self):
-        return ["wine", '%s' % os.path.join(self.game_path, self.executable),
-                "-no-dwrite"]
+        wine_path = self.get_wine_path()
+        return [self.get_wine_path(),
+                '%s' % os.path.join(self.game_path, self.executable),
+                '-no-dwrite']
 
     def get_steam_config(self):
-        config_filename = os.path.join(self.game_path, "config/config.vdf")
+        config_filename = os.path.join(self.game_path, 'config/config.vdf')
         if not os.path.exists(config_filename):
             return
         with open(config_filename, "r") as steam_config_file:
             config = vdf_parse(steam_config_file, {})
-        return config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
+        return config['InstallConfigStore']['Software']['Valve']['Steam']
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
         config = self.get_steam_config()
         if config:
-            apps = config["apps"]
+            apps = config['apps']
             return apps.keys()
 
     def get_game_data_path(self, appid):
@@ -173,15 +175,14 @@ class winesteam(wine):
             self.args = self.settings['game']['args']
         else:
             self.args = ""
+        logger.debug("Checking Steam installation")
         if not self.check_depends():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.depends}
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
-
         self.prepare_launch()
-
         command = []
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
