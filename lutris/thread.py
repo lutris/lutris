@@ -32,7 +32,7 @@ from lutris.util.log import logger
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    def __init__(self, command, path, killswitch=None):
+    def __init__(self, command, path="/tmp", killswitch=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.command = command
@@ -54,7 +54,7 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread"""
-        logger.debug(self.command)
+        logger.debug("Thread running: %s", self.command)
         GLib.timeout_add(2000, self.poke_process)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,
@@ -72,6 +72,20 @@ class LutrisThread(threading.Thread):
                 if line.startswith("State:"):
                     return line.split()[1]
 
+    def stop(self):
+        if self.stop_func:
+            self.stop_func()
+        for child in self.child_processes:
+            child.stop()
+        pid = self.game_process.pid + 1
+        logger.debug('SIGKILL %d', pid)
+        try:
+            os.kill(pid, SIGKILL)
+        except OSError:
+            logger.error("Could not kill PID %s", pid)
+        self.pid = None
+        self.kill()
+
     def poke_process(self):
         """pokes at the running process"""
         if not self.game_process:
@@ -80,8 +94,6 @@ class LutrisThread(threading.Thread):
         else:
             if self.killswitch and not os.path.exists(self.killswitch):
                 # How are we sure that pid + 1 is actually the game process ?
-                os.kill(self.game_process.pid + 1, SIGKILL)
-                self.pid = None
                 return False
         self.pid = self.game_process.pid
         self.return_code = self.game_process.poll()

@@ -11,6 +11,7 @@ from gi.repository import Gtk, GLib
 from lutris import pga
 from lutris.runners import import_runner
 from lutris.util.log import logger
+from lutris.util import audio
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import QuestionDialog, ErrorDialog
@@ -94,58 +95,58 @@ class Game(object):
         """ Launch the game. """
         if not self.prelaunch():
             return False
-        logger.debug("get ready for %s " % self.name)
         gameplay_info = self.runner.play()
-        logger.debug("gameplay_info: %s" % gameplay_info)
+        logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if isinstance(gameplay_info, dict):
             if 'error' in gameplay_info:
                 show_error_message(gameplay_info)
                 return False
-            game_run_args = gameplay_info["command"]
+            launch_arguments = gameplay_info['command']
         else:
-            logger.warning("Old method used for returning gameplay infos")
-            game_run_args = gameplay_info
+            logger.error("Old method used for returning gameplay infos")
+            launch_arguments = gameplay_info
 
-        resolution = self.game_config.get_system("resolution")
+        resolution = self.game_config.get_system('resolution')
         if resolution:
             desktop_control.change_resolution(resolution)
 
-        if self.game_config.get_system("reset_pulse"):
+        if self.game_config.get_system('reset_pulse'):
             desktop_control.reset_pulse()
 
-        if self.game_config.get_system("hide_panels"):
+        if self.game_config.get_system('hide_panels'):
             self.desktop.hide_panels()
 
-        nodecoration = self.game_config.get_system("compiz_nodecoration")
+        nodecoration = self.game_config.get_system('compiz_nodecoration')
         if nodecoration:
             desktop_control.set_compiz_nodecoration(title=nodecoration)
 
-        fullscreen = self.game_config.get_system("compiz_fullscreen")
+        fullscreen = self.game_config.get_system('compiz_fullscreen')
         if fullscreen:
             desktop_control.set_compiz_fullscreen(title=fullscreen)
 
-        killswitch = self.game_config.get_system("killswitch")
-
-        path = self.runner.get_game_path()
-        command = " " . join(game_run_args)
-        oss_wrapper = desktop_control.setup_padsp(
-            self.game_config.get_system("oss_wrapper"), command
+        oss_wrapper = audio.get_oss_wrapper(
+            self.game_config.get_system("oss_wrapper")
         )
         if oss_wrapper:
-            command = oss_wrapper + " " + command
+            launch_arguments.insert(0, oss_wrapper)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
-            command = " ".join(('LD_PRELOAD="{}"'.format(ld_preload), command))
+            launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
 
         ld_library_path = gameplay_info.get('ld_library_path')
         if ld_library_path:
-            command = " ".join(('LD_LIBRARY_PATH="{}"'.format(ld_library_path),
-                               command))
+            launch_arguments.insert(
+                0, 'LD_LIBRARY_PATH="{}"'.format(ld_library_path)
+            )
 
+        killswitch = self.game_config.get_system('killswitch')
         self.heartbeat = GLib.timeout_add(5000, self.poke_process)
-        logger.debug("Running : %s", command)
-        self.game_thread = LutrisThread(command, path, killswitch)
+        self.game_thread = LutrisThread(" ".join(launch_arguments),
+                                        path=self.runner.get_game_path(),
+                                        killswitch=killswitch)
+        if hasattr(self.runner, 'stop'):
+            self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
         if 'joy2key' in gameplay_info:
             self.joy2key(gameplay_info['joy2key'])
@@ -166,7 +167,7 @@ class Game(object):
         command += "&& joy2key $(%s) -X -rcfile %s -buttons %s -axis %s" % (
             wid, rcfile, buttons, axis
         )
-        joy2key_thread = LutrisThread(command, "/tmp")
+        joy2key_thread = LutrisThread(command)
         self.game_thread.attach_thread(joy2key_thread)
         joy2key_thread.start()
 
@@ -175,7 +176,7 @@ class Game(object):
                    "--dbus session --silent %s"
                    % config)
         logger.debug("xboxdrv command: %s", command)
-        thread = LutrisThread(command, "/tmp")
+        thread = LutrisThread(command)
         thread.start()
 
     def poke_process(self):
@@ -183,8 +184,7 @@ class Game(object):
         if not self.game_thread.pid:
             self.quit_game()
             return False
-        else:
-            return True
+        return True
 
     def quit_game(self):
         """ Quit the game and cleanup. """
@@ -199,11 +199,5 @@ class Game(object):
             logger.debug("Shutting down xboxdrv")
             os.system("pkexec xboxdrvctl --shutdown")
 
-        if self.game_thread is not None and self.game_thread.pid:
-            for child in self.game_thread:
-                child.kill()
-            pid = self.game_thread.pid + 1
-            try:
-                os.kill(pid, SIGKILL)
-            except OSError:
-                logger.error("Could not kill PID %s", pid)
+        if self.game_thread:
+            self.game_thread.stop()

@@ -5,8 +5,7 @@
     This class interacts with the window manager, xrandr, gconf, ...
 """
 
-import sys
-import os.path
+import os
 import subprocess
 
 from lutris.gconf import GConfSetting
@@ -110,15 +109,6 @@ def reset_desktop():
     change_resolution(resolution)
     #Restore gamma
     os.popen("xgamma -gamma 1.0")
-
-
-def setup_padsp(setting, command):
-    command = command.split()[0]
-    if setting == 'padsp32':
-        launch_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        return os.path.join(launch_dir, 'padsp32')
-    elif setting == 'padsp':
-        return 'padsp'
 
 
 def reset_pulse():
