@@ -6,6 +6,13 @@ import subprocess
 from lutris.util.log import logger
 
 
+def execute(command):
+    """ Execute a system command and result its results """
+    return subprocess.Popen(command,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE).communicate()[0]
+
+
 def calculate_md5(filename):
     """ Return the md5 hash of filename. """
     md5 = hashlib.md5()
@@ -20,10 +27,13 @@ def calculate_md5(filename):
 
 
 def find_executable(exec_name):
-    result = subprocess.Popen(['which', exec_name],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE).communicate()[0]
-    return result
+    if not exec_name:
+        raise ValueError("find_executable: exec_name required")
+    return execute(['which', exec_name]).strip()
+
+
+def get_pid(program):
+    return execute(['pidof', program])
 
 
 def python_identifier(string):

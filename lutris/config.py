@@ -135,7 +135,7 @@ class LutrisConfig(object):
     def __str__(self):
         return str(self.config)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key, default=None):
         """Allow to access config data directly by keys."""
         if key in ('game', 'runner', 'system'):
             return self.config[key]
@@ -147,7 +147,7 @@ class LutrisConfig(object):
             else:
                 value = self.system_config[key]
         except KeyError:
-            value = None
+            value = default
         return value
 
     def __setitem__(self, key, value):
@@ -159,7 +159,7 @@ class LutrisConfig(object):
             self.system_config = value
         self.update_global_config()
 
-    def get(self, key):
+    def get(self, key, default=None):
         return self.__getitem__(key)
 
     @property

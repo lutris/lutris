@@ -76,8 +76,8 @@ class LutrisWindow(object):
         self.status_label = self.builder.get_object('status_label')
         self.joystick_icons = []
         # Buttons
-        self.reset_button = self.builder.get_object('reset_button')
-        self.reset_button.set_sensitive(False)
+        self.stop_button = self.builder.get_object('stop_button')
+        self.stop_button.set_sensitive(False)
         self.delete_button = self.builder.get_object('delete_button')
         self.delete_button.set_sensitive(False)
         self.play_button = self.builder.get_object('play_button')

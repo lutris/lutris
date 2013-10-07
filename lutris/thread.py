@@ -66,6 +66,12 @@ class LutrisThread(threading.Thread):
             line = self.game_process.stdout.read(80)
             sys.stdout.write(line)
 
+    def get_process_status(self):
+        with open("/proc/%s/status" % self.pid) as status_file:
+            for line in status_file.read():
+                if line.startswith("State:"):
+                    return line.split()[1]
+
     def poke_process(self):
         """pokes at the running process"""
         if not self.game_process:

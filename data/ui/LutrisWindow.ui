@@ -286,7 +286,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="reset_button">
+              <object class="GtkToolButton" id="stop_button">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Stop game</property>

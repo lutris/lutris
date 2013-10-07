@@ -86,6 +86,8 @@ class ConfigVBox(Gtk.VBox):
                                     option["max"],
                                     option["label"], value)
             elif option["type"] == "string":
+                if not 'label' in option:
+                    raise ValueError("Option %s has no label" % option)
                 self.generate_entry(option_key,
                                     option["label"], value)
             elif option["type"] == "directory_chooser":

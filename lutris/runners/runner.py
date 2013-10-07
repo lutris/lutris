@@ -10,7 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog, DownloadDialog
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
-from lutris.util.files import find_executable
+from lutris.util.system import find_executable
 
 
 def get_arch():
@@ -30,7 +30,7 @@ class Runner(object):
         self.depends = None
         self.arch = get_arch()
         self.logger = logger
-        self.settings = settings
+        self.settings = settings or {}
 
     @property
     def description(self):
