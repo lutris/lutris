@@ -102,7 +102,7 @@ class winesteam(wine):
         dlg = DirectoryDialog('Where is located Steam ?')
         self.game_path = dlg.folder
         Gdk.threads_leave()
-        config = LutrisConfig(runner='steam')
+        config = LutrisConfig(runner='winesteam')
         config.runner_config = {'system': {'game_path': self.game_path}}
         config.save(config_type='runner')
 
