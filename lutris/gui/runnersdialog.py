@@ -134,16 +134,10 @@ class RunnersDialog(Gtk.Dialog):
             runner_label.set_padding(25, 5)
             hbox.pack_start(runner_label, True, True, 5)
             #Button
-            button = Gtk.Button("Configure")
+            button = Gtk.Button()
             button.set_size_request(100, 30)
             button_align = Gtk.Alignment.new(0.0, 1.0, 0.0, 0.0)
-            if runner.is_installed():
-                button.set_label('Configure')
-                button.set_size_request(100, 30)
-                button.connect("clicked", self.on_configure_clicked, runner)
-            else:
-                button.set_label('Install')
-                button.connect("clicked", self.on_install_clicked, runner)
+            self.configure_button(button, runner)
             button_align.add(button)
             hbox.pack_start(button_align, True, False, 5)
 
@@ -154,9 +148,33 @@ class RunnersDialog(Gtk.Dialog):
     def close(self, widget, other=None):
         self.destroy()
 
+    def configure_button(self, widget, runner):
+        try:
+            widget.disconnect(widget.click_signal)
+        except AttributeError:
+            pass
+        if runner.is_installed():
+            self.setup_configure_button(widget, runner)
+        else:
+            self.setup_install_button(widget, runner)
+
+    def setup_configure_button(self, widget, runner):
+        widget.set_label('Configure')
+        widget.set_size_request(100, 30)
+        handler_id = widget.connect("clicked",
+                                    self.on_configure_clicked,
+                                    runner)
+        widget.click_signal = handler_id
+
+    def setup_install_button(self, widget, runner):
+        widget.set_label('Install')
+        handler_id = widget.connect("clicked", self.on_install_clicked, runner)
+        widget.click_signal = handler_id
+
     def on_install_clicked(self, widget, runner):
         """Install a runner"""
         runner.install()
+        self.configure_button(widget, runner)
 
     def on_configure_clicked(self, widget, runner):
         RunnerConfigDialog(runner)
