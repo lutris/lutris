@@ -116,14 +116,6 @@ class Game(object):
         if self.game_config.get_system('hide_panels'):
             self.desktop.hide_panels()
 
-        nodecoration = self.game_config.get_system('compiz_nodecoration')
-        if nodecoration:
-            desktop_control.set_compiz_nodecoration(title=nodecoration)
-
-        fullscreen = self.game_config.get_system('compiz_fullscreen')
-        if fullscreen:
-            desktop_control.set_compiz_fullscreen(title=fullscreen)
-
         oss_wrapper = audio.get_oss_wrapper(
             self.game_config.get_system("oss_wrapper")
         )

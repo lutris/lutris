@@ -2,13 +2,12 @@
 # -*- coding:Utf-8 -*-
 """ Utilities to control the user's desktop in many aspects
 
-    This class interacts with the window manager, xrandr, gconf, ...
+    This class interacts with the window manager, xrandr, ...
 """
 
 import os
 import subprocess
 
-from lutris.gconf import GConfSetting
 from lutris.util.log import logger
 
 
@@ -64,42 +63,6 @@ def check_joysticks():
             number_joysticks = number_joysticks + 1
             joysticks.append(device_name)
     return joysticks
-
-
-def set_compiz_nodecoration(klass=None, title=None):
-    """Remove the decorations for the game's window"""
-    window_rule = make_compiz_rule(klass, title)
-    if not window_rule:
-        return False
-    rule = "(any) & !(%s)" % window_rule
-    compiz_root = "/apps/compiz/plugins"
-    key = compiz_root + "/decoration/allscreens/options/decoration_match"
-    setting = GConfSetting(key, bool)
-    setting.set_value(rule)
-    return True
-
-
-def set_compiz_fullscreen(klass=None, title=None):
-    """Set a fullscreen rule for the plugin Window Rules"""
-    rule = make_compiz_rule(klass, title)
-    if not rule:
-        return False
-    compiz_root = "/apps/compiz/plugins"
-    key = compiz_root + "/winrules/screen0/options/fullscreen_match"
-    setting = GConfSetting(key, bool)
-    setting.set_value(rule)
-    return True
-
-
-def set_keyboard_repeat(value=False):
-    """Desactivate key repeats.
-
-    This is needed, for example, in Wolfenstein (2009)
-    """
-    key = "/desktop/gnome/peripherals/keyboard/repeat"
-    setting = GConfSetting(key, bool)
-    setting.set_key(key, value)
-    return True
 
 
 def reset_desktop():

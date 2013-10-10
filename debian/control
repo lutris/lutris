@@ -14,7 +14,6 @@ Architecture: all
 Depends: ${misc:Depends},
  ${python:Depends},
  python-yaml,
- gir1.2-gconf-2.0
 Description: Install and play any video game easily
  Lutris is a gaming platform for GNU/Linux. Its goal is to make
  gaming on Linux as easy as possible by taking care of installing
