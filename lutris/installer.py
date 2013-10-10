@@ -16,7 +16,7 @@ from lutris.util import extract
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.util.files import calculate_md5, substitute
+from lutris.util.system import calculate_md5, substitute
 
 from lutris.runners import winesteam
 from lutris.game import Game
