@@ -5,7 +5,6 @@ import os
 import time
 import shutil
 
-from signal import SIGKILL
 from gi.repository import Gtk, GLib
 
 from lutris import pga
@@ -116,11 +115,9 @@ class Game(object):
         if self.game_config.get_system('hide_panels'):
             self.desktop.hide_panels()
 
-        oss_wrapper = audio.get_oss_wrapper(
-            self.game_config.get_system("oss_wrapper")
-        )
+        oss_wrapper = self.game_config.get_system("oss_wrapper")
         if oss_wrapper:
-            launch_arguments.insert(0, oss_wrapper)
+            launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
