@@ -72,6 +72,10 @@ class LutrisThread(threading.Thread):
                 if line.startswith("State:"):
                     return line.split()[1]
 
+    def set_stop_command(self, func):
+        # TODO
+        logger.debug(func)
+
     def stop(self):
         if self.stop_func:
             self.stop_func()
