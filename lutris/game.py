@@ -88,6 +88,10 @@ class Game(object):
             if Gtk.ResponseType.YES == install_runner_dialog.result:
                 self.runner.install()
             return False
+
+        if hasattr(self.runner, 'prelaunch'):
+            success = self.runner.prelaunch()
+            return success
         return True
 
     def play(self):

@@ -31,7 +31,6 @@ import os
 from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
-from lutris.util.log import logger
 from lutris.downloader import Downloader
 from lutris.constants import COVER_PATH
 #from lutris.util.log import logger

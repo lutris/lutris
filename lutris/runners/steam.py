@@ -1,6 +1,8 @@
 import os
+import time
 import subprocess
 from lutris.runners.runner import Runner
+from lutris.util.log import logger
 from lutris.util import system
 
 
@@ -56,6 +58,21 @@ class steam(Runner):
 
     def is_installed(self):
         return bool(system.find_executable(self.get_steam_path()))
+
+    def prelaunch(self):
+        from lutris.runners import winesteam
+        if winesteam.is_running():
+            winesteam.shutdown()
+            logger.info("Waiting for Steam to shutdown...")
+            time.sleep(2)
+            if winesteam.is_running():
+                logger.info("Steam does not shutdown, killing it...")
+                winesteam.kill()
+                time.sleep(2)
+                if winesteam.is_running():
+                    logger.error("Failed to shutdown Steam for Windows :(")
+                    return False
+        return True
 
     def play(self):
         appid = self.settings.get('game', {}).get('appid')

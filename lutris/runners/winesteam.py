@@ -1,26 +1,7 @@
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
 """Runner for the Steam platform"""
 import os
+import time
 import subprocess
 
 from gi.repository import Gdk
@@ -190,6 +171,21 @@ class winesteam(wine):
     def validate_game(self, appid):
         subprocess.Popen(self.launch_args + ["steam://validate/%s" % appid])
 
+    def prelaunch(self):
+        from lutris.runners import steam
+        if steam.is_running():
+            steam.shutdown()
+            logger.info("Waiting for Steam to shutdown...")
+            time.sleep(2)
+            if steam.is_running():
+                logger.info("Steam does not shutdown, killing it...")
+                steam.kill()
+                time.sleep(2)
+                if steam.is_running():
+                    logger.error("Failed to shutdown Steam for Windows :(")
+                    return False
+        return True
+
     def play(self):
         appid = self.settings['game']['appid']
         if 'args' in self.settings['game']:
@@ -212,3 +208,6 @@ class winesteam(wine):
         return {
             'command': command + ['-applaunch', appid, self.args]
         }
+
+    def stop(self):
+        shutdown()
