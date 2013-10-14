@@ -78,11 +78,11 @@ def kill():
 
 # pylint: disable=C0103
 class winesteam(wine):
+    """ Runs Steam for Windows games """
 
     #installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
     installer_url = "http://lutris.net/files/runners/SteamInstall.msi"
 
-    """Runs Steam games with Wine"""
     def __init__(self, settings=None):
         super(winesteam, self).__init__(settings)
         self.executable = "Steam.exe"
