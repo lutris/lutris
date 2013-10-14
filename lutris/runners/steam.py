@@ -1,6 +1,22 @@
 import os
+import subprocess
 from lutris.runners.runner import Runner
-from lutris.util.system import get_pid, find_executable
+from lutris.util import system
+
+
+def shutdown():
+    """ Cleanly quit Steam """
+    subprocess.call(['steam', '-shutdown'])
+
+
+def kill():
+    """ Force quit Steam """
+    system.kill_pid(system.get_pid('steam'))
+
+
+def is_running():
+    """ Checks if Steam is running """
+    return bool(system.get_pid('steam'))
 
 
 class steam(Runner):
@@ -28,7 +44,7 @@ class steam(Runner):
         return runner_config.get('steam_path', 'steam')
 
     def get_game_path(self):
-        return os.path.dirname(find_executable(self.get_steam_path()))
+        return os.path.dirname(system.find_executable(self.get_steam_path()))
 
     def install(self):
         steam_default_path = [opt["default_path"]
@@ -39,15 +55,11 @@ class steam(Runner):
             self.settings.save()
 
     def is_installed(self):
-        return bool(find_executable(self.get_steam_path()))
-
-    def is_launched(self):
-        """ Checks if Steam is running """
-        return bool(get_pid('steam'))
+        return bool(system.find_executable(self.get_steam_path()))
 
     def play(self):
         appid = self.settings.get('game', {}).get('appid')
         return {'command': [self.get_steam_path(), '-applaunch', appid]}
 
     def stop(self):
-        os.call('steam -shutdown')
+        shutdown()
