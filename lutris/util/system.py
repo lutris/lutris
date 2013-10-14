@@ -1,3 +1,4 @@
+import os
 import re
 import string
 import hashlib
@@ -8,9 +9,10 @@ from lutris.util.log import logger
 
 def execute(command):
     """ Execute a system command and result its results """
-    return subprocess.Popen(command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE).communicate()[0]
+    stdout, stderr = subprocess.Popen(command,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE).communicate()
+    return stdout.strip()
 
 
 def calculate_md5(filename):
@@ -29,11 +31,30 @@ def calculate_md5(filename):
 def find_executable(exec_name):
     if not exec_name:
         raise ValueError("find_executable: exec_name required")
-    return execute(['which', exec_name]).strip()
+    return execute(['which', exec_name])
 
 
 def get_pid(program):
     return execute(['pidof', program])
+
+
+def kill_pid(pid):
+    assert str(int(pid)) == str(pid)
+    execute(['kill', '-9', pid])
+
+
+def get_cwd(pid):
+    cwd_file = '/proc/%d/cwd' % int(pid)
+    if not os.path.exists(cwd_file):
+        return False
+    return os.readlink(cwd_file)
+
+
+def get_command_line(pid):
+    cmdline_path = '/proc/%d/cmdline' % int(pid)
+    if not os.path.exists(cmdline_path):
+        return False
+    return open(cmdline_path, 'r').read().strip('\x00')
 
 
 def python_identifier(string):

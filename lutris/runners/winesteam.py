@@ -28,6 +28,7 @@ from gi.repository import Gdk
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.util.log import logger
+from lutris.util import system
 from lutris.config import LutrisConfig
 
 
@@ -71,6 +72,27 @@ def vdf_parse(steam_config_file, config):
         else:
             config[line_elements[1]] = line_elements[3]
     return config
+
+
+def is_running():
+    return bool(system.get_pid('Steam.exe'))
+
+
+def shutdown():
+    """ Shutdown Steam in a clean way.
+        TODO: Detect wine binary
+    """
+    pid = system.get_pid('Steam.exe')
+    if not pid:
+        return False
+    cwd = system.get_cwd(pid)
+    cmdline = system.get_command_line(pid)
+    steam_exe = os.path.join(cwd, cmdline)
+    system.execute(['wine', steam_exe, '-shutdown'])
+
+
+def kill():
+    system.kill_pid(system.get_pid('Steam.exe'))
 
 
 # pylint: disable=C0103
@@ -117,7 +139,6 @@ class winesteam(wine):
 
     @property
     def launch_args(self):
-        wine_path = self.get_wine_path()
         return [self.get_wine_path(),
                 '%s' % os.path.join(self.game_path, self.executable),
                 '-no-dwrite']
