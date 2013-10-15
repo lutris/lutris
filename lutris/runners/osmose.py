@@ -49,7 +49,6 @@ class osmose(Runner):
     ]
 
     def is_installed(self):
-        print self.get_executable()
         if os.path.exists(self.get_executable()):
             return True
         else:
