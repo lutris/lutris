@@ -69,6 +69,7 @@ def shutdown():
     cwd = system.get_cwd(pid)
     cmdline = system.get_command_line(pid)
     steam_exe = os.path.join(cwd, cmdline)
+    logger.debug("Shutting winesteam: %s", steam_exe)
     system.execute(['wine', steam_exe, '-shutdown'])
 
 

@@ -35,7 +35,7 @@ def find_executable(exec_name):
 
 
 def get_pid(program):
-    return execute(['pidof', program])
+    return execute(['pgrep', program])
 
 
 def kill_pid(pid):
@@ -54,7 +54,7 @@ def get_command_line(pid):
     cmdline_path = '/proc/%d/cmdline' % int(pid)
     if not os.path.exists(cmdline_path):
         return False
-    return open(cmdline_path, 'r').read().strip('\x00')
+    return open(cmdline_path, 'r').read().replace('\x00', ' ').strip()
 
 
 def python_identifier(string):
