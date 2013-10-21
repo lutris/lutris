@@ -4,7 +4,7 @@ import os
 from sqlite3 import IntegrityError
 from lutris import pga
 
-TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'fixtures/pga.db')
+TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 
 
 class TestPersonnalGameArchive(unittest.TestCase):
