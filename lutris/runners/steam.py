@@ -72,6 +72,8 @@ class steam(Runner):
                 if winesteam.is_running():
                     logger.error("Failed to shutdown Steam for Windows :(")
                     return False
+        else:
+            logger.debug("winesteam not running")
         return True
 
     def play(self):
