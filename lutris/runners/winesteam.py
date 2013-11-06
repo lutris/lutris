@@ -202,7 +202,7 @@ class winesteam(wine):
             self.args = ""
         logger.debug("Checking Steam installation")
         self.prepare_launch()
-        command = []
+        command = ["WINEDEBUG=fixme-all"]
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
