@@ -134,7 +134,7 @@ class snes9x(Runner):
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
-        launch_info = {'command': self.get_executable() + ["\"%s\"" % rom]}
+        launch_info = {'command': [self.get_executable(), "\"%s\"" % rom]}
 
         lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
         if os.path.exists(lib_path):
