@@ -160,7 +160,8 @@ class ScriptInterpreter(object):
             filename = os.path.basename(file_uri)
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
-        elif file_uri.startswith("$WINESTEAM"):
+        elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
+            # Download Steam data
             parts = file_uri.split(":", 2)
             steam_rel_path = parts[2].strip()
             if steam_rel_path == "/":
@@ -170,20 +171,27 @@ class ScriptInterpreter(object):
                 'steam_rel_path': steam_rel_path,
                 'file_id': file_id
             }
-            steam_runner = winesteam.winesteam()
-            if not steam_runner.is_installed():
-                steam_installer_path = os.path.join(
-                    settings.TMP_PATH, "SteamInstall.msi"
-                )
-                self.parent.start_download(
-                    winesteam.winesteam.installer_url,
-                    steam_installer_path,
-                    self.parent.on_steam_downloaded,
-                    self.steam_data['appid']
-                )
+            if parts[0] == '$WINESTEAM':
+                # Getting data from Wine Steam
+                steam_runner = winesteam.winesteam()
+                if not steam_runner.is_installed():
+                    # Downoad Steam for Windows
+                    steam_installer_path = os.path.join(
+                        settings.TMP_PATH, "SteamInstall.msi"
+                    )
+                    self.parent.start_download(
+                        winesteam.winesteam.installer_url,
+                        steam_installer_path,
+                        self.parent.on_steam_downloaded,
+                        self.steam_data['appid']
+                    )
+                else:
+                    self.install_winesteam_game()
                 return
-            self.install_steam_game()
-            return
+            else:
+                # Getting data from Linux Steam
+                self.install_steam_game()
+                return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
         # Check for file availability in PGA
@@ -513,7 +521,7 @@ class ScriptInterpreter(object):
         task = import_task(runner_name, task_name)
         task(**data)
 
-    def install_steam_game(self):
+    def install_winesteam_game(self):
         steam_runner = winesteam.winesteam()
         if not steam_runner.get_game_data_path(self.steam_data['appid']):
             self.steam_install_game(self.steam_data['appid'])
@@ -530,7 +538,7 @@ class ScriptInterpreter(object):
         async_call(steam_runner.install, None, dest)
 
     def on_steam_installed(self, *args):
-        self.install_steam_game()
+        self.install_winesteam_game()
 
     def steam_install_game(self, appid):
         logger.debug("Installing steam game %s" % self.steam_data['appid'])
