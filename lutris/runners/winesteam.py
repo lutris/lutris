@@ -86,7 +86,6 @@ class winesteam(wine):
 
     def __init__(self, settings=None):
         super(winesteam, self).__init__(settings)
-        self.executable = "Steam.exe"
         self.platform = "Steam (Windows)"
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()
@@ -116,14 +115,15 @@ class winesteam(wine):
         """
         if not self.check_depends() or not self.game_path:
             return False
-        exe_path = os.path.join(self.game_path, self.executable)
-        return self.game_path and os.path.exists(exe_path)
+        return self.game_path and os.path.exists(self.steam_path)
+
+    @property
+    def steam_path(self):
+        return os.path.join(self.game_path, "Steam.exe")
 
     @property
     def launch_args(self):
-        return [self.get_wine_path(),
-                '%s' % os.path.join(self.game_path, self.executable),
-                '-no-dwrite']
+        return [self.get_wine_path(), '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
         config_filename = os.path.join(self.game_path, 'config/config.vdf')
@@ -188,20 +188,21 @@ class winesteam(wine):
         return True
 
     def play(self):
-        appid = self.settings['game']['appid']
-        if 'args' in self.settings['game']:
-            self.args = self.settings['game']['args']
-        else:
-            self.args = ""
-        logger.debug("Checking Steam installation")
         if not self.check_depends():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.depends}
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
+
+        appid = self.settings['game']['appid']
+        if 'args' in self.settings['game']:
+            self.args = self.settings['game']['args']
+        else:
+            self.args = ""
+        logger.debug("Checking Steam installation")
         self.prepare_launch()
-        command = []
+        command = ["WINEDEBUG=fixme-all"]
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)

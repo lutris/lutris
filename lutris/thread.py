@@ -77,7 +77,7 @@ class LutrisThread(threading.Thread):
         logger.debug(func)
 
     def stop(self):
-        if self.stop_func:
+        if hasattr(self, 'stop_func'):
             self.stop_func()
         for child in self.child_processes:
             child.stop()
@@ -88,7 +88,6 @@ class LutrisThread(threading.Thread):
         except OSError:
             logger.error("Could not kill PID %s", pid)
         self.pid = None
-        self.kill()
 
     def poke_process(self):
         """pokes at the running process"""
