@@ -22,7 +22,7 @@ import optparse
 import signal
 
 # pylint: disable=E0611
-from gi.repository import Gtk, Gdk, GObject
+from gi.repository import Gtk
 
 from os.path import realpath, dirname, normpath
 
@@ -34,7 +34,7 @@ if LAUNCH_PATH != "/usr/bin":
 from lutris.gui.dialogs import QuestionDialog
 
 try:
-    import yaml as _yaml
+    import yaml as _yaml  # noqa
 except ImportError:
     q = QuestionDialog({'title': "Dependency not available",
                         'question': "PythonYAML is not installed,\n"
@@ -78,8 +78,10 @@ logger.setLevel(logging.ERROR)
 
 if options.verbose:
     logger.setLevel(logging.INFO)
+
 if options.debug:
     logger.setLevel(logging.DEBUG)
+
 if options.list_games:
     for game in get_games():
         print "{:<30} | {:<30} | {:<15} | {:<64}".format(

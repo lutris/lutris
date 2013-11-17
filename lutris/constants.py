@@ -20,10 +20,7 @@ from os.path import join, expanduser
 from xdg import BaseDirectory
 
 PROTOCOL_VERSION = 1
-INSTALLER_URL = "http://lutris.net/media/installers/"
-#INSTALLER_URL = "http://localhost:8000/games/install/"
 CONFIG_EXTENSION = ".yml"
-LICENSE_ID = 'GPL-3'
 
 
 LUTRIS_CONFIG_PATH = join(BaseDirectory.xdg_config_home, 'lutris')

@@ -1,7 +1,6 @@
 """ Main window for the Lutris interface """
 # pylint: disable=E0611
 import os
-import json
 
 from gi.repository import Gtk, GLib
 
@@ -52,11 +51,10 @@ class LutrisWindow(object):
         self.builder.add_from_file(ui_filename)
 
         # load config
-        window_config = self.load_view()
-        width = window_config.get('width', 800)
-        height = window_config.get('height', 600)
+        width = int(settings.read_setting('width')) or 800
+        height = int(settings.read_setting('height')) or 600
         self.window_size = (width, height)
-        view_type = window_config.get('view_type', 'icon')
+        view_type = settings.read_setting('view_type') or 'icon'
 
         self.view = switch_to_view(view_type)
 
@@ -172,7 +170,11 @@ class LutrisWindow(object):
 
     def on_destroy(self, *args):
         """Signal for window close"""
-        self.save_view()
+        view_type = 'icon' if 'IconView' in str(type(self.view)) else 'list'
+        settings.write_setting('view_type', view_type)
+        width, height = self.window_size
+        settings.write_setting('width', width)
+        settings.write_setting('height', height)
         Gtk.main_quit(*args)
 
     def on_runners_activate(self, _widget, _data=None):
@@ -256,23 +258,3 @@ class LutrisWindow(object):
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, desktop=True)
         dialogs.NoticeDialog('Shortcut created on your desktop.')
-
-    def get_config_path(self):
-        return os.path.join(settings.CONFIG_DIR, "lutris.config")
-
-    def save_view(self):
-        config_path = self.get_config_path()
-        window_config = {}
-        window_config['view_type'] = 'icon' \
-            if 'IconView' in str(type(self.view)) else 'list'
-        window_config['width'], window_config['height'] = self.window_size
-        with open(config_path, 'w') as config_handler:
-            config_handler.write(json.dumps(window_config))
-
-    def load_view(self):
-        config_path = self.get_config_path()
-        if not os.path.exists(config_path):
-            return {}
-        with open(config_path, 'r') as config_file:
-            config = json.loads(config_file.read())
-        return config

@@ -2,16 +2,56 @@
 """Settings module"""
 import os
 import sys
+import ConfigParser
 from xdg import BaseDirectory
 
 PROJECT = "Lutris"
 VERSION = "0.3.1"
-WEBSITE = "http://lutris.net"
 COPYRIGHT = "(c) 2010-2013 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
-SITE_URL = "http://lutris.net/"
+## Paths
+CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
+CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
+DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
+RUNNER_DIR = os.path.join(DATA_DIR, "runners")
+CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
+
+TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
+
+
+def get_config():
+    if not os.path.exists(CONFIG_FILE):
+        return
+    config = ConfigParser.ConfigParser()
+    config.read([CONFIG_FILE])
+    return config
+
+
+def read_setting(key, section='lutris'):
+    config = get_config()
+    try:
+        value = config.get(section, key)
+    except ConfigParser.NoOptionError:
+        value = None
+    except ConfigParser.NoSectionError:
+        value = None
+    return value
+
+
+def write_setting(key, value, section='lutris'):
+    config = get_config()
+    if not config.has_section(section):
+        config.add_section(section)
+    config.set(section, key, value)
+
+    with open(CONFIG_FILE, 'wb') as config_file:
+        config.write(config_file)
+
+PGA_DB = read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
+SITE_URL = read_setting("website") or "http://lutris.net/"
+
 INSTALLER_URL = SITE_URL + "games/install/"
 RUNNERS_URL = SITE_URL + "files/runners/"
 LIB32_URL = SITE_URL + "files/lib32/"
@@ -34,15 +74,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Default config options
 KEEP_CACHED_ASSETS = True
-
-## Paths
-CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
-DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
-RUNNER_DIR = os.path.join(DATA_DIR, "runners")
-CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
-
-TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
-PGA_DB = os.path.join(DATA_DIR, 'pga.db')
 
 
 def get_data_path():
