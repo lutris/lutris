@@ -1,3 +1,7 @@
+import os
+from lutris.util.log import logger
+
+
 def get_default_acf(appid, name):
     return {
         'AppState': {
@@ -50,3 +54,39 @@ def vdf_write(vdf_path, config):
     vdf_data = to_vdf(config)
     with open(vdf_path, "w") as vdf_file:
         vdf_file.write(vdf_data)
+
+
+def read_config(path_prefix):
+    config_filename = os.path.join(path_prefix, 'config/config.vdf')
+    if not os.path.exists(config_filename):
+        return
+    with open(config_filename, "r") as steam_config_file:
+        config = vdf_parse(steam_config_file, {})
+    return config['InstallConfigStore']['Software']['Valve']['Steam']
+
+
+def get_game_data_path(config, appid):
+    """ Given a steam config, return path for game 'appid' """
+    if not config:
+        return False
+    game_config = config["apps"].get(appid)
+    if not game_config:
+        return False
+    if game_config.get('HasAllLocalContent'):
+        installdir = game_config['installdir'].replace("\\\\", "/")
+        if not installdir:
+            return False
+        if installdir.startswith('C'):
+            installdir = os.path.join(os.path.expanduser('~'),
+                                      '.wine/drive_c', installdir[3:])
+        elif installdir[1] == ':':
+            # Trim Windows path
+            installdir = installdir[2:]
+        logger.debug("Steam game found at %s" % installdir)
+        if os.path.exists(installdir):
+            return installdir
+        elif os.path.exists(installdir.replace('steamapps', 'SteamApps')):
+            return installdir.replace('steamapps', 'SteamApps')
+        else:
+            logger.debug("Path %s not found" % installdir)
+    return False

@@ -16,9 +16,9 @@ from lutris.util import extract
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.util.system import calculate_md5, substitute
+from lutris.util.system import calculate_md5, substitute, merge_folders
 
-from lutris.runners import winesteam
+from lutris.runners import winesteam, steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import FileDialog, ErrorDialog
@@ -162,8 +162,11 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
-            parts = file_uri.split(":", 2)
-            steam_rel_path = parts[2].strip()
+            try:
+                parts = file_uri.split(":", 2)
+                steam_rel_path = parts[2].strip()
+            except IndexError:
+                raise ScriptingError("Malformed steam path: %s" % file_uri)
             if steam_rel_path == "/":
                 steam_rel_path = "."
             self.steam_data = {
@@ -186,11 +189,11 @@ class ScriptInterpreter(object):
                         self.steam_data['appid']
                     )
                 else:
-                    self.install_winesteam_game()
+                    self.install_steam_game(winesteam.winesteam)
                 return
             else:
                 # Getting data from Linux Steam
-                self.install_steam_game()
+                self.install_steam_game(steam.steam)
                 return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -444,20 +447,7 @@ class ScriptInterpreter(object):
                     dst, os.path.basename(src)
                 )
             return
-        for (dirpath, dirnames, filenames) in os.walk(src):
-            src_relpath = dirpath[len(src) + 1:]
-            dst_abspath = os.path.join(dst, src_relpath)
-            for dirname in dirnames:
-                new_dir = os.path.join(dst_abspath, dirname)
-                logger.debug("creating dir: %s" % new_dir)
-                try:
-                    os.mkdir(new_dir)
-                except OSError:
-                    pass
-            for filename in filenames:
-                logger.debug("Copying %s" % filename)
-                shutil.copy(os.path.join(dirpath, filename),
-                            os.path.join(dst_abspath, filename))
+        merge_folders(src, dst)
 
     def move(self, params):
         """ Move a file or directory """
@@ -480,6 +470,9 @@ class ScriptInterpreter(object):
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
+        if not 'file' in data:
+            raise ScriptingError('"file" parameter is mandatory for the '
+                                 'extract command', data)
         filename = self._get_file(data['file'])
         if not filename:
             filename = self._substitute(data['file'])
@@ -497,13 +490,11 @@ class ScriptInterpreter(object):
         logger.debug("extracting file %s to %s", filename, dest_path)
         extract.extract_archive(filename, dest_path, merge_single)
 
-    def _get_steam_game_path(self):
-        logger.debug("get steam path")
-        steam_runner = winesteam.winesteam()
+    def _append_steam_data_to_files(self, runner_class):
+        steam_runner = runner_class()
         data_path = steam_runner.get_game_data_path(self.steam_data['appid'])
-        if not data_path:
-            logger.debug("Game not installed")
-            return
+        if not os.path.exists(data_path):
+            raise ScriptingError("Unable to get Steam data for game")
         logger.debug("got data path: %s" % data_path)
         self.game_files[self.steam_data['file_id']] = \
             os.path.join(data_path, self.steam_data['steam_rel_path'])
@@ -521,40 +512,41 @@ class ScriptInterpreter(object):
         task = import_task(runner_name, task_name)
         task(**data)
 
-    def install_winesteam_game(self):
-        steam_runner = winesteam.winesteam()
-        if not steam_runner.get_game_data_path(self.steam_data['appid']):
-            self.steam_install_game(self.steam_data['appid'])
+    def install_steam_game(self, runner_class):
+        steam_runner = runner_class()
+        appid = self.steam_data['appid']
+        if not steam_runner.get_game_data_path(appid):
+            self.steam_install_game(appid)
+            logger.debug("Installing steam game %s" % appid)
+            # Here the user must wait for the game to finish installing, a
+            # better way to handle this would be to poll StateFlags on the
+            # game's config to check if the game has finished installing.
+            self.parent.wait_for_user_action(
+                "Steam will now install game %s, "
+                "press Ok when install is finished" % appid,
+                self.on_steam_game_installed,
+                appid
+            )
+            steam_runner.appid = appid
+            async_call(steam_runner.install_game, None, appid)
         else:
-            self._get_steam_game_path()
+            self._append_steam_data_to_files(runner_class)
 
     def complete_steam_install(self, dest, appid):
         self.parent.wait_for_user_action(
             "Steam will now install, press Ok when install is finished",
-            self.on_steam_installed,
+            self.on_winesteam_installed,
             appid
         )
         steam_runner = winesteam.winesteam()
         async_call(steam_runner.install, None, dest)
 
-    def on_steam_installed(self, *args):
-        self.install_winesteam_game()
-
-    def steam_install_game(self, appid):
-        logger.debug("Installing steam game %s" % self.steam_data['appid'])
-        self.parent.wait_for_user_action(
-            "Steam will now install game %s, "
-            "press Ok when install is finished" % self.steam_data['appid'],
-            self.on_steam_game_installed,
-            appid
-        )
-        steam_runner = winesteam.winesteam()
-        steam_runner.appid = appid
-        async_call(steam_runner.install_game, None, appid)
+    def on_winesteam_installed(self, *args):
+        self.install_steam_game(winesteam.winesteam)
 
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
-        self._get_steam_game_path()
+        self._append_steam_data_to_files(winesteam.winesteam)
 
 
 # pylint: disable=R0904

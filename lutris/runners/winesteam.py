@@ -9,35 +9,9 @@ from gi.repository import Gdk
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.util.log import logger
-from lutris.util.steam import vdf_parse
+from lutris.util.steam import read_config, get_game_data_path
 from lutris.util import system
 from lutris.config import LutrisConfig
-
-
-def get_name(steam_file):
-    """Get game name from some weird steam file"""
-    data = steam_file.read(1000)
-    if "name" in data:
-        index_of_name = str.find(data, "name")
-        index = index_of_name + 5
-        char = "0"
-        name = ""
-        while ord(char) != 0x0:
-            char = data[index]
-            index += 1
-            name = name + char
-        return name[:-1]
-
-
-def get_appid_from_filename(filename):
-    """Get appid name from some weird steam file"""
-    if filename.endswith(".vdf"):
-        appid = filename[filename.find("_") + 1:filename.find(".")]
-    elif filename.endswith('.pkv'):
-        appid = filename[:filename.find("_")]
-    else:
-        raise ValueError("Bad filename")
-    return appid
 
 
 def is_running():
@@ -111,12 +85,7 @@ class winesteam(wine):
         return [self.get_wine_path(), '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
-        config_filename = os.path.join(self.game_path, 'config/config.vdf')
-        if not os.path.exists(config_filename):
-            return
-        with open(config_filename, "r") as steam_config_file:
-            config = vdf_parse(steam_config_file, {})
-        return config['InstallConfigStore']['Software']['Valve']['Steam']
+        return read_config(self.game_path)
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
@@ -127,29 +96,7 @@ class winesteam(wine):
 
     def get_game_data_path(self, appid):
         steam_config = self.get_steam_config()
-        if not steam_config:
-            return False
-        game_config = steam_config["apps"].get(appid)
-        if not game_config:
-            return False
-        if game_config.get('HasAllLocalContent'):
-            installdir = game_config['installdir'].replace("\\\\", "/")
-            logger.debug("Raw installdir %s" % installdir)
-            if installdir.startswith('C'):
-                logger.debug("Inside wineprefix")
-                installdir = os.path.join(os.path.expanduser('~'),
-                                          '.wine/drive_c',
-                                          installdir[3:])
-            else:
-                installdir = installdir[2:]
-            logger.debug("Steam game found at %s" % installdir)
-            if os.path.exists(installdir):
-                return installdir
-            elif os.path.exists(installdir.replace('steamapps', 'SteamApps')):
-                return installdir.replace('steamapps', 'SteamApps')
-            else:
-                logger.debug("Path %s not found" % installdir)
-        return False
+        return get_game_data_path(steam_config, appid)
 
     def install_game(self, appid):
         subprocess.Popen(self.launch_args + ["steam://install/%s" % appid])

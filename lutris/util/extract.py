@@ -3,6 +3,7 @@ import tarfile
 import zipfile
 import gzip
 import subprocess
+from lutris.util.system import merge_folders
 from lutris.util.log import logger
 
 
@@ -32,11 +33,9 @@ def extract_archive(path, to_directory='.', merge_single=True):
         if len(extracted) == 1:
             destination = os.path.join(destination, extracted[0])
     for f in os.listdir(destination):
-        try:
-            os.renames(os.path.join(destination, f),
-                       os.path.join(to_directory, f))
-        except OSError:
-            return False
+        source = os.path.join(destination, f)
+        destination = os.path.join(to_directory, f)
+        merge_folders(source, destination)
     logger.debug("Finished extracting %s", path)
 
 

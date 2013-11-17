@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import string
 import hashlib
 import subprocess
@@ -74,3 +75,22 @@ def substitute(fileid, files):
     files = dict((k.replace('-', '_'), v) for k, v in files.items())
     template = string.Template(fileid)
     return template.safe_substitute(files)
+
+
+def merge_folders(source, destination):
+    for (dirpath, dirnames, filenames) in os.walk(source):
+        source_relpath = dirpath[len(source) + 1:]
+        dst_abspath = os.path.join(destination, source_relpath)
+        for dirname in dirnames:
+            new_dir = os.path.join(dst_abspath, dirname)
+            logger.debug("creating dir: %s" % new_dir)
+            try:
+                os.mkdir(new_dir)
+            except OSError:
+                pass
+        for filename in filenames:
+            logger.debug("Copying %s" % filename)
+            if not os.path.exists(dst_abspath):
+                os.makedirs(dst_abspath)
+            shutil.copy(os.path.join(dirpath, filename),
+                        os.path.join(dst_abspath, filename))

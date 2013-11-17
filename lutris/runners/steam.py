@@ -4,6 +4,7 @@ import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.util.steam import get_game_data_path, read_config
 
 
 def shutdown():
@@ -46,7 +47,15 @@ class steam(Runner):
         return runner_config.get('steam_path', 'steam')
 
     def get_game_path(self):
-        return os.path.dirname(system.find_executable(self.get_steam_path()))
+        """ Return location of Steam directory """
+        return os.path.expanduser('~/.local/share/Steam')
+
+    def get_game_data_path(self, appid):
+        steam_config = self.get_steam_config()
+        return get_game_data_path(steam_config, appid)
+
+    def get_steam_config(self):
+        return read_config(self.get_game_path())
 
     def install(self):
         steam_default_path = [opt["default_path"]
