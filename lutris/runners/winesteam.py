@@ -9,6 +9,7 @@ from gi.repository import Gdk
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners.wine import wine
 from lutris.util.log import logger
+from lutris.util.steam import vdf_parse
 from lutris.util import system
 from lutris.config import LutrisConfig
 
@@ -37,22 +38,6 @@ def get_appid_from_filename(filename):
     else:
         raise ValueError("Bad filename")
     return appid
-
-
-def vdf_parse(steam_config_file, config):
-    line = " "
-    while line:
-        line = steam_config_file.readline()
-        if not line or line.strip() == "}":
-            return config
-        line_elements = line.strip().split("\"")
-        if len(line_elements) == 3:
-            key = line_elements[1]
-            steam_config_file.readline()  # skip '{'
-            config[key] = vdf_parse(steam_config_file, {})
-        else:
-            config[line_elements[1]] = line_elements[3]
-    return config
 
 
 def is_running():

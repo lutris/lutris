@@ -1,5 +1,6 @@
 from unittest import TestCase
 from lutris.util import system
+from lutris.util import steam
 
 
 class TestFileUtils(TestCase):
@@ -28,3 +29,29 @@ class TestFileUtils(TestCase):
             'foo-bar': "/foo/bar"
         }
         self.assertEqual(system.substitute(fileid, _files), "/foo/bar")
+
+
+class TestSteamUtils(TestCase):
+    def test_dict_to_vdf(self):
+        dict_data = {
+            'AppState': {
+                'appID': '13240',
+                'StateFlags': '4',
+                'UserConfig': {
+                    "name": "Unreal Tournament",
+                    "gameid": "13240"
+                }
+            }
+        }
+        expected_vdf = """"AppState"
+{
+\t"UserConfig"
+\t{
+\t\t"gameid"\t\t"13240"
+\t\t"name"\t\t"Unreal Tournament"
+\t}
+\t"StateFlags"\t\t"4"
+\t"appID"\t\t"13240"
+}"""
+        vdf_data = steam.to_vdf(dict_data)
+        self.assertEqual(vdf_data.strip(), expected_vdf.strip())

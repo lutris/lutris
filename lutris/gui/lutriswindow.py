@@ -51,8 +51,8 @@ class LutrisWindow(object):
         self.builder.add_from_file(ui_filename)
 
         # load config
-        width = int(settings.read_setting('width')) or 800
-        height = int(settings.read_setting('height')) or 600
+        width = int(settings.read_setting('width') or 800)
+        height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
         view_type = settings.read_setting('view_type') or 'icon'
 
