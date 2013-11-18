@@ -438,6 +438,8 @@ class ScriptInterpreter(object):
     def merge(self, params):
         src, dst = self._get_move_paths(params)
         logger.debug("Merging %s into %s" % (src, dst))
+        if not os.path.exists(src):
+            raise ScriptingError("Source does not exist: %s" % src, params)
         if not os.path.exists(dst):
             os.makedirs(dst)
         if os.path.isfile(src):
