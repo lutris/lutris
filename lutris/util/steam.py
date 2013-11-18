@@ -68,7 +68,7 @@ def read_config(path_prefix):
 
 def get_game_data_path(config, appid):
     """ Given a steam config, return path for game 'appid' """
-    if not config:
+    if not config or 'apps' not in config:
         return False
     game_config = config["apps"].get(appid)
     if not game_config:
