@@ -22,10 +22,9 @@ TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
 
 
 def get_config():
-    if not os.path.exists(CONFIG_FILE):
-        return
     config = ConfigParser.ConfigParser()
-    config.read([CONFIG_FILE])
+    if os.path.exists(CONFIG_FILE):
+        config.read([CONFIG_FILE])
     return config
 
 
