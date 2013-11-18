@@ -175,6 +175,7 @@ class ScriptInterpreter(object):
                 'file_id': file_id
             }
             if parts[0] == '$WINESTEAM':
+                self.steam_data['platform'] = "windows"
                 # Getting data from Wine Steam
                 steam_runner = winesteam.winesteam()
                 if not steam_runner.is_installed():
@@ -193,6 +194,7 @@ class ScriptInterpreter(object):
                 return
             else:
                 # Getting data from Linux Steam
+                self.steam_data['platform'] = "linux"
                 self.install_steam_game(steam.steam)
                 return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
@@ -545,7 +547,11 @@ class ScriptInterpreter(object):
 
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
-        self._append_steam_data_to_files(winesteam.winesteam)
+        if self.steam_data['platform'] == 'windows':
+            runner_class = winesteam.winesteam
+        else:
+            runner_class = steam.steam
+        self._append_steam_data_to_files(runner_class)
 
 
 # pylint: disable=R0904

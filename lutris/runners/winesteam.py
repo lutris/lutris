@@ -85,6 +85,8 @@ class winesteam(wine):
         return [self.get_wine_path(), '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
+        if not self.game_path:
+            return
         return read_config(self.game_path)
 
     def get_appid_list(self):
