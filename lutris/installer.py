@@ -516,7 +516,6 @@ class ScriptInterpreter(object):
         steam_runner = runner_class()
         appid = self.steam_data['appid']
         if not steam_runner.get_game_data_path(appid):
-            self.steam_install_game(appid)
             logger.debug("Installing steam game %s" % appid)
             # Here the user must wait for the game to finish installing, a
             # better way to handle this would be to poll StateFlags on the

@@ -4,11 +4,12 @@ import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import get_game_data_path, read_config
+from lutris.util.steam import get_game_data_path, read_config, get_default_acf, to_vdf
 
 
 def shutdown():
     """ Cleanly quit Steam """
+    logger.debug("Shutting down Steam")
     subprocess.call(['steam', '-shutdown'])
 
 
@@ -67,6 +68,21 @@ class steam(Runner):
 
     def is_installed(self):
         return bool(system.find_executable(self.get_steam_path()))
+
+    def install_game(self, appid):
+        logger.debug("Installing steam game %s", appid)
+        acf_data = get_default_acf(appid, appid)
+        acf_content = to_vdf(acf_data)
+        acf_path = os.path.join(self.get_game_path(), "SteamApps",
+                                "appmanifest_%s.acf" % appid)
+        with open(acf_path, "w") as acf_file:
+            acf_file.write(acf_content)
+        if is_running():
+            shutdown()
+            time.sleep(5)
+        else:
+            logger.debug("Steam not running")
+        subprocess.Popen(["steam", "steam://preload/%s" % appid])
 
     def prelaunch(self):
         from lutris.runners import winesteam

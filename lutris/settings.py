@@ -31,6 +31,8 @@ def get_config():
 
 def read_setting(key, section='lutris'):
     config = get_config()
+    if not config:
+        return
     try:
         value = config.get(section, key)
     except ConfigParser.NoOptionError:

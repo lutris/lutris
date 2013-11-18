@@ -1,19 +1,20 @@
 import os
 from lutris.util.log import logger
-
+from collections import OrderedDict
 
 def get_default_acf(appid, name):
-    return {
-        'AppState': {
-            'appID': appid,
-            'StateFlags': "0",
-            'installdir': name,
-            'UserConfig': {
-                'name': name,
-                'gameid': appid
-            }
-        }
-    }
+    userconfig = OrderedDict()
+    userconfig['name'] = name
+    userconfig['gameid'] = appid
+
+    appstate = OrderedDict()
+    appstate['appID'] = appid
+    appstate['Universe'] = "1"
+    appstate['StateFlags'] = "4"
+    appstate['installdir'] = name
+    appstate['UserConfig'] = userconfig
+
+    return {'AppState': appstate}
 
 
 def vdf_parse(steam_config_file, config):
@@ -41,7 +42,7 @@ def to_vdf(dict_data, level=0):
     for key in dict_data:
         value = dict_data[key]
         if isinstance(value, dict):
-            vdf_data = "%s\"%s\"\n" % ("\t" * level, key)
+            vdf_data += "%s\"%s\"\n" % ("\t" * level, key)
             vdf_data += "%s{\n" % ("\t" * level)
             vdf_data += to_vdf(value, level + 1)
             vdf_data += "%s}\n" % ("\t" * level)
