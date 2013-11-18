@@ -456,6 +456,7 @@ class ScriptInterpreter(object):
     def move(self, params):
         """ Move a file or directory """
         src, dst = self._get_move_paths(params)
+        logger.debug("Moving %s to %s" % (src, dst))
         if not os.path.exists(src):
             raise ScriptingError("I can't move %s, it does not exist" % src)
         if not os.path.exists(dst):
