@@ -459,13 +459,14 @@ class ScriptInterpreter(object):
         logger.debug("Moving %s to %s" % (src, dst))
         if not os.path.exists(src):
             raise ScriptingError("I can't move %s, it does not exist" % src)
-        if not os.path.exists(dst):
-            os.makedirs(dst)
-        target = os.path.join(dst, os.path.basename(src))
-        if os.path.exists(target):
-            raise ScriptingError("Destination %s already exists" % target)
+        # TODO: fix behavior of 'move' in existing scripts
+        #if not os.path.exists(dst):
+        #    os.makedirs(dst)
+        #target = os.path.join(dst, os.path.basename(src))
+        #if os.path.exists(target):
+        #    raise ScriptingError("Destination %s already exists" % target)
         try:
-            shutil.move(src, target)
+            shutil.move(src, dst)
         except shutil.Error:
             raise ScriptingError("Can't move %s to destination %s"
                                  % (src, dst))
