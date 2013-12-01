@@ -62,4 +62,5 @@ def sync():
         if game['slug'] in not_in_local:
             logger.debug("Adding %s to local library", game['slug'])
             pga.add_game(game['name'], slug=game['slug'])
+    logger.debug("%d games added", len(not_in_local))
     return not_in_local

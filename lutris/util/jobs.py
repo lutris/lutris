@@ -1,9 +1,12 @@
 import threading
-from gi.repository import GObject, GLib
+from gi.repository import GLib
+
+from lutris.util.log import logger
 
 
 def async_call(func, on_done, *args, **kwargs):
     """ Launch given function `func` in a new thread """
+    logger.debug("Async call: %s", str(func.__name__))
     if not on_done:
         on_done = lambda r, e: None
 

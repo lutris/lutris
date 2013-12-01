@@ -1,6 +1,7 @@
 import os
 
 from lutris import settings
+from lutris.util.log import logger
 from lutris.util import http
 
 
@@ -15,10 +16,12 @@ def has_banner(game_id):
 
 def fetch_banners(games, callback=None):
     no_banners = []
+    logger.debug("Fetching icons")
     for game in games:
         if not has_banner(game):
             no_banners.append(game)
     for game in no_banners:
+        logger.debug("Downloading icon for %s", game)
         download_banner(game, callback=callback)
 
 
@@ -27,4 +30,5 @@ def download_banner(game, overwrite=False, callback=None):
     banner_path = get_banner_path(game)
     cover_downloaded = http.download_asset(banner_url, banner_path, overwrite)
     if cover_downloaded and callback:
+        logger.debug("Icon downloaded for %s", game)
         callback(game)
