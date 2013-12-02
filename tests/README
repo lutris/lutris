@@ -14,6 +14,15 @@ The tests should be run on any of these systems (32 or 64bit):
     - Archlinux
 Any other distrution is good but is not a requirement.
 
+0. Take note of your testing config
+
+Write down the following:
+    - date of the day
+    - operating system + architecture
+    - amounts of RAM
+    - CPU model
+    - Model of GPU + amount of video RAM
+
 1. Wipe/backup any trace of Lutris and runners.
 
 * Move lutris settings.
@@ -53,3 +62,10 @@ Scenario 1: Launching Lutris
 - When clicking the interface loads with no complains
 - After the UI has been opened, there should be ~/.config/lutris,
   ~/.cache/lutris and ~/.local/share/lutris directories
+
+Scenario 2: Installing teeworlds from the website (64bit only ATM)
+- Using Chrome or Chromium open http://lutris.net/games/teeworlds/
+- Click the install button
+- The lutris installer dialog should open and the install process can begin
+- Follow the install process and click "Play"
+- The game should launch
