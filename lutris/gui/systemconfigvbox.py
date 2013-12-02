@@ -77,16 +77,6 @@ class SystemConfigVBox(ConfigVBox):
                 'label': 'Reset resolution when game quits'
             },
             {
-                'option': 'compiz_nodecoration',
-                'type': 'string',
-                'label': 'Remove window decoration with compiz'
-            },
-            {
-                'option': 'compiz_fullscreen',
-                'type': 'string',
-                'label': 'Make a fullscreen window with compiz'
-            },
-            {
                 'option': 'killswitch',
                 'type': 'string',
                 'label': 'Killswitch file'
