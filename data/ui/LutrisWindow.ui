@@ -11,19 +11,19 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
   </object>
-  <object class="GtkImage" id="view_list_symbolic">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="xpad">4</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">view-list-symbolic</property>
-  </object>
   <object class="GtkImage" id="viwe_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-grid-symbolic</property>
+  </object>
+  <object class="GtkImage" id="view_list_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-list-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">640</property>
@@ -155,7 +155,7 @@
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
-                        <signal name="toggled" handler="on_iconview_toggled" swapped="no"/>
+                        <signal name="toggled" handler="on_viewmenu_toggled" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -402,7 +402,7 @@
                         <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
-                        <signal name="toggled" handler="on_iconview_toggled" swapped="no"/>
+                        <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>

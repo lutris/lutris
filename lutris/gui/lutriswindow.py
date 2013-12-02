@@ -56,14 +56,14 @@ class LutrisWindow(object):
 
         self.view = switch_to_view(view_type, get_game_list())
 
-        view_menuitem = self.builder.get_object("iconview_menuitem")
-        view_menuitem.set_active(view_type == 'icon')
-        view_menuitem = self.builder.get_object("listview_menuitem")
-        view_menuitem.set_active(view_type == 'list')
-        switch_grid_view_btn = self.builder.get_object('switch_grid_view_btn')
-        switch_grid_view_btn.set_active(view_type == 'icon')
-        switch_list_view_btn = self.builder.get_object('switch_list_view_btn')
-        switch_list_view_btn.set_active(view_type == 'list')
+        self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
+        self.icon_view_menuitem.set_active(view_type == 'icon')
+        self.list_view_menuitem = self.builder.get_object("listview_menuitem")
+        self.list_view_menuitem.set_active(view_type == 'list')
+        self.icon_view_btn = self.builder.get_object('switch_grid_view_btn')
+        self.icon_view_btn.set_active(view_type == 'icon')
+        self.list_view_btn = self.builder.get_object('switch_list_view_btn')
+        self.list_view_btn.set_active(view_type == 'list')
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
@@ -237,10 +237,28 @@ class LutrisWindow(object):
         """Edit game preferences"""
         EditGameConfigDialog(self, self.view.selected_game)
 
-    def on_iconview_toggled(self, menuitem):
+    def on_viewmenu_toggled(self, menuitem):
+        view_type = 'icon' if menuitem.get_active() else 'list'
+        current_view = 'icon' if self.view.__class__.__name__ == "GameIconView" \
+            else 'list'
+        if view_type == current_view:
+            return
+        self.do_view_switch(view_type)
+        self.icon_view_btn.set_active(view_type == 'icon')
+        self.list_view_btn.set_active(view_type == 'list')
+
+    def on_viewbtn_toggled(self, widget):
+        view_type = 'icon' if widget.get_active() else 'list'
+        current_view = 'icon' if self.view.__class__.__name__ == "GameIconView" \
+            else 'list'
+        if view_type == current_view:
+            return
+        self.list_view_menuitem.toggled()
+        self.do_view_switch(view_type)
+
+    def do_view_switch(self, view_type):
         """Switches between icon view and list view"""
         self.view.destroy()
-        view_type = 'icon' if menuitem.get_active() else 'list'
         self.view = switch_to_view(view_type, get_game_list())
         self.view.contextual_menu = self.menu
         self.connect_signals()
