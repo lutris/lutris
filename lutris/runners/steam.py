@@ -26,6 +26,7 @@ def is_running():
 class steam(Runner):
     """ Runs Steam for Linux games """
     platform = "Steam Games"
+    package = "steam"
     game_options = [
         {
             "option": 'appid',
@@ -65,6 +66,8 @@ class steam(Runner):
         if os.path.exists(steam_default_path):
             self.settings["runner"]["steam_path"] = steam_default_path
             self.settings.save()
+        else:
+            super(steam, self).install()
 
     def is_installed(self):
         return bool(system.find_executable(self.get_steam_path()))
