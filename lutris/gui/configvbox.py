@@ -20,9 +20,9 @@
 
 """Widget generators and their signal handlers"""
 from gi.repository import Gtk, GObject, Gdk
-#from lutris.util.log import logger
+from lutris.util.log import logger
 
-PADDING = 10
+PADDING = 5
 
 
 class Label(Gtk.Label):
@@ -30,8 +30,8 @@ class Label(Gtk.Label):
     def __init__(self, message=None):
         """ Custom init of label """
         super(Label, self).__init__(message)
-        self.set_size_request(200, 30)
-        self.set_alignment(0.0, 0.5)
+        #self.set_size_request(200, 30)
+        #self.set_alignment(0.0, 0.5)
         self.set_line_wrap(True)
 
 
@@ -39,15 +39,16 @@ class ConfigVBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
         GObject.GObject.__init__(self)
+        self.set_margin_top(30)
         self.options = None
-        #Section of the configuration file to save options in. Can be "game",
-        #"runner" or "system" self.save_in_key= save_in_key
+        # Section of the configuration file to save options in. Can be "game",
+        # "runner" or "system" self.save_in_key= save_in_key
         self.save_in_key = save_in_key
         self.caller = caller
 
     def generate_widgets(self):
         """ Parses the config dict and generates widget accordingly."""
-        #Select what data to load based on caller.
+        # Select what data to load based on caller.
         if self.caller == "system":
             self.real_config = self.lutris_config.system_config
         elif self.caller == "runner":
@@ -55,7 +56,7 @@ class ConfigVBox(Gtk.VBox):
         elif self.caller == "game":
             self.real_config = self.lutris_config.game_config
 
-        #Select part of config to load or create it.
+        # Select part of config to load or create it.
         if self.save_in_key in self.real_config:
             config = self.real_config[self.save_in_key]
         else:
@@ -95,6 +96,8 @@ class ConfigVBox(Gtk.VBox):
                                                 option["label"],
                                                 value)
             elif option["type"] in ("file_chooser", "file"):
+                if option["type"] == "file_chooser":
+                    logger.warning("'file_chooser' option deprecated")
                 self.generate_file_chooser(option, value)
             elif option["type"] == "multiple":
                 self.generate_multiple_file_chooser(option_key,
@@ -114,12 +117,12 @@ class ConfigVBox(Gtk.VBox):
     def generate_checkbox(self, option, value=None):
         """ Generates a checkbox. """
         checkbox = Gtk.CheckButton(option["label"])
-        checkbox.set_alignment(0.1, 0.5)
         if value:
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
+        checkbox.set_margin_left(20)
         checkbox.show()
-        self.pack_start(checkbox, False, False, PADDING * 2)
+        self.pack_start(checkbox, False, False, 0)
 
     def checkbox_toggle(self, widget, option_name):
         """ Action for the checkbox's toggled signal."""
@@ -130,13 +133,12 @@ class ConfigVBox(Gtk.VBox):
         """ Generates an entry box. """
         hbox = Gtk.HBox()
         entry_label = Label(label)
-        entry_label.set_size_request(200, 30)
         entry = Gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
-        hbox.pack_start(entry_label, False, False, PADDING)
-        hbox.pack_start(entry, True, True, PADDING)
+        hbox.pack_start(entry_label, False, False, 20)
+        hbox.pack_start(entry, True, True, 20)
         hbox.show_all()
         self.pack_start(hbox, False, True, PADDING)
 
@@ -155,7 +157,6 @@ class ConfigVBox(Gtk.VBox):
                 choice = [choice, choice]
             liststore.append(choice)
         combobox = Gtk.ComboBox.new_with_model(liststore)
-        combobox.set_size_request(200, 30)
         cell = Gtk.CellRendererText()
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)
@@ -168,11 +169,10 @@ class ConfigVBox(Gtk.VBox):
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)
-        label.set_size_request(200, 30)
-        hbox.pack_start(label, False, False, PADDING)
-        hbox.pack_start(combobox, True, True, PADDING)
+        hbox.pack_start(label, False, False, 20)
+        hbox.pack_start(combobox, True, True, 20)
         hbox.show_all()
-        self.pack_start(hbox, False, True, PADDING)
+        self.pack_start(hbox, False, False, PADDING)
 
     def on_combobox_change(self, combobox, option):
         """ Action triggered on combobox 'changed' signal. """
@@ -195,9 +195,8 @@ class ConfigVBox(Gtk.VBox):
                             self.on_spin_button_changed, option_name)
         hbox = Gtk.HBox()
         label = Label(label)
-        label.set_size_request(200, 30)
-        hbox.pack_start(label, True, True, 0)
-        hbox.pack_start(spin_button, True, True, 0)
+        hbox.pack_start(label, False, False, 20)
+        hbox.pack_start(spin_button, True, True, 20)
         hbox.show_all()
         self.pack_start(hbox, False, True, 5)
 
@@ -225,8 +224,8 @@ class ConfigVBox(Gtk.VBox):
         if value:
             file_chooser.unselect_all()
             file_chooser.select_filename(value)
-        hbox.pack_start(Gtklabel, False, False, PADDING)
-        hbox.pack_start(file_chooser, True, True, PADDING)
+        hbox.pack_start(Gtklabel, False, False, 20)
+        hbox.pack_start(file_chooser, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
 
     def generate_directory_chooser(self, option_name, label, value=None):
@@ -240,8 +239,8 @@ class ConfigVBox(Gtk.VBox):
             directory_chooser.set_current_folder(value)
         directory_chooser.connect("file-set", self.on_chooser_file_set,
                                   option_name)
-        hbox.pack_start(Gtklabel, False, False, PADDING)
-        hbox.pack_start(directory_chooser, True, True, PADDING)
+        hbox.pack_start(Gtklabel, False, False, 20)
+        hbox.pack_start(directory_chooser, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
 
     def on_chooser_file_set(self, filechooser_widget, option):
@@ -287,7 +286,6 @@ class ConfigVBox(Gtk.VBox):
         files_treeview = Gtk.TreeView(self.files_list_store)
         files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        #files_treeview.set_size_request(10, 100)
         files_treeview.connect('key-press-event', self.on_files_treeview_event,
                                option_name)
         treeview_scroll = Gtk.ScrolledWindow()
