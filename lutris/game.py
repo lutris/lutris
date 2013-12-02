@@ -28,6 +28,10 @@ def show_error_message(message):
         ErrorDialog("The file %s could not be found" % message['file'])
 
 
+def get_game_list():
+    return [Game(game['slug']) for game in pga.get_games()]
+
+
 class Game(object):
     """" This class takes cares about loading the configuration for a game
          and running it.

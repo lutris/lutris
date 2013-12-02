@@ -269,11 +269,13 @@ class GameTreeView(Gtk.TreeView, GameView):
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
     icon_width = 184
-    icon_padding = 5
+    icon_padding = 1
 
     def __init__(self, games):
         self.game_store = GameStore(games, icon_size=(184, 69))
         super(GameIconView, self).__init__(self.game_store.modelfilter)
+        self.set_columns(1)
+        self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         iconview_cell_renderer = IconViewCellRenderer()
         self.pack_end(iconview_cell_renderer, False)
@@ -286,15 +288,15 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('button-press-event', self.popup_contextual_menu)
         self.connect('size-allocate', self.on_size_allocate)
 
+    def set_fluid_columns(self, width):
+        icon_width = self.icon_width + self.icon_padding * 2
+        nb_columns = (width / icon_width)
+        self.set_columns(nb_columns)
+
     def on_size_allocate(self, widget, rect):
         """ Recalculate the colum spacing based on total widget width """
-        width = rect.width - 20
-        icon_width = self.icon_width + self.icon_padding * 2
-        nb_columns = width / icon_width
-        extra_space = width - nb_columns * icon_width
-        spacing = (extra_space / max(nb_columns - 1, 1))
-        self.set_column_spacing(spacing - 2)
-        self.set_columns(nb_columns)
+        width = self.get_parent().get_allocated_width()
+        self.set_fluid_columns(width - 20)
         self.do_size_allocate(widget, rect)
 
     def on_item_activated(self, view, path):

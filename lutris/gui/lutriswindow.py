@@ -7,7 +7,7 @@ from gi.repository import Gtk, GLib
 from lutris import api
 from lutris import pga
 from lutris import settings
-from lutris.game import Game
+from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
 from lutris.installer import InstallerDialog
 
@@ -27,13 +27,11 @@ from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 GAME_VIEW = 'icon'
 
 
-def switch_to_view(view=GAME_VIEW):
-    game_list = [Game(game['slug']) for game in pga.get_games()]
+def switch_to_view(view=GAME_VIEW, games=[]):
     if view == 'icon':
-        view = GameIconView(game_list)
+        view = GameIconView(games)
     elif view == 'list':
-        view = GameTreeView(game_list)
-    view.show_all()
+        view = GameTreeView(games)
     return view
 
 
@@ -56,7 +54,7 @@ class LutrisWindow(object):
         self.window_size = (width, height)
         view_type = settings.read_setting('view_type') or 'icon'
 
-        self.view = switch_to_view(view_type)
+        self.view = switch_to_view(view_type, get_game_list())
 
         view_menuitem = self.builder.get_object("iconview_menuitem")
         view_menuitem.set_active(view_type == 'icon')
@@ -242,10 +240,13 @@ class LutrisWindow(object):
     def on_iconview_toggled(self, menuitem):
         """Switches between icon view and list view"""
         self.view.destroy()
-        self.view = switch_to_view('icon' if menuitem.get_active() else 'list')
+        view_type = 'icon' if menuitem.get_active() else 'list'
+        self.view = switch_to_view(view_type, get_game_list())
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add_with_viewport(self.view)
+        self.view.show_all()
+        self.view.check_resize()
 
     def create_menu_shortcut(self, *args):
         """Adds the game to the system's Games menu"""
