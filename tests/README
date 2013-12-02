@@ -1,0 +1,55 @@
+Manual test suite
+-----------------
+
+These steps must be followed and succeed for each new release of Lutris.
+It is advised to run these tests on a clean system (a 2nd computer or a dual
+boot should be helpful here).
+
+Supported systems:
+The tests should be run on any of these systems (32 or 64bit):
+    - Ubuntu LTS and current
+    - OpenSUSE current
+    - Fedora current
+    - Debian testing or sid (stable isn't supported officially)
+    - Archlinux
+Any other distrution is good but is not a requirement.
+
+1. Wipe/backup any trace of Lutris and runners.
+
+* Move lutris settings.
+
+mv ~/.config/lutris ~/.config/lutris.bak
+mv ~/.cache/lutris ~/.cache/lutris.bak
+mv ~/.local/share/lutris ~/.local/share/lutris.bak
+
+* Remove any runner globally installed.
+
+sudo apt-get remove wine
+sudo apt-get remove steam
+
+* Create an empty folder to put your games in.
+
+mkdir ~/games-testing
+
+2. Get and install lutris
+
+* Fetch the code
+
+git clone https://github.com/lutris/lutris
+cd lutris
+
+option 1: install with python
+
+sudo python setup.py install
+
+option 2: package and install the .deb/.rpm (better)
+
+# This step will require you to have the required packaging tools
+make build-all
+
+Scenario 1: Launching Lutris
+- You can find a lutris icon in your menu/launcher (Unity dash, GS launcher,
+  XFCE main menu, ...) in the games category
+- When clicking the interface loads with no complains
+- After the UI has been opened, there should be ~/.config/lutris,
+  ~/.cache/lutris and ~/.local/share/lutris directories
