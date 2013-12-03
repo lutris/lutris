@@ -69,3 +69,5 @@ Scenario 2: Installing teeworlds from the website (64bit only ATM)
 - The lutris installer dialog should open and the install process can begin
 - Follow the install process and click "Play"
 - The game should launch
+- Close the game and open lutris
+- Teeworlds should have an icon
