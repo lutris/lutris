@@ -102,10 +102,13 @@ class LutrisWindow(object):
 
         self.builder.connect_signals(self)
         self.connect_signals()
-        async_call(self.sync_db, None)
 
-    def sync_db(self, *args):
-        api.sync()
+        if api.read_api_key():
+            self.status_label.set_text("Connected to lutris.net")
+            async_call(api.sync, None)
+        async_call(self.sync_icons, None)
+
+    def sync_icons(self):
         game_list = pga.get_games()
         resources.fetch_banners([game_info['slug'] for game_info in game_list],
                                 callback=self.on_image_downloaded)
@@ -164,7 +167,7 @@ class LutrisWindow(object):
     def on_connect_success(self, dialog, token):
         logger.info("Successfully connected to Lutris.net")
         self.status_label.set_text("Connected")
-        async_call(self.sync_db, None)
+        async_call(api.sync, None)
 
     def on_destroy(self, *args):
         """Signal for window close"""
