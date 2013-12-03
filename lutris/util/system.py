@@ -78,6 +78,7 @@ def substitute(fileid, files):
 
 
 def merge_folders(source, destination):
+    logger.debug("Merging %s into %s", source, destination)
     for (dirpath, dirnames, filenames) in os.walk(source):
         source_relpath = dirpath[len(source) + 1:]
         dst_abspath = os.path.join(destination, source_relpath)

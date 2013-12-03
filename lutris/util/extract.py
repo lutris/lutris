@@ -1,4 +1,5 @@
 import os
+import shutil
 import tarfile
 import zipfile
 import gzip
@@ -33,9 +34,19 @@ def extract_archive(path, to_directory='.', merge_single=True):
         if len(extracted) == 1:
             destination = os.path.join(destination, extracted[0])
     for f in os.listdir(destination):
-        source = os.path.join(destination, f)
-        destination = os.path.join(to_directory, f)
-        merge_folders(source, destination)
+        logger.debug("Moving element %s of archive", f)
+        source_path = os.path.join(destination, f)
+        destination_path = os.path.join(to_directory, f)
+        if os.path.exists(destination_path):
+            logger.warning("Destination %s already exists")
+            if os.path.isfile(destination_path):
+                os.remove(destination_path)
+                shutil.move(source_path, destination_path)
+            elif os.path.isdir(destination_path):
+                merge_folders(source_path, destination_path)
+        else:
+            shutil.move(source_path, destination_path)
+    os.removedirs(destination)
     logger.debug("Finished extracting %s", path)
 
 
