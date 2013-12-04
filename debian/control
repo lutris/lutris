@@ -7,7 +7,9 @@ Build-Depends: cdbs (>= 0.4.43),
  python-support (>= 0.6.4),
  python-xdg
 Maintainer: Mathieu Comandon <strider@strycore.com>
-Standards-Version: 3.9.1
+Standards-Version: 3.9.4
+Vcs-Git: https://github.com/lutris/lutris
+Homepage: http://lutris.net
 
 Package: lutris
 Architecture: all

@@ -2,7 +2,7 @@
 Version=0.2.8
 Name=Lutris
 Comment=Lutris application
-Categories=Game;
+Categories=Network;FileTransfer;Game;
 Exec=lutris %U
 Icon=lutris
 Terminal=false
