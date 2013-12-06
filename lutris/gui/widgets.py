@@ -123,6 +123,7 @@ class GameStore(object):
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(filter_view,
                                           lambda x: self.filter_text)
+        self.modelsortfilter = self.modelfilter.sort_new_with_model()
 
     def fill_store(self, games):
         self.store.clear()
@@ -169,7 +170,7 @@ class GameView(object):
 
     def update_filter(self, widget, data=None):
         self.game_store.filter_text = data
-        self.get_model().refilter()
+        self.get_model().get_model().refilter()
 
     def update_image(self, game_slug):
         row = self.get_row_by_slug(game_slug)
@@ -199,7 +200,7 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games):
         self.game_store = GameStore(games)
-        super(GameTreeView, self).__init__(self.game_store.modelfilter)
+        super(GameTreeView, self).__init__(self.game_store.modelsortfilter)
         self.set_rules_hint(True)
 
         # Icon column
@@ -273,7 +274,7 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games):
         self.game_store = GameStore(games, icon_size=(184, 69))
-        super(GameIconView, self).__init__(self.game_store.modelfilter)
+        super(GameIconView, self).__init__(self.game_store.modelsortfilter)
         self.set_columns(1)
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
