@@ -45,7 +45,7 @@ class steam(Runner):
 
     def get_steam_path(self):
         runner = self.__class__.__name__
-        runner_config = self.settings.get(runner, {})
+        runner_config = self.settings.get(runner) or {}
         return runner_config.get('steam_path', 'steam')
 
     def get_game_path(self):
