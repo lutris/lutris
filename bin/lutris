@@ -84,12 +84,12 @@ if options.debug:
 
 if options.list_games:
     for game in get_games():
-        print "{:<30} | {:<30} | {:<15} | {:<64}".format(
+        print u"{:<30} | {:<30} | {:<15} | {:<64}".format(
             game['name'],
             game['slug'],
             game['runner'],
-            game['directory']
-        )
+            game['directory'] or '-'
+        ).encode('utf-8')
     exit()
 if options.list_steam:
     from lutris.runners import winesteam
