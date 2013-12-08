@@ -53,9 +53,7 @@ class Game(object):
     def is_installed(self):
         if not self.runner_name:
             return False
-        if self.runner_name == 'browser':
-            return True
-        elif self.runner_name == 'winesteam':
+        if self.runner_name in ('browser', 'winesteam', 'steam'):
             return True
         else:
             return self.directory and os.path.exists(self.directory)
