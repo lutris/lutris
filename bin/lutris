@@ -84,9 +84,9 @@ if options.debug:
 
 if options.list_games:
     for game in get_games():
-        print u"{:<30} | {:<30} | {:<15} | {:<64}".format(
-            game['name'],
-            game['slug'],
+        print u"{:<40} | {:<40} | {:<15} | {:<64}".format(
+            game['name'][:40],
+            game['slug'][:40],
             game['runner'],
             game['directory'] or '-'
         ).encode('utf-8')
