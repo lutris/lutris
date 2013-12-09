@@ -84,7 +84,8 @@ class LutrisWindow(object):
             ('Play', self.on_game_clicked),
             ('Configure', self.edit_game_configuration),
             ('Create desktop shortcut', self.create_desktop_shortcut),
-            ('Create global menu shortcut', self.create_menu_shortcut)
+            ('Create global menu shortcut', self.create_menu_shortcut),
+            ('Uninstall', self.on_remove_game),
         ]
         self.menu = Gtk.Menu()
         for action in menu_actions:
@@ -151,7 +152,7 @@ class LutrisWindow(object):
         """Opens the about dialog"""
         dialogs.AboutDialog()
 
-    def remove_game(self, _widget, _data=None):
+    def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game[0]
         UninstallGameDialog(game=selected_game, callback=self.on_game_deleted)
 

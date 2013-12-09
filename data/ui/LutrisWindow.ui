@@ -11,19 +11,19 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
   </object>
-  <object class="GtkImage" id="viwe_grid_symbolic">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="xpad">4</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">view-grid-symbolic</property>
-  </object>
   <object class="GtkImage" id="view_list_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-list-symbolic</property>
+  </object>
+  <object class="GtkImage" id="viwe_grid_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-grid-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">640</property>
@@ -224,7 +224,7 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="remove_game" swapped="no"/>
+                        <signal name="activate" handler="on_remove_game" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -323,7 +323,7 @@
                 <property name="label" translatable="yes">Remove</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-delete</property>
-                <signal name="clicked" handler="remove_game" swapped="no"/>
+                <signal name="clicked" handler="on_remove_game" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
