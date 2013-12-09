@@ -58,3 +58,12 @@ class TestPersonnalGameArchive(unittest.TestCase):
         pga.add_or_update(name="some game", runner='linux', directory="/foo")
         game = pga.get_game_by_slug("some-game")
         self.assertEqual(game['directory'], '/foo')
+
+
+class TestDbCreator(unittest.TestCase):
+    def test_can_generate_fields(self):
+        text_field = pga.create_field('name', 'TEXT')
+        self.assertEqual(text_field, "name TEXT")
+
+        id_field = pga.create_field('id', 'INTEGER', indexed=True)
+        self.assertEqual(id_field, "id INTEGER PRIMARY KEY")

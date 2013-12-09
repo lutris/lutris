@@ -45,6 +45,13 @@ def get_schema(tablename):
     return tables
 
 
+def create_field(name, ftype, not_null=False, default=None, indexed=False):
+    field_query = "%s %s" % (name, ftype)
+    if indexed:
+        field_query += " PRIMARY KEY"
+    return field_query
+
+
 def create_games(cursor):
     create_game_table_query = """CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY,
