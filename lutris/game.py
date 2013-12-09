@@ -28,7 +28,7 @@ def show_error_message(message):
         ErrorDialog("The file %s could not be found" % message['file'])
 
 
-def get_game_list():
+def get_game_list(filter_installed=False):
     return [Game(game['slug']) for game in pga.get_games()]
 
 

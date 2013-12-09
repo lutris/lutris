@@ -54,6 +54,15 @@ class LutrisWindow(object):
         self.window_size = (width, height)
         view_type = settings.read_setting('view_type') or 'icon'
 
+        show_installed_games = settings.read_setting('show_installed_games',
+                                                     'false')
+        show_installed_games_menuitem = self.builder.get_object(
+            "show_installed_games"
+        )
+        show_installed_games_menuitem.set_active(
+            show_installed_games == 'true'
+        )
+
         self.view = switch_to_view(view_type, get_game_list())
 
         self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
@@ -187,6 +196,9 @@ class LutrisWindow(object):
     def on_preferences_activate(self, _widget, _data=None):
         """Callback when preferences is activated"""
         SystemConfigDialog()
+
+    def on_show_installed_games_toggled(self, widget, data=None):
+        print "show"
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
