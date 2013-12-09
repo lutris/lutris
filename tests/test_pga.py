@@ -18,6 +18,10 @@ class TestPersonnalGameArchive(unittest.TestCase):
     def tearDown(self):
         os.remove(TEST_PGA_PATH)
 
+    def test_get_schema(self):
+        schema = pga.get_schema('games')
+        print schema
+
     def test_add_game(self):
         game_list = pga.get_games()
         game_names = [item['name'] for item in game_list]

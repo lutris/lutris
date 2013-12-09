@@ -27,6 +27,24 @@ from lutris import settings
 PGA_DB = settings.PGA_DB
 
 
+def get_schema(tablename):
+    """
+    Fields:
+        - position
+        - name
+        - type
+        - not null
+        - default
+        - indexed
+    """
+    tables = []
+    query = "pragma table_info('%s')" % tablename
+    with sql.db_cursor(PGA_DB) as cursor:
+        for row in cursor.execute(query).fetchall():
+            tables.append(row)
+    return tables
+
+
 def create_games(cursor):
     create_game_table_query = """CREATE TABLE IF NOT EXISTS games (
         id INTEGER PRIMARY KEY,
@@ -89,7 +107,6 @@ def add_game(name, runner=None, slug=None, directory=None):
     game_data = {'name': name, 'slug': slug, 'runner': runner}
     if directory:
         game_data['directory'] = directory
-    print game_data
     sql.db_insert(PGA_DB, "games", game_data)
 
 
