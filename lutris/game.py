@@ -66,7 +66,8 @@ class Game(object):
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
-            shutil.rmtree(self.directory)
+            if os.path.exists(self.directory):
+                shutil.rmtree(self.directory)
         if from_library:
             pga.delete_game(self.slug)
         self.game_config.remove()
