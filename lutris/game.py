@@ -46,17 +46,9 @@ class Game(object):
         self.runner_name = game_data['runner']
         self.directory = game_data['directory']
         self.name = game_data['name']
+        self.is_installed = bool(game_data['installed'])
 
         self.load_config()
-
-    @property
-    def is_installed(self):
-        if not self.runner_name:
-            return False
-        if self.runner_name in ('browser', 'winesteam', 'steam'):
-            return True
-        else:
-            return self.directory and os.path.exists(self.directory)
 
     def get_runner(self):
         """ Return the runner's name """
