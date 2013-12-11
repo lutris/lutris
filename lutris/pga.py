@@ -1,23 +1,8 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-#
-#  Copyright (C) 2012 Mathieu Comandon <strider@strycore.com>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+# -*- coding: utf-8 -*-
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+import logging
 
 from lutris.util.strings import slugify
 from lutris.util.log import logger
@@ -25,6 +10,7 @@ from lutris.util import sql
 from lutris import settings
 
 PGA_DB = settings.PGA_DB
+LOGGER = logging.getLogger(__name__)
 
 
 def get_schema(tablename):
@@ -45,11 +31,19 @@ def get_schema(tablename):
     return tables
 
 
-def create_field(name, ftype, not_null=False, default=None, indexed=False):
+def create_field(name="", ftype="", not_null=False, default=None, indexed=False):
     field_query = "%s %s" % (name, ftype)
     if indexed:
         field_query += " PRIMARY KEY"
     return field_query
+
+
+def create_table(name, field_description):
+    fields = ", ".join([create_field(**f) for f in field_description])
+    query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
+    LOGGER.debug("[PGAQuery] %s", query)
+    with sql.db_cursor(PGA_DB) as cursor:
+        cursor.execute(query)
 
 
 def create_games(cursor):
