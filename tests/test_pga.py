@@ -142,7 +142,8 @@ class TestMigration(DatabaseTester):
 
     def test_can_migrate(self):
         self.create_table()
-        self.schema += [{'name': 'new_field', 'type': 'TEXT'}]
-        pga.migrate(self.tablename, self.schema)
+        self.schema.append({'name': 'new_field', 'type': 'TEXT'})
+        migrated = pga.migrate(self.tablename, self.schema)
         schema = pga.get_schema(self.tablename)
         self.assertEqual(schema[2]['name'], 'new_field')
+        self.assertEqual(migrated, ['new_field'])

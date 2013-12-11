@@ -77,13 +77,16 @@ def create_games(cursor):
 
 def migrate(table, schema):
     existing_schema = get_schema(table)
+    migrated_fields = []
     if existing_schema:
         columns = [col['name'] for col in existing_schema]
         for field in schema:
             if field['name'] not in columns:
+                migrated_fields.append(field['name'])
                 add_field(table, field)
     else:
         create_table(table, schema)
+    return migrated_fields
 
 
 def create_sources(cursor):
