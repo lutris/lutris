@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import unittest
 import os
-from sqlite3 import IntegrityError
+from sqlite3 import IntegrityError, OperationalError
 from lutris import pga
 from lutris.util import sql
 
@@ -65,24 +65,67 @@ class TestPersonnalGameArchive(DatabaseTester):
 
 class TestDbCreator(DatabaseTester):
     def test_can_generate_fields(self):
-        text_field = pga.create_field('name', 'TEXT')
+        text_field = pga.field_to_string('name', 'TEXT')
         self.assertEqual(text_field, "name TEXT")
 
-        id_field = pga.create_field('id', 'INTEGER', indexed=True)
+        id_field = pga.field_to_string('id', 'INTEGER', indexed=True)
         self.assertEqual(id_field, "id INTEGER PRIMARY KEY")
 
     def test_can_create_table(self):
         fields = [
-            {'name': 'id', 'ftype': 'INTEGER', 'indexed': True},
-            {'name': 'name', 'ftype': 'TEXT'}
+            {'name': 'id', 'type': 'INTEGER', 'indexed': True},
+            {'name': 'name', 'type': 'TEXT'}
         ]
         pga.create_table('testing', fields)
         sql.db_insert(TEST_PGA_PATH, 'testing', {'name': "testok"})
-        results = sql.db_select(TEST_PGA_PATH, 'testing')
+        results = sql.db_select(TEST_PGA_PATH, 'testing',
+                                fields=['id', 'name'])
         self.assertEqual(results[0]['name'], "testok")
 
 
 class TestMigration(DatabaseTester):
+    def setUp(self):
+        super(TestMigration, self).setUp()
+        pga.create()
+        self.schema = [
+            {
+                'name': 'id',
+                'type': 'INTEGER',
+                'indexed': True
+            },
+            {
+                'name': 'name',
+                'type': 'TEXT',
+            }
+        ]
+
+    def create_table(self):
+        pga.create_table('basetable', self.schema)
+
     def test_get_schema(self):
-        schema = pga.get_schema('games')
-        print schema
+        self.create_table()
+        schema = pga.get_schema('basetable')
+        self.assertEqual(schema[0][1], 'id')
+        self.assertEqual(schema[0][2], 'INTEGER')
+        self.assertEqual(schema[1][1], 'name')
+        self.assertEqual(schema[1][2], 'TEXT')
+
+    def test_add_field(self):
+        self.create_table()
+        field = {
+            'name': 'counter',
+            'type': 'INTEGER'
+        }
+        pga.add_field('basetable', field)
+        schema = pga.get_schema('basetable')
+        self.assertEqual(schema[2][1], 'counter')
+        self.assertEqual(schema[2][2], 'INTEGER')
+
+    def test_cant_add_existing_field(self):
+        self.create_table()
+        field = {
+            'name': 'name',
+            'type': 'TEXT'
+        }
+        with self.assertRaises(OperationalError):
+            pga.add_field('basetable', field)

@@ -31,15 +31,23 @@ def get_schema(tablename):
     return tables
 
 
-def create_field(name="", ftype="", not_null=False, default=None, indexed=False):
-    field_query = "%s %s" % (name, ftype)
+def field_to_string(name="", type="", not_null=False, default=None, indexed=False):
+    field_query = "%s %s" % (name, type)
     if indexed:
         field_query += " PRIMARY KEY"
     return field_query
 
 
+def add_field(tablename, field):
+    query = "ALTER TABLE %s ADD COLUMN %s %s" % (
+        tablename, field['name'], field['type']
+    )
+    with sql.db_cursor(PGA_DB) as cursor:
+        cursor.execute(query)
+
+
 def create_table(name, field_description):
-    fields = ", ".join([create_field(**f) for f in field_description])
+    fields = ", ".join([field_to_string(**f) for f in field_description])
     query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
     LOGGER.debug("[PGAQuery] %s", query)
     with sql.db_cursor(PGA_DB) as cursor:
