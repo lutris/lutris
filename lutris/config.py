@@ -69,10 +69,7 @@ def check_config(force_wipe=False):
 
     if force_wipe:
         os.remove(PGA_DB)
-
-    if not os.path.isfile(PGA_DB) or force_wipe:
-        logger.debug("creating PGA database in %s" % PGA_DB)
-        pga.create()
+    pga.syncdb()
 
 
 def read_yaml_from_file(filename):

@@ -62,20 +62,6 @@ def create_table(name, schema):
         cursor.execute(query)
 
 
-def create_games(cursor):
-    schema = [
-        {'name': 'id', 'type': 'INTEGER', 'indexed': True},
-        {'name': 'name', 'type': 'TEXT'},
-        {'name': 'slug', 'type': 'TEXT UNIQUE'},
-        {'name': 'platform', 'type': 'TEXT'},
-        {'name': 'runner', 'type': 'TEXT'},
-        {'name': 'executable', 'type': 'TEXT'},
-        {'name': 'directory', 'type': 'TEXT'},
-        {'name': 'lastplayed', 'type': 'INTEGER'},
-    ]
-    create_table('games', schema)
-
-
 def migrate(table, schema):
     existing_schema = get_schema(table)
     migrated_fields = []
@@ -90,20 +76,31 @@ def migrate(table, schema):
     return migrated_fields
 
 
-def create_sources(cursor):
+def migrate_games():
+    schema = [
+        {'name': 'id', 'type': 'INTEGER', 'indexed': True},
+        {'name': 'name', 'type': 'TEXT'},
+        {'name': 'slug', 'type': 'TEXT UNIQUE'},
+        {'name': 'platform', 'type': 'TEXT'},
+        {'name': 'runner', 'type': 'TEXT'},
+        {'name': 'executable', 'type': 'TEXT'},
+        {'name': 'directory', 'type': 'TEXT'},
+        {'name': 'lastplayed', 'type': 'INTEGER'},
+    ]
+    migrate('games', schema)
+
+
+def migrate_sources():
     schema = [
         {'name': 'id', 'type': 'INTEGER', 'indexed': True},
         {'name': 'uri', 'type': 'TEXT UNIQUE'},
     ]
-    create_table('sources', schema)
+    migrate('sources', schema)
 
 
-def create():
-    """Create the local PGA database."""
-    logger.debug("Running CREATE statement...")
-    with sql.db_cursor(PGA_DB) as cursor:
-        create_games(cursor)
-        create_sources(cursor)
+def syncdb():
+    migrate_games()
+    migrate_sources()
 
 
 def get_games(name_filter=None):

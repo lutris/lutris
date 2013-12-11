@@ -22,7 +22,7 @@ class DatabaseTester(unittest.TestCase):
 class TestPersonnalGameArchive(DatabaseTester):
     def setUp(self):
         super(TestPersonnalGameArchive, self).setUp()
-        pga.create()
+        pga.syncdb()
         pga.add_game(name="LutrisTest", runner="Linux")
 
     def test_add_game(self):
@@ -86,7 +86,7 @@ class TestDbCreator(DatabaseTester):
 class TestMigration(DatabaseTester):
     def setUp(self):
         super(TestMigration, self).setUp()
-        pga.create()
+        pga.syncdb()
         self.tablename = "basetable"
         self.schema = [
             {
