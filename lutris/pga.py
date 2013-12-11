@@ -27,7 +27,14 @@ def get_schema(tablename):
     query = "pragma table_info('%s')" % tablename
     with sql.db_cursor(PGA_DB) as cursor:
         for row in cursor.execute(query).fetchall():
-            tables.append(row)
+            field = {
+                'name': row[1],
+                'type': row[2],
+                'not_null': row[3],
+                'default': row[4],
+                'indexed': row[5]
+            }
+            tables.append(field)
     return tables
 
 
@@ -46,9 +53,10 @@ def add_field(tablename, field):
         cursor.execute(query)
 
 
-def create_table(name, field_description):
-    fields = ", ".join([field_to_string(**f) for f in field_description])
-    query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
+def create_table(name, schema):
+    fields = ", ".join([field_to_string(**f) for f in schema])
+    fields = "(%s)" % fields
+    query = "CREATE TABLE IF NOT EXISTS %s %s" % (name, fields)
     LOGGER.debug("[PGAQuery] %s", query)
     with sql.db_cursor(PGA_DB) as cursor:
         cursor.execute(query)
@@ -65,6 +73,17 @@ def create_games(cursor):
         directory TEXT,
         lastplayed INTEGER)"""
     cursor.execute(create_game_table_query)
+
+
+def migrate(table, schema):
+    existing_schema = get_schema(table)
+    if existing_schema:
+        columns = [col['name'] for col in existing_schema]
+        for field in schema:
+            if field['name'] not in columns:
+                add_field(table, field)
+    else:
+        create_table(table, schema)
 
 
 def create_sources(cursor):

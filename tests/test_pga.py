@@ -87,6 +87,7 @@ class TestMigration(DatabaseTester):
     def setUp(self):
         super(TestMigration, self).setUp()
         pga.create()
+        self.tablename = "basetable"
         self.schema = [
             {
                 'name': 'id',
@@ -100,15 +101,15 @@ class TestMigration(DatabaseTester):
         ]
 
     def create_table(self):
-        pga.create_table('basetable', self.schema)
+        pga.create_table(self.tablename, self.schema)
 
     def test_get_schema(self):
         self.create_table()
-        schema = pga.get_schema('basetable')
-        self.assertEqual(schema[0][1], 'id')
-        self.assertEqual(schema[0][2], 'INTEGER')
-        self.assertEqual(schema[1][1], 'name')
-        self.assertEqual(schema[1][2], 'TEXT')
+        schema = pga.get_schema(self.tablename)
+        self.assertEqual(schema[0]['name'], 'id')
+        self.assertEqual(schema[0]['type'], 'INTEGER')
+        self.assertEqual(schema[1]['name'], 'name')
+        self.assertEqual(schema[1]['type'], 'TEXT')
 
     def test_add_field(self):
         self.create_table()
@@ -116,10 +117,10 @@ class TestMigration(DatabaseTester):
             'name': 'counter',
             'type': 'INTEGER'
         }
-        pga.add_field('basetable', field)
-        schema = pga.get_schema('basetable')
-        self.assertEqual(schema[2][1], 'counter')
-        self.assertEqual(schema[2][2], 'INTEGER')
+        pga.add_field(self.tablename, field)
+        schema = pga.get_schema(self.tablename)
+        self.assertEqual(schema[2]['name'], 'counter')
+        self.assertEqual(schema[2]['type'], 'INTEGER')
 
     def test_cant_add_existing_field(self):
         self.create_table()
@@ -128,4 +129,20 @@ class TestMigration(DatabaseTester):
             'type': 'TEXT'
         }
         with self.assertRaises(OperationalError):
-            pga.add_field('basetable', field)
+            pga.add_field(self.tablename, field)
+
+    def test_cant_create_empty_table(self):
+        with self.assertRaises(OperationalError):
+            pga.create_table('emptytable', [])
+
+    def test_can_know_if_table_exists(self):
+        self.create_table()
+        self.assertTrue(pga.get_schema(self.tablename))
+        self.assertFalse(pga.get_schema('notatable'))
+
+    def test_can_migrate(self):
+        self.create_table()
+        self.schema += [{'name': 'new_field', 'type': 'TEXT'}]
+        pga.migrate(self.tablename, self.schema)
+        schema = pga.get_schema(self.tablename)
+        self.assertEqual(schema[2]['name'], 'new_field')
