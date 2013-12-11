@@ -63,16 +63,17 @@ def create_table(name, schema):
 
 
 def create_games(cursor):
-    create_game_table_query = """CREATE TABLE IF NOT EXISTS games (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        slug TEXT UNIQUE,
-        platform TEXT,
-        runner TEXT,
-        executable TEXT,
-        directory TEXT,
-        lastplayed INTEGER)"""
-    cursor.execute(create_game_table_query)
+    schema = [
+        {'name': 'id', 'type': 'INTEGER', 'indexed': True},
+        {'name': 'name', 'type': 'TEXT'},
+        {'name': 'slug', 'type': 'TEXT UNIQUE'},
+        {'name': 'platform', 'type': 'TEXT'},
+        {'name': 'runner', 'type': 'TEXT'},
+        {'name': 'executable', 'type': 'TEXT'},
+        {'name': 'directory', 'type': 'TEXT'},
+        {'name': 'lastplayed', 'type': 'INTEGER'},
+    ]
+    create_table('games', schema)
 
 
 def migrate(table, schema):
@@ -90,11 +91,11 @@ def migrate(table, schema):
 
 
 def create_sources(cursor):
-    create_sources_table_query = """CREATE TABLE IF NOT EXISTS sources (
-        id INTEGER PRIMARY KEY,
-        uri TEXT UNIQUE
-    )"""
-    cursor.execute(create_sources_table_query)
+    schema = [
+        {'name': 'id', 'type': 'INTEGER', 'indexed': True},
+        {'name': 'uri', 'type': 'TEXT UNIQUE'},
+    ]
+    create_table('sources', schema)
 
 
 def create():
