@@ -147,3 +147,9 @@ class TestMigration(DatabaseTester):
         schema = pga.get_schema(self.tablename)
         self.assertEqual(schema[2]['name'], 'new_field')
         self.assertEqual(migrated, ['new_field'])
+
+    def test_does_set_installed_games(self):
+        pga.add_game(name="some game", runner='linux', directory="/home")
+        pga.set_installed_games()
+        test_game = pga.get_games()[0]
+        self.assertEqual(test_game['installed'], 1)

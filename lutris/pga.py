@@ -86,8 +86,9 @@ def migrate_games():
         {'name': 'executable', 'type': 'TEXT'},
         {'name': 'directory', 'type': 'TEXT'},
         {'name': 'lastplayed', 'type': 'INTEGER'},
+        {'name': 'installed', 'type': 'INTEGER'}
     ]
-    migrate('games', schema)
+    return migrate('games', schema)
 
 
 def migrate_sources():
@@ -95,12 +96,22 @@ def migrate_sources():
         {'name': 'id', 'type': 'INTEGER', 'indexed': True},
         {'name': 'uri', 'type': 'TEXT UNIQUE'},
     ]
-    migrate('sources', schema)
+    return migrate('sources', schema)
 
 
 def syncdb():
-    migrate_games()
+    migrated = migrate_games()
+    if 'installed' in migrated:
+        set_installed_games()
     migrate_sources()
+
+
+def set_installed_games():
+    games = get_games()
+    for game in games:
+        if game['directory'] and os.path.exists(game['directory']):
+            sql.db_update(PGA_DB, 'games',
+                          {'installed': 1}, ('slug', game['slug']))
 
 
 def get_games(name_filter=None):
