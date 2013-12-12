@@ -114,15 +114,20 @@ def set_installed_games():
                           {'installed': 1}, ('slug', game['slug']))
 
 
-def get_games(name_filter=None):
+def get_games(name_filter=None, filter_installed=False):
     """Get the list of every game in database."""
     with sql.db_cursor(PGA_DB) as cursor:
-        if name_filter is not None:
-            query = "select * from games where name LIKE ?"
-            rows = cursor.execute(query, (name_filter, ))
-        else:
-            query = "select * from games"
-            rows = cursor.execute(query)
+        query = "select * from games"
+        params = ()
+        filters = []
+        if name_filter:
+            params = (name_filter, )
+            filters.append("name LIKE '?'")
+        if filter_installed:
+            filters.append("installed = 1")
+        if filters:
+            query += " WHERE " + " AND ".join([f for f in filters])
+        rows = cursor.execute(query, params)
         results = rows.fetchall()
         column_names = [column[0] for column in cursor.description]
     game_list = []
@@ -140,13 +145,11 @@ def get_game_by_slug(slug):
         return game_result[0]
 
 
-def add_game(name, runner=None, slug=None, directory=None):
+def add_game(name, **game_data):
     """Adds a game to the PGA database."""
-    if not slug:
-        slug = slugify(name)
-    game_data = {'name': name, 'slug': slug, 'runner': runner}
-    if directory:
-        game_data['directory'] = directory
+    game_data['name'] = name
+    if not 'slug' in game_data:
+        game_data['slug'] = slugify(name)
     sql.db_insert(PGA_DB, "games", game_data)
 
 
