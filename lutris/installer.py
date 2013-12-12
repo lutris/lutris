@@ -576,6 +576,7 @@ class InstallerDialog(Gtk.Window):
     def __init__(self, game_ref, parent=None):
         Gtk.Window.__init__(self)
         self.parent = parent
+        self.game_ref = game_ref
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
@@ -715,6 +716,8 @@ class InstallerDialog(Gtk.Window):
         close_button.show()
         close_button.connect('clicked', self.close)
         self.action_buttons.pack_start(close_button, True, True, 10)
+        if self.parent:
+            self.parent.view.emit('game-installed', self.game_ref)
 
     def on_install_error(self, message):
         self.status_label.set_text(message)

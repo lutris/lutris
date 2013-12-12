@@ -132,7 +132,7 @@ class GameStore(object):
     def add_game(self, game):
         """Adds a game into the view"""
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
-                                     game.is_installed)
+                                     is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append((game.slug, name, pixbuf, game.runner_name,
                            "Genre", "Platform", "Year"))
@@ -142,6 +142,7 @@ class GameView(object):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
     }
     selected_game = None
@@ -171,10 +172,11 @@ class GameView(object):
         self.game_store.filter_text = data
         self.get_model().refilter()
 
-    def update_image(self, game_slug):
+    def update_image(self, game_slug, is_installed=False):
         row = self.get_row_by_slug(game_slug)
         if row:
-            game_pixpuf = get_pixbuf_for_game(game_slug)
+            game_pixpuf = get_pixbuf_for_game(game_slug,
+                                              is_installed=is_installed)
             row[2] = game_pixpuf
 
     def popup_contextual_menu(self, view, event):

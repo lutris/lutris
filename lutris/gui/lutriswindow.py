@@ -2,7 +2,7 @@
 # pylint: disable=E0611
 import os
 
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, GObject
 
 from lutris import api
 from lutris import pga
@@ -127,6 +127,7 @@ class LutrisWindow(object):
         """Connects signals from the view with the main window.
            This must be called each time the view is rebuilt.
         """
+        self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_clicked)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.get_size)
@@ -188,6 +189,10 @@ class LutrisWindow(object):
         settings.write_setting('height', height)
         Gtk.main_quit(*args)
         logger.debug("Quitting lutris")
+
+    def on_game_installed(self, widget, slug):
+        widget.update_image(slug, is_installed=True)
+        self.view.queue_draw()
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated"""
