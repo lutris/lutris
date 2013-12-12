@@ -178,6 +178,7 @@ class GameView(object):
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               is_installed=is_installed)
             row[2] = game_pixpuf
+        self.queue_draw()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""

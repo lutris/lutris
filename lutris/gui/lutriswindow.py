@@ -166,8 +166,11 @@ class LutrisWindow(object):
         selected_game = self.view.selected_game[0]
         UninstallGameDialog(game=selected_game, callback=self.on_game_deleted)
 
-    def on_game_deleted(self, game_slug):
-        self.view.remove_game(game_slug)
+    def on_game_deleted(self, game_slug, from_library=False):
+        if from_library:
+            self.view.remove_game(game_slug)
+        else:
+            self.view.update_image(game_slug, is_installed=False)
 
     # Callbacks
     def on_connect(self, *args):
@@ -192,7 +195,6 @@ class LutrisWindow(object):
 
     def on_game_installed(self, widget, slug):
         widget.update_image(slug, is_installed=True)
-        self.view.queue_draw()
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated"""
@@ -210,7 +212,6 @@ class LutrisWindow(object):
 
     def on_image_downloaded(self, game_slug):
         self.view.update_image(game_slug)
-        self.view.queue_draw()
 
     def import_scummvm(self, _widget, _data=None):
         """Callback for importing scummvm games"""
