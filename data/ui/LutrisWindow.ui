@@ -11,19 +11,19 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
   </object>
-  <object class="GtkImage" id="view_list_symbolic">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="xpad">4</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">view-list-symbolic</property>
-  </object>
   <object class="GtkImage" id="viwe_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-grid-symbolic</property>
+  </object>
+  <object class="GtkImage" id="view_list_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-list-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">640</property>
@@ -175,10 +175,10 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckMenuItem" id="show_installed_games">
+                      <object class="GtkCheckMenuItem" id="filter_installed">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Show installed games only</property>
+                        <property name="label" translatable="yes">Installed games only</property>
                         <property name="use_underline">True</property>
                         <signal name="toggled" handler="on_show_installed_games_toggled" swapped="no"/>
                       </object>

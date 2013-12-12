@@ -2,7 +2,7 @@
 # pylint: disable=E0611
 import os
 
-from gi.repository import Gtk, GLib, GObject
+from gi.repository import Gtk, GLib
 
 from lutris import api
 from lutris import pga
@@ -53,17 +53,17 @@ class LutrisWindow(object):
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
         view_type = settings.read_setting('view_type') or 'icon'
-
-        show_installed_games = settings.read_setting('show_installed_games',
-                                                     'false')
+        filter_installed_setting = settings.read_setting(
+            'filter_installed'
+        ) or 'false'
+        self.filter_installed = filter_installed_setting == 'true'
         show_installed_games_menuitem = self.builder.get_object(
-            "show_installed_games"
+            'filter_installed'
         )
-        show_installed_games_menuitem.set_active(
-            show_installed_games == 'true'
-        )
+        show_installed_games_menuitem.set_active(self.filter_installed)
 
-        self.view = switch_to_view(view_type, get_game_list())
+        self.view = switch_to_view(view_type,
+                                   get_game_list(self.filter_installed))
 
         self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
         self.icon_view_menuitem.set_active(view_type == 'icon')
@@ -117,6 +117,12 @@ class LutrisWindow(object):
             self.status_label.set_text("Connected to lutris.net")
             async_call(api.sync, None)
         async_call(self.sync_icons, None)
+
+    @property
+    def current_view_type(self):
+        return 'icon' \
+            if self.view.__class__.__name__ == "GameIconView" \
+            else 'list'
 
     def sync_icons(self):
         game_list = pga.get_games()
@@ -205,7 +211,12 @@ class LutrisWindow(object):
         SystemConfigDialog()
 
     def on_show_installed_games_toggled(self, widget, data=None):
-        print "show"
+        self.filter_installed = widget.get_active()
+        setting_value = 'true' if self.filter_installed else 'false'
+        settings.write_setting(
+            'filter_installed', setting_value
+        )
+        self.do_view_switch(self.current_view_type)
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
@@ -262,10 +273,7 @@ class LutrisWindow(object):
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'icon' if menuitem.get_active() else 'list'
-        current_view = 'icon' \
-            if self.view.__class__.__name__ == "GameIconView" \
-            else 'list'
-        if view_type == current_view:
+        if view_type == self.current_view_type:
             return
         self.do_view_switch(view_type)
         self.icon_view_btn.set_active(view_type == 'icon')
@@ -284,7 +292,10 @@ class LutrisWindow(object):
     def do_view_switch(self, view_type):
         """Switches between icon view and list view"""
         self.view.destroy()
-        self.view = switch_to_view(view_type, get_game_list())
+        self.view = switch_to_view(
+            view_type,
+            get_game_list(filter_installed=self.filter_installed)
+        )
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add_with_viewport(self.view)

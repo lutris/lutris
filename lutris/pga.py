@@ -38,7 +38,9 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(name="", type="", not_null=False, default=None, indexed=False):
+def field_to_string(
+    name="", type="", not_null=False, default=None, indexed=False
+):
     field_query = "%s %s" % (name, type)
     if indexed:
         field_query += " PRIMARY KEY"
