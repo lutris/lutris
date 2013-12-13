@@ -17,7 +17,7 @@ class EditGameConfigDialog(Gtk.Dialog):
         self.parent_window = parent
         self.game = game
         self.lutris_config = LutrisConfig(game=game)
-        game_name = self.lutris_config.config["realname"]
+        game_name = self.lutris_config.config.get("realname", game)
         self.set_title("Edit game configuration for %s" % game_name)
         self.set_size_request(500, 500)
 

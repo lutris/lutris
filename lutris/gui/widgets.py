@@ -315,7 +315,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.current_path = selection[0]
         store = self.get_model()
         self.selected_game = store.get(store.get_iter(self.current_path),
-                                       COL_ID)
+                                       COL_ID)[0]
         if launch:
             self.emit("game-activated")
         else:

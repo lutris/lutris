@@ -170,7 +170,7 @@ class LutrisWindow(object):
         dialogs.AboutDialog()
 
     def on_remove_game(self, _widget, _data=None):
-        selected_game = self.view.selected_game[0]
+        selected_game = self.view.selected_game
         UninstallGameDialog(game=selected_game, callback=self.on_game_deleted)
 
     def on_game_deleted(self, game_slug, from_library=False):
@@ -240,7 +240,7 @@ class LutrisWindow(object):
 
     def on_game_clicked(self, *args):
         """Launch a game"""
-        game_slug = self.view.selected_game[0]
+        game_slug = self.view.selected_game
         if game_slug:
             self.running_game = Game(game_slug)
             if self.running_game.is_installed:
@@ -288,7 +288,9 @@ class LutrisWindow(object):
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
-        EditGameConfigDialog(self, self.view.selected_game)
+        game = Game(self.view.selected_game)
+        if game.is_installed:
+            EditGameConfigDialog(self, self.view.selected_game)
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'icon' if menuitem.get_active() else 'list'

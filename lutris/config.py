@@ -75,6 +75,7 @@ def check_config(force_wipe=False):
 def read_yaml_from_file(filename):
     """Read filename and return parsed yaml"""
     if not os.path.exists(filename):
+        logger.error("Invalid config filename %s", filename)
         return {}
     try:
         content = file(filename, 'r').read()
@@ -119,9 +120,12 @@ class LutrisConfig(object):
         #Read system configuration
         self.system_config = read_yaml_from_file(join(CONFIG_DIR,
                                                       "system.yml"))
-        self.runner_config = read_yaml_from_file(join(CONFIG_DIR,
-                                                      "runners/%s.yml"
-                                                      % self.runner))
+        if self.runner:
+            self.runner_config = read_yaml_from_file(join(CONFIG_DIR,
+                                                          "runners/%s.yml"
+                                                          % self.runner))
+        else:
+            self.runner_config = {}
         if self.game:
             game_config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
             if os.path.exists(game_config_path):
