@@ -115,8 +115,9 @@ class LutrisWindow(object):
 
         if api.read_api_key():
             self.status_label.set_text("Connected to lutris.net")
-            async_call(api.sync, None)
-        async_call(self.sync_icons, None)
+            self.sync_library()
+        else:
+            async_call(self.sync_icons, None)
 
     @property
     def current_view_type(self):
@@ -187,7 +188,7 @@ class LutrisWindow(object):
     def on_connect_success(self, dialog, token):
         logger.info("Successfully connected to Lutris.net")
         self.status_label.set_text("Connected")
-        async_call(api.sync, None)
+        self.sync_library()
 
     def on_destroy(self, *args):
         """Signal for window close"""
@@ -247,6 +248,9 @@ class LutrisWindow(object):
             else:
                 InstallerDialog(game_slug, self)
 
+    def sync_library(self):
+        async_call(api.sync, async_call(self.sync_icons, None), caller=self)
+
     def reset(self, *args):
         """Reset the desktop to it's initial state"""
         if self.running_game:
@@ -259,13 +263,17 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
 
+    def add_game_to_view(self, slug):
+        game = Game(slug)
+        GLib.idle_add(lambda: self.view.game_store.add_game(game))
+        GLib.idle_add(self.view.queue_draw)
+
     def add_game(self, _widget, _data=None):
         """ Manually add a game """
         add_game_dialog = AddGameDialog(self)
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
-            game = Game(game_info['slug'])
-            self.view.game_store.add_game(game)
+            self.add_game_to_view(game_info['slug'])
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""

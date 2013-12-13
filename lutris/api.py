@@ -49,7 +49,7 @@ def get_library():
     return json.loads(request.read())
 
 
-def sync():
+def sync(caller=None):
     logger.debug("Syncing game library")
     remote_library = get_library()['games']
     remote_slugs = set([game['slug'] for game in remote_library])
@@ -62,5 +62,7 @@ def sync():
         if game['slug'] in not_in_local:
             logger.debug("Adding %s to local library", game['slug'])
             pga.add_game(game['name'], slug=game['slug'])
+            if caller:
+                caller.add_game_to_view(game['slug'])
     logger.debug("%d games added", len(not_in_local))
     return not_in_local
