@@ -248,8 +248,19 @@ class LutrisWindow(object):
             else:
                 InstallerDialog(game_slug, self)
 
+    def set_status(self, text):
+        self.status_label.set_text(text)
+
     def sync_library(self):
-        async_call(api.sync, async_call(self.sync_icons, None), caller=self)
+        def set_library_synced(result, error):
+            self.set_status("Library synced")
+        self.set_status("Syncing library")
+        async_call(api.sync,
+                   async_call(
+                       self.sync_icons,
+                       set_library_synced,
+                   ),
+                   caller=self)
 
     def reset(self, *args):
         """Reset the desktop to it's initial state"""
