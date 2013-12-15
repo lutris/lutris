@@ -466,11 +466,14 @@ class ScriptInterpreter(object):
         #target = os.path.join(dst, os.path.basename(src))
         #if os.path.exists(target):
         #    raise ScriptingError("Destination %s already exists" % target)
-        try:
-            shutil.move(src, dst)
-        except shutil.Error:
-            raise ScriptingError("Can't move %s to destination %s"
-                                 % (src, dst))
+        if os.path.isfile(src) and os.path.dirname(src) == dst:
+            logger.info("Source file is the same as destination, skipping")
+        else:
+            try:
+                shutil.move(src, dst)
+            except shutil.Error:
+                raise ScriptingError("Can't move %s to destination %s"
+                                    % (src, dst))
         if os.path.isfile(src) and params['src'] in self.game_files.keys():
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
