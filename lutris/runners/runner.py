@@ -88,10 +88,11 @@ class Runner(object):
     def get_game_path(self):
         """ Return the directory where the game is installed. """
         if hasattr(self, 'game_path'):
-            path = self.game_path
+            return self.game_path
         else:
-            path = self.settings['system'].get('game_path')
-        return path
+            system_settings = self.settings.get('system')
+            if system_settings:
+                return system_settings.get('game_path')
 
     def md5sum(self, filename):
         """checks the md5sum of a file, does not belong here"""
