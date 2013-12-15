@@ -1,3 +1,13 @@
+lutris (0.3.2) quantal; urgency=low
+
+  * Support for Steam for Linux
+  * Allow switching from Steam for Linux <-> Wine
+  * Option to show only installed games in UI
+  * Ability to automatically migrate local database
+  * Misc bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 15 Dec 2013 17:51:00 +0200
+
 lutris (0.3.1) quantal; urgency=low
 
   * Support for Wine installers

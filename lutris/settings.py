@@ -6,8 +6,8 @@ import ConfigParser
 from xdg import BaseDirectory
 
 PROJECT = "Lutris"
-VERSION = "0.3.1"
-COPYRIGHT = "(c) 2010-2013 Lutris Gaming Platform"
+VERSION = "0.3.2"
+COPYRIGHT = "(c) 2010-2014 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
