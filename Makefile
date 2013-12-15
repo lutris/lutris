@@ -7,7 +7,7 @@ deb-source:
 	debuild -S
 
 deb:
-	debuild
+	git-buildpackage
 	mv ../lutris_0* build
 
 changelog-add:
