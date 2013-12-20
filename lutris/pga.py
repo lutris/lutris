@@ -124,7 +124,7 @@ def get_games(name_filter=None, filter_installed=False):
         filters = []
         if name_filter:
             params = (name_filter, )
-            filters.append("name LIKE '?'")
+            filters.append("name LIKE ?")
         if filter_installed:
             filters.append("installed = 1")
         if filters:
