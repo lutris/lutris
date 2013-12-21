@@ -27,6 +27,7 @@ import subprocess
 from lutris import settings
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 from lutris.config import LutrisConfig
 from ConfigParser import ConfigParser
@@ -121,8 +122,14 @@ class scummvm(Runner):
     def install(self):
         self.download_and_extract("scummvm.x86.tar.gz")
 
+    def is_installed(self):
+        return bool(self.get_executable())
+
     def get_executable(self):
-        return os.path.join(settings.DATA_DIR, 'runners/scummvm/scummvm')
+        scummvm_path = os.path.join(settings.DATA_DIR,
+                                    'runners/scummvm/scummvm')
+        if not os.path.exists(scummvm_path):
+            return find_executable("scummvm")
 
     def get_game_path(self):
         return self.settings['game']['path']
