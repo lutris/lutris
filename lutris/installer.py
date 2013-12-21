@@ -302,7 +302,11 @@ class ScriptInterpreter(object):
             config_data[runner_name] = self.script[runner_name]
         if 'game' in self.script:
             for key in self.script['game']:
-                value = self._substitute(self.script['game'][key])
+                if not isinstance(key, basestring):
+                    raise ScriptingError("Game config key must be a string",
+                                         key)
+                value = self.script['game'][key]
+                value = self._substitute(value)
                 config_data['game'][key] = value
 
         is_64bit = platform.machine() == "x86_64"
