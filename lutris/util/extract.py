@@ -51,7 +51,7 @@ def extract_archive(path, to_directory='.', merge_single=True):
                     merge_folders(source_path, destination_path)
             else:
                 shutil.move(source_path, destination_path)
-        os.removedirs(destination)
+        shutil.rmtree(destination)
     logger.debug("Finished extracting %s", path)
 
 
