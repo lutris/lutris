@@ -61,7 +61,7 @@ class winesteam(wine):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
         Gdk.threads_enter()
-        dlg = DirectoryDialog('Where is located Steam ?')
+        dlg = DirectoryDialog('Where is Steam located ?')
         self.game_path = dlg.folder
         Gdk.threads_leave()
         config = LutrisConfig(runner='winesteam')
