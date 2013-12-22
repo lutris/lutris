@@ -130,6 +130,8 @@ class scummvm(Runner):
                                     'runners/scummvm/scummvm')
         if not os.path.exists(scummvm_path):
             return find_executable("scummvm")
+        else:
+            return scummvm_path
 
     def get_game_path(self):
         return self.settings['game']['path']
