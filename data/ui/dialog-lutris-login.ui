@@ -15,6 +15,22 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
+                <object class="GtkLinkButton" id="linkbutton1">
+                    <property name="label" translatable="yes">Forgot password?</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="receives_default">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="relief">none</property>
+                    <property name="uri">http://lutris.net/user/password/reset/</property>
+                </object>
+                <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="cancel_button">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
@@ -25,7 +41,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -39,7 +55,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
