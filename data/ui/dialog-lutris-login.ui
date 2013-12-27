@@ -15,20 +15,20 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-                <object class="GtkLinkButton" id="linkbutton1">
-                    <property name="label" translatable="yes">Forgot password?</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="receives_default">False</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="relief">none</property>
-                    <property name="uri">http://lutris.net/user/password/reset/</property>
-                </object>
-                <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                </packing>
+              <object class="GtkLinkButton" id="linkbutton1">
+                <property name="label" translatable="yes">Forgot password?</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="receives_default">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="relief">none</property>
+                <property name="uri">http://lutris.net/user/password/reset/</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkButton" id="cancel_button">
@@ -124,6 +124,7 @@
                         <property name="invisible_char">•</property>
                         <property name="width_chars">32</property>
                         <property name="shadow_type">none</property>
+                        <signal name="activate" handler="on_username_entry_activate" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -141,6 +142,7 @@
                         <property name="visibility">False</property>
                         <property name="invisible_char">•</property>
                         <property name="invisible_char_set">True</property>
+                        <signal name="activate" handler="on_password_entry_activate" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -171,6 +173,7 @@
       </object>
     </child>
     <action-widgets>
+      <action-widget response="0">linkbutton1</action-widget>
       <action-widget response="0">cancel_button</action-widget>
       <action-widget response="4">connect_button</action-widget>
     </action-widgets>

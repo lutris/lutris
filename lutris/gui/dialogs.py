@@ -203,17 +203,36 @@ class ClientLoginDialog(GtkBuilderDialog):
     def __init__(self):
         super(ClientLoginDialog, self).__init__()
 
+        self.username_entry = self.builder.get_object('username_entry')
+        self.password_entry = self.builder.get_object('password_entry')
+
         cancel_button = self.builder.get_object('cancel_button')
         cancel_button.connect('clicked', self.on_cancel)
         connect_button = self.builder.get_object('connect_button')
         connect_button.connect('clicked', self.on_connect)
 
+    def get_credentials(self):
+        username = self.username_entry.get_text()
+        password = self.password_entry.get_text()
+        return (username, password)
+
+    def on_username_entry_activate(self, widget):
+        if all(self.get_credentials()):
+            self.on_connect(None)
+        else:
+            self.password_entry.grab_focus()
+
+    def on_password_entry_activate(self, widget):
+        if all(self.get_credentials()):
+            self.on_connect(None)
+        else:
+            self.username_entry.grab_focus()
+
     def on_cancel(self, widget):
         self.dialog.destroy()
 
     def on_connect(self, widget):
-        username = self.builder.get_object('username_entry').get_text()
-        password = self.builder.get_object('password_entry').get_text()
+        username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
             NoticeDialog("Login failed")
