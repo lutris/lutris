@@ -14,6 +14,7 @@ In order to run Lutris, install the following packages.
     * python-xdg
     * python-yaml
     * PyGobject
+    * libsoup-gnome
 
 If you want to manually install runners you can choose from the list below
 and install the ones you wish to use.
