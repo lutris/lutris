@@ -17,7 +17,8 @@ ICON_SIZE = (184, 69)
     COL_NAME,
     COL_ICON,
     COL_RUNNER,
-) = range(4)
+    COL_INSTALLED,
+) = range(5)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -108,8 +109,7 @@ class GameStore(object):
 
     def __init__(self, games, icon_size=ICON_SIZE):
         self.icon_size = icon_size
-        self.store = Gtk.ListStore(str, str, Pixbuf, str,
-                                   str, str, str)
+        self.store = Gtk.ListStore(str, str, Pixbuf, str, bool)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
         self.fill_store(games)
@@ -127,8 +127,9 @@ class GameStore(object):
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
-        self.store.append((game.slug, name, pixbuf, game.runner_name,
-                           "Genre", "Platform", "Year"))
+        self.store.append(
+            (game.slug, name, pixbuf, game.runner_name, game.is_installed)
+        )
 
 
 class GameView(object):
