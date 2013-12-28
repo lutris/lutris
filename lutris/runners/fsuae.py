@@ -39,8 +39,10 @@ class fsuae(uae):
         if main_disk:
             disks.append(main_disk)
 
-        additional_disks = self.settings['game'].get('disks', [])
-        disks += additional_disks
+        game_disks = self.settings['game'].get('disks', [])
+        for disk in game_disks:
+            if disk not in disks:
+                disks.append(disk)
         floppy_params = []
         for drive, disk in enumerate(disks):
             floppy_params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))
