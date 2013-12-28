@@ -20,7 +20,7 @@ from lutris.gui import dialogs
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.addgamedialog import AddGameDialog
-from lutris.gui.widgets import GameTreeView, GameIconView
+from lutris.gui.widgets import GameTreeView, GameIconView, ContextualMenu
 from lutris.gui.systemconfigdialog import SystemConfigDialog
 from lutris.gui.editgameconfigdialog import EditGameConfigDialog
 
@@ -89,19 +89,14 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(False)
 
         #Contextual menu
-        menu_actions = [
-            ('Play', self.on_game_clicked),
-            ('Configure', self.edit_game_configuration),
-            ('Create desktop shortcut', self.create_desktop_shortcut),
-            ('Create global menu shortcut', self.create_menu_shortcut),
-            ('Uninstall', self.on_remove_game),
+        menu_callbacks = [
+            ('play', self.on_game_clicked),
+            ('configure', self.edit_game_configuration),
+            ('desktop-shortcut', self.create_desktop_shortcut),
+            ('menu-shortcut', self.create_menu_shortcut),
+            ('uninstall', self.on_remove_game),
         ]
-        self.menu = Gtk.Menu()
-        for action in menu_actions:
-            subitem = Gtk.ImageMenuItem(action[0])
-            subitem.connect('activate', action[1])
-            self.menu.append(subitem)
-        self.menu.show_all()
+        self.menu = ContextualMenu(menu_callbacks)
         self.view.contextual_menu = self.menu
 
         #Timer

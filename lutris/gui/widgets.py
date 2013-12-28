@@ -99,6 +99,29 @@ def get_pixbuf_for_game(game_slug, size=(184, 69), is_installed=True):
     return pixbuf
 
 
+class ContextualMenu(Gtk.Menu):
+    menu_labels = {
+        'play': "Play",
+        'configure': "Configure",
+        'desktop-shortcut': "Create desktop shortcut",
+        'menu-shortcut': "Create application menu shortcut",
+        'uninstall': "Uninstall",
+    }
+
+    def __init__(self, callbacks):
+        super(ContextualMenu, self).__init__()
+        for callback in callbacks:
+            label = self.menu_labels[callback[0]]
+            subitem = Gtk.ImageMenuItem(label)
+            subitem.connect('activate', callback[1])
+            self.append(subitem)
+        self.show_all()
+
+    def popup(self, event):
+        super(ContextualMenu, self).popup(None, None, None, None,
+                                          event.button, event.time)
+
+
 class IconViewCellRenderer(Gtk.CellRendererText):
     def __init__(self, *args, **kwargs):
         super(IconViewCellRenderer, self).__init__(*args, **kwargs)
@@ -192,8 +215,7 @@ class GameView(object):
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
         if view.current_path:
-            self.contextual_menu.popup(None, None, None, None,
-                                       event.button, event.time)
+            self.contextual_menu.popup(event)
 
 
 class GameTreeView(Gtk.TreeView, GameView):
