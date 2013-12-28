@@ -225,16 +225,6 @@ class LutrisWindow(object):
     def on_image_downloaded(self, game_slug):
         self.view.update_image(game_slug)
 
-    def import_scummvm(self, _widget, _data=None):
-        """Callback for importing scummvm games"""
-        from lutris.runners.scummvm import import_games
-        new_games = import_games()
-        if not new_games:
-            dialogs.NoticeDialog("No ScummVM games found")
-        else:
-            for new_game in new_games:
-                self.view.add_game(new_game)
-
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())
 

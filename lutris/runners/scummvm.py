@@ -25,49 +25,10 @@ import os
 import subprocess
 
 from lutris import settings
-from lutris.util.log import logger
-from lutris.util.strings import slugify
 from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
-from lutris.config import LutrisConfig
-from ConfigParser import ConfigParser
 
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
-
-
-def add_game(game_id, realname):
-    """Add scummvm from the auto-import"""
-    lutris_config = LutrisConfig()
-    lutris_config.config = {"runner": "scummvm",
-                            "realname": realname,
-                            "name": slugify(realname),
-                            'game': {
-                                'game_id': game_id
-                            }}
-    lutris_config.save("game")
-
-
-def import_games():
-    """Parse the scummvm config file and imports the games in Lutris config
-    files."""
-    logger.info("Importing ScummVM games.")
-    imported_games = []
-    if not os.path.exists(SCUMMVM_CONFIG_FILE):
-        logger.info("No ScummVM config found")
-        return None
-    config_parser = ConfigParser()
-    config_parser.read(SCUMMVM_CONFIG_FILE)
-    config_sections = config_parser.sections()
-    if "scummvm" in config_sections:
-        config_sections.remove("scummvm")
-    for section in config_sections:
-        realname = config_parser.get(section, "description")
-        logger.info("Found ScummVM game %s", realname)
-        add_game(section, realname)
-        imported_games.append({'id': slugify(realname),
-                               'name': realname,
-                               'runner': 'scummvm'})
-    return imported_games
 
 
 # pylint: disable=C0103

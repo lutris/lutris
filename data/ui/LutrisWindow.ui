@@ -11,19 +11,19 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
   </object>
-  <object class="GtkImage" id="viwe_grid_symbolic">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="xpad">4</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">view-grid-symbolic</property>
-  </object>
   <object class="GtkImage" id="view_list_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-list-symbolic</property>
+  </object>
+  <object class="GtkImage" id="viwe_grid_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-grid-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">640</property>
@@ -97,30 +97,6 @@
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="on_preferences_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="import_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Import</property>
-                        <property name="use_underline">True</property>
-                        <child type="submenu">
-                          <object class="GtkMenu" id="import_menu">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <child>
-                              <object class="GtkMenuItem" id="scummvm_menuitem">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="tooltip_text" translatable="yes">Import games from ScummVM</property>
-                                <property name="label" translatable="yes">ScummVM</property>
-                                <property name="use_underline">True</property>
-                                <signal name="activate" handler="import_scummvm" swapped="no"/>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
                       </object>
                     </child>
                     <child>
