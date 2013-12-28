@@ -91,6 +91,7 @@ class LutrisWindow(object):
         #Contextual menu
         menu_callbacks = [
             ('play', self.on_game_clicked),
+            ('install', self.on_game_clicked),
             ('configure', self.edit_game_configuration),
             ('desktop-shortcut', self.create_desktop_shortcut),
             ('menu-shortcut', self.create_menu_shortcut),

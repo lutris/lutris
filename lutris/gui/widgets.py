@@ -73,6 +73,7 @@ def get_pixbuf_for_game(game_slug, size=ICON_SIZE, is_installed=True):
 class ContextualMenu(Gtk.Menu):
     menu_labels = {
         'play': "Play",
+        'install': "Install",
         'configure': "Configure",
         'desktop-shortcut': "Create desktop shortcut",
         'menu-shortcut': "Create application menu shortcut",
@@ -82,13 +83,27 @@ class ContextualMenu(Gtk.Menu):
     def __init__(self, callbacks):
         super(ContextualMenu, self).__init__()
         for callback in callbacks:
-            label = self.menu_labels[callback[0]]
-            subitem = Gtk.ImageMenuItem(label)
-            subitem.connect('activate', callback[1])
-            self.append(subitem)
+            name = callback[0]
+            label = self.menu_labels[name]
+            action = Gtk.Action(name, label, None, None)
+            action.connect('activate', callback[1])
+            menuitem = action.create_menu_item()
+            menuitem.action_id = name
+            self.append(menuitem)
         self.show_all()
 
-    def popup(self, event):
+    def popup(self, event, game_row):
+        is_installed = game_row[COL_INSTALLED]
+        hide_when_installed = ('installed', )
+        hide_when_not_installed = ('play', 'configure')
+
+        for menuitem in self.get_children():
+            action = menuitem.action_id
+            if is_installed:
+                menuitem.set_visible(action not in hide_when_installed)
+            else:
+                menuitem.set_visible(action not in hide_when_not_installed)
+
         super(ContextualMenu, self).popup(None, None, None, None,
                                           event.button, event.time)
 
@@ -186,7 +201,8 @@ class GameView(object):
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
         if view.current_path:
-            self.contextual_menu.popup(event)
+            game_row = self.get_row_by_slug(self.selected_game)
+            self.contextual_menu.popup(event, game_row)
 
 
 class GameTreeView(Gtk.TreeView, GameView):
