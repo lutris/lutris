@@ -12,14 +12,12 @@ MISSING_ICON = os.path.join(settings.get_data_path(), 'media/banner.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(settings.get_data_path(),
                                         'media/unavailable.png')
 ICON_SIZE = (184, 69)
-(COL_ID,
- COL_NAME,
- COL_ICON,
- COL_RUNNER,
- COL_RUNNER_ICON,
- COL_GENRE,
- COL_PLATFORM,
- COL_YEAR) = range(8)
+(
+    COL_ID,
+    COL_NAME,
+    COL_ICON,
+    COL_RUNNER,
+) = range(4)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
