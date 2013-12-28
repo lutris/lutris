@@ -287,7 +287,7 @@ class ScriptInterpreter(object):
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % self.game_slug)
         runner_name = self.script['runner']
-        config_data = {
+        config = {
             'game': {},
             'realname': self.script['name'],
             'runner': runner_name
@@ -297,17 +297,19 @@ class ScriptInterpreter(object):
                           directory=self.target_path,
                           installed=1)
         if 'system' in self.script:
-            config_data['system'] = self.script['system']
+            config['system'] = self.script['system']
         if runner_name in self.script:
-            config_data[runner_name] = self.script[runner_name]
+            config[runner_name] = self.script[runner_name]
         if 'game' in self.script:
             for key in self.script['game']:
                 if not isinstance(key, basestring):
                     raise ScriptingError("Game config key must be a string",
                                          key)
                 value = self.script['game'][key]
-                value = self._substitute(value)
-                config_data['game'][key] = value
+                if isinstance(value, list):
+                    config['game'][key] = [self._substitute(i) for i in value]
+                else:
+                    config['game'][key] = self._substitute(value)
 
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
@@ -325,7 +327,7 @@ class ScriptInterpreter(object):
                             resource_paths.append(self.game_files[res])
                         else:
                             resource_paths.append(res)
-                    config_data['game'][key] = resource_paths
+                    config['game'][key] = resource_paths
                 else:
                     if game_resource in self.game_files:
                         game_resource = self.game_files[game_resource]
@@ -335,9 +337,9 @@ class ScriptInterpreter(object):
                                                      game_resource)
                     else:
                         game_resource = game_resource
-                    config_data['game'][key] = game_resource
+                    config['game'][key] = game_resource
 
-        yaml_config = yaml.safe_dump(config_data, default_flow_style=False)
+        yaml_config = yaml.safe_dump(config, default_flow_style=False)
         logger.debug(yaml_config)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
