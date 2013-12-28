@@ -1,39 +1,11 @@
 # -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
 """Misc widgets used in the GUI."""
-# Ignoring pylint
-# E0611 : No name '...' in module '...'
-# F0401 : Unable to import '...'
-# E1101 : Instance of '...' has no '...' member
-# pylint: disable=E0611, F0401, E1101
-
 import os
-#import Image
 
-from gi.repository import Gtk, Gdk, GObject, Pango, GdkPixbuf, GLib
+from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
-from lutris.constants import COVER_PATH
-#from lutris.util.log import logger
 from lutris import settings
 
 MISSING_ICON = os.path.join(settings.get_data_path(), 'media/banner.png')
@@ -233,21 +205,10 @@ class GameTreeView(Gtk.TreeView, GameView):
         column.set_reorderable(True)
         self.append_column(column)
 
-        # Name column
         column = self.setup_text_column("Name", COL_NAME)
         self.append_column(column)
-        # Genre column
-        #column = self.setup_text_column("Genre", COL_GENRE)
-        #self.append_column(column)
-        # Platform column
-        #column = self.setup_text_column("Platform", COL_PLATFORM)
-        #self.append_column(column)
-        # Runner column
         column = self.setup_text_column("Runner", COL_RUNNER)
         self.append_column(column)
-        # Year column
-        #column = self.setup_text_column("Year", COL_YEAR)
-        #self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -342,75 +303,6 @@ class GameIconView(Gtk.IconView, GameView):
             self.emit("game-activated")
         else:
             self.emit("game-selected")
-
-
-class GameCover(Gtk.Image):
-    """Widget displaing the selected game's cover"""
-    def __init__(self, parent=None):
-        super(GameCover, self).__init__()
-        self.parent_window = parent
-        self.set_from_file(os.path.join(settings.get_data_path(),
-                                        "media/background.png"))
-        self.connect('drag_data_received', self.on_cover_drop)
-
-    def set_game_cover(self, name):
-        """Change the cover currently displayed."""
-        cover_file = os.path.join(COVER_PATH, name + ".jpg")
-        if os.path.exists(cover_file):
-            #Resize the image
-            cover_pixbuf = Pixbuf.new_from_file(cover_file)
-            dest_w = 250.0
-            height = cover_pixbuf.get_height()
-            width = cover_pixbuf.get_width()
-            dest_h = height * (dest_w / width)
-            self.set_from_pixbuf(cover_pixbuf.scale_simple(
-                int(dest_w),
-                int(dest_h),
-                GdkPixbuf.InterpType.BILINEAR
-            ))
-            return
-        else:
-            self.set_from_file(os.path.join(settings.get_data_path(),
-                                            "media/background.png"))
-
-    def desactivate_drop(self):
-        """Deactivate DnD for the widget."""
-        self.drag_dest_unset()
-
-    def activate_drop(self):
-        """Activate DnD for the widget."""
-        targets = [('text/plain', 0, 0),
-                   ('text/uri-list', 0, 0),
-                   ('text/html', 0, 0),
-                   ('text/unicode', 0, 0),
-                   ('text/x-moz-url', 0, 0)]
-        self.drag_dest_set(Gtk.DestDefaults.ALL, targets,
-                           Gdk.DragAction.COPY | Gdk.DragAction.DEFAULT |
-                           Gdk.DragAction.MOVE)
-
-    def on_cover_drop(self, widget, context, x, y, selection, target, ts):
-        """Take action based on a drop on the widget."""
-        # TODO : Change mouse cursor if no game is selected
-        #        of course, it must not be handled here
-        file_path = selection.data.strip()
-        if not file_path.endswith(('.png', '.jpg', '.gif', '.bmp')):
-            return True
-        game = self.parent_window.get_selected_game()
-        if file_path.startswith('file://'):
-            #image_path = file_path[7:]
-            #im = Image.open(image_path)
-            #im.thumbnail((400, 600), Image.ANTIALIAS)
-            #dest_image = os.path.join(COVER_PATH, game + ".jpg")
-            #im.save(dest_image, "JPEG")
-            pass
-        elif file_path.startswith('http://'):
-            # TODO : Download file to cache directory
-            pass
-        else:
-            # TODO : Handle smb:, stuff like that
-            return True
-        self.set_game_cover(game)
-        return True
 
 
 class DownloadProgressBox(Gtk.HBox):
