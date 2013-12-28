@@ -13,7 +13,7 @@ from lutris.util.log import logger
 from lutris.util import audio
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
-from lutris.gui.dialogs import QuestionDialog, ErrorDialog
+from lutris.gui import dialogs
 
 from lutris import desktop_control
 
@@ -21,11 +21,11 @@ from lutris import desktop_control
 def show_error_message(message):
     """ Display an error message based on the runner's output. """
     if "RUNNER_NOT_INSTALLED" == message['error']:
-        ErrorDialog('Error the runner is not installed')
+        dialogs.ErrorDialog('Error the runner is not installed')
     elif "NO_BIOS" == message['error']:
-        ErrorDialog("A bios file is required to run this game")
+        dialogs.ErrorDialog("A bios file is required to run this game")
     elif "FILE_NOT_FOUND" == message['error']:
-        ErrorDialog("The file %s could not be found" % message['file'])
+        dialogs.ErrorDialog("The file %s could not be found" % message['file'])
 
 
 def get_game_list(filter_installed=False):
@@ -80,7 +80,7 @@ class Game(object):
         if not self.runner.is_installed():
             question = ("The required runner is not installed.\n"
                         "Do you wish to install it now ?")
-            install_runner_dialog = QuestionDialog(
+            install_runner_dialog = dialogs.QuestionDialog(
                 {'question': question,
                  'title': "Required runner unavailable"})
             if Gtk.ResponseType.YES == install_runner_dialog.result:
