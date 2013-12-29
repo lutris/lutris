@@ -19,9 +19,10 @@ from lutris.util.strings import slugify
 from lutris.gui import dialogs
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.gameconfigdialog import AddGameDialog, EditGameConfigDialog
+from lutris.gui.config_dialogs import (
+    AddGameDialog, EditGameConfigDialog, SystemConfigDialog
+)
 from lutris.gui.widgets import GameTreeView, GameIconView, ContextualMenu
-from lutris.gui.systemconfigdialog import SystemConfigDialog
 
 GAME_VIEW = 'icon'
 

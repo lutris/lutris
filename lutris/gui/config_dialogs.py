@@ -76,6 +76,15 @@ class GameDialogCommon(object):
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
+    def build_action_area(self, button_type, button_callback):
+        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
+        cancel_button.connect("clicked", self.on_cancel_clicked)
+        self.action_area.pack_start(cancel_button, True, True, 0)
+
+        button = Gtk.Button(None, button_type)
+        button.connect("clicked", button_callback)
+        self.action_area.pack_start(button, True, True, 0)
+
     def on_cancel_clicked(self, widget=None):
         """ Dialog destroy callback """
         self.destroy()
@@ -111,13 +120,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
-        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        self.action_area.add(cancel_button)
-
-        add_button = Gtk.Button(None, Gtk.STOCK_ADD)
-        add_button.connect("clicked", self.add_game)
-        self.action_area.add(add_button)
+        self.build_action_area(Gtk.STOCK_ADD, self.add_game)
 
         self.show_all()
         self.run()
@@ -179,15 +182,7 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
 
-        #Action Area
-        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        self.action_area.pack_start(cancel_button, True, True, 0)
-
-        add_button = Gtk.Button(None, Gtk.STOCK_EDIT)
-        add_button.connect("clicked", self.edit_game)
-        self.action_area.pack_start(add_button, True, True, 0)
-
+        self.build_action_area(Gtk.STOCK_EDIT, self.edit_game)
         self.show_all()
         self.run()
 
@@ -195,4 +190,25 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         """Save the changes"""
         logger.debug(self.lutris_config.config)
         self.lutris_config.save(config_type="game")
+        self.destroy()
+
+
+class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
+    title = "System preferences"
+    dialog_height = 500
+
+    def __init__(self):
+        super(SystemConfigDialog, self).__init__()
+        self.set_title(self.title)
+        self.set_size_request(500, self.dialog_height)
+        self.lutris_config = LutrisConfig()
+        self.system_config_vbox = SystemConfigVBox(self.lutris_config,
+                                                   'system')
+        self.vbox.pack_start(self.system_config_vbox, True, True, 0)
+
+        self.build_action_area(Gtk.STOCK_SAVE, self.save_config)
+        self.show_all()
+
+    def save_config(self, widget):
+        self.system_config_vbox.lutris_config.save()
         self.destroy()
