@@ -1,9 +1,7 @@
-# -*- coding:Utf-8 -*-
-"""Game edition dialog"""
+""" Configuration dialogs """
 from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
-from lutris.util.log import logger
 from lutris import pga
 import lutris.runners
 from lutris.gui.gameconfigvbox import GameConfigVBox
@@ -12,6 +10,7 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 class GameDialogCommon(object):
+    no_runner_label = "Select a runner from the list"
 
     def build_name_entry(self):
         name_box = Gtk.HBox()
@@ -61,15 +60,27 @@ class GameDialogCommon(object):
     def add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
+    def clear_tabs(self):
+        for i in range(self.notebook.get_n_pages(), 0, -1):
+            self.notebook.remove_page(i - 1)
+
     def build_game_tab(self):
-        self.game_box = GameConfigVBox(self.lutris_config, "game")
-        game_sw = self.build_scrolled_window(self.game_box)
+        if self.runner_name:
+            self.game_box = GameConfigVBox(self.lutris_config, "game")
+            game_sw = self.build_scrolled_window(self.game_box)
+        else:
+            game_sw = Gtk.Label(label=self.no_runner_label)
+            game_sw.show()
         self.add_notebook_tab(game_sw, "Game configuration")
 
     def build_runner_tab(self):
-        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
-        self.runner_sw = self.build_scrolled_window(self.runner_box)
-        self.add_notebook_tab(self.runner_sw, "Runner configuration")
+        if self.runner_name:
+            self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
+            runner_sw = self.build_scrolled_window(self.runner_box)
+        else:
+            runner_sw = Gtk.Label(label=self.no_runner_label)
+            runner_sw.show()
+        self.add_notebook_tab(runner_sw, "Runner configuration")
 
     def build_system_tab(self):
         self.system_box = SystemConfigVBox(self.lutris_config, "game")
@@ -92,10 +103,13 @@ class GameDialogCommon(object):
 
 class AddGameDialog(Gtk.Dialog, GameDialogCommon):
     """ Add game dialog class"""
+
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__()
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
+
+        self.runner_name = None
 
         self.set_title("Add a new game")
         self.set_size_request(600, 500)
@@ -104,21 +118,9 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_dropdown()
         self.build_notebook()
 
-        #Game configuration
-        default_label = "Select a runner from the list"
-        self.game_box = Gtk.Label(label=default_label)
-        self.game_sw = self.build_scrolled_window(self.game_box)
-        self.add_notebook_tab(self.game_sw, "Game configuration")
-
-        #Runner configuration
-        self.runner_box = Gtk.Label(label=default_label)
-        self.runner_sw = self.build_scrolled_window(self.runner_box)
-        self.add_notebook_tab(self.runner_sw, "Runner configuration")
-
-        #System configuration
-        self.system_box = SystemConfigVBox(self.lutris_config, "game")
-        self.system_sw = self.build_scrolled_window(self.system_box)
-        self.add_notebook_tab(self.system_sw, "System configuration")
+        self.build_game_tab()
+        self.build_runner_tab()
+        self.build_system_tab()
 
         self.build_action_area(Gtk.STOCK_ADD, self.add_game)
 
@@ -147,18 +149,14 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         """Action called when runner drop down is changed"""
         runner_index = widget.get_active()
         current_page = self.notebook.get_current_page()
-        self.notebook.remove_page(2)
-        self.notebook.remove_page(1)
-        self.notebook.remove_page(0)
+        self.clear_tabs()
 
         if runner_index == 0:
-            no_runner_label = Gtk.Label(label="Choose a runner from the list")
-            no_runner_label.show()
-            self.runner_sw.add_with_viewport(no_runner_label)
-            return
-
-        self.runner_name = widget.get_model()[runner_index][1]
-        self.lutris_config = LutrisConfig(self.runner_name)
+            self.runner_name = None
+            self.lutris_config = LutrisConfig()
+        else:
+            self.runner_name = widget.get_model()[runner_index][1]
+            self.lutris_config = LutrisConfig(self.runner_name)
 
         self.build_game_tab()
         self.build_runner_tab()
@@ -188,7 +186,6 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
 
     def edit_game(self, _widget=None):
         """Save the changes"""
-        logger.debug(self.lutris_config.config)
         self.lutris_config.save(config_type="game")
         self.destroy()
 
