@@ -12,7 +12,18 @@ from lutris.gui.runnerconfigvbox import RunnerConfigVBox
 from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
-class AddGameDialog(Gtk.Dialog):
+class GameDialogCommon(object):
+
+    @staticmethod
+    def build_scrolled_window(widget):
+        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                   Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.add_with_viewport(widget)
+        return scrolled_window
+
+
+class AddGameDialog(Gtk.Dialog, GameDialogCommon):
     """ Add game dialog class"""
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__()
@@ -54,30 +65,21 @@ class AddGameDialog(Gtk.Dialog):
 
         default_label = "Select a runner from the list"
         #Game configuration
-        self.game_config_vbox = Gtk.Label(label=default_label)
-        self.conf_scroll_window = Gtk.ScrolledWindow()
-        self.conf_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                           Gtk.PolicyType.AUTOMATIC)
-        self.conf_scroll_window.add_with_viewport(self.game_config_vbox)
-        notebook.append_page(self.conf_scroll_window,
+        self.game_box = Gtk.Label(label=default_label)
+        self.game_sw = self.build_scrolled_window(self.game_box)
+        notebook.append_page(self.game_sw,
                              Gtk.Label(label="Game configuration"))
 
         #Runner configuration
-        self.runner_config_vbox = Gtk.Label(label=default_label)
-        self.runner_scroll_window = Gtk.ScrolledWindow()
-        self.runner_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                             Gtk.PolicyType.AUTOMATIC)
-        self.runner_scroll_window.add_with_viewport(self.runner_config_vbox)
-        notebook.append_page(self.runner_scroll_window,
+        self.runner_box = Gtk.Label(label=default_label)
+        self.runner_sw = self.build_scrolled_window(self.runner_box)
+        notebook.append_page(self.runner_sw,
                              Gtk.Label(label="Runner configuration"))
 
         #System configuration
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config, "game")
-        self.system_scroll_window = Gtk.ScrolledWindow()
-        self.system_scroll_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                             Gtk.PolicyType.AUTOMATIC)
-        self.system_scroll_window.add_with_viewport(self.system_config_vbox)
-        notebook.append_page(self.system_scroll_window,
+        self.system_box = SystemConfigVBox(self.lutris_config, "game")
+        self.system_sw = self.build_scrolled_window(self.system_box)
+        notebook.append_page(self.system_sw,
                              Gtk.Label(label="System configuration"))
 
         #add_action = Gtk.Action("Add", )
@@ -112,40 +114,38 @@ class AddGameDialog(Gtk.Dialog):
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed"""
         selected_runner = widget.get_active()
-        scroll_windows_children = [self.conf_scroll_window.get_children(),
-                                   self.runner_scroll_window.get_children(),
-                                   self.system_scroll_window.get_children()]
-        for scroll_window_children in scroll_windows_children:
-            for child in scroll_window_children:
-                child.destroy()
+        self.game_box.destroy()
+        self.runner_box.destroy()
+        self.system_box.destroy()
 
         if selected_runner == 0:
             no_runner_label = Gtk.Label(label="Choose a runner from the list")
             no_runner_label.show()
-            self.runner_scroll_window.add_with_viewport(no_runner_label)
+            self.runner_sw.add_with_viewport(no_runner_label)
             return
 
         self.runner_class = widget.get_model()[selected_runner][1]
         self.lutris_config = LutrisConfig(self.runner_class)
-        self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
-        self.conf_scroll_window.add_with_viewport(self.game_config_vbox)
-        self.conf_scroll_window.show_all()
+        self.game_box = GameConfigVBox(self.lutris_config, "game")
+        self.game_sw.add_with_viewport(self.game_box)
+        self.game_sw.show_all()
 
         #Load runner box
-        self.runner_options_vbox = RunnerConfigVBox(self.lutris_config, "game")
-        self.runner_scroll_window.add_with_viewport(self.runner_options_vbox)
-        self.runner_scroll_window.show_all()
+        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
+        self.runner_sw.add_with_viewport(self.runner_box)
+        self.runner_sw.show_all()
 
         #Load system box
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config, "game")
-        self.system_scroll_window.add_with_viewport(self.system_config_vbox)
-        self.system_scroll_window.show_all()
+        self.system_box = SystemConfigVBox(self.lutris_config, "game")
+        self.system_sw.add_with_viewport(self.system_box)
+        self.system_sw.show_all()
 
     def close(self, _widget=None, _other=None):
         """Action received on dialog close"""
         self.destroy()
 
-class EditGameConfigDialog(Gtk.Dialog):
+
+class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
     """Game config edit dialog"""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__()
@@ -161,30 +161,21 @@ class EditGameConfigDialog(Gtk.Dialog):
         self.vbox.pack_start(notebook, True, True, 0)
 
         #Game configuration tab
-        self.game_config_vbox = GameConfigVBox(self.lutris_config, "game")
-        game_config_scrolled_window = Gtk.ScrolledWindow()
-        game_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                               Gtk.PolicyType.AUTOMATIC)
-        game_config_scrolled_window.add_with_viewport(self.game_config_vbox)
-        notebook.append_page(game_config_scrolled_window,
+        self.game_box = GameConfigVBox(self.lutris_config, "game")
+        game_sw = self.build_scrolled_window(self.game_box)
+        notebook.append_page(game_sw,
                              Gtk.Label(label="Game Configuration"))
 
         #Runner configuration tab
-        self.runner_config_box = RunnerConfigVBox(self.lutris_config, "game")
-        runner_config_scrolled_window = Gtk.ScrolledWindow()
-        runner_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                                 Gtk.PolicyType.AUTOMATIC)
-        runner_config_scrolled_window.add_with_viewport(self.runner_config_box)
-        notebook.append_page(runner_config_scrolled_window,
+        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
+        runner_sw = self.build_scrolled_window(self.runner_box)
+        notebook.append_page(runner_sw,
                              Gtk.Label(label="Runner Configuration"))
 
         #System configuration tab
-        self.system_config_box = SystemConfigVBox(self.lutris_config, "game")
-        system_config_scrolled_window = Gtk.ScrolledWindow()
-        system_config_scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                                 Gtk.PolicyType.AUTOMATIC)
-        system_config_scrolled_window.add_with_viewport(self.system_config_box)
-        notebook.append_page(system_config_scrolled_window,
+        self.system_box = SystemConfigVBox(self.lutris_config, "game")
+        system_sw = self.build_scrolled_window(self.system_box)
+        notebook.append_page(system_sw,
                              Gtk.Label(label="System Configuration"))
 
         #Action Area
