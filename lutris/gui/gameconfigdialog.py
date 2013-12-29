@@ -5,7 +5,6 @@ from gi.repository import Gtk
 from lutris.config import LutrisConfig
 from lutris.util.log import logger
 from lutris import pga
-from lutris.runners import import_runner
 import lutris.runners
 from lutris.gui.gameconfigvbox import GameConfigVBox
 from lutris.gui.runnerconfigvbox import RunnerConfigVBox
@@ -13,6 +12,29 @@ from lutris.gui.systemconfigvbox import SystemConfigVBox
 
 
 class GameDialogCommon(object):
+
+    def build_name_entry(self):
+        name_box = Gtk.HBox()
+        name_label = Gtk.Label(label="Name")
+        name_box.pack_start(name_label, False, False, 5)
+        self.realname_entry = Gtk.Entry()
+        name_box.add(self.realname_entry)
+        self.vbox.pack_start(name_box, False, False, 5)
+
+    @staticmethod
+    def get_runner_liststore():
+        """ Build a ListStore with available runners. """
+        runner_liststore = Gtk.ListStore(str, str)
+        runner_liststore.append(("Select a runner from the list", ""))
+        for runner_name in lutris.runners.__all__:
+            runner_class = lutris.runners.import_runner(runner_name)
+            runner = runner_class()
+            if runner.is_installed():
+                description = runner.description
+                runner_liststore.append(
+                    ("%s (%s)" % (runner_name, description), runner_name)
+                )
+        return runner_liststore
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -22,37 +44,8 @@ class GameDialogCommon(object):
         scrolled_window.add_with_viewport(widget)
         return scrolled_window
 
-
-class AddGameDialog(Gtk.Dialog, GameDialogCommon):
-    """ Add game dialog class"""
-    def __init__(self, parent, game=None):
-        super(AddGameDialog, self).__init__()
-        self.parent_window = parent
-
-        #Real name
-        realname_hbox = Gtk.HBox()
-        realname_label = Gtk.Label(label="Name")
-        realname_hbox.pack_start(realname_label, False, False, 5)
-        self.realname_entry = Gtk.Entry()
-        realname_hbox.add(self.realname_entry)
-        self.vbox.pack_start(realname_hbox, False, False, 5)
-        self.lutris_config = LutrisConfig()
-
-        self.set_title("Add a new game")
-        self.set_size_request(600, 500)
-
-        #Runners: get a list of available runners
-        runner_liststore = Gtk.ListStore(str, str)
-        runner_liststore.append(("Select a runner from the list", ""))
-        for runner_name in lutris.runners.__all__:
-            runner_class = import_runner(runner_name)
-            runner = runner_class()
-            description = runner.description
-            if runner.is_installed():
-                runner_liststore.append(
-                    ("%s (%s)" % (runner_name, description), runner_name)
-                )
-
+    def build_runner_dropdown(self):
+        runner_liststore = self.get_runner_liststore()
         runner_combobox = Gtk.ComboBox.new_with_model(runner_liststore)
         runner_combobox.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
@@ -60,35 +53,55 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         runner_combobox.add_attribute(cell, 'text', 0)
         self.vbox.pack_start(runner_combobox, False, True, 5)
 
-        notebook = Gtk.Notebook()
-        self.vbox.pack_start(notebook, True, True, 0)
+    def build_notebook(self):
+        self.notebook = Gtk.Notebook()
+        self.vbox.pack_start(self.notebook, True, True, 0)
 
-        default_label = "Select a runner from the list"
+    def add_notebook_tab(self, widget, label):
+        self.notebook.append_page(widget, Gtk.Label(label=label))
+
+    def on_cancel_clicked(self, widget=None):
+        """ Dialog destroy callback """
+        self.destroy()
+
+
+class AddGameDialog(Gtk.Dialog, GameDialogCommon):
+    """ Add game dialog class"""
+    def __init__(self, parent, game=None):
+        super(AddGameDialog, self).__init__()
+        self.parent_window = parent
+        self.lutris_config = LutrisConfig()
+
+        self.set_title("Add a new game")
+        self.set_size_request(600, 500)
+
+        self.build_name_entry()
+        self.build_runner_dropdown()
+        self.build_notebook()
+
         #Game configuration
+        default_label = "Select a runner from the list"
         self.game_box = Gtk.Label(label=default_label)
         self.game_sw = self.build_scrolled_window(self.game_box)
-        notebook.append_page(self.game_sw,
-                             Gtk.Label(label="Game configuration"))
+        self.add_notebook_tab(self.game_sw, "Game configuration")
 
         #Runner configuration
         self.runner_box = Gtk.Label(label=default_label)
         self.runner_sw = self.build_scrolled_window(self.runner_box)
-        notebook.append_page(self.runner_sw,
-                             Gtk.Label(label="Runner configuration"))
+        self.add_notebook_tab(self.runner_sw, "Runner configuration")
 
         #System configuration
         self.system_box = SystemConfigVBox(self.lutris_config, "game")
         self.system_sw = self.build_scrolled_window(self.system_box)
-        notebook.append_page(self.system_sw,
-                             Gtk.Label(label="System configuration"))
+        self.add_notebook_tab(self.system_sw, "System configuration")
 
-        #add_action = Gtk.Action("Add", )
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
-        add_button = Gtk.Button(None, Gtk.STOCK_ADD)
+        cancel_button.connect("clicked", self.on_cancel_clicked)
         self.action_area.add(cancel_button)
-        self.action_area.add(add_button)
-        cancel_button.connect("clicked", self.close)
+
+        add_button = Gtk.Button(None, Gtk.STOCK_ADD)
         add_button.connect("clicked", self.add_game)
+        self.action_area.add(add_button)
 
         self.show_all()
         self.run()
@@ -105,8 +118,8 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
             self.game_info = {"name": name,
                               "runner": self.runner_class,
                               "slug": game_identifier}
-
-            runner = import_runner(self.runner_class)(self.lutris_config)
+            runner_class = lutris.runners.import_runner(self.runner_class)
+            runner = runner_class(self.lutris_config)
             self.game_info['directory'] = runner.get_game_path()
             pga.add_game(**self.game_info)
             self.destroy()
@@ -140,13 +153,9 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.system_sw.add_with_viewport(self.system_box)
         self.system_sw.show_all()
 
-    def close(self, _widget=None, _other=None):
-        """Action received on dialog close"""
-        self.destroy()
-
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
-    """Game config edit dialog"""
+    """ Game config edit dialog """
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
@@ -156,35 +165,31 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.set_title("Edit game configuration for %s" % game_name)
         self.set_size_request(500, 500)
 
-        #Notebook
-        notebook = Gtk.Notebook()
-        self.vbox.pack_start(notebook, True, True, 0)
+        self.build_notebook()
 
-        #Game configuration tab
+        #Game configuration
         self.game_box = GameConfigVBox(self.lutris_config, "game")
         game_sw = self.build_scrolled_window(self.game_box)
-        notebook.append_page(game_sw,
-                             Gtk.Label(label="Game Configuration"))
+        self.add_notebook_tab(game_sw, "Game configuration")
 
-        #Runner configuration tab
+        #Runner configuration
         self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
         runner_sw = self.build_scrolled_window(self.runner_box)
-        notebook.append_page(runner_sw,
-                             Gtk.Label(label="Runner Configuration"))
+        self.add_notebook_tab(runner_sw, "Runner configuration")
 
-        #System configuration tab
+        #System configuration
         self.system_box = SystemConfigVBox(self.lutris_config, "game")
         system_sw = self.build_scrolled_window(self.system_box)
-        notebook.append_page(system_sw,
-                             Gtk.Label(label="System Configuration"))
+        self.add_notebook_tab(system_sw, "System configuration")
 
         #Action Area
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
-        add_button = Gtk.Button(None, Gtk.STOCK_EDIT)
+        cancel_button.connect("clicked", self.on_cancel_clicked)
         self.action_area.pack_start(cancel_button, True, True, 0)
-        self.action_area.pack_start(add_button, True, True, 0)
-        cancel_button.connect("clicked", self.close)
+
+        add_button = Gtk.Button(None, Gtk.STOCK_EDIT)
         add_button.connect("clicked", self.edit_game)
+        self.action_area.pack_start(add_button, True, True, 0)
 
         self.show_all()
         self.run()
@@ -193,8 +198,4 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         """Save the changes"""
         logger.debug(self.lutris_config.config)
         self.lutris_config.save(config_type="game")
-        self.destroy()
-
-    def close(self, _widget=None):
-        """Dialog destroy callback"""
         self.destroy()
