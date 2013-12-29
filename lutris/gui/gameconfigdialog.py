@@ -42,6 +42,7 @@ class GameDialogCommon(object):
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add_with_viewport(widget)
+        scrolled_window.show_all()
         return scrolled_window
 
     def build_runner_dropdown(self):
@@ -59,6 +60,21 @@ class GameDialogCommon(object):
 
     def add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
+
+    def build_game_tab(self):
+        self.game_box = GameConfigVBox(self.lutris_config, "game")
+        game_sw = self.build_scrolled_window(self.game_box)
+        self.add_notebook_tab(game_sw, "Game configuration")
+
+    def build_runner_tab(self):
+        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
+        self.runner_sw = self.build_scrolled_window(self.runner_box)
+        self.add_notebook_tab(self.runner_sw, "Runner configuration")
+
+    def build_system_tab(self):
+        self.system_box = SystemConfigVBox(self.lutris_config, "game")
+        self.system_sw = self.build_scrolled_window(self.system_box)
+        self.add_notebook_tab(self.system_sw, "System configuration")
 
     def on_cancel_clicked(self, widget=None):
         """ Dialog destroy callback """
@@ -110,15 +126,15 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         """OK button pressed in the Add Game Dialog"""
         name = self.realname_entry.get_text()
         self.lutris_config.config["realname"] = name
-        self.lutris_config.config["runner"] = self.runner_class
+        self.lutris_config.config["runner"] = self.runner_name
 
-        if self.runner_class and name:
+        if self.runner_name and name:
 
             game_identifier = self.lutris_config.save(config_type="game")
             self.game_info = {"name": name,
-                              "runner": self.runner_class,
+                              "runner": self.runner_name,
                               "slug": game_identifier}
-            runner_class = lutris.runners.import_runner(self.runner_class)
+            runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
             self.game_info['directory'] = runner.get_game_path()
             pga.add_game(**self.game_info)
@@ -126,32 +142,23 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed"""
-        selected_runner = widget.get_active()
-        self.game_box.destroy()
-        self.runner_box.destroy()
-        self.system_box.destroy()
+        runner_index = widget.get_active()
+        self.notebook.remove_page(2)
+        self.notebook.remove_page(1)
+        self.notebook.remove_page(0)
 
-        if selected_runner == 0:
+        if runner_index == 0:
             no_runner_label = Gtk.Label(label="Choose a runner from the list")
             no_runner_label.show()
             self.runner_sw.add_with_viewport(no_runner_label)
             return
 
-        self.runner_class = widget.get_model()[selected_runner][1]
-        self.lutris_config = LutrisConfig(self.runner_class)
-        self.game_box = GameConfigVBox(self.lutris_config, "game")
-        self.game_sw.add_with_viewport(self.game_box)
-        self.game_sw.show_all()
+        self.runner_name = widget.get_model()[runner_index][1]
+        self.lutris_config = LutrisConfig(self.runner_name)
 
-        #Load runner box
-        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
-        self.runner_sw.add_with_viewport(self.runner_box)
-        self.runner_sw.show_all()
-
-        #Load system box
-        self.system_box = SystemConfigVBox(self.lutris_config, "game")
-        self.system_sw.add_with_viewport(self.system_box)
-        self.system_sw.show_all()
+        self.build_game_tab()
+        self.build_runner_tab()
+        self.build_system_tab()
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
@@ -166,21 +173,9 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.set_size_request(500, 500)
 
         self.build_notebook()
-
-        #Game configuration
-        self.game_box = GameConfigVBox(self.lutris_config, "game")
-        game_sw = self.build_scrolled_window(self.game_box)
-        self.add_notebook_tab(game_sw, "Game configuration")
-
-        #Runner configuration
-        self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
-        runner_sw = self.build_scrolled_window(self.runner_box)
-        self.add_notebook_tab(runner_sw, "Runner configuration")
-
-        #System configuration
-        self.system_box = SystemConfigVBox(self.lutris_config, "game")
-        system_sw = self.build_scrolled_window(self.system_box)
-        self.add_notebook_tab(system_sw, "System configuration")
+        self.build_game_tab()
+        self.build_runner_tab()
+        self.build_system_tab()
 
         #Action Area
         cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
