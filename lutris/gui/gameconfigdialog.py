@@ -143,6 +143,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed"""
         runner_index = widget.get_active()
+        current_page = self.notebook.get_current_page()
         self.notebook.remove_page(2)
         self.notebook.remove_page(1)
         self.notebook.remove_page(0)
@@ -159,6 +160,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_game_tab()
         self.build_runner_tab()
         self.build_system_tab()
+        self.notebook.set_current_page(current_page)
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
