@@ -1,26 +1,8 @@
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009-2012 Mathieu Comandon strider@strycore.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
 """Widget generators and their signal handlers"""
 from gi.repository import Gtk, GObject, Gdk
 from lutris.util.log import logger
+from lutris.runners import import_runner
+from lutris.desktop_control import get_resolutions
 
 PADDING = 5
 
@@ -35,7 +17,7 @@ class Label(Gtk.Label):
         self.set_line_wrap(True)
 
 
-class ConfigVBox(Gtk.VBox):
+class ConfigBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
     def __init__(self, save_in_key, caller):
         GObject.GObject.__init__(self)
@@ -317,3 +299,86 @@ class ConfigVBox(Gtk.VBox):
                 files.append(filename)
         self.real_config[self.save_in_key][option] = files
         self.files_chooser_dialog = None
+
+
+class GameBox(ConfigBox):
+    def __init__(self, lutris_config, caller):
+        ConfigBox.__init__(self, "game", caller)
+        self.lutris_config = lutris_config
+        self.lutris_config.config_type = "game"
+        self.runner_class = self.lutris_config.runner
+        runner = import_runner(self.runner_class)()
+
+        self.options = runner.game_options
+        self.generate_widgets()
+
+
+class RunnerBox(ConfigBox):
+    def __init__(self, lutris_config, caller):
+        runner_classname = lutris_config.runner
+        ConfigBox.__init__(self, runner_classname, caller)
+        runner = import_runner(runner_classname)()
+
+        self.options = runner.runner_options
+        self.lutris_config = lutris_config
+        self.generate_widgets()
+
+
+class SystemBox(ConfigBox):
+    def __init__(self, lutris_config, caller):
+        """Box init"""
+        ConfigBox.__init__(self, "system", caller)
+        self.lutris_config = lutris_config
+        oss_list = [
+            ("None (don't use OSS)", "none"),
+            ("padsp (PulseAudio OSS Wrapper)", "padsp"),
+            ("padsp32 (PulseAudio OSS Wrapper for 32bit apps)", "padsp32"),
+            ("aoss (OSS Wrapper for Alsa)", "aoss"),
+            ("esddsp (OSS Wrapper for esound)", "esddsp"),
+        ]
+        resolution_list = get_resolutions()
+        self.options = [
+            {
+                'option': 'game_path',
+                'type': 'directory_chooser',
+                'label': 'Default game path'
+            },
+            {
+                'option': 'resolution',
+                'type': 'one_choice',
+                'label': 'Resolution',
+                'choices': resolution_list
+            },
+            {
+                'option': 'oss_wrapper',
+                'type': 'one_choice',
+                'label': 'OSS Wrapper',
+                'choices': oss_list
+            },
+            {
+                'option': 'reset_pulse',
+                'type': 'bool',
+                'label': 'Reset PulseAudio'
+            },
+            {
+                'option': 'hide_panels',
+                'type': 'bool',
+                'label': 'Hide Gnome Panels'
+            },
+            {
+                'option': 'reset_desktop',
+                'type': 'bool',
+                'label': 'Reset resolution when game quits'
+            },
+            {
+                'option': 'killswitch',
+                'type': 'string',
+                'label': 'Killswitch file'
+            },
+            {
+                'option': 'xboxdrv',
+                'type': 'string',
+                'label': 'xboxdrv config'
+            }
+        ]
+        self.generate_widgets()

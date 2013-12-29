@@ -4,9 +4,7 @@ from gi.repository import Gtk
 from lutris.config import LutrisConfig
 from lutris import pga
 import lutris.runners
-from lutris.gui.gameconfigvbox import GameConfigVBox
-from lutris.gui.runnerconfigvbox import RunnerConfigVBox
-from lutris.gui.systemconfigvbox import SystemConfigVBox
+from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 
 
 class GameDialogCommon(object):
@@ -66,7 +64,7 @@ class GameDialogCommon(object):
 
     def build_game_tab(self):
         if self.runner_name:
-            self.game_box = GameConfigVBox(self.lutris_config, "game")
+            self.game_box = GameBox(self.lutris_config, "game")
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
@@ -75,7 +73,7 @@ class GameDialogCommon(object):
 
     def build_runner_tab(self):
         if self.runner_name:
-            self.runner_box = RunnerConfigVBox(self.lutris_config, "game")
+            self.runner_box = RunnerBox(self.lutris_config, "game")
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
@@ -83,7 +81,7 @@ class GameDialogCommon(object):
         self.add_notebook_tab(runner_sw, "Runner configuration")
 
     def build_system_tab(self):
-        self.system_box = SystemConfigVBox(self.lutris_config, "game")
+        self.system_box = SystemBox(self.lutris_config, "game")
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
@@ -171,6 +169,7 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.parent_window = parent
         self.game = game
         self.lutris_config = LutrisConfig(game=game)
+        self.runner_name = self.lutris_config.runner
         game_name = self.lutris_config.config.get("realname", game)
         self.set_title("Edit game configuration for %s" % game_name)
         self.set_size_request(500, 500)
@@ -199,8 +198,7 @@ class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.set_title(self.title)
         self.set_size_request(500, self.dialog_height)
         self.lutris_config = LutrisConfig()
-        self.system_config_vbox = SystemConfigVBox(self.lutris_config,
-                                                   'system')
+        self.system_config_vbox = SystemBox(self.lutris_config, 'system')
         self.vbox.pack_start(self.system_config_vbox, True, True, 0)
 
         self.build_action_area(Gtk.STOCK_SAVE, self.save_config)
