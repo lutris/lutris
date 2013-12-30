@@ -68,9 +68,7 @@ class Game(object):
         """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.slug)
         if self.is_installed:
-            if not self.game_config.is_valid():
-                logger.error("Invalid game config for %s" % self.slug)
-            else:
+            if self.game_config.is_valid():
                 runner_class = import_runner(self.runner_name)
                 self.runner = runner_class(self.game_config)
 
