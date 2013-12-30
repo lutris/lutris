@@ -19,13 +19,13 @@ class Label(Gtk.Label):
 
 class ConfigBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
-    def __init__(self, save_in_key, caller):
+    def __init__(self, config_type, caller):
         GObject.GObject.__init__(self)
         self.set_margin_top(30)
         self.options = None
         # Section of the configuration file to save options in. Can be "game",
-        # "runner" or "system" self.save_in_key= save_in_key
-        self.save_in_key = save_in_key
+        # "runner" or "system"
+        self.config_type = config_type
         self.caller = caller
 
     def generate_widgets(self):
@@ -39,10 +39,10 @@ class ConfigBox(Gtk.VBox):
             self.real_config = self.lutris_config.game_config
 
         # Select part of config to load or create it.
-        if self.save_in_key in self.real_config:
-            config = self.real_config[self.save_in_key]
+        if self.config_type in self.real_config:
+            config = self.real_config[self.config_type]
         else:
-            config = self.real_config[self.save_in_key] = {}
+            config = self.real_config[self.config_type] = {}
 
         #Go thru all options.
         for option in self.options:
@@ -108,7 +108,7 @@ class ConfigBox(Gtk.VBox):
 
     def checkbox_toggle(self, widget, option_name):
         """ Action for the checkbox's toggled signal."""
-        self.real_config[self.save_in_key][option_name] = widget.get_active()
+        self.real_config[self.config_type][option_name] = widget.get_active()
 
     #Entry
     def generate_entry(self, option_name, label, value=None):
@@ -127,7 +127,7 @@ class ConfigBox(Gtk.VBox):
     def entry_changed(self, entry, option_name):
         """ Action triggered for entry 'changed' signal. """
         entry_text = entry.get_text()
-        self.real_config[self.save_in_key][option_name] = entry_text
+        self.real_config[self.config_type][option_name] = entry_text
 
     #ComboBox
     def generate_combobox(self, option_name, choices, label, value=None):
@@ -163,7 +163,7 @@ class ConfigBox(Gtk.VBox):
         if active < 0:
             return None
         option_value = model[active][1]
-        self.real_config[self.save_in_key][option] = option_value
+        self.real_config[self.config_type][option] = option_value
 
     def generate_range(self, option_name, min_val, max_val, label, value=None):
         """ Generates a ranged spin button. """
@@ -185,7 +185,7 @@ class ConfigBox(Gtk.VBox):
     def on_spin_button_changed(self, spin_button, option):
         """ Action triggered on spin button 'changed' signal """
         value = spin_button.get_value_as_int()
-        self.real_config[self.save_in_key][option] = value
+        self.real_config[self.config_type][option] = value
 
     def generate_file_chooser(self, option, value=None):
         """Generates a file chooser button to select a file"""
@@ -228,7 +228,7 @@ class ConfigBox(Gtk.VBox):
     def on_chooser_file_set(self, filechooser_widget, option):
         """ Action triggered on file select dialog 'file-set' signal. """
         filename = filechooser_widget.get_filename()
-        self.real_config[self.save_in_key][option] = filename
+        self.real_config[self.config_type][option] = filename
 
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         """ Generates a multiple file selector. """
@@ -287,17 +287,17 @@ class ConfigBox(Gtk.VBox):
                 row_index = int(str(treepath))
                 treeiter = model.get_iter(treepath)
                 model.remove(treeiter)
-                self.real_config[self.save_in_key][option].pop(row_index)
+                self.real_config[self.config_type][option].pop(row_index)
 
     def add_files_callback(self, button, option=None):
         """Add several files to the configuration"""
         filenames = button.get_filenames()
-        files = self.real_config[self.save_in_key].get(option, [])
+        files = self.real_config[self.config_type].get(option, [])
         for filename in filenames:
             self.files_list_store.append([filename])
             if not filename in files:
                 files.append(filename)
-        self.real_config[self.save_in_key][option] = files
+        self.real_config[self.config_type][option] = files
         self.files_chooser_dialog = None
 
 
