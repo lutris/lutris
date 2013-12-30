@@ -267,11 +267,10 @@ class LutrisWindow(object):
         GLib.idle_add(self.view.queue_draw)
 
     def add_game(self, _widget, _data=None):
-        """ Manually add a game """
+        """ Add a new game """
         add_game_dialog = AddGameDialog(self)
-        if hasattr(add_game_dialog, "game_info"):
-            game_info = add_game_dialog.game_info
-            self.add_game_to_view(game_info['slug'])
+        if add_game_dialog.runner_name:
+            self.add_game_to_view(add_game_dialog.slug)
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)

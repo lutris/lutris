@@ -115,8 +115,10 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.set_size_request(600, 500)
         if game:
             name = game.name
+            self.slug = game.slug
         else:
             name = None
+            self.slug = None
         self.build_name_entry(name)
         self.build_runner_dropdown()
         self.build_notebook()
@@ -137,10 +139,10 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
-            slug = self.lutris_config.save(config_type="game")
+            self.slug = self.lutris_config.save(config_type="game")
             runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
-            pga.add_or_update(name, self.runner_name, slug=slug,
+            pga.add_or_update(name, self.runner_name, slug=self.slug,
                               directory=runner.get_game_path(), installed=1)
             self.destroy()
 
