@@ -276,7 +276,7 @@ class LutrisWindow(object):
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
-        if hasattr(add_game_dialog, "game_info"):
+        if add_game_dialog.runner_name:
             self.view.update_image(game.slug, is_installed=True)
 
     def edit_game_configuration(self, _button):
