@@ -14,10 +14,10 @@ class GameDialogCommon(object):
         name_box = Gtk.HBox()
         name_label = Gtk.Label(label="Name")
         name_box.pack_start(name_label, False, False, 5)
-        self.realname_entry = Gtk.Entry()
+        self.name_entry = Gtk.Entry()
         if name:
-            self.realname_entry.set_text(name)
-        name_box.add(self.realname_entry)
+            self.name_entry.set_text(name)
+        name_box.add(self.name_entry)
         self.vbox.pack_start(name_box, False, False, 5)
 
     @staticmethod
@@ -131,13 +131,12 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.run()
 
     def add_game(self, _button):
-        """OK button pressed in the Add Game Dialog"""
-        name = self.realname_entry.get_text()
+        """ OK button pressed in the Add Game Dialog """
+        name = self.name_entry.get_text()
         self.lutris_config.config["realname"] = name
         self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
-
             game_identifier = self.lutris_config.save(config_type="game")
             self.game_info = {"name": name,
                               "runner": self.runner_name,
