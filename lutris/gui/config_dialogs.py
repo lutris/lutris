@@ -10,11 +10,13 @@ from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 class GameDialogCommon(object):
     no_runner_label = "Select a runner from the list"
 
-    def build_name_entry(self):
+    def build_name_entry(self, name=None):
         name_box = Gtk.HBox()
         name_label = Gtk.Label(label="Name")
         name_box.pack_start(name_label, False, False, 5)
         self.realname_entry = Gtk.Entry()
+        if name:
+            self.realname_entry.set_text(name)
         name_box.add(self.realname_entry)
         self.vbox.pack_start(name_box, False, False, 5)
 
@@ -111,8 +113,11 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
 
         self.set_title("Add a new game")
         self.set_size_request(600, 500)
-
-        self.build_name_entry()
+        if game:
+            name = game.name
+        else:
+            name = None
+        self.build_name_entry(name)
         self.build_runner_dropdown()
         self.build_notebook()
 

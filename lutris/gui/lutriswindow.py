@@ -92,6 +92,7 @@ class LutrisWindow(object):
         menu_callbacks = [
             ('play', self.on_game_clicked),
             ('install', self.on_game_clicked),
+            ('add', self.add_manually),
             ('configure', self.edit_game_configuration),
             ('desktop-shortcut', self.create_desktop_shortcut),
             ('menu-shortcut', self.create_menu_shortcut),
@@ -271,6 +272,12 @@ class LutrisWindow(object):
         if hasattr(add_game_dialog, "game_info"):
             game_info = add_game_dialog.game_info
             self.add_game_to_view(game_info['slug'])
+
+    def add_manually(self, *args):
+        game = Game(self.view.selected_game)
+        add_game_dialog = AddGameDialog(self, game)
+        if hasattr(add_game_dialog, "game_info"):
+            self.view.update_image(game.slug)
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
