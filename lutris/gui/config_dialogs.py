@@ -125,26 +125,23 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
 
-        self.build_action_area(Gtk.STOCK_ADD, self.add_game)
+        self.build_action_area(Gtk.STOCK_ADD, self.save_game)
 
         self.show_all()
         self.run()
 
-    def add_game(self, _button):
+    def save_game(self, _button):
         """ OK button pressed in the Add Game Dialog """
         name = self.name_entry.get_text()
         self.lutris_config.config["realname"] = name
         self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
-            game_identifier = self.lutris_config.save(config_type="game")
-            self.game_info = {"name": name,
-                              "runner": self.runner_name,
-                              "slug": game_identifier}
+            slug = self.lutris_config.save(config_type="game")
             runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
-            self.game_info['directory'] = runner.get_game_path()
-            pga.add_game(**self.game_info)
+            pga.add_or_update(name, self.runner_name, slug=slug,
+                              directory=runner.get_game_path(), installed=1)
             self.destroy()
 
     def on_runner_changed(self, widget):
