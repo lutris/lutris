@@ -187,7 +187,8 @@ class GameView(object):
         if row:
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               is_installed=is_installed)
-            row[2] = game_pixpuf
+            row[COL_ICON] = game_pixpuf
+            row[COL_INSTALLED] = is_installed
         self.queue_draw()
 
     def popup_contextual_menu(self, view, event):

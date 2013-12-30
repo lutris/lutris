@@ -277,7 +277,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
         if hasattr(add_game_dialog, "game_info"):
-            self.view.update_image(game.slug)
+            self.view.update_image(game.slug, is_installed=True)
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
