@@ -145,6 +145,7 @@ def get_game_by_slug(slug):
     game_result = sql.db_select(PGA_DB, "games", condition=('slug', slug))
     if game_result:
         return game_result[0]
+    return {}
 
 
 def add_game(name, **game_data):

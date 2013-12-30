@@ -44,10 +44,10 @@ class Game(object):
         self.game_config = None
 
         game_data = pga.get_game_by_slug(slug)
-        self.runner_name = game_data['runner']
-        self.directory = game_data['directory']
-        self.name = game_data['name']
-        self.is_installed = bool(game_data['installed'])
+        self.runner_name = game_data.get('runner')
+        self.directory = game_data.get('directory')
+        self.name = game_data.get('name')
+        self.is_installed = bool(game_data.get('installed'))
 
         self.load_config()
 
