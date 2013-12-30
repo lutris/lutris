@@ -51,6 +51,15 @@ class Game(object):
 
         self.load_config()
 
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        value = self.name
+        if self.runner_name:
+            value += " (%s)" % self.runner_name
+        return value
+
     def get_runner(self):
         """ Return the runner's name """
         return self.game_config['runner']
