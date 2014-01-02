@@ -263,8 +263,7 @@ class LutrisWindow(object):
 
     def add_game_to_view(self, slug):
         game = Game(slug)
-        GLib.idle_add(lambda: self.view.game_store.add_game(game))
-        GLib.idle_add(self.view.queue_draw)
+        GLib.idle_add(lambda: self.view.add_game(game))
 
     def add_game(self, _widget, _data=None):
         """ Add a new game """

@@ -139,7 +139,7 @@ class GameStore(object):
             self.add_game(game)
 
     def add_game(self, game):
-        """Adds a game into the view"""
+        """Adds a game into the store """
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
@@ -167,6 +167,10 @@ class GameView(object):
             if model_row[COL_ID] == game_slug:
                 game_row = model_row
         return game_row
+
+    def add_game(self, game):
+        self.game_store.add_game(game)
+        self.queue_draw()
 
     def remove_game(self, removed_id):
         row = self.get_row_by_slug(removed_id)
