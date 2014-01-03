@@ -93,7 +93,7 @@ class ScriptInterpreter(object):
 
     @property
     def should_create_target(self):
-        return (not os.path.exists(self.target)
+        return (not os.path.exists(self.target_path)
                 and 'nocreatedir' not in self.script)
 
     def _check_dependecy(self):
@@ -133,7 +133,7 @@ class ScriptInterpreter(object):
             if not os.path.exists(self.download_cache_path):
                 os.mkdir(self.download_cache_path)
 
-            if self.should_create_target():
+            if self.should_create_target:
                 os.makedirs(self.target_path)
 
         if len(self.game_files) < len(self.files):

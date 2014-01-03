@@ -416,21 +416,22 @@ class FileChooserEntry(Gtk.Box):
         self.entry.set_completion(completion)
         self.entry.connect("changed", self.entry_changed)
 
-        button = Gtk.Button()
-        button.set_label("Browse...")
-        button.connect('clicked', self.open_filechooser, action, default)
-        self.add(button)
-
-    def open_filechooser(self, widget, action, default):
-        dlg = Gtk.FileChooserDialog(
+        self.file_chooser_dlg = Gtk.FileChooserDialog(
             "Select folder", None, action,
             (Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
              Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
         )
         if default and os.path.exists(default):
-            dlg.set_current_folder(default)
-        dlg.connect('response', self.select_file)
-        dlg.run()
+            self.file_chooser_dlg.set_current_folder(default)
+
+        button = Gtk.Button()
+        button.set_label("Browse...")
+        button.connect('clicked', self.open_filechooser)
+        self.add(button)
+
+    def open_filechooser(self, widget):
+        self.file_chooser_dlg.connect('response', self.select_file)
+        self.file_chooser_dlg.run()
 
     def entry_changed(self, widget):
         self.path_completion.clear()
@@ -458,5 +459,7 @@ class FileChooserEntry(Gtk.Box):
 
     def select_file(self, dialog, response):
         if response == Gtk.ResponseType.OK:
-            self.entry.set_text(dialog.get_filename())
-        dialog.destroy()
+            target_path = dialog.get_filename()
+            self.file_chooser_dlg.set_current_folder(target_path)
+            self.entry.set_text(target_path)
+        dialog.hide()
