@@ -29,7 +29,12 @@ class fsuae(uae):
                 "option": "kickstart_file",
                 "label": "Rom Path",
                 "type": "file_chooser"
-            }
+            },
+            {
+                "option": "gfx_fullscreen_amiga",
+                "label": "Fullscreen (F12 + s to Switch)",
+                "type": "bool"
+            },
         ]
         self.settings = settings
 
