@@ -11,17 +11,6 @@ import subprocess
 from lutris.util.log import logger
 
 
-def make_compiz_rule(class_=None, title=None):
-    """Return a string formated for the Window Rules plugin"""
-    if class_ is not None:
-        rule = 'class=%s' % class_
-    elif title is not None:
-        rule = 'title=%s' % title
-    else:
-        rule = False
-    return rule
-
-
 def get_resolutions():
     """Return the list of supported screen resolutions."""
     xrandr_output = subprocess.Popen("xrandr",
