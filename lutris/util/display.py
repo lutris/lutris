@@ -16,14 +16,18 @@ def get_resolutions():
     return resolution_list
 
 
-def get_current_resolution():
+def get_current_resolution(monitor=0):
     """Return the current resolution for the desktop."""
     xrandr_output = subprocess.Popen("xrandr",
                                      stdout=subprocess.PIPE).communicate()[0]
+    resolution = list()
     for line in xrandr_output.split("\n"):
         if line.startswith("  ") and "*" in line:
-            return line.split()[0]
-    return None
+            resolution.append(line.split()[0])
+    if monitor == 'all':
+        return resolution
+    else:
+        return resolution[monitor]
 
 
 def change_resolution(resolution):
