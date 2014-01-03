@@ -2,7 +2,7 @@
 from gi.repository import Gtk, GObject, Gdk
 from lutris.util.log import logger
 from lutris.runners import import_runner
-from lutris.desktop_control import get_resolutions
+from lutris.util.display import get_resolutions
 
 PADDING = 5
 

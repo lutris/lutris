@@ -10,12 +10,10 @@ from gi.repository import Gtk, GLib
 from lutris import pga
 from lutris.runners import import_runner
 from lutris.util.log import logger
-from lutris.util import audio
+from lutris.util import audio, display
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.gui import dialogs
-
-from lutris import desktop_control
 
 
 def show_error_message(message):
@@ -116,10 +114,10 @@ class Game(object):
 
         resolution = self.game_config.get_system('resolution')
         if resolution:
-            desktop_control.change_resolution(resolution)
+            display.change_resolution(resolution)
 
         if self.game_config.get_system('reset_pulse'):
-            desktop_control.reset_pulse()
+            audio.reset_pulse()
 
         if self.game_config.get_system('hide_panels'):
             self.desktop.hide_panels()
@@ -191,7 +189,7 @@ class Game(object):
         logger.debug("game has quit at %s" % quit_time)
 
         if self.game_config.get_system('resolution'):
-            desktop_control.reset_desktop()
+            display.reset_desktop()
 
         if self.game_config.get_system('xboxdrv'):
             logger.debug("Shutting down xboxdrv")

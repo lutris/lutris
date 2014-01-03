@@ -1,10 +1,3 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-""" Utilities to control the user's desktop in many aspects
-
-    This class interacts with the window manager, xrandr, ...
-"""
-
 import os
 import subprocess
 
@@ -42,18 +35,6 @@ def change_resolution(resolution):
         subprocess.Popen("xrandr -s %s" % resolution, shell=True)
 
 
-def check_joysticks():
-    """Return list of connected joysticks."""
-    number_joysticks = 0
-    joysticks = []
-    for device_number in range(0, 8):
-        device_name = "/dev/input/js%d" % device_number
-        if os.path.exists(device_name):
-            number_joysticks = number_joysticks + 1
-            joysticks.append(device_name)
-    return joysticks
-
-
 def reset_desktop():
     """Restore the desktop to its original state."""
     #Restore resolution
@@ -61,10 +42,3 @@ def reset_desktop():
     change_resolution(resolution)
     #Restore gamma
     os.popen("xgamma -gamma 1.0")
-
-
-def reset_pulse():
-    """ Reset pulseaudio. """
-    pulse_reset = "pulseaudio --kill && sleep 1 && pulseaudio --start"
-    subprocess.Popen(pulse_reset, shell=True)
-    logger.debug("PulseAudio restarted")

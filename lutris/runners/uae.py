@@ -80,11 +80,7 @@ class uae(Runner):
                 "label": "Show UAE gui",
                 "type": "bool"
             },
-            {
-                "option": "gfx_fullscreen_amiga",
-                "label": "Fullscreen (F12 + s to Switch)",
-                "type": "bool"
-            },
+
             {
                 "option": "gfx_show_leds_fullscreen",
                 "label": "Show LEDs",

@@ -86,6 +86,7 @@ class fsuae(uae):
             params.append('--amiga_model=%s' % machine)
         if runner_config.get("gfx_fullscreen_amiga", False):
             params.append("--fullscreen")
+            params.append("--fullscreen_mode=fullscreen-window")
         return params
 
     def play(self):
