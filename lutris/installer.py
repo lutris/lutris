@@ -91,6 +91,11 @@ class ScriptInterpreter(object):
         return os.path.join(settings.CACHE_DIR,
                             "installer/%s" % self.game_slug)
 
+    @property
+    def should_create_target(self):
+        return (not os.path.exists(self.target)
+                and 'nocreatedir' not in self.script)
+
     def _check_dependecy(self):
         game = pga.get_game_by_slug(self.requires)
         if not game or not game['directory']:
@@ -123,12 +128,13 @@ class ScriptInterpreter(object):
         return not bool(self.errors)
 
     def iter_game_files(self):
-        if not os.path.exists(self.download_cache_path) and self.files:
-            os.mkdir(self.download_cache_path)
+        if self.files:
+            # Create cache dir if needed
+            if not os.path.exists(self.download_cache_path):
+                os.mkdir(self.download_cache_path)
 
-        if(not os.path.exists(self.target_path) and self.files
-           and 'nocreatedir' not in self.script):
-            os.makedirs(self.target_path)
+            if self.should_create_target():
+                os.makedirs(self.target_path)
 
         if len(self.game_files) < len(self.files):
             logger.info(
