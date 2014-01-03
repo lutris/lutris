@@ -285,8 +285,7 @@ class ScriptInterpreter(object):
 
     def _cleanup(self):
         if os.path.exists(self.download_cache_path):
-            #shutil.rmtree(self.download_cache_path)
-            pass
+            shutil.rmtree(self.download_cache_path)
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
