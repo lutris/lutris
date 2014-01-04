@@ -2,7 +2,7 @@
 from gi.repository import Gtk, GObject, Gdk
 from lutris.util.log import logger
 from lutris.runners import import_runner
-from lutris.util.display import get_resolutions
+from lutris.util import display
 
 PADDING = 5
 
@@ -336,7 +336,8 @@ class SystemBox(ConfigBox):
             ("aoss (OSS Wrapper for Alsa)", "aoss"),
             ("esddsp (OSS Wrapper for esound)", "esddsp"),
         ]
-        resolution_list = get_resolutions()
+        resolution_list = display.get_resolutions()
+        display_list = display.get_output_names()
         self.options = [
             {
                 'option': 'game_path',
@@ -348,6 +349,12 @@ class SystemBox(ConfigBox):
                 'type': 'one_choice',
                 'label': 'Resolution',
                 'choices': resolution_list
+            },
+            {
+                'option': 'display',
+                'type': 'one_choice',
+                'label': 'Restrict to display',
+                'choices': display_list
             },
             {
                 'option': 'oss_wrapper',

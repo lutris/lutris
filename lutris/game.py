@@ -112,6 +112,11 @@ class Game(object):
             logger.error("Old method used for returning gameplay infos")
             launch_arguments = gameplay_info
 
+        restrict_to_display = self.game_config.get_system('display')
+        if restrict_to_display:
+            self.original_outputs = display.get_current_resolution('all')
+            display.turn_off_except(restrict_to_display)
+
         resolution = self.game_config.get_system('resolution')
         if resolution:
             display.change_resolution(resolution)
@@ -190,6 +195,9 @@ class Game(object):
 
         if self.game_config.get_system('resolution'):
             display.reset_desktop()
+
+        if self.original_outputs:
+            display.change_resolution(self.original_outputs)
 
         if self.game_config.get_system('xboxdrv'):
             logger.debug("Shutting down xboxdrv")

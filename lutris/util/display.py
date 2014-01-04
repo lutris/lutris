@@ -13,12 +13,25 @@ def iter_xrandr_output():
 
 
 def get_outputs():
+    """ Return list of tuples containing output name and geometry """
     outputs = list()
     for line in iter_xrandr_output():
         parts = line.split()
+        if len(parts) < 2:
+            continue
         if parts[1] == 'connected':
-            outputs.append(parts[0])
+            outputs.append((parts[0], parts[2]))
     return outputs
+
+
+def get_output_names():
+    return [output[0] for output in get_outputs()]
+
+
+def turn_off_except(display):
+    for output in get_outputs():
+        if output[0] != display:
+            subprocess.Popen("xrandr --output %s --off", shell=True)
 
 
 def get_resolutions():
@@ -43,12 +56,33 @@ def get_current_resolution(monitor=0):
 
 
 def change_resolution(resolution):
-    """change desktop resolution"""
-    logger.debug("Switching resolution to %s", resolution)
-    if resolution not in get_resolutions():
-        logger.warning("Resolution %s doesn't exist.")
+    """ Change display resolution.
+        Takes a string for single monitors or a list of displays as returned
+        by get_outputs()
+    """
+    if isinstance(resolution, basestring):
+        logger.debug("Switching resolution to %s", resolution)
+
+        if resolution not in get_resolutions():
+            logger.warning("Resolution %s doesn't exist.")
+        else:
+            subprocess.Popen("xrandr -s %s" % resolution, shell=True)
     else:
-        subprocess.Popen("xrandr -s %s" % resolution, shell=True)
+        for display in resolution:
+            display_name = display[0]
+            display_geom = display[1]
+            display_resolution = display_geom.split('+')[0]
+
+            subprocess.Popen(
+                "xrandr --output %s --mode %s" % (display_name,
+                                                  display_resolution),
+                shell=True
+            )
+            subprocess.Popen(
+                "xrandr --output %s --panning %s" % (display_name,
+                                                     display_geom),
+                shell=True
+            )
 
 
 def reset_desktop():
