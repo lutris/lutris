@@ -4,13 +4,27 @@ import subprocess
 from lutris.util.log import logger
 
 
-def get_resolutions():
-    """Return the list of supported screen resolutions."""
+def iter_xrandr_output():
     xrandr_output = subprocess.Popen("xrandr",
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE).communicate()[0]
-    resolution_list = []
     for line in xrandr_output.split("\n"):
+        yield line
+
+
+def get_outputs():
+    outputs = list()
+    for line in iter_xrandr_output():
+        parts = line.split()
+        if parts[1] == 'connected':
+            outputs.append(parts[0])
+    return outputs
+
+
+def get_resolutions():
+    """Return the list of supported screen resolutions."""
+    resolution_list = []
+    for line in iter_xrandr_output():
         if line.startswith("  "):
             resolution_list.append(line.split()[0])
     return resolution_list
@@ -18,10 +32,8 @@ def get_resolutions():
 
 def get_current_resolution(monitor=0):
     """Return the current resolution for the desktop."""
-    xrandr_output = subprocess.Popen("xrandr",
-                                     stdout=subprocess.PIPE).communicate()[0]
     resolution = list()
-    for line in xrandr_output.split("\n"):
+    for line in iter_xrandr_output():
         if line.startswith("  ") and "*" in line:
             resolution.append(line.split()[0])
     if monitor == 'all':

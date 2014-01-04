@@ -3,6 +3,7 @@ import os
 from lutris import settings
 from lutris.runners.uae import uae
 from lutris.gui.dialogs import ErrorDialog
+from lutris.util.display import get_current_resolution
 
 
 class fsuae(uae):
@@ -85,8 +86,11 @@ class fsuae(uae):
         if machine:
             params.append('--amiga_model=%s' % machine)
         if runner_config.get("gfx_fullscreen_amiga", False):
+            width = int(get_current_resolution().split('x')[0])
             params.append("--fullscreen")
-            params.append("--fullscreen_mode=fullscreen-window")
+            #params.append("--fullscreen_mode=fullscreen-window")
+            params.append("--fullscreen_mode=fullscreen")
+            params.append("--fullscreen_width=%d" % width)
         return params
 
     def play(self):
