@@ -49,6 +49,7 @@ class Game(object):
         self.is_installed = bool(game_data.get('installed'))
 
         self.load_config()
+        self.resolution_changed = False
         self.original_outputs = display.get_current_resolution('all')
 
     def __repr__(self):
@@ -116,10 +117,12 @@ class Game(object):
         restrict_to_display = self.game_config.get_system('display')
         if restrict_to_display:
             display.turn_off_except(restrict_to_display)
+            self.resolution_changed = True
 
         resolution = self.game_config.get_system('resolution')
         if resolution:
             display.change_resolution(resolution)
+            self.resolution_changed = True
 
         if self.game_config.get_system('reset_pulse'):
             audio.reset_pulse()
@@ -194,10 +197,7 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
 
-        if self.game_config.get_system('resolution'):
-            display.reset_desktop()
-
-        if self.original_outputs:
+        if self.resolution_changed:
             display.change_resolution(self.original_outputs)
 
         if self.game_config.get_system('xboxdrv'):

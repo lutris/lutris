@@ -31,7 +31,7 @@ def get_output_names():
 def turn_off_except(display):
     for output in get_outputs():
         if output[0] != display:
-            subprocess.Popen("xrandr --output %s --off", shell=True)
+            subprocess.Popen("xrandr --output %s --off" % output[0], shell=True)
 
 
 def get_resolutions():
