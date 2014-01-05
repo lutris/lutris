@@ -50,7 +50,7 @@ class Game(object):
 
         self.load_config()
         self.resolution_changed = False
-        self.original_outputs = display.get_current_resolution('all')
+        self.original_outputs = display.get_outputs()
 
     def __repr__(self):
         return self.__unicode__()

@@ -20,7 +20,8 @@ def get_outputs():
         if len(parts) < 2:
             continue
         if parts[1] == 'connected':
-            outputs.append((parts[0], parts[2]))
+            geom = parts[2] if parts[2] != 'primary' else parts[3]
+            outputs.append((parts[0], geom))
     return outputs
 
 
@@ -68,21 +69,21 @@ def change_resolution(resolution):
         else:
             subprocess.Popen("xrandr -s %s" % resolution, shell=True)
     else:
+        print resolution
         for display in resolution:
             display_name = display[0]
             display_geom = display[1]
+            logger.debug("Switching to %s on %s", display[1], display[0])
             display_resolution = display_geom.split('+')[0]
 
-            subprocess.Popen(
-                "xrandr --output %s --mode %s" % (display_name,
-                                                  display_resolution),
-                shell=True
-            )
-            subprocess.Popen(
-                "xrandr --output %s --panning %s" % (display_name,
-                                                     display_geom),
-                shell=True
-            )
+            cmd = "xrandr --output %s --mode %s" % (display_name,
+                                                    display_resolution)
+
+            subprocess.Popen(cmd, shell=True).communicate()
+            cmd = "xrandr --output %s --panning %s" % (display_name,
+                                                       display_geom)
+            logger.debug(cmd)
+            subprocess.Popen(cmd, shell=True)
 
 
 def reset_desktop():
