@@ -4,7 +4,7 @@ import os
 from gi.repository import Gtk, GObject
 
 from lutris.gui.widgets import DownloadProgressBox
-
+from lutris.util import datapath
 from lutris import settings
 from lutris import pga
 from lutris import api
@@ -14,7 +14,7 @@ class GtkBuilderDialog(GObject.Object):
 
     def __init__(self, **kwargs):
         super(GtkBuilderDialog, self).__init__()
-        ui_filename = os.path.join(settings.get_data_path(), 'ui',
+        ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
         if not os.path.exists(ui_filename):
             raise ValueError("ui file does not exists: %s" % ui_filename)

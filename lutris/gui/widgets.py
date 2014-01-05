@@ -3,13 +3,15 @@
 import os
 
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
+from IPython.testing.decorators import make_label_dec
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
+from lutris.util import datapath
 from lutris import settings
 
-MISSING_ICON = os.path.join(settings.get_data_path(), 'media/banner.png')
-UNAVAILABLE_GAME_OVERLAY = os.path.join(settings.get_data_path(),
+MISSING_ICON = os.path.join(datapath.get(), 'media/banner.png')
+UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
 ICON_SIZE = (184, 69)
 (
@@ -19,7 +21,6 @@ ICON_SIZE = (184, 69)
     COL_RUNNER,
     COL_INSTALLED,
 ) = range(5)
-
 
 def sort_func(store, a_iter, b_iter, _user_data):
     """Default sort function"""

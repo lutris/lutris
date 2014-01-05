@@ -15,6 +15,7 @@ from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import async_call
 from lutris.util.strings import slugify
+from lutris.util import datapath
 
 from lutris.gui import dialogs
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
@@ -40,7 +41,7 @@ class LutrisWindow(object):
     def __init__(self):
 
         ui_filename = os.path.join(
-            settings.get_data_path(), 'ui', 'LutrisWindow.ui'
+            datapath.get(), 'ui', 'LutrisWindow.ui'
         )
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
