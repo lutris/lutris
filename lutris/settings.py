@@ -4,6 +4,7 @@ import os
 import sys
 import ConfigParser
 from xdg import BaseDirectory
+from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = "0.3.2"
@@ -20,38 +21,9 @@ CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
 
-
-def get_config():
-    config = ConfigParser.ConfigParser()
-    if os.path.exists(CONFIG_FILE):
-        config.read([CONFIG_FILE])
-    return config
-
-
-def read_setting(key, section='lutris'):
-    config = get_config()
-    if not config:
-        return
-    try:
-        value = config.get(section, key)
-    except ConfigParser.NoOptionError:
-        value = None
-    except ConfigParser.NoSectionError:
-        value = None
-    return value
-
-
-def write_setting(key, value, section='lutris'):
-    config = get_config()
-    if not config.has_section(section):
-        config.add_section(section)
-    config.set(section, key, value)
-
-    with open(CONFIG_FILE, 'wb') as config_file:
-        config.write(config_file)
-
-PGA_DB = read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
-SITE_URL = read_setting("website") or "http://lutris.net/"
+sio = SettingsIO(CONFIG_FILE)
+PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
+SITE_URL = sio.read_setting("website") or "http://lutris.net/"
 
 INSTALLER_URL = SITE_URL + "games/install/"
 RUNNERS_URL = SITE_URL + "files/runners/"
@@ -93,3 +65,6 @@ def get_data_path():
         print("data_path can't be found at : %s" % data_path)
         exit()
     return data_path
+
+read_setting = sio.read_setting
+write_setting = sio.write_setting
