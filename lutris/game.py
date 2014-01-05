@@ -37,6 +37,7 @@ class Game(object):
     """
     def __init__(self, slug):
         self.slug = slug
+        self.runner = None
         self.game_thread = None
         self.heartbeat = None
         self.game_config = None
@@ -48,6 +49,7 @@ class Game(object):
         self.is_installed = bool(game_data.get('installed'))
 
         self.load_config()
+        self.original_outputs = display.get_current_resolution('all')
 
     def __repr__(self):
         return self.__unicode__()
@@ -65,10 +67,9 @@ class Game(object):
     def load_config(self):
         """ Load the game's configuration. """
         self.game_config = LutrisConfig(game=self.slug)
-        if self.is_installed:
-            if self.game_config.is_valid():
-                runner_class = import_runner(self.runner_name)
-                self.runner = runner_class(self.game_config)
+        if self.is_installed and self.game_config.is_valid():
+            runner_class = import_runner(self.runner_name)
+            self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
@@ -114,7 +115,6 @@ class Game(object):
 
         restrict_to_display = self.game_config.get_system('display')
         if restrict_to_display:
-            self.original_outputs = display.get_current_resolution('all')
             display.turn_off_except(restrict_to_display)
 
         resolution = self.game_config.get_system('resolution')
@@ -159,7 +159,7 @@ class Game(object):
         """ Run a joy2key thread. """
         win = "grep %s" % config['window']
         if 'notwindow' in config:
-            win = win + ' | grep -v %s' % config['notwindow']
+            win += ' | grep -v %s' % config['notwindow']
         wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win
         buttons = config['buttons']
         axis = "Left Right Up Down"
@@ -172,7 +172,8 @@ class Game(object):
         self.game_thread.attach_thread(joy2key_thread)
         joy2key_thread.start()
 
-    def xboxdrv(self, config):
+    @staticmethod
+    def xboxdrv(config):
         command = ("pkexec xboxdrv --daemon --detach-kernel-driver "
                    "--dbus session --silent %s"
                    % config)

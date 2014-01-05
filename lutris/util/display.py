@@ -64,7 +64,7 @@ def change_resolution(resolution):
         logger.debug("Switching resolution to %s", resolution)
 
         if resolution not in get_resolutions():
-            logger.warning("Resolution %s doesn't exist.")
+            logger.warning("Resolution %s doesn't exist." % resolution)
         else:
             subprocess.Popen("xrandr -s %s" % resolution, shell=True)
     else:
