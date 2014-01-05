@@ -56,7 +56,8 @@ class ConfigBox(Gtk.VBox):
                 value = None
 
             #Different types of widgets.
-            if option["type"] == "one_choice":
+            if option["type"] in ("one_choice", "choice"):
+                print option, value
                 self.generate_combobox(option_key,
                                        option["choices"],
                                        option["label"], value)

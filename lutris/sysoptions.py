@@ -9,8 +9,11 @@ oss_list = [
     ("esddsp (OSS Wrapper for esound)", "esddsp"),
 ]
 
-resolution_list = display.get_resolutions()
-display_list = display.get_output_names()
+resolutions = display.get_resolutions()
+resolution_choices = zip(resolutions, resolutions)
+
+outputs = display.get_output_names()
+output_choices = zip(outputs, outputs)
 system_options = [
     {
         'option': 'game_path',
@@ -19,19 +22,19 @@ system_options = [
     },
     {
         'option': 'resolution',
-        'type': 'one_choice',
+        'type': 'choice',
         'label': 'Resolution',
-        'choices': resolution_list
+        'choices': resolution_choices
     },
     {
         'option': 'display',
-        'type': 'one_choice',
+        'type': 'choice',
         'label': 'Restrict to display',
-        'choices': display_list
+        'choices': output_choices
     },
     {
         'option': 'oss_wrapper',
-        'type': 'one_choice',
+        'type': 'choice',
         'label': 'OSS Wrapper',
         'choices': oss_list
     },
