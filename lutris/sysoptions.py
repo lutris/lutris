@@ -11,9 +11,11 @@ oss_list = [
 
 resolutions = display.get_resolutions()
 resolution_choices = zip(resolutions, resolutions)
+resolution_choices.insert(0, ("No change", None))
 
 outputs = display.get_output_names()
 output_choices = zip(outputs, outputs)
+output_choices.insert(0, ("No change", None))
 system_options = [
     {
         'option': 'game_path',
@@ -24,19 +26,22 @@ system_options = [
         'option': 'resolution',
         'type': 'choice',
         'label': 'Resolution',
-        'choices': resolution_choices
+        'choices': resolution_choices,
+        'help': "Switch to this resolution during gameplay"
     },
     {
         'option': 'display',
         'type': 'choice',
         'label': 'Restrict to display',
-        'choices': output_choices
+        'choices': output_choices,
+        'help': "Only keep this display active during gameplay"
     },
     {
         'option': 'oss_wrapper',
         'type': 'choice',
         'label': 'OSS Wrapper',
-        'choices': oss_list
+        'choices': oss_list,
+
     },
     {
         'option': 'reset_pulse',

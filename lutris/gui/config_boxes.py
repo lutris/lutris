@@ -57,7 +57,6 @@ class ConfigBox(Gtk.VBox):
 
             #Different types of widgets.
             if option["type"] in ("one_choice", "choice"):
-                print option, value
                 self.generate_combobox(option_key,
                                        option["choices"],
                                        option["label"], value)
@@ -90,12 +89,16 @@ class ConfigBox(Gtk.VBox):
                 self.generate_label(option["label"])
             else:
                 raise ValueError("Unknown widget type %s" % option["type"])
+            helptext = option.get("help")
+            if helptext:
+                self.generate_label(helptext)
+
 
     def generate_label(self, text):
         """ Generates a simple label. """
         label = Label(text)
         label.show()
-        self.pack_start(label, True, True, PADDING)
+        self.pack_start(label, False, False, PADDING)
 
     #Checkbox
     def generate_checkbox(self, option, value=None):
@@ -149,6 +152,7 @@ class ConfigBox(Gtk.VBox):
             for choice in choices:
                 if choice[1] == value:
                     selected_index = index + 1
+                    break
                 index += 1
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
