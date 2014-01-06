@@ -192,6 +192,58 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.destroy()
 
 
+class RunnerConfigDialog(Gtk.Dialog):
+    """Runners management dialog"""
+    def __init__(self, runner):
+        Gtk.Dialog.__init__(self)
+        runner_name = runner.__class__.__name__
+        self.set_title("Configure %s" % runner_name)
+        self.set_size_request(570, 500)
+        self.runner = runner_name
+        self.lutris_config = LutrisConfig(runner=runner_name)
+
+        #Notebook for choosing between runner and system configuration
+        self.notebook = Gtk.Notebook()
+        self.vbox.pack_start(self.notebook, True, True, 0)
+
+        #Runner configuration
+        self.runner_config_vbox = RunnerBox(self.lutris_config, "runner")
+        runner_scrollwindow = Gtk.ScrolledWindow()
+        runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                       Gtk.PolicyType.AUTOMATIC)
+        runner_scrollwindow.add_with_viewport(self.runner_config_vbox)
+        self.notebook.append_page(runner_scrollwindow,
+                                  Gtk.Label(label="Runner configuration"))
+
+        #System configuration
+        self.system_config_vbox = SystemBox(self.lutris_config, "runner")
+        system_scrollwindow = Gtk.ScrolledWindow()
+        system_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                       Gtk.PolicyType.AUTOMATIC)
+        system_scrollwindow.add_with_viewport(self.system_config_vbox)
+        self.notebook.append_page(system_scrollwindow,
+                                  Gtk.Label(label="System configuration"))
+
+        #Action buttons
+        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
+        ok_button = Gtk.Button(None, Gtk.STOCK_OK)
+        self.action_area.pack_start(cancel_button, True, True, 0)
+        self.action_area.pack_start(ok_button, True, True, 0)
+        cancel_button.connect("clicked", self.close)
+        ok_button.connect("clicked", self.ok_clicked)
+
+        self.show_all()
+        self.run()
+
+    def close(self, _widget):
+        self.destroy()
+
+    def ok_clicked(self, _wigdet):
+        self.system_config_vbox.lutris_config.config_type = "runner"
+        self.system_config_vbox.lutris_config.save()
+        self.destroy()
+
+
 class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
     title = "System preferences"
     dialog_height = 500
