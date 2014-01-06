@@ -2,7 +2,6 @@
 from gi.repository import Gtk, GObject, Gdk
 from lutris.util.log import logger
 from lutris.runners import import_runner
-from lutris.util import display
 from lutris import sysoptions
 
 PADDING = 5
@@ -14,7 +13,8 @@ class Label(Gtk.Label):
         """ Custom init of label """
         super(Label, self).__init__(message)
         #self.set_size_request(200, 30)
-        #self.set_alignment(0.0, 0.5)
+        self.set_alignment(0.1, 0.0)
+        self.set_padding(PADDING, 0)
         self.set_line_wrap(True)
 
 
