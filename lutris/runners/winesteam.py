@@ -7,11 +7,17 @@ import subprocess
 from gi.repository import Gdk
 
 from lutris.gui.dialogs import DirectoryDialog
-from lutris.runners.wine import wine
+from lutris.runners import wine
 from lutris.util.log import logger
 from lutris.util.steam import read_config, get_game_data_path
 from lutris.util import system
 from lutris.config import LutrisConfig
+
+# Redefine wine installer tasks
+set_regedit = wine.set_regedit
+create_prefix = wine.create_prefix
+wineexec = wine.wineexec
+winetricks = wine.winetricks
 
 
 def is_running():
@@ -37,7 +43,7 @@ def kill():
 
 
 # pylint: disable=C0103
-class winesteam(wine):
+class winesteam(wine.wine):
     """ Runs Steam for Windows games """
 
     #installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"

@@ -12,7 +12,6 @@ class Label(Gtk.Label):
     def __init__(self, message=None):
         """ Custom init of label """
         super(Label, self).__init__(message)
-        #self.set_size_request(200, 30)
         self.set_alignment(0.1, 0.0)
         self.set_padding(PADDING, 0)
         self.set_line_wrap(True)
@@ -92,7 +91,6 @@ class ConfigBox(Gtk.VBox):
             helptext = option.get("help")
             if helptext:
                 self.generate_label(helptext)
-
 
     def generate_label(self, text):
         """ Generates a simple label. """
