@@ -3,7 +3,6 @@
 import os
 
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
-from IPython.testing.decorators import make_label_dec
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
@@ -21,6 +20,7 @@ ICON_SIZE = (184, 69)
     COL_RUNNER,
     COL_INSTALLED,
 ) = range(5)
+
 
 def sort_func(store, a_iter, b_iter, _user_data):
     """Default sort function"""

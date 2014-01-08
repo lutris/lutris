@@ -123,5 +123,6 @@ if game_slug or options.installer_file:
         InstallerDialog(options.installer_file or game_slug)
         Gtk.main()
 else:
+    logger.debug("Welcome to Lutris")
     LutrisWindow()
     Gtk.main()

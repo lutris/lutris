@@ -50,7 +50,7 @@ class Game(object):
 
         self.load_config()
         self.resolution_changed = False
-        self.original_outputs = display.get_outputs()
+        self.original_outputs = None
 
     def __repr__(self):
         return self.__unicode__()
@@ -103,6 +103,9 @@ class Game(object):
         """ Launch the game. """
         if not self.prelaunch():
             return False
+
+        self.original_outputs = display.get_outputs()
+
         gameplay_info = self.runner.play()
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if isinstance(gameplay_info, dict):

@@ -62,10 +62,11 @@ class LutrisWindow(object):
             'filter_installed'
         )
         show_installed_games_menuitem.set_active(self.filter_installed)
-
-        self.view = switch_to_view(view_type,
-                                   get_game_list(self.filter_installed))
-
+        logger.debug("Getting game list")
+        game_list = get_game_list(self.filter_installed)
+        logger.debug("Switching view")
+        self.view = switch_to_view(view_type, game_list)
+        logger.debug("Connecting signals")
         self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
         self.icon_view_menuitem.set_active(view_type == 'icon')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
