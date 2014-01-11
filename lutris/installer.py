@@ -514,7 +514,7 @@ class ScriptInterpreter(object):
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()
         data_path = steam_runner.get_game_data_path(self.steam_data['appid'])
-        if not os.path.exists(data_path):
+        if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
         logger.debug("got data path: %s" % data_path)
         self.game_files[self.steam_data['file_id']] = \

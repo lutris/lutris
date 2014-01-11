@@ -54,7 +54,10 @@ class steam(Runner):
 
     def get_game_data_path(self, appid):
         steam_config = self.get_steam_config()
-        return get_game_data_path(steam_config, appid)
+        data_path = get_game_data_path(steam_config, appid)
+        if not data_path:
+            logger.warning("Data path for SteamApp %s not found.", appid)
+        return data_path
 
     def get_steam_config(self):
         return read_config(self.get_game_path())
