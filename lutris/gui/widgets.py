@@ -422,7 +422,7 @@ class FileChooserEntry(Gtk.Box):
             (Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
              Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
         )
-        if default and os.path.exists(default):
+        if default:
             self.file_chooser_dlg.set_current_folder(default)
 
         button = Gtk.Button()
