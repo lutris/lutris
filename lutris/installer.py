@@ -287,6 +287,19 @@ class ScriptInterpreter(object):
         if os.path.exists(self.download_cache_path):
             shutil.rmtree(self.download_cache_path)
 
+    def _substitute_config(self, script_config):
+        """ Substitutes values such as $GAMEDIR in a config dict """
+        config = {}
+        for key in script_config:
+            if not isinstance(key, basestring):
+                raise ScriptingError("Game config key must be a string", key)
+            value = script_config[key]
+            if isinstance(value, list):
+                config[key] = [self._substitute(i) for i in value]
+            else:
+                config[key] = self._substitute(value)
+        return config
+
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
         config_filename = os.path.join(settings.CONFIG_DIR,
@@ -302,20 +315,11 @@ class ScriptInterpreter(object):
                           directory=self.target_path,
                           installed=1)
         if 'system' in self.script:
-            config['system'] = self.script['system']
+            config['system'] = self._substitute_config(self.script['system'])
         if runner_name in self.script:
-            config[runner_name] = self.script[runner_name]
+            config[runner_name] = self._substitute_config(self.script[runner_name])
         if 'game' in self.script:
-            for key in self.script['game']:
-                if not isinstance(key, basestring):
-                    raise ScriptingError("Game config key must be a string",
-                                         key)
-                value = self.script['game'][key]
-                if isinstance(value, list):
-                    config['game'][key] = [self._substitute(i) for i in value]
-                else:
-                    config['game'][key] = self._substitute(value)
-
+            config['game'] = self._substitute_config(self.script['game'])
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
