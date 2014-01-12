@@ -27,6 +27,22 @@ class fsuae(uae):
 
         self.runner_options = [
             {
+                "option": "model",
+                "label": "Amiga model",
+                "type": "choice",
+                "choices": [
+                    ("Amiga 500 (default)", 'A500'),
+                    ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
+                    ("Amiga 600 with 1 MB chip RAM", 'A600'),
+                    ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
+                    ("Amiga 1200 with 2 MB chip RAM", 'A1200'),
+                    ("Amiga 1200 but with 68020 processor", 'A1200/020'),
+                    ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
+                    ("CD32 unit", 'CD32'),
+                    ("Commodore CDTV unit", 'CDTV'),
+                ]
+            },
+            {
                 "option": "kickstart_file",
                 "label": "Rom Path",
                 "type": "file_chooser"
@@ -49,9 +65,14 @@ class fsuae(uae):
         for disk in game_disks:
             if disk not in disks:
                 disks.append(disk)
+        amiga_model = self.settings.get('fsuae', {}).get('model')
+        if amiga_model in ('CD32', 'CDTV'):
+            disk_param = 'cdrom_drive'
+        else:
+            disk_param = 'floppy_drive'
         floppy_params = []
         for drive, disk in enumerate(disks):
-            floppy_params.append("--floppy_drive_%d=\"%s\"" % (drive, disk))
+            floppy_params.append("--%s_%d=\"%s\"" % (disk_param, drive, disk))
         return floppy_params
 
     def is_installed(self):
@@ -79,12 +100,12 @@ class fsuae(uae):
         runner = self.__class__.__name__
         params = []
         runner_config = self.settings[runner] or {}
-        machine = runner_config.get('machine')
+        model = runner_config.get('model')
         kickstart_file = runner_config.get('kickstart_file')
         if kickstart_file:
             params.append("--kickstart_file=\"%s\"" % kickstart_file)
-        if machine:
-            params.append('--amiga_model=%s' % machine)
+        if model:
+            params.append('--amiga_model=%s' % model)
         if runner_config.get("gfx_fullscreen_amiga", False):
             width = int(get_current_resolution().split('x')[0])
             params.append("--fullscreen")
