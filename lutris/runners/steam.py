@@ -4,7 +4,8 @@ import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import get_game_data_path, read_config, get_default_acf, to_vdf
+from lutris.util.steam import (get_path_from_config, get_path_from_appmanifest,
+                               read_config, get_default_acf, to_vdf)
 
 
 def shutdown():
@@ -53,8 +54,11 @@ class steam(Runner):
         return os.path.expanduser('~/.local/share/Steam')
 
     def get_game_data_path(self, appid):
-        steam_config = self.get_steam_config()
-        data_path = get_game_data_path(steam_config, appid)
+        steam_path = self.get_game_path()
+        data_path = get_path_from_appmanifest(steam_path, appid)
+        if not data_path:
+            steam_config = self.get_steam_config()
+            data_path = get_path_from_config(steam_config, appid)
         if not data_path:
             logger.warning("Data path for SteamApp %s not found.", appid)
         return data_path

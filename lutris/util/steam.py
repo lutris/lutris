@@ -66,7 +66,7 @@ def read_config(path_prefix):
     return config['InstallConfigStore']['Software']['Valve']['Steam']
 
 
-def get_game_data_path(config, appid):
+def get_path_from_config(config, appid):
     """ Given a steam config, return path for game 'appid' """
     if not config or 'apps' not in config:
         return False
@@ -91,3 +91,18 @@ def get_game_data_path(config, appid):
         else:
             logger.debug("Path %s not found" % installdir)
     return False
+
+
+def get_path_from_appmanifest(steam_path, appid):
+    appmanifest_path = os.path.join(steam_path,
+                                    "SteamApps/appmanifest_%s.acf" % appid)
+    if not os.path.exists(appmanifest_path):
+        logger.debug("No appmanifest file %s" % appmanifest_path)
+        return
+
+    with open(appmanifest_path, "r") as appmanifest_file:
+        config = vdf_parse(appmanifest_file, {})
+    installdir = config.get('AppState', {}).get('installdir')
+    install_path = os.path.join(steam_path, "SteamApps/common/%s" % installdir)
+    if installdir and os.path.exists(install_path):
+        return install_path

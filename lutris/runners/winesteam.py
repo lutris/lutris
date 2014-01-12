@@ -9,7 +9,7 @@ from gi.repository import Gdk
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners import wine
 from lutris.util.log import logger
-from lutris.util.steam import read_config, get_game_data_path
+from lutris.util.steam import read_config, get_path_from_config
 from lutris.util import system
 from lutris.config import LutrisConfig
 
@@ -104,7 +104,7 @@ class winesteam(wine.wine):
 
     def get_game_data_path(self, appid):
         steam_config = self.get_steam_config()
-        return get_game_data_path(steam_config, appid)
+        return get_path_from_config(steam_config, appid)
 
     def install_game(self, appid):
         subprocess.Popen(self.launch_args + ["steam://install/%s" % appid])
