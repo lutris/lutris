@@ -52,6 +52,11 @@ class fsuae(uae):
                 "label": "Fullscreen (F12 + s to Switch)",
                 "type": "bool"
             },
+            {
+                "option": "scanlines",
+                "label": "Enable scanlines",
+                "type": "bool"
+            }
         ]
         self.settings = settings
 
@@ -113,6 +118,8 @@ class fsuae(uae):
             #params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")
             params.append("--fullscreen_width=%d" % width)
+        if runner_config.get('scanlines'):
+            params.append("--scanlines=1")
         return params
 
     def play(self):
