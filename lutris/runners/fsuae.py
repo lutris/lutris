@@ -65,7 +65,8 @@ class fsuae(uae):
         for disk in game_disks:
             if disk not in disks:
                 disks.append(disk)
-        amiga_model = self.settings.get('fsuae', {}).get('model')
+        runner_settings = self.settings.get('fsuae') or {}
+        amiga_model = runner_settings.get('model')
         if amiga_model in ('CD32', 'CDTV'):
             disk_param = 'cdrom_drive'
         else:
