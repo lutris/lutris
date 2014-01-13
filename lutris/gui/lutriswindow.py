@@ -300,7 +300,8 @@ class LutrisWindow(object):
             else 'list'
         if view_type == current_view:
             return
-        self.list_view_menuitem.toggled()
+        self.icon_view_menuitem.set_active(view_type == 'icon')
+        self.list_view_menuitem.set_active(view_type == 'list')
         self.do_view_switch(view_type)
 
     def do_view_switch(self, view_type):
