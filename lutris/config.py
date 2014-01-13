@@ -120,10 +120,10 @@ class LutrisConfig(object):
         #Read system configuration
         self.system_config = read_yaml_from_file(join(CONFIG_DIR,
                                                       "system.yml"))
-        if self.runner:
+        if runner:
             self.runner_config = read_yaml_from_file(join(CONFIG_DIR,
                                                           "runners/%s.yml"
-                                                          % self.runner))
+                                                          % runner))
         else:
             self.runner_config = {}
         if self.game:
