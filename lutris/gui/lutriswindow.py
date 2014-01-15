@@ -28,11 +28,11 @@ from lutris.gui.widgets import GameTreeView, GameIconView, ContextualMenu
 GAME_VIEW = 'icon'
 
 
-def switch_to_view(view=GAME_VIEW, games=[]):
+def switch_to_view(view=GAME_VIEW, games=[], filter_text=None):
     if view == 'icon':
-        view = GameIconView(games)
+        view = GameIconView(games, filter_text=filter_text)
     elif view == 'list':
-        view = GameTreeView(games)
+        view = GameTreeView(games, filter_text=filter_text)
     return view
 
 
@@ -75,6 +75,8 @@ class LutrisWindow(object):
         self.icon_view_btn.set_active(view_type == 'icon')
         self.list_view_btn = self.builder.get_object('switch_list_view_btn')
         self.list_view_btn.set_active(view_type == 'list')
+
+        self.search_entry = self.builder.get_object('search_entry')
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
@@ -309,7 +311,8 @@ class LutrisWindow(object):
         self.view.destroy()
         self.view = switch_to_view(
             view_type,
-            get_game_list(filter_installed=self.filter_installed)
+            get_game_list(filter_installed=self.filter_installed),
+            filter_text=self.search_entry.get_text()
         )
         self.view.contextual_menu = self.menu
         self.connect_signals()

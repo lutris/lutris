@@ -5,7 +5,6 @@ from gi.repository import Gtk, GObject
 
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
-from lutris import settings
 from lutris import pga
 from lutris import api
 

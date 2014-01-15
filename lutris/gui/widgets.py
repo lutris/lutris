@@ -122,9 +122,9 @@ class IconViewCellRenderer(Gtk.CellRendererText):
 
 
 class GameStore(object):
-    filter_text = ""
 
-    def __init__(self, games, icon_size=ICON_SIZE):
+    def __init__(self, games, icon_size=ICON_SIZE, filter_text=None):
+        self.filter_text = filter_text
         self.icon_size = icon_size
         self.store = Gtk.ListStore(str, str, Pixbuf, str, bool)
         self.store.set_default_sort_func(sort_func)
@@ -159,8 +159,6 @@ class GameView(object):
     selected_game = None
     current_path = None
     contextual_menu = None
-    filter_text = ""
-    games = []
 
     def get_row_by_slug(self, game_slug):
         game_row = None
@@ -184,7 +182,11 @@ class GameView(object):
         store.remove(model_iter)
 
     def update_filter(self, widget, data=None):
-        self.game_store.filter_text = data
+        self.filter_text = data
+        self.filter_view()
+
+    def filter_view(self):
+        self.game_store.filter_text = self.filter_text
         self.get_model().refilter()
 
     def update_image(self, game_slug, is_installed=False):
@@ -216,8 +218,9 @@ class GameTreeView(Gtk.TreeView, GameView):
     """Show the main list of games"""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games):
-        self.game_store = GameStore(games)
+    def __init__(self, games, filter_text=""):
+        self.filter_text = filter_text
+        self.game_store = GameStore(games, filter_text=self.filter_text)
         super(GameTreeView, self).__init__(self.game_store.modelfilter)
         self.set_rules_hint(True)
 
@@ -279,8 +282,10 @@ class GameIconView(Gtk.IconView, GameView):
     icon_width = ICON_SIZE[0]
     icon_padding = 1
 
-    def __init__(self, games):
-        self.game_store = GameStore(games, icon_size=ICON_SIZE)
+    def __init__(self, games, filter_text=""):
+        self.filter_text = filter_text
+        self.game_store = GameStore(games, icon_size=ICON_SIZE,
+                                    filter_text=self.filter_text)
         super(GameIconView, self).__init__(self.game_store.modelfilter)
         self.set_columns(1)
         self.set_column_spacing(1)
