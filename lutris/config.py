@@ -75,7 +75,6 @@ def check_config(force_wipe=False):
 def read_yaml_from_file(filename):
     """Read filename and return parsed yaml"""
     if not os.path.exists(filename):
-        logger.error("Invalid config filename %s", filename)
         return {}
     try:
         content = file(filename, 'r').read()
