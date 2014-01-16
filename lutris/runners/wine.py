@@ -172,8 +172,9 @@ class wine(Runner):
 
     def get_wine_path(self):
         runner_name = self.__class__.__name__
-        if runner_name in self.settings.config:
-            return self.settings[runner_name].get('wine_path', self.executable)
+        runner_config = self.settings.config.get(runner_name)
+        if runner_config:
+            return runner_config.get('wine_path', self.executable)
         return self.executable
 
     @classmethod
