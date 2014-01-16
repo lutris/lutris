@@ -6,7 +6,7 @@ from lutris.settings import CACHE_DIR
 from lutris.runners.runner import Runner
 
 
-def set_regedit(path, key, value):
+def set_regedit(path, key, value, prefix=None):
     """Plays with the windows registry
 
     path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
@@ -24,14 +24,13 @@ def set_regedit(path, key, value):
 
 """ % (path, key, value))
     reg_file.close()
-    subprocess.call(["wine", "regedit", reg_path])
+    wineexec('regedit', args=reg_path, prefix=prefix)
     os.remove(reg_path)
 
 
-def create_prefix(prefix_path):
+def create_prefix(prefix):
     """Create a new wineprefix"""
-    os.system("export WINEPREFIX=\"%s\"; wineboot"
-              % prefix_path)
+    wineexec('', prefix=prefix, wine_path='wineboot')
 
 
 def wineexec(executable, args="", prefix=None, wine_path='wine'):
@@ -39,19 +38,15 @@ def wineexec(executable, args="", prefix=None, wine_path='wine'):
         prefix = ""
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
-    command = prefix + "%s \"%s\" %s" % (wine_path, executable, args)
+    command = "WINEARCH=win32 %s %s \"%s\" %s" % (
+        prefix, wine_path, executable, args
+    )
     logger.debug("Running wine command: %s", command)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
 def winetricks(app, prefix=None):
-    if not prefix:
-        prefix = ""
-    else:
-        prefix = "WINEPREFIX=\"%s\" " % prefix
-    command = prefix + "winetricks %s" % app
-    logger.debug("Running winetricks command: %s", command)
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
+    wineexec(app, prefix=prefix, wine_path='winetricks')
 
 
 # pylint: disable=C0103
@@ -182,7 +177,7 @@ class wine(Runner):
         msi_args = ["msiexec", "/i", msi_file]
         if quiet:
             msi_args.append("/q")
-        return wineexec(msi_args, prefix)
+        return wineexec(msi_args, prefix=prefix)
 
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
@@ -202,7 +197,7 @@ class wine(Runner):
         arguments = self.settings['game'].get('args', "")
         self.prepare_launch()
 
-        command = []
+        command = ['WINEARCH=win32']
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
