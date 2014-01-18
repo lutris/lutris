@@ -96,3 +96,22 @@ def merge_folders(source, destination):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename),
                         os.path.join(dst_abspath, filename))
+
+
+def is_removeable(path):
+    """ Given a folder path, tells if it safe to remove it """
+    if not path:
+        return False
+    if not os.path.exists(path):
+        return False
+
+    parts = path.strip('/').split('/')
+    if parts[0] in ('usr', 'var', 'lib', 'etc', 'boot', 'sbin', 'bin'):
+        # Path is part of the system folders
+        return False
+
+    if parts[0] == 'home' and len(parts) == 2:
+        # Path is a home folder
+        return False
+
+    return True
