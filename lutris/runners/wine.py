@@ -45,7 +45,9 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
-def winetricks(app, prefix=None, arch='win32'):
+def winetricks(app, prefix=None, arch='win32', silent=False):
+    if str(silent).lower() in ('yes', 'on', 'true'):
+        app = "-q " + app
     wineexec(app, prefix=prefix, wine_path='winetricks', arch=arch)
 
 
