@@ -37,7 +37,6 @@
       <object class="GtkVBox" id="main_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="spacing">5</property>
         <child>
           <object class="GtkMenuBar" id="main_menubar">
             <property name="visible">True</property>
@@ -257,8 +256,6 @@
           <object class="GtkToolbar" id="lutris_toolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_right">5</property>
             <property name="toolbar_style">icons</property>
             <property name="icon_size">4</property>
             <child>
