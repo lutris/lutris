@@ -8,6 +8,7 @@ import shutil
 import urllib2
 import platform
 import subprocess
+import webbrowser
 
 from gi.repository import Gtk
 
@@ -21,7 +22,8 @@ from lutris.util.system import calculate_md5, substitute, merge_folders
 from lutris.runners import winesteam, steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import FileDialog, ErrorDialog
+from lutris.gui.config_dialogs import AddGameDialog
+from lutris.gui.dialogs import FileDialog, ErrorDialog, NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris import settings
 from lutris.runners import import_task
@@ -70,6 +72,8 @@ class ScriptInterpreter(object):
         self.game_files = {}
         self.steam_data = {}
         self.script = self._fetch_script(game_ref)
+        if not self.script:
+            return
         if not self.is_valid():
             raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
@@ -114,7 +118,16 @@ class ScriptInterpreter(object):
                 request = urllib2.urlopen(request)
                 script_contents = request.read()
             except IOError:
-                raise ScriptingError("Server unreachable", full_url)
+                dlg = NoInstallerDialog(self.parent)
+                if dlg.result == 1:
+                    installer_url = settings.SITE_URL + "games/%s/" % game_ref
+                    webbrowser.open(installer_url)
+                elif dlg.result == 2:
+                    game = Game(game_ref)
+                    game_dialog = AddGameDialog(self.parent, game)
+                    if game_dialog.runner_name:
+                        self.parent.notify_install_success()
+                return
         return yaml.safe_load(script_contents)
 
     def is_valid(self):
@@ -609,6 +622,8 @@ class InstallerDialog(Gtk.Window):
 
         # Interpreter
         self.interpreter = ScriptInterpreter(game_ref, self)
+        if not self.interpreter.script:
+            return
 
         ## GUI Setup
 
@@ -734,6 +749,10 @@ class InstallerDialog(Gtk.Window):
         close_button.show()
         close_button.connect('clicked', self.close)
         self.action_buttons.pack_start(close_button, True, True, 10)
+
+        self.notify_install_success()
+
+    def notify_install_success(self):
         if self.parent:
             self.parent.view.emit('game-installed', self.game_ref)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
-# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>
+# Copyright (C) 2010-2014 Mathieu Comandon <strycore@gmail.com>
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
 # by the Free Software Foundation.
@@ -47,7 +47,7 @@ except ImportError:
 from lutris.constants import CONFIG_EXTENSION, GAME_CONFIG_PATH
 from lutris.util.log import logger
 from lutris.installer import InstallerDialog
-from lutris.config import check_config, register_handler
+from lutris.config import check_config  # , register_handler
 from lutris.game import Game
 from lutris.pga import get_games
 from lutris.gui.lutriswindow import LutrisWindow
@@ -55,7 +55,7 @@ from lutris.settings import VERSION
 
 
 # Support for command line options.
-parser = optparse.OptionParser(version="%prog "+VERSION)
+parser = optparse.OptionParser(version="%prog " + VERSION)
 parser.add_option("-v", "--verbose", action="store_true",
                   dest="verbose", help="Verbose output")
 parser.add_option("-d", "--debug", action="store_true",

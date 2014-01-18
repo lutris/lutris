@@ -1,7 +1,6 @@
 # -*- coding:Utf-8 -*-
 """Settings module"""
 import os
-import sys
 from xdg import BaseDirectory
 from lutris.util.settings import SettingsIO
 
@@ -31,7 +30,6 @@ LIB64_URL = SITE_URL + "files/lib64/"
 
 ## Default config options
 KEEP_CACHED_ASSETS = True
-
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting
