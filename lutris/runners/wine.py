@@ -38,7 +38,10 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
         prefix = ""
     else:
         prefix = "WINEPREFIX=\"%s\" " % prefix
-    command = "WINEARCH=%s %s %s \"%s\" %s" % (
+    executable = str(executable) if executable else ""
+    if " " in executable:
+        executable = "\"%s\"" % executable
+    command = "WINEARCH=%s %s %s %s %s" % (
         arch, prefix, wine_path, executable, args
     )
     logger.debug("Running wine command: %s", command)
@@ -47,8 +50,10 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
 
 def winetricks(app, prefix=None, arch='win32', silent=False):
     if str(silent).lower() in ('yes', 'on', 'true'):
-        app = "-q " + app
-    wineexec(app, prefix=prefix, wine_path='winetricks', arch=arch)
+        args = "-q " + app
+    else:
+        args = app
+    wineexec(None, prefix=prefix, wine_path='winetricks', arch=arch, args=args)
 
 
 # pylint: disable=C0103
