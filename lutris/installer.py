@@ -120,13 +120,13 @@ class ScriptInterpreter(object):
             except IOError:
                 dlg = NoInstallerDialog(self.parent)
                 if dlg.result == 1:
-                    installer_url = settings.SITE_URL + "games/%s/" % game_ref
-                    webbrowser.open(installer_url)
-                elif dlg.result == 2:
                     game = Game(game_ref)
                     game_dialog = AddGameDialog(self.parent, game)
                     if game_dialog.runner_name:
                         self.parent.notify_install_success()
+                elif dlg.result == 2:
+                    installer_url = settings.SITE_URL + "games/%s/" % game_ref
+                    webbrowser.open(installer_url)
                 return
         return yaml.safe_load(script_contents)
 
