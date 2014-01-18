@@ -141,6 +141,8 @@ class GameStore(object):
 
     def add_game(self, game):
         """Adds a game into the store """
+        if not game.name:
+            return
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
