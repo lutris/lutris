@@ -54,14 +54,15 @@ class ConfigBox(Gtk.VBox):
             else:
                 value = None
 
+            if value is None and 'default' in option:
+                value = option['default']
+
             #Different types of widgets.
             if option["type"] in ("one_choice", "choice"):
                 self.generate_combobox(option_key,
                                        option["choices"],
                                        option["label"], value)
             elif option["type"] == "bool":
-                if value is None and 'default' in option:
-                    value = option['default']
                 self.generate_checkbox(option, value)
             elif option["type"] == "range":
                 self.generate_range(option_key,
