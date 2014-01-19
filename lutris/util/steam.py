@@ -2,6 +2,7 @@ import os
 from lutris.util.log import logger
 from collections import OrderedDict
 
+
 def get_default_acf(appid, name):
     userconfig = OrderedDict()
     userconfig['name'] = name
@@ -13,7 +14,6 @@ def get_default_acf(appid, name):
     appstate['StateFlags'] = "4"
     appstate['installdir'] = name
     appstate['UserConfig'] = userconfig
-
     return {'AppState': appstate}
 
 
