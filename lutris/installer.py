@@ -227,20 +227,14 @@ class ScriptInterpreter(object):
         dest_file = os.path.join(self.download_cache_path, filename)
 
         if file_uri.startswith("N/A"):
-            #Ask the user where is located the file
+            # Ask the user where is located the file
             parts = file_uri.split(":", 1)
             if len(parts) == 2:
                 message = parts[1]
             else:
-                message = file_id
-            file_uri = self.parent.ask_user_for_file(message)
-            if not file_uri:
-                raise ScriptingError(
-                    "Can't continue installation without file", file_id
-                )
-
-            self.game_files[file_id] = file_uri
-            self.iter_game_files()
+                message = "Please select file '%s'" % file_id
+            self.current_file_id = file_id
+            self.parent.ask_user_for_file(message)
             return
 
         if os.path.exists(dest_file):
@@ -256,6 +250,15 @@ class ScriptInterpreter(object):
         self.parent.set_status('Fetching %s' % file_uri)
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
+
+    def file_selected(self, file_path):
+        file_id = self.current_file_id
+        if not file_path or not os.path.exists(file_path):
+            raise ScriptingError(
+                "Can't continue installation without file", file_id
+            )
+        self.game_files[file_id] = file_path
+        self.iter_game_files()
 
     def _prepare_commands(self):
         if os.path.exists(self.target_path):
@@ -648,34 +651,54 @@ class InstallerDialog(Gtk.Window):
         # Install button
         self.install_button = Gtk.Button('Install')
         self.install_button.connect('clicked', self.on_install_clicked)
+        self.continue_button = Gtk.Button('Continue')
+        self.continue_button.connect('clicked', self.on_file_selected)
 
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
         self.action_buttons = Gtk.HBox()
         action_buttons_alignment.add(self.action_buttons)
         self.action_buttons.add(self.install_button)
+        self.action_buttons.add(self.continue_button)
 
         self.vbox.pack_start(action_buttons_alignment, False, False, 25)
 
+        self.location_entry = None
         # Target chooser
         if not self.interpreter.requires and self.interpreter.files:
-            # Top label
-            label = Gtk.Label()
-            label.set_markup('<b>Select installation directory:</b>')
-            label.set_alignment(0, 0)
-            self.widget_box.pack_start(label, False, False, 10)
+            self.set_message("Select installation directory")
             default_path = self.interpreter.default_target
-            location_entry = FileChooserEntry(default=default_path)
-            location_entry.entry.connect('changed', self.on_target_changed)
-            self.widget_box.pack_start(location_entry, False, False, 0)
+            self.set_location_entry(self.on_target_changed, default_path)
         else:
-            label = Gtk.Label("Click install to continue")
+            self.set_message("Click install to continue")
         self.show_all()
+        self.continue_button.hide()
 
     def on_destroy(self, widget):
         if self.parent:
             self.destroy()
         else:
             Gtk.main_quit()
+
+    def set_message(self, message):
+        label = Gtk.Label()
+        label.set_markup('<b>%s</b>' % message)
+        label.set_alignment(0, 0)
+        label.show()
+        self.widget_box.pack_start(label, False, False, 10)
+
+    def set_location_entry(self, callback, default_path=None):
+        if self.location_entry:
+            self.location_entry.destroy()
+        self.location_entry = FileChooserEntry(
+            action=Gtk.FileChooserAction.OPEN,  default=default_path
+        )
+        self.location_entry.show_all()
+        if callback:
+            self.location_entry.entry.connect('changed', callback)
+        else:
+            self.install_button.set_visible(False)
+            self.continue_button.show()
+        self.widget_box.pack_start(self.location_entry, False, False, 0)
 
     def on_target_changed(self, text_entry):
         """ Sets the installation target for the game """
@@ -686,9 +709,14 @@ class InstallerDialog(Gtk.Window):
         self.interpreter.iter_game_files()
 
     def ask_user_for_file(self, message=None):
-        dlg = FileDialog(message)
-        filename = getattr(dlg, 'filename', '')
-        return filename
+        self.clean_widgets()
+        self.set_message(message)
+        self.set_location_entry(None)
+
+    def on_file_selected(self, widget):
+        file_path = self.location_entry.get_text()
+        logger.debug("User selected file: %s", file_path)
+        self.interpreter.file_selected(file_path)
 
     def clean_widgets(self):
         for child_widget in self.widget_box.get_children():
@@ -738,7 +766,7 @@ class InstallerDialog(Gtk.Window):
         self.status_label.set_text("Installation finished !")
 
         self.clean_widgets()
-
+        self.continue_button.destroy()
         self.install_button.destroy()
         play_button = Gtk.Button("Launch game")
         play_button.show()

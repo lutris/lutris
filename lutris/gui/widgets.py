@@ -471,3 +471,6 @@ class FileChooserEntry(Gtk.Box):
             self.file_chooser_dlg.set_current_folder(target_path)
             self.entry.set_text(target_path)
         dialog.hide()
+
+    def get_text(self):
+        return self.entry.get_text()
