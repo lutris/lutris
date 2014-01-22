@@ -117,9 +117,11 @@ for arg in args:
 if game_slug or options.installer_file:
     file_path = os.path.join(GAME_CONFIG_PATH, game_slug + CONFIG_EXTENSION)
     if os.path.exists(file_path) and not options.reinstall:
+        logger.info("Launching %s", game_slug)
         lutris_game = Game(game_slug)
         lutris_game.play()
     else:
+        logger.info("Installing %s", game_slug)
         InstallerDialog(options.installer_file or game_slug)
         Gtk.main()
 else:
