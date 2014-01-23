@@ -11,7 +11,7 @@ class Label(Gtk.Label):
     """ Standardised label for config vboxes"""
     def __init__(self, message=None):
         """ Custom init of label """
-        super(Label, self).__init__(message)
+        super(Label, self).__init__(label=message)
         self.set_alignment(0.1, 0.0)
         self.set_padding(PADDING, 0)
         self.set_line_wrap(True)
@@ -102,7 +102,7 @@ class ConfigBox(Gtk.VBox):
     #Checkbox
     def generate_checkbox(self, option, value=None):
         """ Generates a checkbox. """
-        checkbox = Gtk.CheckButton(option["label"])
+        checkbox = Gtk.CheckButton(label=option["label"])
         if value:
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])

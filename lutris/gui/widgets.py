@@ -87,7 +87,8 @@ class ContextualMenu(Gtk.Menu):
         for callback in callbacks:
             name = callback[0]
             label = self.menu_labels[name]
-            action = Gtk.Action(name, label, None, None)
+            action = Gtk.Action(name=name, label=label,
+                                tooltip=None, stock_id=None)
             action.connect('activate', callback[1])
             menuitem = action.create_menu_item()
             menuitem.action_id = name
@@ -288,7 +289,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.filter_text = filter_text
         self.game_store = GameStore(games, icon_size=ICON_SIZE,
                                     filter_text=self.filter_text)
-        super(GameIconView, self).__init__(self.game_store.modelfilter)
+        super(GameIconView, self).__init__(model=self.game_store.modelfilter)
         self.set_columns(1)
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
@@ -425,9 +426,14 @@ class FileChooserEntry(Gtk.Box):
         self.entry.connect("changed", self.entry_changed)
 
         self.file_chooser_dlg = Gtk.FileChooserDialog(
-            "Select folder", None, action,
-            (Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+            title="Select folder",
+            transient_for=None,
+            action=action
+        )
+
+        self.file_chooser_dlg.add_buttons(
+            Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
+            Gtk.STOCK_OPEN, Gtk.ResponseType.OK
         )
         if default:
             self.file_chooser_dlg.set_current_folder(default)

@@ -88,7 +88,7 @@ class GameDialogCommon(object):
         self.add_notebook_tab(self.system_sw, "System configuration")
 
     def build_action_area(self, button_type, button_callback):
-        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
+        cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
         cancel_button.connect("clicked", self.on_cancel_clicked)
         self.action_area.pack_start(cancel_button, True, True, 0)
 

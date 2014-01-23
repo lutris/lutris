@@ -23,7 +23,7 @@ from lutris.runners import winesteam, steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import FileDialog, ErrorDialog, NoInstallerDialog
+from lutris.gui.dialogs import ErrorDialog, NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris import settings
 from lutris.runners import import_task
@@ -649,9 +649,9 @@ class InstallerDialog(Gtk.Window):
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
         # Install button
-        self.install_button = Gtk.Button('Install')
+        self.install_button = Gtk.Button(label='Install')
         self.install_button.connect('clicked', self.on_install_clicked)
-        self.continue_button = Gtk.Button('Continue')
+        self.continue_button = Gtk.Button(label='Continue')
         self.continue_button.connect('clicked', self.on_file_selected)
 
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
