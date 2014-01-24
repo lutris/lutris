@@ -33,7 +33,7 @@ def create_prefix(prefix, arch='win32'):
     wineexec('', prefix=prefix, wine_path='wineboot', arch=arch)
 
 
-def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
+def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32', workdir=None):
     if not prefix:
         prefix = ""
     else:
@@ -45,7 +45,7 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
         arch, prefix, wine_path, executable, args
     )
     logger.debug("Running wine command: %s", command)
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
+    subprocess.Popen(command, cwd=workdir, shell=True, stdout=subprocess.PIPE).communicate()
 
 
 def winetricks(app, prefix=None, arch='win32', silent=False):
