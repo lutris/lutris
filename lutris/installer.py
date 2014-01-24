@@ -292,14 +292,13 @@ class ScriptInterpreter(object):
     def _finish_install(self):
         self.parent.set_status("Writing configuration")
         self._write_config()
-        self._cleanup()
         self.parent.set_status("Installation finished !")
         self.parent.on_install_finished()
 
     def _install_error(self, message):
         self.parent.set_status(message)
 
-    def _cleanup(self):
+    def cleanup(self):
         if os.path.exists(self.download_cache_path):
             shutil.rmtree(self.download_cache_path)
 
@@ -417,9 +416,11 @@ class ScriptInterpreter(object):
 
     def insert_disc(self, data):
         message = data.get('message', "Insert game disc to continue")
-        requires = data['requires']
+        requires = data.get('requires')
+        if not requires:
+            raise ScriptingError("The installer's `insert_disc` command is "
+                                 "missing the `requires` parameter." * 2)
         self.parent.wait_for_user_action(message, self.on_cd_mounted, requires)
-        logger.debug(message)
         return 'STOP'
 
     def on_cd_mounted(self, widget, requires):
@@ -654,21 +655,24 @@ class InstallerDialog(Gtk.Window):
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
         self.action_buttons = Gtk.HBox()
         action_buttons_alignment.add(self.action_buttons)
-        self.vbox.pack_start(action_buttons_alignment, False, False, 25)
+        self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
         self.install_button = Gtk.Button(label='Install')
         self.install_button.connect('clicked', self.on_install_clicked)
         self.action_buttons.add(self.install_button)
 
         self.continue_button = Gtk.Button(label='Continue')
+        self.continue_button.set_margin_left(20)
         self.continue_button.connect('clicked', self.on_file_selected)
         self.action_buttons.add(self.continue_button)
 
         self.play_button = Gtk.Button(label="Launch game")
+        self.play_button.set_margin_left(20)
         self.play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(self.play_button)
 
         self.close_button = Gtk.Button(label="Close")
+        self.close_button.set_margin_left(20)
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
@@ -682,8 +686,10 @@ class InstallerDialog(Gtk.Window):
         self.show_all()
         self.continue_button.hide()
         self.close_button.hide()
+        self.play_button.hide()
 
     def on_destroy(self, widget):
+        self.interpreter.cleanup()
         if self.parent:
             self.destroy()
         else:
@@ -756,10 +762,10 @@ class InstallerDialog(Gtk.Window):
     def wait_for_user_action(self, message, callback, data=None):
         time.sleep(0.3)
         self.clean_widgets()
-        label = Gtk.Label(message)
+        label = Gtk.Label(label=message)
         self.widget_box.add(label)
         label.show()
-        button = Gtk.Button('Ok')
+        button = Gtk.Button(label='Ok')
         button.connect('clicked', callback, data)
         self.widget_box.add(button)
         button.show()
