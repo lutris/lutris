@@ -16,7 +16,7 @@ from lutris import pga
 from lutris.util import extract
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
-from lutris.util.strings import slugify
+from lutris.util.strings import slugify, add_url_tags
 from lutris.util.system import calculate_md5, substitute, merge_folders
 
 from lutris.runners import winesteam, steam
@@ -697,7 +697,7 @@ class InstallerDialog(Gtk.Window):
 
     def set_message(self, message):
         label = Gtk.Label()
-        label.set_markup('<b>%s</b>' % message)
+        label.set_markup('<b>%s</b>' % add_url_tags(message))
         label.set_alignment(0, 0)
         label.show()
         self.widget_box.pack_start(label, False, False, 10)

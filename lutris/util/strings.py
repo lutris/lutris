@@ -12,3 +12,13 @@ def slugify(value):
                                                                  'ignore')
     value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
     return re.sub('[-\s]+', '-', value)
+
+
+def add_url_tags(text):
+    """ Surrounds URL with <a> tags """
+    return re.sub(
+        r'(http[s]?://('
+        r'?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)',
+        r'<a href="\1">\1</a>',
+        text
+    )

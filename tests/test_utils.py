@@ -1,6 +1,7 @@
 from unittest import TestCase
 from lutris.util import system
 from lutris.util import steam
+from lutris.util import strings
 
 
 class TestFileUtils(TestCase):
@@ -55,3 +56,22 @@ class TestSteamUtils(TestCase):
 }"""
         vdf_data = steam.to_vdf(dict_data)
         self.assertEqual(vdf_data.strip(), expected_vdf.strip())
+
+
+class TestStringUtils(TestCase):
+    def test_add_url_tags(self):
+        self.assertEqual(strings.add_url_tags("foo bar"), "foo bar")
+        self.assertEqual(
+            strings.add_url_tags("foo http://lutris.net bar"),
+            "foo <a href=\"http://lutris.net\">http://lutris.net</a> bar"
+        )
+        self.assertEqual(
+            strings.add_url_tags("http://lutris.net"),
+            "<a href=\"http://lutris.net\">http://lutris.net</a>"
+        )
+        text = "foo http://lutris.net bar http://strycore.com"
+        expected = (
+            'foo <a href="http://lutris.net">http://lutris.net</a> '
+            'bar <a href="http://strycore.com">http://strycore.com</a>'
+        )
+        self.assertEqual(strings.add_url_tags(text), expected)
