@@ -645,24 +645,33 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.set_margin_left(25)
         self.vbox.pack_start(self.widget_box, True, True, 15)
 
+        self.location_entry = None
+
         # Separator
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
-        # Install button
-        self.install_button = Gtk.Button(label='Install')
-        self.install_button.connect('clicked', self.on_install_clicked)
-        self.continue_button = Gtk.Button(label='Continue')
-        self.continue_button.connect('clicked', self.on_file_selected)
-
+        # Buttons
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
         self.action_buttons = Gtk.HBox()
         action_buttons_alignment.add(self.action_buttons)
-        self.action_buttons.add(self.install_button)
-        self.action_buttons.add(self.continue_button)
-
         self.vbox.pack_start(action_buttons_alignment, False, False, 25)
 
-        self.location_entry = None
+        self.install_button = Gtk.Button(label='Install')
+        self.install_button.connect('clicked', self.on_install_clicked)
+        self.action_buttons.add(self.install_button)
+
+        self.continue_button = Gtk.Button(label='Continue')
+        self.continue_button.connect('clicked', self.on_file_selected)
+        self.action_buttons.add(self.continue_button)
+
+        self.play_button = Gtk.Button(label="Launch game")
+        self.play_button.connect('clicked', self.launch_game)
+        self.action_buttons.add(self.play_button)
+
+        self.close_button = Gtk.Button(label="Close")
+        self.close_button.connect('clicked', self.close)
+        self.action_buttons.add(self.close_button)
+
         # Target chooser
         if not self.interpreter.requires and self.interpreter.files:
             self.set_message("Select installation directory")
@@ -672,6 +681,7 @@ class InstallerDialog(Gtk.Window):
             self.set_message("Click install to continue")
         self.show_all()
         self.continue_button.hide()
+        self.close_button.hide()
 
     def on_destroy(self, widget):
         if self.parent:
@@ -764,21 +774,12 @@ class InstallerDialog(Gtk.Window):
     def on_install_finished(self):
         """Actual game installation"""
         self.status_label.set_text("Installation finished !")
-
         self.clean_widgets()
-        self.continue_button.destroy()
-        self.install_button.destroy()
-        play_button = Gtk.Button("Launch game")
-        play_button.show()
-        play_button.connect('clicked', self.launch_game)
-        self.action_buttons.pack_start(play_button, True, True, 10)
-
-        close_button = Gtk.Button("Close")
-        close_button.show()
-        close_button.connect('clicked', self.close)
-        self.action_buttons.pack_start(close_button, True, True, 10)
-
         self.notify_install_success()
+        self.continue_button.hide()
+        self.install_button.hide()
+        self.play_button.show()
+        self.close_button.show()
 
     def notify_install_success(self):
         if self.parent:
@@ -787,10 +788,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_error(self, message):
         self.status_label.set_text(message)
         self.clean_widgets()
-        close_button = Gtk.Button("Close")
-        close_button.show()
-        close_button.connect('clicked', self.close)
-        self.action_buttons.pack_start(close_button, True, True, 10)
+        self.close_button.show()
 
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed"""
