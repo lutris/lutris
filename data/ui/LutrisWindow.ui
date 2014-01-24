@@ -481,7 +481,7 @@
             </child>
             <child>
               <object class="GtkLinkButton" id="connect_link">
-                <property name="label" translatable="yes">Connect to your Lutris.net account to sync your library</property>
+                <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -496,7 +496,7 @@
             </child>
             <child>
               <object class="GtkLinkButton" id="website_link">
-                <property name="label" translatable="yes">Browse Lutris.net for games to install</property>
+                <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
