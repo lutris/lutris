@@ -23,7 +23,9 @@ from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
-from lutris.gui.widgets import GameTreeView, GameIconView, ContextualMenu
+from lutris.gui.widgets import (
+    GameTreeView, GameIconView, ContextualMenu
+)
 
 GAME_VIEW = 'icon'
 
@@ -67,6 +69,8 @@ class LutrisWindow(object):
         logger.debug("Switching view")
         self.view = switch_to_view(view_type, game_list)
         logger.debug("Connecting signals")
+        self.main_box = self.builder.get_object('main_box')
+        self.splash_box = self.builder.get_object('splash_box')
         self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
         self.icon_view_menuitem.set_active(view_type == 'icon')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
@@ -107,12 +111,15 @@ class LutrisWindow(object):
 
         #Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
+
+        # Window initialization
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
-
         self.builder.connect_signals(self)
         self.connect_signals()
+
+        self.switch_splash_screen()
 
         if api.read_api_key():
             self.status_label.set_text("Connected to lutris.net")
@@ -125,6 +132,14 @@ class LutrisWindow(object):
         return 'icon' \
             if self.view.__class__.__name__ == "GameIconView" \
             else 'list'
+
+    def switch_splash_screen(self):
+        if self.view.n_games == 0:
+            self.splash_box.show()
+            self.games_scrollwindow.hide()
+        else:
+            self.splash_box.hide()
+            self.games_scrollwindow.show()
 
     def sync_icons(self):
         game_list = pga.get_games()
@@ -177,6 +192,7 @@ class LutrisWindow(object):
     def on_game_deleted(self, game_slug, from_library=False):
         if from_library:
             self.view.remove_game(game_slug)
+            self.switch_splash_screen()
         else:
             self.view.update_image(game_slug, is_installed=False)
 
@@ -245,13 +261,13 @@ class LutrisWindow(object):
     def sync_library(self):
         def set_library_synced(result, error):
             self.set_status("Library synced")
+            self.switch_splash_screen()
         self.set_status("Syncing library")
-        async_call(api.sync,
-                   async_call(
-                       self.sync_icons,
-                       set_library_synced,
-                   ),
-                   caller=self)
+        async_call(
+            api.sync,
+            lambda r, e: async_call(self.sync_icons, set_library_synced),
+            caller=self
+        )
 
     def reset(self, *args):
         """Reset the desktop to it's initial state"""
@@ -267,7 +283,11 @@ class LutrisWindow(object):
 
     def add_game_to_view(self, slug):
         game = Game(slug)
-        GLib.idle_add(lambda: self.view.add_game(game))
+
+        def do_add_game():
+            self.view.add_game(game)
+            self.switch_splash_screen()
+        GLib.idle_add(do_add_game)
 
     def add_game(self, _widget, _data=None):
         """ Add a new game """

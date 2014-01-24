@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.4"/>
   <!-- interface-local-resource-path ../media -->
-  <object class="GtkRadioAction" id="radioaction1">
-    <property name="hide_if_empty">False</property>
-    <property name="draw_as_radio">True</property>
-  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
+  </object>
+  <object class="GtkRadioAction" id="radioaction1">
+    <property name="hide_if_empty">False</property>
+    <property name="draw_as_radio">True</property>
+  </object>
+  <object class="GtkImage" id="view_grid_symbolic">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="xpad">4</property>
+    <property name="pixel_size">16</property>
+    <property name="icon_name">view-grid-symbolic</property>
   </object>
   <object class="GtkImage" id="view_list_symbolic">
     <property name="visible">True</property>
@@ -17,13 +25,6 @@
     <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-list-symbolic</property>
-  </object>
-  <object class="GtkImage" id="viwe_grid_symbolic">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="xpad">4</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">view-grid-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
     <property name="width_request">640</property>
@@ -361,9 +362,6 @@
                   <object class="GtkBox" id="view_switcher_box">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <style>
-                      <class name="linked"/>
-                    </style>
                     <child>
                       <object class="GtkRadioButton" id="switch_list_view_btn">
                         <property name="visible">True</property>
@@ -386,7 +384,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="image">viwe_grid_symbolic</property>
+                        <property name="image">view_grid_symbolic</property>
                         <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
@@ -398,6 +396,9 @@
                         <property name="position">1</property>
                       </packing>
                     </child>
+                    <style>
+                      <class name="linked"/>
+                    </style>
                   </object>
                 </child>
               </object>
@@ -426,6 +427,94 @@
             <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="splash_box">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel" id="title_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Welcome to Lutris</property>
+                <attributes>
+                  <attribute name="scale" value="2"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">15</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
+                <property name="lines">4</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="add_game_link">
+                <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="resize_mode">queue</property>
+                <property name="relief">none</property>
+                <signal name="activate-link" handler="add_game" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="connect_link">
+                <property name="label" translatable="yes">Connect to your Lutris.net account to sync your library</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <signal name="activate-link" handler="on_connect" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="website_link">
+                <property name="label" translatable="yes">Browse Lutris.net for games to install</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <property name="uri">http://lutris.net/games/</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">35</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -507,7 +596,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>

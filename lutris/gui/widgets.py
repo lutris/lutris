@@ -163,6 +163,10 @@ class GameView(object):
     current_path = None
     contextual_menu = None
 
+    @property
+    def n_games(self):
+        return len(self.game_store.store)
+
     def get_row_by_slug(self, game_slug):
         game_row = None
         for model_row in self.game_store.store:
