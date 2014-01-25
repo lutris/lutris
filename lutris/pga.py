@@ -82,13 +82,14 @@ def migrate_games():
     schema = [
         {'name': 'id', 'type': 'INTEGER', 'indexed': True},
         {'name': 'name', 'type': 'TEXT'},
-        {'name': 'slug', 'type': 'TEXT UNIQUE'},
+        {'name': 'slug', 'type': 'TEXT'},
         {'name': 'platform', 'type': 'TEXT'},
         {'name': 'runner', 'type': 'TEXT'},
         {'name': 'executable', 'type': 'TEXT'},
         {'name': 'directory', 'type': 'TEXT'},
         {'name': 'lastplayed', 'type': 'INTEGER'},
-        {'name': 'installed', 'type': 'INTEGER'}
+        {'name': 'installed', 'type': 'INTEGER'},
+        {'name': 'installer_slug', 'type': 'TEXT'},
     ]
     return migrate('games', schema)
 
