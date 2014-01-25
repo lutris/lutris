@@ -60,9 +60,9 @@ class QuestionDialog(Gtk.MessageDialog):
     def __init__(self, settings):
         super(QuestionDialog, self).__init__(
             message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.YES_NO,
-            message_format=settings['question']
+            buttons=Gtk.ButtonsType.YES_NO
         )
+        self.set_markup(settings['question'])
         self.set_title(settings['title'])
         self.result = self.run()
         self.destroy()
