@@ -106,7 +106,6 @@ game = None
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-#register_handler()
 
 game_slug = ""
 for arg in args:

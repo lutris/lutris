@@ -328,11 +328,14 @@ class ScriptInterpreter(object):
         pga.add_or_update(self.script['name'], runner_name,
                           slug=self.game_slug,
                           directory=self.target_path,
-                          installed=1)
+                          installed=1,
+                          installer_slug=self.script.get('installer_slug'))
         if 'system' in self.script:
             config['system'] = self._substitute_config(self.script['system'])
         if runner_name in self.script:
-            config[runner_name] = self._substitute_config(self.script[runner_name])
+            config[runner_name] = self._substitute_config(
+                self.script[runner_name]
+            )
         if 'game' in self.script:
             config['game'] = self._substitute_config(self.script['game'])
         is_64bit = platform.machine() == "x86_64"
