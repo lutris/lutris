@@ -7,7 +7,6 @@ from lutris.util.log import logger
 class RessourceOpener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
         if errcode >= 400:
-            logger.debug("Error while getting %s", url)
             raise IOError(errmsg, errcode, url)
 
 

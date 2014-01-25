@@ -21,7 +21,6 @@ def fetch_banners(games, callback=None):
         if not has_banner(game):
             no_banners.append(game)
     for game in no_banners:
-        logger.debug("Downloading icon for %s", game)
         download_banner(game, callback=callback)
 
 
