@@ -689,12 +689,19 @@ class InstallerDialog(Gtk.Window):
             self.set_message("Select installation directory")
             default_path = self.interpreter.default_target
             self.set_location_entry(self.on_target_changed, default_path)
+            self.non_empty_label = Gtk.Label()
+            self.non_empty_label.set_markup(
+                "<b>Warning!</b> The selected path "
+                "contains files, installation might not work property."
+            )
+            self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
             self.set_message("Click install to continue")
         self.show_all()
         self.continue_button.hide()
         self.close_button.hide()
         self.play_button.hide()
+        self.show_non_empty_warning()
 
     def on_destroy(self, widget):
         self.interpreter.cleanup()
@@ -702,6 +709,13 @@ class InstallerDialog(Gtk.Window):
             self.destroy()
         else:
             Gtk.main_quit()
+
+    def show_non_empty_warning(self):
+        path = self.location_entry.get_text()
+        if os.path.exists(path) and os.listdir(path):
+            self.non_empty_label.show()
+        else:
+            self.non_empty_label.hide()
 
     def set_message(self, message):
         label = Gtk.Label()
@@ -728,7 +742,9 @@ class InstallerDialog(Gtk.Window):
 
     def on_target_changed(self, text_entry):
         """ Sets the installation target for the game """
-        self.interpreter.target_path = text_entry.get_text()
+        path = text_entry.get_text()
+        self.interpreter.target_path = path
+        self.show_non_empty_warning()
 
     def on_install_clicked(self, button):
         button.set_sensitive(False)
