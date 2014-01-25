@@ -41,6 +41,8 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32'):
     executable = str(executable) if executable else ""
     if " " in executable:
         executable = "\"%s\"" % executable
+    if arch not in ('win32', 'win64'):
+        raise ValueError("Invalid WINEARCH %s" % arch)
     command = "WINEARCH=%s %s %s %s %s" % (
         arch, prefix, wine_path, executable, args
     )
