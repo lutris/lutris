@@ -142,8 +142,10 @@ def get_games(name_filter=None, filter_installed=False):
     return game_list
 
 
-def get_game_by_slug(slug):
-    game_result = sql.db_select(PGA_DB, "games", condition=('slug', slug))
+def get_game_by_slug(slug, field='slug'):
+    if field not in ('slug', 'installer_slug'):
+        raise ValueError("Invalid field name: %s", field)
+    game_result = sql.db_select(PGA_DB, "games", condition=(field, slug))
     if game_result:
         return game_result[0]
     return {}
