@@ -638,6 +638,9 @@ class InstallerDialog(Gtk.Window):
         self.vbox.pack_start(title_label, False, False, 20)
 
         self.status_label = Gtk.Label()
+        self.status_label.set_max_width_chars(80)
+        self.status_label.set_property('wrap', True)
+        self.status_label.set_selectable(True)
         self.vbox.pack_start(self.status_label, False, False, 15)
 
         # Main widget box
