@@ -477,8 +477,10 @@ class ScriptInterpreter(object):
             os.makedirs(dst)
         if os.path.isfile(src):
             # If single file, copy it and change reference in game file so it
-            # can be used as executable.
-            shutil.copy(src, dst)
+            # can be used as executable. Skip copying if the source is the same
+            # as destination.
+            if os.path.dirname(src) != dst:
+                shutil.copy(src, dst)
             if params['src'] in self.game_files.keys():
                 self.game_files[params['src']] = os.path.join(
                     dst, os.path.basename(src)
