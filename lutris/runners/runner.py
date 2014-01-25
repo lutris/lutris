@@ -43,6 +43,14 @@ class Runner(object):
         self.__doc__ = value
 
     @property
+    def name(self):
+        return self.__class__.__name__
+
+    @property
+    def default_config(self):
+        return LutrisConfig(runner=self.name)
+
+    @property
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
