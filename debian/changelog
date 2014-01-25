@@ -1,3 +1,17 @@
+lutris (0.3.3) quantal; urgency=low
+
+  * Improved design of installer dialog and main window
+  * Prevent users from deleting important files when uninstalling games
+  * Show help screen on first start
+  * Support for Amiga CD32 games
+  * Dosbox install scripts can now run DOS executables
+  * Better xrandr support
+  * Give option to restrict display to a single monitor while in-game
+  * Improve contextual menu in client (Install, uninstall, manually add)
+  * Show dialog when trying to install games with no script.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 25 Jan 2014 17:58:00 +0200
+
 lutris (0.3.2) quantal; urgency=low
 
   * Support for Steam for Linux
