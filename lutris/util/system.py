@@ -98,11 +98,13 @@ def merge_folders(source, destination):
                         os.path.join(dst_abspath, filename))
 
 
-def is_removeable(path):
+def is_removeable(path, excludes=None):
     """ Given a folder path, tells if it safe to remove it """
     if not path:
         return False
     if not os.path.exists(path):
+        return False
+    if path in excludes:
         return False
 
     parts = path.strip('/').split('/')

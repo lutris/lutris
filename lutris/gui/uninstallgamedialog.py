@@ -1,6 +1,5 @@
 from gi.repository import Gtk
 from lutris.gui.dialogs import GtkBuilderDialog
-from lutris import pga
 from lutris.game import Game
 from lutris.util.system import is_removeable
 from lutris.gui.dialogs import QuestionDialog
@@ -36,7 +35,8 @@ class UninstallGameDialog(GtkBuilderDialog):
         remove_contents_button = self.builder.get_object(
             'remove_contents_button'
         )
-        if not is_removeable(self.game.directory):
+        default_path = self.game.runner.default_path
+        if not is_removeable(self.game.directory, excludes=[default_path]):
             remove_contents_button.set_sensitive(False)
             self.game.directory = "disk"
         self.substitute_label(remove_contents_button, 'path',

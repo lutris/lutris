@@ -51,6 +51,13 @@ class Runner(object):
         return LutrisConfig(runner=self.name)
 
     @property
+    def default_path(self):
+        """ Return the default path where games are installed """
+        config = self.default_config.get('system')
+        if config:
+            return config.get('game_path')
+
+    @property
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
