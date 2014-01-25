@@ -22,28 +22,25 @@ class UninstallGameDialog(GtkBuilderDialog):
 
         set_text(get_text().replace("{%s}" % name, replacement))
 
-    def initialize(self, game=None, callback=None):
-        self.game_slug = game
-        game_info = pga.get_game_by_slug(game)
+    def initialize(self, slug=None, callback=None):
+        self.game = Game(slug)
         self.callback = callback
 
-        game_name = game_info['name']
         self.substitute_label(self.builder.get_object('description_label'),
-                              'game', game_name)
+                              'game', self.game.name)
 
         self.substitute_label(
             self.builder.get_object('remove_from_library_button'),
-            'game', game_name
+            'game', self.game.name
         )
-        self.game_directory = game_info['directory']
         remove_contents_button = self.builder.get_object(
             'remove_contents_button'
         )
-        if not is_removeable(self.game_directory):
+        if not is_removeable(self.game.directory):
             remove_contents_button.set_sensitive(False)
-            self.game_directory = "disk"
+            self.game.directory = "disk"
         self.substitute_label(remove_contents_button, 'path',
-                              self.game_directory)
+                              self.game.directory)
 
         cancel_button = self.builder.get_object('cancel_button')
         cancel_button.connect('clicked', self.on_close)
@@ -66,14 +63,13 @@ class UninstallGameDialog(GtkBuilderDialog):
             dlg = QuestionDialog({
                 'question': "Are you sure you want to delete EVERYTHING under "
                             "\n<b>%s</b>?\n (This can't be undone)"
-                            % self.game_directory,
+                            % self.game.directory,
                 'title': "CONFIRM DANGEROUS OPERATION"
             })
             if dlg.result != Gtk.ResponseType.YES:
                 return
 
-        game = Game(self.game_slug)
-        game.remove(remove_from_library, remove_contents)
-        self.callback(self.game_slug, remove_from_library)
+        self.game.remove(remove_from_library, remove_contents)
+        self.callback(self.game.slug, remove_from_library)
 
         self.on_close()
