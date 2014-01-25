@@ -698,6 +698,8 @@ class InstallerDialog(Gtk.Window):
     def set_message(self, message):
         label = Gtk.Label()
         label.set_markup('<b>%s</b>' % add_url_tags(message))
+        label.set_max_width_chars(80)
+        label.set_property('wrap', True)
         label.set_alignment(0, 0)
         label.show()
         self.widget_box.pack_start(label, False, False, 10)
