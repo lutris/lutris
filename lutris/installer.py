@@ -436,7 +436,7 @@ class ScriptInterpreter(object):
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
-        os.popen('chmod +x %s' % filename)
+        os.popen('chmod +x "%s"' % filename)
 
     def execute(self, data):
         """Run an executable script"""
