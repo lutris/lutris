@@ -53,7 +53,7 @@ class o2em(Runner):
         ]
         self.game_options = [{
             "option": "rom",
-            "type": "file_chooser",
+            "type": "file",
             "label": "Rom File"
         }]
         self.runner_options = [

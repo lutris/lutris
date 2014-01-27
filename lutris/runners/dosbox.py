@@ -25,12 +25,12 @@ class dosbox(Runner):
         self.game_options = [
             {
                 "option": "main_file",
-                "type": "file_chooser",
+                "type": "file",
                 "label": "EXE File"
             },
             {
                 "option": "config_file",
-                "type": "file_chooser",
+                "type": "file",
                 "label": "Configuration file"
             }
         ]

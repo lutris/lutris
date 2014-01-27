@@ -36,10 +36,10 @@ class hatari(Runner):
         self.platform = "Atari ST computers"
         self.settings = settings
         self.game_options = [{"option": "disk-a",
-                              "type": "file_chooser",
+                              "type": "file",
                               "label": "Floppy Disk A"},
                              {"option": "disk-b",
-                              "type": "file_chooser",
+                              "type": "file",
                               "label": "Floppy Disk B"}]
         joystick_choices = [
             ('None', 'none'),
@@ -50,7 +50,7 @@ class hatari(Runner):
         self.runner_options = [
             {
                 "option": "bios_file",
-                "type": "file_chooser",
+                "type": "file",
                 "label": "Bios File (TOS.img)"
             },
             {

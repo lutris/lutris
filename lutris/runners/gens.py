@@ -43,7 +43,7 @@ class gens(Runner):
         self.description = 'Sega Genesis emulator.'
         self.game_options = [{
             'option': 'rom',
-            'type': 'file_chooser',
+            'type': 'file',
             'label':  'Rom File'
         }]
         self.runner_options = [

@@ -24,7 +24,7 @@ class browser(Runner):
         self.runner_options = [
             {
                 'option': 'browser',
-                'type': "file_chooser",
+                'type': "file",
                 'label': "Web Browser"
             }
         ]
