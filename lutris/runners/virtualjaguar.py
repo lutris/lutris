@@ -10,7 +10,7 @@ class virtualjaguar(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "file_chooser",
+            "type": "file",
             "default_path": "game_path",
             "label": "ROM"
         }
@@ -28,7 +28,5 @@ class virtualjaguar(Runner):
     def __init__(self, settings=None):
         super(virtualjaguar, self).__init__()
 
-
     def play(self):
         pass
-

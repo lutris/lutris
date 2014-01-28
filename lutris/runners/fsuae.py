@@ -45,7 +45,7 @@ class fsuae(uae):
             {
                 "option": "kickstart_file",
                 "label": "Rom Path",
-                "type": "file_chooser"
+                "type": "file"
             },
             {
                 "option": "gfx_fullscreen_amiga",

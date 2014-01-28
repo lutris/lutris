@@ -68,7 +68,7 @@ class uae(Runner):
             {
                 "option": "kickstart_rom_file",
                 "label": "Rom Path",
-                "type": "file_chooser"
+                "type": "file"
             },
             {
                 "option": "x11.floppy_path",

@@ -78,9 +78,7 @@ class ConfigBox(Gtk.VBox):
                 self.generate_directory_chooser(option_key,
                                                 option["label"],
                                                 value)
-            elif option["type"] in ("file_chooser", "file"):
-                if option["type"] == "file_chooser":
-                    logger.warning("'file_chooser' option deprecated")
+            elif option["type"] == "file":
                 self.generate_file_chooser(option, value)
             elif option["type"] == "multiple":
                 self.generate_multiple_file_chooser(option_key,

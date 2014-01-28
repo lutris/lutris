@@ -40,7 +40,7 @@ class frotz(Runner):
         self.description = "Z Code interpreter (Infocom interactive fictions)"
         self.game_options = [{
             "option": "story",
-            "type": "file_chooser",
+            "type": "file",
             "label": "Story File"
         }]
         self.runner_options = []

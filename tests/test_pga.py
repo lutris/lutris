@@ -57,11 +57,6 @@ class TestPersonnalGameArchive(DatabaseTester):
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'installed_game')
 
-    def test_game_slugs_must_be_unique(self):
-        pga.add_game(name="unique game", runner="Linux")
-        with self.assertRaises(IntegrityError):
-            pga.add_game(name="unique game", runner="Linux")
-
     def test_game_with_same_slug_is_updated(self):
         pga.add_game(name="some game", runner="linux")
         game = pga.get_game_by_slug("some-game")

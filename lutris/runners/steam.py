@@ -38,7 +38,7 @@ class steam(Runner):
     runner_options = [
         {
             "option": "steam_path",
-            "type": "file_chooser",
+            "type": "file",
             'label': "Steam executable",
             "default_path": "steam",
         }

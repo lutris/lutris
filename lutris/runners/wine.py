@@ -66,7 +66,7 @@ class wine(Runner):
     game_options = [
         {
             'option': 'exe',
-            'type': 'file_chooser',
+            'type': 'file',
             'label': 'Executable'
         },
         {
@@ -112,7 +112,7 @@ class wine(Runner):
             {
                 'option': 'wine_path',
                 'label': "Path to Wine executable",
-                'type': 'file_chooser'
+                'type': 'file'
             },
             {
                 'option': 'cdrom_path',

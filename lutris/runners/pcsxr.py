@@ -12,7 +12,7 @@ class pcsxr(Runner):
     platform = "Playstation"
     game_options = [{
         "option": "iso",
-        "type": "file_chooser",
+        "type": "file",
         "label": "iso"
     }]
     runner_options = []

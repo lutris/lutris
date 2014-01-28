@@ -62,7 +62,7 @@ class nulldc(wine):
         self.args = ""
         self.game_options = [{
             'option': 'iso',
-            'type': 'file_chooser',
+            'type': 'file',
             'name': 'iso',
             'label': 'Disc image'
         }]

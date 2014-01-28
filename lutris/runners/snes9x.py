@@ -31,7 +31,7 @@ class snes9x(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "file_chooser",
+            "type": "file",
             "default_path": "game_path",
             "label": "ROM"
         }
