@@ -427,7 +427,8 @@ class ScriptInterpreter(object):
         return 'STOP'
 
     def on_cd_mounted(self, widget, requires):
-        paths = ['/mnt', '/media/cdrom', '/cdrom']
+        paths = ['/mnt', '/media/cdrom', '/cdrom',
+                 '/media/%s/disk' % os.getlogin()]
         for path in paths:
             required_abspath = os.path.join(path, requires)
             if os.path.exists(required_abspath):
