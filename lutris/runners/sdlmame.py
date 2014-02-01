@@ -32,7 +32,7 @@ class sdlmame(Runner):
         """ Launch the game. """
         settings = self.settings
         fullscreen = True
-        romdir = os.path.dirname(settings["game"]["main_file"])
+        rompath = os.path.dirname(settings["game"]["main_file"])
         rom = os.path.basename(settings["game"]["main_file"])
         mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
         if "sdlmame" in settings.config:
@@ -46,11 +46,12 @@ class sdlmame(Runner):
             os.chdir(mameconfigdir)
             subprocess.Popen([self.executable, "-createconfig"],
                              stdout=subprocess.PIPE)
-            os.chdir(romdir)
-        arguments = []
+            os.chdir(rompath)
+        options = []
         if not fullscreen:
-            arguments = arguments + ["-window"]
+            options.append("-window")
         return {'command': [self.executable,
                             "-inipath", mameconfigdir,
                             "-skip_gameinfo",
-                            "-rompath", romdir, rom] + arguments}
+                            "-rompath", "\"%s\"" % rompath,
+                            "\"%s\"" % rom] + options}
