@@ -9,7 +9,7 @@ def get_oss_wrapper(wrapper_type):
         padsp32 returns the version shipped with Lutris specifically for some
         32bit games.
     """
-    if wrapper_type not in ('padsp', 'padsp32', 'aoss'):
+    if wrapper_type not in ('padsp', 'padsp32', 'aoss', 'pasuspender'):
         logger.warning("Unsupported OSS wrapper: '%s'", wrapper_type)
 
     if wrapper_type == 'padsp32':

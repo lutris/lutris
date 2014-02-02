@@ -5,8 +5,8 @@ oss_list = [
     ("None (don't use OSS)", "none"),
     ("padsp (PulseAudio OSS Wrapper)", "padsp"),
     ("padsp32 (PulseAudio OSS Wrapper for 32bit apps)", "padsp32"),
+    ("pasuspender", "pasuspender"),
     ("aoss (OSS Wrapper for Alsa)", "aoss"),
-    ("esddsp (OSS Wrapper for esound)", "esddsp"),
 ]
 
 resolutions = display.get_resolutions()
