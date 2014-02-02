@@ -167,7 +167,8 @@ def add_or_update(name, runner, slug=None, **kwargs):
     kwargs['runner'] = runner
     kwargs['slug'] = slug
     if game:
-        sql.db_update(PGA_DB, "games", kwargs, ('slug', slug))
+        game_id = game['id']
+        sql.db_update(PGA_DB, "games", kwargs, ('id', game_id))
     else:
         add_game(**kwargs)
 

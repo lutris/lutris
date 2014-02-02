@@ -199,8 +199,7 @@ class LutrisConfig(object):
 
     def get_name(self):
         """Return name of game"""
-        name = self.config["realname"]
-        return name
+        return self.config["realname"]
 
     def remove(self, game=None):
         """Delete the configuration file from disk."""
@@ -239,8 +238,7 @@ class LutrisConfig(object):
             self.write_to_disk(runner_config_path, yaml_config)
 
         elif config_type == "game":
-            if not self.game:
-                self.game = slugify(self.config['realname'])
+            self.game = slugify(self.config['realname'])
             self.write_to_disk(self.game_config_file, yaml_config)
             return self.game
         else:

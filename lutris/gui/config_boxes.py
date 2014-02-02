@@ -1,6 +1,6 @@
 """Widget generators and their signal handlers"""
 from gi.repository import Gtk, GObject, Gdk
-from lutris.util.log import logger
+#from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris import sysoptions
 
@@ -195,7 +195,6 @@ class ConfigBox(Gtk.VBox):
         option_name = option['option']
         label = option['label']
         hbox = Gtk.HBox()
-        Gtklabel = Label(label)
         file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
         if 'default_path' in option:
@@ -209,7 +208,7 @@ class ConfigBox(Gtk.VBox):
         if value:
             file_chooser.unselect_all()
             file_chooser.select_filename(value)
-        hbox.pack_start(Gtklabel, False, False, 20)
+        hbox.pack_start(Label(label), False, False, 20)
         hbox.pack_start(file_chooser, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
 
@@ -217,8 +216,9 @@ class ConfigBox(Gtk.VBox):
         """Generates a file chooser button to select a directory"""
         hbox = Gtk.HBox()
         Gtklabel = Label(label)
-        directory_chooser = Gtk.FileChooserButton("Choose a directory for %s"
-                                                  % label)
+        directory_chooser = Gtk.FileChooserButton(
+            title="Choose a directory for %s" % label
+        )
         directory_chooser.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
         if value:
             directory_chooser.set_current_folder(value)

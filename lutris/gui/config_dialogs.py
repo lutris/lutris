@@ -100,6 +100,20 @@ class GameDialogCommon(object):
         """ Dialog destroy callback """
         self.destroy()
 
+    def on_save(self, _button):
+        """ OK button pressed in the Add Game Dialog """
+        name = self.name_entry.get_text()
+        self.lutris_config.config["realname"] = name
+        self.lutris_config.config["runner"] = self.runner_name
+
+        if self.runner_name and name:
+            self.slug = self.lutris_config.save(config_type="game")
+            runner_class = lutris.runners.import_runner(self.runner_name)
+            runner = runner_class(self.lutris_config)
+            pga.add_or_update(name, self.runner_name, slug=self.slug,
+                              directory=runner.get_game_path(), installed=1)
+            self.destroy()
+
 
 class AddGameDialog(Gtk.Dialog, GameDialogCommon):
     """ Add game dialog class"""
@@ -127,24 +141,11 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
 
-        self.build_action_area("Add", self.save_game)
+        self.build_action_area("Add", self.on_save)
 
         self.show_all()
         self.run()
 
-    def save_game(self, _button):
-        """ OK button pressed in the Add Game Dialog """
-        name = self.name_entry.get_text()
-        self.lutris_config.config["realname"] = name
-        self.lutris_config.config["runner"] = self.runner_name
-
-        if self.runner_name and name:
-            self.slug = self.lutris_config.save(config_type="game")
-            runner_class = lutris.runners.import_runner(self.runner_name)
-            runner = runner_class(self.lutris_config)
-            pga.add_or_update(name, self.runner_name, slug=self.slug,
-                              directory=runner.get_game_path(), installed=1)
-            self.destroy()
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed"""
@@ -177,19 +178,15 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.set_title("Edit game configuration for %s" % game_name)
         self.set_size_request(500, 500)
 
+        self.build_name_entry(game_name)
         self.build_notebook()
         self.build_game_tab()
         self.build_runner_tab()
         self.build_system_tab()
 
-        self.build_action_area("Edit", self.edit_game)
+        self.build_action_area("Edit", self.on_save)
         self.show_all()
         self.run()
-
-    def edit_game(self, _widget=None):
-        """Save the changes"""
-        self.lutris_config.save(config_type="game")
-        self.destroy()
 
 
 class RunnerConfigDialog(Gtk.Dialog):
