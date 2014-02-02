@@ -76,8 +76,7 @@ class hatari(Runner):
                     'runner': self.__class__.__name__}
 
         params = [self.executable]
-
-        settings = self.settings['hatari'] or {}
+        settings = self.runner_config
         game_settings = self.settings['game'] or {}
         if "fullscreen" in settings and settings["fullscreen"]:
             params.append("--fullscreen")

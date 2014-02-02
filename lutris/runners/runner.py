@@ -51,6 +51,13 @@ class Runner(object):
         return LutrisConfig(runner=self.name)
 
     @property
+    def runner_config(self):
+        config = self.default_config.runner_config[self.name]
+        if self.settings[self.name]:
+            config.update(self.settings[self.name])
+        return config
+
+    @property
     def default_path(self):
         """ Return the default path where games are installed """
         config = self.default_config.get('system')
