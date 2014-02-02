@@ -87,12 +87,12 @@ class GameDialogCommon(object):
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
-    def build_action_area(self, button_type, button_callback):
-        cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+    def build_action_area(self, label, button_callback):
+        cancel_button = Gtk.Button(label="Cancel")
         cancel_button.connect("clicked", self.on_cancel_clicked)
         self.action_area.pack_start(cancel_button, True, True, 0)
 
-        button = Gtk.Button(None, button_type)
+        button = Gtk.Button(label=label)
         button.connect("clicked", button_callback)
         self.action_area.pack_start(button, True, True, 0)
 
@@ -127,7 +127,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
 
-        self.build_action_area(Gtk.STOCK_ADD, self.save_game)
+        self.build_action_area("Add", self.save_game)
 
         self.show_all()
         self.run()
@@ -182,7 +182,7 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
 
-        self.build_action_area(Gtk.STOCK_EDIT, self.edit_game)
+        self.build_action_area("Edit", self.edit_game)
         self.show_all()
         self.run()
 
@@ -256,7 +256,7 @@ class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.system_config_vbox = SystemBox(self.lutris_config, 'system')
         self.vbox.pack_start(self.system_config_vbox, True, True, 0)
 
-        self.build_action_area(Gtk.STOCK_SAVE, self.save_config)
+        self.build_action_area("Save", self.save_config)
         self.show_all()
 
     def save_config(self, widget):
