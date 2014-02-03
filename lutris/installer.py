@@ -712,6 +712,8 @@ class InstallerDialog(Gtk.Window):
             Gtk.main_quit()
 
     def show_non_empty_warning(self):
+        if not self.location_entry:
+            return
         path = self.location_entry.get_text()
         if os.path.exists(path) and os.listdir(path):
             self.non_empty_label.show()
