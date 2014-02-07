@@ -202,7 +202,7 @@ class GameView(object):
     def update_image(self, game_slug, is_installed=False):
         row = self.get_row_by_slug(game_slug)
         if row:
-            game_pixpuf = get_pixbuf_for_game(game_slug,
+            game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_size,
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
@@ -230,7 +230,8 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, icon_size=BANNER_SMALL_SIZE,
+        self.icon_size = BANNER_SMALL_SIZE
+        self.game_store = GameStore(games, icon_size=self.icon_size,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameTreeView, self).__init__(self.model)
@@ -294,7 +295,8 @@ class GameIconView(Gtk.IconView, GameView):
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, icon_size=BANNER_SIZE,
+        self.icon_size = BANNER_SIZE
+        self.game_store = GameStore(games, icon_size=self.icon_size,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter
         super(GameIconView, self).__init__(model=self.model)
