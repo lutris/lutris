@@ -112,8 +112,12 @@ def is_removeable(path, excludes=None):
         # Path is part of the system folders
         return False
 
-    if parts[0] == 'home' and len(parts) == 2:
-        # Path is a home folder
-        return False
+    if parts[0] == 'home'
+        if len(parts) <= 2:
+            # Path is a home folder
+            return False
+        if parts[2] == '.wine':
+            # Protect main .wine folder
+            return False
 
     return True
