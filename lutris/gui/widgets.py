@@ -12,7 +12,7 @@ from lutris import settings
 MISSING_ICON = os.path.join(datapath.get(), 'media/banner.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
-ICON_SIZE = (184, 69)
+BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 (
     COL_ID,
@@ -48,7 +48,7 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def get_pixbuf_for_game(game_slug, size=ICON_SIZE, is_installed=True):
+def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     width = size[0]
     height = size[1]
     icon_path = os.path.join(settings.DATA_DIR, "banners",
@@ -119,13 +119,13 @@ class IconViewCellRenderer(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
-        self.props.width = ICON_SIZE[0]
-        self.props.wrap_width = ICON_SIZE[0]
+        self.props.width = BANNER_SIZE[0]
+        self.props.wrap_width = BANNER_SIZE[0]
 
 
 class GameStore(object):
 
-    def __init__(self, games, icon_size=ICON_SIZE, filter_text=None):
+    def __init__(self, games, icon_size=BANNER_SIZE, filter_text=None):
         self.filter_text = filter_text
         self.icon_size = icon_size
         self.store = Gtk.ListStore(str, str, Pixbuf, str, bool)
@@ -280,12 +280,12 @@ class GameTreeView(Gtk.TreeView, GameView):
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
-    icon_width = ICON_SIZE[0]
+    icon_width = BANNER_SIZE[0]
     icon_padding = 1
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, icon_size=ICON_SIZE,
+        self.game_store = GameStore(games, icon_size=BANNER_SIZE,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter
         super(GameIconView, self).__init__(model=self.model)
