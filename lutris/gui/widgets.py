@@ -243,11 +243,15 @@ class GameTreeView(Gtk.TreeView, GameView):
         column.set_reorderable(True)
         self.append_column(column)
 
-        column = self.setup_text_column("Name", COL_NAME)
+        # Text columns
+        default_text_cell = self.set_text_cell()
+        name_cell = self.set_text_cell()
+        name_cell.set_padding(5, 0)
+        column = self.set_column(name_cell, "Name", COL_NAME)
         self.append_column(column)
-        column = self.setup_text_column("Year", COL_YEAR)
+        column = self.set_column(default_text_cell, "Year", COL_YEAR)
         self.append_column(column)
-        column = self.setup_text_column("Runner", COL_RUNNER)
+        column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
         self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
@@ -257,13 +261,14 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
-    def setup_text_column(self, header, column_id):
+    def set_text_cell(self):
         text_cell = Gtk.CellRendererText()
-        text_cell.set_padding(4, 10)
+        text_cell.set_padding(10, 0)
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        text_cell.set_property("width-chars", 40)
+        return text_cell
 
-        column = Gtk.TreeViewColumn(header, text_cell, markup=column_id)
+    def set_column(self, cell, header, column_id):
+        column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id)
         column.set_resizable(True)
