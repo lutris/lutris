@@ -13,6 +13,7 @@ MISSING_ICON = os.path.join(datapath.get(), 'media/banner.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
 ICON_SIZE = (184, 69)
+BANNER_SMALL_SIZE = (120, 45)
 (
     COL_ID,
     COL_NAME,
@@ -227,7 +228,8 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, filter_text=self.filter_text)
+        self.game_store = GameStore(games, icon_size=BANNER_SMALL_SIZE,
+                                    filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameTreeView, self).__init__(self.model)
         self.set_rules_hint(True)
