@@ -18,9 +18,10 @@ BANNER_SMALL_SIZE = (120, 45)
     COL_ID,
     COL_NAME,
     COL_ICON,
+    COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-) = range(5)
+) = range(6)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -128,7 +129,7 @@ class GameStore(object):
     def __init__(self, games, icon_size=BANNER_SIZE, filter_text=None):
         self.filter_text = filter_text
         self.icon_size = icon_size
-        self.store = Gtk.ListStore(str, str, Pixbuf, str, bool)
+        self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
         self.fill_store(games)
@@ -149,7 +150,8 @@ class GameStore(object):
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, game.runner_name, game.is_installed)
+            (game.slug, name, pixbuf, game.year, game.runner_name, 
+            game.is_installed)
         )
 
 
@@ -242,6 +244,8 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.append_column(column)
 
         column = self.setup_text_column("Name", COL_NAME)
+        self.append_column(column)
+        column = self.setup_text_column("Year", COL_YEAR)
         self.append_column(column)
         column = self.setup_text_column("Runner", COL_RUNNER)
         self.append_column(column)
