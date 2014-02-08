@@ -4,7 +4,7 @@ lutris (0.3.4) quantal; urgency=low
   * Fixes for Gens and Hatari runners
   * Various bugfixes
 
- -- Mathieu Comandon <strycore@gmail.com>  Sat, Feb 8 19:14:18 +0200
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 8 Feb 2014 19:14:18 +0200
 
 lutris (0.3.3) quantal; urgency=low
 
