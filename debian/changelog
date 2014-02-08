@@ -1,3 +1,11 @@
+lutris (0.3.4) quantal; urgency=low
+
+  * Initial SDLMess Support
+  * Fixes for Gens and Hatari runners
+  * Various bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, Feb 8 19:14:18 +0200
+
 lutris (0.3.3) quantal; urgency=low
 
   * Improved design of installer dialog and main window

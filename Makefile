@@ -1,3 +1,5 @@
+VERSION="0.3.4"
+
 test:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
@@ -17,10 +19,10 @@ changelog-edit:
 	dch -e
 
 upload-ppa:
-	dput ppa:strycore/ppa ../lutris_0.3.3_i386.changes
+	dput ppa:strycore/ppa ../lutris_${VERSION}_i386.changes
 
 rpm:
-	cd build && sudo alien lutris_0.3.3_all.deb --scripts --to-rpm
+	cd build && sudo alien lutris_${VERSION}_all.deb --scripts --to-rpm
 
 clean:
 	debclean
@@ -28,6 +30,6 @@ clean:
 build-all: deb rpm
 
 upload:
-	scp build/lutris_0.3.3_all.deb strycore.com:/srv/releases/lutris/
-	scp build/lutris_0.3.3.tar.gz strycore.com:/srv/releases/lutris/
-	scp build/lutris-0.3.3-2.noarch.rpm strycore.com:/srv/releases/lutris/
+	scp build/lutris_${VERSION}_all.deb strycore.com:/srv/releases/lutris/
+	scp build/lutris_${VERSION}.tar.gz strycore.com:/srv/releases/lutris/
+	scp build/lutris-${VERSION}-2.noarch.rpm strycore.com:/srv/releases/lutris/

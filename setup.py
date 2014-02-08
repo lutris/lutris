@@ -19,6 +19,7 @@
 import os
 import sys
 from distutils.core import setup
+from lutris.settings import VERSION
 
 
 def update_data_path(prefix, oldvalue=None):
@@ -91,7 +92,7 @@ data_files.append((
 
 setup(
     name='lutris',
-    version='0.3.3',
+    version=VERSION,
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
