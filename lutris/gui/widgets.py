@@ -194,7 +194,7 @@ class GameView(object):
 
     def filter_view(self):
         self.game_store.filter_text = self.filter_text
-        self.get_model().refilter()
+        self.game_store.modelfilter.refilter()
 
     def update_image(self, game_slug, is_installed=False):
         row = self.get_row_by_slug(game_slug)
@@ -228,8 +228,10 @@ class GameTreeView(Gtk.TreeView, GameView):
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
         self.game_store = GameStore(games, filter_text=self.filter_text)
-        super(GameTreeView, self).__init__(self.game_store.modelfilter)
+        self.model = self.game_store.modelfilter.sort_new_with_model()
+        super(GameTreeView, self).__init__(self.model)
         self.set_rules_hint(True)
+        self.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
@@ -262,16 +264,6 @@ class GameTreeView(Gtk.TreeView, GameView):
         column.set_reorderable(True)
         return column
 
-    def remove_row(self, model_iter):
-        """Remove a game from the treeview."""
-        model = self.get_model()
-        model.remove(model_iter)
-
-    def sort_rows(self):
-        """Sort the game list."""
-        model = self.get_model()
-        Gtk.TreeModel.sort_new_with_model(model)
-
     def get_selected_game(self, widget, line=None, column=None, launch=False):
         selection = self.get_selection()
         if not selection:
@@ -293,7 +285,8 @@ class GameIconView(Gtk.IconView, GameView):
         self.filter_text = filter_text
         self.game_store = GameStore(games, icon_size=ICON_SIZE,
                                     filter_text=self.filter_text)
-        super(GameIconView, self).__init__(model=self.game_store.modelfilter)
+        self.model = self.game_store.modelfilter
+        super(GameIconView, self).__init__(model=self.model)
         self.set_columns(1)
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
