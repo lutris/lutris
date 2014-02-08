@@ -240,7 +240,8 @@ class LutrisWindow(object):
         dialogs.PgaSourceDialog()
 
     def on_image_downloaded(self, game_slug):
-        self.view.update_image(game_slug)
+        is_installed = Game(game_slug).is_installed
+        self.view.update_image(game_slug, is_installed)
 
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())
