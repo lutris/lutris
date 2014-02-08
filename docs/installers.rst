@@ -162,7 +162,7 @@ Currently, the following tasks are implemented:
 
 wine: ``wineexec`` Runs a windows executable. Parameters are ``executable``,
 ``args`` (optional arguments passed to the executable), ``prefix`` (optional
-WINEPREFIX).
+WINEPREFIX), ``workdir`` (optional working directory).
 
 wine: ``winetricks`` Runs winetricks with the ``app`` argument. ``prefix`` is
 an optional WINEPREFIX path.
