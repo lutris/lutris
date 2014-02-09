@@ -33,7 +33,8 @@ def create_prefix(prefix, arch='win32'):
     wineexec('', prefix=prefix, wine_path='wineboot', arch=arch)
 
 
-def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32', workdir=None):
+def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32',
+             workdir=None):
     if not prefix:
         prefix = ""
     else:
@@ -47,7 +48,8 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32', w
         arch, prefix, wine_path, executable, args
     )
     logger.debug("Running wine command: %s", command)
-    subprocess.Popen(command, cwd=workdir, shell=True, stdout=subprocess.PIPE).communicate()
+    subprocess.Popen(command, cwd=workdir, shell=True,
+                     stdout=subprocess.PIPE).communicate()
 
 
 def winetricks(app, prefix=None, arch='win32', silent=False):
@@ -213,25 +215,29 @@ class wine(Runner):
         self.check_regedit_keys(wine_config)
 
     def play(self):
-        game_exe = self.settings['game'].get('exe')
-        arguments = self.settings['game'].get('args', "")
-        self.prepare_launch()
         arch = self.settings['game'].get('arch', 'win32')
         command = ['WINEARCH=%s' % arch]
+        game_exe = self.settings['game'].get('exe')
+
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
 
-        self.game_path = os.path.dirname(game_exe)
-        game_exe = os.path.basename(game_exe)
+        self.game_path = self.settings['game'].get('path')
+        if not self.game_path:
+            self.game_path = os.path.dirname(game_exe)
+            game_exe = os.path.basename(game_exe)
         if not os.path.exists(self.game_path):
             if prefix:
                 self.game_path = os.path.join(prefix, self.game_path)
             if not os.path.exists(self.game_path):
                 return {"error": "FILE_NOT_FOUND", "file": self.game_path}
 
+        arguments = self.settings['game'].get('args', "")
+        self.prepare_launch()
+
         command.append(self.get_wine_path())
-        command.append("\"" + game_exe + "\"")
+        command.append("\"%s\"" % game_exe)
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
