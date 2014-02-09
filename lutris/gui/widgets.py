@@ -77,6 +77,7 @@ class ContextualMenu(Gtk.Menu):
         'install': "Install",
         'add': "Add manually",
         'configure': "Configure",
+        'browse': "Browse files",
         'desktop-shortcut': "Create desktop shortcut",
         'menu-shortcut': "Create application menu shortcut",
         'uninstall': "Uninstall",
@@ -98,7 +99,7 @@ class ContextualMenu(Gtk.Menu):
     def popup(self, event, game_row):
         is_installed = game_row[COL_INSTALLED]
         hide_when_installed = ('install', 'add')
-        hide_when_not_installed = ('play', 'configure')
+        hide_when_not_installed = ('play', 'configure', 'browse')
 
         for menuitem in self.get_children():
             action = menuitem.action_id

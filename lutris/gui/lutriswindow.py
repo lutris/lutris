@@ -1,6 +1,7 @@
 """ Main window for the Lutris interface """
 # pylint: disable=E0611
 import os
+import subprocess
 
 from gi.repository import Gtk, GLib
 
@@ -102,6 +103,7 @@ class LutrisWindow(object):
             ('install', self.on_game_clicked),
             ('add', self.add_manually),
             ('configure', self.edit_game_configuration),
+            ('browse', self.on_browse_files),
             ('desktop-shortcut', self.create_desktop_shortcut),
             ('menu-shortcut', self.create_menu_shortcut),
             ('uninstall', self.on_remove_game),
@@ -301,6 +303,14 @@ class LutrisWindow(object):
         add_game_dialog = AddGameDialog(self, game)
         if add_game_dialog.runner_name:
             self.view.update_image(game.slug, is_installed=True)
+
+    def on_browse_files(self, widget):
+        game = Game(self.view.selected_game)
+        path = game.directory
+        if not os.path.exists(path):
+            path = game.runner.get_game_path()
+        if os.path.exists(path):
+            subprocess.Popen(['xdg-open', path])
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
