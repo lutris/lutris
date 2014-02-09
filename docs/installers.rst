@@ -16,12 +16,12 @@ name.
 If the game contains copyrighted files that cannot be redistributed, the value
 should begin with ``N/A``. When the installer encounter this value, it will
 prompt the user for the location of the file. To indicate to the user what file
-to select, append a message to ``N/A`` like this (quotes included):
-``"N/A:Please select the installer for this game"``
+to select, append a message to ``N/A`` like this:
+``N/A:Please select the installer for this game``
 
 
 If the game makes use of (Windows) Steam data, the value should be
-``"$WINESTEAM:appid:path/to/data"``. This will check that the data is available
+``$WINESTEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
 
