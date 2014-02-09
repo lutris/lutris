@@ -145,7 +145,7 @@ class LutrisWindow(object):
 
     def sync_icons(self):
         game_list = pga.get_games()
-        resources.fetch_banners([game_info['slug'] for game_info in game_list],
+        resources.fetch_icons([game_info['slug'] for game_info in game_list],
                                 callback=self.on_image_downloaded)
         self.view.queue_draw()
 
