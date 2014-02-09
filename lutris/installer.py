@@ -449,6 +449,8 @@ class ScriptInterpreter(object):
             exec_id = data
             args = []
         exec_path = self._get_file(exec_id)
+        if not exec_path:
+            raise ScriptingError("Unable to find file %s" % exec_id, exec_id)
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
@@ -535,8 +537,9 @@ class ScriptInterpreter(object):
         logger.debug(msg)
         self.parent.set_status(msg)
         merge_single = not 'nomerge' in data
+        extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
-        extract.extract_archive(filename, dest_path, merge_single)
+        extract.extract_archive(filename, dest_path, merge_single, extractor)
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()

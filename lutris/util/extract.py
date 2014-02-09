@@ -8,18 +8,19 @@ from lutris.util.system import merge_folders
 from lutris.util.log import logger
 
 
-def extract_archive(path, to_directory='.', merge_single=True):
+def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
-    if path.endswith('.zip'):
+    if path.endswith('.zip') or extractor == 'zip':
         opener, mode = zipfile.ZipFile, 'r'
-    elif path.endswith('.tar.gz') or path.endswith('.tgz'):
+    elif path.endswith('.tar.gz') or path.endswith('.tgz') \
+        or extractor == 'tgz':
         opener, mode = tarfile.open, 'r:gz'
-    elif path.endswith('.gz'):
+    elif path.endswith('.gz') or extractor == 'gzip':
         decompress_gz(path, to_directory)
         return
-
-    elif path.endswith('.tar.bz2') or path.endswith('.tbz'):
+    elif path.endswith('.tar.bz2') or path.endswith('.tbz') \
+        or extractor == 'bz2':
         opener, mode = tarfile.open, 'r:bz2'
     else:
         raise RuntimeError(
