@@ -16,7 +16,7 @@
 #
 """ Constants module, soon to be deprecated. Replaced by settings module. """
 
-from os.path import join, expanduser
+from os.path import join
 from xdg import BaseDirectory
 
 PROTOCOL_VERSION = 1
@@ -30,6 +30,4 @@ LUTRIS_CACHE_PATH = join(BaseDirectory.xdg_cache_home, 'lutris')
 RUNNER_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'runners')
 GAME_CONFIG_PATH = join(LUTRIS_CONFIG_PATH, 'games')
 COVER_PATH = join(LUTRIS_CONFIG_PATH, 'covers')
-BANNER_PATH = join(LUTRIS_CONFIG_PATH, 'banners')
-ICON_PATH = join(expanduser('~'), '.icons')
 TMP_PATH = join(LUTRIS_CACHE_PATH, 'tmp')

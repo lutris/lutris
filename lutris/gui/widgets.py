@@ -52,7 +52,7 @@ def filter_view(model, _iter, user_data):
 def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     width = size[0]
     height = size[1]
-    icon_path = os.path.join(settings.DATA_DIR, "banners",
+    icon_path = os.path.join(settings.BANNER_PATH,
                              "%s.jpg" % game_slug)
     if not os.path.exists(icon_path):
         icon_path = MISSING_ICON

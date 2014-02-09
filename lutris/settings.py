@@ -18,6 +18,8 @@ RUNNER_DIR = os.path.join(DATA_DIR, "runners")
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
+BANNER_PATH = os.path.join(DATA_DIR, 'banners')
+ICON_PATH = os.path.join(DATA_DIR, 'icons')
 
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')

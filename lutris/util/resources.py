@@ -9,9 +9,9 @@ ICON = "icon"
 
 def get_icon_path(game, icon_type):
     if icon_type == BANNER:
-        return os.path.join(settings.DATA_DIR, "banners/%s.jpg" % game)
+        return os.path.join(settings.BANNER_PATH, "%s.jpg" % game)
     if icon_type == ICON:
-        return os.path.join(settings.DATA_DIR, "icons/%s.png" % game)
+        return os.path.join(settings.ICON_PATH, "%s.png" % game)
 
 def get_icon_url(game, icon_type):
     if icon_type == BANNER:
