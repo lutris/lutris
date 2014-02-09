@@ -16,7 +16,7 @@ name.
 If the game contains copyrighted files that cannot be redistributed, the value
 should begin with ``N/A``. When the installer encounter this value, it will
 prompt the user for the location of the file. To indicate to the user what file
-to select, append a message to ``N/A`` like this (quotes included): 
+to select, append a message to ``N/A`` like this (quotes included):
 ``"N/A:Please select the installer for this game"``
 
 
@@ -32,7 +32,7 @@ Referencing the main file
 ---------------------------
 
 For Linux and Wine games, specify the executable file with the ``exe``
-directive. The given path is relative to the game dir. 
+directive. The given path is relative to the game dir.
 
 Examples:
 ``exe: game.sh``
@@ -78,7 +78,7 @@ Move files by using the ``move`` command. ``move``  requires two parameters:
 ``src`` and ``dst``.
 
 The ``src`` parameter can either be a ``file id`` or a path relative to game
-dir. If the parameter value is not found in the list of file ids, 
+dir. If the parameter value is not found in the list of file ids,
 then it must be prefixed by either ``$CACHE`` or ``$GAMEDIR`` to move a file or
 directory from the download cache or the game's install dir, respectively.
 
@@ -94,7 +94,7 @@ Example:
 
     move:
       src: game-file-id
-      dst: $GAMEDIR/location      
+      dst: $GAMEDIR/location
 
 Copying and merging directories
 -------------------------------
@@ -112,7 +112,7 @@ Example:
 
     merge:
       src: game-file-id
-      dst: $GAMEDIR/location      
+      dst: $GAMEDIR/location
 
 Extracting archives
 -------------------
@@ -121,13 +121,17 @@ Extracting archives is done with the ``extract`` directive, the ``file``
 argument is a ``file id``. If the archive should be extracted in some other
 location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
 
+You can optionally specify the archive's type with the ``format`` option. 
+This is useful if the archive's file extension does not match what it should
+be. Accepted values for ``format`` are: zip, tgz, gzip and bz2.
+
 Example:
 
 ::
 
     extract:
       file: game-archive
-      dst: $GAMEDIR/datadir/      
+      dst: $GAMEDIR/datadir/
 
 Making a file executable
 ------------------------
@@ -154,7 +158,7 @@ Example:
 Running a task provided by a runner
 -----------------------------------
 
-Some actions are specific to some runners, you can call them with the ``task`` 
+Some actions are specific to some runners, you can call them with the ``task``
 command. You must at least provide the ``name`` parameter which is the function
 that will be called. Other parameters depend on the task being called.
 
