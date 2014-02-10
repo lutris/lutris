@@ -9,11 +9,13 @@ from lutris.downloader import Downloader
 from lutris.util import datapath
 from lutris import settings
 
-MISSING_ICON = os.path.join(datapath.get(), 'media/banner.png')
+DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
+DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
+ICON_SIZE = (32, 32)
 (
     COL_ID,
     COL_NAME,
@@ -52,14 +54,21 @@ def filter_view(model, _iter, user_data):
 def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     width = size[0]
     height = size[1]
-    icon_path = os.path.join(settings.BANNER_PATH,
-                             "%s.jpg" % game_slug)
+    if size == BANNER_SIZE:
+        default_icon = DEFAULT_BANNER
+        icon_path = os.path.join(settings.BANNER_PATH,
+                                 "%s.jpg" % game_slug)
+    elif size == ICON_SIZE:
+        default_icon = DEFAULT_ICON
+        icon_path = os.path.join(settings.ICON_PATH,
+                                 "%s.png" % game_slug)
+
     if not os.path.exists(icon_path):
-        icon_path = MISSING_ICON
+        icon_path = DEFAULT_ICON
     try:
         pixbuf = Pixbuf.new_from_file_at_size(icon_path, width, height)
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(MISSING_ICON, width, height)
+        pixbuf = Pixbuf.new_from_file_at_size(default_icon, width, height)
     if not is_installed:
         transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
             UNAVAILABLE_GAME_OVERLAY, width, height
@@ -151,8 +160,8 @@ class GameStore(object):
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, game.year, game.runner_name, 
-            game.is_installed)
+            (game.slug, name, pixbuf, game.year, game.runner_name,
+             game.is_installed)
         )
 
 
@@ -230,7 +239,7 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.icon_size = BANNER_SMALL_SIZE
+        self.icon_size = ICON_SIZE
         self.game_store = GameStore(games, icon_size=self.icon_size,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
