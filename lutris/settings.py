@@ -19,7 +19,7 @@ CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
 BANNER_PATH = os.path.join(DATA_DIR, 'banners')
-ICON_PATH = os.path.join(DATA_DIR, 'icons')
+ICON_PATH = os.path.join(BaseDirectory.xdg_data_home, 'icons/hicolor/32x32/apps')
 
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
