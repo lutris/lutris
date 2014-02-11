@@ -54,7 +54,7 @@ def filter_view(model, _iter, user_data):
 def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     width = size[0]
     height = size[1]
-    if size == BANNER_SIZE:
+    if size in (BANNER_SIZE, BANNER_SMALL_SIZE):
         default_icon = DEFAULT_BANNER
         icon_path = os.path.join(settings.BANNER_PATH,
                                  "%s.jpg" % game_slug)
