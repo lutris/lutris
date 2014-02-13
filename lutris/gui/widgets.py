@@ -64,7 +64,7 @@ def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
                                  "%s.png" % game_slug)
 
     if not os.path.exists(icon_path):
-        icon_path = DEFAULT_ICON
+        icon_path = default_icon
     try:
         pixbuf = Pixbuf.new_from_file_at_size(icon_path, width, height)
     except GLib.GError:
