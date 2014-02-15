@@ -51,14 +51,14 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
-    width = size[0]
-    height = size[1]
-    if size in (BANNER_SIZE, BANNER_SMALL_SIZE):
+def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
+    if icon_type in ("banner", "banner_small"):
+        size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
         default_icon = DEFAULT_BANNER
         icon_path = os.path.join(settings.BANNER_PATH,
                                  "%s.jpg" % game_slug)
-    elif size == ICON_SIZE:
+    elif icon_type == "icon":
+        size = ICON_SIZE
         default_icon = DEFAULT_ICON
         icon_path = os.path.join(settings.ICON_PATH,
                                  "%s.png" % game_slug)
@@ -66,17 +66,17 @@ def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     if not os.path.exists(icon_path):
         icon_path = default_icon
     try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, width, height)
+        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
     except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(default_icon, width, height)
+        pixbuf = Pixbuf.new_from_file_at_size(default_icon, size[0], size[1])
     if not is_installed:
         transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            UNAVAILABLE_GAME_OVERLAY, width, height
+            UNAVAILABLE_GAME_OVERLAY, size[0], size[1]
         )
         transparent_pixbuf = transparent_pixbuf.scale_simple(
-            width, height, GdkPixbuf.InterpType.NEAREST
+            size[0], size[1], GdkPixbuf.InterpType.NEAREST
         )
-        pixbuf.composite(transparent_pixbuf, 0, 0, width, height,
+        pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
         return transparent_pixbuf
     return pixbuf
@@ -136,9 +136,9 @@ class IconViewCellRenderer(Gtk.CellRendererText):
 
 class GameStore(object):
 
-    def __init__(self, games, icon_size=BANNER_SIZE, filter_text=None):
+    def __init__(self, games, filter_text=None, icon_type=None):
         self.filter_text = filter_text
-        self.icon_size = icon_size
+        self.icon_type = icon_type
         self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
@@ -156,7 +156,7 @@ class GameStore(object):
         """Adds a game into the store """
         if not game.name:
             return
-        pixbuf = get_pixbuf_for_game(game.slug, self.icon_size,
+        pixbuf = get_pixbuf_for_game(game.slug, self.icon_type,
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append(
@@ -212,7 +212,7 @@ class GameView(object):
     def update_image(self, game_slug, is_installed=False):
         row = self.get_row_by_slug(game_slug)
         if row:
-            game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_size,
+            game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_type,
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
@@ -237,10 +237,10 @@ class GameTreeView(Gtk.TreeView, GameView):
     """Show the main list of games"""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games, filter_text=""):
+    def __init__(self, games, filter_text="", icon_type="icon"):
         self.filter_text = filter_text
-        self.icon_size = ICON_SIZE
-        self.game_store = GameStore(games, icon_size=self.icon_size,
+        self.icon_type = icon_type
+        self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameTreeView, self).__init__(self.model)
@@ -301,10 +301,10 @@ class GameIconView(Gtk.IconView, GameView):
     icon_width = BANNER_SIZE[0]
     icon_padding = 1
 
-    def __init__(self, games, filter_text=""):
+    def __init__(self, games, filter_text="", icon_type="banner"):
         self.filter_text = filter_text
-        self.icon_size = BANNER_SIZE
-        self.game_store = GameStore(games, icon_size=self.icon_size,
+        self.icon_type = icon_type
+        self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter
         super(GameIconView, self).__init__(model=self.model)

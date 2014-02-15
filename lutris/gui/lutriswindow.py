@@ -29,13 +29,17 @@ from lutris.gui.widgets import (
 )
 
 GAME_VIEW = 'icon'
+ICON_TYPE = 'banner'
 
 
-def switch_to_view(view=GAME_VIEW, games=[], filter_text=None):
+def switch_to_view(view=GAME_VIEW, games=[], filter_text=None,
+                   icon_type=ICON_TYPE):
     if view == 'icon':
-        view = GameIconView(games, filter_text=filter_text)
+        view = GameIconView(games, filter_text=filter_text,
+                            icon_type=icon_type)
     elif view == 'list':
-        view = GameTreeView(games, filter_text=filter_text)
+        view = GameTreeView(games, filter_text=filter_text,
+                            icon_type=icon_type)
     return view
 
 
@@ -57,6 +61,7 @@ class LutrisWindow(object):
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
         view_type = settings.read_setting('view_type') or 'icon'
+        self.icon_type = settings.read_setting('icon_type') or 'banner'
         filter_installed_setting = settings.read_setting(
             'filter_installed'
         ) or 'false'
@@ -68,25 +73,36 @@ class LutrisWindow(object):
         logger.debug("Getting game list")
         game_list = get_game_list(self.filter_installed)
         logger.debug("Switching view")
-        self.view = switch_to_view(view_type, game_list)
+        self.view = switch_to_view(view_type, game_list,
+                                   icon_type=self.icon_type)
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
+        # View menu
         self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
         self.icon_view_menuitem.set_active(view_type == 'icon')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
         self.list_view_menuitem.set_active(view_type == 'list')
+        # View buttons
         self.icon_view_btn = self.builder.get_object('switch_grid_view_btn')
         self.icon_view_btn.set_active(view_type == 'icon')
         self.list_view_btn = self.builder.get_object('switch_list_view_btn')
         self.list_view_btn.set_active(view_type == 'list')
+        # Icon type menu
+        self.banner_small_menuitem = \
+            self.builder.get_object('banner_small_menuitem')
+        self.banner_small_menuitem.set_active(self.icon_type == 'banner_small')
+        self.banner_menuitem = self.builder.get_object('banner_menuitem')
+        self.banner_menuitem.set_active(self.icon_type == 'banner')
+        self.icon_menuitem = self.builder.get_object('icon_menuitem')
+        self.icon_menuitem.set_active(self.icon_type == 'icon')
 
         self.search_entry = self.builder.get_object('search_entry')
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
-        #Status bar
+        # Status bar
         self.status_label = self.builder.get_object('status_label')
         self.joystick_icons = []
         # Buttons
@@ -146,8 +162,7 @@ class LutrisWindow(object):
     def sync_icons(self):
         game_list = pga.get_games()
         resources.fetch_icons([game_info['slug'] for game_info in game_list],
-                                callback=self.on_image_downloaded)
-        self.view.queue_draw()
+                              callback=self.on_image_downloaded)
 
     def connect_signals(self):
         """Connects signals from the view with the main window.
@@ -214,6 +229,7 @@ class LutrisWindow(object):
         """Signal for window close"""
         view_type = 'icon' if 'IconView' in str(type(self.view)) else 'list'
         settings.write_setting('view_type', view_type)
+        settings.write_setting('icon_type', self.icon_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
@@ -344,13 +360,21 @@ class LutrisWindow(object):
         self.view = switch_to_view(
             view_type,
             get_game_list(filter_installed=self.filter_installed),
-            filter_text=self.search_entry.get_text()
+            filter_text=self.search_entry.get_text(),
+            icon_type=self.icon_type
         )
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add_with_viewport(self.view)
         self.view.show_all()
         self.view.check_resize()
+
+    def on_icon_type_activate(self, menuitem):
+        icon_type = menuitem.get_name()
+        if icon_type == self.view.icon_type:
+            return
+        self.icon_type = icon_type
+        self.do_view_switch(self.current_view_type)
 
     def create_menu_shortcut(self, *args):
         """Adds the game to the system's Games menu"""

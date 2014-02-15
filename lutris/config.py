@@ -28,7 +28,7 @@ from gi.repository import Gio
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR
+from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR, ICON_PATH
 
 
 def register_handler():
@@ -55,7 +55,7 @@ def check_config(force_wipe=False):
                    join(CONFIG_DIR, "games"),
                    DATA_DIR,
                    join(DATA_DIR, "covers"),
-                   join(DATA_DIR, "icons"),
+                   ICON_PATH,
                    join(DATA_DIR, "banners"),
                    join(DATA_DIR, "runners"),
                    join(DATA_DIR, "lib"),
