@@ -147,6 +147,7 @@ class LutrisWindow(object):
         game_list = pga.get_games()
         resources.fetch_banners([game_info['slug'] for game_info in game_list],
                                 callback=self.on_image_downloaded)
+        self.view.queue_draw()
 
     def connect_signals(self):
         """Connects signals from the view with the main window.

@@ -204,7 +204,6 @@ class GameView(object):
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
-        self.queue_draw()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu"""
