@@ -90,6 +90,7 @@ def migrate_games():
         {'name': 'lastplayed', 'type': 'INTEGER'},
         {'name': 'installed', 'type': 'INTEGER'},
         {'name': 'installer_slug', 'type': 'TEXT'},
+        {'name': 'year', 'type': 'TEXT'}
     ]
     return migrate('games', schema)
 

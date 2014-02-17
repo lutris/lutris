@@ -47,6 +47,7 @@ class Game(object):
         self.directory = game_data.get('directory')
         self.name = game_data.get('name')
         self.is_installed = bool(game_data.get('installed'))
+        self.year = game_data.get('year')
 
         self.load_config()
         self.resolution_changed = False
