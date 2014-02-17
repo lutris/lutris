@@ -231,7 +231,6 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameTreeView, self).__init__(self.model)
         self.set_rules_hint(True)
-        self.model.set_sort_column_id(1, Gtk.SortType.ASCENDING)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
