@@ -12,14 +12,16 @@ from lutris import settings
 MISSING_ICON = os.path.join(datapath.get(), 'media/banner.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
-ICON_SIZE = (184, 69)
+BANNER_SIZE = (184, 69)
+BANNER_SMALL_SIZE = (120, 45)
 (
     COL_ID,
     COL_NAME,
     COL_ICON,
+    COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-) = range(5)
+) = range(6)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -47,7 +49,7 @@ def filter_view(model, _iter, user_data):
         return False
 
 
-def get_pixbuf_for_game(game_slug, size=ICON_SIZE, is_installed=True):
+def get_pixbuf_for_game(game_slug, size=BANNER_SIZE, is_installed=True):
     width = size[0]
     height = size[1]
     icon_path = os.path.join(settings.DATA_DIR, "banners",
@@ -119,16 +121,16 @@ class IconViewCellRenderer(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
-        self.props.width = ICON_SIZE[0]
-        self.props.wrap_width = ICON_SIZE[0]
+        self.props.width = BANNER_SIZE[0]
+        self.props.wrap_width = BANNER_SIZE[0]
 
 
 class GameStore(object):
 
-    def __init__(self, games, icon_size=ICON_SIZE, filter_text=None):
+    def __init__(self, games, icon_size=BANNER_SIZE, filter_text=None):
         self.filter_text = filter_text
         self.icon_size = icon_size
-        self.store = Gtk.ListStore(str, str, Pixbuf, str, bool)
+        self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
         self.fill_store(games)
@@ -149,7 +151,8 @@ class GameStore(object):
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, game.runner_name, game.is_installed)
+            (game.slug, name, pixbuf, game.year, game.runner_name, 
+            game.is_installed)
         )
 
 
@@ -200,7 +203,7 @@ class GameView(object):
     def update_image(self, game_slug, is_installed=False):
         row = self.get_row_by_slug(game_slug)
         if row:
-            game_pixpuf = get_pixbuf_for_game(game_slug,
+            game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_size,
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
@@ -227,7 +230,9 @@ class GameTreeView(Gtk.TreeView, GameView):
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, filter_text=self.filter_text)
+        self.icon_size = BANNER_SMALL_SIZE
+        self.game_store = GameStore(games, icon_size=self.icon_size,
+                                    filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameTreeView, self).__init__(self.model)
         self.set_rules_hint(True)
@@ -238,9 +243,15 @@ class GameTreeView(Gtk.TreeView, GameView):
         column.set_reorderable(True)
         self.append_column(column)
 
-        column = self.setup_text_column("Name", COL_NAME)
+        # Text columns
+        default_text_cell = self.set_text_cell()
+        name_cell = self.set_text_cell()
+        name_cell.set_padding(5, 0)
+        column = self.set_column(name_cell, "Name", COL_NAME)
         self.append_column(column)
-        column = self.setup_text_column("Runner", COL_RUNNER)
+        column = self.set_column(default_text_cell, "Year", COL_YEAR)
+        self.append_column(column)
+        column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
         self.append_column(column)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
@@ -250,13 +261,14 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
-    def setup_text_column(self, header, column_id):
+    def set_text_cell(self):
         text_cell = Gtk.CellRendererText()
-        text_cell.set_padding(4, 10)
+        text_cell.set_padding(10, 0)
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
-        text_cell.set_property("width-chars", 40)
+        return text_cell
 
-        column = Gtk.TreeViewColumn(header, text_cell, markup=column_id)
+    def set_column(self, cell, header, column_id):
+        column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id)
         column.set_resizable(True)
@@ -277,12 +289,13 @@ class GameTreeView(Gtk.TreeView, GameView):
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
-    icon_width = ICON_SIZE[0]
+    icon_width = BANNER_SIZE[0]
     icon_padding = 1
 
     def __init__(self, games, filter_text=""):
         self.filter_text = filter_text
-        self.game_store = GameStore(games, icon_size=ICON_SIZE,
+        self.icon_size = BANNER_SIZE
+        self.game_store = GameStore(games, icon_size=self.icon_size,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter
         super(GameIconView, self).__init__(model=self.model)

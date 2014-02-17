@@ -61,7 +61,7 @@ def sync(caller=None):
     for game in remote_library:
         if game['slug'] in not_in_local:
             logger.debug("Adding %s to local library", game['slug'])
-            pga.add_game(game['name'], slug=game['slug'])
+            pga.add_game(game['name'], slug=game['slug'], year=game['year'])
             if caller:
                 caller.add_game_to_view(game['slug'])
     logger.debug("%d games added", len(not_in_local))
