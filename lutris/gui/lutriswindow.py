@@ -29,7 +29,7 @@ from lutris.gui.widgets import (
 )
 
 
-def switch_to_view(view, games=[], filter_text=None, icon_type=None):
+def load_view(view, games=[], filter_text=None, icon_type=None):
     if view == 'icon':
         view = GameIconView(games, filter_text=filter_text,
                             icon_type=icon_type)
@@ -69,7 +69,7 @@ class LutrisWindow(object):
         logger.debug("Getting game list")
         game_list = get_game_list(self.filter_installed)
         logger.debug("Switching view")
-        self.view = switch_to_view(view_type, game_list,
+        self.view = load_view(view_type, game_list,
                                    icon_type=self.icon_type)
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
@@ -249,7 +249,7 @@ class LutrisWindow(object):
         settings.write_setting(
             'filter_installed', setting_value
         )
-        self.do_view_switch(self.current_view_type)
+        self.switch_view(self.current_view_type)
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
@@ -335,7 +335,7 @@ class LutrisWindow(object):
         view_type = 'icon' if menuitem.get_active() else 'list'
         if view_type == self.current_view_type:
             return
-        self.do_view_switch(view_type)
+        self.switch_view(view_type)
         self.icon_view_btn.set_active(view_type == 'icon')
         self.list_view_btn.set_active(view_type == 'list')
 
@@ -343,14 +343,14 @@ class LutrisWindow(object):
         view_type = 'icon' if widget.get_active() else 'list'
         if view_type == self.current_view_type:
             return
-        self.do_view_switch(view_type)
+        self.switch_view(view_type)
         self.icon_view_menuitem.set_active(view_type == 'icon')
         self.list_view_menuitem.set_active(view_type == 'list')
 
-    def do_view_switch(self, view_type):
+    def switch_view(self, view_type):
         """Switches between icon view and list view"""
         self.view.destroy()
-        self.view = switch_to_view(
+        self.view = load_view(
             view_type,
             get_game_list(filter_installed=self.filter_installed),
             filter_text=self.search_entry.get_text(),
@@ -367,7 +367,7 @@ class LutrisWindow(object):
         if icon_type == self.view.icon_type:
             return
         self.icon_type = icon_type
-        self.do_view_switch(self.current_view_type)
+        self.switch_view(self.current_view_type)
 
     def create_menu_shortcut(self, *args):
         """Adds the game to the system's Games menu"""
