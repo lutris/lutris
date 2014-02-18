@@ -345,14 +345,11 @@ class LutrisWindow(object):
 
     def on_viewbtn_toggled(self, widget):
         view_type = 'icon' if widget.get_active() else 'list'
-        current_view = 'icon' \
-            if self.view.__class__.__name__ == "GameIconView" \
-            else 'list'
-        if view_type == current_view:
+        if view_type == self.current_view_type:
             return
+        self.do_view_switch(view_type)
         self.icon_view_menuitem.set_active(view_type == 'icon')
         self.list_view_menuitem.set_active(view_type == 'list')
-        self.do_view_switch(view_type)
 
     def do_view_switch(self, view_type):
         """Switches between icon view and list view"""
