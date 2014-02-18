@@ -28,12 +28,8 @@ from lutris.gui.widgets import (
     GameTreeView, GameIconView, ContextualMenu
 )
 
-GAME_VIEW = 'icon'
-ICON_TYPE = 'banner'
 
-
-def switch_to_view(view=GAME_VIEW, games=[], filter_text=None,
-                   icon_type=ICON_TYPE):
+def switch_to_view(view, games=[], filter_text=None, icon_type=None):
     if view == 'icon':
         view = GameIconView(games, filter_text=filter_text,
                             icon_type=icon_type)
@@ -60,8 +56,8 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
-        view_type = settings.read_setting('view_type') or 'icon'
         self.icon_type = settings.read_setting('icon_type') or 'banner'
+        view_type = settings.read_setting('view_type') or settings.GAME_VIEW
         filter_installed_setting = settings.read_setting(
             'filter_installed'
         ) or 'false'

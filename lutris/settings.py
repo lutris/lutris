@@ -33,6 +33,7 @@ LIB64_URL = SITE_URL + "files/lib64/"
 
 ## Default config options
 KEEP_CACHED_ASSETS = True
+GAME_VIEW = 'icon'
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting
