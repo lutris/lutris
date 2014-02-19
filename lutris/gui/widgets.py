@@ -124,14 +124,14 @@ class ContextualMenu(Gtk.Menu):
 
 
 class IconViewCellRenderer(Gtk.CellRendererText):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, width=None, *args, **kwargs):
         super(IconViewCellRenderer, self).__init__(*args, **kwargs)
         self.props.alignment = Pango.Alignment.CENTER
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
-        self.props.width = BANNER_SIZE[0]
-        self.props.wrap_width = BANNER_SIZE[0]
+        self.props.width = width
+        self.props.wrap_width = width
 
 
 class GameStore(object):
@@ -298,7 +298,6 @@ class GameTreeView(Gtk.TreeView, GameView):
 
 class GameIconView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
-    icon_width = BANNER_SIZE[0]
     icon_padding = 1
 
     def __init__(self, games, filter_text="", icon_type=None):
@@ -311,7 +310,9 @@ class GameIconView(Gtk.IconView, GameView):
         self.set_columns(1)
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
-        iconview_cell_renderer = IconViewCellRenderer()
+        self.cell_width = BANNER_SIZE[0] if icon_type == "banner" \
+            else BANNER_SMALL_SIZE[0]
+        iconview_cell_renderer = IconViewCellRenderer(width=self.cell_width)
         self.pack_end(iconview_cell_renderer, False)
         self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
         self.set_item_padding(self.icon_padding)
@@ -323,8 +324,8 @@ class GameIconView(Gtk.IconView, GameView):
         self.connect('size-allocate', self.on_size_allocate)
 
     def set_fluid_columns(self, width):
-        icon_width = self.icon_width + self.icon_padding * 2
-        nb_columns = (width / icon_width)
+        cell_width = self.cell_width + self.icon_padding * 2
+        nb_columns = (width / cell_width)
         self.set_columns(nb_columns)
 
     def on_size_allocate(self, widget, rect):
