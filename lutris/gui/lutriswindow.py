@@ -56,8 +56,8 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
-        self.icon_type = settings.read_setting('icon_type') or 'banner'
         view_type = settings.read_setting('view_type') or settings.GAME_VIEW
+        self.icon_type = self.get_icon_type(view_type)
         filter_installed_setting = settings.read_setting(
             'filter_installed'
         ) or 'false'
@@ -70,7 +70,7 @@ class LutrisWindow(object):
         game_list = get_game_list(self.filter_installed)
         logger.debug("Switching view")
         self.view = load_view(view_type, game_list,
-                                   icon_type=self.icon_type)
+                              icon_type=self.icon_type)
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
@@ -169,6 +169,18 @@ class LutrisWindow(object):
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.get_size)
 
+    def get_icon_type(self, view_type):
+        """Returns the icon style depending on the type of view"""
+        if view_type == 'icon':
+            icon_type = settings.read_setting('icon_type_iconview')
+            default = settings.ICON_TYPE_ICONVIEW
+        elif view_type == 'list':
+            icon_type = settings.read_setting('icon_type_listview')
+            default = settings.ICON_TYPE_LISTVIEW
+        if icon_type not in ("banner_small", "banner", "icon"):
+            icon_type = default
+        return icon_type
+
     def get_size(self, widget, _):
         self.window_size = widget.get_size()
 
@@ -225,7 +237,6 @@ class LutrisWindow(object):
         """Signal for window close"""
         view_type = 'icon' if 'IconView' in str(type(self.view)) else 'list'
         settings.write_setting('view_type', view_type)
-        settings.write_setting('icon_type', self.icon_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
@@ -349,6 +360,8 @@ class LutrisWindow(object):
 
     def switch_view(self, view_type):
         """Switches between icon view and list view"""
+        logger.debug("Switching view")
+        self.icon_type = self.get_icon_type(view_type)
         self.view.destroy()
         self.view = load_view(
             view_type,
@@ -361,12 +374,23 @@ class LutrisWindow(object):
         self.games_scrollwindow.add_with_viewport(self.view)
         self.view.show_all()
         self.view.check_resize()
+        # Note: set_active(True *or* False) apparently makes ALL the menuitems
+        # in the group send the activate signal...
+        if icon_type == 'banner_small':
+            self.banner_small_menuitem.set_active(True)
+        if icon_type == 'icon':
+            self.icon_menuitem.set_active(True)
+        if icon_type == 'banner':
+            self.banner_menuitem.set_active(True)
 
     def on_icon_type_activate(self, menuitem):
         icon_type = menuitem.get_name()
-        if icon_type == self.view.icon_type:
+        if icon_type == self.view.icon_type or not menuitem.get_active():
             return
-        self.icon_type = icon_type
+        if self.current_view_type == 'icon':
+            settings.write_setting('icon_type_iconview', icon_type)
+        elif self.current_view_type == 'list':
+            settings.write_setting('icon_type_listview', icon_type)
         self.switch_view(self.current_view_type)
 
     def create_menu_shortcut(self, *args):

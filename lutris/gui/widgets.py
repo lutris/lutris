@@ -237,7 +237,7 @@ class GameTreeView(Gtk.TreeView, GameView):
     """Show the main list of games"""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games, filter_text="", icon_type="icon"):
+    def __init__(self, games, filter_text="", icon_type=None):
         self.filter_text = filter_text
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
@@ -301,7 +301,7 @@ class GameIconView(Gtk.IconView, GameView):
     icon_width = BANNER_SIZE[0]
     icon_padding = 1
 
-    def __init__(self, games, filter_text="", icon_type="banner"):
+    def __init__(self, games, filter_text="", icon_type=None):
         self.filter_text = filter_text
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
