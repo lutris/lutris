@@ -65,7 +65,7 @@ def check_config(force_wipe=False):
     for directory in directories:
         if not os.path.exists(directory):
             logger.debug("creating directory %s" % directory)
-            os.mkdir(directory)
+            os.makedirs(directory)
 
     if force_wipe:
         os.remove(PGA_DB)
