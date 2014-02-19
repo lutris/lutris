@@ -376,11 +376,11 @@ class LutrisWindow(object):
         self.view.check_resize()
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
         # in the group send the activate signal...
-        if icon_type == 'banner_small':
+        if self.icon_type == 'banner_small':
             self.banner_small_menuitem.set_active(True)
-        if icon_type == 'icon':
+        if self.icon_type == 'icon':
             self.icon_menuitem.set_active(True)
-        if icon_type == 'banner':
+        if self.icon_type == 'banner':
             self.banner_menuitem.set_active(True)
 
     def on_icon_type_activate(self, menuitem):
