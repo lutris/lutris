@@ -22,7 +22,7 @@ Name=%s
 Icon=%s
 Exec=lutris lutris:%s
 Categories=Game
-""" % (config.get_name(), game, game)
+""" % (config.get_name(), 'lutris_' + game, game)
 
     launcher_filename = "%s.desktop" % game
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
