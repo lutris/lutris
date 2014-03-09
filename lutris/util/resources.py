@@ -7,17 +7,20 @@ from lutris.util import http
 BANNER = "banner"
 ICON = "icon"
 
+
 def get_icon_path(game, icon_type):
     if icon_type == BANNER:
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game)
     if icon_type == ICON:
         return os.path.join(settings.ICON_PATH, "%s.png" % game)
 
+
 def get_icon_url(game, icon_type):
     if icon_type == BANNER:
         return settings.INSTALLER_URL + '/%s.jpg' % game
     if icon_type == ICON:
-        return settings.INSTALLER_URL + '/icon/%s.png' % game
+        return settings.INSTALLER_URL + 'icon/%s.jpg' % game
+
 
 def has_icon(game, icon_type):
     if icon_type == BANNER:
@@ -26,6 +29,7 @@ def has_icon(game, icon_type):
     elif icon_type == ICON:
         icon_path = get_icon_path(game, ICON)
         return os.path.exists(icon_path)
+
 
 def fetch_icons(games, callback=None):
     no_banners = []
@@ -40,6 +44,7 @@ def fetch_icons(games, callback=None):
         download_icon(game, BANNER, callback=callback)
     for game in no_icons:
         download_icon(game, ICON, callback=callback)
+
 
 def download_icon(game, icon_type, overwrite=False, callback=None):
     icon_url = get_icon_url(game, icon_type)
