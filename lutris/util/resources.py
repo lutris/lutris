@@ -19,7 +19,7 @@ def get_icon_url(game, icon_type):
     if icon_type == BANNER:
         return settings.INSTALLER_URL + '/%s.jpg' % game
     if icon_type == ICON:
-        return settings.INSTALLER_URL + 'icon/%s.jpg' % game
+        return settings.INSTALLER_URL + 'icon/%s.png' % game
 
 
 def has_icon(game, icon_type):
