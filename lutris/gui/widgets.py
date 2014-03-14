@@ -61,7 +61,7 @@ def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
         size = ICON_SIZE
         default_icon = DEFAULT_ICON
         icon_path = os.path.join(settings.ICON_PATH,
-                                 "%s.png" % game_slug)
+                                 "lutris_%s.png" % game_slug)
 
     if not os.path.exists(icon_path):
         icon_path = default_icon
