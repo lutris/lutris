@@ -11,13 +11,21 @@ the ``installer`` section. The value can either be a string containing a URI
 pointing at the required file or a dictionary containing the ``filename`` and
 ``uri`` keys. The ``uri`` key is equivalent to passing only a string to the
 installer and the ``filename`` key will be used to give the local copy another
-name.
+name. [TODO: example]
 
 If the game contains copyrighted files that cannot be redistributed, the value
 should begin with ``N/A``. When the installer encounter this value, it will
 prompt the user for the location of the file. To indicate to the user what file
 to select, append a message to ``N/A`` like this:
 ``N/A:Please select the installer for this game``
+
+Examples:
+
+::
+
+    files:
+    - file1: http://site.com/gamesetup.exe
+    - file2: "N/A:Select the game's setup file"
 
 
 If the game makes use of (Windows) Steam data, the value should be
@@ -32,24 +40,55 @@ Referencing the main file
 ---------------------------
 
 For Linux and Wine games, specify the executable file with the ``exe``
-directive. The given path is relative to the game dir.
-
-Examples:
-``exe: game.sh``
-``exe: drive_c/Program Files/Game/game.exe``
+parameter within the ``game`` directive. The given path is relative to the game
+directory.
 
 For emulator games, in case you don't ask the user to select the rom
 directly but make the installer extract it from an archive or something, you
-can reference the rom like this: ``main_file: file.rom``.
+can reference the rom with the ``main_file`` parameter.
 
-Installing mods and add-ons
----------------------------
+For browser games, specify the game's URL with ``main_file``.
 
-Mods and add-ons require that a base game is already available on the system.
+Examples:
+
+::
+
+    game:
+        exe: game.sh
+        
+        main_file: game.rom
+        
+        main_file: http://www...
+
+Presetting game parameters
+--------------------------
+
+The ``game`` directive lets you preset game parameters and options. Available
+parameters depend on the runner:
+
+* linux: ``args`` (optional main executable command argument)
+
+* wine / winesteam: ``args``, ``prefix`` (optional WINEPREFIX).
+
+[TODO: reference all options]
+
+Example:
+
+::
+
+    game:
+        exe: drive_c/Game/game.exe
+        prefix: $GAMEDIR
+        args: -arg
+
+Mods and add-ons
+----------------
+
+Mods and add-ons require that a base game is already installed on the system.
 You can let the installer know that you want to install an add-on by specifying
 the ``requires`` directive. The value of ``requires`` must be the canonical
-slug name of a game, not one of its aliases. For example, to install the add-on
-"The reckoning" for Quake 2, you should add:
+slug name of the base game, not one of its aliases. For example, to install the
+add-on "The reckoning" for Quake 2, you should add:
 
 ``requires: quake-2``
 
@@ -59,17 +98,29 @@ Writing the installation script
 
 After every file needed by the game has been aquired, the actual installation
 can take place. A series of directives will tell the installer how to set up
-the game correctly.
+the game correctly. Start the installer section with ``installer:`` then stack
+the directives by order of execution (top to bottom).
 
 Displaying an 'Insert disc' dialog
 ----------------------------------
 
 The ``insert-disc`` command will display a message box to the user requesting
-him to insert the game's disc into the optical drive. A link to CDEmu homepage's
-and PPA will also be displayed if the program isn't detected on the machine,
-otherwise it will be replaced with a button to open gCDEmu.
+him to insert the game's disc into the optical drive.
 
-You can override this default text with the ``message`` parameter.
+Ensure a correct disc detection by specifying a file or folder present on the
+disc with the ``requires`` parameter.
+
+A link to CDEmu's homepage and PPA will also be displayed if the program isn't 
+detected on the machine, otherwise it will be replaced with a button to open
+gCDEmu. You can override this default text with the ``message`` parameter.
+
+Example:
+
+::
+
+    - insert-disc:
+        message: Insert the Diablo CD to continue
+        requires: diablosetup.exe
 
 Moving files and directories
 ----------------------------
@@ -92,9 +143,9 @@ Example:
 
 ::
 
-    move:
-      src: game-file-id
-      dst: $GAMEDIR/location
+    - move:
+        src: game-file-id
+        dst: $GAMEDIR/location
 
 Copying and merging directories
 -------------------------------
@@ -110,9 +161,10 @@ Example:
 
 ::
 
-    merge:
-      src: game-file-id
-      dst: $GAMEDIR/location
+    installer:
+    - merge:
+        src: game-file-id
+        dst: $GAMEDIR/location
 
 Extracting archives
 -------------------
@@ -129,17 +181,18 @@ Example:
 
 ::
 
-    extract:
-      file: game-archive
-      dst: $GAMEDIR/datadir/
+    - extract:
+        file: game-archive
+        dst: $GAMEDIR/datadir/
 
 Making a file executable
 ------------------------
 
 Marking the file as executable is done with the ``chmodx`` command. It is often
-needed for games that ship in a zip file, which does not retain file permissions.
+needed for games that ship in a zip file, which does not retain file
+permissions.
 
-Example: ``chmodx: $GAMEDIR/game_binary``
+Example: ``- chmodx: $GAMEDIR/game_binary``
 
 Executing a file
 ----------------
@@ -151,9 +204,9 @@ Example:
 
 ::
 
-    execute:
-      args: --argh
-      file: great-id
+    - execute:
+         args: --argh
+         file: great-id
 
 Running a task provided by a runner
 -----------------------------------
@@ -164,12 +217,47 @@ that will be called. Other parameters depend on the task being called.
 
 Currently, the following tasks are implemented:
 
-wine: ``wineexec`` Runs a windows executable. Parameters are ``executable``,
-``args`` (optional arguments passed to the executable), ``prefix`` (optional
-WINEPREFIX), ``workdir`` (optional working directory).
+* wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
+  ``executable``, ``args`` (optional arguments passed to the executable),
+  ``prefix`` (optional WINEPREFIX), ``workdir`` (optional working directory).
 
-wine: ``winetricks`` Runs winetricks with the ``app`` argument. ``prefix`` is
-an optional WINEPREFIX path.
+Example:
+
+::
+
+    - task:
+         name: wineexec
+         prefix: $GAMEDIR
+         executable: drive_c/Program Files/Game/Game.exe
+         args: --windowed
+         
+
+* wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
+  ``prefix`` is an optional WINEPREFIX path.
+
+Example:
+
+::
+
+    - task:
+         name: winetricks
+         prefix: $GAMEDIR
+         app: nt40
+
+* wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
+  are ``path`` (the registry path), ``key``, ``value``, ``prefix`` (optional
+  WINEPREFIX), ``workdir`` (optional working directory).
+
+Example:
+
+::
+
+    - task:
+        name: set_regedit
+        prefix: $GAMEDIR
+        path: HKEY_CURRENT_USER\Software\Wine\AppDefaults\Sacrifice.exe
+        key: Version
+        value: nt40
 
 
 Trying the installer locally
