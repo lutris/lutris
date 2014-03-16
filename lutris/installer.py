@@ -765,8 +765,8 @@ class InstallerDialog(Gtk.Window):
         self.set_location_entry(None)
 
     def on_file_selected(self, widget):
+        widget.set_sensitive(False)
         file_path = self.location_entry.get_text()
-        logger.debug("User selected file: %s", file_path)
         self.interpreter.file_selected(file_path)
 
     def clean_widgets(self):
