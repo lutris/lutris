@@ -178,6 +178,13 @@ class wine(Runner):
             "Desktop": r"%s\Explorer" % reg_prefix
         }
 
+    @property
+    def browse_dir(self):
+        game_exe = self.settings['game'].get('exe')
+        if game_exe:
+            return os.path.dirname(game_exe)
+        return None
+
     def get_install_command(self, exe=None):
         """Return the installer command, either from an exe or an iso"""
         if exe:
