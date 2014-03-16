@@ -9,7 +9,8 @@ from gi.repository import Gdk
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.runners import wine
 from lutris.util.log import logger
-from lutris.util.steam import read_config, get_path_from_config
+from lutris.util.steam import (read_config, get_path_from_config,
+                               get_path_from_appmanifest)
 from lutris.util import system
 from lutris.config import LutrisConfig
 
@@ -113,8 +114,14 @@ class winesteam(wine.wine):
             return apps.keys()
 
     def get_game_data_path(self, appid):
-        steam_config = self.get_steam_config()
-        return get_path_from_config(steam_config, appid)
+        steam_path = self.get_game_path()
+        data_path = get_path_from_appmanifest(steam_path, appid)
+        if not data_path:
+            steam_config = self.get_steam_config()
+            data_path = get_path_from_config(steam_config, appid)
+        if not data_path:
+            logger.warning("Data path for SteamApp %s not found.", appid)
+        return data_path
 
     def install_game(self, appid):
         subprocess.Popen(self.launch_args + ["steam://install/%s" % appid])
