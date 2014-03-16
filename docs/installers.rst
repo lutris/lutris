@@ -40,25 +40,16 @@ Referencing the main file
 ---------------------------
 
 For Linux and Wine games, specify the executable file with the ``exe``
-parameter within the ``game`` directive. The given path is relative to the game
-directory.
+directive. The given path is relative to the game directory.
+Example: ``exe: game.sh``
 
 For emulator games, in case you don't ask the user to select the rom
 directly but make the installer extract it from an archive or something, you
 can reference the rom with the ``main_file`` parameter.
+Example: ``main_file: game.rom``
 
 For browser games, specify the game's URL with ``main_file``.
-
-Examples:
-
-::
-
-    game:
-        exe: game.sh
-        
-        main_file: game.rom
-        
-        main_file: http://www...
+Example: ``main_file: http://www...``
 
 Presetting game parameters
 --------------------------
@@ -110,7 +101,7 @@ him to insert the game's disc into the optical drive.
 Ensure a correct disc detection by specifying a file or folder present on the
 disc with the ``requires`` parameter.
 
-A link to CDEmu's homepage and PPA will also be displayed if the program isn't 
+A link to CDEmu's homepage and PPA will also be displayed if the program isn't
 detected on the machine, otherwise it will be replaced with a button to open
 gCDEmu. You can override this default text with the ``message`` parameter.
 
@@ -161,7 +152,6 @@ Example:
 
 ::
 
-    installer:
     - merge:
         src: game-file-id
         dst: $GAMEDIR/location
@@ -173,7 +163,7 @@ Extracting archives is done with the ``extract`` directive, the ``file``
 argument is a ``file id``. If the archive should be extracted in some other
 location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
 
-You can optionally specify the archive's type with the ``format`` option. 
+You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
 be. Accepted values for ``format`` are: zip, tgz, gzip and bz2.
 
@@ -230,7 +220,7 @@ Example:
          prefix: $GAMEDIR
          executable: drive_c/Program Files/Game/Game.exe
          args: --windowed
-         
+
 
 * wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
   ``prefix`` is an optional WINEPREFIX path.
