@@ -2,7 +2,7 @@ import os
 import subprocess
 
 from lutris.util.log import logger
-from lutris import settings
+from lutris.settings import CACHE_DIR, RUNNER_DIR, WINE_VERSION
 from lutris.runners.runner import Runner
 
 WINE_URL = settings.RUNNERS_URL + "wine-latest.tar.gz"
@@ -17,7 +17,7 @@ def set_regedit(path, key, value, prefix=None, arch='win32'):
 
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
-    reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
+    reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
     #Make temporary reg file
     reg_file = open(reg_path, "w")
     reg_file.write("""REGEDIT4
@@ -196,13 +196,19 @@ class wine(Runner):
             return False
         return command
 
-    def get_wine_path(self):
-        runner_name = self.__class__.__name__
-        if self.settings:
-            runner_config = self.settings.config.get(runner_name)
-            if runner_config:
-                return runner_config.get('wine_path', self.executable)
-        return self.executable
+    def get_executable(self, arch='win32'):
+        return os.path.join(RUNNER_DIR,
+                            'wine/%s/%s/bin/wine' % (arch, WINE_VERSION))
+
+    def install(self):
+        tarball = "wine_1.7.13_win32.tar.gz"
+        destination = os.path.join(RUNNER_DIR, "wine/win32/1.7.13")
+        self.download_and_extract(tarball, destination)
+
+    def is_installed(self):
+        if os.path.exists(self.get_executable()):
+            return True
+        return False
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None):
@@ -246,7 +252,7 @@ class wine(Runner):
         arguments = self.settings['game'].get('args', "")
         self.prepare_launch()
 
-        command.append(self.get_wine_path())
+        command.append(self.get_executable())
         command.append("\"%s\"" % game_exe)
         if arguments:
             for arg in arguments.split():
@@ -255,7 +261,7 @@ class wine(Runner):
 
     def stop(self):
         """The kill command runs wineserver -k"""
-        wine_path = self.get_wine_path()
+        wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         wineserver = os.path.join(wine_root, wine_root)
         logger.debug("Killing wineserver")

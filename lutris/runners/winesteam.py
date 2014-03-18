@@ -99,7 +99,7 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return [self.get_wine_path(), '"%s"' % self.steam_path, '-no-dwrite']
+        return [self.get_executable(), '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
         if not self.game_path:
