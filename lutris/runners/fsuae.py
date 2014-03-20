@@ -76,10 +76,12 @@ class fsuae(uae):
             disk_param = 'cdrom_drive'
         else:
             disk_param = 'floppy_drive'
-        floppy_params = []
+        floppy_drives = []
+        floppy_images = []
         for drive, disk in enumerate(disks):
-            floppy_params.append("--%s_%d=\"%s\"" % (disk_param, drive, disk))
-        return floppy_params
+            floppy_drives.append("--%s_%d=\"%s\"" % (disk_param, drive, disk))
+            floppy_images.append("--floppy_image_%d=\"%s\"" % (drive, disk))
+        return floppy_drives + floppy_images
 
     def is_installed(self):
         if os.path.exists(self.get_executable()):
