@@ -16,8 +16,7 @@ SNES9X_64 = settings.RUNNERS_URL + "%s-gtk-81-x86_64.tar.bz2" % SNES9X_VERSION
 LIBPNG_32 = settings.LIB32_URL + "libpng14.so.14.12.0.gz"
 LIBPNG_64 = settings.LIB64_URL + "libpng14.so.14.12.0.gz"
 
-RUNNER_DIR = os.path.join(settings.DATA_DIR, "runners")
-SNES9X_RUNNER_DIR = os.path.join(RUNNER_DIR, "snes9x")
+SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
 
 class snes9x(Runner):
@@ -60,10 +59,10 @@ class snes9x(Runner):
     ]
 
     def get_executable(self):
-        return os.path.join(SNES9X_RUNNER_DIR, self.executable)
+        return os.path.join(SNES9X_DIR, self.executable)
 
     def is_installed(self):
-        if os.path.exists(os.path.join(SNES9X_RUNNER_DIR, self.executable)):
+        if os.path.exists(os.path.join(SNES9X_DIR, self.executable)):
             return True
         else:
             return super(snes9x, self).is_installed()
@@ -92,9 +91,9 @@ class snes9x(Runner):
         urllib.urlretrieve(tarball_url, dest)
 
         logger.debug("Extracting %s" % dest)
-        extract_archive(dest, SNES9X_RUNNER_DIR)
+        extract_archive(dest, SNES9X_DIR)
 
-        lib_dir = os.path.join(SNES9X_RUNNER_DIR, "lib")
+        lib_dir = os.path.join(SNES9X_DIR, "lib")
         os.mkdir(lib_dir)
 
         libpng_url = LIBPNG_64 if self.arch == 'x64' else LIBPNG_32
@@ -136,7 +135,7 @@ class snes9x(Runner):
 
         launch_info = {'command': [self.get_executable(), "\"%s\"" % rom]}
 
-        lib_path = os.path.join(SNES9X_RUNNER_DIR, "lib")
+        lib_path = os.path.join(SNES9X_DIR, "lib")
         if os.path.exists(lib_path):
             launch_info['ld_library_path'] = lib_path
 
