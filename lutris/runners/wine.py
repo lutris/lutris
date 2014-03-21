@@ -88,10 +88,8 @@ class wine(Runner):
             'option': 'arch',
             'type': 'choice',
             'label': 'Architecture',
-            'choices': [
-                ('32 bit', 'win32'),
-                ('64 bit', 'win64')
-            ],
+            'choices': [('32 bit', 'win32'),
+                        ('64 bit', 'win64')],
             'default': 'win32'
         }
     ]
@@ -189,7 +187,7 @@ class wine(Runner):
         return None
 
     def get_install_command(self, exe=None):
-        """Return the installer command, either from an exe or an iso"""
+        """Returns the installer command, either from an exe or an iso"""
         if exe:
             command = "%s %s" % (self.executable, exe)
         else:
@@ -224,8 +222,8 @@ class wine(Runner):
                 set_regedit(self.reg_keys[key], key, wine_config[key])
 
     def prepare_launch(self):
-        if self.__class__.__name__ in self.settings.config:
-            wine_config = self.settings.config[self.__class__.__name__]
+        if self.name in self.settings.config:
+            wine_config = self.settings.config[self.name]
         else:
             wine_config = {}
         self.check_regedit_keys(wine_config)
