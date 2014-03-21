@@ -186,13 +186,6 @@ class wine(Runner):
             return os.path.dirname(game_exe)
         return None
 
-    def get_install_command(self, exe=None):
-        """Returns the installer command, either from an exe or an iso"""
-        if exe:
-            command = "%s %s" % (self.executable, exe)
-        else:
-            return False
-        return command
 
     def get_executable(self, arch='win32'):
         return os.path.join(RUNNER_DIR,
