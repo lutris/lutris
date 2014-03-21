@@ -2,8 +2,11 @@ import os
 import subprocess
 
 from lutris.util.log import logger
-from lutris.settings import CACHE_DIR
+from lutris import settings
 from lutris.runners.runner import Runner
+
+WINE_URL = settings.RUNNERS_URL + "wine-latest.tar.gz"
+WINE_DIR = os.path.join(settings.DATA_DIR, "runners/wine")
 
 
 def set_regedit(path, key, value, prefix=None, arch='win32'):
@@ -14,7 +17,7 @@ def set_regedit(path, key, value, prefix=None, arch='win32'):
 
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
-    reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
+    reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
     #Make temporary reg file
     reg_file = open(reg_path, "w")
     reg_file.write("""REGEDIT4
