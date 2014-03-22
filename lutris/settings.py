@@ -36,7 +36,6 @@ KEEP_CACHED_ASSETS = True
 GAME_VIEW = 'icon'
 ICON_TYPE_ICONVIEW = 'banner'
 ICON_TYPE_LISTVIEW = 'icon'
-WINE_VERSION = '1.7.13'
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting

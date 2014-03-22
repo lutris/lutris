@@ -1,14 +1,15 @@
 import os
 import subprocess
 
+from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
 from lutris.util.system import find_executable
-from lutris.settings import CACHE_DIR, RUNNER_DIR, WINE_VERSION
 from lutris.runners.runner import Runner
 
 WINE_URL = settings.RUNNERS_URL + "wine-latest.tar.gz"
-WINE_DIR = os.path.join(settings.DATA_DIR, "runners/wine")
+WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+WINE_VERSION = '1.7.13'
 
 
 def set_regedit(path, key, value, prefix=None, arch='win32'):
@@ -19,7 +20,7 @@ def set_regedit(path, key, value, prefix=None, arch='win32'):
 
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
-    reg_path = os.path.join(CACHE_DIR, 'winekeys.reg')
+    reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
     #Make temporary reg file
     reg_file = open(reg_path, "w")
     reg_file.write("""REGEDIT4
@@ -203,7 +204,7 @@ class wine(Runner):
     @property
     def local_wine_versions(self, arch='win32'):
         """Return the list of downloaded Wine versions"""
-        runner_path = os.path.join(RUNNER_DIR, 'wine', arch)
+        runner_path = os.path.join(WINE_DIR, arch)
         versions = []
         # Get list from folder names
         if os.path.exists (runner_path):
@@ -242,7 +243,7 @@ class wine(Runner):
 
     def get_executable(self):
         """Return the path to the Wine executable"""
-        path = os.path.join(RUNNER_DIR, 'wine', self.wine_arch)
+        path = os.path.join(WINE_DIR, self.wine_arch)
         custom_path = self.wine_config.get('custom_wine_path', '')
 
         version = self.wine_version
@@ -259,7 +260,7 @@ class wine(Runner):
 
     def install(self):
         tarball = "wine_1.7.13_win32.tar.gz"
-        destination = os.path.join(RUNNER_DIR, "wine/win32/1.7.13")
+        destination = os.path.join(WINE_DIR, "win32/1.7.13")
         self.download_and_extract(tarball, destination)
 
     def is_installed(self):
