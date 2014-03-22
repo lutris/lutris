@@ -227,7 +227,8 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
-        return self.settings['game'].get('arch', 'win32')
+        game_config = self.settings.get('game', {})
+        return game_config.get('arch', 'win32')
 
     @property
     def wine_config(self):
@@ -240,16 +241,15 @@ class wine(Runner):
         return self.wine_config.get('wine_version', WINE_VERSION)
 
     def get_executable(self):
-        """Return the path to the Wine executable.
-
-        Fall back on bundled Wine if system or custom are not available.
-        """
+        """Return the path to the Wine executable"""
         path = os.path.join(RUNNER_DIR, 'wine', self.wine_arch)
         custom_path = self.wine_config.get('custom_wine_path', '')
+
         version = self.wine_version
         if version == 'system':
             if find_executable('wine'):
                 return 'wine'
+            # Fall back on bundled Wine
             version = WINE_VERSION
         elif version == 'custom':
             if os.path.exists(custom_path):
@@ -263,6 +263,7 @@ class wine(Runner):
         self.download_and_extract(tarball, destination)
 
     def is_installed(self):
+        custom_path = self.wine_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
             if find_executable('wine'):
                 return True
@@ -274,8 +275,7 @@ class wine(Runner):
                     "(To get rid of this message, either install Wine \n"
                     "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
-            custom_wine_path = self.wine_config.get('custom_wine_path', '')
-            if os.path.exists(custom_wine_path):
+            if os.path.exists(custom_path):
                 return True
             else:
                 dialogs.ErrorDialog(
