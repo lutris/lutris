@@ -237,7 +237,7 @@ class wine(Runner):
     @property
     def wine_version(self):
         """Return the Wine version to use"""
-        return self.wine_config.get('wine_version')
+        return self.wine_config.get('wine_version', WINE_VERSION)
 
     def get_executable(self):
         """Return the path to the Wine executable.
