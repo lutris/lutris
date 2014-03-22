@@ -1,7 +1,9 @@
 import os
 import subprocess
 
+from lutris.gui import dialogs
 from lutris.util.log import logger
+from lutris.util.system import find_executable
 from lutris.settings import CACHE_DIR, RUNNER_DIR, WINE_VERSION
 from lutris.runners.runner import Runner
 
@@ -97,6 +99,11 @@ class wine(Runner):
     def __init__(self, settings=None):
         super(wine, self).__init__()
 
+        wine_versions = \
+            [('System (%s)' % self.system_wine_version, 'system')] + \
+            [('Custom (select executable below)', 'custom')] + \
+            [(version, version) for version in self.local_wine_versions]
+
         orm_choices = [('BackBuffer', 'backbuffer'),
                        ('FBO', 'fbo'),
                        ('PBuffer', 'pbuffer')]
@@ -113,8 +120,15 @@ class wine(Runner):
                            ('No', 'None')]
         self.runner_options = [
             {
-                'option': 'wine_path',
-                'label': "Path to Wine executable",
+                'option': 'wine_version',
+                'label': "Wine version",
+                'type': 'one_choice',
+                'choices': wine_versions,
+                'default': WINE_VERSION
+            },
+            {
+                'option': 'custom_wine_path',
+                'label': "Custom Wine executable",
                 'type': 'file'
             },
             {
@@ -187,6 +201,31 @@ class wine(Runner):
         return None
 
     @property
+    def local_wine_versions(self, arch='win32'):
+        """Return the list of downloaded Wine versions"""
+        runner_path = os.path.join(RUNNER_DIR, 'wine', arch)
+        versions = []
+        # Get list from folder names
+        if os.path.exists (runner_path):
+            dirnames = os.walk(runner_path).next()[1]
+            # Make sure the Wine executable is present
+            for version in dirnames:
+                wine_exe = os.path.join(runner_path, version, 'bin/wine')
+                if os.path.isfile(wine_exe):
+                    versions.append(version)
+        return versions
+
+    @property
+    def system_wine_version(self):
+        """Return the version of Wine installed on the system"""
+        try:
+            version = subprocess.check_output(["wine", "--version"])
+        except OSError:
+            return "not installed"
+        else:
+            return version.strip('wine-\n')
+
+    @property
     def wine_arch(self):
         return self.settings['game'].get('arch', 'win32')
 
@@ -195,9 +234,28 @@ class wine(Runner):
         """Return the game's wine config"""
         return self.settings.get(self.name, {})
 
-    def get_executable(self, arch='win32'):
-        return os.path.join(RUNNER_DIR,
-                            'wine/%s/%s/bin/wine' % (arch, WINE_VERSION))
+    @property
+    def wine_version(self):
+        """Return the Wine version to use"""
+        return self.wine_config.get('wine_version')
+
+    def get_executable(self):
+        """Return the path to the Wine executable.
+
+        Fall back on bundled Wine if system or custom are not available.
+        """
+        path = os.path.join(RUNNER_DIR, 'wine', self.wine_arch)
+        custom_path = self.wine_config.get('custom_wine_path', '')
+        version = self.wine_version
+        if version == 'system':
+            if find_executable('wine'):
+                return 'wine'
+            version = WINE_VERSION
+        elif version == 'custom':
+            if os.path.exists(custom_path):
+                return custom_path
+            version = WINE_VERSION
+        return os.path.join(path, version, 'bin/wine')
 
     def install(self):
         tarball = "wine_1.7.13_win32.tar.gz"
@@ -205,6 +263,28 @@ class wine(Runner):
         self.download_and_extract(tarball, destination)
 
     def is_installed(self):
+        if self.wine_version == 'system':
+            if find_executable('wine'):
+                return True
+            else:
+                dialogs.ErrorDialog(
+                    "Wine is not installed on your system.\n"
+                    "Let's fall back on Wine " + WINE_VERSION +
+                    " bundled with Lutris, alright?\n\n"
+                    "(To get rid of this message, either install Wine \n"
+                    "or change the Wine version in the game's configuration.)")
+        elif self.wine_version == 'custom':
+            custom_wine_path = self.wine_config.get('custom_wine_path', '')
+            if os.path.exists(custom_wine_path):
+                return True
+            else:
+                dialogs.ErrorDialog(
+                    "Your custom Wine version can't be launched.\n"
+                    "Let's fall back on Wine " + WINE_VERSION +
+                    " bundled with Lutris, alright? \n\n"
+                    "(To get rid of this message, fix your "
+                    "Custom Wine path \n"
+                    "or change the Wine version in the game's configuration.)")
         if os.path.exists(self.get_executable()):
             return True
         return False
@@ -219,8 +299,8 @@ class wine(Runner):
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
         for key in self.reg_keys.keys():
-            if key in wine_config:
-                set_regedit(self.reg_keys[key], key, wine_config[key])
+            if key in self.wine_config:
+                set_regedit(self.reg_keys[key], key, self.wine_config[key])
 
     def prepare_launch(self):
         self.check_regedit_keys(self.wine_config)
