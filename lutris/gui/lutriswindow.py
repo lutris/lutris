@@ -330,11 +330,13 @@ class LutrisWindow(object):
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
-        path = game.directory
-        if not os.path.exists(path):
-            path = game.runner.get_game_path()
-        if os.path.exists(path):
+        path = game.get_browse_dir()
+        if path and os.path.exists(path):
             subprocess.Popen(['xdg-open', path])
+        else:
+            dialogs.NoticeDialog(
+            "Can't open %s \nThe folder doesn't exist." % path)
+
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""

@@ -44,6 +44,16 @@ class steam(Runner):
         }
     ]
 
+    @property
+    def browse_dir(self):
+        appid = self.settings['game'].get('appid')
+        if self.get_game_data_path(appid):
+            return self.get_game_data_path(appid)
+        if os.path.exists(self.get_game_path()):
+            path = os.path.join(self.get_game_path(), "SteamApps/common")
+            return path
+        return None
+
     def get_steam_path(self):
         runner = self.__class__.__name__
         runner_config = self.settings.get(runner) or {}
