@@ -62,6 +62,16 @@ class Game(object):
             value += " (%s)" % self.runner_name
         return value
 
+    def get_browse_dir(self):
+        """ Returns the path to open with the Browse Files action """
+        if hasattr(self.runner, 'browse_dir'):
+            path = self.runner.browse_dir
+        elif os.path.exists(self.directory):
+            path = self.directory
+        else:
+            path = self.runner.get_game_path()
+        return path
+
     def get_runner(self):
         """ Return the runner's name """
         return self.game_config['runner']

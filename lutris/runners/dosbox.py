@@ -37,6 +37,13 @@ class dosbox(Runner):
         self.runner_options = []
         self.settings = settings
 
+    @property
+    def browse_dir(self):
+        main_file = self.settings['game'].get('main_file')
+        if main_file:
+            return os.path.dirname(main_file)
+        return None
+
     def play(self):
         """ Run the game """
         logger.debug(self.settings)
