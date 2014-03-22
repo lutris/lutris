@@ -186,6 +186,14 @@ class wine(Runner):
             return os.path.dirname(game_exe)
         return None
 
+    @property
+    def wine_arch(self):
+        return self.settings['game'].get('arch', 'win32')
+
+    @property
+    def wine_config(self):
+        """Return the game's wine config"""
+        return self.settings.get(self.name, {})
 
     def get_executable(self, arch='win32'):
         return os.path.join(RUNNER_DIR,
@@ -215,15 +223,10 @@ class wine(Runner):
                 set_regedit(self.reg_keys[key], key, wine_config[key])
 
     def prepare_launch(self):
-        if self.name in self.settings.config:
-            wine_config = self.settings.config[self.name]
-        else:
-            wine_config = {}
-        self.check_regedit_keys(wine_config)
+        self.check_regedit_keys(self.wine_config)
 
     def play(self):
-        arch = self.settings['game'].get('arch', 'win32')
-        command = ['WINEARCH=%s' % arch]
+        command = ['WINEARCH=%s' % self.wine_arch]
         game_exe = self.settings['game'].get('exe')
 
         prefix = self.settings['game'].get('prefix', "")
