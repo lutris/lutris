@@ -121,7 +121,7 @@ class wine(Runner):
                            ('No', 'None')]
         self.runner_options = [
             {
-                'option': 'wine_version',
+                'option': 'version',
                 'label': "Wine version",
                 'type': 'one_choice',
                 'choices': wine_versions,
@@ -239,7 +239,7 @@ class wine(Runner):
     @property
     def wine_version(self):
         """Return the Wine version to use"""
-        return self.wine_config.get('wine_version', WINE_VERSION)
+        return self.wine_config.get('version', WINE_VERSION)
 
     def get_executable(self):
         """Return the path to the Wine executable"""
