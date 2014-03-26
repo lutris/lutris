@@ -8,13 +8,19 @@ from lutris.runners import import_runner
 from lutris.gui.config_dialogs import RunnerConfigDialog
 
 
-class RunnersDialog(Gtk.Dialog):
+class RunnersDialog(Gtk.Window):
     """Dialog for the runner preferences"""
 
     def __init__(self):
         GObject.GObject.__init__(self)
         self.set_title("Configure runners")
         self.set_size_request(570, 400)
+
+        self.vbox = Gtk.VBox()
+        self.add(self.vbox)
+
+        self.action_area = Gtk.HBox()
+        self.vbox.pack_end(self.action_area, False, False, 10)
 
         label = Gtk.Label()
         label.set_markup("<b>Install and configure the game runners</b>")
@@ -25,10 +31,6 @@ class RunnersDialog(Gtk.Dialog):
         self.vbox.pack_start(label, False, True, 20)
         self.vbox.pack_start(scrolled_window, True, True, 10)
 
-        close_button = Gtk.Button("Close")
-        close_button.connect('clicked', self.close)
-
-        self.action_area.pack_start(close_button, False, False, 10)
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
 
@@ -68,9 +70,6 @@ class RunnersDialog(Gtk.Dialog):
             runner_vbox.pack_start(hbox, True, True, 5)
         scrolled_window.add_with_viewport(runner_vbox)
         self.show_all()
-
-    def close(self, _widget, other=None):
-        self.destroy()
 
     def configure_button(self, widget, runner):
         try:
