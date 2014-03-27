@@ -7,7 +7,6 @@ from lutris.util.log import logger
 from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
-WINE_URL = settings.RUNNERS_URL + "wine-latest.tar.gz"
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_VERSION = '1.7.13'
 
