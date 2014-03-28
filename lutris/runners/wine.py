@@ -183,9 +183,16 @@ class wine(Runner):
 
     @property
     def browse_dir(self):
+        """Return the path to browse with Browse Files from the context menu"""
         game_exe = self.settings['game'].get('exe')
+        prefix = self.settings['game'].get('prefix')
+
         if game_exe:
-            return os.path.dirname(game_exe)
+            exe_path = os.path.dirname(game_exe)
+            if os.path.isabs(exe_path):
+                return exe_path
+            elif prefix:
+                return os.path.join(prefix, exe_path)
         return None
 
     def get_install_command(self, exe=None):
