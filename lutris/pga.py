@@ -131,6 +131,7 @@ def get_games(name_filter=None, filter_installed=False):
             filters.append("installed = 1")
         if filters:
             query += " WHERE " + " AND ".join([f for f in filters])
+        query += " ORDER BY slug"
         rows = cursor.execute(query, params)
         results = rows.fetchall()
         column_names = [column[0] for column in cursor.description]
