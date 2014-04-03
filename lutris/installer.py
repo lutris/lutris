@@ -516,14 +516,14 @@ class ScriptInterpreter(object):
                 shutil.move(src, dst)
             except shutil.Error:
                 raise ScriptingError("Can't move %s to destination %s"
-                                    % (src, dst))
+                                     % (src, dst))
         if os.path.isfile(src) and params['src'] in self.game_files.keys():
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
 
     def extract(self, data):
         """ Extracts a file, guessing the compression method """
-        if not 'file' in data:
+        if 'file' not in data:
             raise ScriptingError('"file" parameter is mandatory for the '
                                  'extract command', data)
         filename = self._get_file(data['file'])
@@ -539,7 +539,7 @@ class ScriptInterpreter(object):
         msg = "Extracting %s" % filename
         logger.debug(msg)
         self.parent.set_status(msg)
-        merge_single = not 'nomerge' in data
+        merge_single = 'nomerge' not in data
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
         extract.extract_archive(filename, dest_path, merge_single, extractor)
@@ -641,7 +641,7 @@ class InstallerDialog(Gtk.Window):
         if not self.interpreter.script:
             return
 
-        ## GUI Setup
+        # GUI Setup
 
         # Title label
         title_label = Gtk.Label()

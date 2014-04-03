@@ -1,6 +1,5 @@
 """Widget generators and their signal handlers"""
 from gi.repository import Gtk, GObject, Gdk
-#from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris import sysoptions
 
@@ -44,11 +43,11 @@ class ConfigBox(Gtk.VBox):
         else:
             config = self.real_config[self.config_type] = {}
 
-        #Go thru all options.
+        # Go thru all options.
         for option in self.options:
             option_key = option["option"]
 
-            #Load value if there is one.
+            # Load value if there is one.
             if option_key in config:
                 value = config[option_key]
             else:
@@ -57,7 +56,7 @@ class ConfigBox(Gtk.VBox):
             if value is None and 'default' in option:
                 value = option['default']
 
-            #Different types of widgets.
+            # Different types of widgets.
             if option["type"] in ("one_choice", "choice"):
                 self.generate_combobox(option_key,
                                        option["choices"],
@@ -70,7 +69,7 @@ class ConfigBox(Gtk.VBox):
                                     option["max"],
                                     option["label"], value)
             elif option["type"] == "string":
-                if not 'label' in option:
+                if 'label' not in option:
                     raise ValueError("Option %s has no label" % option)
                 self.generate_entry(option_key,
                                     option["label"], value)
@@ -97,7 +96,7 @@ class ConfigBox(Gtk.VBox):
         label.show()
         self.pack_start(label, False, False, PADDING)
 
-    #Checkbox
+    # Checkbox
     def generate_checkbox(self, option, value=None):
         """ Generates a checkbox. """
         checkbox = Gtk.CheckButton(label=option["label"])
@@ -112,7 +111,7 @@ class ConfigBox(Gtk.VBox):
         """ Action for the checkbox's toggled signal."""
         self.real_config[self.config_type][option_name] = widget.get_active()
 
-    #Entry
+    # Entry
     def generate_entry(self, option_name, label, value=None):
         """ Generates an entry box. """
         hbox = Gtk.HBox()
@@ -131,7 +130,7 @@ class ConfigBox(Gtk.VBox):
         entry_text = entry.get_text()
         self.real_config[self.config_type][option_name] = entry_text
 
-    #ComboBox
+    # ComboBox
     def generate_combobox(self, option_name, choices, label, value=None):
         """ Generates a combobox (drop-down menu). """
         hbox = Gtk.HBox()
@@ -298,7 +297,7 @@ class ConfigBox(Gtk.VBox):
         files = self.real_config[self.config_type].get(option, [])
         for filename in filenames:
             self.files_list_store.append([filename])
-            if not filename in files:
+            if filename not in files:
                 files.append(filename)
         self.real_config[self.config_type][option] = files
         self.files_chooser_dialog = None
