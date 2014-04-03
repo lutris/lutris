@@ -12,15 +12,13 @@ WINE_VERSION = '1.7.13'
 
 
 def set_regedit(path, key, value, prefix=None, arch='win32'):
-    """Plays with the windows registry
-
-    path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
+    """ Plays with the windows registry
+        path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
-
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
     reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
-    #Make temporary reg file
+    # Make temporary reg file
     reg_file = open(reg_path, "w")
     reg_file.write("""REGEDIT4
 
@@ -208,13 +206,13 @@ class wine(Runner):
         return None
 
     @property
-    def local_wine_versions(self, arch='win32'):
-        """Return the list of downloaded Wine versions"""
-        runner_path = os.path.join(WINE_DIR, arch)
+    def local_wine_versions(self):
+        """ Return the list of downloaded Wine versions """
+        runner_path = WINE_DIR
         versions = []
         # Get list from folder names
-        if os.path.exists (runner_path):
-            dirnames = os.walk(runner_path).next()[1]
+        if os.path.exists(runner_path):
+            dirnames = os.listdir(runner_path)
             # Make sure the Wine executable is present
             for version in dirnames:
                 wine_exe = os.path.join(runner_path, version, 'bin/wine')
@@ -265,8 +263,8 @@ class wine(Runner):
         return os.path.join(path, version, 'bin/wine')
 
     def install(self):
-        tarball = "wine_1.7.13_win32.tar.gz"
-        destination = os.path.join(WINE_DIR, "win32/1.7.13")
+        tarball = "wine-1.7.13-i386.tar.gz"
+        destination = os.path.join(WINE_DIR, "1.7.13-x86")
         self.download_and_extract(tarball, destination)
 
     def is_installed(self):
