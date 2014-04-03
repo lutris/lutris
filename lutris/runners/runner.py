@@ -163,14 +163,13 @@ class Runner(object):
                          shell=True, stderr=subprocess.PIPE)
         return True
 
-    def download_and_extract(self, tarball):
+    def download_and_extract(self, tarball, dest=settings.RUNNER_DIR):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
 
         dialog = DownloadDialog(settings.RUNNERS_URL + tarball, runner_archive)
         dialog.run()
 
-        extract_archive(runner_archive, settings.RUNNER_DIR,
-                        merge_single=False)
+        extract_archive(runner_archive, dest, merge_single=False)
         os.remove(runner_archive)
 
     def write_config(self, _id, name, fullpath):
