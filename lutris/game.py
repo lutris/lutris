@@ -97,7 +97,7 @@ class Game(object):
         """ Verify that the current game can be launched. """
         if not self.runner.is_installed():
             question = ("The required runner is not installed.\n"
-                        "Do you wish to install it now ?")
+                        "Do you wish to install it now?")
             install_runner_dialog = dialogs.QuestionDialog(
                 {'question': question,
                  'title': "Required runner unavailable"})

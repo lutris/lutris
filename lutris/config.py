@@ -160,7 +160,7 @@ class LutrisConfig(object):
         self.update_global_config()
 
     def get(self, key, default=None):
-        return self.__getitem__(key)
+        return self.__getitem__(key, default)
 
     @property
     def game_config_file(self):
