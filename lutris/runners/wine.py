@@ -120,7 +120,7 @@ class wine(Runner):
             {
                 'option': 'version',
                 'label': "Wine version",
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': wine_versions,
                 'default': WINE_VERSION
             },
@@ -137,7 +137,7 @@ class wine(Runner):
             {
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': [
                     ('Disable', 'disable'),
                     ('Enable', 'enable'),
@@ -147,7 +147,7 @@ class wine(Runner):
             {
                 'option': 'Multisampling',
                 'label': 'Multisampling',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': [
                     ('Enabled', 'enabled'),
                     ('Disabled', 'disabled')
@@ -156,25 +156,25 @@ class wine(Runner):
             {
                 'option': 'OffscreenRenderingMode',
                 'label': 'Offscreen Rendering Mode',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': orm_choices
             },
             {
                 'option': 'RenderTargetLockMode',
                 'label': 'Render Target Lock Mode',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': rtlm_choices
             },
             {
                 'option': 'Audio',
                 'label': 'Audio driver',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': audio_choices
             },
             {
                 'option': 'Desktop',
                 'label': 'Virtual desktop',
-                'type': 'one_choice',
+                'type': 'choice',
                 'choices': desktop_choices
             }
         ]
@@ -236,19 +236,14 @@ class wine(Runner):
         return game_config.get('arch', 'win32')
 
     @property
-    def wine_config(self):
-        """Return the game's wine config"""
-        return self.settings.get(self.name, {})
-
-    @property
     def wine_version(self):
         """Return the Wine version to use"""
-        return self.wine_config.get('version', WINE_VERSION)
+        return self.runner_config.get('version', WINE_VERSION)
 
     def get_executable(self):
         """Return the path to the Wine executable"""
         path = os.path.join(WINE_DIR, self.wine_arch)
-        custom_path = self.wine_config.get('custom_wine_path', '')
+        custom_path = self.runner_config.get('custom_wine_path', '')
 
         version = self.wine_version
         if version == 'system':
@@ -265,10 +260,10 @@ class wine(Runner):
     def install(self):
         tarball = "wine-1.7.13-i386.tar.gz"
         destination = os.path.join(WINE_DIR, "1.7.13-x86")
-        self.download_and_extract(tarball, destination)
+        self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
-        custom_path = self.wine_config.get('custom_wine_path', '')
+        custom_path = self.runner_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
             if find_executable('wine'):
                 return True
@@ -304,11 +299,11 @@ class wine(Runner):
     def check_regedit_keys(self, wine_config):
         """Resets regedit keys according to config"""
         for key in self.reg_keys.keys():
-            if key in self.wine_config:
-                set_regedit(self.reg_keys[key], key, self.wine_config[key])
+            if key in self.runner_config:
+                set_regedit(self.reg_keys[key], key, self.runner_config[key])
 
     def prepare_launch(self):
-        self.check_regedit_keys(self.wine_config)
+        self.check_regedit_keys(self.runner_config)
 
     def play(self):
         command = ['WINEARCH=%s' % self.wine_arch]

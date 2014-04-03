@@ -52,8 +52,8 @@ class Runner(object):
 
     @property
     def runner_config(self):
-        config = self.default_config.runner_config[self.name]
-        if self.settings[self.name]:
+        config = self.default_config.runner_config.get(self.name) or {}
+        if self.settings.get(self.name):
             config.update(self.settings[self.name])
         return config
 
@@ -163,13 +163,13 @@ class Runner(object):
                          shell=True, stderr=subprocess.PIPE)
         return True
 
-    def download_and_extract(self, tarball, dest=settings.RUNNER_DIR):
+    def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
-
+        merge_single = opts.get('merge_single', False)
         dialog = DownloadDialog(settings.RUNNERS_URL + tarball, runner_archive)
         dialog.run()
 
-        extract_archive(runner_archive, dest, merge_single=False)
+        extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
 
     def write_config(self, _id, name, fullpath):
