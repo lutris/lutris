@@ -17,10 +17,10 @@ class RunnersDialog(Gtk.Window):
         self.set_size_request(570, 400)
 
         self.vbox = Gtk.VBox()
+        self.vbox.set_margin_right(10)
+        self.vbox.set_margin_left(10)
+        self.vbox.set_margin_bottom(10)
         self.add(self.vbox)
-
-        self.action_area = Gtk.HBox()
-        self.vbox.pack_end(self.action_area, False, False, 10)
 
         label = Gtk.Label()
         label.set_markup("<b>Install and configure the game runners</b>")
@@ -28,8 +28,9 @@ class RunnersDialog(Gtk.Window):
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
-        self.vbox.pack_start(label, False, True, 20)
-        self.vbox.pack_start(scrolled_window, True, True, 10)
+        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
+        self.vbox.pack_start(label, False, True, 15)
+        self.vbox.pack_start(scrolled_window, True, True, 0)
 
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
@@ -41,14 +42,14 @@ class RunnersDialog(Gtk.Window):
             description = runner.description
 
             hbox = Gtk.HBox()
-            #Icon
+            # Icon
             icon_path = os.path.join(datapath.get(), 'media/runner_icons',
                                      runner_name + '.png')
             icon = Gtk.Image()
             icon.set_from_file(icon_path)
             hbox.pack_start(icon, False, False, 10)
 
-            #Label
+            # Label
             runner_label = Gtk.Label()
             runner_label.set_markup(
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
@@ -59,7 +60,7 @@ class RunnersDialog(Gtk.Window):
             runner_label.set_alignment(0.0, 0.0)
             runner_label.set_padding(25, 5)
             hbox.pack_start(runner_label, True, True, 5)
-            #Button
+            # Button
             button = Gtk.Button()
             button.set_size_request(100, 30)
             button_align = Gtk.Alignment.new(0.0, 1.0, 0.0, 0.0)
