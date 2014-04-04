@@ -8,7 +8,7 @@ from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-WINE_VERSION = '1.7.13-i386'
+WINE_VERSION = '1.7.13'
 
 
 def set_regedit(path, key, value, prefix=None, arch='win32'):
@@ -217,6 +217,7 @@ class wine(Runner):
             for version in dirnames:
                 wine_exe = os.path.join(runner_path, version, 'bin/wine')
                 if os.path.isfile(wine_exe):
+                    version = version.replace('-i386', '')
                     versions.append(version)
         return versions
 
@@ -244,8 +245,8 @@ class wine(Runner):
         """Return the path to the Wine executable"""
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
-
         version = self.wine_version
+
         if version == 'system':
             if find_executable('wine'):
                 return 'wine'
@@ -255,11 +256,14 @@ class wine(Runner):
             if os.path.exists(custom_path):
                 return custom_path
             version = WINE_VERSION
+
+        version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
     def install(self):
-        tarball = "wine-%s.tar.gz" % WINE_VERSION
-        destination = os.path.join(WINE_DIR, WINE_VERSION)
+        version = WINE_VERSION + '-i386'
+        tarball = "wine-%s.tar.gz" % version
+        destination = os.path.join(WINE_DIR, version)
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
