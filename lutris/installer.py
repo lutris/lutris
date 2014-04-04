@@ -230,7 +230,7 @@ class ScriptInterpreter(object):
         dest_file = os.path.join(self.download_cache_path, filename)
 
         if file_uri.startswith("N/A"):
-            # Ask the user where is located the file
+            # Ask the user where is the file located
             parts = file_uri.split(":", 1)
             if len(parts) == 2:
                 message = parts[1]
@@ -695,7 +695,8 @@ class InstallerDialog(Gtk.Window):
         if not self.interpreter.requires and self.interpreter.files:
             self.set_message("Select installation directory")
             default_path = self.interpreter.default_target
-            self.set_location_entry(self.on_target_changed, default_path)
+            self.set_location_entry(self.on_target_changed, 'folder',
+                                    default_path)
             self.non_empty_label = Gtk.Label()
             self.non_empty_label.set_markup(
                 "<b>Warning!</b> The selected path "
@@ -735,12 +736,15 @@ class InstallerDialog(Gtk.Window):
         label.show()
         self.widget_box.pack_start(label, False, False, 10)
 
-    def set_location_entry(self, callback, default_path=None):
+    def set_location_entry(self, callback, action=None, default_path=None):
+        if action == 'file':
+            action = Gtk.FileChooserAction.OPEN
+        elif action == 'folder':
+            action = Gtk.FileChooserAction.SELECT_FOLDER
+
         if self.location_entry:
             self.location_entry.destroy()
-        self.location_entry = FileChooserEntry(
-            action=Gtk.FileChooserAction.OPEN,  default=default_path
-        )
+        self.location_entry = FileChooserEntry(action, default_path)
         self.location_entry.show_all()
         if callback:
             self.location_entry.entry.connect('changed', callback)
@@ -762,7 +766,7 @@ class InstallerDialog(Gtk.Window):
     def ask_user_for_file(self, message=None):
         self.clean_widgets()
         self.set_message(message)
-        self.set_location_entry(None)
+        self.set_location_entry(None, 'file')
 
     def on_file_selected(self, widget):
         widget.set_sensitive(False)
