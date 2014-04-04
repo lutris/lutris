@@ -836,6 +836,7 @@ class InstallerDialog(Gtk.Window):
         widget.set_sensitive(False)
         game = Game(self.interpreter.game_slug)
         game.play()
+        self.close(widget)
 
     def close(self, _widget):
         self.destroy()
