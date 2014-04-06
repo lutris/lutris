@@ -14,7 +14,7 @@ class RunnersDialog(Gtk.Window):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.set_title("Configure runners")
-        self.set_size_request(570, 400)
+        self.set_size_request(700, 600)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_margin_right(10)
@@ -47,28 +47,32 @@ class RunnersDialog(Gtk.Window):
                                      runner_name + '.png')
             icon = Gtk.Image()
             icon.set_from_file(icon_path)
+            icon.set_alignment(0.5, 0.1)
             hbox.pack_start(icon, False, False, 10)
 
+            runner_label = Gtk.Label()
             # Label
             runner_label = Gtk.Label()
             runner_label.set_markup(
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
                 (runner_name, description, platform)
             )
-            runner_label.set_width_chars(38)
+            runner_label.set_width_chars(48)
             runner_label.set_line_wrap(True)
-            runner_label.set_alignment(0.0, 0.0)
-            runner_label.set_padding(25, 5)
+            runner_label.set_alignment(0.0, 0.1)
+            runner_label.set_padding(5, 0)
             hbox.pack_start(runner_label, True, True, 5)
             # Button
             button = Gtk.Button()
             button.set_size_request(100, 30)
-            button_align = Gtk.Alignment.new(0.0, 1.0, 0.0, 0.0)
+            button_align = Gtk.Alignment.new(1.0, 0.0, 0.0, 0.0)
             self.configure_button(button, runner)
             button_align.add(button)
             hbox.pack_start(button_align, True, False, 5)
 
             runner_vbox.pack_start(hbox, True, True, 5)
+            separator = Gtk.Separator()
+            runner_vbox.pack_start(separator, False, False, 5)
         scrolled_window.add_with_viewport(runner_vbox)
         self.show_all()
 
