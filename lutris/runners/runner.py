@@ -171,22 +171,3 @@ class Runner(object):
 
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
-
-    def write_config(self, _id, name, fullpath):
-        """Write game configuration to settings directory."""
-        system = self.__class__.__name__
-        index = fullpath.rindex("/")
-        exe = fullpath[index + 1:]
-        path = fullpath[:index]
-        if path.startswith("file://"):
-            path = path[7:]
-        config = LutrisConfig()
-        config.config = {
-            "main": {
-                "path": path,
-                "exe": exe,
-                "realname": name,
-                "runner": system
-            }
-        }
-        config.save(config_type="game")

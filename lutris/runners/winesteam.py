@@ -73,7 +73,7 @@ class winesteam(wine.wine):
         Gdk.threads_leave()
         config = LutrisConfig(runner='winesteam')
         config.runner_config = {'system': {'game_path': self.game_path}}
-        config.save(config_type='runner')
+        config.save()
 
     def is_installed(self):
         """ Checks if wine is installed and if the steam executable is on the

@@ -80,7 +80,7 @@ class nulldc(wine):
         dlg = DirectoryDialog('Where is NullDC located ?')
         config = LutrisConfig(runner=self.__class__.__name__)
         config.runner_config = {'system': {'game_path': dlg.folder}}
-        config.save(config_type='runner')
+        config.save()
 
     def is_installed(self):
         """Check if NullDC is installed"""

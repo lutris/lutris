@@ -215,35 +215,25 @@ class LutrisConfig(object):
         """Check the config data and return True if config is ok."""
         return "runner" in self.game_config
 
-    def save(self, config_type=None):
-        """Save configuration file
-
-        The way to save config files can be set by the type argument
-        or with self.config_type
-        """
-
+    def save(self):
+        """ Save configuration file according to self.config_type """
         self.update_global_config()
-        logging.debug("Saving config (type %s)", config_type)
-        logging.debug(self.config)
-        if config_type is None:
-            config_type = self.config_type
+        logging.debug("Saving config: %s", self.config)
         yaml_config = yaml.dump(self.config, default_flow_style=False)
 
-        if config_type == "system":
+        if self.config_type == "system":
             filename = join(CONFIG_DIR, "system.yml")
             self.write_to_disk(filename, yaml_config)
-        elif config_type == "runner":
+        elif self.config_type == "runner":
             runner_config_path = join(CONFIG_DIR,
                                       "runners/%s.yml" % self.runner)
             self.write_to_disk(runner_config_path, yaml_config)
 
-        elif config_type == "game":
+        elif self.config_type == "game":
             self.game = slugify(self.config['realname'])
             self.write_to_disk(self.game_config_file, yaml_config)
-            return self.game
         else:
-            print("Config type is %s or %s" % (self.config_type, type))
-            print("i don't know how to save this yet")
+            raise ValueError("Invalid config_type '%s'" % self.config_type)
 
     def write_to_disk(self, filepath, content):
         with open(filepath, "w") as filehandler:

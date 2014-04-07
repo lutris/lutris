@@ -107,7 +107,9 @@ class GameDialogCommon(object):
         self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
-            self.slug = self.lutris_config.save(config_type="game")
+            assert self.lutris_config.config_type == 'game'
+            self.lutris_config.config_type = 'game'
+            self.slug = self.lutris_config.save()
             runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
             pga.add_or_update(name, self.runner_name, slug=self.slug,
@@ -146,7 +148,6 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.show_all()
         self.run()
 
-
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed"""
         runner_index = widget.get_active()
@@ -158,7 +159,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
             self.lutris_config = LutrisConfig()
         else:
             self.runner_name = widget.get_model()[runner_index][1]
-            self.lutris_config = LutrisConfig(self.runner_name)
+            self.lutris_config = LutrisConfig(runner=self.runner_name)
 
         self.build_game_tab()
         self.build_runner_tab()
@@ -236,8 +237,9 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.destroy()
 
     def ok_clicked(self, _wigdet):
-        self.system_config_vbox.lutris_config.config_type = "runner"
-        self.system_config_vbox.lutris_config.save()
+        assert self.lutris_config.config_type == 'runner'
+        self.lutris_config.config_type = "runner"
+        self.lutris_config.save()
         self.destroy()
 
 
@@ -257,5 +259,6 @@ class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.show_all()
 
     def save_config(self, widget):
-        self.system_config_vbox.lutris_config.save()
+        assert self.lutris_config.config_type == 'system'
+        self.lutris_config.save()
         self.destroy()
