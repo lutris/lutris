@@ -159,7 +159,6 @@ class Game(object):
             )
 
         killswitch = self.game_config.get_system('killswitch')
-        self.heartbeat = GLib.timeout_add(5000, self.poke_process)
         self.game_thread = LutrisThread(" ".join(launch_arguments),
                                         path=self.runner.get_game_path(),
                                         killswitch=killswitch)
@@ -171,6 +170,9 @@ class Game(object):
         xboxdrv_config = self.game_config.get_system('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv(xboxdrv_config)
+        if self.runner.is_watchable:
+            # Create heartbeat every
+            self.heartbeat = GLib.timeout_add(5000, self.poke_process)
 
     def joy2key(self, config):
         """ Run a joy2key thread. """

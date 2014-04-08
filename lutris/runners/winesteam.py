@@ -52,6 +52,7 @@ class winesteam(wine.wine):
 
     def __init__(self, settings=None):
         super(winesteam, self).__init__(settings)
+        self.is_watchable = False  # Steam games pids are not parent of Lutris
         self.platform = "Steam (Windows)"
         config = LutrisConfig(runner=self.__class__.__name__)
         self.game_path = config.get_path()

@@ -26,6 +26,7 @@ class Runner(object):
     def __init__(self, settings=None):
         """ Initialize runner """
         self.is_installable = False
+        self.is_watchable = True  # Is the game's pid a parent of Lutris ?
         self.game = None
         self.depends = None
         self.arch = get_arch()

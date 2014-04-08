@@ -49,6 +49,9 @@ class LutrisWindow(object):
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
+        # Currently running game
+        self.running_game = None
+
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
 
@@ -186,7 +189,7 @@ class LutrisWindow(object):
 
     def refresh_status(self):
         """Refresh status bar"""
-        if hasattr(self, "running_game"):
+        if self.running_game:
             if hasattr(self.running_game.game_thread, "pid"):
                 pid = self.running_game.game_thread.pid
                 name = self.running_game.name
@@ -278,6 +281,7 @@ class LutrisWindow(object):
         if game_slug:
             self.running_game = Game(game_slug)
             if self.running_game.is_installed:
+                self.stop_button.set_sensitive(True)
                 self.running_game.play()
             else:
                 InstallerDialog(game_slug, self)
@@ -302,6 +306,7 @@ class LutrisWindow(object):
             self.running_game.quit_game()
             self.status_label.set_text("Stopped %s" % self.running_game.name)
             self.running_game = None
+            self.stop_button.set_sensitive(False)
 
     def game_selection_changed(self, _widget):
         sensitive = True if self.view.selected_game else False
