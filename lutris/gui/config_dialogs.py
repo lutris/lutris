@@ -11,6 +11,7 @@ class GameDialogCommon(object):
     no_runner_label = "Select a runner from the list"
 
     def build_name_entry(self, name=None):
+        """Build a text field containing the given name."""
         name_box = Gtk.HBox()
         name_label = Gtk.Label(label="Name")
         name_box.pack_start(name_label, False, False, 5)
@@ -22,7 +23,7 @@ class GameDialogCommon(object):
 
     @staticmethod
     def get_runner_liststore():
-        """ Build a ListStore with available runners. """
+        """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
         for runner_name in lutris.runners.__all__:
@@ -98,11 +99,11 @@ class GameDialogCommon(object):
         self.action_area.pack_start(button, True, True, 0)
 
     def on_cancel_clicked(self, widget=None):
-        """ Dialog destroy callback """
+        """Dialog destroy callback"""
         self.destroy()
 
     def on_save(self, _button):
-        """ OK button pressed in the Add Game Dialog """
+        """OK button pressed in the Add Game Dialog"""
         name = self.name_entry.get_text()
         self.lutris_config.config["realname"] = name
         self.lutris_config.config["runner"] = self.runner_name
@@ -120,7 +121,7 @@ class GameDialogCommon(object):
 
 
 class AddGameDialog(Gtk.Dialog, GameDialogCommon):
-    """ Add game dialog class"""
+    """Add game dialog class"""
 
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__()
@@ -170,7 +171,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
-    """ Game config edit dialog """
+    """Game config edit dialog"""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
