@@ -57,7 +57,9 @@ class RunnersDialog(Gtk.Window):
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
                 (runner_name, description, platform)
             )
-            runner_label.set_width_chars(48)
+            runner_label.set_width_chars(40)
+            runner_label.set_max_width_chars(40)
+            runner_label.set_property('wrap', True)
             runner_label.set_line_wrap(True)
             runner_label.set_alignment(0.0, 0.1)
             runner_label.set_padding(5, 0)
@@ -68,7 +70,7 @@ class RunnersDialog(Gtk.Window):
             button_align = Gtk.Alignment.new(1.0, 0.0, 0.0, 0.0)
             self.configure_button(button, runner)
             button_align.add(button)
-            hbox.pack_start(button_align, True, False, 5)
+            hbox.pack_start(button_align, False, False, 15)
 
             runner_vbox.pack_start(hbox, True, True, 5)
             separator = Gtk.Separator()

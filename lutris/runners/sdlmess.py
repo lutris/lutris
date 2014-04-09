@@ -3,6 +3,7 @@ from lutris.runners.runner import Runner
 
 
 class sdlmess(Runner):
+    """ Multi-system (consoles and computers) emulator """
     executable = 'mess'
     platform = 'multi-platform'
     game_options = [

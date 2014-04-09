@@ -14,18 +14,11 @@ class mednafen(Runner):
     def __init__(self, settings=None):
         super(mednafen, self).__init__()
         self.executable = "mednafen"
-        self.platform = """
- * Atari Lynx
- * GameBoy
- * GameBoy Color
- * GameBoy Advance
- * NES
- * PC Engine (TurboGrafx 16)
- * PC-FX
- * SuperGrafx
- * NeoGeo Pocket, NeoGeo Pocket Color
- * WonderSwan
-"""
+        self.platform = (
+            "Atari Lynx, GameBoy, GameBoy Color, "
+            "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
+            "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan"
+        )
         self.package = "mednafen"
         machine_choices = (
             ("NES", "nes"),
