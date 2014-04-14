@@ -1,26 +1,4 @@
-# -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
-""" Runner for point and click adventure games. """
-
+# -*- coding: utf-8 -*-
 import os
 import subprocess
 
@@ -31,64 +9,57 @@ from lutris.runners.runner import Runner
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
 
 
-# pylint: disable=C0103
 class scummvm(Runner):
     """Runs LucasArts games based on the Scumm engine"""
-    def __init__(self, settings=None):
-        super(scummvm, self).__init__()
-        self.executable = "scummvm"
-        self.package = "scummvm"
-        self.platform = "LucasArts point and click games"
-        self.game_options = [
-            {
-                'option': 'game_id',
-                'type': 'string',
-                'label': "Game identifier"
-            },
-            {
-                'option': 'path',
-                'type': 'directory_chooser',
-                'label': "Path for the game"
-            }
-        ]
-        scaler_modes = [
-            ("2x", "2x"),
-            ("3x", "3x"),
-            ("2xsai", "2xsai"),
-            ("advmame2x", "advmame2x"),
-            ("advmame3x", "advmame3x"),
-            ("dotmatrix", "dotmatrix"),
-            ("hq2x", "hq2x"),
-            ("hq3x", "hq3x"),
-            ("normal", "normal"),
-            ("super2xsai", "super2xsai"),
-            ("supereagle", "supereagle"),
-            ("tv2x", "tv2x")
-        ]
-        self.runner_options = [
-            {
-                "option": "windowed",
-                "label": "Windowed",
-                "type": "bool"
-            },
-            {
-                "option": "gfx-mode",
-                "label": "Graphics scaler",
-                "type": "one_choice",
-                "choices": scaler_modes
-            }
-        ]
-        self.settings = settings
+    executable = "scummvm"
+    package = "scummvm"
+    platform = "LucasArts point and click games"
+    game_options = [
+        {
+            'option': 'game_id',
+            'type': 'string',
+            'label': "Game identifier"
+        },
+        {
+            'option': 'path',
+            'type': 'directory_chooser',
+            'label': "Path for the game"
+        }
+    ]
+
+    scaler_modes = [
+        ("2x", "2x"),
+        ("3x", "3x"),
+        ("2xsai", "2xsai"),
+        ("advmame2x", "advmame2x"),
+        ("advmame3x", "advmame3x"),
+        ("dotmatrix", "dotmatrix"),
+        ("hq2x", "hq2x"),
+        ("hq3x", "hq3x"),
+        ("normal", "normal"),
+        ("super2xsai", "super2xsai"),
+        ("supereagle", "supereagle"),
+        ("tv2x", "tv2x")
+    ]
+    runner_options = [
+        {
+            "option": "windowed",
+            "label": "Windowed",
+            "type": "bool"
+        },
+        {
+            "option": "gfx-mode",
+            "label": "Graphics scaler",
+            "type": "one_choice",
+            "choices": scaler_modes
+        }
+    ]
 
     def install(self):
         self.download_and_extract("scummvm.x86.tar.gz")
 
-    def is_installed(self):
-        return bool(self.get_executable())
-
     def get_executable(self):
-        scummvm_path = os.path.join(settings.DATA_DIR,
-                                    'runners/scummvm/scummvm')
+        scummvm_path = os.path.join(settings.RUNNER_DIR, 'scummvm/scummvm')
         if not os.path.exists(scummvm_path):
             return find_executable("scummvm")
         else:
