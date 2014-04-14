@@ -14,7 +14,6 @@ class pcsxr(Runner):
         "type": "file",
         "label": "iso"
     }]
-    runner_options = []
 
     def get_executable(self):
         # Lutris provided emulator

@@ -28,6 +28,8 @@ class Runner(object):
         'i386': None,
         'x64': None
     }
+    game_options = []
+    runner_options = []
 
     def __init__(self, settings=None):
         """ Initialize runner """
