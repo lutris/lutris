@@ -33,7 +33,7 @@ class GtkBuilderDialog(GObject.Object):
 
 
 class AboutDialog(GtkBuilderDialog):
-    glade_file = 'AboutDialog.ui'
+    glade_file = 'about-dialog.ui'
     dialog_object = "about_dialog"
 
 

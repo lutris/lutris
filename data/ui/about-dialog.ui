@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <!-- interface-local-resource-path ../media -->
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -32,34 +31,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </property>
-    <property name="authors">Mathieu Comandon &lt;strider@strycore. com&gt;</property>
+    <property name="authors">Mathieu Comandon &lt;strider@strycore. com&gt;
+Xodetaetl &lt;dev@xod.me&gt;</property>
     <property name="artists">Ludovic Soulié &lt;contact@ludal.net&gt;</property>
     <property name="logo">../media/lutris.svg</property>
     <property name="wrap_license">True</property>
     <property name="license_type">gpl-3-0</property>
     <signal name="close" handler="on_close" swapped="no"/>
     <signal name="response" handler="on_close" swapped="no"/>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="vbox">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="aboutdialog-action_area1">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
   </object>
 </interface>
