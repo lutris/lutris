@@ -35,6 +35,11 @@ class osmose(Runner):
     executable = "osmose"
     platform = "Sega Master System"
 
+    tarballs = {
+        'i386': "osmose-0.9.96-i386.tar.gz",
+        'x64': "osmose-0.9.96-x64.tar.gz"
+    }
+
     game_options = [
         {
             'option': 'main_file',
@@ -55,12 +60,9 @@ class osmose(Runner):
             return super(osmose, self).is_installed()
 
     def install(self):
-        self.logger.debug("Installing osmose")
-        if self.arch == 'x64':
-            tarball = "osmose-0.9.96-x64.tar.gz"
-        else:
-            return False
-        self.download_and_extract(tarball)
+        tarball = self.get_tarball()
+        if tarball:
+            self.download_and_extract(tarball)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'osmose/osmose')
