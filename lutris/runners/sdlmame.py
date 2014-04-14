@@ -7,26 +7,24 @@ from lutris.runners.runner import Runner
 # pylint: disable=C0103
 class sdlmame(Runner):
     """Runs arcade games with SDLMame"""
-    def __init__(self, settings=None):
-        """ Mame initialization """
-        super(sdlmame, self).__init__()
-        self.executable = "mame"
-        self.platform = "Arcade"
-        self.game_options = [
-            {
-                "option": "main_file",
-                "type": "file",
-                "label": "Rom file"
-            }
-        ]
-        self.runner_options = [
-            {
-                "option": "windowed",
-                "type": "bool",
-                "label": "Windowed"
-            }
-        ]
-        self.settings = settings
+
+    executable = "mame"
+    platform = "Arcade"
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Rom file"
+        }
+    ]
+
+    runner_options = [
+        {
+            "option": "windowed",
+            "type": "bool",
+            "label": "Windowed"
+        }
+    ]
 
     def play(self):
         """ Launch the game. """
