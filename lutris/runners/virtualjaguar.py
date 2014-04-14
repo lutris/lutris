@@ -32,9 +32,6 @@ class virtualjaguar(Runner):
         'x64': 'virtualjaguar-2.1.1-x64.tar.gz'
     }
 
-    def __init__(self, settings=None):
-        super(virtualjaguar, self).__init__()
-
     def install(self):
         tarball = self.get_tarball()
         if tarball:
