@@ -2,7 +2,6 @@ import os
 
 from lutris import settings
 from lutris.runners.uae import uae
-from lutris.gui.dialogs import ErrorDialog
 from lutris.util.display import get_current_resolution
 
 

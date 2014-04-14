@@ -1,3 +1,5 @@
+import os
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -37,6 +39,9 @@ class virtualjaguar(Runner):
         tarball = self.get_tarball()
         if tarball:
             self.download_and_extract(tarball)
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'virtualjaguar/virtualjaguar')
 
     def play(self):
         pass
