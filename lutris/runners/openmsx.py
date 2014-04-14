@@ -1,4 +1,3 @@
-# -*- coding:Utf-8 -*-
 from lutris.runners.runner import Runner
 
 
