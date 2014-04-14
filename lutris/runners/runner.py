@@ -23,6 +23,12 @@ def get_arch():
 
 class Runner(object):
     """Generic runner (base class for other runners) """
+
+    tarballs = {
+        'i386': None,
+        'x64': None
+    }
+
     def __init__(self, settings=None):
         """ Initialize runner """
         self.is_installable = False
@@ -127,6 +133,14 @@ class Runner(object):
         for line in content:
             md5check.update(line)
         return md5check.hexdigest()
+
+    def get_tarball(self):
+        tarball = self.tarballs.get(self.arch)
+        if not tarball:
+            ErrorDialog(
+                "Runner not available for architecture %s" % self.arch
+            )
+        return tarball
 
     def install(self):
         """Install runner using package management systems."""
