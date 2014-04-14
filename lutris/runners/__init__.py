@@ -4,7 +4,8 @@ from lutris.util.log import logger
 __all__ = ("linux", "steam", "winesteam", "wine", "sdlmame", "sdlmess",
            "mednafen", "scummvm", "snes9x", "gens", "fsuae", "nulldc",
            "openmsx", "dosbox", "pcsxr", "atari800", "mupen64plus", "frotz",
-           "browser", "osmose", "vice", "hatari", "stella", "jzintv", "o2em")
+           "browser", "osmose", "vice", "hatari", "stella", "jzintv", "o2em"
+           "virtualjaguar")
 
 
 def import_runner(runner_name):
