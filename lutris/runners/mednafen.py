@@ -1,53 +1,46 @@
-""" Runner for multi-consoles (8bit mainly) """
-
 import os
 import subprocess
-
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
 
 
-# pylint: disable=C0103
 class mednafen(Runner):
-    """Mednafen is a multi-platform emulator, including NES, GB/A, PC Engine"""
-    def __init__(self, settings=None):
-        super(mednafen, self).__init__()
-        self.executable = "mednafen"
-        self.platform = (
-            "Atari Lynx, GameBoy, GameBoy Color, "
-            "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
-            "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan"
-        )
-        self.package = "mednafen"
-        machine_choices = (
-            ("NES", "nes"),
-            ("PC Engine", "pce"),
-            ('Game Boy', 'gb'),
-            ('Game Boy Advance', 'gba')
-        )
-        self.game_options = [
-            {
-                "option": "main_file",
-                "type": "file",
-                "label": "Rom file"
-            },
-            {
-                "option": "machine",
-                "type": "one_choice",
-                "label": "Machine type",
-                "choices": machine_choices
-            }
-        ]
-        self.runner_options = [
-            {
-                "option": "fs",
-                "type": "bool",
-                "label": "Fullscreen",
-                "default": True,
-            }
-        ]
-        self.settings = settings
+    """Mednafen is a multi-system emulator, including NES, GB(A), PC Engine"""
+    executable = "mednafen"
+    platform = (
+        "Atari Lynx, GameBoy, GameBoy Color, "
+        "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
+        "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan"
+    )
+    package = "mednafen"
+    machine_choices = (
+        ("NES", "nes"),
+        ("PC Engine", "pce"),
+        ('Game Boy', 'gb'),
+        ('Game Boy Advance', 'gba')
+    )
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Rom file"
+        },
+        {
+            "option": "machine",
+            "type": "one_choice",
+            "label": "Machine type",
+            "choices": machine_choices
+        }
+    ]
+    runner_options = [
+        {
+            "option": "fs",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": True,
+        }
+    ]
 
     def find_joysticks(self):
         """ Detect connected joysticks and return their ids """
@@ -56,7 +49,7 @@ class mednafen(Runner):
             return []
         output = subprocess.Popen(["mednafen", "dummy"],
                                   stdout=subprocess.PIPE).communicate()[0]
-        ouput = str.split(output, "\n")
+        ouput = output.split("\n")
         found = False
         joy_list = []
         for line in ouput:
