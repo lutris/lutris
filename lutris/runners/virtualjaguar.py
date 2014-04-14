@@ -25,8 +25,18 @@ class virtualjaguar(Runner):
         }
     ]
 
+    tarballs = {
+        'i386': None,
+        'x64': 'virtualjaguar-2.1.1-x64.tar.gz'
+    }
+
     def __init__(self, settings=None):
         super(virtualjaguar, self).__init__()
+
+    def install(self):
+        tarball = self.get_tarball()
+        if tarball:
+            self.download_and_extract(tarball)
 
     def play(self):
         pass

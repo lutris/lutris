@@ -9,6 +9,11 @@ from lutris.util.display import get_current_resolution
 class fsuae(uae):
     """Run Amiga games with FS-UAE"""
 
+    tarballs = {
+        'i386': "fs-uae-i386.tar.gz",
+        'x64': "fs-uae-x86_64.tar.gz",
+    }
+
     def __init__(self, settings=None):
         super(fsuae, self).__init__(settings)
         self.executable = 'fs-uae'
@@ -89,17 +94,9 @@ class fsuae(uae):
         return super(fsuae, self).is_installed()
 
     def install(self):
-        """Downloads deb package and installs it"""
-        tarballs = {
-            'i386': "fs-uae-i386.tar.gz",
-            'x64': "fs-uae-x86_64.tar.gz",
-        }
-        tarball = tarballs.get(self.arch)
-        if not tarball:
-            ErrorDialog(
-                "Runner not available for architecture %s" % self.arch
-            )
-        self.download_and_extract(tarball)
+        tarball = self.get_tarball()
+        if tarball:
+            self.download_and_extract(tarball)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'fs-uae/bin/fs-uae')
