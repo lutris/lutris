@@ -1,6 +1,6 @@
 # -*- coding:Utf-8 -*-
 import os
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Gdk
 
 import lutris.runners
 from lutris.util import datapath
@@ -35,6 +35,8 @@ class RunnersDialog(Gtk.Window):
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
 
+        inactive_color = Gdk.Color(35000, 35000, 35000)
+
         for runner_name in runner_list:
             # Get runner details
             runner = import_runner(runner_name)()
@@ -50,9 +52,10 @@ class RunnersDialog(Gtk.Window):
             icon.set_alignment(0.5, 0.1)
             hbox.pack_start(icon, False, False, 10)
 
-            runner_label = Gtk.Label()
             # Label
             runner_label = Gtk.Label()
+            if not runner.is_installed():
+                runner_label.modify_fg(Gtk.StateType.NORMAL, inactive_color)
             runner_label.set_markup(
                 "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
                 (runner_name, description, platform)
