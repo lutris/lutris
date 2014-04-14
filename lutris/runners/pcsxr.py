@@ -6,7 +6,6 @@ from lutris.util.system import find_executable
 
 class pcsxr(Runner):
     """PlayStation emulator"""
-
     package = "pcsxr"
     is_installable = True
     platform = "Playstation"
@@ -29,12 +28,9 @@ class pcsxr(Runner):
             if executable:
                 return executable
 
-    def is_installed(self):
-        return bool(self.get_executable())
-
     def play(self):
         """Run Playstation game"""
         iso = self.settings["game"].get("iso")
-        executable = self.get_executable()
-        command = [executable, " -nogui -cdfile \"" + iso + "\" -runcd"]
+        command = [self.get_executable(),
+                   " -nogui -cdfile \"" + iso + "\" -runcd"]
         return {'command': command}
