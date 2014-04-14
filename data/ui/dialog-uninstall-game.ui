@@ -116,7 +116,7 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="remove_contents_button">
-                <property name="label" translatable="yes">Remove all game data under {path}</property>
+                <property name="label" translatable="yes">Remove all game data on {path}</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
