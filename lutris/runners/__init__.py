@@ -1,11 +1,26 @@
 """Generic runner functions"""
 from lutris.util.log import logger
 
-__all__ = ("linux", "steam", "winesteam", "wine", "sdlmame", "sdlmess",
-           "mednafen", "scummvm", "snes9x", "gens", "fsuae", "nulldc",
-           "openmsx", "dosbox", "pcsxr", "atari800", "mupen64plus", "frotz",
-           "browser", "osmose", "vice", "hatari", "stella", "jzintv", "o2em",
-           "virtualjaguar")
+__all__ = (
+    # Native
+    "linux", "steam", "browser",  # "desura",
+    # Microsoft based
+    "wine", "winesteam", "dosbox",
+    # Multi-system
+    "sdlmame", "sdlmess", "scummvm", "mednafen",
+    # Commdore
+    "fsuae", "vice",
+    # Atari
+    "stella", "atari800", "hatari", "virtualjaguar",
+    # Nintendo
+    "snes9x",  "mupen64plus",  # "dolphin",
+    # Sony
+    "pcsxr",
+    # Sega
+    "osmose", "gens", "nulldc",
+    # Misc legacy systems
+    "openmsx", "frotz", "jzintv", "o2em",
+)
 
 
 def import_runner(runner_name):
