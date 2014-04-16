@@ -169,8 +169,8 @@ class mednafen(Runner):
         fullscreen = "1"
 
         if "mednafen" in self.settings.config:
-            if "fs" in self.settings.config["mednafen"]:
-                if not self.settings.config["mednafen"]["fs"]:
+            if "fs" in self.runner_config:
+                if not self.runner_config["fs"]:
                     fullscreen = "0"
         resolution = get_current_resolution()
         (resolutionx, resolutiony) = resolution.split("x")
