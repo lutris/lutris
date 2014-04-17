@@ -503,14 +503,16 @@ class ScriptInterpreter(object):
         logger.debug("Moving %s to %s" % (src, dst))
         if not os.path.exists(src):
             raise ScriptingError("I can't move %s, it does not exist" % src)
-        # TODO: fix behavior of 'move' in existing scripts
-        #if not os.path.exists(dst):
-        #    os.makedirs(dst)
-        #target = os.path.join(dst, os.path.basename(src))
-        #if os.path.exists(target):
-        #    raise ScriptingError("Destination %s already exists" % target)
-        if os.path.isfile(src) and os.path.dirname(src) == dst:
-            logger.info("Source file is the same as destination, skipping")
+        if os.path.isfile(src):
+            src_filename = os.path.basename(src)
+            src_dir = os.path.dirname(src)
+            dst_path = os.path.join(dst, src_filename)
+            if src_dir == dst:
+                logger.info("Source file is the same as destination, skipping")
+            elif os.path.exists(dst_path):
+                # May not be the best choice, but it's the safest.
+                # Maybe should display confirmation dialog (Overwrite / Skip) ?
+                logger.info("Destination file exists, skipping")
         else:
             try:
                 shutil.move(src, dst)
