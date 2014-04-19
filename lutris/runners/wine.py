@@ -56,11 +56,20 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32',
 
 
 def winetricks(app, prefix=None, arch='win32', silent=False):
+    arch = detect_prefix_arch(prefix)
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
     else:
         args = app
     wineexec(None, prefix=prefix, wine_path='winetricks', arch=arch, args=args)
+
+
+def detect_prefix_arch(directory=None):
+    """Given a wineprefix directory, return its architecture"""
+    if not prefix:
+        prefix = os.path.join(os.path.expanduser("~"), '.wine')
+    # TODO : Find how to detect a prefix's architecture
+    return 'win32'
 
 
 # pylint: disable=C0103
