@@ -11,7 +11,7 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_VERSION = '1.7.13-i386'
 
 
-def set_regedit(path, key, value, prefix=None, arch='win32'):
+def set_regedit(path, key, value, prefix=None):
     """ Plays with the windows registry
         path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
@@ -27,7 +27,7 @@ def set_regedit(path, key, value, prefix=None, arch='win32'):
 
 """ % (path, key, value))
     reg_file.close()
-    wineexec('regedit', args=reg_path, prefix=prefix, arch=arch)
+    wineexec('regedit', args=reg_path, prefix=prefix)
     os.remove(reg_path)
 
 
@@ -36,8 +36,10 @@ def create_prefix(prefix, arch='win32'):
     wineexec('', prefix=prefix, wine_path='wineboot', arch=arch)
 
 
-def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32',
+def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
              workdir=None):
+    if not arch:
+        arch = detect_prefix_arch(prefix)
     if not prefix:
         prefix = ""
     else:
@@ -55,7 +57,7 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch='win32',
                      stdout=subprocess.PIPE).communicate()
 
 
-def winetricks(app, prefix=None, arch='win32', silent=False):
+def winetricks(app, prefix=None, silent=False):
     arch = detect_prefix_arch(prefix)
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
@@ -66,9 +68,20 @@ def winetricks(app, prefix=None, arch='win32', silent=False):
 
 def detect_prefix_arch(directory=None):
     """Given a wineprefix directory, return its architecture"""
-    if not prefix:
-        prefix = os.path.join(os.path.expanduser("~"), '.wine')
-    # TODO : Find how to detect a prefix's architecture
+    if not directory:
+        directory = os.path.join(os.path.expanduser("~"), '.wine')
+    registry_path = os.path.join(directory, 'system.reg')
+    if not os.path.isdir(directory) or not os.path.isfile(registry_path):
+        # No directory exists or invalid prefix
+        # returning 32 bit to create a new prefix.
+        return 'win32'
+    with open(registry_path, 'r') as registry:
+        for i in range(5):
+            line = registry.readline()
+            if 'win64' in line:
+                return 'win64'
+            elif 'win32' in line:
+                return 'win32'
     return 'win32'
 
 
