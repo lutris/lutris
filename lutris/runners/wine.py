@@ -118,7 +118,7 @@ class wine(Runner):
 
     def __init__(self, settings=None):
         super(wine, self).__init__()
-
+        self.wineprefix = None
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
@@ -334,6 +334,7 @@ class wine(Runner):
         prefix = self.settings['game'].get('prefix', "")
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
+            self.wineprefix = prefix
 
         self.game_path = self.settings['game'].get('path')
         if not self.game_path:
@@ -359,6 +360,8 @@ class wine(Runner):
         """The kill command runs wineserver -k"""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
-        wineserver = os.path.join(wine_root, wine_root)
-        logger.debug("Killing wineserver")
-        os.popen(wineserver + " -k")
+        command = os.path.join(wine_root, wine_root, "wineserver") + " -k"
+        if self.wineprefix:
+            command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
+        logger.debug("Killing all wine processes: %s" % command)
+        os.popen(command, shell=True)

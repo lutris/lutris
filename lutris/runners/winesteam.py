@@ -170,3 +170,5 @@ class winesteam(wine.wine):
 
     def stop(self):
         shutdown()
+        time.sleep(2)
+        super(winesteam, self).stop()
