@@ -104,11 +104,15 @@ class Runner(object):
     def is_installed(self):
         """Return  True if runner is installed else False"""
         is_installed = False
-        if not self.executable:
-            return False
+        # Check 'get_executable' first
         if hasattr(self, 'get_executable'):
-            if os.path.exists(self.get_executable()):
+            executable = self.get_executable()
+            if executable and os.path.exists(executable):
                 return True
+
+        # Fallback to 'executable' attribute (ssytem-wide install)
+        if not getattr(self, 'executable', None):
+            return False
         result = find_executable(self.executable)
         if result == '':
             is_installed = False
