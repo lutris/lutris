@@ -112,8 +112,7 @@ class ScriptInterpreter(object):
         if os.path.exists(game_ref):
             script_contents = open(game_ref, 'r').read()
         else:
-            full_url = settings.INSTALLER_URL + game_ref + '.yml'
-            request = urllib2.Request(url=full_url)
+            request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
             try:
                 request = urllib2.urlopen(request)
                 script_contents = request.read()
@@ -613,14 +612,6 @@ class InstallerDialog(Gtk.Window):
     """ Gtk Dialog used during the install process """
     game_dir = None
     download_progress = None
-
-    # # Fetch assets
-    # banner_url = settings.INSTALLER_URL + '%s.jpg' % self.game_slug
-    # banner_dest = join(settings.DATA_DIR, "banners/%s.jpg" % self.game_slug)
-    # http.download_asset(banner_url, banner_dest, True)
-    # icon_url = settings.INSTALLER_URL + 'icon/%s.jpg' % self.game_slug
-    # icon_dest = join(settings.DATA_DIR, "icons/%s.png" % self.game_slug)
-    # http.download_asset(icon_url, icon_dest, True)
 
     def __init__(self, game_ref, parent=None):
         Gtk.Window.__init__(self)

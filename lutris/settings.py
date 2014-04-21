@@ -26,7 +26,9 @@ sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
 SITE_URL = sio.read_setting("website") or "http://lutris.net/"
 
-INSTALLER_URL = SITE_URL + "games/install/"
+INSTALLER_URL = SITE_URL + 'games/install/%s/'
+ICON_URL = SITE_URL + 'games/icon/%s.png'
+BANNER_URL = SITE_URL + 'games/icon/%s.png'
 RUNNERS_URL = SITE_URL + "files/runners/"
 LIB32_URL = SITE_URL + "files/lib32/"
 LIB64_URL = SITE_URL + "files/lib64/"
