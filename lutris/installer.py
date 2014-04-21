@@ -127,11 +127,17 @@ class ScriptInterpreter(object):
                     installer_url = settings.SITE_URL + "games/%s/" % game_ref
                     webbrowser.open(installer_url)
                 return
+        # Data should be JSON here, but JSON is also valid YAML.
+        # At some point we will be dropping the YAML parser and load installer
+        # data with json.loads
         installer_data = yaml.safe_load(script_contents)
         if len(installer_data) == 1:
             return installer_data[0]
         else:
-            raise ScriptingError('Multiple installers handling not implemented yet')
+            raise ScriptingError(
+                'Multiple installers handling not implemented yet',
+                len(installer_data)
+            )
 
     def is_valid(self):
         """ Return True if script is usable """

@@ -14,10 +14,10 @@ class MockInterpreter(ScriptInterpreter):
 
 class TestScriptInterpreter(TestCase):
     def test_script_with_correct_values_is_valid(self):
-        script_data = """
-        runner: foo
-        installer: bar
-        name: baz
+        script_data = """[{
+        runner: foo,
+        installer: bar,
+        name: baz}]
         """
         with NamedTemporaryFile(delete=False) as temp_script:
             temp_script.write(script_data)
