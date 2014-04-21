@@ -3,7 +3,7 @@ from lutris.util.log import logger
 
 __all__ = (
     # Native
-    "linux", "steam", "browser",  "desura",
+    "linux", "steam", "browser", "desura",
     # Microsoft based
     "wine", "winesteam", "dosbox",
     # Multi-system
