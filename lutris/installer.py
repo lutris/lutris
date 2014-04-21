@@ -127,7 +127,11 @@ class ScriptInterpreter(object):
                     installer_url = settings.SITE_URL + "games/%s/" % game_ref
                     webbrowser.open(installer_url)
                 return
-        return yaml.safe_load(script_contents)
+        installer_data = yaml.safe_load(script_contents)
+        if len(installer_data) == 1:
+            return installer_data[0]
+        else:
+            raise ScriptingError('Multiple installers handling not implemented yet')
 
     def is_valid(self):
         """ Return True if script is usable """
