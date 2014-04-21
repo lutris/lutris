@@ -10,7 +10,7 @@ COPYRIGHT = "(c) 2010-2014 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
-## Paths
+# Paths
 CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
@@ -28,12 +28,12 @@ SITE_URL = sio.read_setting("website") or "http://lutris.net/"
 
 INSTALLER_URL = SITE_URL + 'games/install/%s/'
 ICON_URL = SITE_URL + 'games/icon/%s.png'
-BANNER_URL = SITE_URL + 'games/icon/%s.png'
+BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
 RUNNERS_URL = SITE_URL + "files/runners/"
 LIB32_URL = SITE_URL + "files/lib32/"
 LIB64_URL = SITE_URL + "files/lib64/"
 
-## Default config options
+# Default config options
 KEEP_CACHED_ASSETS = True
 GAME_VIEW = 'icon'
 ICON_TYPE_ICONVIEW = 'banner'
