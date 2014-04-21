@@ -183,7 +183,8 @@ class Runner(object):
     def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
         merge_single = opts.get('merge_single', False)
-        dialog = DownloadDialog(settings.RUNNERS_URL + tarball, runner_archive)
+        source_url = opts.get('source_url', settings.RUNNERS_URL)
+        dialog = DownloadDialog(source_url + tarball, runner_archive)
         dialog.run()
 
         extract_archive(runner_archive, dest, merge_single=merge_single)
