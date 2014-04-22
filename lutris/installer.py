@@ -728,6 +728,7 @@ class InstallerDialog(Gtk.Window):
         for index, script in enumerate(self.scripts):
             label = "%s (%s)" % (script['name'], script['version'])
             liststore.append((index, label))
+        self.title_label.set_markup('<b>Select which version to install</b>')
         self.installer_choice = Gtk.ComboBox.new_with_model(liststore)
         cell = Gtk.CellRendererText()
         self.installer_choice.pack_start(cell, True)
