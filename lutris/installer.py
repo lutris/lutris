@@ -667,7 +667,6 @@ class InstallerDialog(Gtk.Window):
 
         self.continue_button = Gtk.Button(label='Continue')
         self.continue_button.set_margin_left(20)
-        self.continue_button.connect('clicked', self.on_file_selected)
         self.action_buttons.add(self.continue_button)
 
         self.play_button = Gtk.Button(label="Launch game")
@@ -693,9 +692,9 @@ class InstallerDialog(Gtk.Window):
         else:
             self.choose_installer()
         self.show_all()
-        self.continue_button.hide()
         self.close_button.hide()
         self.play_button.hide()
+        self.install_button.hide()
         self.show_non_empty_warning()
 
     def launch_install(self, script_index):
@@ -718,9 +717,33 @@ class InstallerDialog(Gtk.Window):
             self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
             self.set_message("Click install to continue")
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
+        self.continue_button.hide()
+        self.continue_button.connect('clicked', self.on_file_selected)
+        self.install_button.show()
 
     def choose_installer(self):
-        self.launch_install(0)
+        liststore = Gtk.ListStore(int, str)
+        for index, script in enumerate(self.scripts):
+            label = "%s (%s)" % (script['name'], script['version'])
+            liststore.append((index, label))
+        self.installer_choice = Gtk.ComboBox.new_with_model(liststore)
+        cell = Gtk.CellRendererText()
+        self.installer_choice.pack_start(cell, True)
+        self.installer_choice.add_attribute(cell, 'text', 1)
+        self.installer_choice.set_active(0)
+        self.installer_choice.show()
+        self.widget_box.pack_start(self.installer_choice, False, False, 10)
+        self.continue_button.show()
+        self.continue_handler = self.continue_button.connect(
+            'clicked', self.on_installer_selected
+        )
+
+    def on_installer_selected(self, widget):
+        active = self.installer_choice.get_active()
+        self.launch_install(active)
+        self.installer_choice.destroy()
 
     def on_destroy(self, widget):
         if self.interpreter:
