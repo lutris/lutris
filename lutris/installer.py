@@ -60,35 +60,25 @@ sys.excepthook = error_handler
 
 def fetch_script(window, game_ref):
     """Downloads install script(s) for matching game_ref"""
-    if os.path.exists(game_ref):
-        script_contents = open(game_ref, 'r').read()
-    else:
-        request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
-        try:
-            request = urllib2.urlopen(request)
-            script_contents = request.read()
-        except IOError:
-            dlg = NoInstallerDialog(window)
-            if dlg.result == 1:
-                game = Game(game_ref)
-                game_dialog = AddGameDialog(window, game)
-                if game_dialog.runner_name:
-                    window.notify_install_success()
-            elif dlg.result == 2:
-                installer_url = settings.SITE_URL + "games/%s/" % game_ref
-                webbrowser.open(installer_url)
-            return
+    request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
+    try:
+        request = urllib2.urlopen(request)
+        script_contents = request.read()
+    except IOError:
+        dlg = NoInstallerDialog(window)
+        if dlg.result == 1:
+            game = Game(game_ref)
+            game_dialog = AddGameDialog(window, game)
+            if game_dialog.runner_name:
+                window.notify_install_success()
+        elif dlg.result == 2:
+            installer_url = settings.SITE_URL + "games/%s/" % game_ref
+            webbrowser.open(installer_url)
+        return
     # Data should be JSON here, but JSON is also valid YAML.
     # At some point we will be dropping the YAML parser and load installer
     # data with json.loads
-    installer_data = yaml.safe_load(script_contents)
-    if len(installer_data) == 1:
-        return installer_data[0]
-    else:
-        raise ScriptingError(
-            'Multiple installers handling not implemented yet',
-            len(installer_data)
-        )
+    return yaml.safe_load(script_contents)
 
 
 class ScriptInterpreter(object):
@@ -627,6 +617,7 @@ class InstallerDialog(Gtk.Window):
 
     def __init__(self, game_ref, parent=None):
         Gtk.Window.__init__(self)
+        self.interpreter = None
         self.parent = parent
         self.game_ref = game_ref
         # Dialog properties
@@ -641,19 +632,11 @@ class InstallerDialog(Gtk.Window):
         # Default signals
         self.connect('destroy', self.on_destroy)
 
-        # Interpreter
-        script = fetch_script(self, game_ref)
-        if not script:
-            return
-        self.interpreter = ScriptInterpreter(script, self)
-
         # GUI Setup
 
         # Title label
-        title_label = Gtk.Label()
-        game_name = self.interpreter.game_name
-        title_label.set_markup("<b>Installing {}</b>".format(game_name))
-        self.vbox.pack_start(title_label, False, False, 20)
+        self.title_label = Gtk.Label()
+        self.vbox.pack_start(self.title_label, False, False, 20)
 
         self.status_label = Gtk.Label()
         self.status_label.set_max_width_chars(80)
@@ -697,6 +680,30 @@ class InstallerDialog(Gtk.Window):
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
+        # Interpreter
+
+        if os.path.exists(game_ref):
+            self.scripts = [open(game_ref, 'r').read()]
+        else:
+            self.scripts = fetch_script(self, game_ref)
+        if not self.scripts:
+            return
+        if len(self.scripts) == 1:
+            self.launch_install(0)
+        else:
+            self.choose_installer()
+        self.show_all()
+        self.continue_button.hide()
+        self.close_button.hide()
+        self.play_button.hide()
+        self.show_non_empty_warning()
+
+    def launch_install(self, script_index):
+        script = self.scripts[script_index]
+        self.interpreter = ScriptInterpreter(script, self)
+        game_name = self.interpreter.game_name
+        self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
+
         # Target chooser
         if not self.interpreter.requires and self.interpreter.files:
             self.set_message("Select installation directory")
@@ -711,14 +718,13 @@ class InstallerDialog(Gtk.Window):
             self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
             self.set_message("Click install to continue")
-        self.show_all()
-        self.continue_button.hide()
-        self.close_button.hide()
-        self.play_button.hide()
-        self.show_non_empty_warning()
+
+    def choose_installer(self):
+        self.launch_install(0)
 
     def on_destroy(self, widget):
-        self.interpreter.cleanup()
+        if self.interpreter:
+            self.interpreter.cleanup()
         if self.parent:
             self.destroy()
         else:
