@@ -223,8 +223,8 @@ class RunnerConfigDialog(Gtk.Dialog):
                                   Gtk.Label(label="System configuration"))
 
         #Action buttons
-        cancel_button = Gtk.Button(None, Gtk.STOCK_CANCEL)
-        ok_button = Gtk.Button(None, Gtk.STOCK_OK)
+        cancel_button = Gtk.Button("Cancel")
+        ok_button = Gtk.Button("Ok")
         self.action_area.pack_start(cancel_button, True, True, 0)
         self.action_area.pack_start(ok_button, True, True, 0)
         cancel_button.connect("clicked", self.close)
