@@ -667,6 +667,7 @@ class InstallerDialog(Gtk.Window):
 
         self.continue_button = Gtk.Button(label='Continue')
         self.continue_button.set_margin_left(20)
+        self.continue_handler = None
         self.action_buttons.add(self.continue_button)
 
         self.play_button = Gtk.Button(label="Launch game")
@@ -679,7 +680,11 @@ class InstallerDialog(Gtk.Window):
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
-        # Interpreter
+        self.show_all()
+        self.close_button.hide()
+        self.play_button.hide()
+        self.install_button.hide()
+        self.show_non_empty_warning()
 
         if os.path.exists(game_ref):
             self.scripts = [open(game_ref, 'r').read()]
@@ -691,16 +696,11 @@ class InstallerDialog(Gtk.Window):
             self.launch_install(0)
         else:
             self.choose_installer()
-        self.show_all()
-        self.close_button.hide()
-        self.play_button.hide()
-        self.install_button.hide()
-        self.show_non_empty_warning()
 
     def launch_install(self, script_index):
         script = self.scripts[script_index]
         self.interpreter = ScriptInterpreter(script, self)
-        game_name = self.interpreter.game_name
+        game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
 
         # Target chooser
