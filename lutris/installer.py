@@ -58,10 +58,43 @@ def error_handler(error_type, value, traceback):
 sys.excepthook = error_handler
 
 
+def fetch_script(window, game_ref):
+    """Downloads install script(s) for matching game_ref"""
+    if os.path.exists(game_ref):
+        script_contents = open(game_ref, 'r').read()
+    else:
+        request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
+        try:
+            request = urllib2.urlopen(request)
+            script_contents = request.read()
+        except IOError:
+            dlg = NoInstallerDialog(window)
+            if dlg.result == 1:
+                game = Game(game_ref)
+                game_dialog = AddGameDialog(window, game)
+                if game_dialog.runner_name:
+                    window.notify_install_success()
+            elif dlg.result == 2:
+                installer_url = settings.SITE_URL + "games/%s/" % game_ref
+                webbrowser.open(installer_url)
+            return
+    # Data should be JSON here, but JSON is also valid YAML.
+    # At some point we will be dropping the YAML parser and load installer
+    # data with json.loads
+    installer_data = yaml.safe_load(script_contents)
+    if len(installer_data) == 1:
+        return installer_data[0]
+    else:
+        raise ScriptingError(
+            'Multiple installers handling not implemented yet',
+            len(installer_data)
+        )
+
+
 class ScriptInterpreter(object):
     """ Class that converts raw script data to actions """
 
-    def __init__(self, game_ref, parent):
+    def __init__(self, script, parent):
         self.error = None
         self.errors = []
         self.files = []
@@ -71,7 +104,7 @@ class ScriptInterpreter(object):
         self.game_slug = None
         self.game_files = {}
         self.steam_data = {}
-        self.script = self._fetch_script(game_ref)
+        self.script = script
         if not self.script:
             return
         if not self.is_valid():
@@ -107,37 +140,6 @@ class ScriptInterpreter(object):
                 "You need to install {} before".format(self.requires)
             )
         self.target_path = game['directory']
-
-    def _fetch_script(self, game_ref):
-        if os.path.exists(game_ref):
-            script_contents = open(game_ref, 'r').read()
-        else:
-            request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
-            try:
-                request = urllib2.urlopen(request)
-                script_contents = request.read()
-            except IOError:
-                dlg = NoInstallerDialog(self.parent)
-                if dlg.result == 1:
-                    game = Game(game_ref)
-                    game_dialog = AddGameDialog(self.parent, game)
-                    if game_dialog.runner_name:
-                        self.parent.notify_install_success()
-                elif dlg.result == 2:
-                    installer_url = settings.SITE_URL + "games/%s/" % game_ref
-                    webbrowser.open(installer_url)
-                return
-        # Data should be JSON here, but JSON is also valid YAML.
-        # At some point we will be dropping the YAML parser and load installer
-        # data with json.loads
-        installer_data = yaml.safe_load(script_contents)
-        if len(installer_data) == 1:
-            return installer_data[0]
-        else:
-            raise ScriptingError(
-                'Multiple installers handling not implemented yet',
-                len(installer_data)
-            )
 
     def is_valid(self):
         """ Return True if script is usable """
@@ -640,9 +642,10 @@ class InstallerDialog(Gtk.Window):
         self.connect('destroy', self.on_destroy)
 
         # Interpreter
-        self.interpreter = ScriptInterpreter(game_ref, self)
-        if not self.interpreter.script:
+        script = fetch_script(self, game_ref)
+        if not script:
             return
+        self.interpreter = ScriptInterpreter(script, self)
 
         # GUI Setup
 
