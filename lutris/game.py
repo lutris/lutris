@@ -17,7 +17,7 @@ from lutris.gui import dialogs
 
 
 def show_error_message(message):
-    """ Display an error message based on the runner's output. """
+    """Display an error message based on the runner's output."""
     if "RUNNER_NOT_INSTALLED" == message['error']:
         dialogs.ErrorDialog('Error the runner is not installed')
     elif "NO_BIOS" == message['error']:
@@ -32,8 +32,8 @@ def get_game_list(filter_installed=False):
 
 
 class Game(object):
-    """" This class takes cares about loading the configuration for a game
-         and running it.
+    """This class takes cares about loading the configuration for a game
+       and running it.
     """
     def __init__(self, slug):
         self.slug = slug
@@ -96,18 +96,17 @@ class Game(object):
     def prelaunch(self):
         """ Verify that the current game can be launched. """
         if not self.runner.is_installed():
-            question = ("The required runner is not installed.\n"
-                        "Do you wish to install it now?")
-            install_runner_dialog = dialogs.QuestionDialog(
-                {'question': question,
-                 'title': "Required runner unavailable"})
+            install_runner_dialog = dialogs.QuestionDialog({
+                'question': ("The required runner is not installed.\n"
+                             "Do you wish to install it now?"),
+                'title': "Required runner unavailable"
+            })
             if Gtk.ResponseType.YES == install_runner_dialog.result:
                 self.runner.install()
             return False
 
         if hasattr(self.runner, 'prelaunch'):
-            success = self.runner.prelaunch()
-            return success
+            return self.runner.prelaunch()
         return True
 
     def play(self):
@@ -119,14 +118,10 @@ class Game(object):
 
         gameplay_info = self.runner.play()
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
-        if isinstance(gameplay_info, dict):
-            if 'error' in gameplay_info:
-                show_error_message(gameplay_info)
-                return False
-            launch_arguments = gameplay_info['command']
-        else:
-            logger.error("Old method used for returning gameplay infos")
-            launch_arguments = gameplay_info
+        if 'error' in gameplay_info:
+            show_error_message(gameplay_info)
+            return False
+        launch_arguments = gameplay_info['command']
 
         restrict_to_display = self.game_config.get_system('display')
         if restrict_to_display:
