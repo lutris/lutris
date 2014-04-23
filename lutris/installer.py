@@ -618,6 +618,7 @@ class InstallerDialog(Gtk.Window):
     def __init__(self, game_ref, parent=None):
         Gtk.Window.__init__(self)
         self.interpreter = None
+        self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
         self.game_ref = game_ref
         # Dialog properties
@@ -799,14 +800,21 @@ class InstallerDialog(Gtk.Window):
         button.set_sensitive(False)
         self.interpreter.iter_game_files()
 
-    def ask_user_for_file(self, message=None):
+    def ask_user_for_file(self, message):
         self.clean_widgets()
         self.set_message(message)
-        self.set_location_entry(None, 'file')
+        if self.selected_directory:
+            path = self.selected_directory
+        else:
+            path = os.path.expanduser('~')
+        self.set_location_entry(None, 'file', default_path=path)
 
     def on_file_selected(self, widget):
-        widget.set_sensitive(False)
         file_path = self.location_entry.get_text()
+        if os.path.isfile(file_path):
+            self.selected_directory = os.path.dirname(file_path)
+        else:
+            return
         self.interpreter.file_selected(file_path)
 
     def clean_widgets(self):

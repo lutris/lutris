@@ -493,8 +493,9 @@ class FileChooserEntry(Gtk.Box):
     def select_file(self, dialog, response):
         if response == Gtk.ResponseType.OK:
             target_path = dialog.get_filename()
-            self.file_chooser_dlg.set_current_folder(target_path)
-            self.entry.set_text(target_path)
+            if target_path:
+                self.file_chooser_dlg.set_current_folder(target_path)
+                self.entry.set_text(target_path)
         dialog.hide()
 
     def get_text(self):
