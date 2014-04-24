@@ -117,17 +117,14 @@ class snes9x(Runner):
         return option_dict
 
     def play(self):
-        """ Run Super Nintendo game """
         options = self.options_as_dict()
-        runner_options = self.settings.get('snes9x')
         for option_name in options:
-            if runner_options:
-                self.set_option(
-                    option_name,
-                    runner_options.get(
-                        option_name, options[option_name].get('default')
-                    )
+            self.set_option(
+                option_name,
+                self.runner_config.get(
+                    option_name, options[option_name].get('default')
                 )
+            )
 
         rom = self.settings["game"].get("main_file")
         if not os.path.exists(rom):
