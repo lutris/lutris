@@ -14,11 +14,6 @@ class stella(Runner):
     }]
     runner_options = []
 
-    def __init__(self, settings=None):
-        super(stella, self).__init__()
-        if settings:
-            self.cart = settings["game"]["main_file"]
-
     def play(self):
-        command = ['stella', "\"%s\"" % self.cart]
-        return {'command': command}
+        cart = self.settings["game"]["main_file"]
+        return {'command': ['stella', "\"%s\"" % cart]}
