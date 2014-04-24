@@ -55,9 +55,7 @@ class steam(Runner):
         return None
 
     def get_steam_path(self):
-        runner = self.__class__.__name__
-        runner_config = self.settings.get(runner) or {}
-        return runner_config.get('steam_path', 'steam')
+        return self.runner_config.get('steam_path', 'steam')
 
     def get_game_path(self):
         """ Return location of Steam directory """
@@ -81,7 +79,7 @@ class steam(Runner):
                               for opt in self.runner_options
                               if opt["option"] == "steam_path"][0]
         if os.path.exists(steam_default_path):
-            self.settings["runner"]["steam_path"] = steam_default_path
+            self.runner_config["steam_path"] = steam_default_path
             self.settings.save()
         else:
             super(steam, self).install()
