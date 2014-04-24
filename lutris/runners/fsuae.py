@@ -13,56 +13,53 @@ class fsuae(uae):
         'x64': "fs-uae-x86_64.tar.gz",
     }
 
-    def __init__(self, settings=None):
-        super(fsuae, self).__init__(settings)
-        self.executable = 'fs-uae'
-        self.game_options = [
-            {
-                'option': "main_file",
-                'type': "file",
-                'label': "Boot disk"
-            },
-            {
-                "option": "disks",
-                "type": "multiple",
-                "label": "Additionnal floppies"
-            }
-        ]
+    executable = 'fs-uae'
+    game_options = [
+        {
+            'option': "main_file",
+            'type': "file",
+            'label': "Boot disk"
+        },
+        {
+            "option": "disks",
+            "type": "multiple",
+            "label": "Additionnal floppies"
+        }
+    ]
 
-        self.runner_options = [
-            {
-                "option": "model",
-                "label": "Amiga model",
-                "type": "choice",
-                "choices": [
-                    ("Amiga 500 (default)", 'A500'),
-                    ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
-                    ("Amiga 600 with 1 MB chip RAM", 'A600'),
-                    ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
-                    ("Amiga 1200 with 2 MB chip RAM", 'A1200'),
-                    ("Amiga 1200 but with 68020 processor", 'A1200/020'),
-                    ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
-                    ("CD32 unit", 'CD32'),
-                    ("Commodore CDTV unit", 'CDTV'),
-                ]
-            },
-            {
-                "option": "kickstart_file",
-                "label": "Rom Path",
-                "type": "file"
-            },
-            {
-                "option": "gfx_fullscreen_amiga",
-                "label": "Fullscreen (F12 + s to Switch)",
-                "type": "bool"
-            },
-            {
-                "option": "scanlines",
-                "label": "Enable scanlines",
-                "type": "bool"
-            }
-        ]
-        self.settings = settings
+    runner_options = [
+        {
+            "option": "model",
+            "label": "Amiga model",
+            "type": "choice",
+            "choices": [
+                ("Amiga 500 (default)", 'A500'),
+                ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
+                ("Amiga 600 with 1 MB chip RAM", 'A600'),
+                ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
+                ("Amiga 1200 with 2 MB chip RAM", 'A1200'),
+                ("Amiga 1200 but with 68020 processor", 'A1200/020'),
+                ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
+                ("CD32 unit", 'CD32'),
+                ("Commodore CDTV unit", 'CDTV'),
+            ]
+        },
+        {
+            "option": "kickstart_file",
+            "label": "Rom Path",
+            "type": "file"
+        },
+        {
+            "option": "gfx_fullscreen_amiga",
+            "label": "Fullscreen (F12 + s to Switch)",
+            "type": "bool"
+        },
+        {
+            "option": "scanlines",
+            "label": "Enable scanlines",
+            "type": "bool"
+        }
+    ]
 
     def insert_floppies(self):
         disks = []
@@ -101,22 +98,20 @@ class fsuae(uae):
         return os.path.join(settings.RUNNER_DIR, 'fs-uae/bin/fs-uae')
 
     def get_params(self):
-        runner = self.__class__.__name__
         params = []
-        runner_config = self.settings[runner] or {}
-        model = runner_config.get('model')
-        kickstart_file = runner_config.get('kickstart_file')
+        model = self.runner_config.get('model')
+        kickstart_file = self.runner_config.get('kickstart_file')
         if kickstart_file:
             params.append("--kickstart_file=\"%s\"" % kickstart_file)
         if model:
             params.append('--amiga_model=%s' % model)
-        if runner_config.get("gfx_fullscreen_amiga", False):
+        if self.runner_config.get("gfx_fullscreen_amiga", False):
             width = int(get_current_resolution().split('x')[0])
             params.append("--fullscreen")
-            #params.append("--fullscreen_mode=fullscreen-window")
+            # params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")
             params.append("--fullscreen_width=%d" % width)
-        if runner_config.get('scanlines'):
+        if self.runner_config.get('scanlines'):
             params.append("--scanlines=1")
         return params
 
