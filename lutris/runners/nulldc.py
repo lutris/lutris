@@ -1,79 +1,39 @@
-# -*- coding:Utf-8 -*-
-###############################################################################
-## Lutris
-##
-## Copyright (C) 2009, 2010 Mathieu Comandon strycore@gmail.com
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 3 of the License, or
-## (at your option) any later version.
-##
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
-## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###############################################################################
-
-""" Runner for Dreamcast games """
-
+# -*- coding: utf-8 -*-
 import os
 from lutris.runners.wine import wine
 from lutris.gui.dialogs import DirectoryDialog
 from lutris.config import LutrisConfig
 
 
-# pylint: disable=C0103
 class nulldc(wine):
     """Runner for the Dreamcast emulator NullDC
 
-    Since there is no good Linux emulator out there, we have to use a Windows
-    emulator. It runs pretty well.
+       Since there is no good Linux emulator out there, we have to use a
+       Windows emulator. It runs pretty well.
 
-    NullDC is now OpenSource ! Somebody please port it to Linux.
-    The open source NullDC version (1.0.4) doesn't work with wine !
+       NullDC is now OpenSource ! Somebody please port it to Linux.
+       The open source NullDC version (1.0.4) doesn't work with wine !
 
-    Download link : http://nulldc.googlecode.com/files/nullDC_104_r50.7z
+       Download link : http://nulldc.googlecode.com/files/nullDC_104_r50.7z
 
-    """
-
-    def __init__(self, settings=None):
-        """Initialize NullDC
+       Joy2key config:
 
         joy2key $(xwininfo -root -tree  | grep nullDC | grep -v VMU |\
                 awk '{print $1}') \
                 -X  -rcfile ~/.joy2keyrc \
                 -buttons y a b x c r l r o s -axis Left Right Up Down
-        """
-        super(nulldc, self).__init__(settings)
-        self.description = "Runs Dreamcast games with nullDC emulator"
-        self.platform = "Sega Dreamcast"
-
-        self.is_installable = False
-
-        self.depends = "wine"
-        config = LutrisConfig(runner=self.__class__.__name__)
-        self.nulldc_path = config.get_path()
-        self.executable = "nullDC_1.0.3_nommu.exe"
-        self.args = ""
-        self.game_options = [{
-            'option': 'iso',
-            'type': 'file',
-            'name': 'iso',
-            'label': 'Disc image'
-        }]
-        self.runner_options = self.runner_options + [{
-            'option': 'fullscreen',
-            'type': 'bool',
-            'name': 'fullscreen',
-            'label': 'Fullscreen'
-        }]
-        if settings:
-            self.settings = settings
+    """
+    description = "Runs Dreamcast games with nullDC emulator"
+    platform = "Sega Dreamcast"
+    is_installable = False
+    depends = "wine"
+    executable = "nullDC_1.0.3_nommu.exe"
+    game_options = [{
+        'option': 'iso',
+        'type': 'file',
+        'name': 'iso',
+        'label': 'Disc image'
+    }]
 
     def install(self):
         """Install NullDC"""
@@ -101,7 +61,7 @@ class nulldc(wine):
 
     def play(self):
         """Run Dreamcast game"""
-        #-config ImageReader:DefaultImage="[rompath]/[romfile]"
+        # -config ImageReader:DefaultImage="[rompath]/[romfile]"
         path = self.settings['game']['iso']
         path = path.replace("/", "\\")
         path = 'Z:' + path
