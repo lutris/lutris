@@ -1,6 +1,5 @@
 # -*- coding:Utf-8 -*-
 """Runner for Atari 800 (and other early Atari consoles)"""
-
 import os.path
 import logging
 
@@ -47,7 +46,7 @@ class atari800(Runner):
         },
         {
             "option": "machine",
-            "type": "one_choice",
+            "type": "choice",
             "choices": (
                 ("Emulate Atari 800", "atari"),
                 ("Emulate Atari 800 XL", "xl"),
@@ -64,7 +63,7 @@ class atari800(Runner):
         },
         {
             "option": "resolution",
-            "type": "one_choice",
+            "type": "choice",
             "choices": screen_resolutions,
             "label": "Fullscreen resolution"
         }
@@ -91,37 +90,30 @@ class atari800(Runner):
         return good_bios
 
     def play(self):
-        """ Run the game. """
-
-        if "fullscreen" in self.settings["atari800"]:
-            if self.settings["atari800"]["fullscreen"]:
-                self.arguments = self.arguments + ["-fullscreen"]
-            else:
-                self.arguments = self.arguments + ["-windowed"]
-
-        if "resolution" in self.settings["atari800"]:
-            resol = self.settings["atari800"]["resolution"]
-            width = resol[:resol.find("x")]
-            height = resol[resol.find("x") + 1:]
-            self.arguments += ["-width", "%s" % str(width),
-                               "-height", "%s" % str(height)]
-
-        if "bios_path" in self.settings["atari800"]:
-            self.bios_path = self.settings["atari800"]["bios_path"]
+        arguments = [self.executable]
+        if self.runner_config.get("fullscreen"):
+            arguments.append("-fullscreen")
         else:
-            self.error_messages += ["Bios path not set."]
+            arguments.append("-windowed")
 
-        if "machine" in self.settings["atari800"]:
-            self.arguments += ["-%s" % self.settings["atari800"]["machine"]]
+        if self.runner_config.get("resolution"):
+            width, height = self.runner_config["resolution"].split('x')
+            arguments += ["-width", "%s" % width, "-height", "%s" % height]
 
-            self.rom = self.settings["game"].get("rom")
-            if not self.rom:
-                self.error_messages += ["No disk image given."]
+        bios_path = self.runner_config.get("bios_path")
+        if not os.path.exists(bios_path):
+            return {'error': 'NO_BIOS'}
+
+        if self.runner_config("machine"):
+            arguments.append("-%s" % self.runner_config["machine"])
+
+        rom = self.settings["game"].get("rom")
+        if not os.path.exists(rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom}
         good_bios = self.find_good_bioses()
         for bios in good_bios.keys():
-            self.arguments += ["-%s" % bios,
-                               "\"%s\"" % os.path.join(self.bios_path,
-                                                       good_bios[bios])]
-        self.arguments = self.arguments + ["\"%s\"" % self.rom]
-        command = [self.executable] + self.arguments
-        return {"command": command, "error_messages": self.error_messages}
+            arguments.append("-%s" % bios)
+            bios_path = os.path.join(self.bios_path, good_bios[bios])
+            arguments.append("\"%s\"" % bios_path)
+        arguments.append("\"%s\"" % rom)
+        return {"command": arguments}
