@@ -1,7 +1,5 @@
-""" Runner for Atari ST computers """
-
-from lutris.runners.runner import Runner
 import os
+from lutris.runners.runner import Runner
 
 
 class hatari(Runner):
@@ -70,48 +68,36 @@ class hatari(Runner):
     ]
 
     def play(self):
-        """Run Atari ST game"""
-        if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.__class__.__name__}
-
         params = [self.executable]
-        settings = self.runner_config
         game_settings = self.settings['game'] or {}
-        if "fullscreen" in settings and settings["fullscreen"]:
+        if self.runner_config.get("fullscreen"):
             params.append("--fullscreen")
         else:
             params.append("--window")
 
-        if "zoom" in settings and settings["zoom"]:
+        if self.runner_config.get("zoom"):
             params.append("--zoom 2")
         else:
             params.append("--zoom 1")
 
-        if 'borders' in settings and settings["borders"]:
+        if self.runner_config.get("borders"):
             params.append('--borders true')
         else:
             params.append('--borders false')
 
-        if 'status' in settings and settings["status"]:
+        if self.runner_config.get("status"):
             params.append('--statusbar true')
         else:
             params.append('--statusbar false')
 
-        if "joy1" in settings:
-            params.append("--joy0 " + settings['joy0'])
+        if self.runner_config.get("joy0"):
+            params.append("--joy0 " + self.runner_config['joy0'])
 
-        if "joy2" in settings:
-            params.append("--joy1 " + settings['joy1'])
+        if self.runner_config.get("joy1"):
+            params.append("--joy1 " + self.runner_config['joy1'])
 
-        if "bios_file" in settings:
-            if os.path.exists(settings['bios_file']):
-                params.append("--tos " + settings["bios_file"])
-            else:
-                return {
-                    'error': 'FILE_NOT_FOUND',
-                    'file': settings['bios_file']
-                }
+        if os.path.exists(self.runner_config.get('bios_file')):
+            params.append("--tos " + self.runner_config["bios_file"])
         else:
             return {'error': 'NO_BIOS'}
         diska = game_settings.get('disk-a')
