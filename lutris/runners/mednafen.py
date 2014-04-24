@@ -165,13 +165,11 @@ class mednafen(Runner):
         """Runs the game"""
         rom = self.settings["game"]["main_file"]
         machine = self.settings["game"]["machine"]
-        #Defaults
-        fullscreen = "1"
 
-        if "mednafen" in self.settings.config:
-            if "fs" in self.runner_config:
-                if not self.runner_config["fs"]:
-                    fullscreen = "0"
+        if self.runner_config.get("fs"):
+            fullscreen = "1"
+        else:
+            fullscreen = "0"
         resolution = get_current_resolution()
         (resolutionx, resolutiony) = resolution.split("x")
         xres = str(resolutionx)
