@@ -69,17 +69,15 @@ class scummvm(Runner):
         return self.settings['game']['path']
 
     def play(self):
-        """Run ScummVM game"""
-        gfxmode = "--gfx-mode=normal"
-        fullscreen = "-f"  # -F for windowed
-        config = self.settings.config
-        if "scummvm" in self.settings.config:
-            if "windowed" in config["scummvm"]:
-                if self.settings.config["scummvm"]["windowed"] is True:
-                    fullscreen = "-F"
-            if "gfx-mode" in self.settings.config["scummvm"]:
-                mode = self.settings.config["scummvm"]["gfx-mode"]
-                gfxmode = "--gfx-mode=%s" % mode
+        if self.runner_config.get("windowed"):
+            fullscreen = "-F"
+        else:
+            fullscreen = "-f"
+        mode = self.runner_config.get("gfx-mode")
+        if mode:
+            gfxmode = "--gfx-mode=%s" % mode
+        else:
+            gfxmode = "--gfx-mode=normal"
         game = self.settings["game"]["game_id"]
 
         launch_info = {'command': [
