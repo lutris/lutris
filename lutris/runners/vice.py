@@ -33,15 +33,11 @@ class vice(Runner):
 
     def play(self):
         params = [self.executable]
-        settings = self.settings
-        if "fullscreen" in settings["vice"]:
-            if settings["vice"]["fullscreen"]:
-                params.append("-fullscreen")
-        if "double" in settings["vice"]:
-            if settings["vice"]["double"]:
-                params.append("-VICIIdsize")
-        if "joy" in settings["vice"]:
-            if settings["vice"]["joy"]:
-                params += ["-joydev2", "4", "-joydev1", "5"]
-        params.append("\"%s\"" % settings['game']['main_file'])
+        if self.runner_config["fullscreen"]:
+            params.append("-fullscreen")
+        if self.runner_config.get("double"):
+            params.append("-VICIIdsize")
+        if self.runner_config.get("joy"):
+            params += ["-joydev2", "4", "-joydev1", "5"]
+        params.append("\"%s\"" % self.settings['game']['main_file'])
         return {'command': [self.executable] + params}
