@@ -1,45 +1,41 @@
-# -*- coding:Utf-8 -*-
-""" Linux runner """
-
+# -*- coding: utf-8 -*-
 import os
-import os.path
-
 from lutris.runners.runner import Runner
 
 
-# pylint: disable=C0103
 class linux(Runner):
     """Runs native games"""
-    def __init__(self, config=None):
+
+    game_options = [
+        {
+            "option": "exe",
+            "type": "file",
+            "default_path": "game_path",
+            "label": "Executable"
+        },
+        {
+            "option": "args",
+            "type": "string",
+            "label": "Arguments"
+        },
+        {
+            "option": "ld_preload",
+            "type": "file",
+            "label": "Preload library"
+        },
+        {
+            "option": "ld_library_path",
+            "type": "directory_chooser",
+            "label": "Add directory to LD_LIBRARY_PATH"
+        }
+    ]
+
+    def __init__(self, settings=None):
         super(linux, self).__init__()
         self.platform = "Linux games"
         self.ld_preload = None
         self.game_path = None
-        self.game_options = [
-            {
-                "option": "exe",
-                "type": "file",
-                "default_path": "game_path",
-                "label": "Executable"
-            },
-            {
-                "option": "args",
-                "type": "string",
-                "label": "Arguments"
-            },
-            {
-                "option": "ld_preload",
-                "type": "file",
-                "label": "Preload library"
-            },
-            {
-                "option": "ld_library_path",
-                "type": "directory_chooser",
-                "label": "Add directory to LD_LIBRARY_PATH"
-            }
-        ]
-        self.runner_options = []
-        self.config = config
+        self.settings = settings
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
@@ -50,15 +46,11 @@ class linux(Runner):
 
     def play(self):
         """ Run native game. """
-        game_config = self.config.get('game')
-        if not game_config:
-            return {'error': 'INVALID_CONFIG'}
-
+        launch_info = {}
+        game_config = self.settings.get('game')
         executable = game_config.get("exe")
         if not os.path.exists(executable):
             return {'error': 'FILE_NOT_FOUND', 'file': executable}
-
-        launch_info = {}
 
         self.game_path = self.get_game_path()
         launch_info['game_path'] = self.game_path
