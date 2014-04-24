@@ -46,7 +46,7 @@ class sdlmess(Runner):
     ]
 
     def play(self):
-        rompath = self.settings['sdlmess'].get('rompath')
+        rompath = self.runner_config.get('rompath')
         if not os.path.exists(rompath):
             return {'error': 'FILE_NOT_FOUND', 'file': rompath}
         machine = self.settings['game'].get('machine')
