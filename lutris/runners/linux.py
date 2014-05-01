@@ -42,7 +42,7 @@ class linux(Runner):
         return True
 
     def get_game_path(self):
-        return os.path.dirname(self.config['game']['exe'])
+        return os.path.dirname(self.settings['game']['exe'])
 
     def play(self):
         """ Run native game. """
