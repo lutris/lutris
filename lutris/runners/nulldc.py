@@ -54,10 +54,8 @@ class nulldc(wine):
 
     def get_nulldc_path(self):
         """ Return the full path for the NullDC executable."""
-        if not self.nulldc_path:
-            return ""
-        else:
-            return os.path.join(self.nulldc_path, self.executable)
+        # FIXME: return path of nulldc
+        return
 
     def play(self):
         """Run Dreamcast game"""
