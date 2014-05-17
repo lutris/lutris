@@ -160,7 +160,7 @@ class Runner(object):
             return False
 
         package_installer_candidates = (
-            'gpk-install-package-name'
+            'gpk-install-package-name',
             'software-center',
         )
         package_installer = None

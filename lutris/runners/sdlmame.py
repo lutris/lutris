@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 class sdlmame(Runner):
     """Runs arcade games with SDLMame"""
     executable = "mame"
-    package = "sdlmame"
+    package = "mame"
     is_installable = True
     platform = "Arcade"
     game_options = [
