@@ -30,6 +30,7 @@ class Runner(object):
         'i386': None,
         'x64': None
     }
+    platform = NotImplemented
     game_options = []
     runner_options = []
 

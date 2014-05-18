@@ -7,13 +7,12 @@ from lutris.util.display import get_current_resolution
 
 class fsuae(Runner):
     """Run Amiga games with FS-UAE"""
-
+    executable = 'fs-uae'
+    platform = "Amiga"
     tarballs = {
         'i386': "fs-uae-i386.tar.gz",
         'x64': "fs-uae-x86_64.tar.gz",
     }
-
-    executable = 'fs-uae'
     game_options = [
         {
             'option': "main_file",
