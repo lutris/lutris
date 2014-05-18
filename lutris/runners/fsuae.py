@@ -84,11 +84,6 @@ class fsuae(Runner):
             floppy_images.append("--floppy_image_%d=\"%s\"" % (drive, disk))
         return floppy_drives + floppy_images
 
-    def is_installed(self):
-        if os.path.exists(self.get_executable()):
-            return True
-        return super(fsuae, self).is_installed()
-
     def install(self):
         tarball = self.get_tarball()
         if tarball:
