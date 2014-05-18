@@ -1,11 +1,11 @@
 import os
 
 from lutris import settings
-from lutris.runners.uae import uae
+from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 
 
-class fsuae(uae):
+class fsuae(Runner):
     """Run Amiga games with FS-UAE"""
 
     tarballs = {
