@@ -34,9 +34,10 @@ class o2em(Runner):
         ("Joystick", "3")
     ]
     game_options = [{
-        "option": "rom",
+        "option": "main_file",
         "type": "file",
-        "label": "Rom File"
+        "label": "Rom File",
+        "default_path": 'game_path',
     }]
     runner_options = [
         {
@@ -94,8 +95,11 @@ class o2em(Runner):
             arguments.append("-s1=%s" % self.runner_config["controller1"])
         if "controller2" in self.runner_config:
             arguments.append("-s2=%s" % self.runner_config["controller2"])
-        romdir = os.path.dirname(self.settings["game"]["rom"])
-        romfile = os.path.basename(self.settings["game"]["rom"])
+        rom_path = self.settings["game"].get("main_file", '')
+        if not os.path.exists(rom_path):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
+        romdir = os.path.dirname(rom_path)
+        romfile = os.path.basename(rom_path)
         arguments.append("-romdir=\"%s\"/" % romdir)
         arguments.append("\"%s\"" % romfile)
         return {'command': [self.get_executable()] + arguments}

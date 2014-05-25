@@ -1,4 +1,5 @@
 """Widget generators and their signal handlers"""
+import os
 from gi.repository import Gtk, GObject, Gdk
 from lutris.runners import import_runner
 from lutris import sysoptions
@@ -198,8 +199,8 @@ class ConfigBox(Gtk.VBox):
         file_chooser.set_size_request(200, 30)
         if 'default_path' in option:
             config_key = option['default_path']
-            if config_key in self.lutris_config.config['system']:
-                default_path = self.lutris_config.config['system'][config_key]
+            default_path = self.lutris_config.config['system'].get(config_key)
+            if default_path and os.path.exists(default_path):
                 file_chooser.set_current_folder(default_path)
 
         file_chooser.set_action(Gtk.FileChooserAction.OPEN)
