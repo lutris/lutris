@@ -109,7 +109,8 @@ class GameDialogCommon(object):
         if self.runner_name and name:
             assert self.lutris_config.config_type == 'game'
             self.lutris_config.config_type = 'game'
-            self.slug = self.lutris_config.save()
+            self.lutris_config.save()
+            self.slug = self.lutris_config.game
             runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
             pga.add_or_update(name, self.runner_name, slug=self.slug,

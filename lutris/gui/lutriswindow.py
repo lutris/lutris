@@ -112,7 +112,7 @@ class LutrisWindow(object):
         self.play_button = self.builder.get_object('play_button')
         self.play_button.set_sensitive(False)
 
-        #Contextual menu
+        # Contextual menu
         menu_callbacks = [
             ('play', self.on_game_clicked),
             ('install', self.on_game_clicked),
@@ -126,7 +126,7 @@ class LutrisWindow(object):
         self.menu = ContextualMenu(menu_callbacks)
         self.view.contextual_menu = self.menu
 
-        #Timer
+        # Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
 
         # Window initialization
@@ -314,6 +314,8 @@ class LutrisWindow(object):
         self.delete_button.set_sensitive(sensitive)
 
     def add_game_to_view(self, slug):
+        if not slug:
+            raise ValueError("Missing game slug")
         game = Game(slug)
 
         def do_add_game():
@@ -340,8 +342,8 @@ class LutrisWindow(object):
             subprocess.Popen(['xdg-open', path])
         else:
             dialogs.NoticeDialog(
-            "Can't open %s \nThe folder doesn't exist." % path)
-
+                "Can't open %s \nThe folder doesn't exist." % path
+            )
 
     def edit_game_configuration(self, _button):
         """Edit game preferences"""
