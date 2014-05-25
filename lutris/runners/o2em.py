@@ -73,7 +73,9 @@ class o2em(Runner):
         tarball = self.get_tarball()
         if tarball:
             self.download_and_extract(tarball)
-        os.makedirs(os.path.expanduser("~/.o2em/bios"))
+        bios_path = os.path.expanduser("~/.o2em/bios")
+        if not os.path.exists(bios_path):
+            os.makedirs(bios_path)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'o2em/o2em')
@@ -88,9 +90,9 @@ class o2em(Runner):
         if self.runner_config.get("scanlines"):
             arguments.append("-scanlines")
 
-        if "first_controller" in self.runner_config:
+        if "controller1" in self.runner_config:
             arguments.append("-s1=%s" % self.runner_config["controller1"])
-        if "second_controller" in self.runner_config:
+        if "controller2" in self.runner_config:
             arguments.append("-s2=%s" % self.runner_config["controller2"])
         romdir = os.path.dirname(self.settings["game"]["rom"])
         romfile = os.path.basename(self.settings["game"]["rom"])
