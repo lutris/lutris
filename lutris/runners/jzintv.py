@@ -1,5 +1,6 @@
 # -*- coding:Utf-8 -*-
-import os.path
+import os
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,13 +9,17 @@ class jzintv(Runner):
     package = "jzintv"
     executable = "jzintv"
     platform = "Intellivision"
-    # jzintv is not yet available as a package  in Debian and Ubuntu,
-    # it requires some packaging
-    is_installable = False
+
+    tarballs = {
+        'i386': None,
+        'x64': 'jzintv-1.0-beta4-x86_64.tar.gz',
+    }
+
     game_options = [{
-        "option": "rom",
-        "type": "file",
-        "label": "Rom File"
+        'option': 'main_file',
+        'type': 'file',
+        'label': "Rom File",
+        'default_path': 'game_path',
     }]
     runner_options = [
         {
@@ -29,19 +34,30 @@ class jzintv(Runner):
         }
     ]
 
+    def install(self):
+        tarball = self.get_tarball()
+        if tarball:
+            self.download_and_extract(tarball)
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'jzintv/bin/jzintv')
+
     def play(self):
         """Run Intellivision game"""
-        arguments = [self.executable]
+        arguments = [self.get_executable()]
         if self.runner_config.get("fullscreen"):
             arguments = arguments + ["-f"]
-        bios_path = self.runner_config.get("bios_path")
+        bios_path = self.runner_config.get("bios_path", '')
         if os.path.exists(bios_path):
             arguments.append("--execimg=\"%s/exec.bin\"" % bios_path)
             arguments.append("--gromimg=\"%s/grom.bin\"" % bios_path)
         else:
             return {'error': 'NO_BIOS'}
-        romdir = os.path.dirname(self.settings["game"]["rom"])
-        romfile = os.path.basename(self.settings["game"]["rom"])
+        rom_path = self.settings["game"].get("main_file", '')
+        if not os.path.exists(rom_path):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
+        romdir = os.path.dirname(rom_path)
+        romfile = os.path.basename(rom_path)
         arguments += ["--rom-path=\"%s/\"" % romdir]
         arguments += ["\"%s\"" % romfile]
         return {'command': arguments}
