@@ -8,7 +8,7 @@ class o2em(Runner):
     """Magnavox Oyssey² Emulator"""
     package = "o2em"
     executable = "o2em"
-    platform = "Odyssey 2"
+    platform = "Magnavox Odyssey 2, Phillips Videopac+"
 
     tarballs = {
         'i386': None,
