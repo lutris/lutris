@@ -73,6 +73,7 @@ class o2em(Runner):
         tarball = self.get_tarball()
         if tarball:
             self.download_and_extract(tarball)
+        os.makedirs(os.path.expanduser("~/.o2em/bios"))
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'o2em/o2em')
@@ -93,6 +94,6 @@ class o2em(Runner):
             arguments.append("-s2=%s" % self.runner_config["controller2"])
         romdir = os.path.dirname(self.settings["game"]["rom"])
         romfile = os.path.basename(self.settings["game"]["rom"])
-        self.arguments.append("-romdir=\"%s\"/" % romdir)
-        self.arguments.append("\"%s\"" % romfile)
-        return {'command': [self.executable] + self.arguments}
+        arguments.append("-romdir=\"%s\"/" % romdir)
+        arguments.append("\"%s\"" % romfile)
+        return {'command': [self.get_executable()] + arguments}
