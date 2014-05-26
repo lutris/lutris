@@ -6,12 +6,15 @@ from lutris.runners.runner import Runner
 
 
 class frotz(Runner):
-    """Runner for z-code games such as Zork"""
+    """Z-code emulator for text adventure games such as Zork"""
     package = "frotz"
     executable = "frotz"
     platform = "Z-Code"
-    is_installable = True
-    description = "Z Code interpreter (Infocom interactive fictions)"
+
+    tarballs = {
+        'x64': 'frotz-2.44-x86_64.tar.gz',
+    }
+
     game_options = [
         {
             "option": "story",
