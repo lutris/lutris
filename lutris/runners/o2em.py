@@ -71,9 +71,7 @@ class o2em(Runner):
     ]
 
     def install(self):
-        tarball = self.get_tarball()
-        if tarball:
-            self.download_and_extract(tarball)
+        super(o2em, self).install()
         bios_path = os.path.expanduser("~/.o2em/bios")
         if not os.path.exists(bios_path):
             os.makedirs(bios_path)
