@@ -2,6 +2,7 @@
 # It is pitch black. You are likely to be eaten by a grue.
 
 import os
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -22,6 +23,9 @@ class frotz(Runner):
             "label": "Story File"
         }
     ]
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'frotz/frotz')
 
     def play(self):
         story = self.settings["game"]["story"]
