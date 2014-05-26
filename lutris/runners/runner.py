@@ -152,6 +152,12 @@ class Runner(object):
     def install(self):
         """Install runner using package management systems."""
 
+        # Prioritize provided tarballs.
+        tarball = self.get_tarball()
+        if tarball:
+            self.download_and_extract(tarball)
+            return True
+
         # Return false if runner has no package, must be then another method
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
