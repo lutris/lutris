@@ -7,7 +7,6 @@ class sdlmame(Runner):
     """Runs arcade games with SDLMame"""
     executable = "mame"
     package = "mame"
-    is_installable = True
     platform = "Arcade"
     game_options = [
         {

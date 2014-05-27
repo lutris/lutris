@@ -25,7 +25,6 @@ class snes9x(Runner):
     executable = "snes9x-gtk"
     package = None
     platform = "Super Nintendo"
-    is_installable = True
 
     game_options = [
         {

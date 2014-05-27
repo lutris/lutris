@@ -7,7 +7,6 @@ class virtualjaguar(Runner):
     """ Run Atari Jaguar games """
     executable = "virtualjaguar"
     platform = "Atari Jaguar"
-    is_installable = True
 
     game_options = [
         {

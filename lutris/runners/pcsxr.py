@@ -7,7 +7,6 @@ from lutris.util.system import find_executable
 class pcsxr(Runner):
     """PlayStation emulator"""
     package = "pcsxr"
-    is_installable = True
     platform = "Playstation"
     game_options = [{
         "option": "iso",

@@ -15,7 +15,6 @@ class dolphin(Runner):
     executable = "dolphin"
     platform = "Gamecube, Wii"
     description = "Emulator for Nintendo Gamecube and Wii games"
-    is_installable = False
     game_options = []
     runner_options = []
 

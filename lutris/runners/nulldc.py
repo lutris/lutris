@@ -25,7 +25,6 @@ class nulldc(wine):
     """
     description = "Runs Dreamcast games with nullDC emulator"
     platform = "Sega Dreamcast"
-    is_installable = False
     depends = "wine"
     executable = "nullDC_1.0.3_nommu.exe"
     game_options = [{

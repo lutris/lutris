@@ -23,8 +23,6 @@ def get_arch():
 
 class Runner(object):
     """Generic runner (base class for other runners) """
-
-    is_installable = False
     is_watchable = True  # Is the game's pid a parent of Lutris ?
     tarballs = {
         'i386': None,
@@ -152,9 +150,6 @@ class Runner(object):
         # Return false if runner has no package, must be then another method
         # and install method should be overridden by the specific runner
         if not hasattr(self, 'package'):
-            return False
-        if self.is_installable is False:
-            ErrorDialog('This runner is not yet installable')
             return False
 
         package_installer_candidates = (
