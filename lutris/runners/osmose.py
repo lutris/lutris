@@ -32,11 +32,6 @@ class osmose(Runner):
         else:
             return super(osmose, self).is_installed()
 
-    def install(self):
-        tarball = self.get_tarball()
-        if tarball:
-            self.download_and_extract(tarball)
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'osmose/osmose')
 

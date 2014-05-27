@@ -83,11 +83,6 @@ class fsuae(Runner):
             floppy_images.append("--floppy_image_%d=\"%s\"" % (drive, disk))
         return floppy_drives + floppy_images
 
-    def install(self):
-        tarball = self.get_tarball()
-        if tarball:
-            self.download_and_extract(tarball)
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'fs-uae/bin/fs-uae')
 

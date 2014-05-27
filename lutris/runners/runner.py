@@ -141,19 +141,10 @@ class Runner(object):
             md5check.update(line)
         return md5check.hexdigest()
 
-    def get_tarball(self):
-        tarball = self.tarballs.get(self.arch)
-        if not tarball:
-            ErrorDialog(
-                "Runner not available for architecture %s" % self.arch
-            )
-        return tarball
-
     def install(self):
         """Install runner using package management systems."""
-
         # Prioritize provided tarballs.
-        tarball = self.get_tarball()
+        tarball = self.tarballs.get(self.arch)
         if tarball:
             self.download_and_extract(tarball)
             return True
