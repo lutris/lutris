@@ -2,11 +2,10 @@ from lutris.runners.runner import Runner
 
 
 class openmsx(Runner):
-    """Runner for MSX games"""
+    """MSX computer emulator"""
     package = "openmsx"
     executable = "openmsx"
-    platform = "MSX"
-    description = "MSX Emulator"
+    platform = "MSX, MSX2, MSX2+, MSX turboR"
     game_options = [
         {
             "option": "main_file",
