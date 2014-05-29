@@ -34,6 +34,12 @@ class nulldc(Runner):
         'label': 'Disc image'
     }]
 
+    runner_options = [{
+        'option': 'joy2key',
+        'type': 'bool',
+        'label': "Simulate joypad with joy2key",
+    }]
+
     def is_installed(self):
         """Check if NullDC is installed"""
         if not self.check_depends():
@@ -56,12 +62,11 @@ class nulldc(Runner):
             "wine", self.get_executable(),
             "-config", "ImageReader:DefaultImage=\"%s\"" % path
         ]
-        return {
-            'command': command,
-        }
-        #     'joy2key': {
-        #         'buttons': 'y a b x c r l r o s',
-        #         'window': 'nullDC',
-        #         'notwindow': 'VMU'
-        #     }
-        # }
+        launch_arguments = {'command': command}
+        if self.runner_config.get('joy2key'):
+            launch_arguments['joy2key'] = {
+                'buttons': 'y a b x c r l r o s',
+                'window': 'nullDC',
+                'notwindow': 'VMU'
+            }
+        return launch_arguments
