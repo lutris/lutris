@@ -10,7 +10,7 @@ from gi.repository import Gtk, GLib
 from lutris import pga
 from lutris.runners import import_runner
 from lutris.util.log import logger
-from lutris.util import audio, display
+from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread
 from lutris.gui import dialogs
@@ -171,6 +171,9 @@ class Game(object):
 
     def joy2key(self, config):
         """ Run a joy2key thread. """
+        if not system.find_executable('joy2key'):
+            logger.error("joy2key is not installed")
+            return
         win = "grep %s" % config['window']
         if 'notwindow' in config:
             win += ' | grep -v %s' % config['notwindow']
