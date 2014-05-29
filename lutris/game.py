@@ -180,10 +180,11 @@ class Game(object):
         wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win
         buttons = config['buttons']
         axis = "Left Right Up Down"
-        rcfile = "~/.joy2keyrc"
+        rcfile = os.path.expanduser("~/.joy2keyrc")
+        rc_option = '-rcfile %s' % rcfile if os.path.exists(rcfile) else ''
         command = "sleep 5 "
-        command += "&& joy2key $(%s) -X -rcfile %s -buttons %s -axis %s" % (
-            wid, rcfile, buttons, axis
+        command += "&& joy2key $(%s) -X %s -buttons %s -axis %s" % (
+            wid, rc_option, buttons, axis
         )
         joy2key_thread = LutrisThread(command)
         self.game_thread.attach_thread(joy2key_thread)
