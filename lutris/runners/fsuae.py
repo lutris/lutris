@@ -17,12 +17,14 @@ class fsuae(Runner):
         {
             'option': "main_file",
             'type': "file",
-            'label': "Boot disk"
+            'label': "Boot disk",
+            'default_path': 'game_path',
         },
         {
             "option": "disks",
             "type": "multiple",
-            "label": "Additionnal floppies"
+            "label": "Additionnal floppies",
+            'default_path': 'game_path',
         }
     ]
 
