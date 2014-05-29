@@ -50,6 +50,7 @@ class GameDialogCommon(object):
         runner_combobox.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
         runner_combobox.pack_start(cell, True)
+        runner_combobox.set_active(0)
         runner_combobox.add_attribute(cell, 'text', 0)
         self.vbox.pack_start(runner_combobox, False, True, 5)
 
