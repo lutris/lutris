@@ -65,7 +65,7 @@ class nulldc(Runner):
         launch_arguments = {'command': command}
         if self.runner_config.get('joy2key'):
             launch_arguments['joy2key'] = {
-                'buttons': 'y a b x c r l r o s',
+                'buttons': 'z c x v m b Shift_R Shift_R',
                 'window': 'nullDC',
                 'notwindow': 'VMU'
             }
