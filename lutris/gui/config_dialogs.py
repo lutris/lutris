@@ -180,7 +180,7 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.runner_name = self.lutris_config.runner
         game_name = self.lutris_config.config.get("realname", game)
         self.set_title("Edit game configuration for %s" % game_name)
-        self.set_size_request(500, 500)
+        self.set_size_request(500, 550)
 
         self.build_name_entry(game_name)
         self.build_notebook()
