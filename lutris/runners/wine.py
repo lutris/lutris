@@ -109,7 +109,7 @@ class wine(Runner):
         {
             'option': 'arch',
             'type': 'choice',
-            'label': 'Architecture',
+            'label': 'Prefix architecture',
             'choices': [('32 bit', 'win32'),
                         ('64 bit', 'win64')],
             'default': 'win32'
