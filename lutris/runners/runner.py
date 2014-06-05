@@ -3,7 +3,6 @@
 import os
 import subprocess
 import platform
-import hashlib
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -66,11 +65,26 @@ class Runner(object):
         return config
 
     @property
+    def system_config(self):
+        """Return system config, cascaded from base, runner and game's system
+           config.
+        """
+        base_system_config = LutrisConfig().system_config
+
+        # Runner level config, overrides system config
+        runner_system_config = self.runner_config.get('system') or {}
+        base_system_config.update(runner_system_config)
+
+        # Game level config, takes precedence over everything
+        game_system_config = self.settings.get('system') or {}
+        base_system_config.update(game_system_config)
+
+        return base_system_config
+
+    @property
     def default_path(self):
         """Return the default path where games are installed"""
-        config = self.default_config.get('system')
-        if config:
-            return config.get('game_path')
+        return self.system_config.get('game_path')
 
     @property
     def machine(self):
@@ -124,9 +138,7 @@ class Runner(object):
         if hasattr(self, 'game_path'):
             return self.game_path
         else:
-            system_settings = self.settings.get('system')
-            if system_settings:
-                return system_settings.get('game_path')
+            return self.system_config.get('game_path')
 
     def install(self):
         """ Install runner using package management systems."""
