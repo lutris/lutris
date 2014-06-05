@@ -1,5 +1,5 @@
 # -*- coding:Utf-8 -*-
-""" Generic runner """
+"""Generic runner"""
 import os
 import subprocess
 import platform
@@ -22,7 +22,7 @@ def get_arch():
 
 
 class Runner(object):
-    """Generic runner (base class for other runners) """
+    """Generic runner (base class for other runners)"""
     is_watchable = True  # Is the game's pid a parent of Lutris ?
     tarballs = {
         'i386': None,
@@ -33,7 +33,7 @@ class Runner(object):
     runner_options = []
 
     def __init__(self, settings=None):
-        """ Initialize runner """
+        """Initialize runner"""
         self.game = None
         self.depends = None
         self.arch = get_arch()
@@ -67,7 +67,7 @@ class Runner(object):
 
     @property
     def default_path(self):
-        """ Return the default path where games are installed """
+        """Return the default path where games are installed"""
         config = self.default_config.get('system')
         if config:
             return config.get('game_path')
@@ -78,7 +78,7 @@ class Runner(object):
         return self.platform
 
     def load(self, game):
-        """ Load a game """
+        """Load a game"""
         self.game = game
 
     def play(self):
@@ -120,7 +120,7 @@ class Runner(object):
         return is_installed
 
     def get_game_path(self):
-        """ Return the directory where the game is installed. """
+        """Return the directory where the game is installed."""
         if hasattr(self, 'game_path'):
             return self.game_path
         else:
@@ -129,7 +129,7 @@ class Runner(object):
                 return system_settings.get('game_path')
 
     def md5sum(self, filename):
-        """checks the md5sum of a file, does not belong here"""
+        """Check the md5sum of a file, does not belong here"""
         logger.warning("please remove md5sum from Runner")
         md5check = hashlib.md5()
         file_ = open(filename, "rb")
@@ -140,7 +140,7 @@ class Runner(object):
         return md5check.hexdigest()
 
     def install(self):
-        """Install runner using package management systems."""
+        """ Install runner using package management systems."""
         # Prioritize provided tarballs.
         tarball = self.tarballs.get(self.arch)
         if tarball:
