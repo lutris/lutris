@@ -9,15 +9,14 @@ from lutris.util.log import logger
 
 
 def execute(command):
-    """ Execute a system command and result its results """
+    """Execute a system command and return its results."""
     stdout, stderr = subprocess.Popen(command,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE).communicate()
     return stdout.strip()
 
-
-def calculate_md5(filename):
-    """ Return the md5 hash of filename. """
+def get_md5_hash(filename):
+    """Return the md5 hash of a file."""
     md5 = hashlib.md5()
     try:
         with open(filename, 'rb') as f:
@@ -99,7 +98,7 @@ def merge_folders(source, destination):
 
 
 def is_removeable(path, excludes=None):
-    """ Given a folder path, tells if it safe to remove it """
+    """Check if a folder is safe to remove (not system or home, ...)"""
     if not path:
         return False
     if not os.path.exists(path):

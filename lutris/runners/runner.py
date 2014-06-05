@@ -128,17 +128,6 @@ class Runner(object):
             if system_settings:
                 return system_settings.get('game_path')
 
-    def md5sum(self, filename):
-        """Check the md5sum of a file, does not belong here"""
-        logger.warning("please remove md5sum from Runner")
-        md5check = hashlib.md5()
-        file_ = open(filename, "rb")
-        content = file_.readlines()
-        file_.close()
-        for line in content:
-            md5check.update(line)
-        return md5check.hexdigest()
-
     def install(self):
         """ Install runner using package management systems."""
         # Prioritize provided tarballs.

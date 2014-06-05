@@ -17,7 +17,7 @@ from lutris.util import extract
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
-from lutris.util.system import calculate_md5, substitute, merge_folders
+from lutris.util.system import get_md5_hash, substitute, merge_folders
 
 from lutris.runners import winesteam, steam
 from lutris.game import Game
@@ -465,7 +465,7 @@ class ScriptInterpreter(object):
 
     def check_md5(self, data):
         filename = self._get_file(data['file'])
-        _hash = calculate_md5(filename)
+        _hash = get_md5_hash(filename)
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
 

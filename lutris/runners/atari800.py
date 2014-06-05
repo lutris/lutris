@@ -4,6 +4,7 @@ import os.path
 import logging
 
 from lutris.runners.runner import Runner
+from lutris.util.system import get_md5_hash
 from lutris.util.display import get_resolutions
 
 
@@ -82,7 +83,7 @@ class atari800(Runner):
         """ Check for correct bios files """
         good_bios = {}
         for filename in os.listdir(self.bios_path):
-            real_hash = self.md5sum(os.path.join(self.bios_path, filename))
+            real_hash = get_md5_hash(os.path.join(self.bios_path, filename))
             for bios_file in self.bios_checksums.keys():
                 if real_hash == self.bios_checksums[bios_file]:
                     logging.debug("%s Checksum : OK", filename)
