@@ -15,6 +15,7 @@ def execute(command):
                                       stderr=subprocess.PIPE).communicate()
     return stdout.strip()
 
+
 def get_md5_hash(filename):
     """Return the md5 hash of a file."""
     md5 = hashlib.md5()
