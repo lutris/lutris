@@ -1,9 +1,7 @@
 import os
-import subprocess
 
+from lutris import settings
 from lutris.runners.runner import Runner
-from lutris.gui.dialogs import DownloadDialog
-from lutris.settings import CACHE_DIR
 
 
 class gens(Runner):
@@ -35,19 +33,12 @@ class gens(Runner):
         }
     ]
 
-    def install(self):
-        """Downloads deb package and installs it"""
-        dest = os.path.join(CACHE_DIR, 'gens-gs.deb')
-        package = 'http://segaretro.org/images/7/75/Gens_2.16.7_i386.deb'
-        dialog = DownloadDialog(package, dest)
-        dialog.run()
-        subprocess.Popen(["software-center", dest],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'gens/gens')
 
     def play(self):
         """ Run the game """
-        arguments = [self.executable]
+        arguments = [self.get_executable()]
         if self.runner_config.get('fullscreen', True):
             arguments.append('--fs')
         else:
