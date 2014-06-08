@@ -47,13 +47,13 @@ class GameDialogCommon(object):
 
     def build_runner_dropdown(self):
         runner_liststore = self.get_runner_liststore()
-        runner_combobox = Gtk.ComboBox.new_with_model(runner_liststore)
-        runner_combobox.connect("changed", self.on_runner_changed)
+        runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
+        runner_dropdown.set_active(0)
+        runner_dropdown.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
-        runner_combobox.pack_start(cell, True)
-        runner_combobox.set_active(0)
-        runner_combobox.add_attribute(cell, 'text', 0)
-        self.vbox.pack_start(runner_combobox, False, True, 5)
+        runner_dropdown.pack_start(cell, True)
+        runner_dropdown.add_attribute(cell, 'text', 0)
+        self.vbox.pack_start(runner_dropdown, False, True, 5)
 
     def build_notebook(self):
         self.notebook = Gtk.Notebook()
