@@ -8,10 +8,13 @@ from lutris.settings import CACHE_DIR
 
 class gens(Runner):
     """Runner for Sega Genesis games"""
-    package = 'gens-gs'
     executable = 'gens'
     platform = 'Sega Genesis'
     description = 'Sega Genesis emulator.'
+    tarballs = {
+        'i386': 'gens-2.16.7-i386.tar.gz',
+        'x64': 'gens-2.16.7-i386.tar.gz',
+    }
     game_options = [{
         'option': 'main_file',
         'type': 'file',
