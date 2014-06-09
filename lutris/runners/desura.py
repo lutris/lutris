@@ -51,10 +51,9 @@ class desura(Runner):
     ]
 
     def get_path(self):
-        runner = self.__class__.__name__
-        runner_config = self.settings.get(runner) or {}
-        return runner_config.get('desura_path',
-                                 os.path.join(settings.RUNNER_DIR, "desura"))
+        return self.runner_config.get(
+            'desura_path', os.path.join(settings.RUNNER_DIR, "desura")
+        )
 
     def get_executable(self):
         return os.path.join(self.get_path(), "desura")
@@ -65,15 +64,13 @@ class desura(Runner):
     def get_installed_app_path(self, siteareaid):
         return os.path.join(self.get_common_path(), siteareaid)
 
-    @property
-    def browse_dir(self):
+    def get_game_path(self):
         """ Browse Desura game dir (or specific game dir) """
         siteareaid = self.settings.get("game").get("siteareaid")
         if os.path.exists(self.get_installed_app_path(siteareaid)):
             return self.get_installed_app_path(siteareaid)
         if os.path.exists(self.get_common_path()):
             return self.get_common_path()
-        return None
 
     def install(self):
         self.logger.debug("Installing desura")
