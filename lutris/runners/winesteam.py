@@ -84,15 +84,13 @@ class winesteam(wine.wine):
             return False
         return self.game_path and os.path.exists(self.steam_path)
 
-    @property
-    def browse_dir(self):
+    def get_game_path(self):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
         if self.game_path:
             path = os.path.join(self.game_path, "SteamApps/common")
             return path
-        return None
 
     @property
     def steam_path(self):
