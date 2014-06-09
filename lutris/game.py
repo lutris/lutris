@@ -43,11 +43,11 @@ class Game(object):
         self.game_config = None
 
         game_data = pga.get_game_by_slug(slug)
-        self.runner_name = game_data.get('runner', '')
-        self.directory = game_data.get('directory', '')
-        self.name = game_data.get('name', '')
-        self.is_installed = bool(game_data.get('installed', False))
-        self.year = game_data.get('year', '')
+        self.runner_name = game_data.get('runner') or ''
+        self.directory = game_data.get('directory') or ''
+        self.name = game_data.get('name') or ''
+        self.is_installed = bool(game_data.get('installed')) or False
+        self.year = game_data.get('year') or ''
 
         self.load_config()
         self.resolution_changed = False
