@@ -30,12 +30,10 @@ class dosbox(Runner):
         }
     ]
 
-    @property
-    def browse_dir(self):
-        main_file = self.settings['game'].get('main_file')
-        if main_file:
+    def get_game_path(self):
+        main_file = self.settings['game'].get('main_file') or ''
+        if os.path.exists(main_file):
             return os.path.dirname(main_file)
-        return None
 
     def play(self):
         self.exe = self.settings["game"]["main_file"]
