@@ -64,9 +64,7 @@ class Game(object):
 
     def get_browse_dir(self):
         """ Returns the path to open with the Browse Files action """
-        if hasattr(self.runner, 'browse_dir'):
-            path = self.runner.browse_dir
-        elif os.path.exists(self.directory):
+        if os.path.exists(self.directory):
             path = self.directory
         else:
             path = self.runner.get_game_path()
