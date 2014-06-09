@@ -337,10 +337,7 @@ class wine(Runner):
             command.append("WINEPREFIX=\"%s\" " % prefix)
             self.wineprefix = prefix
 
-        self.game_path = self.settings['game'].get('path')
-        if not self.game_path:
-            self.game_path = os.path.dirname(game_exe)
-            game_exe = os.path.basename(game_exe)
+        self.game_path = os.path.dirname(game_exe)
         if not os.path.exists(self.game_path):
             if prefix:
                 self.game_path = os.path.join(prefix, self.game_path)
