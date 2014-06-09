@@ -115,7 +115,9 @@ class GameDialogCommon(object):
             self.slug = self.lutris_config.game
             runner_class = lutris.runners.import_runner(self.runner_name)
             runner = runner_class(self.lutris_config)
-            pga.add_or_update(name, self.runner_name, slug=self.slug, installed=1)
+            pga.add_or_update(name, self.runner_name, slug=self.slug,
+                              directory=runner.get_game_path(),
+                              installed=1)
             self.destroy()
 
 
