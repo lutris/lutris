@@ -136,6 +136,10 @@ class LutrisWindow(object):
         self.builder.connect_signals(self)
         self.connect_signals()
 
+        # XXX Hide PGA config menu item until it actually gets implemented
+        pga_menuitem = self.builder.get_object('pga_menuitem')
+        pga_menuitem.hide()
+
         self.switch_splash_screen()
 
         if api.read_api_key():
