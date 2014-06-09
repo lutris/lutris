@@ -44,22 +44,15 @@ class steam(Runner):
         }
     ]
 
-    @property
-    def browse_dir(self):
+    def get_game_path(self):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
         if os.path.exists(self.get_game_path()):
-            path = os.path.join(self.get_game_path(), "SteamApps/common")
-            return path
-        return None
+            return os.path.join(self.get_game_path(), "SteamApps/common")
 
     def get_steam_path(self):
         return self.runner_config.get('steam_path', 'steam')
-
-    def get_game_path(self):
-        """ Return location of Steam directory """
-        return os.path.expanduser('~/.local/share/Steam')
 
     def get_game_data_path(self, appid):
         steam_path = self.get_game_path()
