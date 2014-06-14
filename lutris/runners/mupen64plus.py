@@ -13,18 +13,28 @@ class mupen64plus(Runner):
         'type': 'file',
         'label': 'Rom File'
     }]
-    runner_options = [{
-        'option': 'fullscreen',
-        'type': 'bool',
-        'label': 'Fullscreen',
-        'default': True
-    }]
+    runner_options = [
+        {
+            'option': 'fullscreen',
+            'type': 'bool',
+            'label': 'Fullscreen',
+            'default': True
+        },
+        {
+            'option': 'nogui',
+            'type': 'bool',
+            'label': 'Hide gui',
+            'default': True
+        }
+    ]
 
     def play(self):
-        arguments = [self.executable, '--nogui']
+        arguments = [self.executable]
+        if self.runner_config.get('nogui'):
+            arguments.append('--nogui')
         if self.runner_config.get('fullscreen'):
             arguments.append('--fullscreen')
-        rom = self.settings['game'].get('rom')
+        rom = self.settings['game'].get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append("\"%s\"" % rom)
