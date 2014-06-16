@@ -213,7 +213,7 @@ class wine(Runner):
             "Desktop": r"%s\Explorer" % reg_prefix
         }
 
-    def get_game_path(self, prioritize_prefix=False):
+    def get_game_path(self, prioritize_prefix=True):
         """Return the path to browse with Browse Files from the context menu"""
         prefix = self.settings['game'].get('prefix')
         if prefix and prioritize_prefix:
