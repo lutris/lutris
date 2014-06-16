@@ -213,16 +213,22 @@ class wine(Runner):
             "Desktop": r"%s\Explorer" % reg_prefix
         }
 
-    def get_game_path(self):
+    def get_game_path(self, prioritize_prefix=False):
         """Return the path to browse with Browse Files from the context menu"""
         prefix = self.settings['game'].get('prefix')
-        if prefix:
+        if prefix and prioritize_prefix:
             return prefix
         game_exe = self.settings['game'].get('exe')
         if game_exe:
             exe_path = os.path.dirname(game_exe)
             if os.path.isabs(exe_path):
                 return exe_path
+            elif prefix:
+                return os.path.join(prefix, exe_path)
+
+    @property
+    def browse_dir(self):
+        return self.get_game_path(prioritize_prefix=False)
 
     @property
     def local_wine_versions(self):

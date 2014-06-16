@@ -67,7 +67,7 @@ class Game(object):
         if os.path.exists(self.directory):
             path = self.directory
         else:
-            path = self.runner.get_game_path()
+            path = self.runner.browse_dir
         return path
 
     def get_runner(self):

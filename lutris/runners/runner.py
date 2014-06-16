@@ -87,6 +87,11 @@ class Runner(object):
         return self.system_config.get('game_path')
 
     @property
+    def browse_dir(self):
+        """Return the directory shown when the user browse game files"""
+        return self.get_game_path()
+
+    @property
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
