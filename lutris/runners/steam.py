@@ -48,14 +48,15 @@ class steam(Runner):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
-        if os.path.exists(self.get_steam_path()):
-            return os.path.join(self.get_steam_path(), "SteamApps/common")
+        if os.path.exists(self.steam_path):
+            return os.path.join(self.steam_path, "SteamApps/common")
 
-    def get_steam_path(self):
+    @property
+    def steam_path(self):
         return self.runner_config.get('steam_path', 'steam')
 
     def get_game_data_path(self, appid):
-        steam_path = os.path.dirname(self.get_steam_path())
+        steam_path = os.path.dirname(self.steam_path)
         data_path = get_path_from_appmanifest(steam_path, appid)
         if not data_path:
             steam_config = self.get_steam_config()
@@ -78,7 +79,7 @@ class steam(Runner):
             super(steam, self).install()
 
     def is_installed(self):
-        return bool(system.find_executable(self.get_steam_path()))
+        return bool(system.find_executable(self.steam_path))
 
     def install_game(self, appid):
         logger.debug("Installing steam game %s", appid)
@@ -114,7 +115,7 @@ class steam(Runner):
 
     def play(self):
         appid = self.settings.get('game', {}).get('appid')
-        return {'command': [self.get_steam_path(), '-applaunch', appid]}
+        return {'command': [self.steam_path, '-applaunch', appid]}
 
     def stop(self):
         shutdown()
