@@ -113,7 +113,7 @@ class winesteam(wine.wine):
             return apps.keys()
 
     def get_game_data_path(self, appid):
-        steam_path = self.get_game_path()
+        steam_path = os.path.dirname(self.steam_path)
         data_path = get_path_from_appmanifest(steam_path, appid)
         if not data_path:
             steam_config = self.get_steam_config()

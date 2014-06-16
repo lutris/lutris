@@ -48,14 +48,14 @@ class steam(Runner):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
-        if os.path.exists(self.get_game_path()):
-            return os.path.join(self.get_game_path(), "SteamApps/common")
+        if os.path.exists(self.get_steam_path()):
+            return os.path.join(self.get_steam_path(), "SteamApps/common")
 
     def get_steam_path(self):
         return self.runner_config.get('steam_path', 'steam')
 
     def get_game_data_path(self, appid):
-        steam_path = self.get_game_path()
+        steam_path = os.path.dirname(self.get_steam_path())
         data_path = get_path_from_appmanifest(steam_path, appid)
         if not data_path:
             steam_config = self.get_steam_config()
