@@ -63,7 +63,7 @@ class Game(object):
         return value
 
     def get_browse_dir(self):
-        """ Returns the path to open with the Browse Files action """
+        """Return the path to open with the Browse Files action."""
         if os.path.exists(self.directory):
             path = self.directory
         else:
@@ -71,11 +71,11 @@ class Game(object):
         return path
 
     def get_runner(self):
-        """ Return the runner's name """
+        """Return the runner's name."""
         return self.game_config['runner']
 
     def load_config(self):
-        """ Load the game's configuration. """
+        """Load the game's configuration."""
         self.game_config = LutrisConfig(runner=self.runner_name, game=self.slug)
         if self.is_installed and self.game_config.is_valid():
             runner_class = import_runner(self.runner_name)
@@ -92,7 +92,7 @@ class Game(object):
         self.game_config.remove()
 
     def prelaunch(self):
-        """ Verify that the current game can be launched. """
+        """Verify that the current game can be launched."""
         if not self.runner.is_installed():
             install_runner_dialog = dialogs.QuestionDialog({
                 'question': ("The required runner is not installed.\n"
@@ -108,7 +108,7 @@ class Game(object):
         return True
 
     def play(self):
-        """ Launch the game. """
+        """Launch the game."""
         if not self.prelaunch():
             return False
 
@@ -168,7 +168,7 @@ class Game(object):
             self.heartbeat = GLib.timeout_add(5000, self.poke_process)
 
     def joy2key(self, config):
-        """ Run a joy2key thread. """
+        """Run a joy2key thread."""
         if not system.find_executable('joy2key'):
             logger.error("joy2key is not installed")
             return
@@ -198,14 +198,14 @@ class Game(object):
         thread.start()
 
     def poke_process(self):
-        """ Watch game's process. """
+        """Watch game's process."""
         if not self.game_thread.pid:
             self.quit_game()
             return False
         return True
 
     def quit_game(self):
-        """ Quit the game and cleanup. """
+        """Quit the game and cleanup."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
