@@ -64,11 +64,7 @@ class Game(object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        if os.path.exists(self.directory):
-            path = self.directory
-        else:
-            path = self.runner.browse_dir
-        return path
+        return self.runner.browse_dir
 
     def get_runner(self):
         """Return the runner's name."""
