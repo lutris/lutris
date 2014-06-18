@@ -88,7 +88,7 @@ class Runner(object):
 
     @property
     def browse_dir(self):
-        """Return the directory shown when the user browse game files"""
+        """Returns the path to open with Browse Files from the context menu"""
         return self.get_game_path()
 
     @property

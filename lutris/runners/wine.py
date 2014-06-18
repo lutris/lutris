@@ -226,7 +226,7 @@ class wine(Runner):
 
     @property
     def browse_dir(self):
-        """Returns the path to open with the Browse Files action"""
+        """Returns the path to open with Browse Files from the context menu"""
         game_exe = self.settings['game'].get('exe')
         if game_exe:
             exe_path = os.path.dirname(game_exe)
