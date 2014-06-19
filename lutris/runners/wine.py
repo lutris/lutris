@@ -110,9 +110,10 @@ class wine(Runner):
             'option': 'arch',
             'type': 'choice',
             'label': 'Prefix architecture',
-            'choices': [('32 bit', 'win32'),
-                        ('64 bit', 'win64')],
-            'default': 'win32'
+            'choices': [('Auto', 'None'),
+                        ('32-bit', 'win32'),
+                        ('64-bit', 'win64')],
+            'default': 'None'
         }
     ]
 
@@ -259,7 +260,7 @@ class wine(Runner):
     @property
     def wine_arch(self):
         game_config = self.settings.get('game', {})
-        return game_config.get('arch', 'win32')
+        return game_config.get('arch') or None
 
     @property
     def wine_version(self):
