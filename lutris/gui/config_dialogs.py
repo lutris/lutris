@@ -1,4 +1,4 @@
-""" Configuration dialogs """
+"""Configuration dialogs"""
 from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
@@ -99,11 +99,11 @@ class GameDialogCommon(object):
         self.action_area.pack_start(button, True, True, 0)
 
     def on_cancel_clicked(self, widget=None):
-        """Dialog destroy callback"""
+        """Dialog destroy callback."""
         self.destroy()
 
     def on_save(self, _button):
-        """OK button pressed in the Add Game Dialog"""
+        """OK button pressed in the Add Game Dialog."""
         name = self.name_entry.get_text()
         self.lutris_config.config["realname"] = name
         self.lutris_config.config["runner"] = self.runner_name
@@ -122,7 +122,7 @@ class GameDialogCommon(object):
 
 
 class AddGameDialog(Gtk.Dialog, GameDialogCommon):
-    """Add game dialog class"""
+    """Add game dialog class."""
 
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__()
@@ -153,7 +153,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.run()
 
     def on_runner_changed(self, widget):
-        """Action called when runner drop down is changed"""
+        """Action called when runner drop down is changed."""
         runner_index = widget.get_active()
         current_page = self.notebook.get_current_page()
         self.clear_tabs()
@@ -172,7 +172,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
-    """Game config edit dialog"""
+    """Game config edit dialog."""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
@@ -195,7 +195,7 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
 
 
 class RunnerConfigDialog(Gtk.Dialog):
-    """Runners management dialog"""
+    """Runners management dialog."""
     def __init__(self, runner):
         Gtk.Dialog.__init__(self)
         runner_name = runner.__class__.__name__

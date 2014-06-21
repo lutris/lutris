@@ -87,7 +87,7 @@ def detect_prefix_arch(directory=None):
 
 # pylint: disable=C0103
 class wine(Runner):
-    '''Run Windows games with Wine'''
+    """Run Windows games with Wine."""
     executable = 'wine'
     platform = 'Windows'
     game_options = [
@@ -233,7 +233,7 @@ class wine(Runner):
 
     @property
     def local_wine_versions(self):
-        """ Return the list of downloaded Wine versions """
+        """ Return the list of downloaded Wine versions."""
         runner_path = WINE_DIR
         versions = []
         # Get list from folder names
@@ -249,7 +249,7 @@ class wine(Runner):
 
     @property
     def system_wine_version(self):
-        """Return the version of Wine installed on the system"""
+        """Return the version of Wine installed on the system."""
         try:
             version = subprocess.check_output(["wine", "--version"])
         except OSError:
@@ -264,11 +264,11 @@ class wine(Runner):
 
     @property
     def wine_version(self):
-        """Return the Wine version to use"""
+        """Return the Wine version to use."""
         return self.runner_config.get('version') or DEFAULT_WINE
 
     def get_executable(self):
-        """Return the path to the Wine executable"""
+        """Return the path to the Wine executable."""
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
         version = self.wine_version
@@ -327,7 +327,7 @@ class wine(Runner):
         return wineexec(msi_args, prefix=prefix)
 
     def check_regedit_keys(self, wine_config):
-        """Resets regedit keys according to config"""
+        """Reset regedit keys according to config."""
         for key in self.reg_keys.keys():
             if key in self.runner_config:
                 set_regedit(self.reg_keys[key], key, self.runner_config[key])
@@ -362,7 +362,7 @@ class wine(Runner):
         return {'command': command}
 
     def stop(self):
-        """The kill command runs wineserver -k"""
+        """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         command = os.path.join(wine_root, wine_root, "wineserver") + " -k"

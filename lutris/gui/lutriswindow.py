@@ -1,4 +1,4 @@
-""" Main window for the Lutris interface """
+"""Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
 import subprocess
@@ -40,7 +40,7 @@ def load_view(view, games=[], filter_text=None, icon_type=None):
 
 
 class LutrisWindow(object):
-    """Handler class for main window signals"""
+    """Handler class for main window signals."""
     def __init__(self):
 
         ui_filename = os.path.join(
@@ -168,7 +168,7 @@ class LutrisWindow(object):
                               callback=self.on_image_downloaded)
 
     def connect_signals(self):
-        """Connects signals from the view with the main window.
+        """Connect signals from the view with the main window.
            This must be called each time the view is rebuilt.
         """
         self.view.connect('game-installed', self.on_game_installed)
@@ -177,7 +177,7 @@ class LutrisWindow(object):
         self.window.connect("configure-event", self.get_size)
 
     def get_icon_type(self, view_type):
-        """Returns the icon style depending on the type of view"""
+        """Return the icon style depending on the type of view."""
         if view_type == 'icon':
             icon_type = settings.read_setting('icon_type_iconview')
             default = settings.ICON_TYPE_ICONVIEW
@@ -192,7 +192,7 @@ class LutrisWindow(object):
         self.window_size = widget.get_size()
 
     def refresh_status(self):
-        """Refresh status bar"""
+        """Refresh status bar."""
         if self.running_game:
             if hasattr(self.running_game.game_thread, "pid"):
                 pid = self.running_game.game_thread.pid
@@ -215,7 +215,7 @@ class LutrisWindow(object):
         return True
 
     def about(self, _widget, _data=None):
-        """Opens the about dialog"""
+        """Open the about dialog."""
         dialogs.AboutDialog()
 
     def on_remove_game(self, _widget, _data=None):
@@ -231,7 +231,7 @@ class LutrisWindow(object):
 
     # Callbacks
     def on_connect(self, *args):
-        """Callback when a user connects to his account"""
+        """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog()
         login_dialog.connect('connected', self.on_connect_success)
 
@@ -241,7 +241,7 @@ class LutrisWindow(object):
         self.sync_library()
 
     def on_destroy(self, *args):
-        """Signal for window close"""
+        """Signal for window close."""
         view_type = 'icon' if 'IconView' in str(type(self.view)) else 'list'
         settings.write_setting('view_type', view_type)
         width, height = self.window_size
@@ -254,11 +254,11 @@ class LutrisWindow(object):
         widget.update_image(slug, is_installed=True)
 
     def on_runners_activate(self, _widget, _data=None):
-        """Callback when manage runners is activated"""
+        """Callback when manage runners is activated."""
         RunnersDialog()
 
     def on_preferences_activate(self, _widget, _data=None):
-        """Callback when preferences is activated"""
+        """Callback when preferences is activated."""
         SystemConfigDialog()
 
     def on_show_installed_games_toggled(self, widget, data=None):
@@ -280,7 +280,7 @@ class LutrisWindow(object):
         self.view.emit('filter-updated', widget.get_text())
 
     def on_game_clicked(self, *args):
-        """Launch a game"""
+        """Launch a game."""
         game_slug = self.view.selected_game
         if game_slug:
             self.running_game = Game(game_slug)
@@ -305,7 +305,7 @@ class LutrisWindow(object):
         )
 
     def reset(self, *args):
-        """Reset the desktop to it's initial state"""
+        """Reset the desktop to it's initial state."""
         if self.running_game:
             self.running_game.quit_game()
             self.status_label.set_text("Stopped %s" % self.running_game.name)
@@ -328,7 +328,7 @@ class LutrisWindow(object):
         GLib.idle_add(do_add_game)
 
     def add_game(self, _widget, _data=None):
-        """ Add a new game """
+        """Add a new game."""
         add_game_dialog = AddGameDialog(self)
         if add_game_dialog.runner_name and add_game_dialog.slug:
             self.add_game_to_view(add_game_dialog.slug)
@@ -350,7 +350,7 @@ class LutrisWindow(object):
             )
 
     def edit_game_configuration(self, _button):
-        """Edit game preferences"""
+        """Edit game preferences."""
         game = Game(self.view.selected_game)
         if game.is_installed:
             EditGameConfigDialog(self, self.view.selected_game)
@@ -372,7 +372,7 @@ class LutrisWindow(object):
         self.list_view_menuitem.set_active(view_type == 'list')
 
     def switch_view(self, view_type):
-        """Switches between icon view and list view"""
+        """Switche between icon view and list view."""
         logger.debug("Switching view")
         self.icon_type = self.get_icon_type(view_type)
         self.view.destroy()
@@ -407,14 +407,14 @@ class LutrisWindow(object):
         self.switch_view(self.current_view_type)
 
     def create_menu_shortcut(self, *args):
-        """Adds the game to the system's Games menu"""
+        """Add the game to the system's Games menu."""
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, menu=True)
         dialogs.NoticeDialog(
             "Shortcut added to the Games category of the global menu.")
 
     def create_desktop_shortcut(self, *args):
-        """Adds the game to the system's Games menu"""
+        """Add the game to the system's Games menu."""
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, desktop=True)
         dialogs.NoticeDialog('Shortcut created on your desktop.')

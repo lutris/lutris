@@ -27,7 +27,7 @@ ICON_SIZE = (32, 32)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
-    """Default sort function"""
+    """Default sort function."""
     a_name = store.get(a_iter, COL_NAME)
     b_name = store.get(b_iter, COL_NAME)
 
@@ -40,7 +40,7 @@ def sort_func(store, a_iter, b_iter, _user_data):
 
 
 def filter_view(model, _iter, user_data):
-    """Filter the game list"""
+    """Filter the game list."""
     filter_text = user_data(None)
     if not filter_text:
         return True
@@ -154,7 +154,7 @@ class GameStore(object):
             self.add_game(game)
 
     def add_game(self, game):
-        """Adds a game into the store """
+        """Add a game into the store."""
         if not game.name:
             return
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_type,
@@ -219,7 +219,7 @@ class GameView(object):
             row[COL_INSTALLED] = is_installed
 
     def popup_contextual_menu(self, view, event):
-        """Contextual menu"""
+        """Contextual menu."""
         if event.button != 3:
             return
         try:
@@ -235,7 +235,7 @@ class GameView(object):
 
 
 class GameTreeView(Gtk.TreeView, GameView):
-    """Show the main list of games"""
+    """Show the main list of games."""
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, games, filter_text="", icon_type=None):
@@ -330,7 +330,7 @@ class GameIconView(Gtk.IconView, GameView):
         self.set_columns(nb_columns)
 
     def on_size_allocate(self, widget, rect):
-        """ Recalculate the colum spacing based on total widget width """
+        """Recalculate the colum spacing based on total widget width."""
         width = self.get_parent().get_allocated_width()
         self.set_fluid_columns(width - 20)
         self.do_size_allocate(widget, rect)

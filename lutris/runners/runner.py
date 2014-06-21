@@ -1,5 +1,5 @@
 # -*- coding:Utf-8 -*-
-"""Generic runner"""
+"""Generic runner."""
 import os
 import subprocess
 import platform
@@ -21,7 +21,7 @@ def get_arch():
 
 
 class Runner(object):
-    """Generic runner (base class for other runners)"""
+    """Generic runner (base class for other runners)."""
     is_watchable = True  # Is the game's pid a parent of Lutris ?
     tarballs = {
         'i386': None,
@@ -32,7 +32,7 @@ class Runner(object):
     runner_options = []
 
     def __init__(self, settings=None):
-        """Initialize runner"""
+        """Initialize runner."""
         self.game = None
         self.depends = None
         self.arch = get_arch()
@@ -41,12 +41,12 @@ class Runner(object):
 
     @property
     def description(self):
-        """Return the class' docstring as the description"""
+        """Return the class' docstring as the description."""
         return self.__doc__
 
     @description.setter
     def description(self, value):
-        """Leave the ability to override the docstring"""
+        """Leave the ability to override the docstring."""
         self.__doc__ = value
 
     @property
@@ -83,12 +83,12 @@ class Runner(object):
 
     @property
     def default_path(self):
-        """Return the default path where games are installed"""
+        """Return the default path where games are installed."""
         return self.system_config.get('game_path')
 
     @property
     def browse_dir(self):
-        """Return the directory shown when the user browse game files"""
+        """Return the directory shown when the user browse game files."""
         return self.get_game_path()
 
     @property
@@ -101,7 +101,7 @@ class Runner(object):
         self.game = game
 
     def play(self):
-        """dummy method, must be implemented by derived runnners"""
+        """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
 
     def check_depends(self):
@@ -120,7 +120,7 @@ class Runner(object):
         return runner_instance.is_installed()
 
     def is_installed(self):
-        """Return  True if runner is installed else False"""
+        """Return  True if runner is installed else False."""
         is_installed = False
         # Check 'get_executable' first
         if hasattr(self, 'get_executable'):
@@ -146,7 +146,7 @@ class Runner(object):
             return self.system_config.get('game_path')
 
     def install(self):
-        """ Install runner using package management systems."""
+        """Install runner using package management systems."""
         # Prioritize provided tarballs.
         tarball = self.tarballs.get(self.arch)
         if tarball:
