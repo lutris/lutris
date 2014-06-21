@@ -8,7 +8,7 @@ from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-WINE_VERSION = '1.7.13'
+DEFAULT_WINE = '1.7.13'
 
 
 def set_regedit(path, key, value, prefix=None):
@@ -145,7 +145,7 @@ class wine(Runner):
                 'label': "Wine version",
                 'type': 'choice',
                 'choices': wine_versions,
-                'default': WINE_VERSION
+                'default': DEFAULT_WINE
             },
             {
                 'option': 'custom_wine_path',
@@ -265,7 +265,7 @@ class wine(Runner):
     @property
     def wine_version(self):
         """Return the Wine version to use"""
-        return self.runner_config.get('version', WINE_VERSION)
+        return self.runner_config.get('version') or DEFAULT_WINE
 
     def get_executable(self):
         """Return the path to the Wine executable"""
@@ -277,17 +277,17 @@ class wine(Runner):
             if find_executable('wine'):
                 return 'wine'
             # Fall back on bundled Wine
-            version = WINE_VERSION
+            version = DEFAULT_WINE
         elif version == 'custom':
             if os.path.exists(custom_path):
                 return custom_path
-            version = WINE_VERSION
+            version = DEFAULT_WINE
 
         version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
     def install(self):
-        version = WINE_VERSION + '-i386'
+        version = DEFAULT_WINE + '-i386'
         tarball = "wine-%s.tar.gz" % version
         destination = os.path.join(WINE_DIR, version)
         self.download_and_extract(tarball, destination, merge_single=True)
@@ -300,7 +300,7 @@ class wine(Runner):
             else:
                 dialogs.ErrorDialog(
                     "Wine is not installed on your system.\n"
-                    "Let's fall back on Wine " + WINE_VERSION +
+                    "Let's fall back on Wine " + DEFAULT_WINE +
                     " bundled with Lutris, alright?\n\n"
                     "(To get rid of this message, either install Wine \n"
                     "or change the Wine version in the game's configuration.)")
@@ -310,7 +310,7 @@ class wine(Runner):
             else:
                 dialogs.ErrorDialog(
                     "Your custom Wine version can't be launched.\n"
-                    "Let's fall back on Wine " + WINE_VERSION +
+                    "Let's fall back on Wine " + DEFAULT_WINE +
                     " bundled with Lutris, alright? \n\n"
                     "(To get rid of this message, fix your "
                     "Custom Wine path \n"
