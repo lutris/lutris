@@ -688,7 +688,8 @@ class InstallerDialog(Gtk.Window):
         self.show_non_empty_warning()
 
         if os.path.exists(game_ref):
-            self.scripts = [open(game_ref, 'r').read()]
+            logger.debug("Opening script: %s", game_ref)
+            self.scripts = yaml.safe_load(open(game_ref, 'r').read())
         else:
             self.scripts = fetch_script(self, game_ref)
         if not self.scripts:

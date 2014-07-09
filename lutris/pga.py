@@ -156,7 +156,7 @@ def get_game_by_slug(slug, field='slug'):
 def add_game(name, **game_data):
     """Adds a game to the PGA database."""
     game_data['name'] = name
-    if not 'slug' in game_data:
+    if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
     sql.db_insert(PGA_DB, "games", game_data)
 
