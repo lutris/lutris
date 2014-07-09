@@ -9,7 +9,7 @@ Build-Depends: cdbs (>= 0.4.43),
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.4
 Vcs-Git: https://github.com/lutris/lutris
-Homepage: http://lutris.net
+Homepage: https://lutris.net
 
 Package: lutris
 Architecture: all

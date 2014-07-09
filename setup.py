@@ -105,7 +105,7 @@ setup(
     scripts=['bin/lutris'],
     data_files=data_files,
     install_requires=['PyYAML', 'pyxdg', 'PyGObject'],
-    url='http://lutris.net',
+    url='https://lutris.net',
     description='Install and play any video game on Linux',
     long_description="""Lutris is a gaming platform for GNU/Linux. It's goal is
     to make gaming on Linux as easy as possible by taking care of installing

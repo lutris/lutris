@@ -24,7 +24,7 @@ ICON_PATH = os.path.join(BaseDirectory.xdg_data_home,
 
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
-SITE_URL = sio.read_setting("website") or "http://lutris.net/"
+SITE_URL = sio.read_setting("website") or "https://lutris.net/"
 
 INSTALLER_URL = SITE_URL + 'games/install/%s/'
 ICON_URL = SITE_URL + 'games/icon/%s.png'
