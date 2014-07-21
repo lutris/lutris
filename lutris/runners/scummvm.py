@@ -56,7 +56,7 @@ class scummvm(Runner):
     ]
 
     def install(self):
-        self.download_and_extract("scummvm.x86.tar.gz")
+        self.download_and_extract("scummvm-1.6.0-i386.tar.gz")
 
     def get_executable(self):
         scummvm_path = os.path.join(settings.RUNNER_DIR, 'scummvm/scummvm')
@@ -86,7 +86,8 @@ class scummvm(Runner):
             fullscreen, gfxmode, game
         ]}
 
-        lib_dir = os.path.join(settings.DATA_DIR, 'runners/scummvm/lib')
+        lib_dir = os.path.join(settings.DATA_DIR,
+                               'runners/scummvm/usr/lib/i386-linux-gnu')
         if os.path.exists(lib_dir):
             launch_info['ld_library_path'] = lib_dir
 
