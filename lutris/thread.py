@@ -42,6 +42,7 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.pid = 99999
         self.child_processes = []
+        logger.debug('Running thread from %s', self.path)
         if type(killswitch) == type(str()) and not os.path.exists(killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
@@ -73,8 +74,7 @@ class LutrisThread(threading.Thread):
                     return line.split()[1]
 
     def set_stop_command(self, func):
-        # TODO
-        logger.debug(func)
+        logger.debug("TODO: set_stop_command: %s", func)
 
     def stop(self):
         if hasattr(self, 'stop_func'):

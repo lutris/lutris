@@ -216,6 +216,8 @@ class wine(Runner):
 
     def get_game_path(self, prioritize_prefix=True):
         """Return the path to browse with Browse Files from the context menu"""
+        if hasattr(self, 'game_path'):
+            return self.game_path
         prefix = self.settings['game'].get('prefix')
         if prefix and prioritize_prefix:
             return prefix
