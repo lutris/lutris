@@ -69,19 +69,24 @@ def winetricks(app, prefix=None, silent=False):
 def detect_prefix_arch(directory=None):
     """Given a wineprefix directory, return its architecture"""
     if not directory:
-        directory = os.path.join(os.path.expanduser("~"), '.wine')
+        directory = os.path.expanduser("~/.wine")
     registry_path = os.path.join(directory, 'system.reg')
     if not os.path.isdir(directory) or not os.path.isfile(registry_path):
         # No directory exists or invalid prefix
         # returning 32 bit to create a new prefix.
+        logger.debug("No prefix found in %s, defaulting to 32bit", directory)
         return 'win32'
     with open(registry_path, 'r') as registry:
         for i in range(5):
             line = registry.readline()
             if 'win64' in line:
+                logger.debug("Detected 64bit prefix in %s", directory)
                 return 'win64'
             elif 'win32' in line:
+                logger.debug("Detected 32bit prefix in %s", directory)
                 return 'win32'
+    logger.debug("Can't detect prefix arch for %s, defaulting to 32bit",
+                 directory)
     return 'win32'
 
 
@@ -216,6 +221,7 @@ class wine(Runner):
 
     def get_game_path(self, prioritize_prefix=True):
         """Return the path to browse with Browse Files from the context menu"""
+        # If the game path has been set by the play() method, always return that
         if hasattr(self, 'game_path'):
             return self.game_path
         prefix = self.settings['game'].get('prefix')

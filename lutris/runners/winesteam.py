@@ -63,7 +63,7 @@ class winesteam(wine.wine):
             {'option': 'prefix', 'type': 'directory_chooser',
              'label': 'Prefix'}
         ]
-        self.settings = settings
+        self.settings = settings or {}
 
     def install(self, installer_path=None):
         if installer_path:

@@ -66,6 +66,16 @@ def read_config(path_prefix):
     return config['InstallConfigStore']['Software']['Valve']['Steam']
 
 
+def get_steamapps_path(rootdir):
+    """Return an existing SteamApps path"""
+    if os.path.exists(rootdir):
+        return rootdir
+    elif os.path.exists(rootdir.replace('steamapps', 'SteamApps')):
+        return rootdir.replace('steamapps', 'SteamApps')
+    else:
+        logger.debug("SteamApps not found in %s" % rootdir)
+
+
 def get_path_from_config(config, appid):
     """ Given a steam config, return path for game 'appid' """
     if not config or 'apps' not in config:
@@ -84,18 +94,14 @@ def get_path_from_config(config, appid):
             # Trim Windows path
             installdir = installdir[2:]
         logger.debug("Steam game found at %s" % installdir)
-        if os.path.exists(installdir):
-            return installdir
-        elif os.path.exists(installdir.replace('steamapps', 'SteamApps')):
-            return installdir.replace('steamapps', 'SteamApps')
-        else:
-            logger.debug("Path %s not found" % installdir)
+        return get_steamapps_path(installdir)
     return False
 
 
 def get_path_from_appmanifest(steam_path, appid):
-    appmanifest_path = os.path.join(steam_path,
-                                    "SteamApps/appmanifest_%s.acf" % appid)
+    steamapps_path = get_steamapps_path(os.path.join(steam_path, 'steamapps'))
+    appmanifest_path = os.path.join(steamapps_path,
+                                    "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
         logger.debug("No appmanifest file %s" % appmanifest_path)
         return
@@ -103,6 +109,7 @@ def get_path_from_appmanifest(steam_path, appid):
     with open(appmanifest_path, "r") as appmanifest_file:
         config = vdf_parse(appmanifest_file, {})
     installdir = config.get('AppState', {}).get('installdir')
-    install_path = os.path.join(steam_path, "SteamApps/common/%s" % installdir)
+    logger.debug("Game %s should be in %s", appid, installdir)
+    install_path = os.path.join(steamapps_path, "common/%s" % installdir)
     if installdir and os.path.exists(install_path):
         return install_path
