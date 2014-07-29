@@ -38,7 +38,7 @@ def create_prefix(prefix, arch='win32'):
 
 def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
              workdir=None):
-    if not arch:
+    if arch not in ('win32', 'win64'):
         arch = detect_prefix_arch(prefix)
     if not prefix:
         prefix = ""
@@ -47,8 +47,7 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
     executable = str(executable) if executable else ""
     if " " in executable:
         executable = "\"%s\"" % executable
-    if arch not in ('win32', 'win64'):
-        raise ValueError("Invalid WINEARCH %s" % arch)
+
     command = "WINEARCH=%s %s %s %s %s" % (
         arch, prefix, wine_path, executable, args
     )
@@ -115,7 +114,7 @@ class wine(Runner):
             'option': 'arch',
             'type': 'choice',
             'label': 'Prefix architecture',
-            'choices': [('Auto', 'None'),
+            'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
             'default': 'None'
@@ -267,8 +266,11 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
-        game_config = self.settings.get('game', {})
-        return game_config.get('arch') or None
+        arch = self.settings['game'].get('arch') or 'auto'
+        prefix = self.settings['game'].get('prefix') or ''
+        if arch not in ('win32', 'win64'):
+            arch = detect_prefix_arch(prefix)
+        return arch
 
     @property
     def wine_version(self):
@@ -344,10 +346,12 @@ class wine(Runner):
         self.check_regedit_keys(self.runner_config)
 
     def play(self):
-        command = ['WINEARCH=%s' % self.wine_arch]
+        prefix = self.settings['game'].get('prefix') or ''
+        arch = self.wine_arch
         game_exe = self.settings['game'].get('exe')
+        arguments = self.settings['game'].get('args') or ''
 
-        prefix = self.settings['game'].get('prefix', "")
+        command = ['WINEARCH=%s' % arch]
         if os.path.exists(prefix):
             command.append("WINEPREFIX=\"%s\" " % prefix)
             self.wineprefix = prefix
@@ -359,9 +363,7 @@ class wine(Runner):
             if not os.path.exists(self.game_path):
                 return {"error": "FILE_NOT_FOUND", "file": self.game_path}
 
-        arguments = self.settings['game'].get('args', "")
         self.prepare_launch()
-
         command.append(self.get_executable())
         command.append("\"%s\"" % game_exe)
         if arguments:
