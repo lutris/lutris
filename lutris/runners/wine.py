@@ -224,25 +224,29 @@ class wine(Runner):
             "Desktop": r"%s\Explorer" % reg_prefix
         }
 
-    def get_game_path(self, prioritize_prefix=True):
-        """Return the path to browse with Browse Files from the context menu"""
-        # If the game path has been set by the play() method, always return that
-        if hasattr(self, 'game_path'):
-            return self.game_path
-        prefix = self.config['game'].get('prefix')
-        if prefix and prioritize_prefix:
-            return prefix
+    @property
+    def prefix_path(self):
+        return self.config['game'].get('prefix')
+
+    def get_game_path(self):
+        """Return the directory where the game is installed."""
+        if self.prefix_path:
+            return self.prefix_path
+        else:
+            return self.system_config.get('game_path')
+
+    @property
+    def browse_dir(self):
+        """Returns the path to open with the Browse Files action."""
         game_exe = self.config['game'].get('exe')
         if game_exe:
             exe_path = os.path.dirname(game_exe)
             if os.path.isabs(exe_path):
                 return exe_path
-            elif prefix:
-                return os.path.join(prefix, exe_path)
-
-    @property
-    def browse_dir(self):
-        return self.get_game_path(prioritize_prefix=False)
+            elif self.prefix_path:
+                return os.path.join(self.prefix_path, exe_path)
+        else:
+            return self.get_game_path()
 
     @property
     def local_wine_versions(self):
