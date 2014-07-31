@@ -10,35 +10,32 @@ from lutris.util import system
 from lutris import settings
 
 
-def get_desura_link(action, sitearea, siteareaid, optional):
+def get_desura_url(action, section, appid):
     """ Return link for Desura app """
-    if optional is None:
-        link = "desura://%(action)s/%(sitearea)s/%(siteareaid)s/" % locals()
-    else:
-        link = ("desura://%(action)s/%(sitearea)s/%(siteareaid)s/%(optional)s"
+    url = ("desura://%(action)s/%(section)s/%(appid)s/"
                 % locals())
-    logger.debug("Desura link %s", link)
-    return link
+    logger.debug("Desura url: %s", url)
+    return url
 
 
 class desura(Runner):
-    """ Runs Desura games (or mods, or tools) """
+    """Run Desura games (or mods, or tools)"""
     platform = "Desura"
     package = "desura"
     game_options = [
         {
-            "option": "sitearea",
-            "label": "Site area (mods, games, download, tools)",
-            "type": "string",
+            'option': 'section',
+            'label': "Section",
+            'type': 'choice',
+            'choices': [('games', 'games'),
+                        ('downloads', 'download'),
+                        ('mods', 'mods'),
+                        ('tools', 'tools')],
+            'default': 'games'
         },
         {
-            "option": "siteareaid",
-            "label": "Site area ID (name or id of the item based on moddb)",
-            "type": "string",
-        },
-        {
-            "option": "optional",
-            "label": "Optional information (not required)",
+            "option": "appid",
+            "label": "Application ID",
             "type": "string",
         }
     ]
@@ -61,14 +58,14 @@ class desura(Runner):
     def get_common_path(self):
         return os.path.join(self.get_path(), "common")
 
-    def get_installed_app_path(self, siteareaid):
-        return os.path.join(self.get_common_path(), siteareaid)
+    def get_installed_app_path(self, appid):
+        return os.path.join(self.get_common_path(), appid)
 
     def get_game_path(self):
-        """ Browse Desura game dir (or specific game dir) """
-        siteareaid = self.settings.get("game").get("siteareaid")
-        if os.path.exists(self.get_installed_app_path(siteareaid)):
-            return self.get_installed_app_path(siteareaid)
+        """Browse Desura game dir (or specific game dir)"""
+        appid = self.settings.get("game").get("appid")
+        if os.path.exists(self.get_installed_app_path(appid)):
+            return self.get_installed_app_path(appid)
         if os.path.exists(self.get_common_path()):
             return self.get_common_path()
 
@@ -90,8 +87,7 @@ class desura(Runner):
         settings = self.settings.get("game")
         return {"command": [
             self.get_executable(),
-            get_desura_link("launch",
-                            settings.get("sitearea"),
-                            settings.get("siteareaid"),
-                            settings.get("optional"))
+            get_desura_url("launch",
+                            settings.get("section"),
+                            settings.get("appid"))
         ]}
