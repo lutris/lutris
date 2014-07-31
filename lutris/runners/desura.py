@@ -28,7 +28,7 @@ class desura(Runner):
             'label': "Section",
             'type': 'choice',
             'choices': [('games', 'games'),
-                        ('downloads', 'download'),
+                        ('downloads', 'downloads'),
                         ('mods', 'mods'),
                         ('tools', 'tools')],
             'default': 'games'
