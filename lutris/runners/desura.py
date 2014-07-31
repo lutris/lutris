@@ -10,14 +10,6 @@ from lutris.util import system
 from lutris import settings
 
 
-def get_desura_url(action, section, appid):
-    """ Return link for Desura app """
-    url = ("desura://%(action)s/%(section)s/%(appid)s/"
-                % locals())
-    logger.debug("Desura url: %s", url)
-    return url
-
-
 class desura(Runner):
     """Run Desura games (or mods, or tools)"""
     platform = "Desura"
@@ -46,6 +38,15 @@ class desura(Runner):
             "type": "string",
         }
     ]
+
+    def get_desura_url(self, action, section, appid):
+        """Return link for Desura game"""
+        section_choices = (k[0] for k in self.game_options[0]['choices'])
+        if section not in section_choices:
+            section = 'games'
+        url = ("desura://%(action)s/%(section)s/%(appid)s/" % locals())
+        logger.debug("Desura url: %s", url)
+        return url
 
     def get_path(self):
         return self.runner_config.get(
@@ -87,7 +88,7 @@ class desura(Runner):
         settings = self.settings.get("game")
         return {"command": [
             self.get_executable(),
-            get_desura_url("launch",
-                            settings.get("section"),
-                            settings.get("appid"))
+            self.get_desura_url("launch",
+                                settings.get("section"),
+                                settings.get("appid"))
         ]}
