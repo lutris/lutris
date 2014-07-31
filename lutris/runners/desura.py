@@ -90,7 +90,7 @@ class desura(Runner):
         settings = self.settings.get("game")
         return {"command": [
             self.get_executable(),
-            get_desura_link("install",
+            get_desura_link("launch",
                             settings.get("sitearea"),
                             settings.get("siteareaid"),
                             settings.get("optional"))
