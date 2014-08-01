@@ -38,6 +38,28 @@ class linux(Runner):
         self.game_path = None
         self.config = config
 
+    @property
+    def game_exe(self):
+        """Return the game's executable's path."""
+        exe = self.config['game'].get('exe')
+        if exe:
+            if os.path.isabs(exe):
+                return exe
+            return os.path.join(self.get_game_path(), exe)
+
+    @property
+    def browse_dir(self):
+        """Returns the path to open with the Browse Files action."""
+        return self.working_dir  # exe path
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        if self.game_exe:
+            return os.path.dirname(self.game_exe)
+        else:
+            return super(wine, self).working_dir
+
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
