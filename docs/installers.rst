@@ -209,7 +209,7 @@ Currently, the following tasks are implemented:
 
 * wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
   ``executable``, ``args`` (optional arguments passed to the executable),
-  ``prefix`` (optional WINEPREFIX), ``workdir`` (optional working directory).
+  ``prefix`` (optional WINEPREFIX), ``working_dir`` (optional working directory).
 
 Example:
 
@@ -236,7 +236,7 @@ Example:
 
 * wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
   are ``path`` (the registry path), ``key``, ``value``, ``prefix`` (optional
-  WINEPREFIX), ``workdir`` (optional working directory).
+  WINEPREFIX), ``working_dir`` (optional working directory).
 
 Example:
 
