@@ -30,14 +30,8 @@ class dosbox(Runner):
         }
     ]
 
-    def get_game_path(self):
-        main_file = self.settings['game'].get('main_file') or ''
-        if os.path.exists(main_file):
-            return os.path.dirname(main_file)
-
     def play(self):
         self.exe = self.settings["game"]["main_file"]
-        self.game_path = os.path.dirname(self.exe)
         if not os.path.exists(self.exe):
             return {'error': "FILE_NOT_FOUND", 'file': self.exe}
         if self.exe.endswith(".conf"):
