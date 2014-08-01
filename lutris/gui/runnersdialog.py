@@ -67,7 +67,7 @@ class RunnersDialog(Gtk.Window):
             runner_label.set_line_wrap(True)
             runner_label.set_alignment(0.0, 0.1)
             runner_label.set_padding(5, 0)
-            self.runner_labels["%s_label" % runner] = runner_label
+            self.runner_labels[runner] = runner_label
             hbox.pack_start(runner_label, True, True, 5)
             # Button
             button = Gtk.Button()
@@ -89,8 +89,7 @@ class RunnersDialog(Gtk.Window):
         except AttributeError:
             pass
         if runner.is_installed():
-            runner_label = self.runner_labels["%s_label" % runner]
-            runner_label.set_sensitive(True)
+            self.runner_labels[runner].set_sensitive(True)
             self.setup_configure_button(widget, runner)
         else:
             self.setup_install_button(widget, runner)
