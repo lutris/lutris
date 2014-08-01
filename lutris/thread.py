@@ -42,7 +42,7 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.pid = 99999
         self.child_processes = []
-        logger.debug('Running thread from %s', self.path)
+        logger.debug('Running thread from %s' % self.path)
         if type(killswitch) == type(str()) and not os.path.exists(killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
