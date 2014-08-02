@@ -167,14 +167,14 @@ class winesteam(wine.wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        appid = self.settings['game'].get('appid', '')
-        args = self.settings['game'].get('args', '')
+        appid = self.settings['game'].get('appid') or ''
+        args = self.settings['game'].get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         command = ["WINEDEBUG=fixme-all"]
-        prefix = self.settings['game'].get('prefix', "")
+        prefix = self.settings['game'].get('prefix') or ''
         if os.path.exists(prefix):
-            command.append("WINEPREFIX=\"%s\" " % prefix)
+            command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         if appid:
             command += ['-applaunch', appid]

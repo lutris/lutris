@@ -35,8 +35,6 @@ class RunnersDialog(Gtk.Window):
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
 
-        inactive_color = Gdk.Color(35000, 35000, 35000)
-
         self.runner_labels = {}
         for runner_name in runner_list:
             # Get runner details
