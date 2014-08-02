@@ -228,13 +228,6 @@ class wine(Runner):
     def prefix_path(self):
         return self.config['game'].get('prefix')
 
-    def get_game_path(self):
-        """Return the directory where the game is installed."""
-        if self.prefix_path:
-            return self.prefix_path
-        else:
-            return self.system_config.get('game_path')
-
     @property
     def game_exe(self):
         """Return the game's executable's path."""
