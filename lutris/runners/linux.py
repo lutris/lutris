@@ -63,9 +63,6 @@ class linux(Runner):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
-    def get_game_path(self):
-        return os.path.dirname(self.config['game']['exe'])
-
     def play(self):
         """ Run native game. """
         launch_info = {}
