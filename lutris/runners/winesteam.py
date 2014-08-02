@@ -97,7 +97,8 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return [self.get_executable(), '"%s"' % self.steam_path, '-no-dwrite']
+        return ['"%s"' % self.get_executable(),
+                '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
         if not self.game_path:
@@ -133,10 +134,15 @@ class winesteam(wine.wine):
         return data_path
 
     def install_game(self, appid):
-        subprocess.Popen(self.launch_args + ["steam://install/%s" % appid])
+        command = self.launch_args + ["steam://install/%s" % appid]
+        string = ' '.join(command)
+        logger.debug("Thread running: %s", string)
+        subprocess.Popen(string, shell=True)
 
     def validate_game(self, appid):
-        subprocess.Popen(self.launch_args + ["steam://validate/%s" % appid])
+        command = self.launch_args + ["steam://validate/%s" % appid]
+        string = ' '.join(command)
+        subprocess.Popen(string, shell=True)
 
     def prelaunch(self):
         from lutris.runners import steam
