@@ -49,7 +49,8 @@ class steam(Runner):
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
         if os.path.exists(self.steam_path):
-            return os.path.join(self.steam_path, "SteamApps/common")
+            steam_path = os.path.dirname(self.steam_path)
+            return os.path.join(steam_path, "SteamApps/common")
 
     @property
     def steam_path(self):
@@ -66,7 +67,8 @@ class steam(Runner):
         return data_path
 
     def get_steam_config(self):
-        return read_config(self.get_game_path())
+        steam_path = os.path.dirname(self.steam_path)
+        return read_config(steam_path)
 
     def install(self):
         steam_default_path = [opt["default_path"]
