@@ -247,7 +247,7 @@ class wine(Runner):
 
     @property
     def browse_dir(self):
-        """Returns the path to open with the Browse Files action."""
+        """Return the path to open with the Browse Files action."""
         return self.working_dir  # exe path
 
     @property
