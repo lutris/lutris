@@ -53,7 +53,7 @@ class linux(Runner):
 
     @property
     def browse_dir(self):
-        """Returns the path to open with the Browse Files action."""
+        """Return the path to open with the Browse Files action."""
         return self.working_dir  # exe path
 
     @property
@@ -72,7 +72,7 @@ class linux(Runner):
         return True
 
     def play(self):
-        """ Run native game. """
+        """Run native game."""
         launch_info = {}
         game_config = self.config.get('game')
 
