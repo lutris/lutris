@@ -67,7 +67,10 @@ class GameDialogCommon(object):
             self.notebook.remove_page(i - 1)
 
     def build_game_tab(self):
-        if self.runner_name:
+        if self.game:
+            self.game_box = GameBox(self.lutris_config, "game", self.game)
+            game_sw = self.build_scrolled_window(self.game_box)
+        elif self.runner_name:
             self.game_box = GameBox(self.lutris_config, "game")
             game_sw = self.build_scrolled_window(self.game_box)
         else:
@@ -128,6 +131,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         super(AddGameDialog, self).__init__()
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
+        self.game = game
 
         self.runner_name = None
 

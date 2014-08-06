@@ -3,6 +3,7 @@ import os
 from gi.repository import Gtk, GObject, Gdk
 from lutris.runners import import_runner
 from lutris import sysoptions
+from lutris.game import Game
 
 PADDING = 5
 
@@ -19,7 +20,7 @@ class Label(Gtk.Label):
 
 class ConfigBox(Gtk.VBox):
     """ Dynamically generates a vbox built upon on a python dict. """
-    def __init__(self, config_type, caller):
+    def __init__(self, config_type, caller, game=None):
         GObject.GObject.__init__(self)
         self.set_margin_top(30)
         self.options = None
@@ -27,6 +28,7 @@ class ConfigBox(Gtk.VBox):
         # "runner" or "system"
         self.config_type = config_type
         self.caller = caller
+        self.game = game
 
     def generate_widgets(self):
         """ Parses the config dict and generates widget accordingly."""
@@ -190,13 +192,14 @@ class ConfigBox(Gtk.VBox):
         value = spin_button.get_value_as_int()
         self.real_config[self.config_type][option] = value
 
-    def generate_file_chooser(self, option, value=None):
+    def generate_file_chooser(self, option, path=None):
         """Generates a file chooser button to select a file"""
         option_name = option['option']
         label = option['label']
         hbox = Gtk.HBox()
         file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
+
         if 'default_path' in option:
             config_key = option['default_path']
             default_path = self.lutris_config.config['system'].get(config_key)
@@ -205,9 +208,14 @@ class ConfigBox(Gtk.VBox):
 
         file_chooser.set_action(Gtk.FileChooserAction.OPEN)
         file_chooser.connect("file-set", self.on_chooser_file_set, option_name)
-        if value:
+
+        if path:
+            # If path is relative, complete with game dir
+            if not os.path.isabs(path):
+                game = Game(self.game)
+                path = os.path.join(game.runner.get_game_path(), path)
             file_chooser.unselect_all()
-            file_chooser.select_filename(value)
+            file_chooser.select_filename(path)
         hbox.pack_start(Label(label), False, False, 20)
         hbox.pack_start(file_chooser, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
@@ -305,8 +313,8 @@ class ConfigBox(Gtk.VBox):
 
 
 class GameBox(ConfigBox):
-    def __init__(self, lutris_config, caller):
-        ConfigBox.__init__(self, "game", caller)
+    def __init__(self, lutris_config, caller, game):
+        ConfigBox.__init__(self, "game", caller, game)
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
