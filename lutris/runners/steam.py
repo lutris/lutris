@@ -58,9 +58,16 @@ class steam(Runner):
     @property
     def steam_data_dir(self):
         """Return dir where games are stored"""
-        default_path = os.path.expanduser("~/.local/share/steam/")
-        if os.path.exists(default_path):
-            return default_path
+        candidates = (
+            "~/.local/share/Steam/",
+            "~/.local/share/steam/",
+            "~/.steam/",
+            "~/.Steam/",
+        )
+        for candidate in candidates:
+            path = os.path.expanduser(candidate)
+            if os.path.exists(path):
+                return path
 
     def get_game_data_path(self, appid):
         data_path = get_path_from_appmanifest(self.steam_data_dir, appid)
