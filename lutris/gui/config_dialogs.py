@@ -67,7 +67,7 @@ class GameDialogCommon(object):
             self.notebook.remove_page(i - 1)
 
     def build_game_tab(self):
-        if self.game:
+        if self.game and self.runner_name:
             self.game_box = GameBox(self.lutris_config, "game", self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
