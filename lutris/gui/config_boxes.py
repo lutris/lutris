@@ -313,7 +313,7 @@ class ConfigBox(Gtk.VBox):
 
 
 class GameBox(ConfigBox):
-    def __init__(self, lutris_config, caller, game):
+    def __init__(self, lutris_config, caller, game=None):
         ConfigBox.__init__(self, "game", caller, game)
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
