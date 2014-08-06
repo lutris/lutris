@@ -48,18 +48,24 @@ class steam(Runner):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
-        if os.path.exists(self.steam_path):
-            return os.path.join(self.steam_path, "SteamApps/common")
+        if os.path.exists(self.steam_data_dir):
+            return os.path.join(self.steam_data_dir, "SteamApps/common")
 
     @property
     def steam_path(self):
-        return self.runner_config.get('steam_path', 'steam')
+        config_path = self.runner_config.get('steam_path')
+        if config_path and os.path.exists(config_path):
+            return config_path
+
+    @property
+    def steam_data_dir(self):
+        """Return dir where games are stored"""
+        default_path = os.path.expanduser("~/.local/share/steam/")
+        if os.path.exists(default_path):
+            return default_path
 
     def get_game_data_path(self, appid):
-        steam_path = os.path.dirname(self.steam_path)
-        if not steam_path:
-            raise IOError("Steam path not found")
-        data_path = get_path_from_appmanifest(steam_path, appid)
+        data_path = get_path_from_appmanifest(self.steam_data_dir, appid)
         if not data_path:
             steam_config = self.get_steam_config()
             data_path = get_path_from_config(steam_config, appid)
