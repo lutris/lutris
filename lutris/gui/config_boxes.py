@@ -318,9 +318,11 @@ class GameBox(ConfigBox):
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
         self.runner_class = self.lutris_config.runner
-        runner = import_runner(self.runner_class)()
-
-        self.options = runner.game_options
+        if self.runner_class:
+            runner = import_runner(self.runner_class)()
+            self.options = runner.game_options
+        else:
+            self.options = []
         self.generate_widgets()
 
 
