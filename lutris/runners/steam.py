@@ -53,9 +53,7 @@ class steam(Runner):
 
     @property
     def steam_path(self):
-        config_path = self.runner_config.get('steam_path')
-        if config_path and os.path.exists(config_path):
-            return config_path
+        return self.runner_config.get('steam_path', 'steam')
 
     @property
     def steam_data_dir(self):
