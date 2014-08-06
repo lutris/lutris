@@ -213,7 +213,7 @@ class ConfigBox(Gtk.VBox):
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
                 game = Game(self.game)
-                path = os.path.join(game.runner.get_game_path(), path)
+                path = os.path.join(game.directory, path)
             file_chooser.unselect_all()
             file_chooser.select_filename(path)
         hbox.pack_start(Label(label), False, False, 20)
