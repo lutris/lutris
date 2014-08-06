@@ -57,6 +57,8 @@ class steam(Runner):
 
     def get_game_data_path(self, appid):
         steam_path = os.path.dirname(self.steam_path)
+        if not steam_path:
+            raise IOError("Steam path not found")
         data_path = get_path_from_appmanifest(steam_path, appid)
         if not data_path:
             steam_config = self.get_steam_config()
