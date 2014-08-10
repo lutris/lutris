@@ -79,7 +79,8 @@ class Game(object):
         self.game_config = LutrisConfig(runner=self.runner_name, game=self.slug)
         if self.is_installed and self.game_config.is_valid():
             runner_class = import_runner(self.runner_name)
-            self.runner = runner_class(self.game_config)
+            if runner_class:
+                self.runner = runner_class(self.game_config)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
