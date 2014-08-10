@@ -50,7 +50,8 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
         executable = "\"%s\"" % executable
 
     if not working_dir:
-        working_dir = os.path.dirname(executable)
+        if '/' in executable:
+            working_dir = os.path.dirname(executable)
 
     command = "WINEARCH=%s %s %s %s %s" % (
         arch, prefix, wine_path, executable, args
