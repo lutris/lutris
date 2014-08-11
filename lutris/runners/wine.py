@@ -11,7 +11,7 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 DEFAULT_WINE = '1.7.13'
 
 
-def set_regedit(path, key, value, prefix=None):
+def set_regedit(path, key, value, wine_path=None, prefix=None):
     """ Plays with the windows registry
         path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
@@ -27,7 +27,7 @@ def set_regedit(path, key, value, prefix=None):
 
 """ % (path, key, value))
     reg_file.close()
-    wineexec('regedit', args=reg_path, prefix=prefix)
+    wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
     os.remove(reg_path)
 
 
@@ -350,9 +350,11 @@ class wine(Runner):
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
+        prefix = self.settings['game'].get('prefix') or ''
         for key in self.reg_keys.keys():
             if key in self.runner_config:
-                set_regedit(self.reg_keys[key], key, self.runner_config[key])
+                set_regedit(self.reg_keys[key], key, self.runner_config[key],
+                    self.get_executable(), prefix)
 
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)
