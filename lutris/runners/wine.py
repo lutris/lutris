@@ -31,9 +31,9 @@ def set_regedit(path, key, value, wine_path=None, prefix=None):
     os.remove(reg_path)
 
 
-def create_prefix(prefix, arch='win32'):
+def create_prefix(prefix, wine_path='wineboot', arch='win32'):
     """Create a new wineprefix"""
-    wineexec('', prefix=prefix, wine_path='wineboot', arch=arch)
+    wineexec('', prefix=prefix, wine_path=wine_path, arch=arch)
 
 
 def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
@@ -382,7 +382,7 @@ class wine(Runner):
         """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
-        command = os.path.join(wine_root, wine_root, "wineserver") + " -k"
+        command = os.path.join(wine_root, "wineserver") + " -k"
         if self.wineprefix:
             command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
         logger.debug("Killing all wine processes: %s" % command)
