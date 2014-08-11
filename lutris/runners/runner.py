@@ -69,7 +69,8 @@ class Runner(object):
         """Return system config, cascaded from base, runner and game's system
            config.
         """
-        base_system_config = LutrisConfig().system_config
+        # system_config can be an empty dict if no system.yml file was found.
+        base_system_config = LutrisConfig().system_config or {'system': {}}
 
         # Runner level config, overrides system config
         runner_system_config = self.default_config.runner_config.get('system') or {}
