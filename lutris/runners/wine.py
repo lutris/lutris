@@ -49,22 +49,15 @@ def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
     if " " in executable:
         executable = "\"%s\"" % executable
 
-    if not working_dir and executable:
-        working_dir = os.path.dirname(executable)
+    if not working_dir:
+        if '/' in executable:
+            working_dir = os.path.dirname(executable)
 
     command = "WINEARCH=%s %s %s %s %s" % (
         arch, prefix, wine_path, executable, args
     )
     logger.debug("Running wine command: %s", command)
-
-    # Check for a specified working dir before executing.
-    # This helps cover the case of regedit being run since no
-    # working dir will be specified.
-    if working_dir:
-        subprocess.Popen(command, cwd=working_dir, shell=True,
-                     stdout=subprocess.PIPE).communicate()
-    else:
-        subprocess.Popen(command, shell=True,
+    subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
 
 
