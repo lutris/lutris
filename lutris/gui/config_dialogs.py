@@ -207,11 +207,11 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.runner = runner_name
         self.lutris_config = LutrisConfig(runner=runner_name)
 
-        #Notebook for choosing between runner and system configuration
+        # Notebook for choosing between runner and system configuration
         self.notebook = Gtk.Notebook()
         self.vbox.pack_start(self.notebook, True, True, 0)
 
-        #Runner configuration
+        # Runner configuration
         self.runner_config_vbox = RunnerBox(self.lutris_config, "runner")
         runner_scrollwindow = Gtk.ScrolledWindow()
         runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
@@ -220,7 +220,7 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.notebook.append_page(runner_scrollwindow,
                                   Gtk.Label(label="Runner configuration"))
 
-        #System configuration
+        # System configuration
         self.system_config_vbox = SystemBox(self.lutris_config, "runner")
         system_scrollwindow = Gtk.ScrolledWindow()
         system_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
@@ -229,7 +229,7 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.notebook.append_page(system_scrollwindow,
                                   Gtk.Label(label="System configuration"))
 
-        #Action buttons
+        # Action buttons
         cancel_button = Gtk.Button("Cancel")
         ok_button = Gtk.Button("Ok")
         self.action_area.pack_start(cancel_button, True, True, 0)
