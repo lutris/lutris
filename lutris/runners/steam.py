@@ -16,12 +16,12 @@ def shutdown():
 
 def kill():
     """ Force quit Steam """
-    system.kill_pid(system.get_pid('steam'))
+    system.kill_pid(system.get_pid('steam$'))
 
 
 def is_running():
     """ Checks if Steam is running """
-    return bool(system.get_pid('steam'))
+    return bool(system.get_pid('steam$'))
 
 
 class steam(Runner):

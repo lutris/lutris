@@ -22,14 +22,14 @@ winetricks = wine.winetricks
 
 
 def is_running():
-    return bool(system.get_pid('Steam.exe'))
+    return bool(system.get_pid('Steam.exe$'))
 
 
 def shutdown():
     """ Shutdown Steam in a clean way.
         TODO: Detect wine binary
     """
-    pid = system.get_pid('Steam.exe')
+    pid = system.get_pid('Steam.exe$')
     if not pid:
         return False
     cwd = system.get_cwd(pid)
@@ -40,7 +40,7 @@ def shutdown():
 
 
 def kill():
-    system.kill_pid(system.get_pid('Steam.exe'))
+    system.kill_pid(system.get_pid('Steam.exe$'))
 
 
 # pylint: disable=C0103
