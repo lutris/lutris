@@ -88,7 +88,7 @@ class linux(Runner):
             launch_info['ld_library_path'] = ld_library_path
 
         command = []
-        command.append("./%s" % os.path.basename(executable))
+        command.append('"%s"' % self.game_exe)
 
         args = game_config.get('args', "")
         for arg in args.split():
