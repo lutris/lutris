@@ -95,7 +95,7 @@ class LutrisConfig(object):
 
     """
     def __init__(self, runner=None, game=None):
-        #Initialize configuration
+        # Initialize configuration
         self.config = {'system': {}}
         self.game_config = {}
         self.runner_config = {}
@@ -104,9 +104,9 @@ class LutrisConfig(object):
         self.game = None
         self.runner = None
 
-        #By default config type is system, it can also be runner and game
-        #this means that when you call lutris_config_instance["key"] it will
-        #pick up the right configuration depending of config_type
+        # By default config type is system, it can also be runner and game
+        # this means that when you call lutris_config_instance["key"] it will
+        # pick up the right configuration depending of config_type
         if game:
             self.game = game
             self.config_type = "game"
@@ -116,20 +116,20 @@ class LutrisConfig(object):
         else:
             self.config_type = "system"
 
-        #Read system configuration
-        self.system_config = read_yaml_from_file(join(CONFIG_DIR,
-                                                      "system.yml"))
+        # Read system configuration
+        system_config_path = join(CONFIG_DIR, "system.yml")
+        self.system_config = read_yaml_from_file(system_config_path)
+
         if runner:
-            self.runner_config = read_yaml_from_file(join(CONFIG_DIR,
-                                                          "runners/%s.yml"
-                                                          % runner))
+            runner_config_path = join(CONFIG_DIR, "runners/%s.yml" % runner)
+            self.runner_config = read_yaml_from_file(runner_config_path)
         else:
             self.runner_config = {}
-        if self.game:
+
+        if game:
             game_config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
-            if os.path.exists(game_config_path):
-                self.game_config = read_yaml_from_file(game_config_path)
-                self.runner = self.game_config.get("runner")
+            self.game_config = read_yaml_from_file(game_config_path)
+            self.runner = self.game_config.get("runner")
         self.update_global_config()
 
     def __str__(self):

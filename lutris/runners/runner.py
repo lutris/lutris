@@ -22,6 +22,7 @@ def get_arch():
 
 class Runner(object):
     """Generic runner (base class for other runners)."""
+
     is_watchable = True  # Is the game's pid a parent of Lutris ?
     tarballs = {
         'i386': None,
@@ -31,13 +32,14 @@ class Runner(object):
     game_options = []
     runner_options = []
 
-    def __init__(self, settings=None):
+    def __init__(self, config=None):
         """Initialize runner."""
         self.game = None
         self.depends = None
         self.arch = get_arch()
         self.logger = logger
-        self.settings = settings or {}
+        self.config = config or {}
+        self.settings = self.config
 
     @property
     def description(self):
@@ -60,8 +62,8 @@ class Runner(object):
     @property
     def runner_config(self):
         config = self.default_config.runner_config.get(self.name) or {}
-        if self.settings.get(self.name):
-            config.update(self.settings[self.name])
+        if self.config.get(self.name):
+            config.update(self.config[self.name])
         return config
 
     @property
@@ -69,16 +71,15 @@ class Runner(object):
         """Return system config, cascaded from base, runner and game's system
            config.
         """
-        # system_config can be an empty dict if no system.yml file was found.
-        base_system_config = LutrisConfig().system_config or {'system': {}}
+        base_system_config = LutrisConfig().system_config
 
         # Runner level config, overrides system config
-        runner_system_config = self.default_config.runner_config.get('system') or {}
-        base_system_config.get("system").update(runner_system_config)
+        runner_system_config = self.default_config.config.get('system')
+        base_system_config.update(runner_system_config)
 
         # Game level config, takes precedence over everything
-        game_system_config = self.settings.get('system') or {}
-        base_system_config.get("system").update(game_system_config)
+        game_system_config = self.config.get('system') or {}
+        base_system_config.update(game_system_config)
 
         return base_system_config
 
