@@ -69,12 +69,6 @@ class winesteam(wine.wine):
         }
     ]
 
-    def __init__(self, settings=None):
-        super(winesteam, self).__init__(settings)
-        config = LutrisConfig(runner=self.__class__.__name__)
-        self.arguments = []
-        self.settings = settings or {}
-
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
@@ -95,7 +89,7 @@ class winesteam(wine.wine):
         return os.path.exists(self.steam_path)
 
     def get_game_path(self):
-        appid = self.settings['game'].get('appid')
+        appid = self.config['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
         if self.default_path:
@@ -179,12 +173,12 @@ class winesteam(wine.wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        appid = self.settings['game'].get('appid') or ''
-        args = self.settings['game'].get('args') or ''
+        appid = self.config['game'].get('appid') or ''
+        args = self.config['game'].get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         command = ["WINEDEBUG=fixme-all"]
-        prefix = self.settings['game'].get('prefix') or ''
+        prefix = self.config['game'].get('prefix') or ''
         if os.path.exists(prefix):
             command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
