@@ -330,12 +330,14 @@ class LutrisWindow(object):
     def add_game(self, _widget, _data=None):
         """Add a new game."""
         add_game_dialog = AddGameDialog(self)
+        add_game_dialog.run()
         if add_game_dialog.runner_name and add_game_dialog.slug:
             self.add_game_to_view(add_game_dialog.slug)
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
+        add_game_dialog.run()
         if add_game_dialog.runner_name:
             self.view.update_image(game.slug, is_installed=True)
 

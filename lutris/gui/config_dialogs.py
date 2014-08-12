@@ -154,7 +154,6 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_action_area("Add", self.on_save)
 
         self.show_all()
-        self.run()
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
