@@ -189,7 +189,9 @@ class winesteam(wine.wine):
         self.prepare_launch()
         command = ["WINEDEBUG=fixme-all"]
         prefix = self.config['game'].get('prefix') or ''
-        if os.path.exists(prefix):
+        if prefix:
+            # TODO: Verify if a prefix exists that it's created with the
+            # correct architecture
             command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         if appid:
