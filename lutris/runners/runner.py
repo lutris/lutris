@@ -71,7 +71,7 @@ class Runner(object):
         """Return system config, cascaded from base, runner and game's system
            config.
         """
-        base_system_config = LutrisConfig().system_config
+        base_system_config = LutrisConfig().system_config.get('system') or {}
 
         # Runner level config, overrides system config
         runner_system_config = self.default_config.config.get('system')

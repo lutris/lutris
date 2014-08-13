@@ -36,7 +36,7 @@ class ImportRunnerTest(TestCase):
     def test_get_system_config(self):
         def fake_yaml_reader(path):
             if 'system.yml' in path:
-                return {'resolution': '640x480'}
+                return {'system': {'resolution': '640x480'}}
             return {}
 
         with patch('lutris.config.read_yaml_from_file') as yaml_reader:
@@ -62,7 +62,7 @@ class ImportRunnerTest(TestCase):
     def test_game_config_overrides_all(self):
         def fake_yaml_reader(path):
             if 'system.yml' in path:
-                return {'resolution': '640x480'}
+                return {'system': {'resolution': '640x480'}}
             if 'wine.yml' in path:
                 return {'system': {'resolution': '800x600'}}
             if 'rage.yml' in path:
