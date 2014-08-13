@@ -75,3 +75,20 @@ class ImportRunnerTest(TestCase):
             game_config = LutrisConfig('rage')
             wine = wine_runner(game_config)
             self.assertEqual(wine.system_config, {'resolution': '1920x1080'})
+
+    def test_system_config_with_no_system_yml(self):
+        def fake_yaml_reader(path):
+            if 'system.yml' in path:
+                return {}
+            if 'wine.yml' in path:
+                return {'system': {'resolution': '800x600'}}
+            if 'rage.yml' in path:
+                return {'system': {'resolution': '1680x1050'}}
+            return {}
+
+        with patch('lutris.config.read_yaml_from_file') as yaml_reader:
+            yaml_reader.side_effect = fake_yaml_reader
+            wine_runner = runners.import_runner('wine')
+            game_config = LutrisConfig('rage')
+            wine = wine_runner(game_config)
+            self.assertEqual(wine.system_config, {'resolution': '1680x1050'})
