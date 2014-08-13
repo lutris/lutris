@@ -166,16 +166,6 @@ class LutrisConfig(object):
     def game_config_file(self):
         return join(CONFIG_DIR, "games/%s.yml" % self.game)
 
-    def get_system(self, key):
-        """Return the value of 'key' for system config"""
-        try:
-            value = self.config["system"][key]
-            if str(value).lower() in ("false", "none", "no"):
-                value = False
-        except KeyError:
-            value = None
-        return value
-
     def update_global_config(self):
         """Update the global config dict."""
         for key in self.system_config.keys():

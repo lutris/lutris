@@ -113,8 +113,8 @@ class Game(object):
         if not self.prelaunch():
             return False
 
+        system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
-
         gameplay_info = self.runner.play()
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
@@ -122,23 +122,23 @@ class Game(object):
             return False
         launch_arguments = gameplay_info['command']
 
-        restrict_to_display = self.game_config.get_system('display')
+        restrict_to_display = system_config.get('display')
         if restrict_to_display:
             display.turn_off_except(restrict_to_display)
             self.resolution_changed = True
 
-        resolution = self.game_config.get_system('resolution')
+        resolution = system_config.get('resolution')
         if resolution:
             display.change_resolution(resolution)
             self.resolution_changed = True
 
-        if self.game_config.get_system('reset_pulse'):
+        if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
-        if self.game_config.get_system('hide_panels'):
+        if system_config.get('hide_panels'):
             self.desktop.hide_panels()
 
-        oss_wrapper = self.game_config.get_system("oss_wrapper")
+        oss_wrapper = system_config.get("oss_wrapper")
         if oss_wrapper:
             launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))
 
@@ -152,7 +152,7 @@ class Game(object):
                 0, 'LD_LIBRARY_PATH="{}"'.format(ld_library_path)
             )
 
-        killswitch = self.game_config.get_system('killswitch')
+        killswitch = system_config.get('killswitch')
         self.game_thread = LutrisThread(" ".join(launch_arguments),
                                         path=self.runner.get_game_path(),
                                         killswitch=killswitch)
@@ -161,7 +161,7 @@ class Game(object):
         self.game_thread.start()
         if 'joy2key' in gameplay_info:
             self.joy2key(gameplay_info['joy2key'])
-        xboxdrv_config = self.game_config.get_system('xboxdrv')
+        xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv(xboxdrv_config)
         if self.runner.is_watchable:
@@ -214,7 +214,7 @@ class Game(object):
         if self.resolution_changed:
             display.change_resolution(self.original_outputs)
 
-        if self.game_config.get_system('xboxdrv'):
+        if self.runner.system_config.get('xboxdrv'):
             logger.debug("Shutting down xboxdrv")
             os.system("pkexec xboxdrvctl --shutdown")
 
