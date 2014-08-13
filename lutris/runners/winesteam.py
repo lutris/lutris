@@ -6,7 +6,7 @@ import subprocess
 
 from gi.repository import Gdk
 
-from lutris.gui.dialogs import DirectoryDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog
 from lutris.runners import wine
 from lutris.util.log import logger
 from lutris.util.steam import (read_config, get_path_from_config,
@@ -68,23 +68,34 @@ class winesteam(wine.wine):
             'label': 'Prefix'
         }
     ]
+    runner_options = [
+        {
+            'option': 'steam_path',
+            'type': 'file',
+            'label': 'Path to Steam.exe',
+        }
+    ]
 
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
         Gdk.threads_enter()
         dlg = DirectoryDialog('Where is Steam.exe installed?')
-        steam_path = dlg.folder
+        steam_dir = dlg.folder
         Gdk.threads_leave()
-        config = LutrisConfig(runner='winesteam')
-        config.runner_config = {'system': {'game_path': steam_path}}
-        config.save()
+        steam_path = os.path.join(steam_dir, "Steam.exe")
+        if os.path.exists(steam_path):
+            config = LutrisConfig(runner='winesteam')
+            config.runner_config = {'winesteam': {'steam_path': steam_path}}
+            config.save()
+        else:
+            ErrorDialog("Can't find Steam.exe in the selected folder")
 
     def is_installed(self):
         """ Checks if wine is installed and if the steam executable is on the
             harddrive.
         """
-        if not self.check_depends() or not self.default_path:
+        if not self.check_depends():
             return False
         return os.path.exists(self.steam_path)
 
@@ -97,9 +108,7 @@ class winesteam(wine.wine):
 
     @property
     def steam_path(self):
-        if not self.default_path:
-            return
-        return os.path.join(self.default_path, "Steam.exe")
+        return self.runner_config.get('steam_path')
 
     @property
     def launch_args(self):
