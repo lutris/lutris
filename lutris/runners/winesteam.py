@@ -6,7 +6,7 @@ import subprocess
 
 from gi.repository import Gdk
 
-from lutris.gui.dialogs import DirectoryDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog
 from lutris.runners import wine
 from lutris.util.log import logger
 from lutris.util.steam import (read_config, get_path_from_config,
@@ -22,14 +22,14 @@ winetricks = wine.winetricks
 
 
 def is_running():
-    return bool(system.get_pid('Steam.exe'))
+    return bool(system.get_pid('Steam.exe$'))
 
 
 def shutdown():
     """ Shutdown Steam in a clean way.
         TODO: Detect wine binary
     """
-    pid = system.get_pid('Steam.exe')
+    pid = system.get_pid('Steam.exe$')
     if not pid:
         return False
     cwd = system.get_cwd(pid)
@@ -40,7 +40,7 @@ def shutdown():
 
 
 def kill():
-    system.kill_pid(system.get_pid('Steam.exe'))
+    system.kill_pid(system.get_pid('Steam.exe$'))
 
 
 # pylint: disable=C0103
@@ -69,33 +69,39 @@ class winesteam(wine.wine):
         }
     ]
 
-    def __init__(self, settings=None):
-        super(winesteam, self).__init__(settings)
-        config = LutrisConfig(runner=self.__class__.__name__)
-        self.arguments = []
-        self.settings = settings or {}
+    def __init__(self, config=None):
+        super(winesteam, self).__init__(config)
+        self.runner_options.insert(0, {
+            'option': 'steam_path',
+            'type': 'file',
+            'label': 'Path to Steam.exe',
+        })
 
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
         Gdk.threads_enter()
         dlg = DirectoryDialog('Where is Steam.exe installed?')
-        steam_path = dlg.folder
+        steam_dir = dlg.folder
         Gdk.threads_leave()
-        config = LutrisConfig(runner='winesteam')
-        config.runner_config = {'system': {'game_path': steam_path}}
-        config.save()
+        steam_path = os.path.join(steam_dir, "Steam.exe")
+        if os.path.exists(steam_path):
+            config = LutrisConfig(runner='winesteam')
+            config.runner_config = {'winesteam': {'steam_path': steam_path}}
+            config.save()
+        else:
+            ErrorDialog("Can't find Steam.exe in the selected folder")
 
     def is_installed(self):
         """ Checks if wine is installed and if the steam executable is on the
             harddrive.
         """
-        if not self.check_depends() or not self.default_path:
+        if not self.check_depends() or not self.steam_path:
             return False
         return os.path.exists(self.steam_path)
 
     def get_game_path(self):
-        appid = self.settings['game'].get('appid')
+        appid = self.config['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
         if self.default_path:
@@ -103,9 +109,7 @@ class winesteam(wine.wine):
 
     @property
     def steam_path(self):
-        if not self.default_path:
-            return
-        return os.path.join(self.default_path, "Steam.exe")
+        return self.runner_config.get('steam_path')
 
     @property
     def launch_args(self):
@@ -179,13 +183,15 @@ class winesteam(wine.wine):
             return {'error': 'RUNNER_NOT_INSTALLED',
                     'runner': self.__class__.__name__}
 
-        appid = self.settings['game'].get('appid') or ''
-        args = self.settings['game'].get('args') or ''
+        appid = self.config['game'].get('appid') or ''
+        args = self.config['game'].get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         command = ["WINEDEBUG=fixme-all"]
-        prefix = self.settings['game'].get('prefix') or ''
-        if os.path.exists(prefix):
+        prefix = self.config['game'].get('prefix') or ''
+        if prefix:
+            # TODO: Verify if a prefix exists that it's created with the
+            # correct architecture
             command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         if appid:

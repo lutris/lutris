@@ -1,9 +1,13 @@
 VERSION="0.3.5"
 
-test:
+cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
 	nosetests --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+
+test:
+	rm tests/fixtures/pga.db -f
+	nosetests
 
 deb-source:
 	debuild -S

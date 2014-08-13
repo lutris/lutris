@@ -1,6 +1,7 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
+import time
 import subprocess
 
 from gi.repository import Gtk, GLib
@@ -51,6 +52,11 @@ class LutrisWindow(object):
 
         # Currently running game
         self.running_game = None
+
+        # Emulate double click to workaround GTK bug #484640
+        # https://bugzilla.gnome.org/show_bug.cgi?id=484640
+        self.game_selection_time = 0
+        self.last_selected_game = None
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
@@ -313,6 +319,13 @@ class LutrisWindow(object):
             self.stop_button.set_sensitive(False)
 
     def game_selection_changed(self, _widget):
+        is_double_click = time.time() - self.game_selection_time < 0.4
+        is_same_game = self.view.selected_game == self.last_selected_game
+        if is_double_click and is_same_game:
+            self.on_game_clicked()
+        self.game_selection_time = time.time()
+        self.last_selected_game = self.view.selected_game
+
         sensitive = True if self.view.selected_game else False
         self.play_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
@@ -330,12 +343,14 @@ class LutrisWindow(object):
     def add_game(self, _widget, _data=None):
         """Add a new game."""
         add_game_dialog = AddGameDialog(self)
+        add_game_dialog.run()
         if add_game_dialog.runner_name and add_game_dialog.slug:
             self.add_game_to_view(add_game_dialog.slug)
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
+        add_game_dialog.run()
         if add_game_dialog.runner_name:
             self.view.update_image(game.slug, is_installed=True)
 

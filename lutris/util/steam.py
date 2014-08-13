@@ -107,7 +107,8 @@ def get_path_from_appmanifest(steam_path, appid):
         raise ValueError("Missing mandatory appid")
     steamapps_path = get_steamapps_path(os.path.join(steam_path, 'steamapps'))
     if not steamapps_path:
-        logger.error("Unable to find SteamApps path")
+        logger.error("Unable to find SteamApps path at %s", steam_path)
+        return
     appmanifest_path = os.path.join(steamapps_path,
                                     "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):

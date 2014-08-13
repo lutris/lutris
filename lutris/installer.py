@@ -69,6 +69,7 @@ def fetch_script(window, game_ref):
         if dlg.result == 1:
             game = Game(game_ref)
             game_dialog = AddGameDialog(window, game)
+            game_dialog.run()
             if game_dialog.runner_name:
                 window.notify_install_success()
         elif dlg.result == 2:

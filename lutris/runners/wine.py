@@ -11,7 +11,7 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 DEFAULT_WINE = '1.7.13'
 
 
-def set_regedit(path, key, value, prefix=None):
+def set_regedit(path, key, value, wine_path=None, prefix=None):
     """ Plays with the windows registry
         path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
@@ -27,13 +27,13 @@ def set_regedit(path, key, value, prefix=None):
 
 """ % (path, key, value))
     reg_file.close()
-    wineexec('regedit', args=reg_path, prefix=prefix)
+    wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
     os.remove(reg_path)
 
 
-def create_prefix(prefix, arch='win32'):
+def create_prefix(prefix, wine_path='wineboot', arch='win32'):
     """Create a new wineprefix"""
-    wineexec('', prefix=prefix, wine_path='wineboot', arch=arch)
+    wineexec('', prefix=prefix, wine_path=wine_path, arch=arch)
 
 
 def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
@@ -126,7 +126,7 @@ class wine(Runner):
         }
     ]
 
-    def __init__(self, settings=None):
+    def __init__(self, config=None):
         super(wine, self).__init__()
         self.wineprefix = None
         wine_versions = \
@@ -210,7 +210,8 @@ class wine(Runner):
                 'choices': desktop_choices
             }
         ]
-        self.settings = settings or {}
+        self.config = config or {}
+        self.settings = self.config  # DEPRECATED
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
             "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
@@ -228,10 +229,10 @@ class wine(Runner):
         # If the game path has been set by the play() method, always return that
         if hasattr(self, 'game_path'):
             return self.game_path
-        prefix = self.settings['game'].get('prefix')
+        prefix = self.config['game'].get('prefix')
         if prefix and prioritize_prefix:
             return prefix
-        game_exe = self.settings['game'].get('exe')
+        game_exe = self.config['game'].get('exe')
         if game_exe:
             exe_path = os.path.dirname(game_exe)
             if os.path.isabs(exe_path):
@@ -271,8 +272,8 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
-        arch = self.settings['game'].get('arch') or 'auto'
-        prefix = self.settings['game'].get('prefix') or ''
+        arch = self.config['game'].get('arch') or 'auto'
+        prefix = self.config['game'].get('prefix') or ''
         if arch not in ('win32', 'win64'):
             arch = detect_prefix_arch(prefix)
         return arch
@@ -343,18 +344,20 @@ class wine(Runner):
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
+        prefix = self.config['game'].get('prefix') or ''
         for key in self.reg_keys.keys():
             if key in self.runner_config:
-                set_regedit(self.reg_keys[key], key, self.runner_config[key])
+                set_regedit(self.reg_keys[key], key, self.runner_config[key],
+                            self.get_executable(), prefix)
 
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)
 
     def play(self):
-        prefix = self.settings['game'].get('prefix') or ''
+        prefix = self.config['game'].get('prefix') or ''
         arch = self.wine_arch
-        game_exe = self.settings['game'].get('exe')
-        arguments = self.settings['game'].get('args') or ''
+        game_exe = self.config['game'].get('exe')
+        arguments = self.config['game'].get('args') or ''
 
         command = ['WINEARCH=%s' % arch]
         if os.path.exists(prefix):
@@ -380,7 +383,7 @@ class wine(Runner):
         """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
-        command = os.path.join(wine_root, wine_root, "wineserver") + " -k"
+        command = os.path.join(wine_root, "wineserver") + " -k"
         if self.wineprefix:
             command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
         logger.debug("Killing all wine processes: %s" % command)
