@@ -85,6 +85,12 @@ def read_yaml_from_file(filename):
     return yaml_content
 
 
+def write_yaml_to_file(filepath, config):
+    yaml_config = yaml.dump(config, default_flow_style=False)
+    with open(filepath, "w") as filehandler:
+        filehandler.write(yaml_config)
+
+
 class LutrisConfig(object):
     """Class where all the configuration handling happens.
 
@@ -209,24 +215,19 @@ class LutrisConfig(object):
         return "runner" in self.game_config
 
     def save(self):
-        """ Save configuration file according to self.config_type """
-        self.update_global_config()
-        logging.debug("Saving config: %s", self.config)
-        yaml_config = yaml.dump(self.config, default_flow_style=False)
-
+        """Save configuration file according to its type"""
         if self.config_type == "system":
-            self.write_to_disk(self.system_config_path, yaml_config)
+            config = self.system_config
+            config_path = self.system_config_path
         elif self.config_type == "runner":
-            self.write_to_disk(self.runner_config_path, yaml_config)
+            config = self.runner_config
+            config_path = self.runner_config_path
         elif self.config_type == "game":
-            self.game = slugify(self.config['realname'])
-            self.write_to_disk(self.game_config_path, yaml_config)
+            config = self.game_config
+            config_path = self.game_config_path
         else:
             raise ValueError("Invalid config_type '%s'" % self.config_type)
-
-    def write_to_disk(self, filepath, content):
-        with open(filepath, "w") as filehandler:
-            filehandler.write(content)
+        write_yaml_to_file(config_path, config)
 
     def get_path(self, default=None):
         """Get the path to install games for a given runner.
