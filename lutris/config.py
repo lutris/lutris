@@ -74,7 +74,7 @@ def check_config(force_wipe=False):
 
 def read_yaml_from_file(filename):
     """Read filename and return parsed yaml"""
-    if not os.path.exists(filename):
+    if not filename or not os.path.exists(filename):
         return {}
     try:
         content = file(filename, 'r').read()
@@ -116,21 +116,28 @@ class LutrisConfig(object):
         else:
             self.config_type = "system"
 
-        # Read system configuration
-        system_config_path = join(CONFIG_DIR, "system.yml")
-        self.system_config = read_yaml_from_file(system_config_path)
-
-        if runner:
-            runner_config_path = join(CONFIG_DIR, "runners/%s.yml" % runner)
-            self.runner_config = read_yaml_from_file(runner_config_path)
-        else:
-            self.runner_config = {}
-
-        if game:
-            game_config_path = join(CONFIG_DIR, "games/%s.yml" % self.game)
-            self.game_config = read_yaml_from_file(game_config_path)
+        self.game_config = read_yaml_from_file(self.game_config_path)
+        if self.game:
             self.runner = self.game_config.get("runner")
+        self.runner_config = read_yaml_from_file(self.runner_config_path)
+        self.system_config = read_yaml_from_file(self.system_config_path)
         self.update_global_config()
+
+    @property
+    def system_config_path(self):
+        return os.path.join(CONFIG_DIR, "system.yml")
+
+    @property
+    def runner_config_path(self):
+        if not self.runner:
+            return
+        return os.path.join(CONFIG_DIR, "runners/%s.yml" % self.runner)
+
+    @property
+    def game_config_path(self):
+        if not self.game:
+            return
+        return os.path.join(CONFIG_DIR, "games/%s.yml" % self.game)
 
     def __str__(self):
         return str(self.config)
@@ -162,10 +169,6 @@ class LutrisConfig(object):
     def get(self, key, default=None):
         return self.__getitem__(key, default)
 
-    @property
-    def game_config_file(self):
-        return join(CONFIG_DIR, "games/%s.yml" % self.game)
-
     def update_global_config(self):
         """Update the global config dict."""
         for key in self.system_config.keys():
@@ -196,10 +199,10 @@ class LutrisConfig(object):
         if game is None:
             game = self.game
         logging.debug("removing config for %s", game)
-        if os.path.exists(self.game_config_file):
-            os.remove(self.game_config_file)
+        if os.path.exists(self.game_config_path):
+            os.remove(self.game_config_path)
         else:
-            logger.debug("No config file at %s" % self.game_config_file)
+            logger.debug("No config file at %s" % self.game_config_path)
 
     def is_valid(self):
         """Check the config data and return True if config is ok."""
@@ -212,16 +215,12 @@ class LutrisConfig(object):
         yaml_config = yaml.dump(self.config, default_flow_style=False)
 
         if self.config_type == "system":
-            filename = join(CONFIG_DIR, "system.yml")
-            self.write_to_disk(filename, yaml_config)
+            self.write_to_disk(self.system_config_path, yaml_config)
         elif self.config_type == "runner":
-            runner_config_path = join(CONFIG_DIR,
-                                      "runners/%s.yml" % self.runner)
-            self.write_to_disk(runner_config_path, yaml_config)
-
+            self.write_to_disk(self.runner_config_path, yaml_config)
         elif self.config_type == "game":
             self.game = slugify(self.config['realname'])
-            self.write_to_disk(self.game_config_file, yaml_config)
+            self.write_to_disk(self.game_config_path, yaml_config)
         else:
             raise ValueError("Invalid config_type '%s'" % self.config_type)
 
