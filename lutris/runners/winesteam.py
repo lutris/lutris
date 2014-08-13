@@ -68,8 +68,6 @@ class winesteam(wine.wine):
             'label': 'Prefix'
         }
     ]
-    runner_options = [
-    ]
 
     def __init__(self, config=None):
         super(winesteam, self).__init__(config)
@@ -98,7 +96,7 @@ class winesteam(wine.wine):
         """ Checks if wine is installed and if the steam executable is on the
             harddrive.
         """
-        if not self.check_depends():
+        if not self.check_depends() or not self.steam_path:
             return False
         return os.path.exists(self.steam_path)
 
