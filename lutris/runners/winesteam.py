@@ -69,12 +69,15 @@ class winesteam(wine.wine):
         }
     ]
     runner_options = [
-        {
+    ]
+
+    def __init__(self, config=None):
+        super(winesteam, self).__init__(config)
+        self.runner_options.insert(0, {
             'option': 'steam_path',
             'type': 'file',
             'label': 'Path to Steam.exe',
-        }
-    ]
+        })
 
     def install(self, installer_path=None):
         if installer_path:
