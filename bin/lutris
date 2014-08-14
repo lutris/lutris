@@ -22,7 +22,7 @@ import optparse
 import signal
 
 # pylint: disable=E0611
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from os.path import realpath, dirname, normpath
 
@@ -124,8 +124,10 @@ if game_slug or options.installer_file:
     else:
         logger.info("Installing %s", game_slug)
         InstallerDialog(options.installer_file or game_slug)
+        GObject.threads_init()
         Gtk.main()
 else:
     logger.debug("Welcome to Lutris")
     LutrisWindow()
+    GObject.threads_init()
     Gtk.main()
