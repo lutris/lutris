@@ -5,6 +5,7 @@ from lutris.config import LutrisConfig
 from lutris import pga
 import lutris.runners
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
+from lutris.util.strings import slugify
 
 
 class GameDialogCommon(object):
@@ -108,12 +109,12 @@ class GameDialogCommon(object):
     def on_save(self, _button):
         """OK button pressed in the Add Game Dialog."""
         name = self.name_entry.get_text()
-        self.lutris_config.config["realname"] = name
-        self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
             assert self.lutris_config.config_type == 'game'
             self.lutris_config.config_type = 'game'
+            self.lutris_config["realname"] = name
+            self.lutris_config["runner"] = self.runner_name
             self.lutris_config.save()
             self.slug = self.lutris_config.game
             runner_class = lutris.runners.import_runner(self.runner_name)
@@ -172,6 +173,11 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
         self.notebook.set_current_page(current_page)
+
+    def on_save(self, _button):
+        name = self.name_entry.get_text()
+        self.lutris_config.game = self.slug if self.slug else slugify(name)
+        super(AddGameDialog, self).on_save(_button)
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
