@@ -40,4 +40,4 @@ class vice(Runner):
         if self.runner_config.get("joy"):
             params += ["-joydev2", "4", "-joydev1", "5"]
         params.append("\"%s\"" % self.settings['game']['main_file'])
-        return {'command': [self.executable] + params}
+        return {'command': params}
