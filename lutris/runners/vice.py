@@ -33,7 +33,7 @@ class vice(Runner):
 
     def play(self):
         params = [self.executable]
-        if self.runner_config["fullscreen"]:
+        if self.runner_config.get("fullscreen"):
             params.append("-fullscreen")
         if self.runner_config.get("double"):
             params.append("-VICIIdsize")
