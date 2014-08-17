@@ -86,6 +86,8 @@ def read_yaml_from_file(filename):
 
 
 def write_yaml_to_file(filepath, config):
+    if not filepath:
+        raise ValueError('Missing filepath')
     yaml_config = yaml.dump(config, default_flow_style=False)
     with open(filepath, "w") as filehandler:
         filehandler.write(yaml_config)
@@ -224,10 +226,12 @@ class LutrisConfig(object):
             config_path = self.runner_config_path
         elif self.config_type == "game":
             config = self.game_config
+            self.game = slugify(self.config['realname'])
             config_path = self.game_config_path
         else:
             raise ValueError("Invalid config_type '%s'" % self.config_type)
         write_yaml_to_file(config_path, config)
+        self.update_global_config()
 
     def get_path(self, default=None):
         """Get the path to install games for a given runner.

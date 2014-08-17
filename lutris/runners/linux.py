@@ -30,24 +30,24 @@ class linux(Runner):
         }
     ]
 
-    def __init__(self, settings=None):
+    def __init__(self, config=None):
         super(linux, self).__init__()
         self.platform = "Linux games"
         self.ld_preload = None
         self.game_path = None
-        self.settings = settings
+        self.config = config
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
     def get_game_path(self):
-        return os.path.dirname(self.settings['game']['exe'])
+        return os.path.dirname(self.config['game']['exe'])
 
     def play(self):
         """ Run native game. """
         launch_info = {}
-        game_config = self.settings.get('game')
+        game_config = self.config.get('game')
         executable = game_config.get("exe")
         if not os.path.exists(executable):
             return {'error': 'FILE_NOT_FOUND', 'file': executable}
