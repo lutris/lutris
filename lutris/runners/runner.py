@@ -86,7 +86,7 @@ class Runner(object):
     @property
     def default_path(self):
         """Return the default path where games are installed."""
-        return self.system_config.get("system", {}).get('game_path')
+        return self.system_config.get('game_path')
 
     @property
     def browse_dir(self):

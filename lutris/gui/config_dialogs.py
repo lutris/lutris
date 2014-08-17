@@ -7,6 +7,7 @@ from lutris.game import Game
 from lutris import pga
 import lutris.runners
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
+from lutris.util.strings import slugify
 
 
 class GameDialogCommon(object):
@@ -176,6 +177,11 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.build_runner_tab()
         self.build_system_tab()
         self.notebook.set_current_page(current_page)
+
+    def on_save(self, _button):
+        name = self.name_entry.get_text()
+        self.lutris_config.game = self.slug if self.slug else slugify(name)
+        super(AddGameDialog, self).on_save(_button)
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
