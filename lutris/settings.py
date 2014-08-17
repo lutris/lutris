@@ -16,6 +16,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
 RUNNER_DIR = os.path.join(DATA_DIR, "runners")
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
+GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, 'games')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
 BANNER_PATH = os.path.join(DATA_DIR, 'banners')
