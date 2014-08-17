@@ -40,7 +40,7 @@ class Game(object):
         self.runner = None
         self.game_thread = None
         self.heartbeat = None
-        self.game_config = None
+        self.config = None
 
         game_data = pga.get_game_by_slug(slug)
         self.runner_name = game_data.get('runner') or ''
@@ -70,17 +70,13 @@ class Game(object):
             path = self.runner.browse_dir
         return path
 
-    def get_runner(self):
-        """Return the runner's name."""
-        return self.game_config['runner']
-
     def load_config(self):
         """Load the game's configuration."""
-        self.game_config = LutrisConfig(game=self.slug)
+        self.config = LutrisConfig(game=self.slug)
         if self.is_installed:
             runner_class = import_runner(self.runner_name)
             if runner_class:
-                self.runner = runner_class(self.game_config)
+                self.runner = runner_class(self.config)
             else:
                 logger.error("Unable to import runner %s", self.runner_name)
 
@@ -92,7 +88,7 @@ class Game(object):
             pga.delete_game(self.slug)
         else:
             pga.set_uninstalled(self.slug)
-        self.game_config.remove()
+        self.config.remove()
 
     def prelaunch(self):
         """Verify that the current game can be launched."""

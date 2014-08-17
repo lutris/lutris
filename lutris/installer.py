@@ -327,8 +327,6 @@ class ScriptInterpreter(object):
         runner_name = self.script['runner']
         config = {
             'game': {},
-            'realname': self.script['name'],
-            'runner': runner_name
         }
         pga.add_or_update(self.script['name'], runner_name,
                           slug=self.game_slug,
