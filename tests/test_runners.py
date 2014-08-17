@@ -35,6 +35,8 @@ class ImportRunnerTest(TestCase):
 
     def test_get_system_config(self):
         def fake_yaml_reader(path):
+            if not path:
+                return {}
             if 'system.yml' in path:
                 return {'system': {'resolution': '640x480'}}
             return {}
@@ -47,6 +49,8 @@ class ImportRunnerTest(TestCase):
 
     def test_runner_config_overrides_system_config(self):
         def fake_yaml_reader(path):
+            if not path:
+                return {}
             if 'system.yml' in path:
                 return {'resolution': '640x480'}
             if 'wine.yml' in path:
@@ -61,6 +65,8 @@ class ImportRunnerTest(TestCase):
 
     def test_game_config_overrides_all(self):
         def fake_yaml_reader(path):
+            if not path:
+                return {}
             if 'system.yml' in path:
                 return {'system': {'resolution': '640x480'}}
             if 'wine.yml' in path:
@@ -78,6 +84,8 @@ class ImportRunnerTest(TestCase):
 
     def test_system_config_with_no_system_yml(self):
         def fake_yaml_reader(path):
+            if not path:
+                return {}
             if 'system.yml' in path:
                 return {}
             if 'wine.yml' in path:
