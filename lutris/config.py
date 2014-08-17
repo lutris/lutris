@@ -109,7 +109,7 @@ class LutrisConfig(object):
         self.runner_config = {}
         self.system_config = {}
 
-        self.game = None
+        self.game = None  # This is actually a game *slug*
         self.runner = None
 
         # By default config type is system, it can also be runner and game
@@ -198,10 +198,6 @@ class LutrisConfig(object):
             else:
                 self.config[key] = self.game_config[key]
 
-    def get_name(self):
-        """Return name of game"""
-        return self.config["realname"]
-
     def remove(self, game=None):
         """Delete the configuration file from disk."""
         if game is None:
@@ -222,7 +218,6 @@ class LutrisConfig(object):
             config_path = self.runner_config_path
         elif self.config_type == "game":
             config = self.game_config
-            self.game = slugify(self.config['realname'])
             config_path = self.game_config_path
         else:
             raise ValueError("Invalid config_type '%s'" % self.config_type)

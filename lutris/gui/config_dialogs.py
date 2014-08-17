@@ -2,6 +2,8 @@
 from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
+from lutris.util.strings import slugify
+from lutris.game import Game
 from lutris import pga
 import lutris.runners
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
@@ -71,7 +73,9 @@ class GameDialogCommon(object):
             self.game_box = GameBox(self.lutris_config, "game", self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
-            self.game_box = GameBox(self.lutris_config, "game")
+            game = Game(None)
+            game.runner_name = self.runner_name
+            self.game_box = GameBox(self.lutris_config, "game", game)
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
@@ -80,7 +84,8 @@ class GameDialogCommon(object):
 
     def build_runner_tab(self):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config, "game")
+            self.runner_box = RunnerBox(self.lutris_config, "game",
+                                        self.runner_name)
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
@@ -108,11 +113,10 @@ class GameDialogCommon(object):
     def on_save(self, _button):
         """OK button pressed in the Add Game Dialog."""
         name = self.name_entry.get_text()
-        self.lutris_config.config["realname"] = name
-        self.lutris_config.config["runner"] = self.runner_name
-
         if self.runner_name and name:
             self.lutris_config.config_type = 'game'
+            if not self.lutris_config.game:
+                self.lutris_config.game = slugify(name)
             self.lutris_config.save()
             self.slug = self.lutris_config.game
             runner_class = lutris.runners.import_runner(self.runner_name)
@@ -132,15 +136,15 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.lutris_config = LutrisConfig()
         self.game = game
 
-        self.runner_name = None
-
         self.set_title("Add a new game")
         self.set_size_request(600, 500)
         if game:
             name = game.name
+            self.runner_name = game.runner_name
             self.slug = game.slug
         else:
             name = None
+            self.runner_name = None
             self.slug = None
         self.build_name_entry(name)
         self.build_runner_dropdown()
@@ -165,6 +169,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
             self.lutris_config = LutrisConfig()
         else:
             self.runner_name = widget.get_model()[runner_index][1]
+            # XXX DANGER ZONE
             self.lutris_config = LutrisConfig(runner=self.runner_name)
 
         self.build_game_tab()
@@ -179,9 +184,10 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         super(EditGameConfigDialog, self).__init__()
         self.parent_window = parent
         self.game = game
-        self.lutris_config = LutrisConfig(game=game)
-        self.runner_name = self.lutris_config.runner
-        game_name = self.lutris_config.config.get("realname", game)
+        self.lutris_config = game.config
+        self.runner_name = game.runner_name
+        game_name = game.name
+
         self.set_title("Edit game configuration for %s" % game_name)
         self.set_size_request(500, 550)
 
@@ -203,7 +209,7 @@ class RunnerConfigDialog(Gtk.Dialog):
         runner_name = runner.__class__.__name__
         self.set_title("Configure %s" % runner_name)
         self.set_size_request(570, 500)
-        self.runner = runner_name
+        self.runner_name = runner_name
         self.lutris_config = LutrisConfig(runner=runner_name)
 
         # Notebook for choosing between runner and system configuration
@@ -211,7 +217,8 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.vbox.pack_start(self.notebook, True, True, 0)
 
         # Runner configuration
-        self.runner_config_vbox = RunnerBox(self.lutris_config, "runner")
+        self.runner_config_vbox = RunnerBox(self.lutris_config, "runner",
+                                            self.runner_name)
         runner_scrollwindow = Gtk.ScrolledWindow()
         runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
                                        Gtk.PolicyType.AUTOMATIC)
@@ -243,7 +250,6 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.destroy()
 
     def ok_clicked(self, _wigdet):
-        assert self.lutris_config.config_type == 'runner'
         self.lutris_config.config_type = "runner"
         self.lutris_config.save()
         self.destroy()

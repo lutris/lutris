@@ -1,10 +1,10 @@
 """Widget generators and their signal handlers"""
 import os
 from gi.repository import Gtk, GObject, Gdk
+from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris import sysoptions
 from lutris.game import Game
-from lutris.util.log import logger
 
 PADDING = 5
 
@@ -308,24 +308,24 @@ class ConfigBox(Gtk.VBox):
 
 
 class GameBox(ConfigBox):
-    def __init__(self, lutris_config, caller, game=None):
+    def __init__(self, lutris_config, caller, game):
         ConfigBox.__init__(self, "game", caller, game)
         self.lutris_config = lutris_config
         self.lutris_config.config_type = "game"
-        self.runner_class = self.lutris_config.runner
-        if self.runner_class:
-            runner = import_runner(self.runner_class)()
+        if game.runner_name:
+            self.runner_name = game.runner_name
+            runner = import_runner(self.runner_name)()
             self.options = runner.game_options
         else:
+            logger.warning("No runner in game supplied to GameBox")
             self.options = []
         self.generate_widgets()
 
 
 class RunnerBox(ConfigBox):
-    def __init__(self, lutris_config, caller):
-        runner_classname = lutris_config.runner
-        ConfigBox.__init__(self, runner_classname, caller)
-        runner = import_runner(runner_classname)()
+    def __init__(self, lutris_config, caller, runner_name):
+        ConfigBox.__init__(self, runner_name, caller)
+        runner = import_runner(runner_name)()
 
         self.options = runner.runner_options
         self.lutris_config = lutris_config
