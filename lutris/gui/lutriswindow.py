@@ -288,14 +288,14 @@ class LutrisWindow(object):
 
     def on_game_clicked(self, *args):
         """Launch a game."""
+        # Wait two seconds to avoid running a game twice
+        if time.time() - self.game_launch_time < 2:
+            return
+        self.game_launch_time = time.time()
         game_slug = self.view.selected_game
         if game_slug:
             self.running_game = Game(game_slug)
             if self.running_game.is_installed:
-                # Wait two seconds to avoid running a game twice
-                if time.time() - self.game_launch_time < 2:
-                    return
-                self.game_launch_time = time.time()
                 self.stop_button.set_sensitive(True)
                 self.running_game.play()
             else:
