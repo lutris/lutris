@@ -67,12 +67,17 @@ class snes9x(Runner):
             return super(snes9x, self).is_installed()
 
     def set_option(self, option, value):
-        config_file = os.path.join(os.path.expanduser("~"),
-                                   ".snes9x/snes9x.xml")
+        config_file = os.path.expanduser("~/.snes9x/snes9x.xml")
+        lib_path = os.path.join(SNES9X_DIR, "lib")
         if not os.path.exists(config_file):
-            logger.debug("Creating new config file")
-            subprocess.Popen(" ".join(self.get_executable()) + " -help",
-                             shell=True)
+            subprocess.Popen(
+                "LD_LIBRARY_PATH=%s \"%s\" -help " % (
+                    lib_path, self.get_executable()
+                ), shell=True
+            )
+        if not os.path.exists(config_file):
+            logger.error("Snes9x config file creation failed")
+            return
         tree = etree.parse(config_file)
         node = tree.find("./preferences/option[@name='%s']" % option)
         if value.__class__.__name__ == "bool":
