@@ -112,7 +112,6 @@ class GameDialogCommon(object):
         self.lutris_config.config["runner"] = self.runner_name
 
         if self.runner_name and name:
-            assert self.lutris_config.config_type == 'game'
             self.lutris_config.config_type = 'game'
             self.lutris_config.save()
             self.slug = self.lutris_config.game
