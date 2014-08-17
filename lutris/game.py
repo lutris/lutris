@@ -76,11 +76,13 @@ class Game(object):
 
     def load_config(self):
         """Load the game's configuration."""
-        self.game_config = LutrisConfig(runner=self.runner_name, game=self.slug)
-        if self.is_installed and self.game_config.is_valid():
+        self.game_config = LutrisConfig(game=self.slug)
+        if self.is_installed:
             runner_class = import_runner(self.runner_name)
             if runner_class:
                 self.runner = runner_class(self.game_config)
+            else:
+                logger.error("Unable to import runner %s", self.runner_name)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
@@ -110,6 +112,9 @@ class Game(object):
 
     def play(self):
         """Launch the game."""
+        if not self.runner:
+            dialogs.ErrorDialog("Invalid game configuration: Missing runner")
+            return False
         if not self.prelaunch():
             return False
 

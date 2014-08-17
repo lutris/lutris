@@ -212,10 +212,6 @@ class LutrisConfig(object):
         else:
             logger.debug("No config file at %s" % self.game_config_path)
 
-    def is_valid(self):
-        """Check the config data and return True if config is ok."""
-        return "runner" in self.game_config
-
     def save(self):
         """Save configuration file according to its type"""
         if self.config_type == "system":
