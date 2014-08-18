@@ -48,9 +48,6 @@ class TestGameDialog(TestCase):
         exe_field = game_box.get_children()[0].get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
 
-        runner_dropdown.set_active(2)
-        self.assertEqual(dlg.lutris_config.runner, runners.__all__[1])
-
     def test_can_add_game(self):
         dlg = config_dialogs.AddGameDialog(None)
         name_entry = dlg.vbox.get_children()[0].get_children()[1]
