@@ -1,6 +1,7 @@
 import os
 from gi.repository import Gio
 from lutris.game import Game
+from lutris.config import check_config
 from lutris import settings
 from lutris import pga
 from lutris.gui import config_dialogs
@@ -21,9 +22,7 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
-        if not os.path.exists(settings.DATA_DIR):
-            os.makedirs(settings.DATA_DIR)
-        pga.syncdb()
+        check_config()
 
     def test_dialog(self):
         dlg = config_dialogs.AddGameDialog(None)
