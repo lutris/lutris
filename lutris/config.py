@@ -27,7 +27,6 @@ from gi.repository import Gio
 
 from lutris import pga
 from lutris.util.log import logger
-from lutris.util.strings import slugify
 from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR, ICON_PATH
 
 

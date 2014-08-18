@@ -20,6 +20,8 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
+        if not os.path.exists(settings.DATA_DIR):
+            os.makedirs(settings.DATA_DIR)
         pga.syncdb()
 
     def test_dialog(self):
