@@ -1,9 +1,14 @@
 import os
 from gi.repository import Gio
 from lutris.game import Game
+from lutris.config import check_config
+from lutris import settings
+from lutris import pga
 from lutris.gui import config_dialogs
 from unittest import TestCase
 from lutris import runners
+
+TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 
 
 class TestGameDialogCommon(TestCase):
@@ -16,6 +21,9 @@ class TestGameDialogCommon(TestCase):
 
 
 class TestGameDialog(TestCase):
+    def setUp(self):
+        check_config()
+
     def test_dialog(self):
         dlg = config_dialogs.AddGameDialog(None)
         self.assertEqual(dlg.notebook.get_current_page(), 0)
@@ -39,9 +47,6 @@ class TestGameDialog(TestCase):
         self.assertEqual(game_box.runner_name, runners.__all__[0])
         exe_field = game_box.get_children()[0].get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
-
-        runner_dropdown.set_active(2)
-        self.assertEqual(dlg.lutris_config.runner, runners.__all__[1])
 
     def test_can_add_game(self):
         dlg = config_dialogs.AddGameDialog(None)

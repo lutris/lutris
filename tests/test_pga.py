@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import unittest
 import os
 from sqlite3 import IntegrityError, OperationalError
