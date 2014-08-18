@@ -1,6 +1,7 @@
 import os
 from gi.repository import Gio
 from lutris.game import Game
+from lutris import settings
 from lutris import pga
 from lutris.gui import config_dialogs
 from unittest import TestCase
