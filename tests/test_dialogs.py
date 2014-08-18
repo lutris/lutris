@@ -9,18 +9,6 @@ from lutris import runners
 TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 
 
-class DatabaseTester(TestCase):
-    def setUp(self):
-        pga.PGA_DB = TEST_PGA_PATH
-        if os.path.exists(TEST_PGA_PATH):
-            os.remove(TEST_PGA_PATH)
-        pga.syncdb()
-
-    def tearDown(self):
-        if os.path.exists(TEST_PGA_PATH):
-            os.remove(TEST_PGA_PATH)
-
-
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
         dlg = config_dialogs.GameDialogCommon()
@@ -30,7 +18,10 @@ class TestGameDialogCommon(TestCase):
         self.assertEqual(list_store[1][1], runners.__all__[0])
 
 
-class TestGameDialog(DatabaseTester):
+class TestGameDialog(TestCase):
+    def setUp(self):
+        pga.syncdb()
+
     def test_dialog(self):
         dlg = config_dialogs.AddGameDialog(None)
         self.assertEqual(dlg.notebook.get_current_page(), 0)
