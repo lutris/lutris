@@ -443,17 +443,19 @@ class ScriptInterpreter(object):
         os.popen('chmod +x "%s"' % filename)
 
     def execute(self, data):
-        """Run an executable script"""
+        """Run an executable file"""
         if isinstance(data, dict):
-            exec_id = data['file']
+            file_ref = data['file']
             args = [self._substitute(arg)
                     for arg in data.get('args', '').split()]
         else:
-            exec_id = data
+            file_ref = data
             args = []
-        exec_path = self._get_file(exec_id)
+        # Determine whether 'file' value is a file id or a path
+        exec_path = self._get_file(file_ref) or self._substitute(file_ref)
         if not exec_path:
-            raise ScriptingError("Unable to find file %s" % exec_id, exec_id)
+            raise ScriptingError("Unable to find file %s" % file_ref,
+                                 file_ref)
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
