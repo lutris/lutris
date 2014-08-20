@@ -188,7 +188,7 @@ Executing a file
 ----------------
 
 Execute files with the ``execute`` directive. Use the ``args`` parameter to add
-command arguments, and ``file`` to reference a ``file id``.
+command arguments, and ``file`` to reference a ``file id`` or a path.
 
 Example:
 
