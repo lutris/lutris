@@ -19,6 +19,12 @@ class linux(Runner):
             "label": "Arguments"
         },
         {
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": "Working directory"
+        },
+
+        {
             "option": "ld_preload",
             "type": "file",
             "label": "Preload library"
@@ -53,6 +59,9 @@ class linux(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        option = self.settings['game'].get('working_dir')
+        if option:
+            return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
         else:
