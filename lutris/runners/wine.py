@@ -113,6 +113,12 @@ class wine(Runner):
             'label': 'Arguments'
         },
         {
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": "Working directory"
+        },
+
+        {
             'option': 'prefix',
             'type': 'directory_chooser',
             'label': 'Prefix'
@@ -247,6 +253,9 @@ class wine(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        option = self.config['game'].get('working_dir')
+        if option:
+            return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
         else:
