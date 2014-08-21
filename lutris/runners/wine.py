@@ -369,8 +369,10 @@ class wine(Runner):
     def play(self):
         prefix = self.config['game'].get('prefix') or ''
         arch = self.wine_arch
-        game_exe = self.config['game'].get('exe')
         arguments = self.config['game'].get('args') or ''
+
+        if not os.path.exists(self.game_exe):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         command = ['WINEARCH=%s' % arch]
         if os.path.exists(prefix):
@@ -379,7 +381,7 @@ class wine(Runner):
 
         self.prepare_launch()
         command.append(self.get_executable())
-        command.append("\"%s\"" % game_exe)
+        command.append('"%s"' % self.game_exe)
         if arguments:
             for arg in arguments.split():
                 command.append(arg)

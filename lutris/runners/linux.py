@@ -70,9 +70,9 @@ class linux(Runner):
         """ Run native game. """
         launch_info = {}
         game_config = self.config.get('game')
-        executable = game_config.get("exe")
-        if not os.path.exists(executable):
-            return {'error': 'FILE_NOT_FOUND', 'file': executable}
+
+        if not os.path.exists(self.game_exe):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         ld_preload = game_config.get('ld_preload')
         if ld_preload:
