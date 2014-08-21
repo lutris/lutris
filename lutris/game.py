@@ -64,11 +64,7 @@ class Game(object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        if os.path.exists(self.directory):
-            path = self.directory
-        else:
-            path = self.runner.browse_dir
-        return path
+        return self.runner.browse_dir
 
     def load_config(self):
         """Load the game's configuration."""
@@ -155,7 +151,7 @@ class Game(object):
 
         killswitch = system_config.get('killswitch')
         self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.get_game_path(),
+                                        path=self.runner.working_dir,
                                         killswitch=killswitch)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)

@@ -57,11 +57,17 @@ Presetting game parameters
 The ``game`` directive lets you preset game parameters and options. Available
 parameters depend on the runner:
 
-* linux: ``args`` (optional main executable command argument)
+* linux: ``args`` (optional command arguments), ``working_dir``
+ (optional working directory, defaults to the exe's dir).
 
-* wine / winesteam: ``args``, ``prefix`` (optional WINEPREFIX).
+* wine:  ``args``, ``prefix`` (optional Wine prefix), ``working_dir`` (optional
+ working directory, defaults to the exe's dir).
 
-[TODO: reference all options]
+* winesteam: ``args``, ``prefix`` (optional Wine prefix).
+
+[TODO: reference all options] Meanwhile, you can check the configuration window
+of any game using the runner you're writing for to get a list of the available
+options.
 
 Example:
 
@@ -188,7 +194,7 @@ Executing a file
 ----------------
 
 Execute files with the ``execute`` directive. Use the ``args`` parameter to add
-command arguments, and ``file`` to reference a ``file id``.
+command arguments, and ``file`` to reference a ``file id`` or a path.
 
 Example:
 
