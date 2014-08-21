@@ -34,7 +34,6 @@ class Runner(object):
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.game = None
         self.depends = None
         self.arch = get_arch()
         self.logger = logger
@@ -102,10 +101,6 @@ class Runner(object):
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
-
-    def load(self, game):
-        """Load a game"""
-        self.game = game
 
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
