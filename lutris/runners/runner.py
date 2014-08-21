@@ -96,10 +96,7 @@ class Runner(object):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if hasattr(self, 'game_path'):
-            return self.game_path
-        else:
-            return self.system_config.get('game_path')
+        return self.system_config.get('game_path')
 
     @property
     def machine(self):
@@ -150,10 +147,7 @@ class Runner(object):
 
     def get_game_path(self):
         """Return the directory where the game is installed."""
-        if hasattr(self, 'game_path'):
-            return self.game_path
-        else:
-            return self.system_config.get('game_path')
+        return self.system_config.get('game_path')
 
     def install(self):
         """Install runner using package management systems."""
