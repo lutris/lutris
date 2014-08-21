@@ -38,7 +38,7 @@ class linux(Runner):
     ]
 
     def __init__(self, config=None):
-        super(linux, self).__init__()
+        super(linux, self).__init__(config)
         self.platform = "Linux games"
         self.ld_preload = None
         self.config = config

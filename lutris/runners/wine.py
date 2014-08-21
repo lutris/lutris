@@ -135,7 +135,7 @@ class wine(Runner):
     ]
 
     def __init__(self, config=None):
-        super(wine, self).__init__()
+        super(wine, self).__init__(config)
         self.wineprefix = None
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \

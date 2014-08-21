@@ -4,6 +4,7 @@ import os
 import subprocess
 import platform
 
+from lutris import pga
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog, DownloadDialog
@@ -39,6 +40,9 @@ class Runner(object):
         self.logger = logger
         self.config = config or {}
         self.settings = self.config
+        self.game_data = None
+        if config:
+            self.game_data = pga.get_game_by_slug(self.config.game)
 
     @property
     def description(self):
@@ -142,7 +146,10 @@ class Runner(object):
 
     def get_game_path(self):
         """Return the directory where the game is installed."""
-        return self.system_config.get('game_path')
+        game_path = None
+        if self.game_data:
+            game_path = self.game_data.get('directory')
+        return game_path or self.system_config.get('game_path')
 
     def install(self):
         """Install runner using package management systems."""
