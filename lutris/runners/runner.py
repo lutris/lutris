@@ -96,7 +96,15 @@ class Runner(object):
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.get_game_path()
+        return self.game_path
+
+    @property
+    def game_path(self):
+        """Return the directory where the game is installed."""
+        game_path = None
+        if self.game_data:
+            game_path = self.game_data.get('directory')
+        return game_path or self.system_config.get('game_path')
 
     @property
     def working_dir(self):
@@ -158,13 +166,6 @@ class Runner(object):
         else:
             is_installed = True
         return is_installed
-
-    def get_game_path(self):
-        """Return the directory where the game is installed."""
-        game_path = None
-        if self.game_data:
-            game_path = self.game_data.get('directory')
-        return game_path or self.system_config.get('game_path')
 
     def install(self):
         """Install runner using package management systems."""

@@ -55,6 +55,10 @@ class scummvm(Runner):
         }
     ]
 
+    @property
+    def game_path(self):
+        return self.settings['game']['path']
+
     def install(self):
         self.download_and_extract("scummvm-1.6.0-i386.tar.gz")
 
@@ -64,9 +68,6 @@ class scummvm(Runner):
             return find_executable("scummvm")
         else:
             return scummvm_path
-
-    def get_game_path(self):
-        return self.settings['game']['path']
 
     def play(self):
         if self.runner_config.get("windowed"):

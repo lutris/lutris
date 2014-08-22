@@ -49,7 +49,7 @@ class linux(Runner):
         if exe:
             if os.path.isabs(exe):
                 return exe
-            return os.path.join(self.get_game_path(), exe)
+            return os.path.join(self.game_path, exe)
 
     @property
     def browse_dir(self):
