@@ -373,7 +373,6 @@ class LutrisWindow(object):
         """Edit game preferences."""
         game = Game(self.view.selected_game)
         if game.is_installed:
-            game = Game(self.view.selected_game)
             EditGameConfigDialog(self, game)
 
     def on_viewmenu_toggled(self, menuitem):
