@@ -124,10 +124,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkRadioMenuItem" id="iconview_menuitem">
+                      <object class="GtkRadioMenuItem" id="gridview_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Icons</property>
+                        <property name="label" translatable="yes">Grid</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -141,7 +141,7 @@
                         <property name="label" translatable="yes">List</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
-                        <property name="group">iconview_menuitem</property>
+                        <property name="group">gridview_menuitem</property>
                       </object>
                     </child>
                     <child>

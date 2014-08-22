@@ -124,9 +124,9 @@ class ContextualMenu(Gtk.Menu):
                                           event.button, event.time)
 
 
-class IconViewCellRenderer(Gtk.CellRendererText):
+class GridViewCellRenderer(Gtk.CellRendererText):
     def __init__(self, width=None, *args, **kwargs):
-        super(IconViewCellRenderer, self).__init__(*args, **kwargs)
+        super(GridViewCellRenderer, self).__init__(*args, **kwargs)
         self.props.alignment = Pango.Alignment.CENTER
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
@@ -198,7 +198,7 @@ class GameView(object):
             self.remove_row(row.iter)
 
     def remove_row(self, model_iter):
-        """Remove a game from the treeview."""
+        """Remove a game from the view."""
         store = self.game_store.store
         store.remove(model_iter)
 
@@ -224,7 +224,7 @@ class GameView(object):
             return
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
-            if type(view) is GameIconView and view.current_path:
+            if type(view) is GameGridView and view.current_path:
                 view.select_path(view.current_path)
         except ValueError:
             (_, path) = view.get_selection().get_selected()
@@ -234,7 +234,7 @@ class GameView(object):
             self.contextual_menu.popup(event, game_row)
 
 
-class GameTreeView(Gtk.TreeView, GameView):
+class GameListView(Gtk.TreeView, GameView):
     """Show the main list of games."""
     __gsignals__ = GameView.__gsignals__
 
@@ -244,7 +244,7 @@ class GameTreeView(Gtk.TreeView, GameView):
         self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter.sort_new_with_model()
-        super(GameTreeView, self).__init__(self.model)
+        super(GameListView, self).__init__(self.model)
         self.set_rules_hint(True)
 
         # Icon column
@@ -297,7 +297,7 @@ class GameTreeView(Gtk.TreeView, GameView):
             self.emit("game-selected")
 
 
-class GameIconView(Gtk.IconView, GameView):
+class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
     icon_padding = 1
 
@@ -307,15 +307,15 @@ class GameIconView(Gtk.IconView, GameView):
         self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=self.filter_text)
         self.model = self.game_store.modelfilter
-        super(GameIconView, self).__init__(model=self.model)
+        super(GameGridView, self).__init__(model=self.model)
         self.set_columns(1)
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.cell_width = BANNER_SIZE[0] if icon_type == "banner" \
             else BANNER_SMALL_SIZE[0]
-        iconview_cell_renderer = IconViewCellRenderer(width=self.cell_width)
-        self.pack_end(iconview_cell_renderer, False)
-        self.add_attribute(iconview_cell_renderer, 'markup', COL_NAME)
+        gridview_cell_renderer = GridViewCellRenderer(width=self.cell_width)
+        self.pack_end(gridview_cell_renderer, False)
+        self.add_attribute(gridview_cell_renderer, 'markup', COL_NAME)
         self.set_item_padding(self.icon_padding)
 
         self.connect('item-activated', self.on_item_activated)

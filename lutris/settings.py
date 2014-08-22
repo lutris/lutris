@@ -36,8 +36,8 @@ LIB64_URL = SITE_URL + "files/lib64/"
 
 # Default config options
 KEEP_CACHED_ASSETS = True
-GAME_VIEW = 'icon'
-ICON_TYPE_ICONVIEW = 'banner'
+GAME_VIEW = 'grid'
+ICON_TYPE_GRIDVIEW = 'banner'
 ICON_TYPE_LISTVIEW = 'icon'
 
 read_setting = sio.read_setting
