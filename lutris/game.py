@@ -5,7 +5,7 @@ import os
 import time
 import shutil
 
-from gi.repository import Gtk, GLib
+from gi.repository import GLib
 
 from lutris import pga
 from lutris.runners import import_runner
@@ -89,14 +89,9 @@ class Game(object):
     def prelaunch(self):
         """Verify that the current game can be launched."""
         if not self.runner.is_installed():
-            install_runner_dialog = dialogs.QuestionDialog({
-                'question': ("The required runner is not installed.\n"
-                             "Do you wish to install it now?"),
-                'title': "Required runner unavailable"
-            })
-            if Gtk.ResponseType.YES == install_runner_dialog.result:
-                self.runner.install()
-            return False
+            installed = self.runner.install_dialog()
+            if not installed:
+                return False
 
         if hasattr(self.runner, 'prelaunch'):
             return self.runner.prelaunch()
