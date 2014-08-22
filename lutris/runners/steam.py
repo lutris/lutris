@@ -44,6 +44,15 @@ class steam(Runner):
         }
     ]
 
+    @property
+    def browse_dir(self):
+        """Return the path to open with the Browse Files action."""
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        return self.get_game_path()
+
     def get_game_path(self):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):

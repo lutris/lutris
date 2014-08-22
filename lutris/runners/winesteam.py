@@ -77,6 +77,15 @@ class winesteam(wine.wine):
             'label': 'Path to Steam.exe',
         })
 
+    @property
+    def browse_dir(self):
+        """Return the path to open with the Browse Files action."""
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        return self.get_game_path()
+
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
