@@ -51,9 +51,10 @@ class steam(Runner):
             installed = self.install_dialog()
             if not installed:
                 return False
-        return self.get_game_path()
+        return self.game_path
 
-    def get_game_path(self):
+    @property
+    def game_path(self):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
@@ -108,7 +109,7 @@ class steam(Runner):
         logger.debug("Installing steam game %s", appid)
         acf_data = get_default_acf(appid, appid)
         acf_content = to_vdf(acf_data)
-        acf_path = os.path.join(self.get_game_path(), "SteamApps",
+        acf_path = os.path.join(self.game_path, "SteamApps",
                                 "appmanifest_%s.acf" % appid)
         with open(acf_path, "w") as acf_file:
             acf_file.write(acf_content)

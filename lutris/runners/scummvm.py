@@ -59,15 +59,16 @@ class scummvm(Runner):
         'x64': "scummvm-1.7.0-x86_64.tar.gz",
     }
 
+    @property
+    def game_path(self):
+        return self.settings['game']['path']
+
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
 
     def get_scummvm_data_dir(self):
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
         return os.path.join(root_dir, 'share/scummvm')
-
-    def get_game_path(self):
-        return self.settings['game']['path']
 
     def play(self):
         command = [

@@ -46,7 +46,16 @@ class desura(Runner):
             installed = self.install_dialog()
             if not installed:
                 return False
-        return self.get_game_path()
+        return self.game_path
+
+    @property
+    def game_path(self):
+        """Return game dir or Desura's main dir"""
+        appid = self.settings.get("game").get("appid")
+        if os.path.exists(self.get_installed_app_path(appid)):
+            return self.get_installed_app_path(appid)
+        if os.path.exists(self.get_common_path()):
+            return self.get_common_path()
 
     def get_desura_url(self, action, section, appid):
         """Return link for Desura game"""
@@ -70,14 +79,6 @@ class desura(Runner):
 
     def get_installed_app_path(self, appid):
         return os.path.join(self.get_common_path(), appid)
-
-    def get_game_path(self):
-        """Return game dir or Desura's main dir"""
-        appid = self.settings.get("game").get("appid")
-        if os.path.exists(self.get_installed_app_path(appid)):
-            return self.get_installed_app_path(appid)
-        if os.path.exists(self.get_common_path()):
-            return self.get_common_path()
 
     def install(self):
         self.logger.debug("Installing desura")
