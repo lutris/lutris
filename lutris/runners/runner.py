@@ -191,6 +191,9 @@ class Runner(object):
         source_url = opts.get('source_url', settings.RUNNERS_URL)
         dialog = DownloadDialog(source_url + tarball, runner_archive)
         dialog.run()
-
+        if not os.path.exists(runner_archive):
+            logger.error("Can't find %s, aborting install", runner_archive)
+            ErrorDialog("Installation aborted")
+            return
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
