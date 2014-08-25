@@ -140,7 +140,7 @@ class Game(object):
             self.desktop.hide_panels()
 
         oss_wrapper = system_config.get("oss_wrapper")
-        if oss_wrapper:
+        if audio.get_oss_wrapper(oss_wrapper):
             launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))
 
         ld_preload = gameplay_info.get('ld_preload')
