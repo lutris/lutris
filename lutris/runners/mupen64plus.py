@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
 class mupen64plus(Runner):
     """Nintendo 64 emulator"""
-    package = 'mupen64plus'
-    executable = 'mupen64plus'
     platform = "Nintendo 64"
     game_options = [{
         'option': 'main_file',
@@ -27,9 +26,19 @@ class mupen64plus(Runner):
             'default': True
         }
     ]
+    tarballs = {
+        'i386': 'mupen64plus-bundle-linux32-2.0.tar.gz',
+        'x64': 'mupen64plus-bundle-linux64-2.0-ubuntu.tar.gz',
+    }
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'mupen64plus/mupen64plus')
+
+    def get_game_path(self):
+        return os.path.join(settings.RUNNER_DIR, 'mupen64plus')
 
     def play(self):
-        arguments = [self.executable]
+        arguments = [self.get_executable()]
         if self.runner_config.get('nogui'):
             arguments.append('--nogui')
         if self.runner_config.get('fullscreen'):

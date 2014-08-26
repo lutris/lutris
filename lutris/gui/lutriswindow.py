@@ -26,16 +26,16 @@ from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
 from lutris.gui.widgets import (
-    GameTreeView, GameIconView, ContextualMenu
+    GameListView, GameGridView, ContextualMenu
 )
 
 
 def load_view(view, games=[], filter_text=None, icon_type=None):
-    if view == 'icon':
-        view = GameIconView(games, filter_text=filter_text,
+    if view == 'grid':
+        view = GameGridView(games, filter_text=filter_text,
                             icon_type=icon_type)
     elif view == 'list':
-        view = GameTreeView(games, filter_text=filter_text,
+        view = GameListView(games, filter_text=filter_text,
                             icon_type=icon_type)
     return view
 
@@ -66,7 +66,7 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
-        view_type = settings.read_setting('view_type') or settings.GAME_VIEW
+        view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
         filter_installed_setting = settings.read_setting(
             'filter_installed'
@@ -85,13 +85,13 @@ class LutrisWindow(object):
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
         # View menu
-        self.icon_view_menuitem = self.builder.get_object("iconview_menuitem")
-        self.icon_view_menuitem.set_active(view_type == 'icon')
+        self.grid_view_menuitem = self.builder.get_object("gridview_menuitem")
+        self.grid_view_menuitem.set_active(view_type == 'grid')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
         self.list_view_menuitem.set_active(view_type == 'list')
         # View buttons
-        self.icon_view_btn = self.builder.get_object('switch_grid_view_btn')
-        self.icon_view_btn.set_active(view_type == 'icon')
+        self.grid_view_btn = self.builder.get_object('switch_grid_view_btn')
+        self.grid_view_btn.set_active(view_type == 'grid')
         self.list_view_btn = self.builder.get_object('switch_list_view_btn')
         self.list_view_btn.set_active(view_type == 'list')
         # Icon type menu
@@ -101,7 +101,7 @@ class LutrisWindow(object):
         self.banner_menuitem = self.builder.get_object('banner_menuitem')
         self.banner_menuitem.set_active(self.icon_type == 'banner')
         self.icon_menuitem = self.builder.get_object('icon_menuitem')
-        self.icon_menuitem.set_active(self.icon_type == 'icon')
+        self.icon_menuitem.set_active(self.icon_type == 'grid')
 
         self.search_entry = self.builder.get_object('search_entry')
 
@@ -157,8 +157,8 @@ class LutrisWindow(object):
 
     @property
     def current_view_type(self):
-        return 'icon' \
-            if self.view.__class__.__name__ == "GameIconView" \
+        return 'grid' \
+            if self.view.__class__.__name__ == "GameGridView" \
             else 'list'
 
     def switch_splash_screen(self):
@@ -183,14 +183,20 @@ class LutrisWindow(object):
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.get_size)
 
+    def get_view_type(self):
+        view_type = settings.read_setting('view_type')
+        if view_type in ['grid', 'list']:
+            return view_type
+        return settings.GAME_VIEW
+
     def get_icon_type(self, view_type):
         """Return the icon style depending on the type of view."""
-        if view_type == 'icon':
-            icon_type = settings.read_setting('icon_type_iconview')
-            default = settings.ICON_TYPE_ICONVIEW
-        elif view_type == 'list':
+        if view_type == 'list':
             icon_type = settings.read_setting('icon_type_listview')
             default = settings.ICON_TYPE_LISTVIEW
+        else:
+            icon_type = settings.read_setting('icon_type_gridview')
+            default = settings.ICON_TYPE_GRIDVIEW
         if icon_type not in ("banner_small", "banner", "icon"):
             icon_type = default
         return icon_type
@@ -249,7 +255,7 @@ class LutrisWindow(object):
 
     def on_destroy(self, *args):
         """Signal for window close."""
-        view_type = 'icon' if 'IconView' in str(type(self.view)) else 'list'
+        view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
         settings.write_setting('view_type', view_type)
         width, height = self.window_size
         settings.write_setting('width', width)
@@ -373,27 +379,26 @@ class LutrisWindow(object):
         """Edit game preferences."""
         game = Game(self.view.selected_game)
         if game.is_installed:
-            game = Game(self.view.selected_game)
             EditGameConfigDialog(self, game)
 
     def on_viewmenu_toggled(self, menuitem):
-        view_type = 'icon' if menuitem.get_active() else 'list'
+        view_type = 'grid' if menuitem.get_active() else 'list'
         if view_type == self.current_view_type:
             return
         self.switch_view(view_type)
-        self.icon_view_btn.set_active(view_type == 'icon')
+        self.grid_view_btn.set_active(view_type == 'grid')
         self.list_view_btn.set_active(view_type == 'list')
 
     def on_viewbtn_toggled(self, widget):
-        view_type = 'icon' if widget.get_active() else 'list'
+        view_type = 'grid' if widget.get_active() else 'list'
         if view_type == self.current_view_type:
             return
         self.switch_view(view_type)
-        self.icon_view_menuitem.set_active(view_type == 'icon')
+        self.grid_view_menuitem.set_active(view_type == 'grid')
         self.list_view_menuitem.set_active(view_type == 'list')
 
     def switch_view(self, view_type):
-        """Switche between icon view and list view."""
+        """Switch between grid view and list view."""
         logger.debug("Switching view")
         self.icon_type = self.get_icon_type(view_type)
         self.view.destroy()
@@ -421,8 +426,8 @@ class LutrisWindow(object):
         icon_type = menuitem.get_name()
         if icon_type == self.view.icon_type or not menuitem.get_active():
             return
-        if self.current_view_type == 'icon':
-            settings.write_setting('icon_type_iconview', icon_type)
+        if self.current_view_type == 'grid':
+            settings.write_setting('icon_type_gridview', icon_type)
         elif self.current_view_type == 'list':
             settings.write_setting('icon_type_listview', icon_type)
         self.switch_view(self.current_view_type)

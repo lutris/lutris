@@ -1,11 +1,13 @@
 import os
+import shutil
+from lutris import settings
+from lutris.config import LutrisConfig
+from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris.runners.runner import Runner
 
 
 class hatari(Runner):
     """Atari ST computers"""
-    package = "hatari"
-    executable = "hatari"
     platform = "Atari ST computers"
 
     game_options = [
@@ -67,8 +69,40 @@ class hatari(Runner):
         }
     ]
 
+    tarballs = {
+        "x64": "hatari-1.8.0-x86_64.tar.gz",
+    }
+
+    def install(self):
+        success = super(hatari, self).install()
+        if not success:
+            return False
+        config_path = os.path.expanduser('~/.hatari')
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
+        bios_path = os.path.expanduser('~/.hatari/bios')
+        if not os.path.exists(bios_path):
+            os.makedirs(bios_path)
+        dlg = QuestionDialog({
+            'question': "Do you want to select an Atari ST BIOS file?",
+            'title': "Use BIOS file?",
+        })
+        if dlg.result == dlg.YES:
+            bios_dlg = FileDialog("Select a BIOS file")
+            bios_filename = bios_dlg.filename
+            shutil.copy(bios_filename, bios_path)
+            bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
+            runner_config = LutrisConfig(runner='hatari')
+            runner_config.config_type = 'runner'
+            runner_config.runner_config = {'hatari': {'bios_file': bios_path}}
+            runner_config.save()
+        return True
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'hatari/bin/hatari')
+
     def play(self):
-        params = [self.executable]
+        params = [self.get_executable()]
         game_settings = self.settings['game'] or {}
         if self.runner_config.get("fullscreen"):
             params.append("--fullscreen")

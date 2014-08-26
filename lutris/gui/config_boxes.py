@@ -207,8 +207,7 @@ class ConfigBox(Gtk.VBox):
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
-                game = Game(self.game)
-                path = os.path.join(game.directory, path)
+                path = os.path.join(self.game.directory, path)
             file_chooser.unselect_all()
             file_chooser.select_filename(path)
         hbox.pack_start(Label(label), False, False, 20)
@@ -218,7 +217,6 @@ class ConfigBox(Gtk.VBox):
     def generate_directory_chooser(self, option_name, label, value=None):
         """Generates a file chooser button to select a directory"""
         hbox = Gtk.HBox()
-        Gtklabel = Label(label)
         directory_chooser = Gtk.FileChooserButton(
             title="Choose a directory for %s" % label
         )
@@ -227,7 +225,7 @@ class ConfigBox(Gtk.VBox):
             directory_chooser.set_current_folder(value)
         directory_chooser.connect("file-set", self.on_chooser_file_set,
                                   option_name)
-        hbox.pack_start(Gtklabel, False, False, 20)
+        hbox.pack_start(Label(label), False, False, 20)
         hbox.pack_start(directory_chooser, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
 
@@ -239,8 +237,7 @@ class ConfigBox(Gtk.VBox):
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         """ Generates a multiple file selector. """
         hbox = Gtk.HBox()
-        label = Label(label)
-        hbox.pack_start(label, False, False, PADDING)
+        hbox.pack_start(Label(label), False, False, 20)
         self.files_chooser_dialog = Gtk.FileChooserDialog(
             title="Select files",
             parent=self.get_parent_window(),
@@ -252,13 +249,13 @@ class ConfigBox(Gtk.VBox):
         files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
         files_chooser_button.connect('file-set', self.add_files_callback,
                                      option_name)
-        game_path = self.lutris_config.get_path(self.runner_class)
+        game_path = self.lutris_config.get_path(os.path.expanduser('~'))
         if game_path:
             files_chooser_button.set_current_folder(game_path)
         if value:
             files_chooser_button.set_filename(value[0])
 
-        hbox.pack_start(files_chooser_button, True, True, 0)
+        hbox.pack_start(files_chooser_button, True, True, 20)
         self.pack_start(hbox, False, True, PADDING)
         if value:
             if type(value) == str:

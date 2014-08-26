@@ -57,6 +57,9 @@ class ErrorDialog(Gtk.MessageDialog):
 
 class QuestionDialog(Gtk.MessageDialog):
     """ Asks a question. """
+    YES = Gtk.ResponseType.YES
+    NO = Gtk.ResponseType.NO
+
     def __init__(self, settings):
         super(QuestionDialog, self).__init__(
             message_type=Gtk.MessageType.QUESTION,

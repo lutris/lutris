@@ -124,10 +124,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkRadioMenuItem" id="iconview_menuitem">
+                      <object class="GtkRadioMenuItem" id="gridview_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Icons</property>
+                        <property name="label" translatable="yes">Grid</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -141,7 +141,7 @@
                         <property name="label" translatable="yes">List</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
-                        <property name="group">iconview_menuitem</property>
+                        <property name="group">gridview_menuitem</property>
                       </object>
                     </child>
                     <child>
@@ -349,7 +349,7 @@
               <object class="GtkToolButton" id="add_game_button">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Add game</property>
+                <property name="tooltip_text" translatable="yes">Manually add a game</property>
                 <property name="label" translatable="yes">Add Game</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-add</property>
@@ -419,15 +419,16 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkRadioButton" id="switch_list_view_btn">
+                      <object class="GtkRadioButton" id="switch_grid_view_btn">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="image">view_list_symbolic</property>
+                        <property name="tooltip_text" translatable="yes">Grid view</property>
+                        <property name="image">view_grid_symbolic</property>
                         <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
-                        <property name="group">switch_grid_view_btn</property>
+                        <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -436,15 +437,16 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="switch_grid_view_btn">
+                      <object class="GtkRadioButton" id="switch_list_view_btn">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="image">view_grid_symbolic</property>
+                        <property name="tooltip_text" translatable="yes">List view</property>
+                        <property name="image">view_list_symbolic</property>
                         <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
-                        <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
+                        <property name="group">switch_grid_view_btn</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
