@@ -1,6 +1,6 @@
 # -*- coding:Utf-8 -*-
 import os
-from gi.repository import Gtk, GObject, Gdk
+from gi.repository import Gtk, GObject
 
 import lutris.runners
 from lutris.util import datapath
