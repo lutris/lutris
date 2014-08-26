@@ -222,7 +222,18 @@ class GameView(object):
         self.game_store.filter_text = self.filter_text
         self.game_store.modelfilter.refilter()
 
+    def update_row(self, game):
+        """Update game informations.
+
+        :param dict game: Dict holding game details
+        """
+        row = self.get_row_by_slug(game['slug'])
+        if row:
+            row[COL_YEAR] = str(game['year'])
+            self.update_image(game['slug'], row[COL_INSTALLED])
+
     def update_image(self, game_slug, is_installed=False):
+        """Update game icon."""
         row = self.get_row_by_slug(game_slug)
         if row:
             game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_type,

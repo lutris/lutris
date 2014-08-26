@@ -151,6 +151,8 @@ def sync_game_details(local_slugs, caller=None):
                 local_game['name'], local_game['runner'], slug,
                 year=game['year'], updated=game['updated']
             )
+            caller.view.update_row(game)
+
             # Sync icons (TODO: Only update if icon actually updated)
             resources.download_icon(slug, 'banner', overwrite=True,
                                     callback=caller.on_image_downloaded)
