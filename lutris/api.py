@@ -4,11 +4,11 @@ import urllib
 import urllib2
 import socket
 
-from lutris.util.log import logger
 from lutris import settings
 from lutris import pga
 from lutris.util import http
 from lutris.util import resources
+from lutris.util.log import logger
 
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
@@ -74,6 +74,12 @@ def get_games(slugs):
 
 
 def sync(caller=None):
+    """Synchronize from remote to local library.
+
+    :param caller: The LutrisWindow object
+    :return: The synchronized games (slugs)
+    :rtype: set of strings
+    """
     logger.debug("Syncing game library")
     local_library = pga.get_games()
     local_slugs = set([game['slug'] for game in local_library])
@@ -87,6 +93,12 @@ def sync(caller=None):
 
 
 def sync_missing_games(local_slugs, caller=None):
+    """Get missing games in local library from remote library.
+
+    :param caller: The LutrisWindow object
+    :return: The slugs of the added games
+    :rtype: set
+    """
     # Get remote library
     remote_library = get_library()
     if not remote_library:
@@ -115,7 +127,12 @@ def sync_missing_games(local_slugs, caller=None):
 
 
 def sync_game_details(local_slugs, caller=None):
-    """Get missing local game details, return a set of updated games."""
+    """Get missing local game details,
+
+    :param caller: The LutrisWindow object
+    :return: The slugs of the updated games.
+    :rtype: set
+    """
     updated = set()
 
     # Get remote games
