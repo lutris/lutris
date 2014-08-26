@@ -144,6 +144,16 @@ def sync_game_details(local_slugs, caller=None):
         slug = game['slug']
         local_game = pga.get_game_by_slug(slug)
 
+        # Unpublished game => remove
+        # (TODO: dump this code after 0.3.5 is released.)
+        # (It's meant to cleanup existing local libraries)
+        # (from unpublished steam games.)
+        if not game['is_public'] and not local_game['installed']\
+           and not local_game['updated']:
+            logger.debug("Removing unpublished: %s" % slug)
+            pga.delete_game(slug)
+            if caller:
+                caller.on_game_deleted(slug, from_library=True)
         # Sync
         elif game['updated'] > local_game['updated']:
             logger.debug("Syncing details for %s" % slug)
