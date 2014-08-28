@@ -1,5 +1,6 @@
 import os
 import subprocess
+from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
@@ -7,7 +8,6 @@ from lutris.util.log import logger
 
 class mednafen(Runner):
     """Mednafen is a multi-system emulator, including NES, GB(A), PC Engine"""
-    executable = "mednafen"
     platform = (
         "Atari Lynx, GameBoy, GameBoy Color, "
         "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
@@ -42,12 +42,19 @@ class mednafen(Runner):
         }
     ]
 
+    tarballs = {
+        "x64": "mednafen-0.9.36.3-x86_64.tar.gz",
+    }
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'mednafen/bin/mednafen')
+
     def find_joysticks(self):
         """ Detect connected joysticks and return their ids """
         joy_ids = []
         if not self.is_installed:
             return []
-        output = subprocess.Popen(["mednafen", "dummy"],
+        output = subprocess.Popen([self.get_executable(), "dummy"],
                                   stdout=subprocess.PIPE).communicate()[0]
         ouput = output.split("\n")
         found = False
@@ -191,7 +198,7 @@ class mednafen(Runner):
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
-        command = [self.executable]
+        command = [self.get_executable()]
         for option in options:
             command.append(option)
         command.append("\"%s\"" % rom)
