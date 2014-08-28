@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
+from lutris import settings
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
@@ -13,8 +14,6 @@ def dosexec(config_file):
 
 class dosbox(Runner):
     """Runner for MS Dos games"""
-    package = "dosbox"
-    executable = "dosbox"
     platform = "MS DOS"
     description = "DOS Emulator"
     game_options = [
@@ -29,6 +28,13 @@ class dosbox(Runner):
             "label": "Configuration file"
         }
     ]
+
+    tarballs = {
+        "x64": "dosbox-0.74-x86_64.tar.gz ",
+    }
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def get_game_path(self):
         main_file = self.settings['game'].get('main_file') or ''
@@ -48,4 +54,4 @@ class dosbox(Runner):
             params = ["-conf", self.settings["game"]["config_file"]]
         else:
             params = []
-        return {'command': [self.executable] + params + exe}
+        return {'command': [self.get_executable()] + params + exe}
