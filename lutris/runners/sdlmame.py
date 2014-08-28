@@ -1,18 +1,18 @@
 import os
 import subprocess
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
 class sdlmame(Runner):
     """Runs arcade games with SDLMame"""
-    executable = "mame"
-    package = "mame"
     platform = "Arcade"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom file"
+            "label": "Rom file",
+            "default_path": "game_path",
         }
     ]
 
@@ -23,6 +23,13 @@ class sdlmame(Runner):
             "label": "Windowed"
         }
     ]
+
+    tarballs = {
+        "x64": "mame-0.154-x86_64.tar.gz",
+    }
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, "mame/mame")
 
     def play(self):
         options = []
@@ -37,10 +44,10 @@ class sdlmame(Runner):
             except OSError:
                 pass
             os.chdir(mameconfigdir)
-            subprocess.Popen([self.executable, "-createconfig"],
+            subprocess.Popen([self.get_executable(), "-createconfig"],
                              stdout=subprocess.PIPE)
             os.chdir(rompath)
-        return {'command': [self.executable,
+        return {'command': [self.get_executable(),
                             "-inipath", mameconfigdir,
                             "-skip_gameinfo",
                             "-rompath", "\"%s\"" % rompath,
