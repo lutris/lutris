@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.16.1 -->
 <interface>
-  <requires lib="gtk+" version="3.4"/>
+  <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
@@ -35,9 +35,10 @@
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <child>
-      <object class="GtkVBox" id="main_vbox">
+      <object class="GtkBox" id="main_box">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkMenuBar" id="main_menubar">
             <property name="visible">True</property>
@@ -411,7 +412,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="toolbutton2">
+              <object class="GtkToolItem" id="view_switcher_toolbutton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
