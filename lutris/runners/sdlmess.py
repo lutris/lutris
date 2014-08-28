@@ -1,10 +1,10 @@
 import os
+from lutris import settings
 from lutris.runners.runner import Runner
 
 
 class sdlmess(Runner):
     """ Multi-system (consoles and computers) emulator """
-    executable = 'mess'
     platform = 'multi-platform'
     game_options = [
         {
@@ -45,6 +45,13 @@ class sdlmess(Runner):
         }
     ]
 
+    tarballs = {
+        "x64": "mess-0.154-x86_64.tar.gz",
+    }
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, "mess/mess")
+
     def play(self):
         rompath = self.runner_config.get('rompath')
         if not os.path.exists(rompath):
@@ -56,7 +63,7 @@ class sdlmess(Runner):
         if not os.path.exists(rompath):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.settings['game'].get('device')
-        command = [self.executable,
+        command = [self.get_executable(),
                    '-rompath', "\"%s\"" % rompath, machine,
                    '-' + device, "\"%s\"" % rom]
         return {'command': command}
