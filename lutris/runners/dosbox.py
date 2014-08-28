@@ -30,7 +30,7 @@ class dosbox(Runner):
     ]
 
     tarballs = {
-        "x64": "dosbox-0.74-x86_64.tar.gz ",
+        "x64": "dosbox-0.74-x86_64.tar.gz",
     }
 
     def get_executable(self):
