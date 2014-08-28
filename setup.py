@@ -19,10 +19,7 @@
 import os
 import sys
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from distutils.core import setup
 
 from lutris.settings import VERSION
 
