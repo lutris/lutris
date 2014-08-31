@@ -28,7 +28,7 @@ class mednafen(Runner):
         },
         {
             "option": "machine",
-            "type": "one_choice",
+            "type": "choice",
             "label": "Machine type",
             "choices": machine_choices
         }

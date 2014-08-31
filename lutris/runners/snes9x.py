@@ -50,7 +50,7 @@ class snes9x(Runner):
         },
         {
             "option": "sound_driver",
-            "type": "one_choice",
+            "type": "choice",
             "label": "Sound driver",
             "choices": (("OSS", "0"), ("SDL", "1"), ("ALSA", "2")),
             "default": "1"
