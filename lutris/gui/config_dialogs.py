@@ -2,7 +2,6 @@
 from gi.repository import Gtk
 
 from lutris.config import LutrisConfig
-from lutris.util.strings import slugify
 from lutris.game import Game
 from lutris import pga
 import lutris.runners

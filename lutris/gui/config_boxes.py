@@ -4,7 +4,6 @@ from gi.repository import Gtk, GObject, Gdk
 from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris import sysoptions
-from lutris.game import Game
 
 PADDING = 5
 
