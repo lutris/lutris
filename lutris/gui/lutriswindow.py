@@ -237,9 +237,12 @@ class LutrisWindow(object):
         UninstallGameDialog(slug=selected_game, callback=self.on_game_deleted)
 
     def on_game_deleted(self, game_slug, from_library=False):
-        if from_library:
+        def do_remove_game():
             self.view.remove_game(game_slug)
             self.switch_splash_screen()
+
+        if from_library:
+            GLib.idle_add(do_remove_game)
         else:
             self.view.set_uninstalled(game_slug)
 
