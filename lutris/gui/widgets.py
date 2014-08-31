@@ -224,8 +224,11 @@ class GameView(object):
             return
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
-            if type(view) is GameGridView and view.current_path:
-                view.select_path(view.current_path)
+            if view.current_path:
+                if type(view) is GameGridView:
+                    view.select_path(view.current_path)
+                elif type(view) is GameListView:
+                    view.set_cursor(view.current_path[0])
         except ValueError:
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
