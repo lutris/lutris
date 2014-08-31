@@ -34,12 +34,12 @@ class vice(Runner):
             "type": "choice",
             "label": "Machine",
             "choices": (
-                ("c64", "C64"),
-                ("c128", "C128"),
-                ("vic20", "VIC20"),
-                ("pet", "PET"),
-                ("plus4", "Plus/4"),
-                ("cmbii", "CBM-II")
+                ("C64", "c64"),
+                ("C128", "c128"),
+                ("vic20", "vic20"),
+                ("PET", "pet"),
+                ("Plus/4", "plus4"),
+                ("CMB-II", "cbmii")
             ),
             "default": "c64"
         }
@@ -59,7 +59,6 @@ class vice(Runner):
             "pet": "xpet",
             "plus4": "xplus4",
             "cmbii": "xcbm2"
-
         }
         try:
             executable = executables[machine]
@@ -67,9 +66,24 @@ class vice(Runner):
             raise ValueError("Invalid machine '%s'" % machine)
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
 
+    def get_roms_path(self, machine=None):
+        if not machine:
+            machine = "C64"
+        paths = {
+            "c64": "C64",
+            "c128": "C128",
+            "vic20": "VIC20",
+            "pet": "PET",
+            "plus4": "PLUS4",
+            "cmbii": "CBM-II"
+        }
+        root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
+        return os.path.join(root_dir, 'lib/vice', paths[machine])
+
     def play(self):
         machine = self.runner_config.get("machine")
-        params = [self.get_executable(machine)]
+        params = [self.get_executable(machine),
+                  "-chdir", self.get_roms_path(machine)]
         if self.runner_config.get("fullscreen"):
             params.append("-fullscreen")
         if self.runner_config.get("double"):
