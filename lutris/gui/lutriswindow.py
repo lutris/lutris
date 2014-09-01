@@ -414,7 +414,7 @@ class LutrisWindow(object):
         )
         self.view.contextual_menu = self.menu
         self.connect_signals()
-        self.games_scrollwindow.add_with_viewport(self.view)
+        self.games_scrollwindow.add(self.view)
         self.view.show_all()
         self.view.check_resize()
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
