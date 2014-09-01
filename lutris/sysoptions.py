@@ -55,11 +55,14 @@ system_options = [
     {
         'option': 'killswitch',
         'type': 'string',
-        'label': 'Killswitch file'
+        'label': 'Killswitch file',
+        'help': 'path to a file which will stop the game when deleted \n'
+        '(usually /dev/input/js0 to stop the game on joystick unplugging)'
     },
     {
         'option': 'xboxdrv',
         'type': 'string',
-        'label': 'xboxdrv config'
+        'label': 'xboxdrv config',
+        'help': 'command line options for xboxdrv (xboxdrv not used if empty)'
     }
 ]
