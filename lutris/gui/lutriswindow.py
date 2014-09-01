@@ -298,6 +298,7 @@ class LutrisWindow(object):
         if time.time() - self.game_launch_time < 2:
             return
         self.game_launch_time = time.time()
+
         game_slug = self.view.selected_game
         if game_slug:
             self.running_game = Game(game_slug)
@@ -330,12 +331,15 @@ class LutrisWindow(object):
             self.stop_button.set_sensitive(False)
 
     def game_selection_changed(self, _widget):
-        is_double_click = time.time() - self.game_selection_time < 0.4
-        is_same_game = self.view.selected_game == self.last_selected_game
-        if is_double_click and is_same_game:
-            self.on_game_clicked()
-        self.game_selection_time = time.time()
-        self.last_selected_game = self.view.selected_game
+        # Emulate double click to workaround GTK bug #484640
+        # https://bugzilla.gnome.org/show_bug.cgi?id=484640
+        if type(self.view) is GameGridView:
+            is_double_click = time.time() - self.game_selection_time < 0.4
+            is_same_game = self.view.selected_game == self.last_selected_game
+            if is_double_click and is_same_game:
+                self.on_game_clicked()
+            self.game_selection_time = time.time()
+            self.last_selected_game = self.view.selected_game
 
         sensitive = True if self.view.selected_game else False
         self.play_button.set_sensitive(sensitive)
