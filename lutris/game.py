@@ -136,9 +136,6 @@ class Game(object):
         if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
-        if system_config.get('hide_panels'):
-            self.desktop.hide_panels()
-
         oss_wrapper = system_config.get("oss_wrapper")
         if audio.get_oss_wrapper(oss_wrapper):
             launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))

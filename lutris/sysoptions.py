@@ -41,17 +41,11 @@ system_options = [
         'type': 'choice',
         'label': 'OSS Wrapper',
         'choices': oss_list,
-
     },
     {
         'option': 'reset_pulse',
         'type': 'bool',
         'label': 'Reset PulseAudio'
-    },
-    {
-        'option': 'hide_panels',
-        'type': 'bool',
-        'label': 'Hide Gnome Panels'
     },
     {
         'option': 'reset_desktop',
