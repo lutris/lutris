@@ -190,7 +190,6 @@ class GameView(object):
 
     def add_game(self, game):
         self.game_store.add_game(game)
-        self.queue_draw()
 
     def remove_game(self, removed_id):
         row = self.get_row_by_slug(removed_id)
@@ -217,6 +216,8 @@ class GameView(object):
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
+            if type(self) is GameGridView:
+                GLib.idle_add(self.queue_draw)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
