@@ -55,8 +55,9 @@ class scummvm(Runner):
         }
     ]
 
-    def install(self):
-        self.download_and_extract("scummvm-1.7.0-x86_64.tar.gz")
+    tarballs = {
+        'x64': "scummvm-1.7.0-x86_64.tar.gz",
+    }
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
