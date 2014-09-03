@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import stat
 from lutris.runners.runner import Runner
 
 
@@ -51,6 +52,11 @@ class linux(Runner):
         executable = game_config.get("exe")
         if not os.path.exists(executable):
             return {'error': 'FILE_NOT_FOUND', 'file': executable}
+
+        # Quit if the file is not executable
+        mode = os.stat(executable).st_mode
+        if not mode & stat.S_IXUSR:
+            return {'error': 'NOT_EXECUTABLE', 'file': executable}
 
         self.game_path = self.get_game_path()
         launch_info['game_path'] = self.game_path

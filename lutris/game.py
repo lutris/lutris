@@ -24,6 +24,8 @@ def show_error_message(message):
         dialogs.ErrorDialog("A bios file is required to run this game")
     elif "FILE_NOT_FOUND" == message['error']:
         dialogs.ErrorDialog("The file %s could not be found" % message['file'])
+    elif "NOT_EXECUTABLE" == message['error']:
+        dialogs.ErrorDialog("The file %s is not executable" % message['file'])
 
 
 def get_game_list(filter_installed=False):
