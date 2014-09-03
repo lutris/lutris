@@ -125,6 +125,7 @@ class ScriptInterpreter(object):
                 and 'nocreatedir' not in self.script)
 
     def _check_dependecy(self):
+        # XXX Maybe handle this with Game instead of hitting directly the PGA?
         game = pga.get_game_by_slug(self.requires)
         if not game or not game['directory']:
             raise ScriptingError(
@@ -322,12 +323,19 @@ class ScriptInterpreter(object):
 
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
+        runner_name = self.script['runner']
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % self.game_slug)
-        runner_name = self.script['runner']
-        config = {
-            'game': {},
-        }
+        if self.requires and os.path.exists(config_filename):
+            # Game is a patch from an installed game, updating its config
+            # XXX Maybe drop the self.requires condition and always update
+            #     the existing config?
+            lutris_config = LutrisConfig(game=self.game_slug)
+            config = lutris_config.game_config
+        else:
+            config = {
+                'game': {},
+            }
         pga.add_or_update(self.script['name'], runner_name,
                           slug=self.game_slug,
                           directory=self.target_path,
@@ -340,7 +348,7 @@ class ScriptInterpreter(object):
                 self.script[runner_name]
             )
         if 'game' in self.script:
-            config['game'] = self._substitute_config(self.script['game'])
+            config['game'].update(self._substitute_config(self.script['game']))
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
