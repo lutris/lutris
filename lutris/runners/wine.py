@@ -36,8 +36,10 @@ def create_prefix(prefix, wine_path='wineboot', arch='win32'):
     wineexec('', prefix=prefix, wine_path=wine_path, arch=arch)
 
 
-def wineexec(executable, args="", prefix=None, wine_path='wine', arch=None,
+def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
              working_dir=None):
+    if not wine_path:
+        wine_path = "wine"
     if arch not in ('win32', 'win64'):
         arch = detect_prefix_arch(prefix)
     if not prefix:
