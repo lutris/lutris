@@ -572,7 +572,13 @@ class ScriptInterpreter(object):
             passed to the runner task.
         """
         task_name = data.pop('name')
-        runner_name = self.script["runner"]
+        if not task_name:
+            raise ScriptingError("Missing required task name", data)
+        if '.' in task_name:
+            # Run a task from a different runner than the one for this installer
+            runner_name, task_name = task_name.split('.')
+        else:
+            runner_name = self.script["runner"]
         for key in data:
             data[key] = self._substitute(data[key])
         task = import_task(runner_name, task_name)
