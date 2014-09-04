@@ -3,7 +3,6 @@ import os
 import subprocess
 
 from lutris import settings
-from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
@@ -11,8 +10,6 @@ SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
 
 class scummvm(Runner):
     """Runs LucasArts games based on the Scumm engine"""
-    executable = "scummvm"
-    package = "scummvm"
     platform = "LucasArts point and click games"
     game_options = [
         {
