@@ -41,11 +41,11 @@ class dosbox(Runner):
         if not os.path.exists(self.exe):
             return {'error': "FILE_NOT_FOUND", 'file': self.exe}
         if self.exe.endswith(".conf"):
-            exe = ["-conf", self.exe]
+            exe = ["-conf", '"%s"' % self.exe]
         else:
-            exe = [self.exe]
+            exe = ['"%s"' % self.exe]
         if "config_file" in self.settings["game"]:
-            params = ["-conf", self.settings["game"]["config_file"]]
+            params = ["-conf", '"%s"' % self.settings["game"]["config_file"]]
         else:
             params = []
         return {'command': [self.get_executable()] + params + exe}
