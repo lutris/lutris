@@ -5,7 +5,7 @@ import os
 import time
 import shutil
 
-from gi.repository import Gtk, GLib
+from gi.repository import GLib
 
 from lutris import pga
 from lutris.runners import import_runner
@@ -64,11 +64,7 @@ class Game(object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        if os.path.exists(self.directory):
-            path = self.directory
-        else:
-            path = self.runner.browse_dir
-        return path
+        return self.runner.browse_dir
 
     def load_config(self):
         """Load the game's configuration."""
@@ -93,14 +89,9 @@ class Game(object):
     def prelaunch(self):
         """Verify that the current game can be launched."""
         if not self.runner.is_installed():
-            install_runner_dialog = dialogs.QuestionDialog({
-                'question': ("The required runner is not installed.\n"
-                             "Do you wish to install it now?"),
-                'title': "Required runner unavailable"
-            })
-            if Gtk.ResponseType.YES == install_runner_dialog.result:
-                self.runner.install()
-            return False
+            installed = self.runner.install_dialog()
+            if not installed:
+                return False
 
         if hasattr(self.runner, 'prelaunch'):
             return self.runner.prelaunch()
@@ -152,7 +143,7 @@ class Game(object):
 
         killswitch = system_config.get('killswitch')
         self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.get_game_path(),
+                                        path=self.runner.working_dir,
                                         killswitch=killswitch)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)

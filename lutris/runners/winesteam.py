@@ -77,6 +77,32 @@ class winesteam(wine.wine):
             'label': 'Path to Steam.exe',
         })
 
+    @property
+    def browse_dir(self):
+        """Return the path to open with the Browse Files action."""
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        return self.game_path
+
+    @property
+    def game_path(self):
+        appid = self.config['game'].get('appid')
+        if self.get_game_data_path(appid):
+            return self.get_game_data_path(appid)
+        if self.default_path:
+            return self.get_steamapps_path()
+
+    @property
+    def launch_args(self):
+        return ['"%s"' % self.get_executable(),
+                '"%s"' % self.steam_path, '-no-dwrite']
+
+    @property
+    def steam_path(self):
+        return self.runner_config.get('steam_path')
+
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
@@ -99,22 +125,6 @@ class winesteam(wine.wine):
         if not self.check_depends() or not self.steam_path:
             return False
         return os.path.exists(self.steam_path)
-
-    def get_game_path(self):
-        appid = self.config['game'].get('appid')
-        if self.get_game_data_path(appid):
-            return self.get_game_data_path(appid)
-        if self.default_path:
-            return self.get_steamapps_path()
-
-    @property
-    def steam_path(self):
-        return self.runner_config.get('steam_path')
-
-    @property
-    def launch_args(self):
-        return ['"%s"' % self.get_executable(),
-                '"%s"' % self.steam_path, '-no-dwrite']
 
     def get_steam_config(self):
         if not self.default_path:

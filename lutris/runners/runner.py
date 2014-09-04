@@ -4,9 +4,12 @@ import os
 import subprocess
 import platform
 
+from gi.repository import Gtk
+
+from lutris import pga
 from lutris import settings
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import ErrorDialog, DownloadDialog
+from lutris.gui import dialogs
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util.system import find_executable
@@ -34,12 +37,14 @@ class Runner(object):
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.game = None
         self.depends = None
         self.arch = get_arch()
         self.logger = logger
         self.config = config or {}
         self.settings = self.config
+        self.game_data = None
+        if config:
+            self.game_data = pga.get_game_by_slug(self.config.game)
 
     @property
     def description(self):
@@ -90,17 +95,26 @@ class Runner(object):
 
     @property
     def browse_dir(self):
-        """Return the directory shown when the user browse game files."""
+        """Return the path to open with the Browse Files action."""
+        return self.game_path
+
+    @property
+    def game_path(self):
+        """Return the directory where the game is installed."""
+        game_path = None
+        if self.game_data:
+            game_path = self.game_data.get('directory')
+        return game_path or self.system_config.get('game_path')
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
         return self.get_game_path()
 
     @property
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
-
-    def load(self, game):
-        """Load a game"""
-        self.game = game
 
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
@@ -121,6 +135,19 @@ class Runner(object):
         runner_instance = runner()
         return runner_instance.is_installed()
 
+    def install_dialog(self):
+        """Ask the user if she wants to install the runner.
+
+        Return True if the runner was installed."""
+        dialog = dialogs.QuestionDialog({
+            'question': ("The required runner is not installed.\n"
+                         "Do you wish to install it now?"),
+            'title': "Required runner unavailable"
+        })
+        if Gtk.ResponseType.YES == dialog.result:
+            if self.install() or self.is_installed:
+                return True
+
     def is_installed(self):
         """Return  True if runner is installed else False."""
         is_installed = False
@@ -139,13 +166,6 @@ class Runner(object):
         else:
             is_installed = True
         return is_installed
-
-    def get_game_path(self):
-        """Return the directory where the game is installed."""
-        if hasattr(self, 'game_path'):
-            return self.game_path
-        else:
-            return self.system_config.get('game_path')
 
     def install(self):
         """Install runner using package management systems."""
@@ -176,7 +196,7 @@ class Runner(object):
             return False
 
         if not self.package:
-            ErrorDialog('This runner is not yet installable')
+            dialogs.ErrorDialog('This runner is not yet installable')
             logger.error("The requested runner %s can't be installed",
                          self.__class__.__name__)
             return False
@@ -189,7 +209,7 @@ class Runner(object):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
         merge_single = opts.get('merge_single', False)
         source_url = opts.get('source_url', settings.RUNNERS_URL)
-        dialog = DownloadDialog(source_url + tarball, runner_archive)
+        dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
         dialog.run()
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
