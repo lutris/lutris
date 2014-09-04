@@ -84,7 +84,7 @@ class scummvm(Runner):
         mode = self.runner_config.get("gfx-mode") or "normal"
         command.append("--gfx-mode=%s" % mode)
 
-        command.append("--path=\"%s\"" % self.get_game_path())
+        command.append("--path=\"%s\"" % self.game_path)
         command.append(self.settings["game"]["game_id"])
 
         launch_info = {'command': command}

@@ -85,8 +85,8 @@ class linux(Runner):
         if not mode & stat.S_IXUSR:
             return {'error': 'NOT_EXECUTABLE', 'file': executable}
 
-        self.game_path = self.get_game_path()
-        launch_info['game_path'] = self.game_path
+        if not os.path.exists(self.game_exe):
+            return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         ld_preload = game_config.get('ld_preload')
         if ld_preload:
