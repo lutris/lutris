@@ -45,11 +45,11 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if not prefix:
         prefix = ""
     else:
-        prefix = "WINEPREFIX=\"%s\" " % prefix
+        prefix = "WINEPREFIX='%s' " % prefix
 
     executable = str(executable) if executable else ""
     if " " in executable:
-        executable = "\"%s\"" % executable
+        executable = "'%s'" % executable
 
     if not working_dir:
         if '/' in executable:
