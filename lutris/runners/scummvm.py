@@ -55,40 +55,42 @@ class scummvm(Runner):
         }
     ]
 
+    tarballs = {
+        'x64': "scummvm-1.7.0-x86_64.tar.gz",
+    }
+
     @property
     def game_path(self):
         return self.settings['game']['path']
 
-    def install(self):
-        self.download_and_extract("scummvm-1.6.0-i386.tar.gz")
-
     def get_executable(self):
-        scummvm_path = os.path.join(settings.RUNNER_DIR, 'scummvm/scummvm')
-        if not os.path.exists(scummvm_path):
-            return find_executable("scummvm")
-        else:
-            return scummvm_path
+        return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
+
+    def get_scummvm_data_dir(self):
+        root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
+        return os.path.join(root_dir, 'share/scummvm')
 
     def play(self):
-        if self.runner_config.get("windowed"):
-            fullscreen = "-F"
-        else:
-            fullscreen = "-f"
-        mode = self.runner_config.get("gfx-mode")
-        if mode:
-            gfxmode = "--gfx-mode=%s" % mode
-        else:
-            gfxmode = "--gfx-mode=normal"
-        game = self.settings["game"]["game_id"]
-
-        launch_info = {'command': [
+        command = [
             self.get_executable(),
-            "--path=\"%s\"" % self.settings['game']['path'],
-            fullscreen, gfxmode, game
-        ]}
+            "--extrapath=\"%s\"" % self.get_scummvm_data_dir(),
+            "--themepath=\"%s\"" % self.get_scummvm_data_dir(),
+        ]
+        if self.runner_config.get("windowed"):
+            command.append("--no-fullscreen")
+        else:
+            command.append("--fullscreen")
 
-        lib_dir = os.path.join(settings.DATA_DIR,
-                               'runners/scummvm/usr/lib/i386-linux-gnu')
+        mode = self.runner_config.get("gfx-mode") or "normal"
+        command.append("--gfx-mode=%s" % mode)
+
+        command.append("--path=\"%s\"" % self.game_path)
+        command.append(self.settings["game"]["game_id"])
+
+        launch_info = {'command': command}
+
+        # Additionnal libraries needed by ScummVM may be stored there.
+        lib_dir = os.path.join(settings.RUNNER_DIR, 'scummvm/lib')
         if os.path.exists(lib_dir):
             launch_info['ld_library_path'] = lib_dir
 
@@ -97,7 +99,7 @@ class scummvm(Runner):
     def get_game_list(self):
         """ Return the entire list of games supported by ScummVM """
         scumm_output = subprocess.Popen(
-            ["scummvm", "-z"], stdout=subprocess.PIPE
+            [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
         ).communicate()[0]
         game_list = str.split(scumm_output, "\n")
         game_array = []

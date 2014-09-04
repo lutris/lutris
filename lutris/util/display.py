@@ -4,18 +4,17 @@ import subprocess
 from lutris.util.log import logger
 
 
-def iter_xrandr_output():
+def get_vidmodes():
     xrandr_output = subprocess.Popen("xrandr",
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE).communicate()[0]
-    for line in xrandr_output.split("\n"):
-        yield line
+    return list([line for line in xrandr_output.split("\n")])
 
 
 def get_outputs():
     """ Return list of tuples containing output name and geometry """
     outputs = list()
-    for line in iter_xrandr_output():
+    for line in get_vidmodes():
         parts = line.split()
         if len(parts) < 2:
             continue
@@ -38,7 +37,7 @@ def turn_off_except(display):
 def get_resolutions():
     """Return the list of supported screen resolutions."""
     resolution_list = []
-    for line in iter_xrandr_output():
+    for line in get_vidmodes():
         if line.startswith("  "):
             resolution_list.append(line.split()[0])
     return resolution_list
@@ -47,7 +46,7 @@ def get_resolutions():
 def get_current_resolution(monitor=0):
     """Return the current resolution for the desktop."""
     resolution = list()
-    for line in iter_xrandr_output():
+    for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
             resolution.append(line.split()[0])
     if monitor == 'all':
@@ -88,8 +87,8 @@ def change_resolution(resolution):
 
 def reset_desktop():
     """Restore the desktop to its original state."""
-    #Restore resolution
+    # Restore resolution
     resolution = get_resolutions()[0]
     change_resolution(resolution)
-    #Restore gamma
+    # Restore gamma
     os.popen("xgamma -gamma 1.0")
