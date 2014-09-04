@@ -327,7 +327,7 @@ class ScriptInterpreter(object):
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % self.game_slug)
         if self.requires and os.path.exists(config_filename):
-            # Game is a patch from an installed game, updating its config
+            # The installer is patching an existing game, update its config
             # XXX Maybe drop the self.requires condition and always update
             #     the existing config?
             lutris_config = LutrisConfig(game=self.game_slug)
