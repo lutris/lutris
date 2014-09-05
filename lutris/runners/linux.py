@@ -81,9 +81,9 @@ class linux(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         # Quit if the file is not executable
-        mode = os.stat(executable).st_mode
+        mode = os.stat(self.game_exe).st_mode
         if not mode & stat.S_IXUSR:
-            return {'error': 'NOT_EXECUTABLE', 'file': executable}
+            return {'error': 'NOT_EXECUTABLE', 'file': self.game_exe}
 
         if not os.path.exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
