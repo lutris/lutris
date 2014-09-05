@@ -31,11 +31,12 @@ class mupen64plus(Runner):
         'x64': 'mupen64plus-bundle-linux64-2.0-ubuntu.tar.gz',
     }
 
+    @property
+    def working_dir(self):
+        return os.path.join(settings.RUNNER_DIR, 'mupen64plus')
+
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'mupen64plus/mupen64plus')
-
-    def get_game_path(self):
-        return os.path.join(settings.RUNNER_DIR, 'mupen64plus')
 
     def play(self):
         arguments = [self.get_executable()]
