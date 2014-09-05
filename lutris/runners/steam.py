@@ -58,11 +58,10 @@ class steam(Runner):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
-        if os.path.exists(self.steam_data_dir):
-            return os.path.join(self.steam_data_dir, "SteamApps/common")
 
     @property
     def steam_path(self):
+        """Return Steam exe's path"""
         return self.runner_config.get('steam_path', 'steam')
 
     @property

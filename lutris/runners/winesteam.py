@@ -91,8 +91,6 @@ class winesteam(wine.wine):
         appid = self.config['game'].get('appid')
         if self.get_game_data_path(appid):
             return self.get_game_data_path(appid)
-        if self.default_path:
-            return self.get_steamapps_path()
 
     @property
     def launch_args(self):
@@ -101,6 +99,7 @@ class winesteam(wine.wine):
 
     @property
     def steam_path(self):
+        """Return Steam exe's path"""
         return self.runner_config.get('steam_path')
 
     def install(self, installer_path=None):
