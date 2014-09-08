@@ -149,11 +149,16 @@ class LutrisWindow(object):
 
         self.switch_splash_screen()
 
-        if api.read_api_key():
-            self.status_label.set_text("Connected to lutris.net")
-            self.sync_library()
+        connection_label = self.builder.get_object('connection_label')
+        credentials = api.read_api_key()
+        if credentials:
+            menuitem = self.builder.get_object('connect_menuitem')
+            self.on_connect_success(None, credentials)
         else:
+            menuitem = self.builder.get_object('disconnect_menuitem')
+            connection_label.set_text("Not connected")
             async_call(self.sync_icons, None)
+        menuitem.hide()
 
     @property
     def current_view_type(self):
@@ -248,9 +253,21 @@ class LutrisWindow(object):
         login_dialog = dialogs.ClientLoginDialog()
         login_dialog.connect('connected', self.on_connect_success)
 
-    def on_connect_success(self, dialog, token):
+    def on_disconnect(self, *args):
+        api.disconnect()
+        disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
+        disconnect_menuitem.hide()
+
+        connect_menuitem = self.builder.get_object('connect_menuitem')
+        connect_menuitem.show()
+
+        connection_label = self.builder.get_object('connection_label')
+        connection_label.set_text("Not connected")
+
+    def on_connect_success(self, dialog, credentials):
         logger.info("Successfully connected to Lutris.net")
-        self.status_label.set_text("Connected")
+        connection_label = self.builder.get_object('connection_label')
+        connection_label.set_text("Connected as %s" % credentials["username"])
         self.sync_library()
 
     def on_destroy(self, *args):

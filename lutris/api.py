@@ -17,8 +17,11 @@ def read_api_key():
         return
     with open(API_KEY_FILE_PATH, 'r') as token_file:
         api_string = token_file.read()
-    username, api_key = api_string.split(":")
-    return username, api_key
+    username, token = api_string.split(":")
+    return {
+        'token': token,
+        'username': username
+    }
 
 
 def connect(username, password):
@@ -39,9 +42,19 @@ def connect(username, password):
     return False
 
 
+def disconnect():
+    if not os.path.exists(API_KEY_FILE_PATH):
+        return
+    os.remove(API_KEY_FILE_PATH)
+
+
 def get_library():
     logger.debug("Fetching game library")
-    username, api_key = read_api_key()
+    credentials = read_api_key()
+    if not credentials:
+        return {}
+    username = credentials["username"]
+    api_key = credentials["token"]
     library_url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.urlencode({'api_key': api_key, 'username': username,
                                'format': 'json'})

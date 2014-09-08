@@ -63,6 +63,15 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="disconnect_menuitem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Disconnect</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_disconnect" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="runners_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -582,21 +591,17 @@
             <property name="can_focus">False</property>
             <property name="spacing">2</property>
             <child>
-              <object class="GtkHBox" id="hbox2">
+              <object class="GtkBox" id="status_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkLabel" id="status_label">
-                    <property name="visible">True</property>
+                  <object class="GtkImage" id="js1image">
                     <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="xpad">5</property>
-                    <property name="ypad">5</property>
+                    <property name="icon_name">input-gaming</property>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="pack_type">end</property>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -612,7 +617,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="js1image">
+                  <object class="GtkImage" id="js3image">
                     <property name="can_focus">False</property>
                     <property name="icon_name">input-gaming</property>
                   </object>
@@ -634,14 +639,43 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="js3image">
+                  <object class="GtkLabel" id="status_label">
+                    <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xalign">0</property>
+                    <property name="xpad">5</property>
+                    <property name="ypad">5</property>
+                    <property name="label" translatable="yes">Lutris</property>
+                    <property name="lines">1</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="connection_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">label</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">5</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparator" id="status_separator">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">4</property>
+                    <property name="fill">True</property>
+                    <property name="position">6</property>
                   </packing>
                 </child>
               </object>
