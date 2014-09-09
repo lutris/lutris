@@ -239,10 +239,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         if not token:
             NoticeDialog("Login failed")
         else:
-            self.emit('connected', {
-                'token': token,
-                'username': username
-            })
+            self.emit('connected', username)
         self.dialog.destroy()
 
 

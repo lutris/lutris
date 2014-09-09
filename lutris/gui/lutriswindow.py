@@ -149,16 +149,12 @@ class LutrisWindow(object):
 
         self.switch_splash_screen()
 
-        connection_label = self.builder.get_object('connection_label')
         credentials = api.read_api_key()
         if credentials:
-            menuitem = self.builder.get_object('connect_menuitem')
             self.on_connect_success(None, credentials)
         else:
-            menuitem = self.builder.get_object('disconnect_menuitem')
-            connection_label.set_text("Not connected")
+            self.toggle_connection(False)
             async_call(self.sync_icons, None)
-        menuitem.hide()
 
     @property
     def current_view_type(self):
@@ -255,19 +251,30 @@ class LutrisWindow(object):
 
     def on_disconnect(self, *args):
         api.disconnect()
+        self.toggle_connection(False)
+
+    def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
-        disconnect_menuitem.hide()
-
         connect_menuitem = self.builder.get_object('connect_menuitem')
-        connect_menuitem.show()
-
         connection_label = self.builder.get_object('connection_label')
-        connection_label.set_text("Not connected")
+
+        if is_connected:
+            disconnect_menuitem.show()
+            connect_menuitem.hide()
+            connection_status = "Connected as %s" % username
+        else:
+            disconnect_menuitem.hide()
+            connect_menuitem.show()
+            connection_status = "Not connected"
+        logger.info(connection_status)
+        connection_label.set_text(connection_status)
 
     def on_connect_success(self, dialog, credentials):
-        logger.info("Successfully connected to Lutris.net")
-        connection_label = self.builder.get_object('connection_label')
-        connection_label.set_text("Connected as %s" % credentials["username"])
+        if isinstance(credentials, str):
+            username = credentials
+        else:
+            username = credentials["username"]
+        self.toggle_connection(True, username)
         self.sync_library()
 
     def on_destroy(self, *args):
