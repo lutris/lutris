@@ -1,5 +1,6 @@
 """ Non-blocking Gio Downloader  """
 import time
+from lutris.util.log import logger
 from gi.repository import Gio, GLib, Gtk, Gdk
 
 
@@ -62,11 +63,13 @@ class Downloader():
     def start(self):
         self.start_time = time.time()
         if not self.remote.query_exists(Gio.Cancellable()):
+            logger.debug("Mounting remote volume")
             self.remote.mount_enclosing_volume(Gio.MountMountFlags.NONE,
                                                Gtk.MountOperation(),
                                                Gio.Cancellable(),
                                                self.mount_cb,
                                                None)
         else:
+            logger.debug("Scheduling download")
             Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT,
                                  self.schedule_download, None)

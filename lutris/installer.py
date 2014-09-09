@@ -200,19 +200,16 @@ class ScriptInterpreter(object):
                 'file_id': file_id
             }
             if parts[0] == '$WINESTEAM':
+                appid = self.steam_data['appid']
+                logger.debug("Getting Wine Steam data for appid %s" % appid)
                 self.steam_data['platform'] = "windows"
                 # Getting data from Wine Steam
                 steam_runner = winesteam.winesteam()
                 if not steam_runner.is_installed():
-                    # Downoad Steam for Windows
-                    steam_installer_path = os.path.join(
-                        settings.TMP_PATH, "SteamInstall.msi"
-                    )
-                    self.parent.start_download(
-                        winesteam.winesteam.installer_url,
-                        steam_installer_path,
-                        self.parent.on_steam_downloaded,
-                        self.steam_data['appid']
+                    winesteam.download_steam(
+                        downloader=self.parent.start_download,
+                        callback=self.parent.on_steam_downloaded,
+                        callback_data=appid
                     )
                 else:
                     self.install_steam_game(winesteam.winesteam)
@@ -849,6 +846,7 @@ class InstallerDialog(Gtk.Window):
 
     def start_download(self, file_uri, dest_file, callback=None, data=None):
         self.clean_widgets()
+        logger.debug("Downloading %s to %s", file_uri, dest_file)
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
@@ -874,6 +872,7 @@ class InstallerDialog(Gtk.Window):
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, data, appid):
+        logger.debug("Steam is downloaded")
         self.interpreter.complete_steam_install(widget.dest, appid)
 
     def on_install_finished(self):

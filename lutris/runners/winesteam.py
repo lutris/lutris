@@ -6,6 +6,7 @@ import subprocess
 
 from gi.repository import Gdk
 
+from lutris import settings
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog
 from lutris.runners import wine
 from lutris.util.log import logger
@@ -19,6 +20,19 @@ set_regedit = wine.set_regedit
 create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
+
+# Directly downloading from steam's cdn seems to be buggy with
+# current implementation
+# STEAM_INSTALLER_URL = "http://cdn.steampowered.com/download/SteamInstall.msi"
+STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
+
+
+def download_steam(downloader, callback=None, callback_data=None):
+    """Downloads steam with `downloader` then calls `callback`"""
+    steam_installer_path = os.path.join(settings.TMP_PATH,
+                                        "SteamInstall.msi")
+    downloader(STEAM_INSTALLER_URL,
+               steam_installer_path, callback, callback_data)
 
 
 def is_running():
@@ -46,9 +60,6 @@ def kill():
 # pylint: disable=C0103
 class winesteam(wine.wine):
     """ Runs Steam for Windows games """
-
-    # installer_url = "http://cdn.steampowered.com/download/SteamInstall.msi"
-    installer_url = "http://lutris.net/files/runners/SteamInstall.msi"
     platform = "Steam (Windows)"
     is_watchable = False  # Steam games pids are not parent of Lutris
     game_options = [
