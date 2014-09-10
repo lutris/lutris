@@ -34,6 +34,6 @@ clean:
 build-all: deb rpm
 
 upload:
-	scp build/lutris_${VERSION}_all.deb strycore.com:/srv/releases/
-	scp build/lutris_${VERSION}.tar.gz strycore.com:/srv/releases/
-	scp build/lutris-${VERSION}-2.noarch.rpm strycore.com:/srv/releases/
+	scp build/lutris_${VERSION}_all.deb lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
+	scp build/lutris-${VERSION}-2.noarch.rpm lutris.net:/srv/releases/
