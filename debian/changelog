@@ -1,6 +1,10 @@
 lutris (0.3.5) trusty; urgency=medium
 
-  * Adapt all runners to use version hosted on lutris.net
+  * All runners now use the version hosted on lutris.net (auto-install!)
+  * Desura and Virtual Jaguar support
+  * Browse installed games' files from the context menu
+  * New "Connected" status indicator in the status bar
+  * New small icons and small banners style (switch in View menu)
   * Better path management
   * Consistent configuration loading
   * UI Fixes
