@@ -111,16 +111,26 @@ class winesteam(wine.wine):
     @property
     def steam_path(self):
         """Return Steam exe's path"""
-        return self.runner_config.get('steam_path')
+        path = self.runner_config.get('steam_path')
+        if path and os.path.exists(path):
+            return path
+        return os.path.join(self.get_default_steam_dir(), "Steam.exe")
+
+    def get_default_steam_dir(self, prefix=None):
+        """Returns default location of Steam"""
+        if not prefix:
+            prefix = os.path.expanduser("~/.wine")
+        return os.path.join(prefix, "drive_c/Program Files/Steam")
 
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
-            return
-        Gdk.threads_enter()
-        dlg = DirectoryDialog('Where is Steam.exe installed?')
-        steam_dir = dlg.folder
-        Gdk.threads_leave()
+            steam_dir = self.get_default_steam_dir()
+        else:
+            Gdk.threads_enter()
+            dlg = DirectoryDialog('Where is Steam.exe installed?')
+            steam_dir = dlg.folder
+            Gdk.threads_leave()
         steam_path = os.path.join(steam_dir, "Steam.exe")
         if os.path.exists(steam_path):
             config = LutrisConfig(runner='winesteam')
