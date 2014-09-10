@@ -19,7 +19,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
 from lutris.util.system import get_md5_hash, substitute, merge_folders
 
-from lutris.runners import winesteam, steam
+from lutris.runners import wine, winesteam, steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.config_dialogs import AddGameDialog
@@ -203,6 +203,10 @@ class ScriptInterpreter(object):
                 appid = self.steam_data['appid']
                 logger.debug("Getting Wine Steam data for appid %s" % appid)
                 self.steam_data['platform'] = "windows"
+                # Check that wine is installed
+                wine_runner = wine.wine()
+                if not wine_runner.is_installed():
+                    wine_runner.install()
                 # Getting data from Wine Steam
                 steam_runner = winesteam.winesteam()
                 if not steam_runner.is_installed():
