@@ -593,8 +593,8 @@ class ScriptInterpreter(object):
             # better way to handle this would be to poll StateFlags on the
             # game's config to check if the game has finished installing.
             self.parent.wait_for_user_action(
-                "Steam will now install game %s, "
-                "press Ok when install is finished" % appid,
+                "Steam will now download and install game %s, "
+                "press Ok when it's finished" % appid,
                 self.on_steam_game_installed,
                 appid
             )
