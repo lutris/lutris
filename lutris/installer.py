@@ -212,8 +212,7 @@ class ScriptInterpreter(object):
                 if not steam_runner.is_installed():
                     winesteam.download_steam(
                         downloader=self.parent.start_download,
-                        callback=self.parent.on_steam_downloaded,
-                        callback_data=appid
+                        callback=self.parent.on_steam_downloaded
                     )
                 else:
                     self.install_steam_game(winesteam.winesteam)
@@ -604,14 +603,9 @@ class ScriptInterpreter(object):
         else:
             self._append_steam_data_to_files(runner_class)
 
-    def complete_steam_install(self, dest, appid):
-        self.parent.wait_for_user_action(
-            "Steam will now install, press Ok when install is finished",
-            self.on_winesteam_installed,
-            appid
-        )
-        steam_runner = winesteam.winesteam()
-        async_call(steam_runner.install, None, dest)
+    def complete_steam_install(self, dest):
+        winesteam_runner = winesteam.winesteam()
+        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
 
     def on_winesteam_installed(self, *args):
         self.install_steam_game(winesteam.winesteam)
@@ -875,9 +869,8 @@ class InstallerDialog(Gtk.Window):
         """Action called on a completed download"""
         self.interpreter.iter_game_files()
 
-    def on_steam_downloaded(self, widget, data, appid):
-        logger.debug("Steam is downloaded")
-        self.interpreter.complete_steam_install(widget.dest, appid)
+    def on_steam_downloaded(self, widget, *args, **kwargs):
+        self.interpreter.complete_steam_install(widget.dest)
 
     def on_install_finished(self):
         """Actual game installation"""

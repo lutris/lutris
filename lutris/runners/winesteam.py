@@ -116,6 +116,7 @@ class winesteam(wine.wine):
     def install(self, installer_path=None):
         if installer_path:
             self.msi_exec(installer_path, quiet=True)
+            return
         Gdk.threads_enter()
         dlg = DirectoryDialog('Where is Steam.exe installed?')
         steam_dir = dlg.folder
