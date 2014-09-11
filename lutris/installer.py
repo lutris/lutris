@@ -706,10 +706,7 @@ class InstallerDialog(Gtk.Window):
         self.install_button.hide()
         self.show_non_empty_warning()
 
-        if len(self.scripts) == 1:
-            self.launch_install(0)
-        else:
-            self.choose_installer()
+        self.choose_installer()
 
     def launch_install(self, script_index):
         script = self.scripts[script_index]
