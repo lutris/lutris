@@ -112,7 +112,7 @@ class GameDialogCommon(object):
         self.destroy()
 
     def on_save(self, _button):
-        """OK button pressed in the Add Game Dialog."""
+        """Save game info and destroy widget. Return True if success."""
         name = self.name_entry.get_text()
         if self.runner_name and name:
             self.lutris_config.config_type = 'game'
@@ -126,6 +126,7 @@ class GameDialogCommon(object):
                               directory=runner.game_path,
                               installed=1)
             self.destroy()
+            return True
 
 
 class AddGameDialog(Gtk.Dialog, GameDialogCommon):
@@ -136,6 +137,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
         self.game = game
+        self.installed = False
 
         self.set_title("Add a new game")
         self.set_size_request(600, 500)
@@ -181,7 +183,7 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
     def on_save(self, _button):
         name = self.name_entry.get_text()
         self.lutris_config.game = self.slug if self.slug else slugify(name)
-        super(AddGameDialog, self).on_save(_button)
+        self.installed = super(AddGameDialog, self).on_save(_button)
 
 
 class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):

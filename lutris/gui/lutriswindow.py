@@ -390,7 +390,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
         add_game_dialog.run()
-        if add_game_dialog.runner_name:
+        if add_game_dialog.installed:
             self.view.update_image(game.slug, is_installed=True)
 
     def on_browse_files(self, widget):
