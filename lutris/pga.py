@@ -181,7 +181,8 @@ def delete_game(slug):
 
 
 def set_uninstalled(slug):
-    sql.db_update(PGA_DB, 'games', {'installed': 0}, ('slug', slug))
+    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''},
+                  ('slug', slug))
 
 
 def add_source(uri):
