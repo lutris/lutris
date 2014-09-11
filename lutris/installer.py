@@ -735,27 +735,36 @@ class InstallerDialog(Gtk.Window):
         self.install_button.show()
 
     def choose_installer(self):
-        liststore = Gtk.ListStore(int, str)
-        for index, script in enumerate(self.scripts):
-            label = "%s (%s)" % (script['name'], script['version'])
-            liststore.append((index, label))
         self.title_label.set_markup('<b>Select which version to install</b>')
-        self.installer_choice = Gtk.ComboBox.new_with_model(liststore)
-        cell = Gtk.CellRendererText()
-        self.installer_choice.pack_start(cell, True)
-        self.installer_choice.add_attribute(cell, 'text', 1)
-        self.installer_choice.set_active(0)
-        self.installer_choice.show()
-        self.widget_box.pack_start(self.installer_choice, False, False, 10)
+        self.installer_choice_box = Gtk.VBox()
+        self.installer_choice = 0
+        radio_group = None
+
+        # Build list
+        for index, script in enumerate(self.scripts):
+            label = script['version']
+            btn = Gtk.RadioButton()
+            btn.new_with_label_from_widget(radio_group, label)
+            btn.connect('toggled', self.on_installer_toggled, index)
+            self.installer_choice_box.pack_start(btn, False, False, 0)
+            if index == 0:
+                radio_group = btn
+
+        self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
+        self.installer_choice_box.show_all()
+
         self.continue_button.show()
         self.continue_handler = self.continue_button.connect(
             'clicked', self.on_installer_selected
         )
 
+    def on_installer_toggled(self, btn, script_index):
+        if btn.get_active():
+            self.installer_choice = script_index
+
     def on_installer_selected(self, widget):
-        active = self.installer_choice.get_active()
-        self.launch_install(active)
-        self.installer_choice.destroy()
+        self.launch_install(self.installer_choice)
+        self.installer_choice_box.destroy()
 
     def on_destroy(self, widget):
         if self.interpreter:
