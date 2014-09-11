@@ -743,8 +743,7 @@ class InstallerDialog(Gtk.Window):
         # Build list
         for index, script in enumerate(self.scripts):
             label = script['version']
-            btn = Gtk.RadioButton()
-            btn.new_with_label_from_widget(radio_group, label)
+            btn = Gtk.RadioButton.new_with_label_from_widget(radio_group, label)
             btn.connect('toggled', self.on_installer_toggled, index)
             self.installer_choice_box.pack_start(btn, False, False, 0)
             if index == 0:
