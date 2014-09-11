@@ -10,8 +10,6 @@ def dosexec(config_file):
     """Execute Dosbox with given config_file"""
     logger.debug("Running dosbox with config %s" % config_file)
     dbx = dosbox()
-    if not dbx.is_installed():
-        dbx.install()
     command = '"%s" -conf "%s"' % (dbx.get_executable(), config_file)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
