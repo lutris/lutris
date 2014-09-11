@@ -691,19 +691,21 @@ class InstallerDialog(Gtk.Window):
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
-        self.show_all()
-        self.close_button.hide()
-        self.play_button.hide()
-        self.install_button.hide()
-        self.show_non_empty_warning()
-
         if os.path.exists(game_ref):
+            # local script
             logger.debug("Opening script: %s", game_ref)
             self.scripts = yaml.safe_load(open(game_ref, 'r').read())
         else:
             self.scripts = fetch_script(self, game_ref)
         if not self.scripts:
             return
+
+        self.show_all()
+        self.close_button.hide()
+        self.play_button.hide()
+        self.install_button.hide()
+        self.show_non_empty_warning()
+
         if len(self.scripts) == 1:
             self.launch_install(0)
         else:
