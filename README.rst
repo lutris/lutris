@@ -122,4 +122,10 @@ The following command line arguments are available::
   -s, --list-steam      List Steam (Windows) games
   --reinstall           Reinstall game
 
+Additionally, you can pass a `lutris:` protocol link followed by a game
+identifier on the command line such as::
+    lutris lutris:quake
+
+This will install the game if not already installed or launch the game
+otherwise (unless the `--reinstall` flag is passed).
 
