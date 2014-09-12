@@ -704,7 +704,6 @@ class InstallerDialog(Gtk.Window):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
-        self.show_non_empty_warning()
 
         self.choose_installer()
 
@@ -764,6 +763,7 @@ class InstallerDialog(Gtk.Window):
     def on_installer_selected(self, widget):
         self.launch_install(self.installer_choice)
         self.installer_choice_box.destroy()
+        self.show_non_empty_warning()
 
     def on_destroy(self, widget):
         if self.interpreter:
