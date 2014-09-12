@@ -130,3 +130,34 @@ identifier on the command line such as::
 This will install the game if not already installed or launch the game
 otherwise (unless the `--reinstall` flag is passed).
 
+Planned features
+================
+
+Lutris is far from complete and some of the most intertesting features
+are yet to be implemented!
+
+Here's what to expect from the future versions of lutris:
+
+* Better support for multiple wine version
+* Lutris runtime: a collection of libs ensuring your games always run
+* Integration with the TOSEC databse
+* Management of Personnal Game Archives (let you store your games files on
+  private storage, allowing you to reinstall them on all your devices)
+* Game saves sync
+* Community features (friends list, chat, multiplayer game scheduling)
+* Patched emulators to provide better fullscreen and controller support
+* Controller configuration GUI (with xboxdrv / joy2key support)
+
+Come with us!
+=============
+
+Want to make Lutris better? Help implement feature, fix bug, test our
+pre-releases or simply chat with the developers?
+
+You can always reach us on:
+* IRC: #lutris on the Freenode servers
+* Github: http://github.com/lutris
+* Twitter: https://twitter.com/LutrisGaming
+* Google+: https://plus.google.com/+LutrisNet
+* Email: contact@lutris.net
+
