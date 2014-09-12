@@ -140,6 +140,7 @@ Here's what to expect from the future versions of lutris:
 
 * Better support for multiple wine version
 * Lutris runtime: a collection of libs ensuring your games always run
+* Integration with GOG and Humble Bundle
 * Integration with the TOSEC databse
 * Management of Personnal Game Archives (let you store your games files on
   private storage, allowing you to reinstall them on all your devices)
