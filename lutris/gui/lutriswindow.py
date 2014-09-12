@@ -241,7 +241,7 @@ class LutrisWindow(object):
             self.view.remove_game(game_slug)
             self.switch_splash_screen()
         else:
-            self.view.update_image(game_slug, is_installed=False)
+            self.view.set_uninstalled(game_slug)
 
     # Callbacks
     def on_connect(self, *args):
@@ -287,8 +287,8 @@ class LutrisWindow(object):
         Gtk.main_quit(*args)
         logger.debug("Quitting lutris")
 
-    def on_game_installed(self, widget, slug):
-        widget.update_image(slug, is_installed=True)
+    def on_game_installed(self, view, slug):
+        view.set_installed(Game(slug))
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""
@@ -391,7 +391,7 @@ class LutrisWindow(object):
         add_game_dialog = AddGameDialog(self, game)
         add_game_dialog.run()
         if add_game_dialog.installed:
-            self.view.update_image(game.slug, is_installed=True)
+            self.view.set_installed(game)
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)

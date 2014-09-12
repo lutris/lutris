@@ -202,6 +202,18 @@ class GameView(object):
         store = self.game_store.store
         store.remove(model_iter)
 
+    def set_installed(self, game):
+        """Update a game row to show as installed"""
+        row = self.get_row_by_slug(game.slug)
+        row[COL_RUNNER] = game.runner_name
+        self.update_image(game.slug, is_installed=True)
+
+    def set_uninstalled(self, game_slug):
+        """Update a game row to show as uninstalled"""
+        row = self.get_row_by_slug(game_slug)
+        row[COL_RUNNER] = ''
+        self.update_image(game_slug, is_installed=False)
+
     def update_filter(self, widget, data=None):
         self.filter_text = data
         self.filter_view()
