@@ -1,33 +1,125 @@
+******
 Lutris
-------
+******
 
-Lutris is a gaming platform for GNU/Linux. Its goal is to make gaming on Linux
-as easy as possible by taking care of installing and setting up the game for
-the user. The only thing you have to do is play the game. It aims to support
-every game that is playable on Linux.
+Lutris is an open source gaming platform for GNU/Linux. It makes gaming
+on Linux easier by taking care of managing, installing and providing
+optimal settings for games.
 
+Lutris does not sell games, you have to provide your own copy of the games
+unless they are Open Source or Freeware.
+The games can be installed anywhere you want on your system, the tool
+does not impose anything.
+
+Lutris relies on various programs referenced as 'runners' to provide a
+vast library of games. These runners (with the exception of Steam,Desura
+and Web browsers) are provided by lutris, you don't need to install them
+with your package manager.
+We currently support the following runners:
+
+* Linux (Native games)
+* Steam
+* Desura (Experimental support)
+* Web browser
+* Wine
+* Wine + Steam
+* DosBOX
+* Mame
+* Mess
+* ScummVM
+* Mednafen
+* FS-UAE
+* Vice
+* Stella
+* Atari800
+* Hatari
+* Virtual Jaguar
+* Snes9x
+* Mupen64 Plus
+* PCSXR
+* Osmose
+* GenS
+* NullDC (using wine)
+* OpenMSX
+* Frotz
+* Jzintv
+* O2em
+
+Runners that will be added in future versions of Lutris:
+
+* PCSX2
+* Dolphin
+* Reicast (replacing NullDC)
+
+Installer scripts
+=================
+
+Lutris automates installation of games using configuration files written
+in JSON or YAML, these scripts list various files needed to install a game
+and run a list of actions on them (such as extract, move, execute, …).
+The syntax of installers is described in `docs/installers.rst` (also
+available on lutris.net when writing installers).
+
+A web UI is planned to ease the creation of these scripts.
+
+Game Library
+============
+
+You can optionally create an account on lutris.net and connect to this
+account on the client. This will allow you to sync your game library from
+the website to the client (not the other way around). If you wish, you can
+sync your Steam library with your Lutris library on the website.
+
+The client does not store your lutris.net on your computer. Instead, when
+you authenticate, the website will send a token which will be used to
+sync your library.
 
 Configuration files
--------------------
+===================
 
-All the configuration files are in YAML format. YAML is very easy to understand
-and to use in Python. For more information visit http://yaml.org
+The client, runner and games configuration files are stored in
+~/.config/lutris. There is no need to manually edit these files as
+everything should be done from the client.
 
-By default, configuration files will be stored in ~/.config/lutris
+`lutris.conf`: stores preferences for the client's UI
 
-Lutris' configuration system is a hierarchy, the deeper you go in the hierarchy
-the higher priority they have.
-There are three levels :
- - User configuration
- - Runner configuration
- - Game
+`system.yml`: stores configuration that will be used for every game
 
-System configuration is able to change system settings such as the
-screen resolution or the audio library you use.
+`runners/*.yml`: stores configuration used for any game from a particular
+runner
 
-Runner configuration is more specific, you can change option specific to the
-runner like setting a registry key in Wine. 
+`games/*.yml`: stores configuration used for a specific game
 
-Game configuration is specific to a single game. If the game uses
-configuration files this is the place to change them, like for example
-displaying the FPS count in Quake 3. 
+The game configuration can override previously defined runner and system
+configuration and runner configuration can override system configuration.
+
+Runners and game database
+=========================
+
+The data necessary to manage your library and run the game is stored in
+~/.local/share/lutris .
+
+`pga.db`: stores your game library, the installation status, the location
+on the filesystem plus some additional metadata. This file is a SQLite
+database.
+
+`runners/*`: runners downloaded from lutris.net (emulators and such)
+
+`icons/*.png` and `banners/*.jpg`: images for the games.
+
+Command line options
+====================
+
+The following command line arguments are available::
+
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -v, --verbose         Verbose output
+  -d, --debug           Show debug messages
+  -i INSTALLER_FILE, --install=INSTALLER_FILE
+                        Install a game from a yml file
+  -l, --list-games      List all games in database
+  -s, --list-steam      List Steam (Windows) games
+  --reinstall           Reinstall game
+
+
