@@ -70,9 +70,10 @@ account on the client. This will allow you to sync your game library from
 the website to the client (not the other way around). If you wish, you can
 sync your Steam library with your Lutris library on the website.
 
-The client does not store your lutris.net on your computer. Instead, when
-you authenticate, the website will send a token which will be used to
-sync your library.
+The client does not store your lutris.net credentials on your computer.
+Instead, when you authenticate, the website will send a token which will
+be used to sync your library. This token is stored in
+~/.cache/lutris/auth-token
 
 Configuration files
 ===================
