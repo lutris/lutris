@@ -39,7 +39,8 @@ class UninstallGameDialog(GtkBuilderDialog):
             default_path = self.game.runner.default_path
         except AttributeError:
             default_path = "/"
-        if not is_removeable(self.game.directory, excludes=[default_path]):
+        if not is_removeable(self.game.directory, excludes=[default_path])\
+           or not self.game.is_installed:
             remove_contents_button.set_sensitive(False)
         path = self.game.directory or 'disk'
         self.substitute_label(remove_contents_button, 'path', path)
