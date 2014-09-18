@@ -57,13 +57,13 @@ Presetting game parameters
 The ``game`` directive lets you preset game parameters and options. Available
 parameters depend on the runner:
 
-* linux: ``args`` (optional command arguments), ``working_dir``
- (optional working directory, defaults to the exe's dir).
+*   linux: ``args`` (optional command arguments), ``working_dir``
+    (optional working directory, defaults to the exe's dir).
 
-* wine:  ``args``, ``prefix`` (optional Wine prefix), ``working_dir`` (optional
- working directory, defaults to the exe's dir).
+*   wine:  ``args``, ``prefix`` (optional Wine prefix), ``working_dir`` (optional
+    working directory, defaults to the exe's dir).
 
-* winesteam: ``args``, ``prefix`` (optional Wine prefix).
+*   winesteam: ``args``, ``prefix`` (optional Wine prefix).
 
 [TODO: reference all options] Meanwhile, you can check the configuration window
 of any game using the runner you're writing for to get a list of the available
@@ -201,8 +201,8 @@ Example:
 ::
 
     - execute:
-         args: --argh
-         file: great-id
+        args: --argh
+        file: great-id
 
 Running a task provided by a runner
 -----------------------------------
@@ -213,47 +213,47 @@ that will be called. Other parameters depend on the task being called.
 
 Currently, the following tasks are implemented:
 
-* wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
-  ``executable``, ``args`` (optional arguments passed to the executable),
-  ``prefix`` (optional WINEPREFIX), ``working_dir`` (optional working directory).
+*   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
+    ``executable``, ``args`` (optional arguments passed to the executable),
+    ``prefix`` (optional WINEPREFIX), ``working_dir`` (optional working directory).
 
-Example:
+    Example:
 
-::
+    ::
 
-    - task:
-         name: wineexec
-         prefix: $GAMEDIR
-         executable: drive_c/Program Files/Game/Game.exe
-         args: --windowed
+        - task:
+            name: wineexec
+            prefix: $GAMEDIR
+            executable: drive_c/Program Files/Game/Game.exe
+            args: --windowed
 
 
-* wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
-  ``prefix`` is an optional WINEPREFIX path.
+*   wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
+    ``prefix`` is an optional WINEPREFIX path.
 
-Example:
+    Example:
 
-::
+    ::
 
-    - task:
-         name: winetricks
-         prefix: $GAMEDIR
-         app: nt40
+        - task:
+            name: winetricks
+            prefix: $GAMEDIR
+            app: nt40
 
-* wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
-  are ``path`` (the registry path), ``key``, ``value``, ``prefix`` (optional
-  WINEPREFIX), ``working_dir`` (optional working directory).
+*   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
+    are ``path`` (the registry path), ``key``, ``value``, ``prefix`` (optional
+    WINEPREFIX), ``working_dir`` (optional working directory).
 
-Example:
+    Example:
 
-::
+    ::
 
-    - task:
-        name: set_regedit
-        prefix: $GAMEDIR
-        path: HKEY_CURRENT_USER\Software\Wine\AppDefaults\Sacrifice.exe
-        key: Version
-        value: nt40
+        - task:
+            name: set_regedit
+            prefix: $GAMEDIR
+            path: HKEY_CURRENT_USER\Software\Wine\AppDefaults\Sacrifice.exe
+            key: Version
+            value: nt40
 
 
 Trying the installer locally
