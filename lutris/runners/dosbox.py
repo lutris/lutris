@@ -39,15 +39,17 @@ class dosbox(Runner):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def play(self):
-        self.exe = self.settings["game"]["main_file"]
-        if not os.path.exists(self.exe):
-            return {'error': "FILE_NOT_FOUND", 'file': self.exe}
-        if self.exe.endswith(".conf"):
-            exe = ["-conf", '"%s"' % self.exe]
-        else:
-            exe = ['"%s"' % self.exe]
+        main_file = self.settings["game"]["main_file"]
+        if not os.path.exists(main_file):
+            return {'error': "FILE_NOT_FOUND", 'file': main_file}
+
+        command = [self.get_executable()]
+
         if "config_file" in self.settings["game"]:
-            params = ["-conf", '"%s"' % self.settings["game"]["config_file"]]
+            command.append('-conf "%s"' % self.settings["game"]["config_file"])
+
+        if main_file.endswith(".conf"):
+            command.append('-conf "%s"' % main_file)
         else:
-            params = []
-        return {'command': [self.get_executable()] + params + exe}
+            command.append('"%s"' % main_file)
+        return {'command': command}
