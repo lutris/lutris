@@ -30,23 +30,23 @@ class scummvm(Runner):
     ]
 
     scaler_modes = [
+        ("normal", "normal"),
         ("2x", "2x"),
         ("3x", "3x"),
-        ("2xsai", "2xsai"),
-        ("advmame2x", "advmame2x"),
-        ("advmame3x", "advmame3x"),
-        ("dotmatrix", "dotmatrix"),
         ("hq2x", "hq2x"),
         ("hq3x", "hq3x"),
-        ("normal", "normal"),
+        ("advmame2x", "advmame2x"),
+        ("advmame3x", "advmame3x"),
+        ("2xsai", "2xsai"),
         ("super2xsai", "super2xsai"),
         ("supereagle", "supereagle"),
-        ("tv2x", "tv2x")
+        ("tv2x", "tv2x"),
+        ("dotmatrix", "dotmatrix")
     ]
     runner_options = [
         {
             "option": "windowed",
-            "label": "Windowed",
+            "label": "Windowed mode",
             "type": "bool"
         },
         {
