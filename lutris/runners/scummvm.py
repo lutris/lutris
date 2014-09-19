@@ -21,6 +21,11 @@ class scummvm(Runner):
             'option': 'path',
             'type': 'directory_chooser',
             'label': "Path for the game"
+        },
+        {
+            "option": "subtitles",
+            "label": "Enable subtitles (if the game has voice)",
+            "type": "bool"
         }
     ]
 
@@ -42,6 +47,11 @@ class scummvm(Runner):
         {
             "option": "windowed",
             "label": "Windowed",
+            "type": "bool"
+        },
+        {
+            "option": "aspect",
+            "label": "Aspect ratio correction",
             "type": "bool"
         },
         {
@@ -73,13 +83,23 @@ class scummvm(Runner):
             "--extrapath=\"%s\"" % self.get_scummvm_data_dir(),
             "--themepath=\"%s\"" % self.get_scummvm_data_dir(),
         ]
+
+        # Options
+        if self.runner_config.get("aspect"):
+            command.append("--aspect-ratio")
+
+        if self.settings['game'].get("subtitles"):
+            command.append("--subtitles")
+
         if self.runner_config.get("windowed"):
             command.append("--no-fullscreen")
         else:
             command.append("--fullscreen")
 
-        mode = self.runner_config.get("gfx-mode") or "normal"
-        command.append("--gfx-mode=%s" % mode)
+        mode = self.runner_config.get("gfx-mode")
+        if mode:
+            command.append("--gfx-mode=%s" % mode)
+        # /Options
 
         command.append("--path=\"%s\"" % self.game_path)
         command.append(self.settings["game"]["game_id"])
