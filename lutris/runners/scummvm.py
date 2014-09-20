@@ -56,7 +56,7 @@ class scummvm(Runner):
         },
         {
             "option": "gfx-mode",
-            "label": "Graphics scaler",
+            "label": "Graphic scaler",
             "type": "choice",
             "choices": scaler_modes
         }
