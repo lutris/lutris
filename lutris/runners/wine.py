@@ -48,11 +48,16 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
+    if 'winetricks' == wine_path:
+        winetricks_wine = 'WINE="%s"' % wine().get_executable()
+    else:
+        winetricks_wine = ''
+
     if executable:
         executable = '"%s"' % executable
 
-    command = 'WINEARCH=%s %s "%s" %s %s' % (
-        arch, prefix, wine_path, executable, args
+    command = '%s WINEARCH=%s %s "%s" %s %s' % (
+        winetricks_wine, arch, prefix, wine_path, executable, args
     )
     logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
