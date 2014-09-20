@@ -31,6 +31,41 @@ class dosbox(Runner):
         }
     ]
 
+    scaler_modes = [
+        ("none", "none"),
+        ("normal2x", "normal2x"),
+        ("normal3x", "normal3x"),
+        ("hq2x", "hq2x"),
+        ("hq3x", "hq3x"),
+        ("advmame2x", "advmame2x"),
+        ("advmame3x", "advmame3x"),
+        ("2xsai", "2xsai"),
+        ("super2xsai", "super2xsai"),
+        ("supereagle", "supereagle"),
+        ("advinterp2x", "advinterp2x"),
+        ("advinterp3x", "advinterp3x"),
+        ("tv2x", "tv2x"),
+        ("tv3x", "tv3x"),
+        ("rgb2x", "rgb2x"),
+        ("rgb3x", "rgb3x"),
+        ("scan2x", "scan2x"),
+        ("scan3x", "scan3x")
+    ]
+    runner_options = [
+        {
+            "option": "scaler",
+            "label": "Graphic scaler",
+            "type": "choice",
+            "choices": scaler_modes
+        },
+        {
+            "option": "exit",
+            "label": "Exit Dosbox with the game",
+            "type": "bool",
+            "default": True
+        }
+    ]
+
     tarballs = {
         "x64": "dosbox-0.74-x86_64.tar.gz",
     }
@@ -45,11 +80,19 @@ class dosbox(Runner):
 
         command = [self.get_executable()]
 
-        if "config_file" in self.settings["game"]:
-            command.append('-conf "%s"' % self.settings["game"]["config_file"])
-
         if main_file.endswith(".conf"):
             command.append('-conf "%s"' % main_file)
         else:
             command.append('"%s"' % main_file)
+        # Options
+        if "config_file" in self.settings["game"]:
+            command.append('-conf "%s"' % self.settings["game"]["config_file"])
+
+        if "scaler" in self.runner_config:
+            command.append("-scaler %s" % self.runner_config['scaler'])
+
+        if self.runner_config.get("exit"):
+            command.append("-exit")
+        # /Options
+
         return {'command': command}
