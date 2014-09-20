@@ -70,6 +70,17 @@ class dosbox(Runner):
         "x64": "dosbox-0.74-x86_64.tar.gz",
     }
 
+    @property
+    def browse_dir(self):
+        """Return the path to open with the Browse Files action."""
+        return self.working_dir  # exe path
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        return os.path.dirname(self.main_file)\
+               or super(dosbox, self).browse_dir
+
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
