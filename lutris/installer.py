@@ -523,6 +523,8 @@ class ScriptInterpreter(object):
                 # May not be the best choice, but it's the safest.
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
+            else:
+                shutil.move(src, dst)
         else:
             try:
                 shutil.move(src, dst)
