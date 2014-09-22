@@ -556,7 +556,7 @@ class ScriptInterpreter(object):
             dest_path = self._substitute(data['dst'])
         else:
             dest_path = self.target_path
-        msg = "Extracting %s" % filename
+        msg = "Extracting %s" % os.path.basename(filename)
         logger.debug(msg)
         self.parent.set_status(msg)
         merge_single = 'nomerge' not in data
