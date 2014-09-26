@@ -21,32 +21,42 @@ class scummvm(Runner):
             'option': 'path',
             'type': 'directory_chooser',
             'label': "Path for the game"
+        },
+        {
+            "option": "subtitles",
+            "label": "Enable subtitles (if the game has voice)",
+            "type": "bool"
         }
     ]
 
     scaler_modes = [
+        ("normal", "normal"),
         ("2x", "2x"),
         ("3x", "3x"),
-        ("2xsai", "2xsai"),
-        ("advmame2x", "advmame2x"),
-        ("advmame3x", "advmame3x"),
-        ("dotmatrix", "dotmatrix"),
         ("hq2x", "hq2x"),
         ("hq3x", "hq3x"),
-        ("normal", "normal"),
+        ("advmame2x", "advmame2x"),
+        ("advmame3x", "advmame3x"),
+        ("2xsai", "2xsai"),
         ("super2xsai", "super2xsai"),
         ("supereagle", "supereagle"),
-        ("tv2x", "tv2x")
+        ("tv2x", "tv2x"),
+        ("dotmatrix", "dotmatrix")
     ]
     runner_options = [
         {
             "option": "windowed",
-            "label": "Windowed",
+            "label": "Windowed mode",
+            "type": "bool"
+        },
+        {
+            "option": "aspect",
+            "label": "Aspect ratio correction",
             "type": "bool"
         },
         {
             "option": "gfx-mode",
-            "label": "Graphics scaler",
+            "label": "Graphic scaler",
             "type": "choice",
             "choices": scaler_modes
         }
@@ -73,13 +83,23 @@ class scummvm(Runner):
             "--extrapath=\"%s\"" % self.get_scummvm_data_dir(),
             "--themepath=\"%s\"" % self.get_scummvm_data_dir(),
         ]
+
+        # Options
+        if self.runner_config.get("aspect"):
+            command.append("--aspect-ratio")
+
+        if self.settings['game'].get("subtitles"):
+            command.append("--subtitles")
+
         if self.runner_config.get("windowed"):
             command.append("--no-fullscreen")
         else:
             command.append("--fullscreen")
 
-        mode = self.runner_config.get("gfx-mode") or "normal"
-        command.append("--gfx-mode=%s" % mode)
+        mode = self.runner_config.get("gfx-mode")
+        if mode:
+            command.append("--gfx-mode=%s" % mode)
+        # /Options
 
         command.append("--path=\"%s\"" % self.game_path)
         command.append(self.settings["game"]["game_id"])

@@ -6,11 +6,15 @@ from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
-def dosexec(config_file):
+def dosexec(config_file=None, executable=None):
     """Execute Dosbox with given config_file"""
     logger.debug("Running dosbox with config %s" % config_file)
     dbx = dosbox()
-    command = '"%s" -conf "%s"' % (dbx.get_executable(), config_file)
+    command = '"{}"'.format(dbx.get_executable())
+    if config_file:
+        command += ' -conf "{}"'.format(config_file)
+    if executable:
+        command += ' "{}"'.format(executable)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
@@ -31,23 +35,79 @@ class dosbox(Runner):
         }
     ]
 
+    scaler_modes = [
+        ("none", "none"),
+        ("normal2x", "normal2x"),
+        ("normal3x", "normal3x"),
+        ("hq2x", "hq2x"),
+        ("hq3x", "hq3x"),
+        ("advmame2x", "advmame2x"),
+        ("advmame3x", "advmame3x"),
+        ("2xsai", "2xsai"),
+        ("super2xsai", "super2xsai"),
+        ("supereagle", "supereagle"),
+        ("advinterp2x", "advinterp2x"),
+        ("advinterp3x", "advinterp3x"),
+        ("tv2x", "tv2x"),
+        ("tv3x", "tv3x"),
+        ("rgb2x", "rgb2x"),
+        ("rgb3x", "rgb3x"),
+        ("scan2x", "scan2x"),
+        ("scan3x", "scan3x")
+    ]
+    runner_options = [
+        {
+            "option": "scaler",
+            "label": "Graphic scaler",
+            "type": "choice",
+            "choices": scaler_modes
+        },
+        {
+            "option": "exit",
+            "label": "Exit Dosbox with the game",
+            "type": "bool",
+            "default": True
+        }
+    ]
+
     tarballs = {
         "x64": "dosbox-0.74-x86_64.tar.gz",
     }
+
+    @property
+    def browse_dir(self):
+        """Return the path to open with the Browse Files action."""
+        return self.working_dir  # exe path
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        return os.path.dirname(self.main_file) \
+            or super(dosbox, self).browse_dir
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def play(self):
-        self.exe = self.settings["game"]["main_file"]
-        if not os.path.exists(self.exe):
-            return {'error': "FILE_NOT_FOUND", 'file': self.exe}
-        if self.exe.endswith(".conf"):
-            exe = ["-conf", '"%s"' % self.exe]
+        main_file = self.settings["game"]["main_file"]
+        if not os.path.exists(main_file):
+            return {'error': "FILE_NOT_FOUND", 'file': main_file}
+
+        command = [self.get_executable()]
+
+        if main_file.endswith(".conf"):
+            command.append('-conf "%s"' % main_file)
         else:
-            exe = ['"%s"' % self.exe]
+            command.append('"%s"' % main_file)
+        # Options
         if "config_file" in self.settings["game"]:
-            params = ["-conf", '"%s"' % self.settings["game"]["config_file"]]
-        else:
-            params = []
-        return {'command': [self.get_executable()] + params + exe}
+            command.append('-conf "%s"' % self.settings["game"]["config_file"])
+
+        if "scaler" in self.runner_config:
+            command.append("-scaler %s" % self.runner_config['scaler'])
+
+        if self.runner_config.get("exit"):
+            command.append("-exit")
+        # /Options
+
+        return {'command': command}

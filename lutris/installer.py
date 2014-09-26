@@ -324,6 +324,8 @@ class ScriptInterpreter(object):
     def _write_config(self):
         """Write the game configuration as a Lutris launcher."""
         runner_name = self.script['runner']
+
+        # Get existing config
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % self.game_slug)
         if self.requires and os.path.exists(config_filename):
@@ -336,11 +338,15 @@ class ScriptInterpreter(object):
             config = {
                 'game': {},
             }
+
+        # DB update
         pga.add_or_update(self.script['name'], runner_name,
                           slug=self.game_slug,
                           directory=self.target_path,
                           installed=1,
                           installer_slug=self.script.get('installer_slug'))
+
+        # Config update
         if 'system' in self.script:
             config['system'] = self._substitute_config(self.script['system'])
         if runner_name in self.script:
@@ -349,8 +355,10 @@ class ScriptInterpreter(object):
             )
         if 'game' in self.script:
             config['game'].update(self._substitute_config(self.script['game']))
+
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
+
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
             if launcher in self.script:
                 if launcher == "exe64":
@@ -550,7 +558,7 @@ class ScriptInterpreter(object):
             dest_path = self._substitute(data['dst'])
         else:
             dest_path = self.target_path
-        msg = "Extracting %s" % filename
+        msg = "Extracting %s" % os.path.basename(filename)
         logger.debug(msg)
         self.parent.set_status(msg)
         merge_single = 'nomerge' not in data
