@@ -6,11 +6,15 @@ from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
-def dosexec(config_file):
+def dosexec(config_file=None, executable=None):
     """Execute Dosbox with given config_file"""
     logger.debug("Running dosbox with config %s" % config_file)
     dbx = dosbox()
-    command = '"%s" -conf "%s"' % (dbx.get_executable(), config_file)
+    command = '"{}"'.format(dbx.get_executable())
+    if config_file:
+        command += ' -conf "{}"'.format(config_file)
+    if executable:
+        command += ' "{}"'.format(executable)
     subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
@@ -78,8 +82,8 @@ class dosbox(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return os.path.dirname(self.main_file)\
-               or super(dosbox, self).browse_dir
+        return os.path.dirname(self.main_file) \
+            or super(dosbox, self).browse_dir
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
