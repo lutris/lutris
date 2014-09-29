@@ -1,7 +1,11 @@
 lutris (0.3.6) trusty; urgency=medium
 
+  * Added DOSBox options: scaler and auto-exit
   * Added ScummVM options: aspect correction, subtitles
   * Fixed Wine games install failing when there is a space in the setup file path
+  * Fixed the "Reset resolution" option and set it to "on" by default
+  * Fixed the Browse Files action on DOSBox games
+  * Fixed Winetricks in installers
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
 

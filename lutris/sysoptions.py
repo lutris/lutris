@@ -30,6 +30,12 @@ system_options = [
         'help': "Switch to this resolution during gameplay"
     },
     {
+        'option': 'reset_desktop',
+        'type': 'bool',
+        'label': 'Restore desktop resolution when the game quits',
+        'default': True
+    },
+    {
         'option': 'display',
         'type': 'choice',
         'label': 'Restrict to display',
@@ -46,11 +52,6 @@ system_options = [
         'option': 'reset_pulse',
         'type': 'bool',
         'label': 'Reset PulseAudio'
-    },
-    {
-        'option': 'reset_desktop',
-        'type': 'bool',
-        'label': 'Reset resolution when game quits'
     },
     {
         'option': 'killswitch',
