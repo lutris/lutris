@@ -49,52 +49,59 @@ class ConfigBox(Gtk.VBox):
         # Go thru all options.
         for option in self.options:
             option_key = option["option"]
+            wrapper = Gtk.VBox()
 
             # Load value if there is one.
             value = config.get(option_key) or option.get('default')
 
             # Different types of widgets.
             if option["type"] == "choice":
-                self.generate_combobox(option_key,
+                self.generate_combobox(wrapper,
+                                       option_key,
                                        option["choices"],
                                        option["label"], value)
             elif option["type"] == "bool":
-                self.generate_checkbox(option, value)
+                self.generate_checkbox(wrapper, option, value)
             elif option["type"] == "range":
-                self.generate_range(option_key,
+                self.generate_range(wrapper,
+                                    option_key,
                                     option["min"],
                                     option["max"],
                                     option["label"], value)
             elif option["type"] == "string":
                 if 'label' not in option:
                     raise ValueError("Option %s has no label" % option)
-                self.generate_entry(option_key,
+                self.generate_entry(wrapper,
+                                    option_key,
                                     option["label"], value)
             elif option["type"] == "directory_chooser":
-                self.generate_directory_chooser(option_key,
+                self.generate_directory_chooser(wrapper,
+                                                option_key,
                                                 option["label"],
                                                 value)
             elif option["type"] == "file":
-                self.generate_file_chooser(option, value)
+                self.generate_file_chooser(wrapper, option, value)
             elif option["type"] == "multiple":
-                self.generate_multiple_file_chooser(option_key,
+                self.generate_multiple_file_chooser(wrapper,
+                                                    option_key,
                                                     option["label"], value)
             elif option["type"] == "label":
-                self.generate_label(option["label"])
+                self.generate_label(wrapper, option["label"])
             else:
                 raise ValueError("Unknown widget type %s" % option["type"])
             helptext = option.get("help")
             if helptext:
-                self.generate_label(helptext)
+                wrapper.set_tooltip_text(helptext)
+            self.pack_start(wrapper, False, False, PADDING)
 
-    def generate_label(self, text):
+    def generate_label(self, wrapper, text):
         """ Generates a simple label. """
         label = Label(text)
         label.show()
-        self.pack_start(label, False, False, PADDING)
+        wrapper.pack_start(label, False, False, PADDING)
 
     # Checkbox
-    def generate_checkbox(self, option, value=None):
+    def generate_checkbox(self, wrapper, option, value=None):
         """ Generates a checkbox. """
         checkbox = Gtk.CheckButton(label=option["label"])
         if value:
@@ -102,14 +109,14 @@ class ConfigBox(Gtk.VBox):
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         checkbox.set_margin_left(20)
         checkbox.show()
-        self.pack_start(checkbox, False, False, 0)
+        wrapper.pack_start(checkbox, False, False, PADDING)
 
     def checkbox_toggle(self, widget, option_name):
         """ Action for the checkbox's toggled signal."""
         self.real_config[self.config_type][option_name] = widget.get_active()
 
     # Entry
-    def generate_entry(self, option_name, label, value=None):
+    def generate_entry(self, wrapper, option_name, label, value=None):
         """ Generates an entry box. """
         hbox = Gtk.HBox()
         entry_label = Label(label)
@@ -120,7 +127,7 @@ class ConfigBox(Gtk.VBox):
         hbox.pack_start(entry_label, False, False, 20)
         hbox.pack_start(entry, True, True, 20)
         hbox.show_all()
-        self.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, True, PADDING)
 
     def entry_changed(self, entry, option_name):
         """ Action triggered for entry 'changed' signal. """
@@ -128,7 +135,7 @@ class ConfigBox(Gtk.VBox):
         self.real_config[self.config_type][option_name] = entry_text
 
     # ComboBox
-    def generate_combobox(self, option_name, choices, label, value=None):
+    def generate_combobox(self, wrapper, option_name, choices, label, value=None):
         """ Generates a combobox (drop-down menu). """
         hbox = Gtk.HBox()
         liststore = Gtk.ListStore(str, str)
@@ -153,7 +160,7 @@ class ConfigBox(Gtk.VBox):
         hbox.pack_start(label, False, False, 20)
         hbox.pack_start(combobox, True, True, 20)
         hbox.show_all()
-        self.pack_start(hbox, False, False, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
 
     def on_combobox_change(self, combobox, option):
         """ Action triggered on combobox 'changed' signal. """
@@ -164,7 +171,7 @@ class ConfigBox(Gtk.VBox):
         option_value = model[active][1]
         self.real_config[self.config_type][option] = option_value
 
-    def generate_range(self, option_name, min_val, max_val, label, value=None):
+    def generate_range(self, wrapper, option_name, min_val, max_val, label, value=None):
         """ Generates a ranged spin button. """
         adjustment = Gtk.Adjustment(float(min_val), float(min_val),
                                     float(max_val), 1, 0, 0)
@@ -179,14 +186,14 @@ class ConfigBox(Gtk.VBox):
         hbox.pack_start(label, False, False, 20)
         hbox.pack_start(spin_button, True, True, 20)
         hbox.show_all()
-        self.pack_start(hbox, False, True, 5)
+        wrapper.pack_start(hbox, False, True, PADDING)
 
     def on_spin_button_changed(self, spin_button, option):
         """ Action triggered on spin button 'changed' signal """
         value = spin_button.get_value_as_int()
         self.real_config[self.config_type][option] = value
 
-    def generate_file_chooser(self, option, path=None):
+    def generate_file_chooser(self, wrapper, option, path=None):
         """Generates a file chooser button to select a file"""
         option_name = option['option']
         label = option['label']
@@ -211,9 +218,9 @@ class ConfigBox(Gtk.VBox):
             file_chooser.select_filename(path)
         hbox.pack_start(Label(label), False, False, 20)
         hbox.pack_start(file_chooser, True, True, 20)
-        self.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, True, PADDING)
 
-    def generate_directory_chooser(self, option_name, label, value=None):
+    def generate_directory_chooser(self, wrapper, option_name, label, value=None):
         """Generates a file chooser button to select a directory"""
         hbox = Gtk.HBox()
         directory_chooser = Gtk.FileChooserButton(
@@ -226,14 +233,14 @@ class ConfigBox(Gtk.VBox):
                                   option_name)
         hbox.pack_start(Label(label), False, False, 20)
         hbox.pack_start(directory_chooser, True, True, 20)
-        self.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, True, PADDING)
 
     def on_chooser_file_set(self, filechooser_widget, option):
         """ Action triggered on file select dialog 'file-set' signal. """
         filename = filechooser_widget.get_filename()
         self.real_config[self.config_type][option] = filename
 
-    def generate_multiple_file_chooser(self, option_name, label, value=None):
+    def generate_multiple_file_chooser(self, wrapper, option_name, label, value=None):
         """ Generates a multiple file selector. """
         hbox = Gtk.HBox()
         hbox.pack_start(Label(label), False, False, 20)
@@ -255,7 +262,7 @@ class ConfigBox(Gtk.VBox):
             files_chooser_button.set_filename(value[0])
 
         hbox.pack_start(files_chooser_button, True, True, 20)
-        self.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, True, PADDING)
         if value:
             if type(value) == str:
                 self.files = [value]
@@ -277,7 +284,7 @@ class ConfigBox(Gtk.VBox):
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         treeview_scroll.add(files_treeview)
-        self.add(treeview_scroll)
+        wrapper.add(treeview_scroll)
 
     def on_files_treeview_event(self, treeview, event, option):
         """ Action triggered when a row is deleted from the filechooser. """
