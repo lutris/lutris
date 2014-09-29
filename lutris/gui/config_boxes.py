@@ -92,8 +92,9 @@ class ConfigBox(Gtk.VBox):
             helptext = option.get("help")
             if helptext:
                 wrapper.set_tooltip_text(helptext)
-            self.pack_start(wrapper, False, False, PADDING)
+            self.pack_start(wrapper, False, False, 0)
 
+    # Label
     def generate_label(self, wrapper, text):
         """ Generates a simple label. """
         label = Label(text)
@@ -119,15 +120,16 @@ class ConfigBox(Gtk.VBox):
     def generate_entry(self, wrapper, option_name, label, value=None):
         """ Generates an entry box. """
         hbox = Gtk.HBox()
-        entry_label = Label(label)
+        label = Label(label)
         entry = Gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
-        hbox.pack_start(entry_label, False, False, 20)
+        label.set_alignment(0.5, 0.5)
+        hbox.pack_start(label, False, False, 20)
         hbox.pack_start(entry, True, True, 20)
         hbox.show_all()
-        wrapper.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
 
     def entry_changed(self, entry, option_name):
         """ Action triggered for entry 'changed' signal. """
@@ -157,6 +159,7 @@ class ConfigBox(Gtk.VBox):
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)
+        label.set_alignment(0.5, 0.5)
         hbox.pack_start(label, False, False, 20)
         hbox.pack_start(combobox, True, True, 20)
         hbox.show_all()
@@ -171,6 +174,7 @@ class ConfigBox(Gtk.VBox):
         option_value = model[active][1]
         self.real_config[self.config_type][option] = option_value
 
+    # Range
     def generate_range(self, wrapper, option_name, min_val, max_val, label, value=None):
         """ Generates a ranged spin button. """
         adjustment = Gtk.Adjustment(float(min_val), float(min_val),
@@ -183,20 +187,22 @@ class ConfigBox(Gtk.VBox):
                             self.on_spin_button_changed, option_name)
         hbox = Gtk.HBox()
         label = Label(label)
+        label.set_alignment(0.5, 0.5)
         hbox.pack_start(label, False, False, 20)
         hbox.pack_start(spin_button, True, True, 20)
         hbox.show_all()
-        wrapper.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
 
     def on_spin_button_changed(self, spin_button, option):
         """ Action triggered on spin button 'changed' signal """
         value = spin_button.get_value_as_int()
         self.real_config[self.config_type][option] = value
 
+    # File chooser
     def generate_file_chooser(self, wrapper, option, path=None):
         """Generates a file chooser button to select a file"""
         option_name = option['option']
-        label = option['label']
+        label = Label(option['label'])
         hbox = Gtk.HBox()
         file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
         file_chooser.set_size_request(200, 30)
@@ -216,13 +222,16 @@ class ConfigBox(Gtk.VBox):
                 path = os.path.join(self.game.directory, path)
             file_chooser.unselect_all()
             file_chooser.select_filename(path)
-        hbox.pack_start(Label(label), False, False, 20)
+        label.set_alignment(0.5, 0.5)
+        hbox.pack_start(label, False, False, 20)
         hbox.pack_start(file_chooser, True, True, 20)
-        wrapper.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
 
+    # Directory chooser
     def generate_directory_chooser(self, wrapper, option_name, label, value=None):
         """Generates a file chooser button to select a directory"""
         hbox = Gtk.HBox()
+        label = Label(label)
         directory_chooser = Gtk.FileChooserButton(
             title="Choose a directory for %s" % label
         )
@@ -231,19 +240,21 @@ class ConfigBox(Gtk.VBox):
             directory_chooser.set_current_folder(value)
         directory_chooser.connect("file-set", self.on_chooser_file_set,
                                   option_name)
-        hbox.pack_start(Label(label), False, False, 20)
+        label.set_alignment(0.5, 0.5)
+        hbox.pack_start(label, False, False, 20)
         hbox.pack_start(directory_chooser, True, True, 20)
-        wrapper.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
 
     def on_chooser_file_set(self, filechooser_widget, option):
         """ Action triggered on file select dialog 'file-set' signal. """
         filename = filechooser_widget.get_filename()
         self.real_config[self.config_type][option] = filename
 
+    # Multiple file selector
     def generate_multiple_file_chooser(self, wrapper, option_name, label, value=None):
         """ Generates a multiple file selector. """
         hbox = Gtk.HBox()
-        hbox.pack_start(Label(label), False, False, 20)
+        label = Label(label)
         self.files_chooser_dialog = Gtk.FileChooserDialog(
             title="Select files",
             parent=self.get_parent_window(),
@@ -261,8 +272,10 @@ class ConfigBox(Gtk.VBox):
         if value:
             files_chooser_button.set_filename(value[0])
 
+        label.set_alignment(0.5, 0.5)
+        hbox.pack_start(label, False, False, 20)
         hbox.pack_start(files_chooser_button, True, True, 20)
-        wrapper.pack_start(hbox, False, True, PADDING)
+        wrapper.pack_start(hbox, False, False, PADDING)
         if value:
             if type(value) == str:
                 self.files = [value]
