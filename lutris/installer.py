@@ -10,7 +10,7 @@ import platform
 import subprocess
 import webbrowser
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 from lutris import pga
 from lutris.util import extract
@@ -26,7 +26,7 @@ from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris import settings
-from lutris.runners import import_task
+from lutris.runners import import_task, import_runner
 
 
 class ScriptingError(Exception):
@@ -531,6 +531,8 @@ class ScriptInterpreter(object):
                 # May not be the best choice, but it's the safest.
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
+            else:
+                shutil.move(src, dst)
         else:
             try:
                 shutil.move(src, dst)
@@ -587,6 +589,15 @@ class ScriptInterpreter(object):
             runner_name, task_name = task_name.split('.')
         else:
             runner_name = self.script["runner"]
+
+        # Check that runner is installed or install it
+        runner = import_runner(runner_name)()
+        if not runner.is_installed():
+            Gdk.threads_init()
+            Gdk.threads_enter()
+            runner.install()
+            Gdk.threads_leave()
+
         for key in data:
             data[key] = self._substitute(data[key])
         task = import_task(runner_name, task_name)

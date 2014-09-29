@@ -1,6 +1,9 @@
+lutris (0.3.6) trusty; urgency=medium
 
   * Added ScummVM options: aspect correction, subtitles
   * Fixed Wine games install failing when there is a space in the setup file path
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
 
 lutris (0.3.5) trusty; urgency=medium
 
