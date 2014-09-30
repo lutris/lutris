@@ -167,11 +167,11 @@ class wine(Runner):
                 'label': "Custom Wine executable",
                 'type': 'file'
             },
-            {
-                'option': 'cdrom_path',
-                'label': 'CDRom mount point',
-                'type': 'directory_chooser'
-            },
+            # {
+            #     'option': 'cdrom_path',
+            #     'label': 'CDRom mount point',
+            #     'type': 'directory_chooser'
+            # },
             {
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
