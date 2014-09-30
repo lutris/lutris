@@ -144,15 +144,11 @@ class wine(Runner):
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in self.local_wine_versions]
 
-        orm_choices = [('BackBuffer', 'backbuffer'),
-                       ('FBO', 'fbo'),
-                       ('PBuffer', 'pbuffer')]
-        rtlm_choices = [('Auto', 'auto'),
-                        ('Disabled', 'disabled'),
-                        ('ReadDraw', 'readdraw'),
+        orm_choices = [('FBO', 'fbo'),
+                       ('BackBuffer', 'backbuffer')]
+        rtlm_choices = [('Disabled', 'disabled'),
                         ('ReadTex', 'readtex'),
-                        ('TexDraw', 'texdraw'),
-                        ('TexTex', 'textex')]
+                        ('ReadDraw', 'readdraw')]
         audio_choices = [('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
