@@ -107,23 +107,32 @@ class wine(Runner):
         {
             'option': 'exe',
             'type': 'file',
-            'label': 'Executable'
+            'label': 'Executable',
+            'help': "The game's main .exe file"
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Arguments'
+            'label': 'Arguments',
+            'help': ("Windows command line arguments used when launching "
+                     "the game")
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": "Working directory"
+            "label": "Working directory",
+            'help': ("The location where the game is run from.\n"
+                     "By default, Lutris uses the directory of the "
+                     "executable.")
         },
 
         {
             'option': 'prefix',
             'type': 'directory_chooser',
-            'label': 'Prefix'
+            'label': 'Prefix',
+            'help': ("The prefix (also named \"bottle\") used by Wine.\n"
+                     "It's a directory containing a set of files and \n"
+                     "folders making up a confined Windows environment.")
         },
         {
             'option': 'arch',
@@ -132,7 +141,10 @@ class wine(Runner):
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
-            'default': 'None'
+            'default': 'None',
+            'help': ("The architecture of the Windows environment.\n"
+                     "32-bit is recommended unless running "
+                     "a 64-bit only game.")
         }
     ]
 
@@ -160,12 +172,28 @@ class wine(Runner):
                 'label': "Wine version",
                 'type': 'choice',
                 'choices': wine_versions,
-                'default': DEFAULT_WINE
+                'default': DEFAULT_WINE,
+                'help': ("The version of Wine used to launch the game.\n"
+                         "Using the last version is generally recommended, \n"
+                         "but some games work better on older versions.")
             },
             {
                 'option': 'custom_wine_path',
                 'label': "Custom Wine executable",
-                'type': 'file'
+                'type': 'file',
+                'help': (
+                    "The Wine executable to be used if you have selected \n"
+                    "\"Custom\" as the Wine version."
+                )
+            },
+            {
+                'option': 'Desktop',
+                'label': 'Windowed (virtual desktop)',
+                'type': 'choice',
+                'choices': desktop_choices,
+                'help': ("Run the whole Windows desktop in a window.\n"
+                         "Otherwise, run it fullscreen.\n"
+                         "This corresponds to Wine's Virtual Desktop option.")
             },
             # {
             #     'option': 'cdrom_path',
@@ -177,10 +205,17 @@ class wine(Runner):
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
                 'choices': [
-                    ('Disable', 'disable'),
                     ('Enable', 'enable'),
+                    ('Disable', 'disable'),
                     ('Force', 'force')
-                ]
+                ],
+                'help': (
+                    "Override the default mouse pointer warping behavior\n"
+                    "Enable: (default) warp the pointer when the mouse"
+                    " is exclusively acquired \n"
+                    "Disable: never warp the mouse pointer \n"
+                    "Force: always warp the pointer \n"
+                )
             },
             {
                 'option': 'Multisampling',
@@ -189,31 +224,43 @@ class wine(Runner):
                 'choices': [
                     ('Enabled', 'enabled'),
                     ('Disabled', 'disabled')
-                ]
+                ],
+                'help': ("Set to Disabled to prevent applications from \n"
+                         "seeing Wine's multisampling support.\n"
+                         "This is another Wine legacy option that will most \n"
+                         "likely disappear at some point. There should be \n"
+                         "no reason to set this.")
             },
             {
                 'option': 'OffscreenRenderingMode',
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
-                'choices': orm_choices
+                'choices': orm_choices,
+                'help': ("Select the offscreen rendering implementation.\n"
+                         "FBO: (default) Use framebuffer objects for offscreen"
+                         " rendering \n"
+                         "Backbuffer: Render offscreen render targets in the"
+                         " backbuffer.\n")
             },
             {
                 'option': 'RenderTargetLockMode',
                 'label': 'Render Target Lock Mode',
                 'type': 'choice',
-                'choices': rtlm_choices
+                'choices': rtlm_choices,
+                'help': (
+                    "Select which mode is used for onscreen render targets:\n"
+                    "Disabled: Disables render target locking \n"
+                    "ReadTex: (default) Reads by glReadPixels, writes by"
+                    " drawing a textured quad \n"
+                    "ReadDraw: Uses glReadPixels for reading and writing"
+                )
             },
             {
                 'option': 'Audio',
                 'label': 'Audio driver',
                 'type': 'choice',
-                'choices': audio_choices
-            },
-            {
-                'option': 'Desktop',
-                'label': 'Virtual desktop',
-                'type': 'choice',
-                'choices': desktop_choices
+                'choices': audio_choices,
+                'help': "Which audio backend to use."
             }
         ]
         self.config = config or {}
