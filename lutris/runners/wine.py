@@ -131,7 +131,7 @@ class wine(Runner):
             'type': 'directory_chooser',
             'label': 'Prefix',
             'help': ("The prefix (also named \"bottle\") used by Wine.\n"
-                     "It's a directory containing a set of files and \n"
+                     "It's a directory containing a set of files and "
                      "folders making up a confined Windows environment.")
         },
         {
@@ -174,7 +174,7 @@ class wine(Runner):
                 'choices': wine_versions,
                 'default': DEFAULT_WINE,
                 'help': ("The version of Wine used to launch the game.\n"
-                         "Using the last version is generally recommended, \n"
+                         "Using the last version is generally recommended, "
                          "but some games work better on older versions.")
             },
             {
@@ -182,7 +182,7 @@ class wine(Runner):
                 'label': "Custom Wine executable",
                 'type': 'file',
                 'help': (
-                    "The Wine executable to be used if you have selected \n"
+                    "The Wine executable to be used if you have selected "
                     "\"Custom\" as the Wine version."
                 )
             },
@@ -214,7 +214,7 @@ class wine(Runner):
                     "Enable: (default) warp the pointer when the mouse"
                     " is exclusively acquired \n"
                     "Disable: never warp the mouse pointer \n"
-                    "Force: always warp the pointer \n"
+                    "Force: always warp the pointer"
                 )
             },
             {
@@ -225,10 +225,10 @@ class wine(Runner):
                     ('Enabled', 'enabled'),
                     ('Disabled', 'disabled')
                 ],
-                'help': ("Set to Disabled to prevent applications from \n"
-                         "seeing Wine's multisampling support.\n"
-                         "This is another Wine legacy option that will most \n"
-                         "likely disappear at some point. There should be \n"
+                'help': ("Set to Disabled to prevent applications from "
+                         "seeing Wine's multisampling support."
+                         "This is another Wine legacy option that will most "
+                         "likely disappear at some point. There should be "
                          "no reason to set this.")
             },
             {

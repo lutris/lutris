@@ -89,9 +89,14 @@ class ConfigBox(Gtk.VBox):
                 self.generate_label(wrapper, option["label"])
             else:
                 raise ValueError("Unknown widget type %s" % option["type"])
+
+            # Tooltip
             helptext = option.get("help")
             if helptext:
-                wrapper.set_tooltip_text(helptext)
+                wrapper.props.has_tooltip = True
+                wrapper.connect('query-tooltip', self.on_query_tooltip,
+                                helptext)
+
             self.pack_start(wrapper, False, False, 0)
 
     # Label
@@ -321,6 +326,17 @@ class ConfigBox(Gtk.VBox):
                 files.append(filename)
         self.real_config[self.config_type][option] = files
         self.files_chooser_dialog = None
+
+    def on_query_tooltip(self, widget, x, y, keybmode, tooltip, text):
+        """Prepare a custom tooltip with a fixed width"""
+        label = Label(text)
+        label.set_use_markup(True)
+        label.set_max_width_chars(60)
+        hbox = Gtk.HBox()
+        hbox.pack_start(label, False, False, 0)
+        hbox.show_all()
+        tooltip.set_custom(hbox)
+        return True
 
 
 class GameBox(ConfigBox):
