@@ -94,6 +94,8 @@ class ScriptInterpreter(object):
         self.game_name = None
         self.game_slug = None
         self.game_files = {}
+        self.requires_disc = {}
+        self.game_disc = None
         self.steam_data = {}
         self.script = script
         if not self.script:
@@ -102,6 +104,7 @@ class ScriptInterpreter(object):
             raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
         self.game_slug = slugify(self.game_name)
+        self.requires_disc = self.script.get('insert-disc')
         self.requires = self.script.get('requires')
         if self.requires:
             self._check_dependecy()
@@ -410,7 +413,8 @@ class ScriptInterpreter(object):
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": settings.CACHE_DIR,
-            "HOME": os.path.expanduser("~")
+            "HOME": os.path.expanduser("~"),
+            "DISC": self.game_disc
         }
         replacements.update(self.game_files)
         return substitute(template_string, replacements)
@@ -436,23 +440,36 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
-    def insert_disc(self, data):
-        message = data.get('message', "Insert game disc to continue")
-        requires = data.get('requires')
+    def insert_disc(self):
+        message = self.requires_disc.get('message', "Insert game disc to continue")
+        requires = self.requires_disc.get('requires')
         if not requires:
             raise ScriptingError("The installer's `insert_disc` command is "
                                  "missing the `requires` parameter." * 2)
         self.parent.wait_for_user_action(message, self.on_cd_mounted, requires)
-        return 'STOP'
 
     def on_cd_mounted(self, widget, requires):
-        paths = ['/mnt', '/media/cdrom', '/cdrom',
-                 '/media/%s/disk' % os.getlogin()]
+        volid = self._get_volid()
+        paths = ['/media/%s/%s' % (os.getlogin(), volid),
+                 '/media/cdrom', '/mnt/cdrom', '/cdrom']
         for path in paths:
             required_abspath = os.path.join(path, requires)
             if os.path.exists(required_abspath):
-                self.game_files['CDROM'] = path
-                self._iter_commands()
+                logger.debug("Found %s on cdrom %s" % (requires, path))
+                self.game_disc = path
+                self.parent.continue_install()
+
+    def _get_volid(self, devicefile=None):
+        if devicefile is None:
+            devicefile = '/dev/cdrom'
+        p = subprocess.Popen(["volname", devicefile],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (response, errmsg) = p.communicate()
+        volid=response.rstrip()
+        errmsg = errmsg.rstrip()
+        if len(response)==0:
+            volid=None
+        return volid
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
@@ -732,6 +749,16 @@ class InstallerDialog(Gtk.Window):
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
 
+        # CDrom check
+        if self.interpreter.requires_disc:
+            self.continue_button.hide()
+            self.interpreter.insert_disc()
+        else:
+            self.continue_install()
+
+    def continue_install(self):
+        self.clean_widgets()
+        self.continue_button.show()
         # Target chooser
         if not self.interpreter.requires and self.interpreter.files:
             self.set_message("Select installation directory")
