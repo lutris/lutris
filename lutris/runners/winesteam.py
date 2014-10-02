@@ -13,6 +13,8 @@ from lutris.util.log import logger
 from lutris.util.steam import (read_config, get_path_from_config,
                                get_path_from_appmanifest)
 from lutris.util import system
+from lutris.util.system import fix_path_case
+from lutris.util.wineregistry import WineRegistry
 from lutris.config import LutrisConfig
 
 # Redefine wine installer tasks
@@ -109,12 +111,19 @@ class winesteam(wine.wine):
                 '"%s"' % self.steam_path, '-no-dwrite']
 
     @property
-    def steam_path(self):
+    def steam_path(self, prefix=None):
         """Return Steam exe's path"""
-        path = self.runner_config.get('steam_path')
-        if path and os.path.exists(path):
-            return path
-        return os.path.join(self.get_default_steam_dir(), "Steam.exe")
+        if not prefix:
+            prefix = os.path.expanduser("~/.wine")
+        user_reg = os.path.join(prefix, "user.reg")
+        if not os.path.exists(user_reg):
+            return
+        registry = WineRegistry(user_reg)
+        steam_path = registry.query("Software/Valve/Steam", "SteamExe")
+        if not steam_path:
+            return
+        path = registry.get_unix_path(steam_path)
+        return fix_path_case(path)
 
     def get_default_steam_dir(self, prefix=None):
         """Returns default location of Steam"""
@@ -137,7 +146,7 @@ class winesteam(wine.wine):
             config.runner_config = {'winesteam': {'steam_path': steam_path}}
             config.save()
         else:
-            ErrorDialog("Can't find Steam.exe in the selected folder")
+            ErrorDialog("Can't find Steam.exe in %s" % steam_path)
 
     def is_installed(self):
         """ Checks if wine is installed and if the steam executable is on the
