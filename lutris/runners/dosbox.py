@@ -27,7 +27,7 @@ class dosbox(Runner):
             "option": "main_file",
             "type": "file",
             "label": "Executable",
-            'help': ("The EXE, COM or DOT file to launch.\n"
+            'help': ("The EXE, COM or BAT file to launch.\n"
                      "It can be left blank if the launch of the executable is"
                      "managed in the config file.")
         },
