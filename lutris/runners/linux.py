@@ -12,23 +12,31 @@ class linux(Runner):
             "option": "exe",
             "type": "file",
             "default_path": "game_path",
-            "label": "Executable"
+            "label": "Executable",
+            'help': "The game's main executable file"
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments"
+            "label": "Arguments",
+            'help': "Command line arguments used when launching the game"
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": "Working directory"
+            "label": "Working directory",
+            'help': ("The location where the game is run from.\n"
+                     "By default, Lutris uses the directory of the "
+                     "executable.")
         },
 
         {
             "option": "ld_preload",
             "type": "file",
-            "label": "Preload library"
+            "label": "Preload library",
+            'help': ("One or more function libraries to load before running "
+                     "the game's executable. You can enter multiple paths "
+                     "separated by spaces.")
         },
         {
             "option": "ld_library_path",
