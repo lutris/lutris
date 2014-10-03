@@ -128,7 +128,7 @@ def fix_path_case(path):
     current_path = "/"
     for part in parts:
         if not os.path.exists(current_path):
-            return False
+            return
         tested_path = os.path.join(current_path, part)
         if os.path.exists(tested_path):
             current_path = tested_path
@@ -137,4 +137,7 @@ def fix_path_case(path):
             if filename.lower() == part.lower():
                 current_path = os.path.join(current_path, filename)
                 continue
-    return current_path
+
+    # Only return the path if we got the same number of elements
+    if len(parts) == len(current_path.strip('/').split('/')):
+        return current_path
