@@ -20,7 +20,10 @@ class frotz(Runner):
         {
             "option": "story",
             "type": "file",
-            "label": "Story File"
+            "label": "Story File",
+            'help': ('A Z-Machine game file, usally ends in ".z*", with "*"'
+                     'being a number from 1 to 6 representing the version '
+                     'of the Z-Machine that the game was written for.')
         }
     ]
 

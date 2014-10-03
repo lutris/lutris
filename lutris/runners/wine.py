@@ -108,7 +108,7 @@ class wine(Runner):
             'option': 'exe',
             'type': 'file',
             'label': 'Executable',
-            'help': "The game's main .exe file"
+            'help': "The game's main EXE file"
         },
         {
             'option': 'args',
@@ -211,10 +211,10 @@ class wine(Runner):
                 ],
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
-                    "Enable: (default) warp the pointer when the mouse"
+                    "<b>Enable</b>: (default) warp the pointer when the mouse"
                     " is exclusively acquired \n"
-                    "Disable: never warp the mouse pointer \n"
-                    "Force: always warp the pointer"
+                    "<b>Disable</b>: never warp the mouse pointer \n"
+                    "<b>Force</b>: always warp the pointer"
                 )
             },
             {
@@ -226,7 +226,7 @@ class wine(Runner):
                     ('Disabled', 'disabled')
                 ],
                 'help': ("Set to Disabled to prevent applications from "
-                         "seeing Wine's multisampling support."
+                         "seeing Wine's multisampling support. "
                          "This is another Wine legacy option that will most "
                          "likely disappear at some point. There should be "
                          "no reason to set this.")
@@ -237,9 +237,9 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': orm_choices,
                 'help': ("Select the offscreen rendering implementation.\n"
-                         "FBO: (default) Use framebuffer objects for offscreen"
+                         "<b>FBO</b>: (default) Use framebuffer objects for offscreen"
                          " rendering \n"
-                         "Backbuffer: Render offscreen render targets in the"
+                         "<b>Backbuffer</b>: Render offscreen render targets in the"
                          " backbuffer.\n")
             },
             {
@@ -249,10 +249,10 @@ class wine(Runner):
                 'choices': rtlm_choices,
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
-                    "Disabled: Disables render target locking \n"
-                    "ReadTex: (default) Reads by glReadPixels, writes by"
+                    "<b>Disabled</b>: Disables render target locking \n"
+                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes by"
                     " drawing a textured quad \n"
-                    "ReadDraw: Uses glReadPixels for reading and writing"
+                    "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },
             {

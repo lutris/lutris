@@ -33,7 +33,9 @@ class atari800(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom File"
+            "label": "Rom file",
+            'help': ("Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
+                     "and PRO.")
         }
     ]
     try:
@@ -46,7 +48,10 @@ class atari800(Runner):
         {
             "option": "bios_path",
             "type": "directory_chooser",
-            "label": "Bios Path"
+            "label": "Bios location",
+            'help': ("A folder containing the Atari 800 bios files.\n"
+                     "They are provided by Lutris so you shouldn't have to "
+                     "change this.")
         },
         {
             "option": "machine",
