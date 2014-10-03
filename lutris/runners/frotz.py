@@ -33,6 +33,6 @@ class frotz(Runner):
             return {'error': 'RUNNER_NOT_INSTALLED'}
         if not os.path.exists(story):
             return {'error': 'FILE_NOT_FOUND', 'file': story}
-        command = ['x-terminal-emulator', '-e', "\"" + self.executable,
-                   "\"" + story + "\"\""]
+        command = ['x-terminal-emulator', '-e', '"%s"' % self.get_executable(),
+                   '"%s"' % story]
         return {'command': command}
