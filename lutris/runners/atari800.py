@@ -119,7 +119,8 @@ class atari800(Runner):
 
         if self.runner_config.get("resolution"):
             width, height = self.runner_config["resolution"].split('x')
-            arguments += ["-width", "%s" % width, "-height", "%s" % height]
+            arguments += ["-fs-width", "%s" % width,
+                          "-fs-height", "%s" % height]
 
         if self.runner_config.get("machine"):
             arguments.append("-%s" % self.runner_config["machine"])
