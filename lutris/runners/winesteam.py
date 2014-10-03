@@ -4,10 +4,8 @@ import os
 import time
 import subprocess
 
-from gi.repository import Gdk
-
 from lutris import settings
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog
+from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.util.log import logger
 from lutris.util.steam import (read_config, get_path_from_config,
@@ -15,7 +13,6 @@ from lutris.util.steam import (read_config, get_path_from_config,
 from lutris.util import system
 from lutris.util.system import fix_path_case
 from lutris.util.wineregistry import WineRegistry
-from lutris.config import LutrisConfig
 
 # Redefine wine installer tasks
 set_regedit = wine.set_regedit
@@ -29,12 +26,17 @@ winetricks = wine.winetricks
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
-def download_steam(downloader, callback=None, callback_data=None):
+def download_steam(downloader=None, callback=None, callback_data=None):
     """Downloads steam with `downloader` then calls `callback`"""
     steam_installer_path = os.path.join(settings.TMP_PATH,
                                         "SteamInstall.msi")
-    downloader(STEAM_INSTALLER_URL,
-               steam_installer_path, callback, callback_data)
+    if not downloader:
+        dialog = DownloadDialog(STEAM_INSTALLER_URL, steam_installer_path)
+        dialog.run()
+    else:
+        downloader(STEAM_INSTALLER_URL,
+                   steam_installer_path, callback, callback_data)
+    return steam_installer_path
 
 
 def is_running():
@@ -110,6 +112,16 @@ class winesteam(wine.wine):
         return ['"%s"' % self.get_executable(),
                 '"%s"' % self.steam_path, '-no-dwrite']
 
+    def get_open_command(self, registry):
+        """Return Steam's Open command, useful for locating steam when it has
+           been installed but not yet launched"""
+        value = registry.query("Software/Classes/steam/Shell/Open/Command",
+                               "default")
+        if not value:
+            return
+        parts = value.split("\"")
+        return parts[1].strip('\\')
+
     @property
     def steam_path(self, prefix=None):
         """Return Steam exe's path"""
@@ -121,32 +133,17 @@ class winesteam(wine.wine):
         registry = WineRegistry(user_reg)
         steam_path = registry.query("Software/Valve/Steam", "SteamExe")
         if not steam_path:
-            return
+            steam_path = self.get_open_command(registry)
+            if not steam_path:
+                return
         path = registry.get_unix_path(steam_path)
         return fix_path_case(path)
 
-    def get_default_steam_dir(self, prefix=None):
-        """Returns default location of Steam"""
-        if not prefix:
-            prefix = os.path.expanduser("~/.wine")
-        return os.path.join(prefix, "drive_c/Program Files/Steam")
-
     def install(self, installer_path=None):
-        if installer_path:
-            self.msi_exec(installer_path, quiet=True)
-            steam_dir = self.get_default_steam_dir()
-        else:
-            Gdk.threads_enter()
-            dlg = DirectoryDialog('Where is Steam.exe installed?')
-            steam_dir = dlg.folder
-            Gdk.threads_leave()
-        steam_path = os.path.join(steam_dir, "Steam.exe")
-        if os.path.exists(steam_path):
-            config = LutrisConfig(runner='winesteam')
-            config.runner_config = {'winesteam': {'steam_path': steam_path}}
-            config.save()
-        else:
-            ErrorDialog("Can't find Steam.exe in %s" % steam_path)
+        logger.debug("Installing steam from %s", installer_path)
+        if not installer_path:
+            installer_path = download_steam()
+        self.msi_exec(installer_path, quiet=True)
 
     def is_installed(self):
         """ Checks if wine is installed and if the steam executable is on the

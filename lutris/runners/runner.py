@@ -213,7 +213,7 @@ class Runner(object):
         dialog.run()
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
-            ErrorDialog("Installation aborted")
+            dialogs.ErrorDialog("Installation aborted")
             return
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)

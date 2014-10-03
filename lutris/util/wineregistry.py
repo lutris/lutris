@@ -37,6 +37,9 @@ class WineRegistry(object):
                 if line.startswith('"'):
                     k, v = line.split('=', 1)
                     current_key.set_key(k, v)
+                elif line.startswith('@'):
+                    k, v = line.split('=', 1)
+                    current_key.set_key('default', v)
 
     def query(self, keypath, value=None):
         if keypath not in self.keys:
@@ -45,14 +48,19 @@ class WineRegistry(object):
         return key.get_value(value)
 
     def get_unix_path(self, windows_path):
+        windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:
             return
+        old_cwd = os.getcwd()
         drives_path = os.path.join(self.prefix_path, "dosdevices")
+        os.chdir(drives_path)
         if not os.path.exists(drives_path):
             return
         letter, relpath = windows_path.split(':', 1)
-        drive_link = os.path.join(drives_path, letter + ":")
+        relpath = relpath.strip('/')
+        drive_link = os.path.join(drives_path, letter.lower() + ":")
         drive_path = os.path.abspath(os.readlink(drive_link))
+        os.chdir(old_cwd)
         return os.path.join(drive_path, relpath)
 
 
@@ -79,8 +87,8 @@ class WineRegistryKey(object):
         if name not in self.values:
             return
         value = self.values[name]
-        if value.startswith("\""):
-            return value.strip("\"")
+        if value.startswith("\"") and value.endswith("\""):
+            return value[1:-1]
         else:
             raise ValueError("TODO: finish handling other types")
 
