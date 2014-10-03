@@ -130,7 +130,7 @@ class hatari(Runner):
         if self.runner_config.get("joy1"):
             params.append("--joy1 " + self.runner_config['joy1'])
 
-        if os.path.exists(self.runner_config.get('bios_file')):
+        if os.path.exists(self.runner_config.get('bios_file', '')):
             params.append("--tos " + self.runner_config["bios_file"])
         else:
             return {'error': 'NO_BIOS'}
