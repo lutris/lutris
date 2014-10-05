@@ -51,7 +51,7 @@ class ConfigBox(Gtk.VBox):
             option_key = option["option"]
 
             # Load value if there is one.
-            value = config.get(option_key) or option.get('default')
+            value = config.get(option_key, option.get('default'))
 
             # Different types of widgets.
             if option["type"] == "choice":
