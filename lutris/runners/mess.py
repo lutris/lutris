@@ -3,7 +3,7 @@ from lutris import settings
 from lutris.runners.runner import Runner
 
 
-class sdlmess(Runner):
+class mess(Runner):
     """ Multi-system (consoles and computers) emulator """
     platform = 'multi-platform'
     game_options = [

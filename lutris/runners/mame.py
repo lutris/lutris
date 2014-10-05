@@ -4,7 +4,7 @@ from lutris import settings
 from lutris.runners.runner import Runner
 
 
-class sdlmame(Runner):
+class mame(Runner):
     """Runs arcade games with SDLMame"""
     platform = "Arcade"
     game_options = [
