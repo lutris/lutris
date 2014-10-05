@@ -103,8 +103,10 @@ def set_drive_path(prefix, letter, path):
     if not os.path.exists(dosdevices_path):
         raise OSError("Invalid prefix path %s" % prefix)
     drive_path = os.path.join(dosdevices_path, letter + ":")
+    if os.path.exists(drive_path):
+        os.remove(drive_path)
     logger.debug("Linking %s to %s", drive_path, path)
-    os.symlink(drive_path, path)
+    os.symlink(path, drive_path)
 
 
 # pylint: disable=C0103
