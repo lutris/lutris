@@ -55,7 +55,7 @@ class sdlmess(Runner):
     def play(self):
         rompath = self.runner_config.get('rompath')
         if not os.path.exists(rompath):
-            return {'error': 'FILE_NOT_FOUND', 'file': rompath}
+            return {'error': 'NO_BIOS'}
         machine = self.settings['game'].get('machine')
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
