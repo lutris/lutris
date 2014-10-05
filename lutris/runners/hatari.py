@@ -44,6 +44,7 @@ class hatari(Runner):
             "option": "zoom",
             "type": "bool",
             "label": "Double ST low resolution"
+            'default': True,
         },
         {
             "option": "borders",
