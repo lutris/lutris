@@ -98,6 +98,15 @@ def detect_prefix_arch(directory=None):
     return 'win32'
 
 
+def set_drive_path(prefix, letter, path):
+    dosdevices_path = os.path.join(prefix, "dosdevices")
+    if not os.path.exists(dosdevices_path):
+        raise OSError("Invalid prefix path %s" % prefix)
+    drive_path = os.path.join(dosdevices_path, letter + ":")
+    logger.debug("Linking %s to %s", drive_path, path)
+    os.symlink(drive_path, path)
+
+
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""

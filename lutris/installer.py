@@ -94,7 +94,6 @@ class ScriptInterpreter(object):
         self.game_name = None
         self.game_slug = None
         self.game_files = {}
-        self.requires_disc = {}
         self.game_disc = None
         self.steam_data = {}
         self.script = script
@@ -444,12 +443,12 @@ class ScriptInterpreter(object):
         if devicefile is None:
             devicefile = '/dev/cdrom'
         p = subprocess.Popen(["volname", devicefile],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (response, errmsg) = p.communicate()
-        volid=response.rstrip()
+        volid = response.rstrip()
         errmsg = errmsg.rstrip()
-        if len(response)==0:
-            volid=None
+        if len(response) == 0:
+            volid = None
         return volid
 
     def chmodx(self, filename):
@@ -729,20 +728,22 @@ class InstallerDialog(Gtk.Window):
         self.interpreter = ScriptInterpreter(script, self)
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
-        
+
         # CDrom check
         if self.interpreter.requires_disc:
             self.insert_disc()
         else:
             self.continue_install()
-        
+
     def insert_disc(self):
         self.continue_button.hide()
-        message = self.interpreter.requires_disc.get('message', "Insert game disc to continue")
+        message = self.interpreter.requires_disc.get(
+            'message', "Insert game disc to continue"
+        )
         requires = self.interpreter.requires_disc.get('requires')
         if not requires:
             raise ScriptingError("The installer's `insert_disc` command is "
-                                  "missing the `requires` parameter." * 2)
+                                 "missing the `requires` parameter." * 2)
         self.wait_for_user_action(message, self.on_cd_mounted, requires)
 
     def on_cd_mounted(self, widget, requires):
