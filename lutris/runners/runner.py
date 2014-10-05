@@ -109,7 +109,7 @@ class Runner(object):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return self.game_path
+        return self.game_path if os.path.isdir(self.game_path) else None
 
     @property
     def machine(self):
