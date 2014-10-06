@@ -10,7 +10,7 @@ class mess(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'Rom file',
+            'label': 'ROM file',
             'help': ("The game data, commonly called a ROM image.")
         },
         {

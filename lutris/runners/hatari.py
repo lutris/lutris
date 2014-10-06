@@ -55,7 +55,7 @@ class hatari(Runner):
         {
             "option": "zoom",
             "type": "bool",
-            "label": "Scale resolution x2 (Atari ST/STE)",
+            "label": "Scale up display by 2 (Atari ST/STE)",
             'default': True,
             'help': ("Double the screen size in windowed mode.")
         },

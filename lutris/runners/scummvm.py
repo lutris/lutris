@@ -20,28 +20,13 @@ class scummvm(Runner):
         {
             'option': 'path',
             'type': 'directory_chooser',
-            'label': "Path for the game"
+            'label': "Game files location"
         },
         {
             "option": "subtitles",
             "label": "Enable subtitles (if the game has voice)",
             "type": "bool"
         }
-    ]
-
-    scaler_modes = [
-        ("normal", "normal"),
-        ("2x", "2x"),
-        ("3x", "3x"),
-        ("hq2x", "hq2x"),
-        ("hq3x", "hq3x"),
-        ("advmame2x", "advmame2x"),
-        ("advmame3x", "advmame3x"),
-        ("2xsai", "2xsai"),
-        ("super2xsai", "super2xsai"),
-        ("supereagle", "supereagle"),
-        ("tv2x", "tv2x"),
-        ("dotmatrix", "dotmatrix")
     ]
     runner_options = [
         {
@@ -52,13 +37,31 @@ class scummvm(Runner):
         {
             "option": "aspect",
             "label": "Aspect ratio correction",
-            "type": "bool"
+            "type": "bool",
+            'help': ("Most games supported by ScummVM were made for a 4:3 "
+                     "screens with rectangular pixels, but modern screens "
+                     "have square pixels, which results in a vertically "
+                     "squeezed image. This option corrects this by displaying "
+                     "rectangular pixels.")
         },
         {
             "option": "gfx-mode",
             "label": "Graphic scaler",
             "type": "choice",
-            "choices": scaler_modes
+            "choices": [("normal", "normal"),
+                        ("2x", "2x"),
+                        ("3x", "3x"),
+                        ("hq2x", "hq2x"),
+                        ("hq3x", "hq3x"),
+                        ("advmame2x", "advmame2x"),
+                        ("advmame3x", "advmame3x"),
+                        ("2xsai", "2xsai"),
+                        ("super2xsai", "super2xsai"),
+                        ("supereagle", "supereagle"),
+                        ("tv2x", "tv2x"),
+                        ("dotmatrix", "dotmatrix")],
+            'help': ("The algorithm used to scale up the game's base "
+                     "resolution, resulting in different visual styles. ")
         }
     ]
 

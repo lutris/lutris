@@ -18,7 +18,7 @@ class jzintv(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label': "Rom file",
+        'label': "ROM file",
         'default_path': 'game_path',
             'help': ("The game data, commonly called a ROM image. \n"
                      "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"

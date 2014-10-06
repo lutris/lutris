@@ -11,7 +11,7 @@ class mame(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom file",
+            "label": "ROM file",
             "default_path": "game_path",
         }
     ]

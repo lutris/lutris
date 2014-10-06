@@ -31,13 +31,16 @@ class nulldc(Runner):
         'option': 'iso',
         'type': 'file',
         'name': 'iso',
-        'label': 'Disc image'
+        'label': 'Disc image file',
+            'help': ("The game data.\n"
+                     "Supported formats: ISO, CDI")
     }]
 
     runner_options = [{
         'option': 'joy2key',
         'type': 'bool',
         'label': "Simulate joypad with joy2key",
+            'help': ("Requires joy2key installed on your system.")
     }]
 
     def is_installed(self):
