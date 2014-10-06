@@ -44,6 +44,7 @@ class UninstallGameDialog(GtkBuilderDialog):
             remove_contents_button.set_sensitive(False)
         path = self.game.directory or 'disk'
         self.substitute_label(remove_contents_button, 'path', path)
+        remove_contents_button.get_children()[0].set_use_markup(True)
 
         cancel_button = self.builder.get_object('cancel_button')
         cancel_button.connect('clicked', self.on_close)
