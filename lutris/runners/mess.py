@@ -30,7 +30,7 @@ class mess(Runner):
             'label': "Storage type",
             'choices': [
                 ("Floppy disk", 'flop1'),
-                ("Cassette", 'cass'),
+                ("Cassette (tape)", 'cass'),
                 ("Cartridge", 'cart'),
                 ("Snapshot", 'snapshot'),
                 ("Quickload", 'quickload'),
@@ -53,14 +53,14 @@ class mess(Runner):
         return os.path.join(settings.RUNNER_DIR, "mess/mess")
 
     def play(self):
-        rompath = self.runner_config.get('rompath')
+        rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
             return {'error': 'NO_BIOS'}
         machine = self.settings['game'].get('machine')
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
         rom = self.settings['game'].get('main_file')
-        if not os.path.exists(rompath):
+        if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.settings['game'].get('device')
         command = [self.get_executable(),
