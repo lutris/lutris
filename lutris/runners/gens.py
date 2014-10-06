@@ -16,7 +16,8 @@ class gens(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label':  'Rom File'
+        'label':  'Rom File',
+        'help': ("The game data, commonly called a ROM image.")
     }]
     runner_options = [
         {

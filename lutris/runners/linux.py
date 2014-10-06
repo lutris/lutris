@@ -34,14 +34,16 @@ class linux(Runner):
             "option": "ld_preload",
             "type": "file",
             "label": "Preload library",
-            'help': ("One or more function libraries to load before running "
-                     "the game's executable. You can enter multiple paths "
-                     "separated by spaces.")
+            'help': ("A library to load before running the game's executable.")
         },
         {
             "option": "ld_library_path",
             "type": "directory_chooser",
-            "label": "Add directory to LD_LIBRARY_PATH"
+            "label": "Add directory to LD_LIBRARY_PATH",
+            'help': ("A directory where libraries should be searched for "
+                     "first, before the standard set of directories; this is "
+                     "useful when debugging a new library or using a "
+                     "nonstandard library for special purposes.")
         }
     ]
 

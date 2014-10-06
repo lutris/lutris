@@ -19,7 +19,7 @@ class fsuae(Runner):
             'type': "file",
             'label': "Boot disk",
             'default_path': 'game_path',
-            'help': ("The main floppy disk. \n"
+            'help': ("The main floppy disk with the game data. \n"
                      "FS-UAE supports floppy images in multiple file formats: "
                      "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
                      "and ADFs in zip files are a also supported.")

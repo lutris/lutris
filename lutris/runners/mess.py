@@ -10,7 +10,8 @@ class mess(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'Rom file'
+            'label': 'Rom file',
+            'help': ("The game data, commonly called a ROM image.")
         },
         {
             'option': 'machine',
@@ -22,7 +23,8 @@ class mess(Runner):
                 ("Commodore 64", 'c64'),
                 ("ZX Spectrum", 'spectrum'),
                 ("ZX Spectrum 128", 'spec128'),
-            ]
+            ],
+            'help': ("The emulated machine.")
         },
         {
             'option': 'device',
@@ -41,7 +43,10 @@ class mess(Runner):
         {
             'option': 'rompath',
             'type': 'directory_chooser',
-            'label': "BIOS path"
+            'label': "BIOS path",
+            'help': ("Choose the folder containing MESS bios files.\n"
+                     "These files contain code from the original hardware "
+                     "necessary to the emulation.")
         }
     ]
 
