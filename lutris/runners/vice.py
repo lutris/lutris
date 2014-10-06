@@ -10,7 +10,10 @@ class vice(Runner):
     game_options = [{
         "option": "main_file",
         "type": "file",
-        "label": "Disk File"
+        "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image.\n"
+                     "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
+                     "D80, D82, D1M, D2M, D4M, T46, P00 and CRT.")
     }]
 
     runner_options = [
@@ -27,7 +30,7 @@ class vice(Runner):
         {
             "option": "double",
             "type": "bool",
-            "label": "Double Size"
+            "label": "Scale up display by 2"
         },
         {
             "option": "machine",
