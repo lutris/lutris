@@ -13,7 +13,7 @@ import webbrowser
 from gi.repository import Gtk, Gdk
 
 from lutris import pga
-from lutris.util import extract
+from lutris.util import extract, devices
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
@@ -439,18 +439,6 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
-    def _get_volid(self, devicefile=None):
-        if devicefile is None:
-            devicefile = '/dev/cdrom'
-        p = subprocess.Popen(["volname", devicefile],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (response, errmsg) = p.communicate()
-        volid = response.rstrip()
-        errmsg = errmsg.rstrip()
-        if len(response) == 0:
-            volid = None
-        return volid
-
     def chmodx(self, filename):
         filename = self._substitute(filename)
         os.popen('chmod +x "%s"' % filename)
@@ -744,20 +732,22 @@ class InstallerDialog(Gtk.Window):
         if not requires:
             raise ScriptingError("The installer's `insert_disc` command is "
                                  "missing the `requires` parameter." * 2)
-        self.wait_for_user_action(message, self.on_cd_mounted, requires)
+        self.wait_for_user_action(message, self.find_matching_disc, requires)
 
-    def on_cd_mounted(self, widget, requires):
-        volid = self.interpreter._get_volid()
-        paths = ['/media/%s/%s' % (os.getlogin(), volid),
-                 '/media/cdrom', '/mnt/cdrom', '/cdrom']
-        for path in paths:
-            required_abspath = os.path.join(path, requires)
+    def find_matching_disc(self, widget, requires):
+        drives = devices.get_mounted_discs()
+
+        for drive in drives:
+            mount_point = drive.get_root().get_path()
+            required_abspath = os.path.join(mount_point, requires)
             if os.path.exists(required_abspath):
-                logger.debug("Found %s on cdrom %s" % (requires, path))
-                self.interpreter.game_disc = path
+                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
+                # Continue install
+                self.interpreter.game_disc = mount_point
                 self.clean_widgets()
                 self.continue_button.show()
                 self.continue_install()
+                break
 
     def continue_install(self):
         # Target chooser
