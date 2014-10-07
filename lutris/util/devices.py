@@ -1,4 +1,5 @@
 from gi.repository import Gio
+from lutris.util.log import logger
 
 
 def get_mounted_discs():
@@ -12,6 +13,10 @@ def get_mounted_discs():
     for m in vm.get_mounts():
         if m.get_volume():
             device = m.get_volume().get_identifier('unix-device')
+            if not device:
+                logger.debug("No device for mount %s", m.get_name())
+                continue
+
             # Device is a disk drive or ISO image
             if '/dev/sr' in device or '/dev/loop' in device:
                 drives.append(m)
