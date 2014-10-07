@@ -725,10 +725,16 @@ class InstallerDialog(Gtk.Window):
 
     def insert_disc(self):
         self.continue_button.hide()
-        message = self.interpreter.requires_disc.get(
-            'message', "Insert game disc to continue"
-        )
         requires = self.interpreter.requires_disc.get('requires')
+        message = self.interpreter.requires_disc.get(
+            'message',
+            "Insert game disc or mount disk image and click OK."
+        )
+        message += (
+            "\n\nLutris is looking for a mounted disk drive or image \n"
+            "containing the following file or folder:\n"
+            "<i>%s</i>" % requires
+        )
         if not requires:
             raise ScriptingError("The installer's `insert_disc` command is "
                                  "missing the `requires` parameter." * 2)
@@ -902,6 +908,7 @@ class InstallerDialog(Gtk.Window):
         time.sleep(0.3)
         self.clean_widgets()
         label = Gtk.Label(label=message)
+        label.set_use_markup(True)
         self.widget_box.add(label)
         label.show()
         button = Gtk.Button(label='Ok')
