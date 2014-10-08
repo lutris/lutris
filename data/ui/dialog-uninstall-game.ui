@@ -87,7 +87,7 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="ypad">20</property>
-                <property name="label" translatable="yes">This action will remove {game} from Lutris.</property>
+                <property name="label" translatable="yes">This action will mark {game} as uninstalled.</property>
                 <property name="use_markup">True</property>
               </object>
               <packing>
