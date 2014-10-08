@@ -2,7 +2,7 @@ lutris (0.3.6) trusty; urgency=medium
 
   New:
   * Added auto-install of Wine Steam
-  * Better detection of Wine Steam
+  * Better detection of Wine Steam install location
   * Added tooltips on most configuration options
   * Added DOSBox options: scaler and auto-exit
   * Added ScummVM options: aspect correction, subtitles
