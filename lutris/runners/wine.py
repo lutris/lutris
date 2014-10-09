@@ -51,7 +51,7 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
 
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
-             working_dir=None):
+             working_dir=None, winetricks_env=''):
     executable = str(executable) if executable else ''
     prefix = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
@@ -61,11 +61,8 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
-
-    if 'winetricks' == wine_path:
-        winetricks_env = 'WINE="%s"' % wine().get_executable()
-    else:
-        winetricks_env = ''
+    if winetricks_env:
+        winetricks_env = 'WINE="%s"' % winetricks_env
 
     if executable:
         executable = '"%s"' % executable
@@ -79,13 +76,16 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     logger.debug("END wineexec")
 
 
-def winetricks(app, prefix=None, silent=False):
+def winetricks(app, prefix=None, winetricks_env=None, silent=False):
     arch = detect_prefix_arch(prefix)
+    if not winetricks_env:
+        winetricks_env = wine().get_executable()
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
     else:
         args = app
-    wineexec(None, prefix=prefix, wine_path='winetricks', arch=arch, args=args)
+    wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
+             wine_path='winetricks', arch=arch, args=args)
 
 
 def detect_prefix_arch(directory=None):
