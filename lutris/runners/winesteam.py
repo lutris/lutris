@@ -133,16 +133,20 @@ class winesteam(wine.wine):
 
     def install(self, installer_path=None):
         logger.debug("Installing steam from %s", installer_path)
+        if not self.is_wine_installed():
+            super(winesteam, self).install()
         if not installer_path:
             installer_path = download_steam()
         self.msi_exec(installer_path, quiet=True)
 
+    def is_wine_installed(self):
+        return super(winesteam, self).is_installed()
+
     def is_installed(self):
-        """ Checks if wine is installed and if the steam executable is on the
-            harddrive.
+        """Checks if wine is installed and if the steam executable is on the
+           harddrive.
         """
-        wine_installed = super(winesteam, self).is_installed()
-        if not wine_installed or not self.steam_path:
+        if not self.is_wine_installed() or not self.steam_path:
             return False
         return os.path.exists(self.steam_path)
 

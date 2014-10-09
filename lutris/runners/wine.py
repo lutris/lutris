@@ -262,10 +262,10 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': orm_choices,
                 'help': ("Select the offscreen rendering implementation.\n"
-                         "<b>FBO</b>: (default) Use framebuffer objects for offscreen"
-                         " rendering \n"
-                         "<b>Backbuffer</b>: Render offscreen render targets in the"
-                         " backbuffer.\n")
+                         "<b>FBO</b>: (default) Use framebuffer objects for "
+                         "offscreen rendering \n"
+                         "<b>Backbuffer</b>: Render offscreen render targets "
+                         "in the backbuffer.\n")
             },
             {
                 'option': 'RenderTargetLockMode',
