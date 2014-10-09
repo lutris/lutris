@@ -188,6 +188,26 @@ class winesteam(wine.wine):
             logger.warning("Data path for SteamApp %s not found.", appid)
         return data_path
 
+    def get_default_prefix(self):
+        """Return the default prefix' path. Create it if it doesn't exist"""
+        winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
+        default_prefix = os.path.join(winesteam_dir, 'prefix')
+
+        if not os.path.exists(default_prefix):
+            logger.debug("Creating default winesteam prefix")
+            wine_dir = os.path.dirname(self.get_executable())
+
+            if not os.path.exists(winesteam_dir):
+                os.makedirs(winesteam_dir)
+            create_prefix(default_prefix, arch=self.wine_arch,
+                          wine_path=os.path.join(wine_dir, 'wineboot'))
+            # Fix steam text display
+            set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
+                        'DWriteEnable', '0', 'REG_DWORD',
+                        wine_path=self.get_executable(),
+                        prefix=default_prefix)
+        return default_prefix
+
     def install_game(self, appid):
         command = self.launch_args + ["steam://install/%s" % appid]
         string = ' '.join(command)
@@ -227,11 +247,13 @@ class winesteam(wine.wine):
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         command = ["WINEDEBUG=fixme-all"]
-        prefix = self.config['game'].get('prefix') or ''
+        prefix = self.config['game'].get('prefix')
         if prefix:
             # TODO: Verify if a prefix exists that it's created with the
             # correct architecture
             command.append('WINEPREFIX="%s" ' % prefix)
+        else:
+            command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
         command += self.launch_args
         if appid:
             command += ['-applaunch', appid]
