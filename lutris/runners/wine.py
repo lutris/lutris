@@ -42,9 +42,12 @@ def set_regedit(path, key, value='', type_='REG_SZ',
     os.remove(reg_path)
 
 
-def create_prefix(prefix, wine_path='wineboot', arch='win32'):
+def create_prefix(prefix, wine_path=None, arch='win32'):
     """Create a new wineprefix"""
-    wineexec('', prefix=prefix, wine_path=wine_path, arch=arch)
+    if not wine_path:
+        wine_dir = os.path.dirname(wine().get_executable())
+        wine_path = os.path.join(wine_dir, 'wineboot')
+    wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
 
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
@@ -354,6 +357,9 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
+        """Return the wine architecture
+
+        Get it from the config or detect it from the prefix"""
         arch = self.config['game'].get('arch') or 'auto'
         prefix = self.config['game'].get('prefix') or ''
         if arch not in ('win32', 'win64'):
