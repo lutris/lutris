@@ -84,14 +84,6 @@ class winesteam(wine.wine):
         }
     ]
 
-    def __init__(self, config=None):
-        super(winesteam, self).__init__(config)
-        self.runner_options.insert(0, {
-            'option': 'steam_path',
-            'type': 'file',
-            'label': 'Path to Steam.exe',
-        })
-
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
