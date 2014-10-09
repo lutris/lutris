@@ -121,3 +121,23 @@ def is_removeable(path, excludes=None):
             return False
 
     return True
+
+
+def fix_path_case(path):
+    parts = path.strip('/').split('/')
+    current_path = "/"
+    for part in parts:
+        if not os.path.exists(current_path):
+            return
+        tested_path = os.path.join(current_path, part)
+        if os.path.exists(tested_path):
+            current_path = tested_path
+            continue
+        for filename in os.listdir(current_path):
+            if filename.lower() == part.lower():
+                current_path = os.path.join(current_path, filename)
+                continue
+
+    # Only return the path if we got the same number of elements
+    if len(parts) == len(current_path.strip('/').split('/')):
+        return current_path

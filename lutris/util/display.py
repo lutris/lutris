@@ -83,12 +83,3 @@ def change_resolution(resolution):
                                                        display_geom)
             logger.debug(cmd)
             subprocess.Popen(cmd, shell=True)
-
-
-def reset_desktop():
-    """Restore the desktop to its original state."""
-    # Restore resolution
-    resolution = get_resolutions()[0]
-    change_resolution(resolution)
-    # Restore gamma
-    os.popen("xgamma -gamma 1.0")

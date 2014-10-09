@@ -1,14 +1,14 @@
 import logging
 from mock import patch
-from unittest import TestCase
 
 from lutris.config import LutrisConfig
 from lutris import runners
+from test_pga import DatabaseTester
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ImportRunnerTest(TestCase):
+class ImportRunnerTest(DatabaseTester):
     def test_runner_modules(self):
         runner_list = runners.__all__
         self.assertIn("linux", runner_list)

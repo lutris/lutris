@@ -1,7 +1,34 @@
 lutris (0.3.6) trusty; urgency=medium
 
+  New:
+  * Added auto-install of Wine Steam
+  * Better detection of Wine Steam install location
+  * Added tooltips on most configuration options
+  * Added DOSBox options: scaler and auto-exit
   * Added ScummVM options: aspect correction, subtitles
+  * Added "Remove" context menu action to uninstalled games
+  * sdlmame and sdlmess runners renamed to mame and mess
+
+  Fixes:
   * Fixed Wine games install failing when there is a space in the setup file path
+  * Fixed browser games not launching at all
+  * Fixed Vice (Commodore 64) games not launching at all
+  * Fixed Hatari and Mess emulators not launching and not warning when no bios file configured
+  * Fixed Hatari startup fail if there is spaces in bios path
+  * Fixed the "Restore desktop resolution" option and enable it by default
+  * Fixed the Browse Files action on DOSBox games
+  * Fixed Winetricks in installers
+  * Fixed checked by default config options not saving unchecked state
+  * Fixed the "insert disc" part of installers
+
+  Website changes since the last version:
+  * Improved the About page
+  * Added a direct link to your Library in the menu
+
+  For contributors:
+  * New mailing list available at http://lists.lutris.net/cgi-bin/mailman/listinfo/lutris
+  * Fixed the game submission form
+  * Improved feedback on submissions
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
 

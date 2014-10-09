@@ -20,7 +20,11 @@ class frotz(Runner):
         {
             "option": "story",
             "type": "file",
-            "label": "Story File"
+            "label": "Story file",
+            'help': ('The Z-Machine game file.\n'
+                     'Usally ends in ".z*", with "*" being a number from 1 '
+                     'to 6 representing the version of the Z-Machine that '
+                     'the game was written for.')
         }
     ]
 
@@ -33,6 +37,6 @@ class frotz(Runner):
             return {'error': 'RUNNER_NOT_INSTALLED'}
         if not os.path.exists(story):
             return {'error': 'FILE_NOT_FOUND', 'file': story}
-        command = ['x-terminal-emulator', '-e', "\"" + self.executable,
-                   "\"" + story + "\"\""]
+        command = ['x-terminal-emulator', '-e', '"%s"' % self.get_executable(),
+                   '"%s"' % story]
         return {'command': command}

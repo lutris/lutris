@@ -20,49 +20,64 @@ system_options = [
     {
         'option': 'game_path',
         'type': 'directory_chooser',
-        'label': 'Default game path'
+        'label': 'Library default folder',
+        'help': ("The main folder where you install your games.\n"
+                 "Lutris uses it to propose you a default path when you \n"
+                 "install a new game.")
     },
     {
         'option': 'resolution',
         'type': 'choice',
-        'label': 'Resolution',
+        'label': 'Screen resolution',
         'choices': resolution_choices,
-        'help': "Switch to this resolution during gameplay"
+        'help': "Switch to this screen resolution while the game is running."
+    },
+    {
+        'option': 'reset_desktop',
+        'type': 'bool',
+        'label': 'Restore desktop resolution when the game quits',
+        'default': True,
+        'help': ("Some games don't restore your screen resolution when \n"
+                 "closed or when they crash. This is when this option comes \n"
+                 "into play to save your bacon.")
     },
     {
         'option': 'display',
         'type': 'choice',
         'label': 'Restrict to display',
         'choices': output_choices,
-        'help': "Only keep this display active during gameplay"
+        'help': ("Only keep the selected screen active while the game is "
+                 "running. \n"
+                 "This is used if you have a dual-screen setup, and are \n"
+                 "having display issues when running a game in fullscreen.")
     },
     {
         'option': 'oss_wrapper',
         'type': 'choice',
         'label': 'OSS Wrapper',
         'choices': oss_list,
+        'help': ("An OSS wrapper is used to fix compatibility issues with \n"
+                 "some old games using OSS as their sound interface.")
     },
     {
         'option': 'reset_pulse',
         'type': 'bool',
-        'label': 'Reset PulseAudio'
-    },
-    {
-        'option': 'reset_desktop',
-        'type': 'bool',
-        'label': 'Reset resolution when game quits'
+        'label': 'Reset PulseAudio',
+        'help': "Restart PulseAudio before launching the game."
     },
     {
         'option': 'killswitch',
         'type': 'string',
         'label': 'Killswitch file',
-        'help': 'path to a file which will stop the game when deleted \n'
-        '(usually /dev/input/js0 to stop the game on joystick unplugging)'
+        'help': ("Path to a file which will stop the game when deleted \n"
+                 "(usually /dev/input/js0 to stop the game on joystick "
+                 "unplugging)")
     },
     {
         'option': 'xboxdrv',
         'type': 'string',
         'label': 'xboxdrv config',
-        'help': 'command line options for xboxdrv (xboxdrv not used if empty)'
+        'help': ("Command line options for xboxdrv, a driver for XBOX 360"
+                 "controllers")
     }
 ]

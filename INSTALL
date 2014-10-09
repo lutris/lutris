@@ -4,43 +4,14 @@ Installing Lutris
 Requirements
 ------------
 
-These are the requirements I was able to find on the development machine.
-Lutris should work on any Gnome system but the runner installation is currently
-tied to Software Center so it works only on Ubuntu and Debian.  In the future,
-the installation process will use a distro independent mechanism.
-In order to run Lutris, install the following packages.
+Lutris should work on any Gnome system, the following depencies should be 
+installed:
 
     * python == 2.7
     * python-xdg
     * python-yaml
     * PyGobject
     * libsoup-gnome
-
-If you want to manually install runners you can choose from the list below
-and install the ones you wish to use.
-
-    * wine
-    * scummvm
-    * uae
-    * mednafen
-    * sdlmame
-    * snes9x-gtk
-    * gens-gs
-    * steam (using wine)
-    * atari800
-    * dolphin-emu
-    * frotz
-    * dosbox
-    * hatari
-    * jzintv
-    * mednafen
-    * mupen64plus
-    * nulldc (1.0.3 only, using wine)
-    * o2em
-    * openmsx
-    * osmose
-    * pcsxr
-    * scummvm
 
 Installation
 ------------

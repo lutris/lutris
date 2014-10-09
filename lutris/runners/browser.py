@@ -11,14 +11,17 @@ class browser(Runner):
         {
             "option": "main_file",
             "type": "string",
-            "label": "URL"
+            "label": "Full address (URL)",
+            'help': ("The full address of the game's web page.")
         }
     ]
     runner_options = [
         {
             'option': 'browser',
             'type': "file",
-            'label': "Web Browser"
+            'label': "Custom web browser",
+            'help': ("Select the executable of a browser on your system. \n"
+                     "If left blank, Lutris will launch your default browser.")
         }
     ]
 

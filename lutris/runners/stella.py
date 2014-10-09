@@ -7,11 +7,16 @@ from lutris.runners.runner import Runner
 class stella(Runner):
     """Atari 2600 games emulator"""
     platform = "Atari 2600"
-    game_options = [{
-        "option": "main_file",
-        "type": "file",
-        "label": "Cartridge"
-    }]
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image.\n"
+                     "Supported formats: A26/BIN/ROM. GZIP and ZIP compressed "
+                     "ROMs are supported.")
+        }
+    ]
     runner_options = []
 
     tarballs = {

@@ -241,8 +241,9 @@ Currently, the following tasks are implemented:
             app: nt40
 
 *   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
-    are ``path`` (the registry path), ``key``, ``value``, ``prefix`` (optional
-    WINEPREFIX), ``working_dir`` (optional working directory).
+    are ``path`` (the registry path, use backslashes), ``key``, ``value``,
+    ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
+    (optional WINEPREFIX).
 
     Example:
 
@@ -251,9 +252,10 @@ Currently, the following tasks are implemented:
         - task:
             name: set_regedit
             prefix: $GAMEDIR
-            path: HKEY_CURRENT_USER\Software\Wine\AppDefaults\Sacrifice.exe
-            key: Version
-            value: nt40
+            path: HKEY_CURRENT_USER\Software\Valve\Steam
+            key: SuppressAutoRun
+            value: 00000000
+            type: REG_DWORD
 
 
 Trying the installer locally

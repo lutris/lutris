@@ -18,12 +18,23 @@ class osmose(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'Rom File'
+            'label': 'ROM file',
+            'help': ("The game data, commonly called a ROM image.\n"
+                     "Supported formats: SMS and GG files. ZIP compressed "
+                     "ROMs are supported.")
         }
     ]
     runner_options = [
-        {'option': 'fullscreen', 'type': 'bool', 'label': 'Fullscreen'},
-        {'option': 'joy', 'type': 'bool', 'label': 'Use joystick'}
+        {
+            'option': 'fullscreen',
+            'type': 'bool',
+            'label': 'Fullscreen'
+        },
+        {
+            'option': 'joy',
+            'type': 'bool',
+            'label': 'Use joystick'
+        }
     ]
 
     def is_installed(self):

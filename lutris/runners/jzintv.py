@@ -18,14 +18,21 @@ class jzintv(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label': "Rom File",
+        'label': "ROM file",
         'default_path': 'game_path',
+            'help': ("The game data, commonly called a ROM image. \n"
+                     "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
+                     "The file extension must be lower-case.")
     }]
     runner_options = [
         {
             "option": "bios_path",
             "type": "directory_chooser",
-            "label": "Bios Path"
+            "label": "Bios location",
+            'help': ("Choose the folder containing the Intellivision bios "
+                     "files (exec.bin and grom.bin).\n"
+                     "These files contain code from the original hardware "
+                     "necessary to the emulation.")
         },
         {
             "option": "fullscreen",
