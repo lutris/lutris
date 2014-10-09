@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from textwrap import dedent
+
 from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
@@ -11,21 +13,30 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 DEFAULT_WINE = '1.7.13'
 
 
-def set_regedit(path, key, value, wine_path=None, prefix=None):
-    """ Plays with the windows registry
-        path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
+def set_regedit(path, key, value='', type_='REG_SZ',
+                wine_path=None, prefix=None):
+    """Add keys to the windows registry
+
+    Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
     reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
+    formatted_value = {
+        'REG_SZ': '"%s"' % value,
+        'REG_DWORD': 'dword:' + value,
+        'REG_BINARY': 'hex:' + value.replace(' ', ','),
+        'REG_MULTI_SZ': 'hex(2):' + value,
+        'REG_EXPAND_SZ': 'hex(7):' + value,
+    }
     # Make temporary reg file
     reg_file = open(reg_path, "w")
-    reg_file.write("""REGEDIT4
-
-[%s]
-"%s"="%s"
-
-""" % (path, key, value))
+    reg_file.write(dedent(
+        """
+        REGEDIT4
+        [%s]
+        "%s"=%s
+        """ % (path, key, formatted_value[type_])))
     reg_file.close()
     wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
     os.remove(reg_path)
