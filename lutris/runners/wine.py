@@ -62,11 +62,16 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
+    if 'winetricks' == wine_path:
+        winetricks_env = 'WINE="%s"' % wine().get_executable()
+    else:
+        winetricks_env = ''
+
     if executable:
         executable = '"%s"' % executable
 
-    command = 'WINEARCH=%s %s "%s" %s %s' % (
-        arch, prefix, wine_path, executable, args
+    command = '%s WINEARCH=%s %s "%s" %s %s' % (
+        winetricks_env, arch, prefix, wine_path, executable, args
     )
     logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
@@ -74,16 +79,13 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     logger.debug("END wineexec")
 
 
-def winetricks(app, prefix=None, exe=None, silent=False):
+def winetricks(app, prefix=None, silent=False):
     arch = detect_prefix_arch(prefix)
-    if not exe:
-        wine_dir = os.path.dirname(wine().get_executable())
-        exe = os.path.join(wine_dir, 'winetricks')
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
     else:
         args = app
-    wineexec(None, prefix=prefix, wine_path=exe, arch=arch, args=args)
+    wineexec(None, prefix=prefix, wine_path='winetricks', arch=arch, args=args)
 
 
 def detect_prefix_arch(directory=None):
