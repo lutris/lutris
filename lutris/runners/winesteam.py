@@ -141,7 +141,8 @@ class winesteam(wine.wine):
         """ Checks if wine is installed and if the steam executable is on the
             harddrive.
         """
-        if not self.check_depends() or not self.steam_path:
+        wine_installed = super(winesteam, self).is_installed()
+        if not wine_installed or not self.steam_path:
             return False
         return os.path.exists(self.steam_path)
 
@@ -227,13 +228,6 @@ class winesteam(wine.wine):
         return True
 
     def play(self):
-        if not self.check_depends():
-            return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.depends}
-        if not self.is_installed():
-            return {'error': 'RUNNER_NOT_INSTALLED',
-                    'runner': self.__class__.__name__}
-
         appid = self.config['game'].get('appid') or ''
         args = self.config['game'].get('args') or ''
         logger.debug("Checking Steam installation")

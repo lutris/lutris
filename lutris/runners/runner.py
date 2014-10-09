@@ -121,21 +121,6 @@ class Runner(object):
         """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
 
-    def check_depends(self):
-        """Check if all the dependencies for a runner are installed."""
-        if not self.depends:
-            return True
-
-        classname = "lutris.runners.%s" % str(self.depends)
-        parts = classname.split('.')
-        module = ".".join(parts[:-1])
-        module = __import__(module)
-        for component in parts[1:]:
-            module = getattr(module, component)
-        runner = getattr(module, str(self.depends))
-        runner_instance = runner()
-        return runner_instance.is_installed()
-
     def install_dialog(self):
         """Ask the user if she wants to install the runner.
 
