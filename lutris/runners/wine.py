@@ -440,8 +440,9 @@ class wine(Runner):
         prefix = self.config['game'].get('prefix') or ''
         for key in self.reg_keys.keys():
             if key in self.runner_config:
-                set_regedit(self.reg_keys[key], key, self.runner_config[key],
-                            self.get_executable(), prefix)
+                set_regedit(self.reg_keys[key], key,
+                            value=self.runner_config[key],
+                            wine_path=self.get_executable(), prefix=prefix)
 
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)
