@@ -275,8 +275,8 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes by"
-                    " drawing a textured quad \n"
+                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes "
+                    "by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },

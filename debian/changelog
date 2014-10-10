@@ -10,6 +10,7 @@ lutris (0.3.6) trusty; urgency=medium
   * sdlmame and sdlmess runners renamed to mame and mess
 
   Fixes:
+  * Fixed impossibility to use system's Wine when Wine Steam was running.
   * Fixed Wine games install failing when there is a space in the setup file path
   * Fixed browser games not launching at all
   * Fixed Vice (Commodore 64) games not launching at all
