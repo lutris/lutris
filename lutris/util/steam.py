@@ -18,9 +18,7 @@ def get_default_acf(appid, name):
 
 
 def vdf_parse(steam_config_file, config):
-    """ Given a steam configuration steam, parse the content and return it as
-        a dict.
-    """
+    """Parse a Steam config file and return the contents as a dict."""
     line = " "
     while line:
         line = steam_config_file.readline()
@@ -37,7 +35,7 @@ def vdf_parse(steam_config_file, config):
 
 
 def to_vdf(dict_data, level=0):
-    """ Convert a dictionnary to Steam config file format. """
+    """Convert a dictionnary to Steam config file format."""
     vdf_data = ""
     for key in dict_data:
         value = dict_data[key]
@@ -73,7 +71,7 @@ def read_config(path_prefix):
 
 
 def get_steamapps_path(rootdir):
-    """Return an existing SteamApps path"""
+    """Return an existing SteamApps path."""
     if os.path.exists(rootdir):
         return rootdir
     elif os.path.exists(rootdir.replace('steamapps', 'SteamApps')):
@@ -83,7 +81,7 @@ def get_steamapps_path(rootdir):
 
 
 def get_path_from_config(config, appid):
-    """ Given a steam config, return path for game 'appid' """
+    """Given a steam config, return path for game 'appid'."""
     if not config or 'apps' not in config:
         return False
     game_config = config["apps"].get(appid)

@@ -163,18 +163,6 @@ class winesteam(wine.wine):
             apps = config['apps']
             return apps.keys()
 
-    def get_steamapps_path(self):
-        candidates = (
-            "SteamApps/common",
-            "steamapps/common",
-        )
-        for candidate in candidates:
-            steam_path = os.path.dirname(self.steam_path)
-            path = os.path.join(steam_path, candidate)
-            if os.path.exists(path):
-                return path
-        raise IOError("Unable to locate SteamApps path")
-
     def get_game_data_path(self, appid):
         steam_path = os.path.dirname(self.steam_path)
         data_path = get_path_from_appmanifest(steam_path, appid)
