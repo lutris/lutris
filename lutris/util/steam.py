@@ -62,7 +62,7 @@ def read_config(path_prefix):
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        software = config['InstallConfigStore']['Software']['Valve']['Steam']
+        config = config['InstallConfigStore']['Software']['Valve']['Steam']
     except KeyError as e:
         logger.debug("Steam config empty: %s" % e)
         return
