@@ -80,28 +80,6 @@ def get_steamapps_path(rootdir):
         logger.debug("SteamApps not found in %s" % rootdir)
 
 
-def get_path_from_config(config, appid):
-    """Given a steam config, return path for game 'appid'."""
-    if not config or 'apps' not in config:
-        return False
-    game_config = config["apps"].get(appid)
-    if not game_config:
-        return False
-    if game_config.get('HasAllLocalContent'):
-        installdir = game_config['installdir'].replace("\\\\", "/")
-        if not installdir:
-            return False
-        if installdir.startswith('C'):
-            installdir = os.path.join(os.path.expanduser('~'),
-                                      '.wine/drive_c', installdir[3:])
-        elif installdir[1] == ':':
-            # Trim Windows path
-            installdir = installdir[2:]
-        logger.debug("Steam game found at %s" % installdir)
-        return get_steamapps_path(installdir)
-    return False
-
-
 def get_path_from_appmanifest(steamapps_path, appid):
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
