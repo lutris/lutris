@@ -8,8 +8,7 @@ from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.util.log import logger
-from lutris.util.steam import (read_config, get_path_from_config,
-                               get_path_from_appmanifest)
+from lutris.util.steam import read_config, get_path_from_appmanifest
 from lutris.util import system
 from lutris.util.system import fix_path_case
 from lutris.util.wineregistry import WineRegistry
@@ -95,9 +94,12 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
-        appid = self.config['game'].get('appid')
-        if self.get_game_data_path(appid):
-            return self.get_game_data_path(appid)
+        appid = self.settings['game'].get('appid')
+        for apps_path in self.get_steamapps_dirs():
+            game_path = get_path_from_appmanifest(apps_path, appid)
+            if game_path:
+                return game_path
+        logger.warning("Data path for SteamApp %s not found.", appid)
 
     @property
     def launch_args(self):
@@ -121,6 +123,12 @@ class winesteam(wine.wine):
             return
         steam_path = os.path.dirname(self.steam_path)
         return read_config(steam_path)
+
+    @property
+    def steam_data_dir(self):
+        """Return dir where Steam files lie"""
+        if self.steam_path:
+            return os.path.dirname(self.steam_path)
 
     @property
     def steam_path(self, prefix=None):
@@ -165,15 +173,23 @@ class winesteam(wine.wine):
             apps = config['apps']
             return apps.keys()
 
-    def get_game_data_path(self, appid):
-        steam_path = os.path.dirname(self.steam_path)
-        data_path = get_path_from_appmanifest(steam_path, appid)
-        if not data_path:
-            steam_config = self.steam_config
-            data_path = get_path_from_config(steam_config, appid)
-        if not data_path:
-            logger.warning("Data path for SteamApp %s not found.", appid)
-        return data_path
+    def get_steamapps_dirs(self):
+        """Return a list of the Steam library main + custom folders."""
+        dirs = []
+        # Main steamapps dir
+        main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
+        dirs.append(system.fix_path_case(main_dir))
+        # Custom dirs
+        steam_config = self.steam_config
+        if steam_config:
+            i = 1
+            while ('BaseInstallFolder_%s' % i) in steam_config:
+                path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
+                linux_path = self.parse_wine_path(path, self.prefix_path)
+                if os.path.exists(linux_path):
+                    dirs.append(linux_path)
+                i += 1
+        return dirs
 
     def get_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""

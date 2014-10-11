@@ -479,3 +479,16 @@ class wine(Runner):
             command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
         logger.debug("Killing all wine processes: %s" % command)
         os.popen(command, shell=True)
+
+    @staticmethod
+    def parse_wine_path(path, prefix_path=None):
+        """Take a Windows path, return the corresponding Linux path."""
+        path = path.replace("\\\\", "/").replace('\\', '/')
+        if path.startswith('C'):
+            if not prefix_path:
+                prefix_path = os.path.expanduser("~/.wine")
+            path = os.path.join(prefix_path, 'drive_c', path[3:])
+        elif path[1] == ':':
+            # Trim Windows path
+            path = path[2:]
+        return path

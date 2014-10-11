@@ -102,27 +102,22 @@ def get_path_from_config(config, appid):
     return False
 
 
-def get_path_from_appmanifest(steam_path, appid):
-    if not steam_path:
-        raise ValueError("steam_path is mandatory")
-    if not os.path.exists(steam_path):
-        raise IOError("steam_path must be a valid directory")
+def get_path_from_appmanifest(steamapps_path, appid):
+    if not steamapps_path:
+        raise ValueError("steamapps_path is mandatory")
+    if not os.path.exists(steamapps_path):
+        raise IOError("steamapps_path must be a valid directory")
     if not appid:
         raise ValueError("Missing mandatory appid")
-    steamapps_path = get_steamapps_path(os.path.join(steam_path, 'steamapps'))
-    if not steamapps_path:
-        logger.error("Unable to find SteamApps path at %s", steam_path)
-        return
     appmanifest_path = os.path.join(steamapps_path,
                                     "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        logger.debug("No appmanifest file %s" % appmanifest_path)
         return
 
     with open(appmanifest_path, "r") as appmanifest_file:
         config = vdf_parse(appmanifest_file, {})
     installdir = config.get('AppState', {}).get('installdir')
     logger.debug("Game %s should be in %s", appid, installdir)
-    install_path = os.path.join(steamapps_path, "common/%s" % installdir)
+    install_path = os.path.join(steamapps_path, "common", installdir)
     if installdir and os.path.exists(install_path):
         return install_path

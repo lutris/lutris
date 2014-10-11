@@ -4,8 +4,8 @@ import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import (get_path_from_config, get_path_from_appmanifest,
-                               read_config, get_default_acf, to_vdf)
+from lutris.util.steam import (get_path_from_appmanifest, read_config,
+                               get_default_acf, to_vdf)
 
 
 def shutdown():
@@ -69,8 +69,11 @@ class steam(Runner):
     @property
     def game_path(self):
         appid = self.settings['game'].get('appid')
-        if self.get_game_data_path(appid):
-            return self.get_game_data_path(appid)
+        for apps_path in self.get_steamapps_dirs():
+            game_path = get_path_from_appmanifest(apps_path, appid)
+            if game_path:
+                return game_path
+        logger.warning("Data path for SteamApp %s not found.", appid)
 
     @property
     def steam_path(self):
@@ -91,14 +94,23 @@ class steam(Runner):
             if os.path.exists(path):
                 return path
 
-    def get_game_data_path(self, appid):
-        data_path = get_path_from_appmanifest(self.steam_data_dir, appid)
-        if not data_path:
-            steam_config = self.steam_config
-            data_path = get_path_from_config(steam_config, appid)
-        if not data_path:
-            logger.warning("Data path for SteamApp %s not found.", appid)
-        return data_path
+    def get_steamapps_dirs(self):
+        """Return a list of the Steam library main + custom folders."""
+        dirs = []
+        # Main steamapps dir
+        if self.steam_data_dir:
+            main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
+            dirs.append(system.fix_path_case(main_dir))
+        # Custom dirs
+        steam_config = self.steam_config
+        if steam_config:
+            i = 1
+            while ('BaseInstallFolder_%s' % i) in steam_config:
+                path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
+                if os.path.exists(path):
+                    dirs.append(path)
+                i += 1
+        return dirs
 
     def install(self):
         steam_default_path = [opt["default_path"]
