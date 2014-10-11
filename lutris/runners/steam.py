@@ -60,6 +60,13 @@ class steam(Runner):
         return self.game_path
 
     @property
+    def steam_config(self):
+        """Return the "Steam" part of Steam's config.vdf as a dict"""
+        if not self.steam_data_dir:
+            return
+        return read_config(self.steam_data_dir)
+
+    @property
     def game_path(self):
         appid = self.settings['game'].get('appid')
         if self.get_game_data_path(appid):
@@ -72,7 +79,7 @@ class steam(Runner):
 
     @property
     def steam_data_dir(self):
-        """Return dir where games are stored"""
+        """Return dir where Steam files lie"""
         candidates = (
             "~/.local/share/Steam/",
             "~/.local/share/steam/",
@@ -87,15 +94,11 @@ class steam(Runner):
     def get_game_data_path(self, appid):
         data_path = get_path_from_appmanifest(self.steam_data_dir, appid)
         if not data_path:
-            steam_config = self.get_steam_config()
+            steam_config = self.steam_config
             data_path = get_path_from_config(steam_config, appid)
         if not data_path:
             logger.warning("Data path for SteamApp %s not found.", appid)
         return data_path
-
-    def get_steam_config(self):
-        steam_path = os.path.dirname(self.steam_path)
-        return read_config(steam_path)
 
     def install(self):
         steam_default_path = [opt["default_path"]

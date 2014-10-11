@@ -115,6 +115,14 @@ class winesteam(wine.wine):
         return parts[1].strip('\\')
 
     @property
+    def steam_config(self):
+        """Return the "Steam" part of Steam's config.vfd as a dict"""
+        if not self.steam_path:
+            return
+        steam_path = os.path.dirname(self.steam_path)
+        return read_config(steam_path)
+
+    @property
     def steam_path(self, prefix=None):
         """Return Steam exe's path"""
         if not prefix:
@@ -150,15 +158,9 @@ class winesteam(wine.wine):
             return False
         return os.path.exists(self.steam_path)
 
-    def get_steam_config(self):
-        if not self.steam_path:
-            return
-        steam_path = os.path.dirname(self.steam_path)
-        return read_config(steam_path)
-
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        config = self.get_steam_config()
+        config = self.steam_config
         if config:
             apps = config['apps']
             return apps.keys()
@@ -167,7 +169,7 @@ class winesteam(wine.wine):
         steam_path = os.path.dirname(self.steam_path)
         data_path = get_path_from_appmanifest(steam_path, appid)
         if not data_path:
-            steam_config = self.get_steam_config()
+            steam_config = self.steam_config
             data_path = get_path_from_config(steam_config, appid)
         if not data_path:
             logger.warning("Data path for SteamApp %s not found.", appid)
