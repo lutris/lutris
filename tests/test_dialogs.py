@@ -2,8 +2,8 @@ import os
 from gi.repository import Gio
 from lutris.game import Game
 from lutris.config import check_config
-from lutris import settings
-from lutris import pga
+# from lutris import settings
+# from lutris import pga
 from lutris.gui import config_dialogs
 from unittest import TestCase
 from lutris import runners
@@ -23,43 +23,50 @@ class TestGameDialogCommon(TestCase):
 class TestGameDialog(TestCase):
     def setUp(self):
         check_config()
+        self.dlg = config_dialogs.AddGameDialog(None)
+
+    def get_notebook(self):
+        return self.dlg.vbox.get_children()[0]
+
+    def get_viewport(self, index):
+        scrolled_window = self.get_notebook().get_children()[index]
+        viewport = scrolled_window.get_children()[0]
+        return viewport.get_children()[0]
+
+    def get_game_box(self):
+        return self.get_viewport(1)
+
+    def get_runner_dropdown(self):
+        return self.get_viewport(0).get_children()[1].get_children()[0]
+
+    def get_buttons(self):
+        return self.dlg.vbox.get_children()[1]
 
     def test_dialog(self):
-        dlg = config_dialogs.AddGameDialog(None)
-        self.assertEqual(dlg.notebook.get_current_page(), 0)
+        self.assertEqual(self.dlg.notebook.get_current_page(), 0)
 
     def test_changing_runner_sets_new_config(self):
-        dlg = config_dialogs.AddGameDialog(None)
-        runner_dropdown = dlg.vbox.get_children()[1]
-        notebook = dlg.vbox.get_children()[2]
-        label = notebook.get_children()[0]
+        label = self.get_notebook().get_children()[1]
         self.assertIn('Select a runner', label.get_text())
 
-        buttons = dlg.vbox.get_children()[3].get_children()
+        buttons = self.get_buttons().get_children()
         self.assertEqual(buttons[0].get_label(), 'Cancel')
         self.assertEqual(buttons[1].get_label(), 'Add')
 
-        runner_dropdown.set_active(1)
-        self.assertEqual(dlg.lutris_config.runner, runners.__all__[0])
-        scrolled_window = notebook.get_children()[0]
-        viewport = scrolled_window.get_children()[0]
-        game_box = viewport.get_children()[0]
+        self.get_runner_dropdown().set_active(1)
+        self.assertEqual(self.dlg.lutris_config.runner, runners.__all__[0])
+        game_box = self.get_game_box()
         self.assertEqual(game_box.runner_name, runners.__all__[0])
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_field = exe_box.get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
 
     def test_can_add_game(self):
-        dlg = config_dialogs.AddGameDialog(None)
-        name_entry = dlg.vbox.get_children()[0].get_children()[1]
-        runner_dropdown = dlg.vbox.get_children()[1]
+        name_entry = self.dlg.name_entry
         name_entry.set_text("Test game")
-        runner_dropdown.set_active(1)
+        self.get_runner_dropdown().set_active(1)
 
-        notebook = dlg.vbox.get_children()[2]
-        scrolled_window = notebook.get_children()[0]
-        viewport = scrolled_window.get_children()[0]
-        game_box = viewport.get_children()[0]
+        game_box = self.get_game_box()
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_label = exe_box.get_children()[0]
         self.assertEqual(exe_label.get_text(), "Executable")
@@ -69,7 +76,7 @@ class TestGameDialog(TestCase):
         exe_field.emit('file-set')
         self.assertEqual(exe_field.get_filename(), test_exe)
 
-        add_button = dlg.vbox.get_children()[3].get_children()[1]
+        add_button = self.get_buttons().get_children()[1]
         add_button.clicked()
 
         game = Game('test-game')

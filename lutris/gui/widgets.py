@@ -7,9 +7,10 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.util import datapath
-from lutris.util.log import logger
+# from lutris.util.log import logger
 from lutris import settings
 
+PADDING = 5
 DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
@@ -516,3 +517,19 @@ class FileChooserEntry(Gtk.Box):
 
     def get_text(self):
         return self.entry.get_text()
+
+
+class Label(Gtk.Label):
+    """Standardised label for config vboxes."""
+    def __init__(self, message=None):
+        """Custom init of label"""
+        super(Label, self).__init__(label=message)
+        self.set_alignment(0.1, 0.0)
+        self.set_padding(PADDING, 0)
+        self.set_line_wrap(True)
+
+
+class VBox(Gtk.VBox):
+    def __init__(self):
+        GObject.GObject.__init__(self)
+        self.set_margin_top(30)
