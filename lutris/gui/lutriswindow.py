@@ -232,20 +232,6 @@ class LutrisWindow(object):
         """Open the about dialog."""
         dialogs.AboutDialog()
 
-    def on_remove_game(self, _widget, _data=None):
-        selected_game = self.view.selected_game
-        UninstallGameDialog(slug=selected_game, callback=self.on_game_deleted)
-
-    def on_game_deleted(self, game_slug, from_library=False):
-        def do_remove_game():
-            self.view.remove_game(game_slug)
-            self.switch_splash_screen()
-
-        if from_library:
-            GLib.idle_add(do_remove_game)
-        else:
-            self.view.set_uninstalled(game_slug)
-
     # Callbacks
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
@@ -395,6 +381,21 @@ class LutrisWindow(object):
         add_game_dialog.run()
         if add_game_dialog.installed:
             self.view.set_installed(game)
+
+    def on_remove_game(self, _widget, _data=None):
+        selected_game = self.view.selected_game
+        UninstallGameDialog(slug=selected_game,
+                            callback=self.remove_game_from_view)
+
+    def remove_game_from_view(self, game_slug, from_library=False):
+        def do_remove_game():
+            self.view.remove_game(game_slug)
+            self.switch_splash_screen()
+
+        if from_library:
+            GLib.idle_add(do_remove_game)
+        else:
+            self.view.update_image(game_slug, is_installed=False)
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
