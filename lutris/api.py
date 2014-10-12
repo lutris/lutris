@@ -81,33 +81,31 @@ def sync(caller=None):
     :rtype: set of strings
     """
     logger.debug("Syncing game library")
+    # Get local library
     local_library = pga.get_games()
     local_slugs = set([game['slug'] for game in local_library])
     logger.debug("%d games in local library", len(local_slugs))
+    # Get remote library
+    remote_library = get_library()
+    remote_slugs = set([game['slug'] for game in remote_library])
+    logger.debug("%d games in remote library (inc. unpublished)",
+                 len(remote_slugs))
 
-    added = sync_missing_games(local_slugs, caller)
-    if local_library:
-        updated = sync_game_details(local_slugs, caller)
-        return added.update(updated)
-    return added
+    not_in_local = remote_slugs.difference(local_slugs)
+    added = sync_missing_games(not_in_local, remote_library, caller)
+    updated = sync_game_details(local_slugs, caller)
+    return added.update(updated)
 
 
-def sync_missing_games(local_slugs, caller=None):
+def sync_missing_games(not_in_local, remote_library, caller=None):
     """Get missing games in local library from remote library.
 
     :param caller: The LutrisWindow object
     :return: The slugs of the added games
     :rtype: set
     """
-    # Get remote library
-    remote_library = get_library()
-    if not remote_library:
+    if not not_in_local:
         return set()
-    remote_slugs = set([game['slug'] for game in remote_library])
-    logger.debug("%d games in remote library (inc. unpublished)",
-                 len(remote_slugs))
-
-    not_in_local = remote_slugs.difference(local_slugs)
 
     for game in remote_library:
         slug = game['slug']
@@ -116,7 +114,7 @@ def sync_missing_games(local_slugs, caller=None):
             logger.debug("Adding to local library: %s", slug)
             pga.add_game(
                 game['name'], slug=slug, year=game['year'],
-                updated=game['updated']
+                updated=game['updated'], steamid=['steamid']
             )
             if caller:
                 caller.add_game_to_view(slug)
@@ -133,6 +131,9 @@ def sync_game_details(local_slugs, caller=None):
     :return: The slugs of the updated games.
     :rtype: set
     """
+    if not local_slugs:
+        return set()
+
     updated = set()
 
     # Get remote games
