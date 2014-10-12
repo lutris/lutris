@@ -153,7 +153,7 @@ def sync_game_details(local_slugs, caller=None):
             logger.debug("Removing unpublished: %s" % slug)
             pga.delete_game(slug)
             if caller:
-                caller.on_game_deleted(slug, from_library=True)
+                caller.remove_game_from_view(slug, from_library=True)
         # Sync
         elif game['updated'] > local_game['updated']:
             logger.debug("Syncing details for %s" % slug)
