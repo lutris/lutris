@@ -18,6 +18,7 @@ class Sync(object):
         self.sync_steam(caller)
 
     def sync_steam(self, caller):
+        logger.debug("Syncing local steam games")
         steam_ = steam()
         winesteam_ = winesteam()
 
@@ -33,19 +34,21 @@ class Sync(object):
 
             # Set installed (steam linux only)
             if installed_in_steam and not game_info['installed']:
+                logger.debug("Setting %s as installed" % game_info['name'])
                 pga.add_or_update(game_info['name'], 'steam',
                                   game_info['slug'],
                                   installed=1)
                 game.config.game_config.update({'game':
                                                 {'appid': str(steamid)}})
                 game.config.save()
-                caller.view.set_installed(game)
+                caller.view.set_installed(Game(game_info['slug']))
                 continue
 
             # Set uninstalled
             if not (installed_in_steam or installed_in_winesteam) \
                and game_info['installed'] \
                and game_info['runner'] in ['steam', 'winesteam']:
+                logger.debug("Setting %s as uninstalled" % game_info['name'])
                 pga.add_or_update(game_info['name'], '',
                                   game_info['slug'],
                                   installed=0)
