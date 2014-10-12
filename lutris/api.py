@@ -94,7 +94,6 @@ def sync(caller=None):
                  len(remote_slugs))
 
     not_in_local = remote_slugs.difference(local_slugs)
-    in_local = remote_slugs.intersection(local_slugs)
 
     added = sync_missing_games(not_in_local, remote_library, caller)
     updated = sync_game_details(remote_library, caller)
@@ -147,21 +146,36 @@ def sync_game_details(remote_library, caller):
 
     for game in remote_library:
         slug = game['slug']
+        sync = False
+        sync_icons = True
         local_game = pga.get_game_by_slug(slug)
         if not local_game:
             continue
 
-        # Sync
+        # Sync updated
         if game['updated'] > local_game['updated']:
-            logger.debug("Syncing details for %s" % slug)
-            pga.add_or_update(
-                local_game['name'], local_game['runner'], slug,
-                year=game['year'], updated=game['updated'],
-                steamid=game['steamid']
-            )
-            caller.view.update_row(game)
+            sync = True
+        # Sync new fields
+        else:
+            for key, value in local_game.iteritems():
+                if value or not key in game:
+                    continue
+                if game[key]:
+                    sync = True
+                    sync_icons = False
+        if not sync:
+            continue
 
-            # Sync icons (TODO: Only update if icon actually updated)
+        logger.debug("Syncing details for %s" % slug)
+        pga.add_or_update(
+            local_game['name'], local_game['runner'], slug,
+            year=game['year'], updated=game['updated'],
+            steamid=game['steamid']
+        )
+        caller.view.update_row(game)
+
+        # Sync icons (TODO: Only update if icon actually updated)
+        if sync_icons:
             resources.download_icon(slug, 'banner', overwrite=True,
                                     callback=caller.on_image_downloaded)
             resources.download_icon(slug, 'icon', overwrite=True,
