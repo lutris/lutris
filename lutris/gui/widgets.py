@@ -288,6 +288,8 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell.set_padding(5, 0)
         column = self.set_column(name_cell, "Name", COL_NAME)
         self.append_column(column)
+        column = self.set_column(default_text_cell, "Year", COL_YEAR)
+        self.append_column(column)
         column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
         self.append_column(column)
 

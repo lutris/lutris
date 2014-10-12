@@ -63,6 +63,8 @@ def get_library():
                                'format': 'json'})
     return http.download_json(url, params)['games']
 
+
+# TODO: use it when switched API to DRF
 def get_games(slugs):
     """Return remote games from a list of slugs.
 
@@ -92,8 +94,10 @@ def sync(caller=None):
                  len(remote_slugs))
 
     not_in_local = remote_slugs.difference(local_slugs)
+    in_local = remote_slugs.intersection(local_slugs)
+
     added = sync_missing_games(not_in_local, remote_library, caller)
-    updated = sync_game_details(local_slugs, caller)
+    updated = sync_game_details(remote_library, caller)
     return added.update(updated)
 
 
@@ -124,33 +128,36 @@ def sync_missing_games(not_in_local, remote_library, caller=None):
     return not_in_local
 
 
-def sync_game_details(local_slugs, caller=None):
-    """Get missing local game details,
+def sync_game_details(remote_library, caller):
+    """Update local game details,
 
     :param caller: The LutrisWindow object
     :return: The slugs of the updated games.
     :rtype: set
     """
-    if not local_slugs:
+    if not remote_library:
         return set()
 
     updated = set()
 
-    # Get remote games
-    remote_games = get_games(sorted(local_slugs))
-    if not remote_games:
-        return set()
+    # Get remote games (TODO: use this when switched API to DRF)
+    # remote_games = get_games(sorted(local_slugs))
+    # if not remote_games:
+    #     return set()
 
-    for game in remote_games:
+    for game in remote_library:
         slug = game['slug']
         local_game = pga.get_game_by_slug(slug)
+        if not local_game:
+            continue
 
         # Sync
         if game['updated'] > local_game['updated']:
             logger.debug("Syncing details for %s" % slug)
             pga.add_or_update(
                 local_game['name'], local_game['runner'], slug,
-                year=game['year'], updated=game['updated']
+                year=game['year'], updated=game['updated'],
+                steamid=game['steamid']
             )
             caller.view.update_row(game)
 
