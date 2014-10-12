@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkDialog" id="lutris-login">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -121,6 +122,7 @@
                         <property name="can_focus">True</property>
                         <property name="has_focus">True</property>
                         <property name="hexpand">True</property>
+                        <property name="max_length">30</property>
                         <property name="invisible_char">•</property>
                         <property name="width_chars">32</property>
                         <property name="shadow_type">none</property>
@@ -138,10 +140,9 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hexpand">True</property>
-                        <property name="max_length">26</property>
+                        <property name="max_length">1024</property>
                         <property name="visibility">False</property>
                         <property name="invisible_char">•</property>
-                        <property name="invisible_char_set">True</property>
                         <signal name="activate" handler="on_password_entry_activate" swapped="no"/>
                       </object>
                       <packing>

@@ -18,9 +18,7 @@ def get_default_acf(appid, name):
 
 
 def vdf_parse(steam_config_file, config):
-    """ Given a steam configuration steam, parse the content and return it as
-        a dict.
-    """
+    """Parse a Steam config file and return the contents as a dict."""
     line = " "
     while line:
         line = steam_config_file.readline()
@@ -37,7 +35,7 @@ def vdf_parse(steam_config_file, config):
 
 
 def to_vdf(dict_data, level=0):
-    """ Convert a dictionnary to Steam config file format. """
+    """Convert a dictionnary to Steam config file format."""
     vdf_data = ""
     for key in dict_data:
         value = dict_data[key]
@@ -64,7 +62,7 @@ def read_config(path_prefix):
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        software = config['InstallConfigStore']['Software']['Valve']['Steam']
+        config = config['InstallConfigStore']['Software']['Valve']['Steam']
     except KeyError as e:
         logger.debug("Steam config empty: %s" % e)
         return
@@ -73,7 +71,7 @@ def read_config(path_prefix):
 
 
 def get_steamapps_path(rootdir):
-    """Return an existing SteamApps path"""
+    """Return an existing SteamApps path."""
     if os.path.exists(rootdir):
         return rootdir
     elif os.path.exists(rootdir.replace('steamapps', 'SteamApps')):
@@ -82,49 +80,22 @@ def get_steamapps_path(rootdir):
         logger.debug("SteamApps not found in %s" % rootdir)
 
 
-def get_path_from_config(config, appid):
-    """ Given a steam config, return path for game 'appid' """
-    if not config or 'apps' not in config:
-        return False
-    game_config = config["apps"].get(appid)
-    if not game_config:
-        return False
-    if game_config.get('HasAllLocalContent'):
-        installdir = game_config['installdir'].replace("\\\\", "/")
-        if not installdir:
-            return False
-        if installdir.startswith('C'):
-            installdir = os.path.join(os.path.expanduser('~'),
-                                      '.wine/drive_c', installdir[3:])
-        elif installdir[1] == ':':
-            # Trim Windows path
-            installdir = installdir[2:]
-        logger.debug("Steam game found at %s" % installdir)
-        return get_steamapps_path(installdir)
-    return False
-
-
-def get_path_from_appmanifest(steam_path, appid):
-    if not steam_path:
-        raise ValueError("steam_path is mandatory")
-    if not os.path.exists(steam_path):
-        raise IOError("steam_path must be a valid directory")
+def get_path_from_appmanifest(steamapps_path, appid):
+    if not steamapps_path:
+        raise ValueError("steamapps_path is mandatory")
+    if not os.path.exists(steamapps_path):
+        raise IOError("steamapps_path must be a valid directory")
     if not appid:
         raise ValueError("Missing mandatory appid")
-    steamapps_path = get_steamapps_path(os.path.join(steam_path, 'steamapps'))
-    if not steamapps_path:
-        logger.error("Unable to find SteamApps path at %s", steam_path)
-        return
     appmanifest_path = os.path.join(steamapps_path,
                                     "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        logger.debug("No appmanifest file %s" % appmanifest_path)
         return
 
     with open(appmanifest_path, "r") as appmanifest_file:
         config = vdf_parse(appmanifest_file, {})
     installdir = config.get('AppState', {}).get('installdir')
     logger.debug("Game %s should be in %s", appid, installdir)
-    install_path = os.path.join(steamapps_path, "common/%s" % installdir)
+    install_path = os.path.join(steamapps_path, "common", installdir)
     if installdir and os.path.exists(install_path):
         return install_path

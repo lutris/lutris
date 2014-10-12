@@ -1,28 +1,16 @@
 """Widget generators and their signal handlers"""
 import os
-from gi.repository import Gtk, GObject, Gdk
+from gi.repository import Gtk, Gdk
+from lutris.gui.widgets import VBox, Label, PADDING
 from lutris.util.log import logger
 from lutris.runners import import_runner
 from lutris import sysoptions
 
-PADDING = 5
 
-
-class Label(Gtk.Label):
-    """Standardised label for config vboxes."""
-    def __init__(self, message=None):
-        """Custom init of label"""
-        super(Label, self).__init__(label=message)
-        self.set_alignment(0.1, 0.0)
-        self.set_padding(PADDING, 0)
-        self.set_line_wrap(True)
-
-
-class ConfigBox(Gtk.VBox):
+class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, config_type, caller, game=None):
-        GObject.GObject.__init__(self)
-        self.set_margin_top(30)
+        super(ConfigBox, self).__init__()
         self.options = None
         # Section of the configuration file to save options in. Can be "game",
         # "runner" or "system"

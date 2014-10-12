@@ -7,9 +7,10 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.util import datapath
-from lutris.util.log import logger
+# from lutris.util.log import logger
 from lutris import settings
 
+PADDING = 5
 DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
@@ -222,7 +223,18 @@ class GameView(object):
         self.game_store.filter_text = self.filter_text
         self.game_store.modelfilter.refilter()
 
+    def update_row(self, game):
+        """Update game informations.
+
+        :param dict game: Dict holding game details
+        """
+        row = self.get_row_by_slug(game['slug'])
+        if row:
+            row[COL_YEAR] = str(game['year'])
+            self.update_image(game['slug'], row[COL_INSTALLED])
+
     def update_image(self, game_slug, is_installed=False):
+        """Update game icon."""
         row = self.get_row_by_slug(game_slug)
         if row:
             game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_type,
@@ -275,6 +287,8 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
         column = self.set_column(name_cell, "Name", COL_NAME)
+        self.append_column(column)
+        column = self.set_column(default_text_cell, "Year", COL_YEAR)
         self.append_column(column)
         column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
         self.append_column(column)
@@ -516,3 +530,30 @@ class FileChooserEntry(Gtk.Box):
 
     def get_text(self):
         return self.entry.get_text()
+
+
+class Label(Gtk.Label):
+    """Standardised label for config vboxes."""
+    def __init__(self, message=None):
+        """Custom init of label"""
+        super(Label, self).__init__(label=message)
+        self.set_alignment(0.1, 0.0)
+        self.set_padding(PADDING, 0)
+        self.set_line_wrap(True)
+
+
+class VBox(Gtk.VBox):
+    def __init__(self):
+        GObject.GObject.__init__(self)
+        self.set_margin_top(20)
+
+
+class Dialog(Gtk.Dialog):
+    def __init__(self, title=None, parent=None):
+        super(Dialog, self).__init__()
+        self.set_border_width(10)
+        if title:
+            self.set_title(title)
+        if parent:
+            self.set_transient_for(parent)
+        self.set_destroy_with_parent(True)

@@ -10,7 +10,7 @@ from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.13'
+DEFAULT_WINE = '1.7.28'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -275,8 +275,8 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes by"
-                    " drawing a textured quad \n"
+                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes "
+                    "by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },
@@ -304,7 +304,8 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        return self.config['game'].get('prefix')
+        if 'game' in self.config:
+            return self.config['game'].get('prefix')
 
     @property
     def game_exe(self):
@@ -457,9 +458,10 @@ class wine(Runner):
         if not os.path.exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
-        command = ['WINEARCH=%s' % arch]
+        env = ['WINEARCH=%s' % arch]
+        command = []
         if os.path.exists(prefix):
-            command.append("WINEPREFIX=\"%s\" " % prefix)
+            env.append("WINEPREFIX=\"%s\" " % prefix)
             self.wineprefix = prefix
 
         self.prepare_launch()
@@ -468,7 +470,7 @@ class wine(Runner):
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
-        return {'command': command}
+        return {'command': command, 'env': env}
 
     def stop(self):
         """The kill command runs wineserver -k."""
@@ -479,3 +481,16 @@ class wine(Runner):
             command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
         logger.debug("Killing all wine processes: %s" % command)
         os.popen(command, shell=True)
+
+    @staticmethod
+    def parse_wine_path(path, prefix_path=None):
+        """Take a Windows path, return the corresponding Linux path."""
+        path = path.replace("\\\\", "/").replace('\\', '/')
+        if path.startswith('C'):
+            if not prefix_path:
+                prefix_path = os.path.expanduser("~/.wine")
+            path = os.path.join(prefix_path, 'drive_c', path[3:])
+        elif path[1] == ':':
+            # Trim Windows path
+            path = path[2:]
+        return path
