@@ -51,17 +51,17 @@ def disconnect():
 
 
 def get_library():
+    """Return the remote library as a list of dicts."""
     logger.debug("Fetching game library")
     credentials = read_api_key()
     if not credentials:
         return {}
     username = credentials["username"]
     api_key = credentials["token"]
-    library_url = settings.SITE_URL + "api/v1/library/%s/" % username
+    url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.urlencode({'api_key': api_key, 'username': username,
                                'format': 'json'})
-    request = urllib2.urlopen(library_url + "?" + params)
-    return json.loads(request.read())
+    return http.download_json(url, params)['games']
 
 def get_games(slugs):
     """Return remote games from a list of slugs.
