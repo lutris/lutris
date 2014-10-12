@@ -112,7 +112,7 @@ def sync_missing_games(local_slugs, caller=None):
     for game in remote_library:
         slug = game['slug']
         # Sync
-        if slug in not_in_local and game['is_public']:
+        if slug in not_in_local:
             logger.debug("Adding to local library: %s", slug)
             pga.add_game(
                 game['name'], slug=slug, year=game['year'],
@@ -144,18 +144,8 @@ def sync_game_details(local_slugs, caller=None):
         slug = game['slug']
         local_game = pga.get_game_by_slug(slug)
 
-        # Unpublished game => remove
-        # (TODO: dump this code after 0.3.5 is released.)
-        # (It's meant to cleanup existing local libraries)
-        # (from unpublished steam games.)
-        if not game['is_public'] and not local_game['installed']\
-           and not local_game['updated']:
-            logger.debug("Removing unpublished: %s" % slug)
-            pga.delete_game(slug)
-            if caller:
-                caller.remove_game_from_view(slug, from_library=True)
         # Sync
-        elif game['updated'] > local_game['updated']:
+        if game['updated'] > local_game['updated']:
             logger.debug("Syncing details for %s" % slug)
             pga.add_or_update(
                 local_game['name'], local_game['runner'], slug,
