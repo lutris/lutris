@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 from lutris.runners.runner import Runner
+from lutris.gui.dialogs import NoticeDialog
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.steam import (get_path_from_appmanifest, read_config,
@@ -27,7 +28,6 @@ def is_running():
 class steam(Runner):
     """ Runs Steam for Linux games """
     platform = "Steam Games"
-    package = "steam"
     game_options = [
         {
             "option": 'appid',
@@ -37,16 +37,6 @@ class steam(Runner):
                      "page at steampowered.com. Example: 235320 is the "
                      "app ID for <i>Original War</i> in: \n"
                      "http://store.steampowered.com/app/<b>235320</b>/")
-        }
-    ]
-    runner_options = [
-        {
-            "option": "steam_path",
-            "type": "file",
-            'label': "Steam executable",
-            "default_path": "steam",
-            'help': ("The main executable for Steam. It is usually "
-                     "found by Lutris automatically.")
         }
     ]
 
@@ -76,9 +66,9 @@ class steam(Runner):
         logger.warning("Data path for SteamApp %s not found.", appid)
 
     @property
-    def steam_path(self):
+    def steam_exe(self):
         """Return Steam exe's path"""
-        return self.runner_config.get('steam_path', 'steam')
+        return 'steam'
 
     @property
     def steam_data_dir(self):
@@ -115,17 +105,14 @@ class steam(Runner):
         return dirs
 
     def install(self):
-        steam_default_path = [opt["default_path"]
-                              for opt in self.runner_options
-                              if opt["option"] == "steam_path"][0]
-        if os.path.exists(steam_default_path):
-            self.runner_config["steam_path"] = steam_default_path
-            self.settings.save()
-        else:
-            super(steam, self).install()
+        message = "Steam for Linux installation is not handled by Lutris.\n" \
+            "Please go to " \
+            "<a href='http://steampowered.com'>http://steampowered.com</a>" \
+            " or install Steam with the package provided by your distribution."
+        NoticeDialog(message)
 
     def is_installed(self):
-        return bool(system.find_executable(self.steam_path))
+        return bool(system.find_executable(self.steam_exe))
 
     def install_game(self, appid):
         logger.debug("Installing steam game %s", appid)
@@ -161,7 +148,7 @@ class steam(Runner):
 
     def play(self):
         appid = self.settings.get('game', {}).get('appid')
-        return {'command': [self.steam_path, '-applaunch', appid]}
+        return {'command': [self.steam_exe, '-applaunch', appid]}
 
     def stop(self):
         shutdown()
