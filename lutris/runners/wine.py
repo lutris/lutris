@@ -457,9 +457,10 @@ class wine(Runner):
         if not os.path.exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
-        command = ['WINEARCH=%s' % arch]
+        env = ['WINEARCH=%s' % arch]
+        command = []
         if os.path.exists(prefix):
-            command.append("WINEPREFIX=\"%s\" " % prefix)
+            env.append("WINEPREFIX=\"%s\" " % prefix)
             self.wineprefix = prefix
 
         self.prepare_launch()
@@ -468,7 +469,7 @@ class wine(Runner):
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
-        return {'command': command}
+        return {'command': command, 'env': env}
 
     def stop(self):
         """The kill command runs wineserver -k."""

@@ -115,6 +115,7 @@ class Game(object):
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
             return False
+
         launch_arguments = gameplay_info['command']
 
         restrict_to_display = system_config.get('display')
@@ -143,6 +144,10 @@ class Game(object):
             launch_arguments.insert(
                 0, 'LD_LIBRARY_PATH="{}"'.format(ld_library_path)
             )
+
+        env = gameplay_info.get('env') or []
+        for var in env:
+            launch_arguments.insert(0, var)
 
         killswitch = system_config.get('killswitch')
         self.game_thread = LutrisThread(" ".join(launch_arguments),
