@@ -1,11 +1,11 @@
 """Configuration dialogs"""
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
 
 from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris import pga
 import lutris.runners
-from lutris.gui.widgets import VBox, PADDING
+from lutris.gui.widgets import VBox, Dialog
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.util.strings import slugify
 
@@ -51,6 +51,7 @@ class GameDialogCommon(object):
         self.runner_dropdown.set_active(runner_index)
         self.runner_dropdown.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
+        cell.props.ellipsize = Pango.EllipsizeMode.END
         self.runner_dropdown.pack_start(cell, True)
         self.runner_dropdown.add_attribute(cell, 'text', 0)
         return self.runner_dropdown
@@ -66,7 +67,7 @@ class GameDialogCommon(object):
 
     def build_notebook(self):
         self.notebook = Gtk.Notebook()
-        self.vbox.pack_start(self.notebook, True, True, 0)
+        self.vbox.pack_start(self.notebook, True, True, 10)
 
     def add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
@@ -79,7 +80,7 @@ class GameDialogCommon(object):
 
         runner_dropdown = self.get_runner_dropdown()
         runner_box = Gtk.HBox()
-        runner_box.pack_start(runner_dropdown, True, True, 20)
+        runner_box.pack_start(runner_dropdown, False, False, 20)
         info_box.pack_start(runner_box, False, False, 5)
 
         info_sw = self.build_scrolled_window(info_box)
@@ -175,18 +176,17 @@ class GameDialogCommon(object):
             return True
 
 
-class AddGameDialog(Gtk.Dialog, GameDialogCommon):
+class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
 
     def __init__(self, parent, game=None):
-        super(AddGameDialog, self).__init__()
+        super(AddGameDialog, self).__init__("Add a new game", parent.window)
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
         self.game = game
         self.installed = False
 
-        self.set_title("Add a new game")
-        self.set_size_request(600, 500)
+        self.set_size_request(-1, 500)
         if game:
             self.runner_name = game.runner_name
             self.slug = game.slug
@@ -206,16 +206,17 @@ class AddGameDialog(Gtk.Dialog, GameDialogCommon):
         self.installed = super(AddGameDialog, self).on_save(_button)
 
 
-class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
+class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game):
-        super(EditGameConfigDialog, self).__init__()
+        super(EditGameConfigDialog, self).__init__(
+            "Edit game configuration for %s" % game.name, parent.window
+        )
         self.parent_window = parent
         self.game = game
         self.lutris_config = game.config
         self.runner_name = game.runner_name
 
-        self.set_title("Edit game configuration for %s" % game.name)
         self.set_size_request(500, 550)
 
         self.build_notebook()
@@ -226,12 +227,11 @@ class EditGameConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.run()
 
 
-class RunnerConfigDialog(Gtk.Dialog):
+class RunnerConfigDialog(Dialog):
     """Runners management dialog."""
     def __init__(self, runner):
-        Gtk.Dialog.__init__(self)
         runner_name = runner.__class__.__name__
-        self.set_title("Configure %s" % runner_name)
+        super(RunnerConfigDialog, self).__init__("Configure %s" % runner_name)
         self.set_size_request(570, 500)
         self.runner_name = runner_name
         self.lutris_config = LutrisConfig(runner=runner_name)
@@ -279,14 +279,11 @@ class RunnerConfigDialog(Gtk.Dialog):
         self.destroy()
 
 
-class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
-    title = "System preferences"
-    dialog_height = 500
-
+class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self):
-        super(SystemConfigDialog, self).__init__()
+        super(SystemConfigDialog, self).__init__("System preferences")
         self.set_title(self.title)
-        self.set_size_request(500, self.dialog_height)
+        self.set_size_request(500, 500)
         self.lutris_config = LutrisConfig()
         self.system_config_vbox = SystemBox(self.lutris_config, 'system')
         self.vbox.pack_start(self.system_config_vbox, True, True, 0)
@@ -295,6 +292,5 @@ class SystemConfigDialog(Gtk.Dialog, GameDialogCommon):
         self.show_all()
 
     def save_config(self, widget):
-        assert self.lutris_config.config_type == 'system'
         self.lutris_config.save()
         self.destroy()

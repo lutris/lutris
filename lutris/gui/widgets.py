@@ -533,3 +533,13 @@ class VBox(Gtk.VBox):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.set_margin_top(30)
+
+
+class Dialog(Gtk.Dialog):
+    def __init__(self, title=None, parent=None):
+        super(Dialog, self).__init__()
+        self.set_border_width(10)
+        if title:
+            self.set_title(title)
+        if parent:
+            self.set_transient_for(parent)
