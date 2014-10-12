@@ -245,20 +245,21 @@ class winesteam(wine.wine):
         args = self.config['game'].get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
-        command = ["WINEDEBUG=fixme-all"]
+        env = ["WINEDEBUG=fixme-all"]
+        command = []
         prefix = self.config['game'].get('prefix')
         if prefix:
             # TODO: Verify if a prefix exists that it's created with the
             # correct architecture
-            command.append('WINEPREFIX="%s" ' % prefix)
+            env.append('WINEPREFIX="%s" ' % prefix)
         else:
-            command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+            env.append('WINEPREFIX="%s" ' % self.get_default_prefix())
         command += self.launch_args
         if appid:
             command += ['-applaunch', appid]
         if args:
             command += [args]
-        return {'command': command}
+        return {'command': command, 'env': env}
 
     def stop(self):
         shutdown()

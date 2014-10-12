@@ -164,8 +164,7 @@ class GameDialogCommon(object):
         """Dialog destroy callback."""
         self.destroy()
 
-    def on_save(self, _button):
-        """Save game info and destroy widget. Return True if success."""
+    def is_valid(self):
         name = self.name_entry.get_text()
         if not self.runner_name:
             logger.error("Missing runner")
@@ -173,7 +172,12 @@ class GameDialogCommon(object):
         if not name:
             logger.error("Missing game name")
             return False
-        self.lutris_config.config_type = 'game'
+
+    def on_save(self, _button):
+        """Save game info and destroy widget. Return True if success."""
+        if not self.is_valid():
+            return False
+        name = self.name_entry.get_text()
         if not self.lutris_config.game:
             self.lutris_config.game = slugify(name)
         self.lutris_config.save()
