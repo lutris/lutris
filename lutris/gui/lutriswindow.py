@@ -6,12 +6,11 @@ import subprocess
 
 from gi.repository import Gtk, GLib
 
-from lutris import api
-from lutris import pga
-from lutris import settings
+from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
 from lutris.installer import InstallerDialog
+from lutris.sync import Sync
 
 from lutris.util import resources
 from lutris.util.log import logger
@@ -154,7 +153,12 @@ class LutrisWindow(object):
             self.on_connect_success(None, credentials)
         else:
             self.toggle_connection(False)
-            async_call(self.sync_icons, None)
+            sync = Sync()
+            async_call(
+                sync.sync_steam,
+                lambda r, e: async_call(self.sync_icons, None),
+                caller=self
+            )
 
     @property
     def current_view_type(self):
@@ -329,8 +333,9 @@ class LutrisWindow(object):
             self.set_status("Library synced")
             self.switch_splash_screen()
         self.set_status("Syncing library")
+        sync = Sync()
         async_call(
-            api.sync,
+            sync.sync_all,
             lambda r, e: async_call(self.sync_icons, set_library_synced),
             caller=self
         )

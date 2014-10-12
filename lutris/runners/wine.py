@@ -304,7 +304,8 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        return self.config['game'].get('prefix')
+        if 'game' in self.config:
+            return self.config['game'].get('prefix')
 
     @property
     def game_exe(self):
