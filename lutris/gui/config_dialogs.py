@@ -1,6 +1,7 @@
 """Configuration dialogs"""
 from gi.repository import Gtk, Pango
 
+from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris import pga
@@ -28,16 +29,13 @@ class GameDialogCommon(object):
                 )
         return runner_liststore
 
-    def get_name_entry(self, name=None):
-        """Build a text field containing the given name."""
-        name_box = Gtk.HBox()
-        name_label = Gtk.Label(label="Name")
-        name_box.pack_start(name_label, False, False, 20)
-        self.name_entry = Gtk.Entry()
-        if name:
-            self.name_entry.set_text(name)
-        name_box.pack_start(self.name_entry, True, True, 20)
-        return name_box
+    def build_entry_box(self, entry, label_text=None):
+        box = Gtk.HBox()
+        if label_text:
+            label = Gtk.Label(label=label_text)
+            box.pack_start(label, False, False, 20)
+        box.pack_start(entry, True, True, 20)
+        return box
 
     def get_runner_dropdown(self):
         runner_liststore = self.get_runner_liststore()
@@ -74,9 +72,17 @@ class GameDialogCommon(object):
 
     def build_info_tab(self):
         info_box = VBox()
-        game_name = self.game.name if self.game else None
-        name_box = self.get_name_entry(game_name)
+        self.name_entry = Gtk.Entry()
+        if self.game:
+            self.name_entry.set_text(self.game.name)
+        name_box = self.build_entry_box(self.name_entry, "Name")
         info_box.pack_start(name_box, False, False, 5)
+
+        self.slug_entry = Gtk.Entry()
+        if self.game:
+            self.slug_entry.set_text(self.game.slug)
+        slug_box = self.build_entry_box(self.slug_entry, "Identifier")
+        info_box.pack_start(slug_box, False, False, 5)
 
         runner_dropdown = self.get_runner_dropdown()
         runner_box = Gtk.HBox()
@@ -161,19 +167,25 @@ class GameDialogCommon(object):
     def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
         name = self.name_entry.get_text()
-        if self.runner_name and name:
-            self.lutris_config.config_type = 'game'
-            if not self.lutris_config.game:
-                self.lutris_config.game = slugify(name)
-            self.lutris_config.save()
-            self.slug = self.lutris_config.game
-            runner_class = lutris.runners.import_runner(self.runner_name)
-            runner = runner_class(self.lutris_config)
-            pga.add_or_update(name, self.runner_name, slug=self.slug,
-                              directory=runner.game_path,
-                              installed=1)
-            self.destroy()
-            return True
+        if not self.runner_name:
+            logger.error("Missing runner")
+            return False
+        if not name:
+            logger.error("Missing game name")
+            return False
+        self.lutris_config.config_type = 'game'
+        if not self.lutris_config.game:
+            self.lutris_config.game = slugify(name)
+        self.lutris_config.save()
+        self.slug = self.lutris_config.game
+        runner_class = lutris.runners.import_runner(self.runner_name)
+        runner = runner_class(self.lutris_config)
+        pga.add_or_update(name, self.runner_name, slug=self.slug,
+                          directory=runner.game_path,
+                          installed=1)
+        self.destroy()
+        logger.debug("Saved %s", name)
+        return True
 
 
 class AddGameDialog(Dialog, GameDialogCommon):

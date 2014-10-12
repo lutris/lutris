@@ -11,5 +11,5 @@ tags
 PYSMELLTAGS
 lutris.e4p
 .coverage
-tests/fixtures/pga.db
+pga.db
 tests/coverage/*

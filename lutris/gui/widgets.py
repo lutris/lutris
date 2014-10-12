@@ -532,7 +532,7 @@ class Label(Gtk.Label):
 class VBox(Gtk.VBox):
     def __init__(self):
         GObject.GObject.__init__(self)
-        self.set_margin_top(30)
+        self.set_margin_top(20)
 
 
 class Dialog(Gtk.Dialog):
@@ -543,3 +543,4 @@ class Dialog(Gtk.Dialog):
             self.set_title(title)
         if parent:
             self.set_transient_for(parent)
+        self.set_destroy_with_parent(True)

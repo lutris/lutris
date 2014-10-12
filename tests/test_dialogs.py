@@ -5,6 +5,7 @@ from lutris.config import check_config
 # from lutris import settings
 # from lutris import pga
 from lutris.gui import config_dialogs
+from lutris.gui.lutriswindow import LutrisWindow
 from unittest import TestCase
 from lutris import runners
 
@@ -23,7 +24,8 @@ class TestGameDialogCommon(TestCase):
 class TestGameDialog(TestCase):
     def setUp(self):
         check_config()
-        self.dlg = config_dialogs.AddGameDialog(None)
+        lutris_window = LutrisWindow()
+        self.dlg = config_dialogs.AddGameDialog(lutris_window)
 
     def get_notebook(self):
         return self.dlg.vbox.get_children()[0]
@@ -35,9 +37,6 @@ class TestGameDialog(TestCase):
 
     def get_game_box(self):
         return self.get_viewport(1)
-
-    def get_runner_dropdown(self):
-        return self.get_viewport(0).get_children()[1].get_children()[0]
 
     def get_buttons(self):
         return self.dlg.vbox.get_children()[1]
@@ -53,7 +52,7 @@ class TestGameDialog(TestCase):
         self.assertEqual(buttons[0].get_label(), 'Cancel')
         self.assertEqual(buttons[1].get_label(), 'Add')
 
-        self.get_runner_dropdown().set_active(1)
+        self.dlg.runner_dropdown.set_active(1)
         self.assertEqual(self.dlg.lutris_config.runner, runners.__all__[0])
         game_box = self.get_game_box()
         self.assertEqual(game_box.runner_name, runners.__all__[0])
@@ -64,7 +63,7 @@ class TestGameDialog(TestCase):
     def test_can_add_game(self):
         name_entry = self.dlg.name_entry
         name_entry.set_text("Test game")
-        self.get_runner_dropdown().set_active(1)
+        self.dlg.runner_dropdown.set_active(1)
 
         game_box = self.get_game_box()
         exe_box = game_box.get_children()[0].get_children()[0]
