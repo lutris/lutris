@@ -7,7 +7,7 @@ from lutris.util.log import logger
 
 
 class mednafen(Runner):
-    """Mednafen is a multi-system emulator, including NES, GB(A), PC Engine"""
+    """Multi-system emulator including NES, GB(A), PC Engine support"""
     platform = (
         "Atari Lynx, GameBoy, GameBoy Color, "
         "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "

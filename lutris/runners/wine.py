@@ -10,7 +10,7 @@ from lutris.util.system import find_executable
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.13'
+DEFAULT_WINE = '1.7.28'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -275,8 +275,8 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes by"
-                    " drawing a textured quad \n"
+                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes "
+                    "by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },
@@ -479,3 +479,16 @@ class wine(Runner):
             command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
         logger.debug("Killing all wine processes: %s" % command)
         os.popen(command, shell=True)
+
+    @staticmethod
+    def parse_wine_path(path, prefix_path=None):
+        """Take a Windows path, return the corresponding Linux path."""
+        path = path.replace("\\\\", "/").replace('\\', '/')
+        if path.startswith('C'):
+            if not prefix_path:
+                prefix_path = os.path.expanduser("~/.wine")
+            path = os.path.join(prefix_path, 'drive_c', path[3:])
+        elif path[1] == ':':
+            # Trim Windows path
+            path = path[2:]
+        return path

@@ -76,7 +76,8 @@ class Game(object):
             if runner_class:
                 self.runner = runner_class(self.config)
             else:
-                logger.error("Unable to import runner %s", self.runner_name)
+                logger.error("Unable to import runner %s for %s",
+                             self.runner_name, self.slug)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
@@ -129,9 +130,9 @@ class Game(object):
         if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
-        oss_wrapper = system_config.get("oss_wrapper")
-        if audio.get_oss_wrapper(oss_wrapper):
-            launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))
+        prefix_command = system_config.get("prefix_command", '').strip()
+        if prefix_command and system.find_executable(prefix_command):
+            launch_arguments.insert(0, prefix_command)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:

@@ -106,10 +106,16 @@ def migrate_sources():
 
 
 def syncdb():
+    """Update the database to the current version, making necessary changes
+    for backwards compatibility,"""
     migrated = migrate_games()
     if 'installed' in migrated:
         set_installed_games()
     migrate_sources()
+
+    # Rename runners
+    sql.db_update(PGA_DB, 'games', {'runner': 'mame'}, ('runner', 'sdlmame'))
+    sql.db_update(PGA_DB, 'games', {'runner': 'mess'}, ('runner', 'sdlmess'))
 
 
 def set_installed_games():

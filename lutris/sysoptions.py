@@ -52,12 +52,12 @@ system_options = [
                  "having display issues when running a game in fullscreen.")
     },
     {
-        'option': 'oss_wrapper',
+        'option': 'prefix_command',
         'type': 'choice',
-        'label': 'OSS Wrapper',
-        'choices': oss_list,
-        'help': ("An OSS wrapper is used to fix compatibility issues with \n"
-                 "some old games using OSS as their sound interface.")
+        'label': 'Prefix command',
+        'help': ("Name of a program that will launch the game, making "
+                 "alterations to its behavior. \n"
+                 "Examples: padsp, glxosd, optirun")
     },
     {
         'option': 'reset_pulse',

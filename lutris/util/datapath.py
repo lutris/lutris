@@ -13,8 +13,10 @@ def get():
         data_path = os.path.normpath(os.path.join(sys.path[0], 'data'))
     else:
         import lutris
-        data_path = os.path.dirname(lutris.__file__)
+        lutris_module = lutris.__file__
+        data_path = os.path.join(
+            os.path.dirname(os.path.dirname(lutris_module)), 'data'
+        )
     if not os.path.exists(data_path):
-        print("data_path can't be found at : %s" % data_path)
-        exit()
+        raise IOError("data_path can't be found at : %s" % data_path)
     return data_path
