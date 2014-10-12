@@ -6,12 +6,11 @@ import subprocess
 
 from gi.repository import Gtk, GLib
 
-from lutris import api
-from lutris import pga
-from lutris import settings
+from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
 from lutris.installer import InstallerDialog
+from lutris.sync import Sync
 
 from lutris.util import resources
 from lutris.util.log import logger
@@ -154,7 +153,12 @@ class LutrisWindow(object):
             self.on_connect_success(None, credentials)
         else:
             self.toggle_connection(False)
-            async_call(self.sync_icons, None)
+            sync = Sync()
+            async_call(
+                sync.sync_steam,
+                lambda r, e: async_call(self.sync_icons, None),
+                caller=self
+            )
 
     @property
     def current_view_type(self):
@@ -231,17 +235,6 @@ class LutrisWindow(object):
     def about(self, _widget, _data=None):
         """Open the about dialog."""
         dialogs.AboutDialog()
-
-    def on_remove_game(self, _widget, _data=None):
-        selected_game = self.view.selected_game
-        UninstallGameDialog(slug=selected_game, callback=self.on_game_deleted)
-
-    def on_game_deleted(self, game_slug, from_library=False):
-        if from_library:
-            self.view.remove_game(game_slug)
-            self.switch_splash_screen()
-        else:
-            self.view.set_uninstalled(game_slug)
 
     # Callbacks
     def on_connect(self, *args):
@@ -340,8 +333,9 @@ class LutrisWindow(object):
             self.set_status("Library synced")
             self.switch_splash_screen()
         self.set_status("Syncing library")
+        sync = Sync()
         async_call(
-            api.sync,
+            sync.sync_all,
             lambda r, e: async_call(self.sync_icons, set_library_synced),
             caller=self
         )
@@ -392,6 +386,21 @@ class LutrisWindow(object):
         add_game_dialog.run()
         if add_game_dialog.installed:
             self.view.set_installed(game)
+
+    def on_remove_game(self, _widget, _data=None):
+        selected_game = self.view.selected_game
+        UninstallGameDialog(slug=selected_game,
+                            callback=self.remove_game_from_view)
+
+    def remove_game_from_view(self, game_slug, from_library=False):
+        def do_remove_game():
+            self.view.remove_game(game_slug)
+            self.switch_splash_screen()
+
+        if from_library:
+            GLib.idle_add(do_remove_game)
+        else:
+            self.view.update_image(game_slug, is_installed=False)
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
