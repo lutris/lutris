@@ -117,7 +117,7 @@ def sync_missing_games(not_in_local, remote_library, caller=None):
             logger.debug("Adding to local library: %s", slug)
             pga.add_game(
                 game['name'], slug=slug, year=game['year'],
-                updated=game['updated'], steamid=['steamid']
+                updated=game['updated'], steamid=game['steamid']
             )
             if caller:
                 caller.add_game_to_view(slug)
