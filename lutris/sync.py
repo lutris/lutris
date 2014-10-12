@@ -2,6 +2,7 @@
 """Synchronization of the game library with the server and other platforms."""
 import os
 
+from lutris.util.log import logger
 from lutris import api, pga
 from lutris.game import Game
 from lutris.runners.steam import steam
@@ -56,10 +57,15 @@ class Sync(object):
             return []
         installed = []
         dirs = runner.get_steamapps_dirs()
-        for dir_ in dirs:
-            files = os.listdir(dir_)
-            for file_ in files:
-                if 'appmanifest_' == file_[0:12]:
-                    steamid = int(file_[12:-4])
+        for dirname in dirs:
+            files = os.listdir(dirname)
+            for filename in files:
+                if filename.startswith('appmanifest_'):
+                    basename, ext = os.path.splitext(filename)
+                    try:
+                        steamid = int(basename[12:])
+                    except ValueError:
+                        logger.error("Invalid SteamID for %s", filename)
+                        continue
                     installed.append(steamid)
         return installed
