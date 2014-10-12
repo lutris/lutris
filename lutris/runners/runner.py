@@ -131,7 +131,7 @@ class Runner(object):
             'title': "Required runner unavailable"
         })
         if Gtk.ResponseType.YES == dialog.result:
-            if self.install() or self.is_installed:
+            if self.install() or self.is_installed():
                 return True
 
     def is_installed(self):
