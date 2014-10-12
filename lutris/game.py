@@ -76,7 +76,8 @@ class Game(object):
             if runner_class:
                 self.runner = runner_class(self.config)
             else:
-                logger.error("Unable to import runner %s", self.runner_name)
+                logger.error("Unable to import runner %s for %s",
+                             self.runner_name, self.slug)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
