@@ -177,8 +177,11 @@ class winesteam(wine.wine):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
         # Main steamapps dir
-        main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
-        dirs.append(system.fix_path_case(main_dir))
+        if self.steam_data_dir:
+            main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
+            main_dir = system.fix_path_case(main_dir)
+            if main_dir:
+                dirs.append(main_dir)
         # Custom dirs
         steam_config = self.steam_config
         if steam_config:
