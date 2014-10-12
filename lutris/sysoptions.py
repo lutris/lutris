@@ -53,7 +53,7 @@ system_options = [
     },
     {
         'option': 'prefix_command',
-        'type': 'choice',
+        'type': 'string',
         'label': 'Prefix command',
         'help': ("Name of a program that will launch the game, making "
                  "alterations to its behavior. \n"
