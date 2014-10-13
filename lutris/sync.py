@@ -127,6 +127,7 @@ class Sync(object):
         return updated
 
     def sync_steam_local(self, caller):
+        """Sync Steam games in library with Steam and Wine Steam"""
         logger.debug("Syncing local steam games")
         steam_ = steam()
         winesteam_ = winesteam()
@@ -165,6 +166,7 @@ class Sync(object):
 
     @staticmethod
     def _get_installed_steamapps(runner):
+        """Return a list of appIDs of the installed Steam games."""
         if not runner.is_installed():
             return []
         installed = []
