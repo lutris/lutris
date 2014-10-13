@@ -166,19 +166,6 @@ class LutrisWindow(object):
             if self.view.__class__.__name__ == "GameGridView" \
             else 'list'
 
-    def switch_splash_screen(self):
-        if self.view.n_games == 0:
-            self.splash_box.show()
-            self.games_scrollwindow.hide()
-        else:
-            self.splash_box.hide()
-            self.games_scrollwindow.show()
-
-    def sync_icons(self):
-        game_list = pga.get_games()
-        resources.fetch_icons([game_info['slug'] for game_info in game_list],
-                              callback=self.on_image_downloaded)
-
     def connect_signals(self):
         """Connect signals from the view with the main window.
            This must be called each time the view is rebuilt.
@@ -209,6 +196,59 @@ class LutrisWindow(object):
     def get_size(self, widget, _):
         self.window_size = widget.get_size()
 
+    def switch_splash_screen(self):
+        if self.view.n_games == 0:
+            self.splash_box.show()
+            self.games_scrollwindow.hide()
+        else:
+            self.splash_box.hide()
+            self.games_scrollwindow.show()
+
+    def switch_view(self, view_type):
+        """Switch between grid view and list view."""
+        logger.debug("Switching view")
+        self.icon_type = self.get_icon_type(view_type)
+        self.view.destroy()
+        self.view = load_view(
+            view_type,
+            get_game_list(filter_installed=self.filter_installed),
+            filter_text=self.search_entry.get_text(),
+            icon_type=self.icon_type
+        )
+        self.view.contextual_menu = self.menu
+        self.connect_signals()
+        self.games_scrollwindow.add(self.view)
+        self.view.show_all()
+        self.view.check_resize()
+        # Note: set_active(True *or* False) apparently makes ALL the menuitems
+        # in the group send the activate signal...
+        if self.icon_type == 'banner_small':
+            self.banner_small_menuitem.set_active(True)
+        if self.icon_type == 'icon':
+            self.icon_menuitem.set_active(True)
+        if self.icon_type == 'banner':
+            self.banner_menuitem.set_active(True)
+
+    def sync_library(self):
+        def set_library_synced(result, error):
+            self.set_status("Library synced")
+            self.switch_splash_screen()
+        self.set_status("Syncing library")
+        sync = Sync()
+        async_call(
+            sync.sync_all,
+            lambda r, e: async_call(self.sync_icons, set_library_synced),
+            caller=self
+        )
+
+    def sync_icons(self):
+        game_list = pga.get_games()
+        resources.fetch_icons([game_info['slug'] for game_info in game_list],
+                              callback=self.on_image_downloaded)
+
+    def set_status(self, text):
+        self.status_label.set_text(text)
+
     def refresh_status(self):
         """Refresh status bar."""
         if self.running_game:
@@ -236,11 +276,27 @@ class LutrisWindow(object):
         """Open the about dialog."""
         dialogs.AboutDialog()
 
+    def reset(self, *args):
+        """Reset the desktop to it's initial state."""
+        if self.running_game:
+            self.running_game.quit_game()
+            self.status_label.set_text("Stopped %s" % self.running_game.name)
+            self.running_game = None
+            self.stop_button.set_sensitive(False)
+
     # Callbacks
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog()
         login_dialog.connect('connected', self.on_connect_success)
+
+    def on_connect_success(self, dialog, credentials):
+        if isinstance(credentials, str):
+            username = credentials
+        else:
+            username = credentials["username"]
+        self.toggle_connection(True, username)
+        self.sync_library()
 
     def on_disconnect(self, *args):
         api.disconnect()
@@ -262,14 +318,6 @@ class LutrisWindow(object):
         logger.info(connection_status)
         connection_label.set_text(connection_status)
 
-    def on_connect_success(self, dialog, credentials):
-        if isinstance(credentials, str):
-            username = credentials
-        else:
-            username = credentials["username"]
-        self.toggle_connection(True, username)
-        self.sync_library()
-
     def on_destroy(self, *args):
         """Signal for window close."""
         view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
@@ -279,9 +327,6 @@ class LutrisWindow(object):
         settings.write_setting('height', height)
         Gtk.main_quit(*args)
         logger.debug("Quitting lutris")
-
-    def on_game_installed(self, view, slug):
-        view.set_installed(Game(slug))
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""
@@ -302,10 +347,6 @@ class LutrisWindow(object):
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
 
-    def on_image_downloaded(self, game_slug):
-        is_installed = Game(game_slug).is_installed
-        self.view.update_image(game_slug, is_installed)
-
     def on_search_entry_changed(self, widget):
         self.view.emit('filter-updated', widget.get_text())
 
@@ -325,29 +366,6 @@ class LutrisWindow(object):
             else:
                 InstallerDialog(game_slug, self)
 
-    def set_status(self, text):
-        self.status_label.set_text(text)
-
-    def sync_library(self):
-        def set_library_synced(result, error):
-            self.set_status("Library synced")
-            self.switch_splash_screen()
-        self.set_status("Syncing library")
-        sync = Sync()
-        async_call(
-            sync.sync_all,
-            lambda r, e: async_call(self.sync_icons, set_library_synced),
-            caller=self
-        )
-
-    def reset(self, *args):
-        """Reset the desktop to it's initial state."""
-        if self.running_game:
-            self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s" % self.running_game.name)
-            self.running_game = None
-            self.stop_button.set_sensitive(False)
-
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -363,6 +381,27 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
 
+    def on_game_installed(self, view, slug):
+        view.set_installed(Game(slug))
+
+    def on_image_downloaded(self, game_slug):
+        is_installed = Game(game_slug).is_installed
+        self.view.update_image(game_slug, is_installed)
+
+    def add_manually(self, *args):
+        game = Game(self.view.selected_game)
+        add_game_dialog = AddGameDialog(self, game)
+        add_game_dialog.run()
+        if add_game_dialog.installed:
+            self.view.set_installed(game)
+
+    def add_game(self, _widget, _data=None):
+        """Add a new game."""
+        add_game_dialog = AddGameDialog(self)
+        add_game_dialog.run()
+        if add_game_dialog.runner_name and add_game_dialog.slug:
+            self.add_game_to_view(add_game_dialog.slug)
+
     def add_game_to_view(self, slug):
         if not slug:
             raise ValueError("Missing game slug")
@@ -372,20 +411,6 @@ class LutrisWindow(object):
             self.view.add_game(game)
             self.switch_splash_screen()
         GLib.idle_add(do_add_game)
-
-    def add_game(self, _widget, _data=None):
-        """Add a new game."""
-        add_game_dialog = AddGameDialog(self)
-        add_game_dialog.run()
-        if add_game_dialog.runner_name and add_game_dialog.slug:
-            self.add_game_to_view(add_game_dialog.slug)
-
-    def add_manually(self, *args):
-        game = Game(self.view.selected_game)
-        add_game_dialog = AddGameDialog(self, game)
-        add_game_dialog.run()
-        if add_game_dialog.installed:
-            self.view.set_installed(game)
 
     def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game
@@ -438,31 +463,6 @@ class LutrisWindow(object):
         self.switch_view(view_type)
         self.grid_view_menuitem.set_active(view_type == 'grid')
         self.list_view_menuitem.set_active(view_type == 'list')
-
-    def switch_view(self, view_type):
-        """Switch between grid view and list view."""
-        logger.debug("Switching view")
-        self.icon_type = self.get_icon_type(view_type)
-        self.view.destroy()
-        self.view = load_view(
-            view_type,
-            get_game_list(filter_installed=self.filter_installed),
-            filter_text=self.search_entry.get_text(),
-            icon_type=self.icon_type
-        )
-        self.view.contextual_menu = self.menu
-        self.connect_signals()
-        self.games_scrollwindow.add(self.view)
-        self.view.show_all()
-        self.view.check_resize()
-        # Note: set_active(True *or* False) apparently makes ALL the menuitems
-        # in the group send the activate signal...
-        if self.icon_type == 'banner_small':
-            self.banner_small_menuitem.set_active(True)
-        if self.icon_type == 'icon':
-            self.icon_menuitem.set_active(True)
-        if self.icon_type == 'banner':
-            self.banner_menuitem.set_active(True)
 
     def on_icon_type_activate(self, menuitem):
         icon_type = menuitem.get_name()
