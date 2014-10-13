@@ -179,6 +179,14 @@ class winesteam(wine.wine):
             apps = config['apps']
             return apps.keys()
 
+    def get_game_path_from_appid(self, appid):
+        """Return the game directory"""
+        for apps_path in self.get_steamapps_dirs():
+            game_path = get_path_from_appmanifest(apps_path, appid)
+            if game_path:
+                return game_path
+        logger.warning("Data path for SteamApp %s not found.", appid)
+
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []

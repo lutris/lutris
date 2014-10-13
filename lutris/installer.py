@@ -556,7 +556,8 @@ class ScriptInterpreter(object):
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()
-        data_path = steam_runner.game_path(self.steam_data['appid'])
+        data_path = steam_runner.get_game_path_from_appid(
+            self.steam_data['appid'])
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
         logger.debug("got data path: %s" % data_path)
@@ -594,7 +595,7 @@ class ScriptInterpreter(object):
     def install_steam_game(self, runner_class):
         steam_runner = runner_class()
         appid = self.steam_data['appid']
-        if not steam_runner.game_path(appid):
+        if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s" % appid)
             # Here the user must wait for the game to finish installing, a
             # better way to handle this would be to poll StateFlags on the
