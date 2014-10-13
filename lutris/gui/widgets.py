@@ -7,7 +7,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.util import datapath
-# from lutris.util.log import logger
+from lutris.util.log import logger
 from lutris import settings
 
 PADDING = 5
@@ -206,6 +206,9 @@ class GameView(object):
     def set_installed(self, game):
         """Update a game row to show as installed"""
         row = self.get_row_by_slug(game.slug)
+        if not row:
+            logger.error("Can't find row for %s", game.slug)
+            return
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.slug, is_installed=True)
 

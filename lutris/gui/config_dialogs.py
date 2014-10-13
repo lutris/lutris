@@ -6,6 +6,7 @@ from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris import pga
 import lutris.runners
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.util.strings import slugify
@@ -167,11 +168,12 @@ class GameDialogCommon(object):
     def is_valid(self):
         name = self.name_entry.get_text()
         if not self.runner_name:
-            logger.error("Missing runner")
+            ErrorDialog("Runner not provided")
             return False
         if not name:
-            logger.error("Missing game name")
+            ErrorDialog("Please fill in the name")
             return False
+        return True
 
     def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
@@ -231,6 +233,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.parent_window = parent
         self.game = game
         self.lutris_config = game.config
+        self.slug = game.slug
         self.runner_name = game.runner_name
 
         self.set_size_request(500, 550)
