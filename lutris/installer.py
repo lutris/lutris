@@ -159,10 +159,13 @@ class ScriptInterpreter(object):
                 "Downloading file %d of %d",
                 len(self.game_files) + 1, len(self.script["files"])
             )
+            file_index = len(self.game_files)
             try:
-                self._download_file(self.script["files"][len(self.game_files)])
+                current_file = self.script["files"][file_index]
             except KeyError:
-                raise ScriptingError("Badly formatted script", self.script)
+                raise ScriptingError("Error getting file %d in %s",
+                                     file_index, self.script['files'])
+            self._download_file(current_file)
         else:
             self.current_command = 0
             self._prepare_commands()
