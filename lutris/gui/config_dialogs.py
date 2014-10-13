@@ -172,6 +172,7 @@ class GameDialogCommon(object):
         if not name:
             logger.error("Missing game name")
             return False
+        return True
 
     def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
