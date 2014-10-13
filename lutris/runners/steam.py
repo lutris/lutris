@@ -57,8 +57,9 @@ class steam(Runner):
         return read_config(self.steam_data_dir)
 
     @property
-    def game_path(self):
-        appid = self.settings['game'].get('appid')
+    def game_path(self, appid=None):
+        if not appid:
+            appid = self.config['game'].get('appid')
         for apps_path in self.get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
