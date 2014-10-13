@@ -85,6 +85,10 @@ class dosbox(Runner):
     }
 
     @property
+    def main_file(self):
+        return self.settings.get('game', {}).get('main_file') or ''
+
+    @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
         return self.working_dir  # exe path
@@ -99,7 +103,7 @@ class dosbox(Runner):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def play(self):
-        main_file = self.settings["game"]["main_file"]
+        main_file = self.main_file
         if not os.path.exists(main_file):
             return {'error': "FILE_NOT_FOUND", 'file': main_file}
 

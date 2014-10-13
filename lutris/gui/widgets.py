@@ -207,10 +207,10 @@ class GameView(object):
         """Update a game row to show as installed"""
         row = self.get_row_by_slug(game.slug)
         if not row:
-            logger.error("Can't find row for %s", game.slug)
-            return
-        row[COL_RUNNER] = game.runner_name
-        self.update_image(game.slug, is_installed=True)
+            self.add_game(game)
+        else:
+            row[COL_RUNNER] = game.runner_name
+            self.update_image(game.slug, is_installed=True)
 
     def set_uninstalled(self, game_slug):
         """Update a game row to show as uninstalled"""
