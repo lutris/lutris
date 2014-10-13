@@ -2,11 +2,12 @@
 """Synchronization of the game library with the server and other platforms."""
 import os
 
-from lutris.util.log import logger
 from lutris import api, pga
 from lutris.game import Game
 from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
+from lutris.util import resources
+from lutris.util.log import logger
 
 
 class Sync(object):
@@ -14,10 +15,118 @@ class Sync(object):
         self.library = pga.get_games()
 
     def sync_all(self, caller):
-        api.sync(caller)
-        self.sync_steam(caller)
+        self.sync_from_remote(caller)
+        self.sync_steam_local(caller)
 
-    def sync_steam(self, caller):
+    def sync_from_remote(self, caller=None):
+        """Synchronize from remote to local library.
+
+        :param caller: The LutrisWindow object
+        :return: The synchronized games (slugs)
+        :rtype: set of strings
+        """
+        logger.debug("Syncing game library")
+        # Get local library
+        local_slugs = set([game['slug'] for game in self.library])
+        logger.debug("%d games in local library", len(local_slugs))
+        # Get remote library
+        remote_library = api.get_library()
+        remote_slugs = set([game['slug'] for game in remote_library])
+        logger.debug("%d games in remote library (inc. unpublished)",
+                     len(remote_slugs))
+
+        not_in_local = remote_slugs.difference(local_slugs)
+
+        added = self.sync_missing_games(not_in_local, remote_library, caller)
+        updated = self.sync_game_details(remote_library, caller)
+        return added.update(updated)
+
+    @staticmethod
+    def sync_missing_games(not_in_local, remote_library, caller=None):
+        """Get missing games in local library from remote library.
+
+        :param caller: The LutrisWindow object
+        :return: The slugs of the added games
+        :rtype: set
+        """
+        if not not_in_local:
+            return set()
+
+        for game in remote_library:
+            slug = game['slug']
+            # Sync
+            if slug in not_in_local:
+                logger.debug("Adding to local library: %s", slug)
+                pga.add_game(
+                    game['name'], slug=slug, year=game['year'],
+                    updated=game['updated'], steamid=game['steamid']
+                )
+                if caller:
+                    caller.add_game_to_view(slug)
+            else:
+                not_in_local.discard(slug)
+        logger.debug("%d games added", len(not_in_local))
+        return not_in_local
+
+    @staticmethod
+    def sync_game_details(remote_library, caller):
+        """Update local game details,
+
+        :param caller: The LutrisWindow object
+        :return: The slugs of the updated games.
+        :rtype: set
+        """
+        if not remote_library:
+            return set()
+        updated = set()
+
+        # Get remote games (TODO: use this when switched API to DRF)
+        # remote_games = get_games(sorted(local_slugs))
+        # if not remote_games:
+        #     return set()
+
+        for game in remote_library:
+            slug = game['slug']
+            sync = False
+            sync_icons = True
+            local_game = pga.get_game_by_slug(slug)
+            if not local_game:
+                continue
+
+            # Sync updated
+            if game['updated'] > local_game['updated']:
+                sync = True
+            # Sync new DB fields
+            else:
+                for key, value in local_game.iteritems():
+                    if value or not key in game:
+                        continue
+                    if game[key]:
+                        sync = True
+                        sync_icons = False
+            if not sync:
+                continue
+
+            logger.debug("Syncing details for %s" % slug)
+            pga.add_or_update(
+                local_game['name'], local_game['runner'], slug,
+                year=game['year'], updated=game['updated'],
+                steamid=game['steamid']
+            )
+            caller.view.update_row(game)
+
+            # Sync icons (TODO: Only update if icon actually updated)
+            if sync_icons:
+                resources.download_icon(slug, 'banner', overwrite=True,
+                                        callback=caller.on_image_downloaded)
+                resources.download_icon(slug, 'icon', overwrite=True,
+                                        callback=caller.on_image_downloaded)
+                updated.add(slug)
+
+        logger.debug("%d games updated", len(updated))
+        return updated
+
+    def sync_steam_local(self, caller):
         logger.debug("Syncing local steam games")
         steam_ = steam()
         winesteam_ = winesteam()

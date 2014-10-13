@@ -155,7 +155,7 @@ class LutrisWindow(object):
             self.toggle_connection(False)
             sync = Sync()
             async_call(
-                sync.sync_steam,
+                sync.sync_steam_local,
                 lambda r, e: async_call(self.sync_icons, None),
                 caller=self
             )
