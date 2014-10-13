@@ -69,12 +69,18 @@ class winesteam(wine.wine):
         {
             'option': 'appid',
             'type': 'string',
-            'label': 'appid'
+            'label': 'Application ID',
+            'help': ("The application ID can be retrieved from the game's "
+                     "page at steampowered.com. Example: 235320 is the "
+                     "app ID for <i>Original War</i> in: \n"
+                     "http://store.steampowered.com/app/<b>235320</b>/")
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'arguments'
+            'label': 'Arguments',
+            'help': ("Windows command line arguments used when launching "
+                     "Steam")
         },
         {
             'option': 'prefix',
