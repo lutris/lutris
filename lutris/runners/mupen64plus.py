@@ -45,6 +45,8 @@ class mupen64plus(Runner):
             arguments.append('--nogui')
         if self.runner_config.get('fullscreen'):
             arguments.append('--fullscreen')
+        else:
+            arguments.append('--windowed')
         rom = self.settings['game'].get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
