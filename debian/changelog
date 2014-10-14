@@ -1,38 +1,38 @@
 lutris (0.3.6) trusty; urgency=medium
 
-  New:
-  * Auto-install of Wine Steam
-  * Better detection of Wine Steam install location
-  * Support for Steam's secondary library folders
-  * Tooltips on most configuration options
-  * DOSBox options: scaler and auto-exit
-  * ScummVM options: aspect correction, subtitles
-  * "Remove" context menu action added to uninstalled games
-  * sdlmame and sdlmess runners renamed to mame and mess (requires manual
-    renaming in game runner config files to keep runner config)
+  * New:
+    - Auto-install of Wine Steam
+    - Better detection of Wine Steam install location
+    - Support for Steam's secondary library folders
+    - Tooltips on most configuration options
+    - DOSBox options: scaler and auto-exit
+    - ScummVM options: aspect correction, subtitles
+    - "Remove" context menu action added to uninstalled games
+    - sdlmame and sdlmess runners renamed to mame and mess (requires manual
+    - renaming in game runner config files to keep runner config)
 
-  Fixes:
-  * Fixed inconsistent password field limit to 26 chars, raised to 1024.
-  * Fixed impossibility to use system's Wine when Wine Steam was running.
-  * Fixed Wine games install failing when there is a space in the setup file path
-  * Fixed browser games not launching at all
-  * Fixed Vice (Commodore 64) games not launching at all
-  * Fixed Hatari and Mess emulators not launching nor warning when no bios file configured
-  * Fixed Hatari startup fail if there is spaces in bios path
-  * Fixed the "Restore desktop resolution" option and enable it by default
-  * Fixed the Browse Files action on DOSBox games
-  * Fixed Winetricks in installers
-  * Fixed checked by default config options not saving unchecked state
-  * Fixed the "insert disc" part of installers
+  * Fixes:
+    - Fixed inconsistent password field limit to 26 chars, raised to 1024.
+    - Fixed impossibility to use system's Wine when Wine Steam was running.
+    - Fixed Wine games install failing when there is a space in the setup file path
+    - Fixed browser games not launching at all
+    - Fixed Vice (Commodore 64) games not launching at all
+    - Fixed Hatari and Mess emulators not launching nor warning when no bios file configured
+    - Fixed Hatari startup fail if there is spaces in bios path
+    - Fixed the "Restore desktop resolution" option and enable it by default
+    - Fixed the Browse Files action on DOSBox games
+    - Fixed Winetricks in installers
+    - Fixed checked by default config options not saving unchecked state
+    - Fixed the "insert disc" part of installers
 
-  Website changes since the last version:
-  * Improved the About page
-  * Added a direct link to your Library in the menu
+  * Website changes since the last version:
+    - Improved the About page
+    - Added a direct link to your Library in the menu
 
-  For contributors:
-  * New mailing list available at http://lists.lutris.net/cgi-bin/mailman/listinfo/lutris
-  * Fixed the game submission form
-  * Improved feedback on submissions
+  * For contributors:
+    - New mailing list available at http://lists.lutris.net/cgi-bin/mailman/listinfo/lutris
+    - Fixed the game submission form
+    - Improved feedback on submissions
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
 
