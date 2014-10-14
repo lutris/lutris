@@ -207,6 +207,7 @@ class ScriptInterpreter(object):
             if parts[0] == '$WINESTEAM':
                 appid = self.steam_data['appid']
                 logger.debug("Getting Wine Steam data for appid %s" % appid)
+                self.parent.set_status('Getting Wine Steam game data')
                 self.steam_data['platform'] = "windows"
                 # Check that wine is installed
                 wine_runner = wine.wine()
@@ -224,6 +225,7 @@ class ScriptInterpreter(object):
                 return
             else:
                 # Getting data from Linux Steam
+                self.parent.set_status('Getting Steam game data')
                 self.steam_data['platform'] = "linux"
                 self.install_steam_game(steam.steam)
                 return
