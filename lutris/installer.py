@@ -351,7 +351,9 @@ class ScriptInterpreter(object):
                           slug=self.game_slug,
                           directory=self.target_path,
                           installed=1,
-                          installer_slug=self.script.get('installer_slug'))
+                          installer_slug=self.script.get('installer_slug'),
+                          year=self.script.get('year'),
+                          steamid=self.script.get('steamid'))
 
         # Config update
         if 'system' in self.script:
