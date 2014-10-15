@@ -108,6 +108,11 @@ class winesteam(wine.wine):
         logger.warning("Data path for SteamApp %s not found.", appid)
 
     @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        return os.path.expanduser("~/")
+
+    @property
     def launch_args(self):
         return ['"%s"' % self.get_executable(),
                 '"%s"' % self.get_steam_path(), '-no-dwrite']
