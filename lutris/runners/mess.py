@@ -3,14 +3,15 @@ from lutris import settings
 from lutris.runners.runner import Runner
 
 
-class sdlmess(Runner):
+class mess(Runner):
     """ Multi-system (consoles and computers) emulator """
     platform = 'multi-platform'
     game_options = [
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'Rom file'
+            'label': 'ROM file',
+            'help': ("The game data, commonly called a ROM image.")
         },
         {
             'option': 'machine',
@@ -22,7 +23,8 @@ class sdlmess(Runner):
                 ("Commodore 64", 'c64'),
                 ("ZX Spectrum", 'spectrum'),
                 ("ZX Spectrum 128", 'spec128'),
-            ]
+            ],
+            'help': ("The emulated machine.")
         },
         {
             'option': 'device',
@@ -30,7 +32,7 @@ class sdlmess(Runner):
             'label': "Storage type",
             'choices': [
                 ("Floppy disk", 'flop1'),
-                ("Cassette", 'cass'),
+                ("Cassette (tape)", 'cass'),
                 ("Cartridge", 'cart'),
                 ("Snapshot", 'snapshot'),
                 ("Quickload", 'quickload'),
@@ -41,7 +43,10 @@ class sdlmess(Runner):
         {
             'option': 'rompath',
             'type': 'directory_chooser',
-            'label': "BIOS path"
+            'label': "BIOS path",
+            'help': ("Choose the folder containing MESS bios files.\n"
+                     "These files contain code from the original hardware "
+                     "necessary to the emulation.")
         }
     ]
 
@@ -53,14 +58,14 @@ class sdlmess(Runner):
         return os.path.join(settings.RUNNER_DIR, "mess/mess")
 
     def play(self):
-        rompath = self.runner_config.get('rompath')
+        rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
-            return {'error': 'FILE_NOT_FOUND', 'file': rompath}
+            return {'error': 'NO_BIOS'}
         machine = self.settings['game'].get('machine')
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
         rom = self.settings['game'].get('main_file')
-        if not os.path.exists(rompath):
+        if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.settings['game'].get('device')
         command = [self.get_executable(),

@@ -19,12 +19,18 @@ class fsuae(Runner):
             'type': "file",
             'label': "Boot disk",
             'default_path': 'game_path',
+            'help': ("The main floppy disk with the game data. \n"
+                     "FS-UAE supports floppy images in multiple file formats: "
+                     "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
+                     "and ADFs in zip files are a also supported.")
         },
         {
             "option": "disks",
             "type": "multiple",
             "label": "Additionnal floppies",
             'default_path': 'game_path',
+            'help': ("If the game comes in multiples floppy images, you can"
+                     "add them here one by one.")
         }
     ]
 
@@ -43,12 +49,18 @@ class fsuae(Runner):
                 ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
                 ("CD32 unit", 'CD32'),
                 ("Commodore CDTV unit", 'CDTV'),
-            ]
+            ],
+            'help': ("Specify the Amiga model you want to emulate.")
         },
         {
             "option": "kickstart_file",
-            "label": "Rom Path",
-            "type": "file"
+            "label": "Kickstart ROMs location",
+            "type": "file",
+            'help': ("Choose the folder containing original Amiga kickstart "
+                     "ROMs. Refer to FS-UAE documentation to find how to "
+                     "acquire them. Without these, FS-UAE uses a bundled "
+                     "replacement ROM which is less compatible with Amiga "
+                     "software.")
         },
         {
             "option": "gfx_fullscreen_amiga",
@@ -58,7 +70,9 @@ class fsuae(Runner):
         {
             "option": "scanlines",
             "label": "Enable scanlines",
-            "type": "bool"
+            "type": "bool",
+            'help': ("Activates a display filter adding scanlines to look "
+                     "more like yesteryear matieral.")
         }
     ]
 

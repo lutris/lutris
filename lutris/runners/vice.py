@@ -10,7 +10,10 @@ class vice(Runner):
     game_options = [{
         "option": "main_file",
         "type": "file",
-        "label": "Disk File"
+        "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image.\n"
+                     "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
+                     "D80, D82, D1M, D2M, D4M, T46, P00 and CRT.")
     }]
 
     runner_options = [
@@ -27,20 +30,20 @@ class vice(Runner):
         {
             "option": "double",
             "type": "bool",
-            "label": "Double Size"
+            "label": "Scale up display by 2"
         },
         {
             "option": "machine",
             "type": "choice",
             "label": "Machine",
-            "choices": (
+            "choices": [
                 ("C64", "c64"),
                 ("C128", "c128"),
                 ("vic20", "vic20"),
                 ("PET", "pet"),
                 ("Plus/4", "plus4"),
                 ("CMB-II", "cbmii")
-            ),
+            ],
             "default": "c64"
         }
     ]
@@ -68,7 +71,7 @@ class vice(Runner):
 
     def get_roms_path(self, machine=None):
         if not machine:
-            machine = "C64"
+            machine = "c64"
         paths = {
             "c64": "C64",
             "c128": "C128",
@@ -78,7 +81,7 @@ class vice(Runner):
             "cmbii": "CBM-II"
         }
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
-        return os.path.join(root_dir, 'lib/vice', paths[machine])
+        return os.path.join(root_dir, 'lib64/vice', paths[machine])
 
     def play(self):
         machine = self.runner_config.get("machine")

@@ -26,12 +26,19 @@ class dosbox(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "EXE File"
+            "label": "Executable",
+            'help': ("The EXE, COM or BAT file to launch.\n"
+                     "It can be left blank if the launch of the executable is"
+                     "managed in the config file.")
         },
         {
             "option": "config_file",
             "type": "file",
-            "label": "Configuration file"
+            "label": "Configuration file",
+            'help': ("Start Dosbox with the options specified in this file. \n"
+                     "It can have a section in which you can put commands "
+                     "to execute on startup. Read Dosbox's documentation "
+                     "for more information.")
         }
     ]
 
@@ -60,13 +67,16 @@ class dosbox(Runner):
             "option": "scaler",
             "label": "Graphic scaler",
             "type": "choice",
-            "choices": scaler_modes
+            "choices": scaler_modes,
+            'help': ("The algorithm used to scale up the game's base "
+                     "resolution, resulting in different visual styles. ")
         },
         {
             "option": "exit",
             "label": "Exit Dosbox with the game",
             "type": "bool",
-            "default": True
+            "default": True,
+            'help': ("Shut down Dosbox when the game is quit.")
         }
     ]
 

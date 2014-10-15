@@ -36,8 +36,9 @@ class o2em(Runner):
     game_options = [{
         "option": "main_file",
         "type": "file",
-        "label": "Rom File",
+        "label": "ROM file",
         "default_path": 'game_path',
+        'help': ("The game data, commonly called a ROM image.")
     }]
     runner_options = [
         {
@@ -66,7 +67,9 @@ class o2em(Runner):
         {
             "option": "scanlines",
             "type": "bool",
-            "label": "Scanlines"
+            "label": "Scanlines",
+            'help': ("Activates a display filter adding scanlines to look "
+                     "more like yesteryear matieral.")
         }
     ]
 

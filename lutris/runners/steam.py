@@ -33,6 +33,10 @@ class steam(Runner):
             "option": 'appid',
             'label': "Application ID",
             "type": "string",
+            'help': ("The application ID can be retrieved from the game's "
+                     "page at steampowered.com. Example: 235320 is the "
+                     "app ID for <i>Original War</i> in: \n"
+                     "http://store.steampowered.com/app/<b>235320</b>/")
         }
     ]
     runner_options = [
@@ -41,6 +45,8 @@ class steam(Runner):
             "type": "file",
             'label': "Steam executable",
             "default_path": "steam",
+            'help': ("The main executable for Steam. It is usually "
+                     "found by Lutris automatically.")
         }
     ]
 

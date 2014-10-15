@@ -45,7 +45,8 @@ class TestGameDialog(TestCase):
         viewport = scrolled_window.get_children()[0]
         game_box = viewport.get_children()[0]
         self.assertEqual(game_box.runner_name, runners.__all__[0])
-        exe_field = game_box.get_children()[0].get_children()[1]
+        exe_box = game_box.get_children()[0].get_children()[0]
+        exe_field = exe_box.get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
 
     def test_can_add_game(self):
@@ -59,10 +60,11 @@ class TestGameDialog(TestCase):
         scrolled_window = notebook.get_children()[0]
         viewport = scrolled_window.get_children()[0]
         game_box = viewport.get_children()[0]
-        exe_label = game_box.get_children()[0].get_children()[0]
+        exe_box = game_box.get_children()[0].get_children()[0]
+        exe_label = exe_box.get_children()[0]
         self.assertEqual(exe_label.get_text(), "Executable")
         test_exe = os.path.abspath(__file__)
-        exe_field = game_box.get_children()[0].get_children()[1]
+        exe_field = exe_box.get_children()[1]
         exe_field.set_file(Gio.File.new_for_path(test_exe))
         exe_field.emit('file-set')
         self.assertEqual(exe_field.get_filename(), test_exe)

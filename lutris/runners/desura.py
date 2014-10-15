@@ -23,12 +23,20 @@ class desura(Runner):
                         ('downloads', 'downloads'),
                         ('mods', 'mods'),
                         ('tools', 'tools')],
-            'default': 'games'
+            'default': 'games',
+            'help': ("This corresponds to the download's section at "
+                     "desura.com. \n"
+                     "Example: <b>games</b> is the section in: \n"
+                     "http://desura.com/<b>games</b>/teenagent")
         },
         {
             "option": "appid",
             "label": "Application ID",
             "type": "string",
+            'help': ("The application ID can be retrieved from the game's "
+                     "page at desura.com. Example: dungeons-of-dremor is the "
+                     "app ID in: \n"
+                     "http://desura.com/games/<b>dungeons-of-dredmor</b>")
         }
     ]
     runner_options = [
@@ -36,6 +44,8 @@ class desura(Runner):
             "option": "desura_path",
             "label": "Path to desura folder",
             "type": "string",
+            'help': ("Leave blank to use the installation of Desura bundled "
+                     "with Lutris.")
         }
     ]
 

@@ -31,7 +31,8 @@ class snes9x(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "ROM"
+            "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image.")
         }
     ]
 
@@ -45,8 +46,13 @@ class snes9x(Runner):
         {
             "option": "maintain_aspect_ratio",
             "type": "bool",
-            "label": "Maintain aspect ratio",
-            "default": "1"
+            "label": "Maintain aspect ratio (4:3)",
+            "default": "1",
+            'help': ("Super Nintendo games were made for 4:3 "
+                     "screens with rectangular pixels, but modern screens "
+                     "have square pixels, which results in a vertically "
+                     "squeezed image. This option corrects this by displaying "
+                     "rectangular pixels.")
         },
         {
             "option": "sound_driver",

@@ -24,13 +24,16 @@ class mednafen(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom file"
+            "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image. \n"
+                     "Mednafen supports GZIP and ZIP compressed ROMs.")
         },
         {
             "option": "machine",
             "type": "choice",
             "label": "Machine type",
-            "choices": machine_choices
+            "choices": machine_choices,
+            'help': ("The emulated machine.")
         }
     ]
     runner_options = [

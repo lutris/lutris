@@ -202,7 +202,8 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
 
-        if self.resolution_changed:
+        if self.resolution_changed\
+           or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)
 
         if self.runner.system_config.get('xboxdrv'):

@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from textwrap import dedent
+
 from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
@@ -11,33 +13,45 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 DEFAULT_WINE = '1.7.13'
 
 
-def set_regedit(path, key, value, wine_path=None, prefix=None):
-    """ Plays with the windows registry
-        path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
+def set_regedit(path, key, value='', type_='REG_SZ',
+                wine_path=None, prefix=None):
+    """Add keys to the windows registry
+
+    Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
     logger.debug("Setting wine registry key : %s\\%s to %s",
                  path, key, value)
     reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
+    formatted_value = {
+        'REG_SZ': '"%s"' % value,
+        'REG_DWORD': 'dword:' + value,
+        'REG_BINARY': 'hex:' + value.replace(' ', ','),
+        'REG_MULTI_SZ': 'hex(2):' + value,
+        'REG_EXPAND_SZ': 'hex(7):' + value,
+    }
     # Make temporary reg file
     reg_file = open(reg_path, "w")
-    reg_file.write("""REGEDIT4
-
-[%s]
-"%s"="%s"
-
-""" % (path, key, value))
+    reg_file.write(dedent(
+        """
+        REGEDIT4
+        [%s]
+        "%s"=%s
+        """ % (path, key, formatted_value[type_])))
     reg_file.close()
     wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
     os.remove(reg_path)
 
 
-def create_prefix(prefix, wine_path='wineboot', arch='win32'):
+def create_prefix(prefix, wine_path=None, arch='win32'):
     """Create a new wineprefix"""
-    wineexec('', prefix=prefix, wine_path=wine_path, arch=arch)
+    if not wine_path:
+        wine_dir = os.path.dirname(wine().get_executable())
+        wine_path = os.path.join(wine_dir, 'wineboot')
+    wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
 
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
-             working_dir=None):
+             working_dir=None, winetricks_env=''):
     executable = str(executable) if executable else ''
     prefix = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
@@ -47,11 +61,8 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
-
-    if 'winetricks' == wine_path:
-        winetricks_env = 'WINE="%s"' % wine().get_executable()
-    else:
-        winetricks_env = ''
+    if winetricks_env:
+        winetricks_env = 'WINE="%s"' % winetricks_env
 
     if executable:
         executable = '"%s"' % executable
@@ -65,13 +76,16 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     logger.debug("END wineexec")
 
 
-def winetricks(app, prefix=None, silent=False):
+def winetricks(app, prefix=None, winetricks_env=None, silent=False):
     arch = detect_prefix_arch(prefix)
+    if not winetricks_env:
+        winetricks_env = wine().get_executable()
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
     else:
         args = app
-    wineexec(None, prefix=prefix, wine_path='winetricks', arch=arch, args=args)
+    wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
+             wine_path='winetricks', arch=arch, args=args)
 
 
 def detect_prefix_arch(directory=None):
@@ -98,6 +112,17 @@ def detect_prefix_arch(directory=None):
     return 'win32'
 
 
+def set_drive_path(prefix, letter, path):
+    dosdevices_path = os.path.join(prefix, "dosdevices")
+    if not os.path.exists(dosdevices_path):
+        raise OSError("Invalid prefix path %s" % prefix)
+    drive_path = os.path.join(dosdevices_path, letter + ":")
+    if os.path.exists(drive_path):
+        os.remove(drive_path)
+    logger.debug("Linking %s to %s", drive_path, path)
+    os.symlink(path, drive_path)
+
+
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""
@@ -107,23 +132,32 @@ class wine(Runner):
         {
             'option': 'exe',
             'type': 'file',
-            'label': 'Executable'
+            'label': 'Executable',
+            'help': "The game's main EXE file"
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Arguments'
+            'label': 'Arguments',
+            'help': ("Windows command line arguments used when launching "
+                     "the game")
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": "Working directory"
+            "label": "Working directory",
+            'help': ("The location where the game is run from.\n"
+                     "By default, Lutris uses the directory of the "
+                     "executable.")
         },
 
         {
             'option': 'prefix',
             'type': 'directory_chooser',
-            'label': 'Prefix'
+            'label': 'Prefix',
+            'help': ("The prefix (also named \"bottle\") used by Wine.\n"
+                     "It's a directory containing a set of files and "
+                     "folders making up a confined Windows environment.")
         },
         {
             'option': 'arch',
@@ -132,7 +166,10 @@ class wine(Runner):
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
-            'default': 'None'
+            'default': 'None',
+            'help': ("The architecture of the Windows environment.\n"
+                     "32-bit is recommended unless running "
+                     "a 64-bit only game.")
         }
     ]
 
@@ -144,15 +181,11 @@ class wine(Runner):
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in self.local_wine_versions]
 
-        orm_choices = [('BackBuffer', 'backbuffer'),
-                       ('FBO', 'fbo'),
-                       ('PBuffer', 'pbuffer')]
-        rtlm_choices = [('Auto', 'auto'),
-                        ('Disabled', 'disabled'),
-                        ('ReadDraw', 'readdraw'),
+        orm_choices = [('FBO', 'fbo'),
+                       ('BackBuffer', 'backbuffer')]
+        rtlm_choices = [('Disabled', 'disabled'),
                         ('ReadTex', 'readtex'),
-                        ('TexDraw', 'texdraw'),
-                        ('TexTex', 'textex')]
+                        ('ReadDraw', 'readdraw')]
         audio_choices = [('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
@@ -164,27 +197,50 @@ class wine(Runner):
                 'label': "Wine version",
                 'type': 'choice',
                 'choices': wine_versions,
-                'default': DEFAULT_WINE
+                'default': DEFAULT_WINE,
+                'help': ("The version of Wine used to launch the game.\n"
+                         "Using the last version is generally recommended, "
+                         "but some games work better on older versions.")
             },
             {
                 'option': 'custom_wine_path',
                 'label': "Custom Wine executable",
-                'type': 'file'
+                'type': 'file',
+                'help': (
+                    "The Wine executable to be used if you have selected "
+                    "\"Custom\" as the Wine version."
+                )
             },
             {
-                'option': 'cdrom_path',
-                'label': 'CDRom mount point',
-                'type': 'directory_chooser'
+                'option': 'Desktop',
+                'label': 'Windowed (virtual desktop)',
+                'type': 'choice',
+                'choices': desktop_choices,
+                'help': ("Run the whole Windows desktop in a window.\n"
+                         "Otherwise, run it fullscreen.\n"
+                         "This corresponds to Wine's Virtual Desktop option.")
             },
+            # {
+            #     'option': 'cdrom_path',
+            #     'label': 'CDRom mount point',
+            #     'type': 'directory_chooser'
+            # },
             {
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
                 'choices': [
-                    ('Disable', 'disable'),
                     ('Enable', 'enable'),
+                    ('Disable', 'disable'),
                     ('Force', 'force')
-                ]
+                ],
+                'help': (
+                    "Override the default mouse pointer warping behavior\n"
+                    "<b>Enable</b>: (default) warp the pointer when the mouse"
+                    " is exclusively acquired \n"
+                    "<b>Disable</b>: never warp the mouse pointer \n"
+                    "<b>Force</b>: always warp the pointer"
+                )
             },
             {
                 'option': 'Multisampling',
@@ -193,31 +249,43 @@ class wine(Runner):
                 'choices': [
                     ('Enabled', 'enabled'),
                     ('Disabled', 'disabled')
-                ]
+                ],
+                'help': ("Set to Disabled to prevent applications from "
+                         "seeing Wine's multisampling support. "
+                         "This is another Wine legacy option that will most "
+                         "likely disappear at some point. There should be "
+                         "no reason to set this.")
             },
             {
                 'option': 'OffscreenRenderingMode',
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
-                'choices': orm_choices
+                'choices': orm_choices,
+                'help': ("Select the offscreen rendering implementation.\n"
+                         "<b>FBO</b>: (default) Use framebuffer objects for "
+                         "offscreen rendering \n"
+                         "<b>Backbuffer</b>: Render offscreen render targets "
+                         "in the backbuffer.\n")
             },
             {
                 'option': 'RenderTargetLockMode',
                 'label': 'Render Target Lock Mode',
                 'type': 'choice',
-                'choices': rtlm_choices
+                'choices': rtlm_choices,
+                'help': (
+                    "Select which mode is used for onscreen render targets:\n"
+                    "<b>Disabled</b>: Disables render target locking \n"
+                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes by"
+                    " drawing a textured quad \n"
+                    "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
+                )
             },
             {
                 'option': 'Audio',
                 'label': 'Audio driver',
                 'type': 'choice',
-                'choices': audio_choices
-            },
-            {
-                'option': 'Desktop',
-                'label': 'Virtual desktop',
-                'type': 'choice',
-                'choices': desktop_choices
+                'choices': audio_choices,
+                'help': "Which audio backend to use."
             }
         ]
         self.config = config or {}
@@ -291,6 +359,9 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
+        """Return the wine architecture
+
+        Get it from the config or detect it from the prefix"""
         arch = self.config['game'].get('arch') or 'auto'
         prefix = self.config['game'].get('prefix') or ''
         if arch not in ('win32', 'win64'):
@@ -322,7 +393,12 @@ class wine(Runner):
         return os.path.join(path, version, 'bin/wine')
 
     def install(self):
-        version = DEFAULT_WINE + '-i386'
+        if self.wine_version in ['custom', 'system']:
+            # Fall back on default bundled version
+            version = DEFAULT_WINE
+        else:
+            version = self.wine_version
+        version += '-i386'
         tarball = "wine-%s.tar.gz" % version
         destination = os.path.join(WINE_DIR, version)
         self.download_and_extract(tarball, destination, merge_single=True)
@@ -366,8 +442,9 @@ class wine(Runner):
         prefix = self.config['game'].get('prefix') or ''
         for key in self.reg_keys.keys():
             if key in self.runner_config:
-                set_regedit(self.reg_keys[key], key, self.runner_config[key],
-                            self.get_executable(), prefix)
+                set_regedit(self.reg_keys[key], key,
+                            value=self.runner_config[key],
+                            wine_path=self.get_executable(), prefix=prefix)
 
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)

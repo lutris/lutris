@@ -128,7 +128,7 @@ class LutrisWindow(object):
             ('browse', self.on_browse_files),
             ('desktop-shortcut', self.create_desktop_shortcut),
             ('menu-shortcut', self.create_menu_shortcut),
-            ('uninstall', self.on_remove_game),
+            ('remove', self.on_remove_game),
         ]
         self.menu = ContextualMenu(menu_callbacks)
         self.view.contextual_menu = self.menu

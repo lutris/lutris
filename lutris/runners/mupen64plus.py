@@ -10,7 +10,8 @@ class mupen64plus(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label': 'Rom File'
+        'label': 'ROM file',
+        'help': ("The game data, commonly called a ROM image.")
     }]
     runner_options = [
         {
@@ -22,7 +23,7 @@ class mupen64plus(Runner):
         {
             'option': 'nogui',
             'type': 'bool',
-            'label': 'Hide gui',
+            'label': 'Hide GUI',
             'default': True
         }
     ]

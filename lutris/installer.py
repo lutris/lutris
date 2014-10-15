@@ -13,7 +13,7 @@ import webbrowser
 from gi.repository import Gtk, Gdk
 
 from lutris import pga
-from lutris.util import extract
+from lutris.util import extract, devices
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
@@ -94,6 +94,7 @@ class ScriptInterpreter(object):
         self.game_name = None
         self.game_slug = None
         self.game_files = {}
+        self.game_disc = None
         self.steam_data = {}
         self.script = script
         if not self.script:
@@ -102,6 +103,7 @@ class ScriptInterpreter(object):
             raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
         self.game_slug = slugify(self.game_name)
+        self.requires_disc = self.script.get('insert-disc')
         self.requires = self.script.get('requires')
         if self.requires:
             self._check_dependecy()
@@ -410,7 +412,8 @@ class ScriptInterpreter(object):
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": settings.CACHE_DIR,
-            "HOME": os.path.expanduser("~")
+            "HOME": os.path.expanduser("~"),
+            "DISC": self.game_disc
         }
         replacements.update(self.game_files)
         return substitute(template_string, replacements)
@@ -435,24 +438,6 @@ class ScriptInterpreter(object):
 
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
-
-    def insert_disc(self, data):
-        message = data.get('message', "Insert game disc to continue")
-        requires = data.get('requires')
-        if not requires:
-            raise ScriptingError("The installer's `insert_disc` command is "
-                                 "missing the `requires` parameter." * 2)
-        self.parent.wait_for_user_action(message, self.on_cd_mounted, requires)
-        return 'STOP'
-
-    def on_cd_mounted(self, widget, requires):
-        paths = ['/mnt', '/media/cdrom', '/cdrom',
-                 '/media/%s/disk' % os.getlogin()]
-        for path in paths:
-            required_abspath = os.path.join(path, requires)
-            if os.path.exists(required_abspath):
-                self.game_files['CDROM'] = path
-                self._iter_commands()
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
@@ -732,6 +717,45 @@ class InstallerDialog(Gtk.Window):
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
 
+        # CDrom check
+        if self.interpreter.requires_disc:
+            self.insert_disc()
+        else:
+            self.continue_install()
+
+    def insert_disc(self):
+        self.continue_button.hide()
+        requires = self.interpreter.requires_disc.get('requires')
+        message = self.interpreter.requires_disc.get(
+            'message',
+            "Insert game disc or mount disk image and click OK."
+        )
+        message += (
+            "\n\nLutris is looking for a mounted disk drive or image \n"
+            "containing the following file or folder:\n"
+            "<i>%s</i>" % requires
+        )
+        if not requires:
+            raise ScriptingError("The installer's `insert_disc` command is "
+                                 "missing the `requires` parameter." * 2)
+        self.wait_for_user_action(message, self.find_matching_disc, requires)
+
+    def find_matching_disc(self, widget, requires):
+        drives = devices.get_mounted_discs()
+
+        for drive in drives:
+            mount_point = drive.get_root().get_path()
+            required_abspath = os.path.join(mount_point, requires)
+            if os.path.exists(required_abspath):
+                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
+                # Continue install
+                self.interpreter.game_disc = mount_point
+                self.clean_widgets()
+                self.continue_button.show()
+                self.continue_install()
+                break
+
+    def continue_install(self):
         # Target chooser
         if not self.interpreter.requires and self.interpreter.files:
             self.set_message("Select installation directory")
@@ -884,6 +908,7 @@ class InstallerDialog(Gtk.Window):
         time.sleep(0.3)
         self.clean_widgets()
         label = Gtk.Label(label=message)
+        label.set_use_markup(True)
         self.widget_box.add(label)
         label.show()
         button = Gtk.Button(label='Ok')

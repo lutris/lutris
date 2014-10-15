@@ -63,7 +63,13 @@ def read_config(path_prefix):
         return
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
-    return config['InstallConfigStore']['Software']['Valve']['Steam']
+    try:
+        software = config['InstallConfigStore']['Software']['Valve']['Steam']
+    except KeyError as e:
+        logger.debug("Steam config empty: %s" % e)
+        return
+    else:
+        return config
 
 
 def get_steamapps_path(rootdir):

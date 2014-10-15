@@ -4,14 +4,14 @@ from lutris import settings
 from lutris.runners.runner import Runner
 
 
-class sdlmame(Runner):
-    """Runs arcade games with SDLMame"""
+class mame(Runner):
+    """Arcade game emulator"""
     platform = "Arcade"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom file",
+            "label": "ROM file",
             "default_path": "game_path",
         }
     ]

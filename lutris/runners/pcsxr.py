@@ -10,12 +10,15 @@ class pcsxr(Runner):
     """PlayStation emulator"""
     package = "pcsxr"
     platform = "Playstation"
-    game_options = [{
-        "option": "iso",
-        "type": "file",
-        "label": "iso",
-        "default_path": "game_path",
-    }]
+    game_options = [
+        {
+            "option": "iso",
+            "type": "file",
+            "label": "Disk image",
+            "default_path": "game_path",
+            'help': ("An ISO file containing the game data.")
+        }
+    ]
     tarballs = {
         'x64': 'pcsxr-x86_64-1.9.95.tar.gz',
     }

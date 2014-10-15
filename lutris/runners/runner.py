@@ -109,7 +109,8 @@ class Runner(object):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return self.game_path
+        if self.game_path and os.path.isdir(self.game_path):
+            return self.game_path
 
     @property
     def machine(self):
@@ -119,21 +120,6 @@ class Runner(object):
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
-
-    def check_depends(self):
-        """Check if all the dependencies for a runner are installed."""
-        if not self.depends:
-            return True
-
-        classname = "lutris.runners.%s" % str(self.depends)
-        parts = classname.split('.')
-        module = ".".join(parts[:-1])
-        module = __import__(module)
-        for component in parts[1:]:
-            module = getattr(module, component)
-        runner = getattr(module, str(self.depends))
-        runner_instance = runner()
-        return runner_instance.is_installed()
 
     def install_dialog(self):
         """Ask the user if she wants to install the runner.
@@ -213,7 +199,7 @@ class Runner(object):
         dialog.run()
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
-            ErrorDialog("Installation aborted")
+            dialogs.ErrorDialog("Installation aborted")
             return
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)

@@ -33,7 +33,10 @@ class atari800(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Rom File"
+            "label": "ROM file",
+            'help': ("The game data, commonly called a ROM image. \n"
+                     "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
+                     "and PRO.")
         }
     ]
     try:
@@ -46,7 +49,10 @@ class atari800(Runner):
         {
             "option": "bios_path",
             "type": "directory_chooser",
-            "label": "Bios Path"
+            "label": "Bios location",
+            'help': ("A folder containing the Atari 800 bios files.\n"
+                     "They are provided by Lutris so you shouldn't have to "
+                     "change this.")
         },
         {
             "option": "machine",
@@ -119,7 +125,8 @@ class atari800(Runner):
 
         if self.runner_config.get("resolution"):
             width, height = self.runner_config["resolution"].split('x')
-            arguments += ["-width", "%s" % width, "-height", "%s" % height]
+            arguments += ["-fs-width", "%s" % width,
+                          "-fs-height", "%s" % height]
 
         if self.runner_config.get("machine"):
             arguments.append("-%s" % self.runner_config["machine"])

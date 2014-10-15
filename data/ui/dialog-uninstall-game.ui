@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkDialog" id="uninstall-game-dialog">
     <property name="width_request">300</property>
     <property name="height_request">300</property>
@@ -29,7 +30,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -45,7 +45,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -88,7 +87,7 @@
                 <property name="can_focus">False</property>
                 <property name="xalign">0</property>
                 <property name="ypad">20</property>
-                <property name="label" translatable="yes">This action will remove {game} from Lutris.</property>
+                <property name="label" translatable="yes">This action will mark {game} as uninstalled.</property>
                 <property name="use_markup">True</property>
               </object>
               <packing>
@@ -99,12 +98,11 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="remove_from_library_button">
-                <property name="label" translatable="yes">Remove {game} from your library</property>
+                <property name="label" translatable="yes">Remove from my library</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
               </object>
@@ -116,12 +114,12 @@
             </child>
             <child>
               <object class="GtkCheckButton" id="remove_contents_button">
-                <property name="label" translatable="yes">Remove all game data on {path}</property>
+                <property name="label" translatable="yes">Remove &lt;b&gt;all game data&lt;/b&gt; in:
+ &lt;i&gt;{path}&lt;/i&gt;</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
               </object>

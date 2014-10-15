@@ -12,6 +12,7 @@ class DatabaseTester(unittest.TestCase):
         pga.PGA_DB = TEST_PGA_PATH
         if os.path.exists(TEST_PGA_PATH):
             os.remove(TEST_PGA_PATH)
+        pga.syncdb()
 
     def tearDown(self):
         if os.path.exists(TEST_PGA_PATH):
@@ -21,7 +22,6 @@ class DatabaseTester(unittest.TestCase):
 class TestPersonnalGameArchive(DatabaseTester):
     def setUp(self):
         super(TestPersonnalGameArchive, self).setUp()
-        pga.syncdb()
         pga.add_game(name="LutrisTest", runner="Linux")
 
     def test_add_game(self):
