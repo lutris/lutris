@@ -110,7 +110,7 @@ class winesteam(wine.wine):
     @property
     def launch_args(self):
         return ['"%s"' % self.get_executable(),
-                '"%s"' % self.steam_path, '-no-dwrite']
+                '"%s"' % self.get_steam_path(), '-no-dwrite']
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
@@ -125,19 +125,18 @@ class winesteam(wine.wine):
     @property
     def steam_config(self):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
-        if not self.steam_path:
+        if not self.get_steam_path():
             return
-        steam_path = os.path.dirname(self.steam_path)
+        steam_path = os.path.dirname(self.get_steam_path())
         return read_config(steam_path)
 
     @property
     def steam_data_dir(self):
         """Return dir where Steam files lie"""
-        if self.steam_path:
-            return os.path.dirname(self.steam_path)
+        if self.get_steam_path():
+            return os.path.dirname(self.get_steam_path())
 
-    @property
-    def steam_path(self, prefix=None):
+    def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
         if not prefix:
             prefix = os.path.expanduser("~/.wine")
@@ -168,9 +167,9 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if not self.is_wine_installed() or not self.steam_path:
+        if not self.is_wine_installed() or not self.get_steam_path():
             return False
-        return os.path.exists(self.steam_path)
+        return os.path.exists(self.get_steam_path())
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
