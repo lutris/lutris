@@ -91,13 +91,14 @@ class dosbox(Runner):
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.working_dir  # exe path
+        return os.path.dirname(self.main_file) \
+            or super(dosbox, self).browse_dir
 
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return os.path.dirname(self.main_file) \
-            or super(dosbox, self).browse_dir
+            or super(dosbox, self).working_dir
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")

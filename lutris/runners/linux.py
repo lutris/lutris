@@ -65,7 +65,7 @@ class linux(Runner):
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.working_dir  # exe path
+        return self.game_exe
 
     @property
     def working_dir(self):
