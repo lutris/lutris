@@ -50,19 +50,30 @@ class ConnectWindow(Gtk.Window):
         gamekeys = client.get_gamekeys()
         print(gamekeys)
         global order_list
+        global gameName
         order_list = client.order_list()
         gamekeys = client.get_gamekeys()
         self.get_order_products(client, gamekeys[0])
-        g = [product.human_name for product in self.get_order_products(client, gamekeys[0])]
-        print(g[0])
+        gameName = [product.human_name for product in self.get_order_products(client, gamekeys[0])]
+        print(gameName[0])
+        
+        # We are trying to print gameName in a beautiful list, but their is an error...
+        # python:
+        #
+        # line 55, in on_connection
+        # self.get_order_products(client, gamekeys[0])
+        # TypeError: get_order_products() takes 2 positional arguments but 3 were given
 
 
-#for gamekey in gamekeys:
-# order = client.get_order(gamekey)
- #           for subproduct in order.subproducts:
-  #              global gameName
-   #             subproduct.machine_name
-    #            print([product.human_name for product in products])
+# Precedent try 
+#
+# for gamekey in gamekeys:
+#     order = client.get_order(gamekey)
+
+# for subproduct in order.subproducts:
+#     global gameName
+#     subproduct.machine_name
+#     print([product.human_name for product in products])
 
 
 
@@ -83,7 +94,11 @@ class MainHBSyncWindow(Gtk.Window):
 
 
         self.liststore = Gtk.ListStore(str, bool)
-        self.liststore.append([order_list, False, True])
+        self.liststore.append([gameName[0], False, True])
+        
+        # Used [0] for testing purpose, a for loop will come one day 
+        # so one day we will just use [count] but for now it's [0]
+        
         treeview = Gtk.TreeView(model=self.liststore)
 
         renderer_text = Gtk.CellRendererText()
