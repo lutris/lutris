@@ -144,5 +144,5 @@ def fix_path_case(path):
         return current_path
 
 
-def xfg_open(path):
+def xdg_open(path):
     subprocess.Popen(['xdg-open', path])
