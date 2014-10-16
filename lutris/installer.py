@@ -711,7 +711,7 @@ class InstallerDialog(Gtk.Window):
             self.scripts = fetch_script(self, game_ref)
         if not self.scripts:
             raise ScriptingError("Failed to get installer script")
-        if not isinstance(self.script, list):
+        if not isinstance(self.scripts, list):
             self.scripts = [self.scripts]
         self.show_all()
         self.close_button.hide()
