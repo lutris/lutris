@@ -302,7 +302,6 @@ class RunnerConfigDialog(Dialog):
 class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self):
         super(SystemConfigDialog, self).__init__("System preferences")
-        self.set_title(self.title)
         self.set_size_request(500, 500)
         self.lutris_config = LutrisConfig()
         self.system_config_vbox = SystemBox(self.lutris_config, 'system')
