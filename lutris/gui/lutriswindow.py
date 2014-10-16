@@ -2,7 +2,6 @@
 # pylint: disable=E0611
 import os
 import time
-import subprocess
 
 from gi.repository import Gtk, GLib
 
@@ -13,6 +12,7 @@ from lutris.installer import InstallerDialog
 from lutris.sync import Sync
 
 from lutris.util import resources
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.jobs import async_call
 from lutris.util.strings import slugify
@@ -431,7 +431,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         path = game.get_browse_dir()
         if path and os.path.exists(path):
-            subprocess.Popen(['xdg-open', path])
+            system.xdg_open(path)
         else:
             dialogs.NoticeDialog(
                 "Can't open %s \nThe folder doesn't exist." % path
