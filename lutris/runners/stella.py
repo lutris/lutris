@@ -27,5 +27,7 @@ class stella(Runner):
         return os.path.join(settings.RUNNER_DIR, "stella/bin/stella")
 
     def play(self):
-        cart = self.settings["game"].get("main_file")
+        cart = self.game_config.get('main_file') or ''
+        if not os.path.exists(cart):
+            return {'error': 'FILE_NOT_FOUND', 'file': cart}
         return {'command': [self.get_executable(), "\"%s\"" % cart]}

@@ -105,7 +105,7 @@ class scummvm(Runner):
         # /Options
 
         command.append("--path=\"%s\"" % self.game_path)
-        command.append(self.settings["game"]["game_id"])
+        command.append(self.game_config.get('game_id'))
 
         launch_info = {'command': command}
 

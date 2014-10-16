@@ -289,7 +289,6 @@ class wine(Runner):
             }
         ]
         self.config = config or {}
-        self.settings = self.config  # DEPRECATED
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
             "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,

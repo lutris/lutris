@@ -16,5 +16,7 @@ class openmsx(Runner):
     ]
 
     def play(self):
-        rom = self.settings["game"]["main_file"]
+        rom = self.game_config.get('main_file') or ''
+        if not os.path.exists(rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom}
         return {'command': [self.executable, "\"%s\"" % rom]}

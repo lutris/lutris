@@ -41,7 +41,6 @@ class Runner(object):
         self.arch = get_arch()
         self.logger = logger
         self.config = config or {}
-        self.settings = self.config
         self.game_config = self.config.get('game') or {}
         self.game_data = None
         if config:

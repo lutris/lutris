@@ -173,8 +173,8 @@ class mednafen(Runner):
 
     def play(self):
         """Runs the game"""
-        rom = self.settings["game"]["main_file"]
-        machine = self.settings["game"]["machine"]
+        rom = self.game_config.get('main_file') or ''
+        machine = self.game_config.get('machine')
 
         if self.runner_config.get("fs"):
             fullscreen = "1"
