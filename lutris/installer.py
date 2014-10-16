@@ -710,8 +710,9 @@ class InstallerDialog(Gtk.Window):
         else:
             self.scripts = fetch_script(self, game_ref)
         if not self.scripts:
-            return
-
+            raise ScriptingError("Failed to get installer script")
+        if not isinstance(self.script, list):
+            self.scripts = [self.scripts]
         self.show_all()
         self.close_button.hide()
         self.play_button.hide()
@@ -796,7 +797,7 @@ class InstallerDialog(Gtk.Window):
             btn = Gtk.RadioButton.new_with_label_from_widget(radio_group, label)
             btn.connect('toggled', self.on_installer_toggled, index)
             self.installer_choice_box.pack_start(btn, False, False, 0)
-            if index == 0:
+            if not radio_group:
                 radio_group = btn
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
