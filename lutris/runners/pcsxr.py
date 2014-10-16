@@ -28,6 +28,15 @@ class pcsxr(Runner):
             'help': ("The Playstation bios file.\n"
                      "This file contains code from the original hardware "
                      "necessary to the emulation.")
+        },
+        {
+            'option': 'nogui',
+            'type': 'bool',
+            'label': "No emulator interface",
+            'help': ("With this option on, hitting the Escape key during "
+                     "play will stop the game. Otherwise it pauses the "
+                     "emulation and displays PCSX-Reloaded's user interface, "
+                     "allowing you to configure the emulator.")
         }
     ]
     tarballs = {
@@ -82,7 +91,12 @@ class pcsxr(Runner):
 
     def play(self):
         """Run Playstation game"""
-        iso = self.settings["game"].get("iso")
-        command = [self.get_executable(),
-                   " -nogui -cdfile \"" + iso + "\" -runcd"]
+        iso = self.config["game"].get("iso")
+        command = [self.get_executable()]
+        # Options
+        if self.runner_config.get('nogui') \
+           and os.path.exists(os.path.expanduser("~/.pcsxr")):
+            command.append("-nogui")
+
+        command.append("-cdfile \"" + iso + "\" -runcd")
         return {'command': command}
