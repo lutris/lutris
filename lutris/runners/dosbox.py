@@ -86,7 +86,7 @@ class dosbox(Runner):
 
     @property
     def main_file(self):
-        return self.settings.get('game', {}).get('main_file') or ''
+        return self.game_config.get('main_file') or ''
 
     @property
     def browse_dir(self):

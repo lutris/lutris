@@ -37,7 +37,7 @@ class virtualjaguar(Runner):
         return os.path.join(settings.RUNNER_DIR, 'virtualjaguar/virtualjaguar')
 
     def play(self):
-        rom = self.settings['game']['main_file']
+        rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         return {'command': [self.get_executable(), "\"%s\"" % rom]}

@@ -100,7 +100,7 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
-        appid = self.settings['game'].get('appid')
+        appid = self.game_config.get('appid')
         for apps_path in self.get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
@@ -259,13 +259,13 @@ class winesteam(wine.wine):
         return True
 
     def play(self):
-        appid = self.config['game'].get('appid') or ''
-        args = self.config['game'].get('args') or ''
+        appid = self.game_config.get('appid') or ''
+        args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
         command = []
-        prefix = self.config['game'].get('prefix')
+        prefix = self.game_config.get('prefix')
         if prefix:
             # TODO: Verify if a prefix exists that it's created with the
             # correct architecture

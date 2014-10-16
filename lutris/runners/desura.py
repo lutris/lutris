@@ -61,7 +61,7 @@ class desura(Runner):
     @property
     def game_path(self):
         """Return game dir or Desura's main dir"""
-        appid = self.settings.get("game").get("appid")
+        appid = self.game_config.get('appid')
         if os.path.exists(self.get_installed_app_path(appid)):
             return self.get_installed_app_path(appid)
         if os.path.exists(self.get_common_path()):
@@ -105,10 +105,9 @@ class desura(Runner):
         return bool(system.find_executable(self.get_executable()))
 
     def play(self):
-        settings = self.settings.get("game")
         return {"command": [
             self.get_executable(),
             self.get_desura_url("launch",
-                                settings.get("section"),
-                                settings.get("appid"))
+                                self.game_config.get('section'),
+                                self.game_config.get('appid'))
         ]}

@@ -58,7 +58,7 @@ class steam(Runner):
 
     @property
     def game_path(self):
-        appid = self.config['game'].get('appid')
+        appid = self.game_config.get('appid')
         for apps_path in self.get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
@@ -155,7 +155,7 @@ class steam(Runner):
         return True
 
     def play(self):
-        appid = self.settings.get('game', {}).get('appid')
+        appid = self.game_config.get('appid')
         return {'command': [self.steam_exe, '-applaunch', appid]}
 
     def stop(self):

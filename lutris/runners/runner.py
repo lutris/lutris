@@ -42,6 +42,7 @@ class Runner(object):
         self.logger = logger
         self.config = config or {}
         self.settings = self.config
+        self.game_config = self.config.get('game') or {}
         self.game_data = None
         if config:
             self.game_data = pga.get_game_by_slug(self.config.game)

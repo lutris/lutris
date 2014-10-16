@@ -58,7 +58,7 @@ class nulldc(Runner):
 
     def play(self):
         """Run Dreamcast game"""
-        path = self.settings['game'].get('iso')
+        path = self.game_config.get('iso')
         path = path.replace("/", "\\")
         path = 'Z:' + path
 

@@ -152,7 +152,7 @@ class LutrisConfig(object):
     def __getitem__(self, key, default=None):
         """Allow to access config data directly by keys."""
         if key in ('game', 'runner', 'system'):
-            return self.config[key]
+            return self.config.get(key)
         try:
             if self.config_type == "game":
                 value = self.game_config[key]

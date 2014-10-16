@@ -93,5 +93,5 @@ class vice(Runner):
             params.append("-VICIIdsize")
         if self.runner_config.get("joy"):
             params += ["-joydev2", "4", "-joydev1", "5"]
-        params.append("\"%s\"" % self.settings['game']['main_file'])
+        params.append("\"%s\"" % self.game_config.get('main_file'))
         return {'command': params}

@@ -91,7 +91,7 @@ class pcsxr(Runner):
 
     def play(self):
         """Run Playstation game"""
-        iso = self.config["game"].get("iso")
+        iso = self.game_config.get('iso')
         command = [self.get_executable()]
         # Options
         if self.runner_config.get('nogui') \

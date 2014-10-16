@@ -78,11 +78,11 @@ class fsuae(Runner):
 
     def insert_floppies(self):
         disks = []
-        main_disk = self.settings['game'].get('main_file')
+        main_disk = self.game_config.get('main_file')
         if main_disk:
             disks.append(main_disk)
 
-        game_disks = self.settings['game'].get('disks', [])
+        game_disks = self.game_config.get('disks', [])
         for disk in game_disks:
             if disk not in disks:
                 disks.append(disk)

@@ -304,13 +304,12 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        if self.config.get('game'):
-            return self.config['game'].get('prefix')
+        return self.game_config.get('prefix')
 
     @property
     def game_exe(self):
         """Return the game's executable's path."""
-        exe = self.config['game'].get('exe') or ''
+        exe = self.game_config.get('exe') or ''
         if exe and os.path.isabs(exe):
             return exe
         return os.path.join(self.game_path, exe)
@@ -323,7 +322,7 @@ class wine(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        option = self.config['game'].get('working_dir')
+        option = self.game_config.get('working_dir')
         if option:
             return option
         if self.game_exe:
@@ -362,8 +361,8 @@ class wine(Runner):
         """Return the wine architecture
 
         Get it from the config or detect it from the prefix"""
-        arch = self.config['game'].get('arch') or 'auto'
-        prefix = self.config['game'].get('prefix') or ''
+        arch = self.game_config.get('arch') or 'auto'
+        prefix = self.game_config.get('prefix') or ''
         if arch not in ('win32', 'win64'):
             arch = detect_prefix_arch(prefix)
         return arch
@@ -439,7 +438,7 @@ class wine(Runner):
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
-        prefix = self.config['game'].get('prefix') or ''
+        prefix = self.game_config.get('prefix') or ''
         for key in self.reg_keys.keys():
             if key in self.runner_config:
                 set_regedit(self.reg_keys[key], key,
@@ -450,9 +449,9 @@ class wine(Runner):
         self.check_regedit_keys(self.runner_config)
 
     def play(self):
-        prefix = self.config['game'].get('prefix') or ''
+        prefix = self.game_config.get('prefix') or ''
         arch = self.wine_arch
-        arguments = self.config['game'].get('args') or ''
+        arguments = self.game_config.get('args') or ''
 
         if not os.path.exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}

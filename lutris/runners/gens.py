@@ -46,7 +46,7 @@ class gens(Runner):
             arguments.append('--window')
         if self.runner_config.get('quickexit', True):
             arguments.append('--quickexit')
-        rom = self.settings['game']['main_file']
+        rom = self.game_config.get('main_file') or ''
         plugins_dir = os.path.join(os.path.expanduser('~'), '.gens/plugins')
         if not os.path.exists(plugins_dir):
             os.makedirs(plugins_dir)
