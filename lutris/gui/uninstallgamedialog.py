@@ -71,6 +71,7 @@ class UninstallGameDialog(GtkBuilderDialog):
                 'title': "CONFIRM DANGEROUS OPERATION"
             })
             if dlg.result != Gtk.ResponseType.YES:
+                widget.set_sensitive(True)
                 return
 
         self.game.remove(remove_from_library, remove_contents)
