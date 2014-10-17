@@ -42,7 +42,7 @@ class Runner(object):
         self.logger = logger
         self.config = config or {}
         self.game_config = self.config.get('game') or {}
-        self.game_data = None
+        self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_slug(self.config.game)
 
@@ -101,10 +101,9 @@ class Runner(object):
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        game_path = None
-        if self.game_data:
-            game_path = self.game_data.get('directory')
-        return game_path or self.system_config.get('game_path')
+        if self.game_data.get('directory'):
+            return self.game_data.get('directory')
+        return self.system_config.get('game_path')
 
     @property
     def working_dir(self):
