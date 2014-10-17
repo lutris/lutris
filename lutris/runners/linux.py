@@ -51,7 +51,6 @@ class linux(Runner):
         super(linux, self).__init__(config)
         self.platform = "Linux games"
         self.ld_preload = None
-        self.config = config
 
     @property
     def game_exe(self):

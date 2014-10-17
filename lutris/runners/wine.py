@@ -288,7 +288,6 @@ class wine(Runner):
                 'help': "Which audio backend to use."
             }
         ]
-        self.config = config or {}
         reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
         self.reg_keys = {
             "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
