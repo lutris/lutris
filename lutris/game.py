@@ -85,9 +85,9 @@ class Game(object):
                 shutil.rmtree(self.directory)
         if from_library:
             pga.delete_game(self.slug)
+            self.config.remove()
         else:
             pga.set_uninstalled(self.slug)
-        self.config.remove()
 
     def prelaunch(self):
         """Verify that the current game can be launched."""
