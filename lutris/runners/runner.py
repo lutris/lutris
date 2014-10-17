@@ -96,7 +96,15 @@ class Runner(object):
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.game_path
+        for key in self.game_config:
+            if key in ['exe', 'main_file', 'rom', 'disk', 'iso']:
+                path = os.path.dirname(self.game_config.get(key))
+                if not os.path.isabs(path):
+                    path = os.path.join(self.game_path, path)
+                return path
+
+        if self.game_data.get('directory'):
+            return self.game_data.get('directory')
 
     @property
     def game_path(self):

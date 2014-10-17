@@ -89,12 +89,6 @@ class dosbox(Runner):
         return self.game_config.get('main_file') or ''
 
     @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        return os.path.dirname(self.main_file) \
-            or super(dosbox, self).browse_dir
-
-    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return os.path.dirname(self.main_file) \
