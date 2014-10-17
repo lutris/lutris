@@ -86,8 +86,11 @@ class GameDialogCommon(object):
             slug_box = self.build_entry_box(self.slug_entry, "Identifier")
             info_box.pack_start(slug_box, False, False, 5)
 
-        runner_dropdown = self.get_runner_dropdown()
         runner_box = Gtk.HBox()
+        label = Gtk.Label("Runner")
+        label.set_alignment(0.5, 0.5)
+        runner_dropdown = self.get_runner_dropdown()
+        runner_box.pack_start(label, False, False, 20)
         runner_box.pack_start(runner_dropdown, False, False, 20)
         info_box.pack_start(runner_box, False, False, 5)
 
