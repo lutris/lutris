@@ -7,6 +7,7 @@ import subprocess
 from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
+from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util.steam import read_config, get_path_from_appmanifest
 from lutris.util import system
@@ -88,6 +89,11 @@ class winesteam(wine.wine):
             'label': 'Prefix'
         }
     ]
+
+    def __init__(self, config=None):
+        super(winesteam, self).__init__(config)
+        self.own_game_remove_method = "Remove game data (through Wine Steam)"
+        self.no_game_remove_warning = True
 
     @property
     def browse_dir(self):
@@ -283,3 +289,25 @@ class winesteam(wine.wine):
         shutdown()
         time.sleep(2)
         super(winesteam, self).stop()
+
+    def remove_game_data(self, **kwargs):
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        appid = self.game_config.get('appid')
+        prefix = self.game_config.get('prefix')
+
+        command = []
+        if prefix:
+            # TODO: Verify if a prefix exists that it's created with the
+            # correct architecture
+            command.append('WINEPREFIX="%s" ' % prefix)
+        else:
+            command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+        command += self.launch_args
+        command += ['steam://uninstall/%s' % appid]
+
+        self.prepare_launch()
+        thread = LutrisThread(' '.join(command), path=self.working_dir)
+        thread.start()

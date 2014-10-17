@@ -24,6 +24,7 @@ class UninstallGameDialog(GtkBuilderDialog):
     def initialize(self, slug=None, callback=None):
         self.game = Game(slug)
         self.callback = callback
+        runner = self.game.runner
 
         self.substitute_label(self.builder.get_object('description_label'),
                               'game', self.game.name)
@@ -35,13 +36,17 @@ class UninstallGameDialog(GtkBuilderDialog):
         remove_contents_button = self.builder.get_object(
             'remove_contents_button'
         )
-        try:
-            default_path = self.game.runner.default_path
-        except AttributeError:
-            default_path = "/"
-        if not is_removeable(self.game.directory, excludes=[default_path])\
-           or not self.game.is_installed:
-            remove_contents_button.set_sensitive(False)
+        if hasattr(runner, 'own_game_remove_method'):
+            remove_contents_button.set_label(runner.own_game_remove_method)
+        else:
+            try:
+                default_path = runner.default_path
+            except AttributeError:
+                default_path = "/"
+            if not is_removeable(runner.game_path, excludes=[default_path]) \
+               or not self.game.is_installed:
+                remove_contents_button.set_sensitive(False)
+
         path = self.game.directory or 'disk'
         self.substitute_label(remove_contents_button, 'path', path)
         remove_contents_button.get_children()[0].set_use_markup(True)
@@ -63,7 +68,8 @@ class UninstallGameDialog(GtkBuilderDialog):
             'remove_contents_button'
         )
         remove_contents = remove_contents_button.get_active()
-        if remove_contents:
+        if remove_contents and not hasattr(self.game.runner,
+                                           'no_game_remove_warning'):
             dlg = QuestionDialog({
                 'question': "Are you sure you want to delete EVERYTHING under "
                             "\n<b>%s</b>?\n (This can't be undone)"

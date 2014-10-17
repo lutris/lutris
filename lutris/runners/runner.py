@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 """Generic runner."""
 import os
+import shutil
 import subprocess
 import platform
 
@@ -209,3 +210,7 @@ class Runner(object):
             return
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
+
+    def remove_game_data(self, game_path=None):
+        if os.path.exists(game_path):
+            shutil.rmtree(game_path)

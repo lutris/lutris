@@ -3,7 +3,6 @@
 """Module that actually runs the games."""
 import os
 import time
-import shutil
 
 from gi.repository import GLib
 
@@ -81,8 +80,7 @@ class Game(object):
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
-            if os.path.exists(self.directory):
-                shutil.rmtree(self.directory)
+            self.runner.remove_game_data(game_path=self.directory)
         if from_library:
             pga.delete_game(self.slug)
             self.config.remove()

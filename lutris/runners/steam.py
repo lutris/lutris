@@ -3,6 +3,7 @@ import time
 import subprocess
 from lutris.runners.runner import Runner
 from lutris.gui.dialogs import NoticeDialog
+from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.steam import (get_path_from_appmanifest, read_config,
@@ -39,6 +40,11 @@ class steam(Runner):
                      "http://store.steampowered.com/app/<b>235320</b>/")
         }
     ]
+
+    def __init__(self, config=None):
+        super(steam, self).__init__(config)
+        self.own_game_remove_method = "Remove game data (through Steam)"
+        self.no_game_remove_warning = True
 
     @property
     def browse_dir(self):
@@ -160,3 +166,14 @@ class steam(Runner):
 
     def stop(self):
         shutdown()
+
+    def remove_game_data(self, **kwargs):
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        appid = self.game_config.get('appid')
+        logger.debug("Launching Wine Steam uninstall of game %s" % appid)
+        command = '"%s" steam://uninstall/%s' % (self.steam_exe, appid)
+        thread = LutrisThread(command, path=self.working_dir)
+        thread.start()
