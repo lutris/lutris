@@ -15,6 +15,7 @@ CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
 DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
 RUNNER_DIR = os.path.join(DATA_DIR, "runners")
+RUNTIME_DIR = os.path.join(DATA_DIR, "runtime")
 CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, 'games')
 
@@ -33,6 +34,7 @@ BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
 RUNNERS_URL = SITE_URL + "files/runners/"
 LIB32_URL = SITE_URL + "files/lib32/"
 LIB64_URL = SITE_URL + "files/lib64/"
+RUNTIME_URL = SITE_URL + "files/runtime/"
 
 # Default config options
 KEEP_CACHED_ASSETS = True

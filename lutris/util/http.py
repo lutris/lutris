@@ -2,9 +2,9 @@ import os
 import json
 import socket
 import urllib
+import urllib2
 
 from lutris.util.log import logger
-import urllib2
 
 
 class RessourceOpener(urllib.FancyURLopener):
@@ -30,16 +30,22 @@ def download_asset(url, dest, overwrite=False):
     return True
 
 
-def download_json(url, params=''):
-    """Download and decode json string at URL."""
+def download_content(url, data=None):
+    timeout = 5
+    content = None
     try:
-        request = urllib2.urlopen(url + "?" + params)
+        request = urllib2.urlopen(url, data, timeout)
     except urllib2.HTTPError as e:
-        logger.debug("Unavailable url (%s): %s", url, e)
+        logger.error("Unavailable url (%s): %s", url, e)
     except (socket.timeout, urllib2.URLError) as e:
         logger.error("Unable to connect to server (%s): %s", url, e)
     else:
-        return json.loads(request.read())
-    return False
+        content = request.read()
+    return content
 
 
+def download_json(url, params=''):
+    """Download and decode json string at URL."""
+    content = download_content(url + "?" + params)
+    if content:
+        return json.loads(content)

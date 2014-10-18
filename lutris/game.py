@@ -7,6 +7,7 @@ import time
 from gi.repository import GLib
 
 from lutris import pga
+from lutris import settings
 from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.util import audio, display, system
@@ -137,11 +138,21 @@ class Game(object):
         if ld_preload:
             launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
 
-        ld_library_path = gameplay_info.get('ld_library_path')
+        ld_library_path = []
+        runtime64_path = os.path.join(settings.RUNTIME_DIR, "lib64")
+        if os.path.exists(runtime64_path):
+            ld_library_path.append(runtime64_path)
+        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
+        if os.path.exists(runtime32_path):
+            ld_library_path.append(runtime32_path)
+        game_ld_libary_path = gameplay_info.get('ld_library_path')
+        if game_ld_libary_path:
+            ld_library_path.append(game_ld_libary_path)
+
         if ld_library_path:
-            launch_arguments.insert(
-                0, 'LD_LIBRARY_PATH="{}"'.format(ld_library_path)
-            )
+            ld_full = ':'.join(ld_library_path)
+            ld_arg = 'LD_LIBRARY_PATH="{}:$LD_LIBRARY_PATH"'.format(ld_full)
+            launch_arguments.insert(0, ld_arg)
 
         env = gameplay_info.get('env') or []
         for var in env:

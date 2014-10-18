@@ -11,6 +11,7 @@ from lutris.shortcuts import create_launcher
 from lutris.installer import InstallerDialog
 from lutris.sync import Sync
 
+from lutris.util import runtime
 from lutris.util import resources
 from lutris.util import system
 from lutris.util.log import logger
@@ -159,6 +160,8 @@ class LutrisWindow(object):
                 lambda r, e: async_call(self.sync_icons, None),
                 caller=self
             )
+        # Update Lutris Runtime
+        async_call(runtime.update_runtime, None)
 
     @property
     def current_view_type(self):

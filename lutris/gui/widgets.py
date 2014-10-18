@@ -7,7 +7,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.downloader import Downloader
 from lutris.util import datapath
-from lutris.util.log import logger
+# from lutris.util.log import logger
 from lutris import settings
 
 PADDING = 5
