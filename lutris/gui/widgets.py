@@ -328,6 +328,11 @@ class GameListView(Gtk.TreeView, GameView):
         else:
             self.emit("game-selected")
 
+    def set_selected_game(self, game):
+        row = self.get_row_by_slug(game.slug)
+        if row:
+            self.set_cursor(row.path)
+
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
@@ -385,6 +390,11 @@ class GameGridView(Gtk.IconView, GameView):
             self.emit("game-activated")
         else:
             self.emit("game-selected")
+
+    def set_selected_game(self, game):
+        row = self.get_row_by_slug(game.slug)
+        if row:
+            self.select_path(row.path)
 
 
 class DownloadProgressBox(Gtk.HBox):

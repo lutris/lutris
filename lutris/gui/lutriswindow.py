@@ -450,6 +450,7 @@ class LutrisWindow(object):
                 game = Game(dialog.slug)
                 self.view.remove_game(game_slug)
                 self.view.add_game(game)
+                self.view.set_selected_game(game)
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'grid' if menuitem.get_active() else 'list'
