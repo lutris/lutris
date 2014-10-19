@@ -35,12 +35,30 @@ def find_executable(exec_name):
     return execute(['which', exec_name])
 
 
-def get_pid(program):
-    return execute(['pgrep', program])
+def get_pid(program, multiple=False):
+    """Return pid of process
+
+    Parameters:
+        `program`: name of process
+        `multiple`: if multiple instances of program exists, return all of them
+                    otherwise only return the first one.
+    """
+    pids = execute(['pgrep', program])
+    if not pids.strip():
+        return
+    pids = pids.split()
+    if multiple:
+        return pids
+    else:
+        return pids[0]
 
 
 def kill_pid(pid):
-    assert str(int(pid)) == str(pid)
+    try:
+        int(pid)
+    except ValueError:
+        logger.error("Invalid pid %s")
+        return
     execute(['kill', '-9', pid])
 
 
