@@ -20,6 +20,8 @@ def get_outputs():
             continue
         if parts[1] == 'connected':
             geom = parts[2] if parts[2] != 'primary' else parts[3]
+            if geom.startswith('('):  # Screen turned off, no geometry
+                continue
             outputs.append((parts[0], geom))
     return outputs
 
