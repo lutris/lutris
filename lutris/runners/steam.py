@@ -162,7 +162,7 @@ class steam(Runner):
 
     def play(self):
         appid = self.game_config.get('appid')
-        return {'command': [self.steam_exe, '-applaunch', appid]}
+        return {'command': [self.steam_exe, 'steam://rungameid/%s' % appid]}
 
     def stop(self):
         shutdown()

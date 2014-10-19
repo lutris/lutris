@@ -280,7 +280,7 @@ class winesteam(wine.wine):
             env.append('WINEPREFIX="%s" ' % self.get_default_prefix())
         command += self.launch_args
         if appid:
-            command += ['-applaunch', appid]
+            command += ['steam://rungameid/%s' % appid]
         if args:
             command += [args]
         return {'command': command, 'env': env}
