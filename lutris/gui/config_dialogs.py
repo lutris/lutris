@@ -202,7 +202,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
 
     def __init__(self, parent, game=None):
-        super(AddGameDialog, self).__init__("Add a new game", parent.window)
+        super(AddGameDialog, self).__init__("Add a new game")
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
         self.game = game
@@ -232,7 +232,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__(
-            "Edit game configuration for %s" % game.name, parent.window
+            "Edit game configuration for %s" % game.name
         )
         self.parent_window = parent
         self.game = game
