@@ -230,7 +230,10 @@ Running a task provided by a runner
 
 Some actions are specific to some runners, you can call them with the ``task``
 command. You must at least provide the ``name`` parameter which is the function
-that will be called. Other parameters depend on the task being called.
+that will be called. Other parameters depend on the task being called. It is
+possible to call functions from other runners by prefixing the task name with
+the runner's name (e.g., from a dosbox installer you can use the wineexec task
+with ``wine.wineexec`` as the task's ``name``)
 
 Currently, the following tasks are implemented:
 
