@@ -14,6 +14,7 @@ from gi.repository import Gtk, Gdk
 
 from lutris import pga
 from lutris.util import extract, devices
+from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
@@ -557,6 +558,33 @@ class ScriptInterpreter(object):
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
         extract.extract_archive(filename, dest_path, merge_single, extractor)
+
+    def write_config(self, params):
+        """Writes a key-value pair into an INI type config file."""
+        # Get file
+        if 'file' not in params:
+            raise ScriptingError('"file" parameter is mandatory for the '
+                                 'write_conf command', params)
+        config_file = self._get_file(params['file'])
+        if not config_file:
+            config_file = self._substitute(params['file'])
+
+        # Create it if necessary
+        basedir = os.path.dirname(config_file)
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+
+        parser = EvilConfigParser(allow_no_value=True,
+                                  dict_type=MultiOrderedDict)
+        parser.optionxform = str  # Preserve text case
+        parser.read(config_file)
+
+        if not parser.has_section(params['section']):
+            parser.add_section(params['section'])
+        parser.set(params['section'], params['key'], params['value'])
+
+        with open(config_file, 'wb') as f:
+            parser.write(f)
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()

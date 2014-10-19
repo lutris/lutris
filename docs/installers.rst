@@ -204,6 +204,27 @@ Example:
         args: --argh
         file: great-id
 
+Writing into an INI type config file
+------------------------------------
+
+Modify or create a config file with the ``set_config`` directive. A config file
+is a text file composed of key=value (or key: value) lines grouped under
+[sections]. Use the ``file`` (an absolute path or a ``file id``), ``section``,
+``key`` and ``value`` parameters. Not that the file is entirely rewritten and
+comments are left out; Make sure to compare the initial and resulting file
+to spot any potential parsing issues.
+
+Example:
+
+::
+
+    - set_config:
+        file: $GAMEDIR/game.ini
+        section: Engine
+        key: Renderer
+        value: OpenGL
+
+
 Running a task provided by a runner
 -----------------------------------
 
