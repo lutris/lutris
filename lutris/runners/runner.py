@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 """Generic runner."""
 import os
+import shutil
 import subprocess
 import platform
 
@@ -41,8 +42,8 @@ class Runner(object):
         self.arch = get_arch()
         self.logger = logger
         self.config = config or {}
-        self.settings = self.config
-        self.game_data = None
+        self.game_config = self.config.get('game') or {}
+        self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_slug(self.config.game)
 
@@ -96,21 +97,27 @@ class Runner(object):
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.game_path
+        for key in self.game_config:
+            if key in ['exe', 'main_file', 'rom', 'disk', 'iso']:
+                path = os.path.dirname(self.game_config.get(key))
+                if not os.path.isabs(path):
+                    path = os.path.join(self.game_path, path)
+                return path
+
+        if self.game_data.get('directory'):
+            return self.game_data.get('directory')
 
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        game_path = None
-        if self.game_data:
-            game_path = self.game_data.get('directory')
-        return game_path or self.system_config.get('game_path')
+        if self.game_data.get('directory'):
+            return self.game_data.get('directory')
+        return self.system_config.get('game_path')
 
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.game_path and os.path.isdir(self.game_path):
-            return self.game_path
+        return os.path.expanduser("~/")
 
     @property
     def machine(self):
@@ -131,7 +138,7 @@ class Runner(object):
             'title': "Required runner unavailable"
         })
         if Gtk.ResponseType.YES == dialog.result:
-            if self.install() or self.is_installed:
+            if self.install() or self.is_installed():
                 return True
 
     def is_installed(self):
@@ -203,3 +210,7 @@ class Runner(object):
             return
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
+
+    def remove_game_data(self, game_path=None):
+        if os.path.exists(game_path):
+            shutil.rmtree(game_path)

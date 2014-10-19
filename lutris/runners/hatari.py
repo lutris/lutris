@@ -126,7 +126,6 @@ class hatari(Runner):
 
     def play(self):
         params = [self.get_executable()]
-        game_settings = self.settings['game'] or {}
         if self.runner_config.get("fullscreen"):
             params.append("--fullscreen")
         else:
@@ -157,7 +156,7 @@ class hatari(Runner):
             params.append('--tos "%s"' % self.runner_config["bios_file"])
         else:
             return {'error': 'NO_BIOS'}
-        diska = game_settings.get('disk-a')
+        diska = self.game_config.get('disk-a')
         if not os.path.exists(diska):
             return {'error': 'FILE_NOT_FOUND', 'file': diska}
         params.append("--disk-a \"%s\"" % diska)

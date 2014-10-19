@@ -3,11 +3,11 @@
 """Module that actually runs the games."""
 import os
 import time
-import shutil
 
 from gi.repository import GLib
 
 from lutris import pga
+from lutris import settings
 from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.util import audio, display, system
@@ -76,17 +76,17 @@ class Game(object):
             if runner_class:
                 self.runner = runner_class(self.config)
             else:
-                logger.error("Unable to import runner %s", self.runner_name)
+                logger.error("Unable to import runner %s for %s",
+                             self.runner_name, self.slug)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
-            if os.path.exists(self.directory):
-                shutil.rmtree(self.directory)
+            self.runner.remove_game_data(game_path=self.directory)
         if from_library:
             pga.delete_game(self.slug)
+            self.config.remove()
         else:
             pga.set_uninstalled(self.slug)
-        self.config.remove()
 
     def prelaunch(self):
         """Verify that the current game can be launched."""
@@ -114,6 +114,7 @@ class Game(object):
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
             return False
+
         launch_arguments = gameplay_info['command']
 
         restrict_to_display = system_config.get('display')
@@ -129,19 +130,33 @@ class Game(object):
         if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
-        oss_wrapper = system_config.get("oss_wrapper")
-        if audio.get_oss_wrapper(oss_wrapper):
-            launch_arguments.insert(0, audio.get_oss_wrapper(oss_wrapper))
+        prefix_command = system_config.get("prefix_command", '').strip()
+        if prefix_command and system.find_executable(prefix_command):
+            launch_arguments.insert(0, prefix_command)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
 
-        ld_library_path = gameplay_info.get('ld_library_path')
+        ld_library_path = []
+        runtime64_path = os.path.join(settings.RUNTIME_DIR, "lib64")
+        if os.path.exists(runtime64_path):
+            ld_library_path.append(runtime64_path)
+        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
+        if os.path.exists(runtime32_path):
+            ld_library_path.append(runtime32_path)
+        game_ld_libary_path = gameplay_info.get('ld_library_path')
+        if game_ld_libary_path:
+            ld_library_path.append(game_ld_libary_path)
+
         if ld_library_path:
-            launch_arguments.insert(
-                0, 'LD_LIBRARY_PATH="{}"'.format(ld_library_path)
-            )
+            ld_full = ':'.join(ld_library_path)
+            ld_arg = 'LD_LIBRARY_PATH="{}:$LD_LIBRARY_PATH"'.format(ld_full)
+            launch_arguments.insert(0, ld_arg)
+
+        env = gameplay_info.get('env') or []
+        for var in env:
+            launch_arguments.insert(0, var)
 
         killswitch = system_config.get('killswitch')
         self.game_thread = LutrisThread(" ".join(launch_arguments),

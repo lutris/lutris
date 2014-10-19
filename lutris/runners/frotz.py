@@ -32,7 +32,7 @@ class frotz(Runner):
         return os.path.join(settings.RUNNER_DIR, 'frotz/frotz')
 
     def play(self):
-        story = self.settings["game"]["story"]
+        story = self.game_config.get('story') or ''
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED'}
         if not os.path.exists(story):

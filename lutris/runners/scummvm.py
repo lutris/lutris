@@ -71,7 +71,7 @@ class scummvm(Runner):
 
     @property
     def game_path(self):
-        return self.settings['game']['path']
+        return self.game_config.get('path')
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
@@ -91,7 +91,7 @@ class scummvm(Runner):
         if self.runner_config.get("aspect"):
             command.append("--aspect-ratio")
 
-        if self.settings['game'].get("subtitles"):
+        if self.game_config.get("subtitles"):
             command.append("--subtitles")
 
         if self.runner_config.get("windowed"):
@@ -105,7 +105,7 @@ class scummvm(Runner):
         # /Options
 
         command.append("--path=\"%s\"" % self.game_path)
-        command.append(self.settings["game"]["game_id"])
+        command.append(self.game_config.get('game_id'))
 
         launch_info = {'command': command}
 

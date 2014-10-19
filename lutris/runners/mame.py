@@ -33,8 +33,8 @@ class mame(Runner):
 
     def play(self):
         options = []
-        rompath = os.path.dirname(self.settings["game"]["main_file"])
-        rom = os.path.basename(self.settings["game"]["main_file"])
+        rompath = os.path.dirname(self.game_config.get('main_file'))
+        rom = os.path.basename(self.game_config.get('main_file'))
         mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
         if self.runner_config.get("windowed", False):
             options.append("-window")

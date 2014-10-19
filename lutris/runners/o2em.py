@@ -96,7 +96,7 @@ class o2em(Runner):
             arguments.append("-s1=%s" % self.runner_config["controller1"])
         if "controller2" in self.runner_config:
             arguments.append("-s2=%s" % self.runner_config["controller2"])
-        rom_path = self.settings["game"].get("main_file", '')
+        rom_path = self.game_config.get('main_file') or ''
         if not os.path.exists(rom_path):
             return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
         romdir = os.path.dirname(rom_path)

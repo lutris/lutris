@@ -61,13 +61,13 @@ class mess(Runner):
         rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
             return {'error': 'NO_BIOS'}
-        machine = self.settings['game'].get('machine')
+        machine = self.game_config.get('machine')
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
-        rom = self.settings['game'].get('main_file')
+        rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        device = self.settings['game'].get('device')
+        device = self.game_config.get('device')
         command = [self.get_executable(),
                    '-rompath', "\"%s\"" % rompath, machine,
                    '-' + device, "\"%s\"" % rom]

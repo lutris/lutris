@@ -87,10 +87,12 @@ def migrate_games():
         {'name': 'runner', 'type': 'TEXT'},
         {'name': 'executable', 'type': 'TEXT'},
         {'name': 'directory', 'type': 'TEXT'},
+        {'name': 'updated', 'type': 'DATETIME'},
         {'name': 'lastplayed', 'type': 'INTEGER'},
         {'name': 'installed', 'type': 'INTEGER'},
         {'name': 'installer_slug', 'type': 'TEXT'},
-        {'name': 'year', 'type': 'TEXT'}
+        {'name': 'year', 'type': 'INTEGER'},
+        {'name': 'steamid', 'type': 'INTEGER'},
     ]
     return migrate('games', schema)
 
@@ -104,10 +106,16 @@ def migrate_sources():
 
 
 def syncdb():
+    """Update the database to the current version, making necessary changes
+    for backwards compatibility,"""
     migrated = migrate_games()
     if 'installed' in migrated:
         set_installed_games()
     migrate_sources()
+
+    # Rename runners
+    sql.db_update(PGA_DB, 'games', {'runner': 'mame'}, ('runner', 'sdlmame'))
+    sql.db_update(PGA_DB, 'games', {'runner': 'mess'}, ('runner', 'sdlmess'))
 
 
 def set_installed_games():

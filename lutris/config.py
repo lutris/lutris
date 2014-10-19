@@ -27,7 +27,7 @@ from gi.repository import Gio
 
 from lutris import pga
 from lutris.util.log import logger
-from lutris.settings import PGA_DB, CONFIG_DIR, DATA_DIR, CACHE_DIR, ICON_PATH
+from lutris import settings
 
 
 def register_handler():
@@ -49,25 +49,26 @@ def register_handler():
 
 def check_config(force_wipe=False):
     """Check if initial configuration is correct."""
-    directories = [CONFIG_DIR,
-                   join(CONFIG_DIR, "runners"),
-                   join(CONFIG_DIR, "games"),
-                   DATA_DIR,
-                   join(DATA_DIR, "covers"),
-                   ICON_PATH,
-                   join(DATA_DIR, "banners"),
-                   join(DATA_DIR, "runners"),
-                   join(DATA_DIR, "lib"),
-                   CACHE_DIR,
-                   join(CACHE_DIR, "installer"),
-                   join(CACHE_DIR, "tmp")]
+    directories = [settings.CONFIG_DIR,
+                   join(settings.CONFIG_DIR, "runners"),
+                   join(settings.CONFIG_DIR, "games"),
+                   settings.DATA_DIR,
+                   join(settings.DATA_DIR, "covers"),
+                   settings.ICON_PATH,
+                   join(settings.DATA_DIR, "banners"),
+                   join(settings.DATA_DIR, "runners"),
+                   join(settings.DATA_DIR, "lib"),
+                   settings.RUNTIME_DIR,
+                   settings.CACHE_DIR,
+                   join(settings.CACHE_DIR, "installer"),
+                   join(settings.CACHE_DIR, "tmp")]
     for directory in directories:
         if not os.path.exists(directory):
             logger.debug("creating directory %s" % directory)
             os.makedirs(directory)
 
     if force_wipe:
-        os.remove(PGA_DB)
+        os.remove(settings.PGA_DB)
     pga.syncdb()
 
 
@@ -132,19 +133,19 @@ class LutrisConfig(object):
 
     @property
     def system_config_path(self):
-        return os.path.join(CONFIG_DIR, "system.yml")
+        return os.path.join(settings.CONFIG_DIR, "system.yml")
 
     @property
     def runner_config_path(self):
         if not self.runner:
             return
-        return os.path.join(CONFIG_DIR, "runners/%s.yml" % self.runner)
+        return os.path.join(settings.CONFIG_DIR, "runners/%s.yml" % self.runner)
 
     @property
     def game_config_path(self):
         if not self.game:
             return
-        return os.path.join(CONFIG_DIR, "games/%s.yml" % self.game)
+        return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game)
 
     def __str__(self):
         return str(self.config)
@@ -152,7 +153,7 @@ class LutrisConfig(object):
     def __getitem__(self, key, default=None):
         """Allow to access config data directly by keys."""
         if key in ('game', 'runner', 'system'):
-            return self.config[key]
+            return self.config.get(key)
         try:
             if self.config_type == "game":
                 value = self.game_config[key]

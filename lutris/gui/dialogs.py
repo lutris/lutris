@@ -172,7 +172,7 @@ class PgaSourceDialog(GtkBuilderDialog):
             "Select directory", self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
             (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-            "Select", Gtk.ResponseType.OK)
+             "Select", Gtk.ResponseType.OK)
         )
         chooser.set_local_only(False)
         response = chooser.run()

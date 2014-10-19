@@ -4,9 +4,9 @@ import urllib
 import urllib2
 import socket
 
-from lutris.util.log import logger
 from lutris import settings
-from lutris import pga
+from lutris.util import http
+from lutris.util.log import logger
 
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
@@ -49,33 +49,25 @@ def disconnect():
 
 
 def get_library():
+    """Return the remote library as a list of dicts."""
     logger.debug("Fetching game library")
     credentials = read_api_key()
     if not credentials:
         return {}
     username = credentials["username"]
     api_key = credentials["token"]
-    library_url = settings.SITE_URL + "api/v1/library/%s/" % username
+    url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.urlencode({'api_key': api_key, 'username': username,
                                'format': 'json'})
-    request = urllib2.urlopen(library_url + "?" + params)
-    return json.loads(request.read())
+    return http.download_json(url, params)['games']
 
 
-def sync(caller=None):
-    logger.debug("Syncing game library")
-    remote_library = get_library()['games']
-    remote_slugs = set([game['slug'] for game in remote_library])
-    logger.debug("%d games in remote library", len(remote_slugs))
-    local_libray = pga.get_games()
-    local_slugs = set([game['slug'] for game in local_libray])
-    logger.debug("%d games in local library", len(local_slugs))
-    not_in_local = remote_slugs.difference(local_slugs)
-    for game in remote_library:
-        if game['slug'] in not_in_local:
-            logger.debug("Adding %s to local library", game['slug'])
-            pga.add_game(game['name'], slug=game['slug'], year=game['year'])
-            if caller:
-                caller.add_game_to_view(game['slug'])
-    logger.debug("%d games added", len(not_in_local))
-    return not_in_local
+# TODO: use it when switched API to DRF
+def get_games(slugs):
+    """Return remote games from a list of slugs.
+
+    :rtype: list of dicts"""
+    logger.debug("Fetching game set")
+    game_set = ';'.join(slugs)
+    url = settings.SITE_URL + "api/v1/game/set/%s/" % game_set
+    return http.download_json(url, params="?format=json")['objects']

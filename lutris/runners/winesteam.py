@@ -7,9 +7,9 @@ import subprocess
 from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
+from lutris.thread import LutrisThread
 from lutris.util.log import logger
-from lutris.util.steam import (read_config, get_path_from_config,
-                               get_path_from_appmanifest)
+from lutris.util.steam import read_config, get_path_from_appmanifest
 from lutris.util import system
 from lutris.util.system import fix_path_case
 from lutris.util.wineregistry import WineRegistry
@@ -70,12 +70,18 @@ class winesteam(wine.wine):
         {
             'option': 'appid',
             'type': 'string',
-            'label': 'appid'
+            'label': 'Application ID',
+            'help': ("The application ID can be retrieved from the game's "
+                     "page at steampowered.com. Example: 235320 is the "
+                     "app ID for <i>Original War</i> in: \n"
+                     "http://store.steampowered.com/app/<b>235320</b>/")
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'arguments'
+            'label': 'Arguments',
+            'help': ("Windows command line arguments used when launching "
+                     "Steam")
         },
         {
             'option': 'prefix',
@@ -83,6 +89,11 @@ class winesteam(wine.wine):
             'label': 'Prefix'
         }
     ]
+
+    def __init__(self, config=None):
+        super(winesteam, self).__init__(config)
+        self.own_game_remove_method = "Remove game data (through Wine Steam)"
+        self.no_game_remove_warning = True
 
     @property
     def browse_dir(self):
@@ -95,14 +106,22 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
-        appid = self.config['game'].get('appid')
-        if self.get_game_data_path(appid):
-            return self.get_game_data_path(appid)
+        appid = self.game_config.get('appid')
+        for apps_path in self.get_steamapps_dirs():
+            game_path = get_path_from_appmanifest(apps_path, appid)
+            if game_path:
+                return game_path
+        logger.warning("Data path for SteamApp %s not found.", appid)
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        return os.path.expanduser("~/")
 
     @property
     def launch_args(self):
         return ['"%s"' % self.get_executable(),
-                '"%s"' % self.steam_path, '-no-dwrite']
+                '"%s"' % self.get_steam_path(), '-no-dwrite']
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
@@ -115,7 +134,20 @@ class winesteam(wine.wine):
         return parts[1].strip('\\')
 
     @property
-    def steam_path(self, prefix=None):
+    def steam_config(self):
+        """Return the "Steam" part of Steam's config.vfd as a dict"""
+        if not self.get_steam_path():
+            return
+        steam_path = os.path.dirname(self.get_steam_path())
+        return read_config(steam_path)
+
+    @property
+    def steam_data_dir(self):
+        """Return dir where Steam files lie"""
+        if self.get_steam_path():
+            return os.path.dirname(self.get_steam_path())
+
+    def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
         if not prefix:
             prefix = os.path.expanduser("~/.wine")
@@ -146,44 +178,45 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if not self.is_wine_installed() or not self.steam_path:
+        if not self.is_wine_installed() or not self.get_steam_path():
             return False
-        return os.path.exists(self.steam_path)
-
-    def get_steam_config(self):
-        if not self.steam_path:
-            return
-        steam_path = os.path.dirname(self.steam_path)
-        return read_config(steam_path)
+        return os.path.exists(self.get_steam_path())
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        config = self.get_steam_config()
+        config = self.steam_config
         if config:
             apps = config['apps']
             return apps.keys()
 
-    def get_steamapps_path(self):
-        candidates = (
-            "SteamApps/common",
-            "steamapps/common",
-        )
-        for candidate in candidates:
-            steam_path = os.path.dirname(self.steam_path)
-            path = os.path.join(steam_path, candidate)
-            if os.path.exists(path):
-                return path
-        raise IOError("Unable to locate SteamApps path")
+    def get_game_path_from_appid(self, appid):
+        """Return the game directory"""
+        for apps_path in self.get_steamapps_dirs():
+            game_path = get_path_from_appmanifest(apps_path, appid)
+            if game_path:
+                return game_path
+        logger.warning("Data path for SteamApp %s not found.", appid)
 
-    def get_game_data_path(self, appid):
-        steam_path = os.path.dirname(self.steam_path)
-        data_path = get_path_from_appmanifest(steam_path, appid)
-        if not data_path:
-            steam_config = self.get_steam_config()
-            data_path = get_path_from_config(steam_config, appid)
-        if not data_path:
-            logger.warning("Data path for SteamApp %s not found.", appid)
-        return data_path
+    def get_steamapps_dirs(self):
+        """Return a list of the Steam library main + custom folders."""
+        dirs = []
+        # Main steamapps dir
+        if self.steam_data_dir:
+            main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
+            main_dir = system.fix_path_case(main_dir)
+            if main_dir:
+                dirs.append(main_dir)
+        # Custom dirs
+        steam_config = self.steam_config
+        if steam_config:
+            i = 1
+            while ('BaseInstallFolder_%s' % i) in steam_config:
+                path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
+                linux_path = self.parse_wine_path(path, self.prefix_path)
+                if os.path.exists(linux_path):
+                    dirs.append(linux_path)
+                i += 1
+        return dirs
 
     def get_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""
@@ -232,12 +265,40 @@ class winesteam(wine.wine):
         return True
 
     def play(self):
-        appid = self.config['game'].get('appid') or ''
-        args = self.config['game'].get('args') or ''
+        appid = self.game_config.get('appid') or ''
+        args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
-        command = ["WINEDEBUG=fixme-all"]
-        prefix = self.config['game'].get('prefix')
+        env = ["WINEDEBUG=fixme-all"]
+        command = []
+        prefix = self.game_config.get('prefix')
+        if prefix:
+            # TODO: Verify if a prefix exists that it's created with the
+            # correct architecture
+            env.append('WINEPREFIX="%s" ' % prefix)
+        else:
+            env.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+        command += self.launch_args
+        if appid:
+            command += ['-applaunch', appid]
+        if args:
+            command += [args]
+        return {'command': command, 'env': env}
+
+    def stop(self):
+        shutdown()
+        time.sleep(2)
+        super(winesteam, self).stop()
+
+    def remove_game_data(self, **kwargs):
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return False
+        appid = self.game_config.get('appid')
+        prefix = self.game_config.get('prefix')
+
+        command = []
         if prefix:
             # TODO: Verify if a prefix exists that it's created with the
             # correct architecture
@@ -245,13 +306,8 @@ class winesteam(wine.wine):
         else:
             command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
         command += self.launch_args
-        if appid:
-            command += ['-applaunch', appid]
-        if args:
-            command += [args]
-        return {'command': command}
+        command += ['steam://uninstall/%s' % appid]
 
-    def stop(self):
-        shutdown()
-        time.sleep(2)
-        super(winesteam, self).stop()
+        self.prepare_launch()
+        thread = LutrisThread(' '.join(command), path=self.working_dir)
+        thread.start()

@@ -124,6 +124,7 @@ def is_removeable(path, excludes=None):
 
 
 def fix_path_case(path):
+    """Do a case insensitive check, return the real path with correct case."""
     parts = path.strip('/').split('/')
     current_path = "/"
     for part in parts:
@@ -141,3 +142,7 @@ def fix_path_case(path):
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip('/').split('/')):
         return current_path
+
+
+def xdg_open(path):
+    subprocess.Popen(['xdg-open', path])

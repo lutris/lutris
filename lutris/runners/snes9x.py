@@ -136,7 +136,7 @@ class snes9x(Runner):
                 )
             )
 
-        rom = self.settings["game"].get("main_file")
+        rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 

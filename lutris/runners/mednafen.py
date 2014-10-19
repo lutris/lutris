@@ -7,7 +7,7 @@ from lutris.util.log import logger
 
 
 class mednafen(Runner):
-    """Mednafen is a multi-system emulator, including NES, GB(A), PC Engine"""
+    """Multi-system emulator including NES, GB(A), PC Engine support"""
     platform = (
         "Atari Lynx, GameBoy, GameBoy Color, "
         "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
@@ -173,8 +173,8 @@ class mednafen(Runner):
 
     def play(self):
         """Runs the game"""
-        rom = self.settings["game"]["main_file"]
-        machine = self.settings["game"]["machine"]
+        rom = self.game_config.get('main_file') or ''
+        machine = self.game_config.get('machine')
 
         if self.runner_config.get("fs"):
             fullscreen = "1"

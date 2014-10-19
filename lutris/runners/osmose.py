@@ -54,7 +54,7 @@ class osmose(Runner):
             arguments.append('-bilinear')
         if self.runner_config.get('joy'):
             arguments.append('-joy')
-        rom = self.settings['game']['main_file']
+        rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append("\"%s\"" % rom)

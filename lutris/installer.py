@@ -159,10 +159,13 @@ class ScriptInterpreter(object):
                 "Downloading file %d of %d",
                 len(self.game_files) + 1, len(self.script["files"])
             )
+            file_index = len(self.game_files)
             try:
-                self._download_file(self.script["files"][len(self.game_files)])
+                current_file = self.script["files"][file_index]
             except KeyError:
-                raise ScriptingError("Badly formatted script", self.script)
+                raise ScriptingError("Error getting file %d in %s",
+                                     file_index, self.script['files'])
+            self._download_file(current_file)
         else:
             self.current_command = 0
             self._prepare_commands()
@@ -204,6 +207,7 @@ class ScriptInterpreter(object):
             if parts[0] == '$WINESTEAM':
                 appid = self.steam_data['appid']
                 logger.debug("Getting Wine Steam data for appid %s" % appid)
+                self.parent.set_status('Getting Wine Steam game data')
                 self.steam_data['platform'] = "windows"
                 # Check that wine is installed
                 wine_runner = wine.wine()
@@ -221,6 +225,7 @@ class ScriptInterpreter(object):
                 return
             else:
                 # Getting data from Linux Steam
+                self.parent.set_status('Getting Steam game data')
                 self.steam_data['platform'] = "linux"
                 self.install_steam_game(steam.steam)
                 return
@@ -346,7 +351,9 @@ class ScriptInterpreter(object):
                           slug=self.game_slug,
                           directory=self.target_path,
                           installed=1,
-                          installer_slug=self.script.get('installer_slug'))
+                          installer_slug=self.script.get('installer_slug'),
+                          year=self.script.get('year'),
+                          steamid=self.script.get('steamid'))
 
         # Config update
         if 'system' in self.script:
@@ -553,7 +560,8 @@ class ScriptInterpreter(object):
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()
-        data_path = steam_runner.get_game_data_path(self.steam_data['appid'])
+        data_path = steam_runner.get_game_path_from_appid(
+            self.steam_data['appid'])
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
         logger.debug("got data path: %s" % data_path)
@@ -591,7 +599,7 @@ class ScriptInterpreter(object):
     def install_steam_game(self, runner_class):
         steam_runner = runner_class()
         appid = self.steam_data['appid']
-        if not steam_runner.get_game_data_path(appid):
+        if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s" % appid)
             # Here the user must wait for the game to finish installing, a
             # better way to handle this would be to poll StateFlags on the
@@ -702,8 +710,9 @@ class InstallerDialog(Gtk.Window):
         else:
             self.scripts = fetch_script(self, game_ref)
         if not self.scripts:
-            return
-
+            raise ScriptingError("Failed to get installer script")
+        if not isinstance(self.scripts, list):
+            self.scripts = [self.scripts]
         self.show_all()
         self.close_button.hide()
         self.play_button.hide()
@@ -788,7 +797,7 @@ class InstallerDialog(Gtk.Window):
             btn = Gtk.RadioButton.new_with_label_from_widget(radio_group, label)
             btn.connect('toggled', self.on_installer_toggled, index)
             self.installer_choice_box.pack_start(btn, False, False, 0)
-            if index == 0:
+            if not radio_group:
                 radio_group = btn
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)

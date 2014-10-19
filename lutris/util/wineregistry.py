@@ -20,7 +20,7 @@ class WineRegistry(object):
     def parse_reg_file(self, reg_filename):
         with open(reg_filename, 'r') as reg_file:
             registry_content = reg_file.readlines()
-        self.prefix_path = os.path.dirname(os.path.abspath(reg_filename))
+        self.prefix_path = os.path.dirname(reg_filename)
         current_key = None
         for line in registry_content:
             if line.startswith('#arch'):
@@ -51,16 +51,15 @@ class WineRegistry(object):
         windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:
             return
-        old_cwd = os.getcwd()
         drives_path = os.path.join(self.prefix_path, "dosdevices")
-        os.chdir(drives_path)
         if not os.path.exists(drives_path):
             return
         letter, relpath = windows_path.split(':', 1)
         relpath = relpath.strip('/')
         drive_link = os.path.join(drives_path, letter.lower() + ":")
-        drive_path = os.path.abspath(os.readlink(drive_link))
-        os.chdir(old_cwd)
+        drive_path = os.readlink(drive_link)
+        if not os.path.isabs(drive_path):
+            drive_path = os.path.join(drives_path, drive_path)
         return os.path.join(drive_path, relpath)
 
 

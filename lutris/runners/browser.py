@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class browser(Runner):
     """Runner for browser games"""
     executable = "xdg-open"
-    platform = "Web Browser"
+    platform = "Web based games"
     description = "Run games in the browser"
     game_options = [
         {
@@ -30,5 +30,5 @@ class browser(Runner):
 
     def play(self):
         self.browser_exec = self.runner_config.get('browser', self.executable)
-        url = self.settings["game"]["main_file"]
+        url = self.game_config.get('main_file')
         return {'command': [self.browser_exec, "\"%s\"" % url]}

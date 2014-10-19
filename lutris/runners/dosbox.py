@@ -85,21 +85,20 @@ class dosbox(Runner):
     }
 
     @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        return self.working_dir  # exe path
+    def main_file(self):
+        return self.game_config.get('main_file') or ''
 
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return os.path.dirname(self.main_file) \
-            or super(dosbox, self).browse_dir
+            or super(dosbox, self).working_dir
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def play(self):
-        main_file = self.settings["game"]["main_file"]
+        main_file = self.main_file
         if not os.path.exists(main_file):
             return {'error': "FILE_NOT_FOUND", 'file': main_file}
 
@@ -110,8 +109,8 @@ class dosbox(Runner):
         else:
             command.append('"%s"' % main_file)
         # Options
-        if "config_file" in self.settings["game"]:
-            command.append('-conf "%s"' % self.settings["game"]["config_file"])
+        if game_config.get('config_file'):
+            command.append('-conf "%s"' % self.game_config['config_file'])
 
         if "scaler" in self.runner_config:
             command.append("-scaler %s" % self.runner_config['scaler'])
