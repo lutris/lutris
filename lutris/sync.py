@@ -137,13 +137,16 @@ class Sync(object):
         installed_winesteamapps = self._get_installed_steamapps(winesteam_)
 
         for game_info in self.library:
+            runner = game_info['runner']
             game = Game(game_info['slug'])
             steamid = game_info['steamid']
             installed_in_steam = steamid in installed_steamapps
             installed_in_winesteam = steamid in installed_winesteamapps
 
-            # Set installed (steam linux only)
-            if installed_in_steam and not game_info['installed']:
+            # Set installed
+            if not game_info['installed']:
+                if not installed_in_steam:  # (Linux Steam only)
+                    continue
                 logger.debug("Setting %s as installed" % game_info['name'])
                 pga.add_or_update(game_info['name'], 'steam',
                                   game_info['slug'],
@@ -152,12 +155,15 @@ class Sync(object):
                                                 {'appid': str(steamid)}})
                 game.config.save()
                 caller.view.set_installed(Game(game_info['slug']))
-                continue
 
             # Set uninstalled
-            if not (installed_in_steam or installed_in_winesteam) \
-               and game_info['installed'] \
-               and game_info['runner'] in ['steam', 'winesteam']:
+            elif not (installed_in_steam or installed_in_winesteam):
+                if not runner in ['steam', 'winesteam']:
+                    continue
+                if runner == 'steam' and not steam_.is_installed():
+                    continue
+                if runner == 'winesteam' and not winesteam_.is_installed():
+                    continue
                 logger.debug("Setting %s as uninstalled" % game_info['name'])
                 pga.add_or_update(game_info['name'], '',
                                   game_info['slug'],
