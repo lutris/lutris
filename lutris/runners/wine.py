@@ -53,7 +53,7 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
              working_dir=None, winetricks_env=''):
     executable = str(executable) if executable else ''
-    prefix = 'WINEPREFIX="%s" ' % prefix if prefix else ''
+    prefix_env = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
         arch = detect_prefix_arch(prefix)
     if not wine_path:
@@ -68,11 +68,12 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         executable = '"%s"' % executable
 
     command = '%s WINEARCH=%s %s "%s" %s %s' % (
-        winetricks_env, arch, prefix, wine_path, executable, args
+        winetricks_env, arch, prefix_env, wine_path, executable, args
     )
     logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
+    disable_desktop_integration(prefix)
     logger.debug("END wineexec")
 
 
@@ -112,7 +113,7 @@ def detect_prefix_arch(directory=None):
     return 'win32'
 
 
-def remove_desktop_integration(prefix):
+def disable_desktop_integration(prefix):
     user = os.getenv('USER')
     user_dir = os.path.join(prefix, "drive_c/users/", user)
     # Replace symlinks
