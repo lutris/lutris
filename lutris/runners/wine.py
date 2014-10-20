@@ -52,10 +52,11 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
              working_dir=None, winetricks_env=''):
+    detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
     prefix_env = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
-        arch = detect_prefix_arch(prefix) or 'win32'
+        arch = detected_arch or 'win32'
     if not wine_path:
         wine_path = wine().get_executable()
     if not working_dir:
@@ -63,9 +64,15 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
             working_dir = os.path.dirname(executable)
     if winetricks_env:
         winetricks_env = 'WINE="%s"' % winetricks_env
-
     if executable:
         executable = '"%s"' % executable
+
+    # Create prefix if none
+    in_function_loop = os.path.basename(wine_path) == 'wineboot'
+    if not detected_arch and not in_function_loop:
+        create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
+
+    disable_desktop_integration(prefix)
 
     command = '%s WINEARCH=%s %s "%s" %s %s' % (
         winetricks_env, arch, prefix_env, wine_path, executable, args
@@ -73,7 +80,6 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
-    disable_desktop_integration(prefix)
     logger.debug("END wineexec")
 
 
@@ -114,6 +120,7 @@ def detect_prefix_arch(directory=None):
 
 
 def disable_desktop_integration(prefix):
+    """Remove links to user directories in a prefix."""
     user = os.getenv('USER')
     user_dir = os.path.join(prefix, "drive_c/users/", user)
     # Replace symlinks
