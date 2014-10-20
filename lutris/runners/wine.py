@@ -55,7 +55,7 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     executable = str(executable) if executable else ''
     prefix_env = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
-        arch = detect_prefix_arch(prefix)
+        arch = detect_prefix_arch(prefix) or 'win32'
     if not wine_path:
         wine_path = wine().get_executable()
     if not working_dir:
@@ -78,7 +78,7 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=False):
-    arch = detect_prefix_arch(prefix)
+    arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
     if str(silent).lower() in ('yes', 'on', 'true'):
@@ -90,15 +90,17 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=False):
 
 
 def detect_prefix_arch(directory=None):
-    """Given a wineprefix directory, return its architecture"""
+    """Return the architecture of the prefix found in `directory`.
+
+    If no `directory` given, return the arch of the system's default prefix.
+    If no prefix found, return None."""
     if not directory:
         directory = os.path.expanduser("~/.wine")
     registry_path = os.path.join(directory, 'system.reg')
     if not os.path.isdir(directory) or not os.path.isfile(registry_path):
         # No directory exists or invalid prefix
-        # returning 32 bit to create a new prefix.
-        logger.debug("No prefix found in %s, defaulting to 32bit", directory)
-        return 'win32'
+        logger.debug("No prefix found in %s", directory)
+        return
     with open(registry_path, 'r') as registry:
         for i in range(5):
             line = registry.readline()
@@ -108,9 +110,7 @@ def detect_prefix_arch(directory=None):
             elif 'win32' in line:
                 logger.debug("Detected 32bit prefix in %s", directory)
                 return 'win32'
-    logger.debug("Can't detect prefix arch for %s, defaulting to 32bit",
-                 directory)
-    return 'win32'
+    logger.debug("Can't detect prefix arch for %s", directory)
 
 
 def disable_desktop_integration(prefix):
@@ -370,7 +370,7 @@ class wine(Runner):
         arch = self.game_config.get('arch') or 'auto'
         prefix = self.game_config.get('prefix') or ''
         if arch not in ('win32', 'win64'):
-            arch = detect_prefix_arch(prefix)
+            arch = detect_prefix_arch(prefix) or 'win32'
         return arch
 
     @property
