@@ -1,23 +1,28 @@
 lutris (0.3.6) trusty; urgency=medium
 
   * New:
-    - Lutris Runtime support, removing the need to install libraries on the system
+    - Lutris Runtime, removing the need to install libraries on the system
+    - Synchronization of installation state of (Linux) Steam games
+    - Real uninstallation of Steam games through Steam
     - Auto-install of Wine Steam
     - Better detection of Wine Steam install location
     - Support for Steam's secondary library folders
+    - Wine version 1.7.29
     - Tooltips on most configuration options
+    - Wine's desktop integration disabled for newly installed Wine games
     - DOSBox options: scaler and auto-exit
     - ScummVM options: aspect correction, subtitles
     - "Remove" context menu action added to uninstalled games
-    - sdlmame and sdlmess runners renamed to mame and mess (requires manual
-    - renaming in game runner config files to keep runner config)
+    - sdlmame and sdlmess runners renamed to mame and mess
+    - "Prefix command" system option
+    - Button to access runners folder in the Manage runners window
 
   * Fixes:
     - Fixed inconsistent password field limit to 26 chars, raised to 1024.
     - Fixed impossibility to use system's Wine when Wine Steam was running.
     - Fixed Wine games install failing when there is a space in the setup file path
     - Fixed browser games not launching at all
-    - Fixed Vice (Commodore 64) games not launching at all
+    - Fixed PCSX-Reloaded and Vice emulators not launching at all
     - Fixed Hatari and Mess emulators not launching nor warning when no bios file configured
     - Fixed Hatari startup fail if there is spaces in bios path
     - Fixed the "Restore desktop resolution" option and enable it by default
@@ -25,15 +30,20 @@ lutris (0.3.6) trusty; urgency=medium
     - Fixed Winetricks in installers
     - Fixed checked by default config options not saving unchecked state
     - Fixed the "insert disc" part of installers
+    - Fixed renaming games breaking synchronization with the website
+    - Fixed Mupen64Plus fullscreen option not working when unchecked.
+    - More small fixes
 
   * Website changes since the last version:
     - Improved the About page
     - Added a direct link to your Library in the menu
 
   * For contributors:
-    - New mailing list available at http://lists.lutris.net/cgi-bin/mailman/listinfo/lutris
+    - New mailing list available at lists.lutris.net/cgi-bin/mailman/listinfo/lutris
     - Fixed the game submission form
     - Improved feedback on submissions
+    - New write_config installer directive to write into INI files
+    - Documented how to use tasks from any runner in an installer
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 27 Sep 2014 01:36:10 +0200
 
