@@ -112,6 +112,18 @@ def detect_prefix_arch(directory=None):
     return 'win32'
 
 
+def remove_desktop_integration(prefix):
+    user = os.getenv('USER')
+    user_dir = os.path.join(prefix, "drive_c/users/", user)
+    # Replace symlinks
+    if os.path.exists(user_dir):
+        for item in os.listdir(user_dir):
+            path = os.path.join(user_dir, item)
+            if os.path.islink(path):
+                os.unlink(path)
+                os.makedirs(path)
+
+
 def set_drive_path(prefix, letter, path):
     dosdevices_path = os.path.join(prefix, "dosdevices")
     if not os.path.exists(dosdevices_path):

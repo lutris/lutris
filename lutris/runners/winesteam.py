@@ -231,6 +231,8 @@ class winesteam(wine.wine):
                 os.makedirs(winesteam_dir)
             create_prefix(default_prefix, arch=self.wine_arch,
                           wine_path=os.path.join(wine_dir, 'wineboot'))
+            wine.remove_desktop_integration(default_prefix)
+
             # Fix steam text display
             set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
                         'DWriteEnable', '0', 'REG_DWORD',
