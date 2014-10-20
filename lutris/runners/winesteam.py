@@ -230,7 +230,7 @@ class winesteam(wine.wine):
             if not os.path.exists(winesteam_dir):
                 os.makedirs(winesteam_dir)
             create_prefix(default_prefix, arch=self.wine_arch,
-                          wine_path=os.path.join(wine_dir, 'wineboot'))
+                          wine_dir=wine_dir)
 
             # Fix steam text display
             set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",

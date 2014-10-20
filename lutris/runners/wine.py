@@ -42,11 +42,11 @@ def set_regedit(path, key, value='', type_='REG_SZ',
     os.remove(reg_path)
 
 
-def create_prefix(prefix, wine_path=None, arch='win32'):
+def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new wineprefix"""
-    if not wine_path:
+    if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
-        wine_path = os.path.join(wine_dir, 'wineboot')
+    wine_path = os.path.join(wine_dir, 'wineboot')
     wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
 
 
