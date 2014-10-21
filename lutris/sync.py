@@ -8,7 +8,7 @@ from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
 from lutris.util import resources
 from lutris.util.log import logger
-from lutris.util.steam import get_path_from_appmanifest
+from lutris.util.steam import vdf_parse
 
 
 class Sync(object):
@@ -189,6 +189,13 @@ class Sync(object):
                         logger.error("Invalid SteamID for %s", filename)
                         continue
 
-                    if get_path_from_appmanifest(dirname, steamid):
+                    appmanifest_path = os.path.join(
+                        dirname, "appmanifest_%s.acf" % str(steamid)
+                    )
+                    with open(appmanifest_path, "r") as appmanifest_file:
+                        appmanifest = vdf_parse(appmanifest_file, {})
+                    appstate = appmanifest.get('AppState') or {}
+                    is_installed = appstate.get('BytesDownloaded') or '0'
+                    if not is_installed == '0':
                         installed.append(steamid)
         return installed

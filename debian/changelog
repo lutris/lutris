@@ -16,6 +16,7 @@ lutris (0.3.6) trusty; urgency=medium
     - sdlmame and sdlmess runners renamed to mame and mess
     - "Prefix command" system option
     - Button to access runners folder in the Manage runners window
+    - Manually re-synchronize from the menu: Lutris > Synchronize library
 
   * Fixes:
     - Fixed inconsistent password field limit to 26 chars, raised to 1024.
