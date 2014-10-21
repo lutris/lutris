@@ -109,7 +109,7 @@ class dosbox(Runner):
         else:
             command.append('"%s"' % main_file)
         # Options
-        if game_config.get('config_file'):
+        if self.game_config.get('config_file'):
             command.append('-conf "%s"' % self.game_config['config_file'])
 
         if "scaler" in self.runner_config:
