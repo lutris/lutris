@@ -7,7 +7,7 @@ lutris (0.3.6) trusty; urgency=medium
     - Auto-install of Wine Steam
     - Better detection of Wine Steam install location
     - Support for Steam's secondary library folders
-    - Wine version 1.7.29
+    - Wine version 1.7.29 (including fix for Steam's overlay/keyboard crash)
     - Tooltips on most configuration options
     - Wine's desktop integration disabled for newly installed Wine games
     - DOSBox options: scaler and auto-exit
