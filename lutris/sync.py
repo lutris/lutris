@@ -183,21 +183,15 @@ class Sync(object):
             appmanifests = [f for f in os.listdir(dirname)
                             if re.match(r'^appmanifest_\d+.acf$', f)]
             for filename in appmanifests:
-                if filename.startswith('appmanifest_'):
-                    basename, ext = os.path.splitext(filename)
-                    try:
-                        steamid = int(basename[12:])
-                    except ValueError:
-                        logger.error("Invalid SteamID for %s", filename)
-                        continue
-
-                    appmanifest_path = os.path.join(
-                        dirname, "appmanifest_%s.acf" % str(steamid)
-                    )
-                    with open(appmanifest_path, "r") as appmanifest_file:
-                        appmanifest = vdf_parse(appmanifest_file, {})
-                    appstate = appmanifest.get('AppState') or {}
-                    is_installed = appstate.get('BytesToDownload') or '0'
-                    if not is_installed == '0':
-                        installed.append(steamid)
+                basename, ext = os.path.splitext(filename)
+                steamid = int(basename[12:])
+                appmanifest_path = os.path.join(
+                    dirname, "appmanifest_%s.acf" % str(steamid)
+                )
+                with open(appmanifest_path, "r") as appmanifest_file:
+                    appmanifest = vdf_parse(appmanifest_file, {})
+                appstate = appmanifest.get('AppState') or {}
+                is_installed = appstate.get('BytesToDownload') or '0'
+                if not is_installed == '0':
+                    installed.append(steamid)
         return installed
