@@ -70,7 +70,6 @@ def change_resolution(resolution):
         else:
             subprocess.Popen("xrandr -s %s" % resolution, shell=True)
     else:
-        print resolution
         for display in resolution:
             display_name = display[0]
             display_geom = display[1]

@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 """Synchronization of the game library with the server and other platforms."""
 import os
+import re
 
 from lutris import api, pga
 from lutris.game import Game
@@ -100,7 +101,7 @@ class Sync(object):
             # Sync new DB fields
             else:
                 for key, value in local_game.iteritems():
-                    if value or not key in game:
+                    if value or key not in game:
                         continue
                     if game[key]:
                         sync = True
@@ -159,7 +160,7 @@ class Sync(object):
 
             # Set uninstalled
             elif not (installed_in_steam or installed_in_winesteam):
-                if not runner in ['steam', 'winesteam']:
+                if runner not in ['steam', 'winesteam']:
                     continue
                 if runner == 'steam' and not steam_.is_installed():
                     continue
@@ -179,8 +180,9 @@ class Sync(object):
         installed = []
         dirs = runner.get_steamapps_dirs()
         for dirname in dirs:
-            files = os.listdir(dirname)
-            for filename in files:
+            appmanifests = [f for f in os.listdir(dirname)
+                            if re.match(r'^appmanifest_\d+.acf$', f)]
+            for filename in appmanifests:
                 if filename.startswith('appmanifest_'):
                     basename, ext = os.path.splitext(filename)
                     try:
