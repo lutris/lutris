@@ -101,7 +101,6 @@ class ScriptInterpreter(object):
             raise ScriptingError("Invalid script", (self.script, self.errors))
         self.game_name = self.script.get('name')
         self.game_slug = slugify(self.game_name)
-        self.requires_disc = self.script.get('insert-disc')
         self.requires = self.script.get('requires')
         if self.requires:
             self._check_dependecy()
@@ -476,6 +475,35 @@ class ScriptInterpreter(object):
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
 
+    def insert_disc(self, data):
+        requires = data.get('requires')
+        message = data.get(
+            'message',
+            "Insert game disc or mount disk image and click OK."
+        )
+        message += (
+            "\n\nLutris is looking for a mounted disk drive or image \n"
+            "containing the following file or folder:\n"
+            "<i>%s</i>" % requires
+        )
+        if not requires:
+            raise ScriptingError("The installer's `insert_disc` command is "
+                                 "missing the `requires` parameter." * 2)
+        self.parent.wait_for_user_action(message, self._find_matching_disc,
+                                         requires)
+        return 'STOP'
+
+    def _find_matching_disc(self, widget, requires):
+        drives = devices.get_mounted_discs()
+        for drive in drives:
+            mount_point = drive.get_root().get_path()
+            required_abspath = os.path.join(mount_point, requires)
+            if os.path.exists(required_abspath):
+                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
+                self.game_disc = mount_point
+                self._iter_commands()
+                break
+
     def mkdir(self, directory):
         directory = self._substitute(directory)
         try:
@@ -750,44 +778,7 @@ class InstallerDialog(Gtk.Window):
         self.interpreter = ScriptInterpreter(script, self)
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup("<b>Installing {}</b>".format(game_name))
-
-        # CDrom check
-        if self.interpreter.requires_disc:
-            self.insert_disc()
-        else:
-            self.continue_install()
-
-    def insert_disc(self):
-        self.continue_button.hide()
-        requires = self.interpreter.requires_disc.get('requires')
-        message = self.interpreter.requires_disc.get(
-            'message',
-            "Insert game disc or mount disk image and click OK."
-        )
-        message += (
-            "\n\nLutris is looking for a mounted disk drive or image \n"
-            "containing the following file or folder:\n"
-            "<i>%s</i>" % requires
-        )
-        if not requires:
-            raise ScriptingError("The installer's `insert_disc` command is "
-                                 "missing the `requires` parameter." * 2)
-        self.wait_for_user_action(message, self.find_matching_disc, requires)
-
-    def find_matching_disc(self, widget, requires):
-        drives = devices.get_mounted_discs()
-
-        for drive in drives:
-            mount_point = drive.get_root().get_path()
-            required_abspath = os.path.join(mount_point, requires)
-            if os.path.exists(required_abspath):
-                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
-                # Continue install
-                self.interpreter.game_disc = mount_point
-                self.clean_widgets()
-                self.continue_button.show()
-                self.continue_install()
-                break
+        self.continue_install()
 
     def continue_install(self):
         # Target chooser
