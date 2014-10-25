@@ -12,22 +12,19 @@ import webbrowser
 
 from gi.repository import Gtk, Gdk
 
-from lutris import pga
-from lutris.util import extract, devices
+from lutris import pga, settings
+from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
 from lutris.util.strings import slugify, add_url_tags
-from lutris.util.system import get_md5_hash, substitute, merge_folders
 
-from lutris.runners import wine, winesteam, steam
 from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
-from lutris import settings
-from lutris.runners import import_task, import_runner
+from lutris.runners import wine, winesteam, steam, import_task, import_runner
 
 
 class ScriptingError(Exception):
@@ -424,7 +421,7 @@ class ScriptInterpreter(object):
             "DISC": self.game_disc
         }
         replacements.update(self.game_files)
-        return substitute(template_string, replacements)
+        return system.substitute(template_string, replacements)
 
     def _get_move_paths(self, params):
         """ Validate and converts raw data passed to 'move' """
@@ -475,7 +472,7 @@ class ScriptInterpreter(object):
 
     def check_md5(self, data):
         filename = self._get_file(data['file'])
-        _hash = get_md5_hash(filename)
+        _hash = system.get_md5_hash(filename)
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
 
@@ -506,7 +503,7 @@ class ScriptInterpreter(object):
                     dst, os.path.basename(src)
                 )
             return
-        merge_folders(src, dst)
+        system.merge_folders(src, dst)
 
     def move(self, params):
         """ Move a file or directory """
