@@ -143,6 +143,8 @@ def is_removeable(path, excludes=None):
 
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
+    if os.path.exists(path):
+        return path
     parts = path.strip('/').split('/')
     current_path = "/"
     for part in parts:
