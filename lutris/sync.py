@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 """Synchronization of the game library with the server and other platforms."""
 import os
+import re
 
 from lutris import api, pga
 from lutris.game import Game
@@ -8,6 +9,7 @@ from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
 from lutris.util import resources
 from lutris.util.log import logger
+from lutris.util.steam import vdf_parse
 
 
 class Sync(object):
@@ -99,7 +101,7 @@ class Sync(object):
             # Sync new DB fields
             else:
                 for key, value in local_game.iteritems():
-                    if value or not key in game:
+                    if value or key not in game:
                         continue
                     if game[key]:
                         sync = True
@@ -137,13 +139,16 @@ class Sync(object):
         installed_winesteamapps = self._get_installed_steamapps(winesteam_)
 
         for game_info in self.library:
+            runner = game_info['runner']
             game = Game(game_info['slug'])
             steamid = game_info['steamid']
             installed_in_steam = steamid in installed_steamapps
             installed_in_winesteam = steamid in installed_winesteamapps
 
-            # Set installed (steam linux only)
-            if installed_in_steam and not game_info['installed']:
+            # Set installed
+            if not game_info['installed']:
+                if not installed_in_steam:  # (Linux Steam only)
+                    continue
                 logger.debug("Setting %s as installed" % game_info['name'])
                 pga.add_or_update(game_info['name'], 'steam',
                                   game_info['slug'],
@@ -152,12 +157,15 @@ class Sync(object):
                                                 {'appid': str(steamid)}})
                 game.config.save()
                 caller.view.set_installed(Game(game_info['slug']))
-                continue
 
             # Set uninstalled
-            if not (installed_in_steam or installed_in_winesteam) \
-               and game_info['installed'] \
-               and game_info['runner'] in ['steam', 'winesteam']:
+            elif not (installed_in_steam or installed_in_winesteam):
+                if runner not in ['steam', 'winesteam']:
+                    continue
+                if runner == 'steam' and not steam_.is_installed():
+                    continue
+                if runner == 'winesteam' and not winesteam_.is_installed():
+                    continue
                 logger.debug("Setting %s as uninstalled" % game_info['name'])
                 pga.add_or_update(game_info['name'], '',
                                   game_info['slug'],
@@ -172,14 +180,18 @@ class Sync(object):
         installed = []
         dirs = runner.get_steamapps_dirs()
         for dirname in dirs:
-            files = os.listdir(dirname)
-            for filename in files:
-                if filename.startswith('appmanifest_'):
-                    basename, ext = os.path.splitext(filename)
-                    try:
-                        steamid = int(basename[12:])
-                    except ValueError:
-                        logger.error("Invalid SteamID for %s", filename)
-                        continue
+            appmanifests = [f for f in os.listdir(dirname)
+                            if re.match(r'^appmanifest_\d+.acf$', f)]
+            for filename in appmanifests:
+                basename, ext = os.path.splitext(filename)
+                steamid = int(basename[12:])
+                appmanifest_path = os.path.join(
+                    dirname, "appmanifest_%s.acf" % str(steamid)
+                )
+                with open(appmanifest_path, "r") as appmanifest_file:
+                    appmanifest = vdf_parse(appmanifest_file, {})
+                appstate = appmanifest.get('AppState') or {}
+                is_installed = appstate.get('BytesToDownload') or '0'
+                if not is_installed == '0':
                     installed.append(steamid)
         return installed

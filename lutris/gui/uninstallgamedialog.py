@@ -36,20 +36,22 @@ class UninstallGameDialog(GtkBuilderDialog):
         remove_contents_button = self.builder.get_object(
             'remove_contents_button'
         )
-        if hasattr(runner, 'own_game_remove_method'):
-            remove_contents_button.set_label(runner.own_game_remove_method)
-        else:
-            try:
-                default_path = runner.default_path
-            except AttributeError:
-                default_path = "/"
-            if not is_removeable(runner.game_path, excludes=[default_path]) \
-               or not self.game.is_installed:
-                remove_contents_button.set_sensitive(False)
+        if self.game.is_installed:
+            if hasattr(runner, 'own_game_remove_method'):
+                remove_contents_button.set_label(runner.own_game_remove_method)
+            else:
+                try:
+                    default_path = runner.default_path
+                except AttributeError:
+                    default_path = "/"
+                if not is_removeable(runner.game_path, excludes=[default_path]):
+                    remove_contents_button.set_sensitive(False)
 
-        path = self.game.directory or 'disk'
-        self.substitute_label(remove_contents_button, 'path', path)
-        remove_contents_button.get_children()[0].set_use_markup(True)
+            path = self.game.directory or 'disk'
+            self.substitute_label(remove_contents_button, 'path', path)
+            remove_contents_button.get_children()[0].set_use_markup(True)
+        else:
+            remove_contents_button.hide()
 
         cancel_button = self.builder.get_object('cancel_button')
         cancel_button.connect('clicked', self.on_close)

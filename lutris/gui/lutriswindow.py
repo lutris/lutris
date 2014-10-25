@@ -321,6 +321,17 @@ class LutrisWindow(object):
         logger.info(connection_status)
         connection_label.set_text(connection_status)
 
+    def on_synchronize_manually(self, *args):
+        """Callback when Synchronize Library is activated."""
+        sync = Sync()
+        credentials = api.read_api_key()
+        if credentials:  # Is connected
+            sync.sync_all(caller=self)
+        else:
+            sync.sync_steam_local(caller=self)
+        self.sync_icons()
+        dialogs.NoticeDialog('Library synchronized')
+
     def on_destroy(self, *args):
         """Signal for window close."""
         view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'

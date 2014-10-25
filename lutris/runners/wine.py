@@ -42,20 +42,21 @@ def set_regedit(path, key, value='', type_='REG_SZ',
     os.remove(reg_path)
 
 
-def create_prefix(prefix, wine_path=None, arch='win32'):
+def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new wineprefix"""
-    if not wine_path:
+    if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
-        wine_path = os.path.join(wine_dir, 'wineboot')
+    wine_path = os.path.join(wine_dir, 'wineboot')
     wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
 
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
              working_dir=None, winetricks_env=''):
+    detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
-    prefix = 'WINEPREFIX="%s" ' % prefix if prefix else ''
+    prefix_env = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
-        arch = detect_prefix_arch(prefix)
+        arch = detected_arch or 'win32'
     if not wine_path:
         wine_path = wine().get_executable()
     if not working_dir:
@@ -63,12 +64,18 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
             working_dir = os.path.dirname(executable)
     if winetricks_env:
         winetricks_env = 'WINE="%s"' % winetricks_env
-
     if executable:
         executable = '"%s"' % executable
 
+    # Create prefix if none
+    in_function_loop = os.path.basename(wine_path) == 'wineboot'
+    if not detected_arch and not in_function_loop:
+        create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
+
+    disable_desktop_integration(prefix)
+
     command = '%s WINEARCH=%s %s "%s" %s %s' % (
-        winetricks_env, arch, prefix, wine_path, executable, args
+        winetricks_env, arch, prefix_env, wine_path, executable, args
     )
     logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
@@ -77,7 +84,7 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=False):
-    arch = detect_prefix_arch(prefix)
+    arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
     if str(silent).lower() in ('yes', 'on', 'true'):
@@ -89,15 +96,17 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=False):
 
 
 def detect_prefix_arch(directory=None):
-    """Given a wineprefix directory, return its architecture"""
+    """Return the architecture of the prefix found in `directory`.
+
+    If no `directory` given, return the arch of the system's default prefix.
+    If no prefix found, return None."""
     if not directory:
         directory = os.path.expanduser("~/.wine")
     registry_path = os.path.join(directory, 'system.reg')
     if not os.path.isdir(directory) or not os.path.isfile(registry_path):
         # No directory exists or invalid prefix
-        # returning 32 bit to create a new prefix.
-        logger.debug("No prefix found in %s, defaulting to 32bit", directory)
-        return 'win32'
+        logger.debug("No prefix found in %s", directory)
+        return
     with open(registry_path, 'r') as registry:
         for i in range(5):
             line = registry.readline()
@@ -107,9 +116,20 @@ def detect_prefix_arch(directory=None):
             elif 'win32' in line:
                 logger.debug("Detected 32bit prefix in %s", directory)
                 return 'win32'
-    logger.debug("Can't detect prefix arch for %s, defaulting to 32bit",
-                 directory)
-    return 'win32'
+    logger.debug("Can't detect prefix arch for %s", directory)
+
+
+def disable_desktop_integration(prefix):
+    """Remove links to user directories in a prefix."""
+    user = os.getenv('USER')
+    user_dir = os.path.join(prefix, "drive_c/users/", user)
+    # Replace symlinks
+    if os.path.exists(user_dir):
+        for item in os.listdir(user_dir):
+            path = os.path.join(user_dir, item)
+            if os.path.islink(path):
+                os.unlink(path)
+                os.makedirs(path)
 
 
 def set_drive_path(prefix, letter, path):
@@ -357,7 +377,7 @@ class wine(Runner):
         arch = self.game_config.get('arch') or 'auto'
         prefix = self.game_config.get('prefix') or ''
         if arch not in ('win32', 'win64'):
-            arch = detect_prefix_arch(prefix)
+            arch = detect_prefix_arch(prefix) or 'win32'
         return arch
 
     @property
