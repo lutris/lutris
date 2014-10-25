@@ -498,7 +498,8 @@ class ScriptInterpreter(object):
         for drive in drives:
             mount_point = drive.get_root().get_path()
             required_abspath = os.path.join(mount_point, requires)
-            if os.path.exists(required_abspath):
+            required_abspath = system.fix_path_case(required_abspath)
+            if required_abspath:
                 logger.debug("Found %s on cdrom %s" % (requires, mount_point))
                 self.game_disc = mount_point
                 self._iter_commands()
