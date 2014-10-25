@@ -107,6 +107,9 @@ him to insert the game's disc into the optical drive.
 Ensure a correct disc detection by specifying a file or folder present on the
 disc with the ``requires`` parameter.
 
+The $DISC variable will contain the drive's path for use in subsequent
+installer tasks.
+
 A link to CDEmu's homepage and PPA will also be displayed if the program isn't
 detected on the machine, otherwise it will be replaced with a button to open
 gCDEmu. You can override this default text with the ``message`` parameter.
@@ -116,7 +119,6 @@ Example:
 ::
 
     - insert-disc:
-        message: Insert the Diablo CD to continue
         requires: diablosetup.exe
 
 Moving files and directories
