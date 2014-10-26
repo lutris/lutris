@@ -4,7 +4,7 @@ from lutris.runners.runner import Runner
 
 class browser(Runner):
     """Runner for browser games"""
-    name = "Browser"
+    human_name = "Browser"
     executable = "xdg-open"
     platform = "Web based games"
     description = "Run games in the browser"
