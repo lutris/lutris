@@ -7,6 +7,7 @@ from lutris.util.log import logger
 
 
 class mednafen(Runner):
+    name = "Mednafen"
     """Multi-system emulator including NES, GB(A), PC Engine support"""
     platform = (
         "Atari Lynx, GameBoy, GameBoy Color, "
