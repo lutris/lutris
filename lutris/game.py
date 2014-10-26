@@ -221,6 +221,9 @@ class Game(object):
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)
 
+        if self.runner.system_config.get('restore_gamma'):
+            display.restore_gamma()
+
         if self.runner.system_config.get('xboxdrv'):
             logger.debug("Shutting down xboxdrv")
             os.system("pkexec xboxdrvctl --shutdown")
