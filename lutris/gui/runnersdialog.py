@@ -72,7 +72,7 @@ class RunnersDialog(Gtk.Window):
             runner_label.set_sensitive(False)
         runner_label.set_markup(
             "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>" %
-            (runner_name, description, platform)
+            (runner.human_name, description, platform)
         )
         runner_label.set_width_chars(40)
         runner_label.set_max_width_chars(40)

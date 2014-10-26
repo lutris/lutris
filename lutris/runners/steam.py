@@ -28,7 +28,8 @@ def is_running():
 
 class steam(Runner):
     """ Runs Steam for Linux games """
-    platform = "Steam Games"
+    human_name = "Steam"
+    platform = "Steam for Linux"
     game_options = [
         {
             "option": 'appid',

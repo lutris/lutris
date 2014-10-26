@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 from lutris.util.log import logger
@@ -72,12 +71,13 @@ def change_resolution(resolution):
     else:
         for display in resolution:
             display_name = display[0]
-            display_geom = display[1]
             logger.debug("Switching to %s on %s", display[1], display[0])
-            display_resolution = display_geom.split('+')[0]
+            display_geom = display[1].split('+')
+            display_resolution = display_geom[0]
+            position = (display_geom[1], display_geom[2])
 
-            cmd = "xrandr --output %s --mode %s" % (
-                display_name, display_resolution)
+            cmd = "xrandr --output %s --mode %s --pos %sx%s" % (
+                display_name, display_resolution, position[0], position[1])
 
             subprocess.Popen(cmd, shell=True).communicate()
             logger.debug(cmd)

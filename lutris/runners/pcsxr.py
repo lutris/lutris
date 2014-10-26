@@ -9,6 +9,7 @@ from lutris.util.system import find_executable
 
 class pcsxr(Runner):
     """PlayStation emulator"""
+    human_name = "PCSX-Reloaded"
     package = "pcsxr"
     platform = "Playstation"
     game_options = [

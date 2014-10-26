@@ -6,6 +6,7 @@ from lutris.runners.runner import Runner
 
 class jzintv(Runner):
     """Intellivision Emulator"""
+    human_name = "jzIntv"
     package = "jzintv"
     executable = "jzintv"
     platform = "Intellivision"

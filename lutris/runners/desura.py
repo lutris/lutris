@@ -12,6 +12,7 @@ from lutris import settings
 
 class desura(Runner):
     """Run Desura games (or mods, or tools)"""
+    human_name = "Desura"
     platform = "Desura"
     package = "desura"
     game_options = [

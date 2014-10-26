@@ -11,6 +11,7 @@ class dolphin(Runner):
     Download link : http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2
     ppa : ppa:glennric/dolphin-emu
     """
+    human_name = "Dolphin"
     package = "dolphin-emu"
     executable = "dolphin"
     platform = "Gamecube, Wii"

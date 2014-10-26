@@ -146,6 +146,7 @@ def set_drive_path(prefix, letter, path):
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""
+    human_name = "Wine"
     executable = 'wine'
     platform = 'Windows'
     game_options = [

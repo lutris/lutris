@@ -21,7 +21,7 @@ SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
 class snes9x(Runner):
     """Runs Super Nintendo games with Snes9x"""
-
+    human_name = "Snes9x"
     executable = "snes9x-gtk"
     package = None
     platform = "Super Nintendo"

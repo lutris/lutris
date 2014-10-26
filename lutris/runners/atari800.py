@@ -14,6 +14,7 @@ from lutris.util.display import get_resolutions
 # pylint: disable=C0103
 class atari800(Runner):
     """ Runs Atari800 games """
+    human_name = "Atari800"
     package = "atari800"
     executable = "atari800"
     platform = "Atari 8bit computers"

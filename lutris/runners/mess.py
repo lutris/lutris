@@ -5,6 +5,7 @@ from lutris.runners.runner import Runner
 
 class mess(Runner):
     """ Multi-system (consoles and computers) emulator """
+    human_name = "MESS"
     platform = 'multi-platform'
     game_options = [
         {

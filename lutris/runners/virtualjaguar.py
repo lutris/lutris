@@ -5,6 +5,7 @@ from lutris.runners.runner import Runner
 
 class virtualjaguar(Runner):
     """ Run Atari Jaguar games """
+    human_name = "Virtual Jaguar"
     executable = "virtualjaguar"
     platform = "Atari Jaguar"
 

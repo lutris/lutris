@@ -19,6 +19,7 @@ class nulldc(Runner):
     #           -X  -rcfile ~/.joy2keyrc \
     #           -buttons y a b x c r l r o s -axis Left Right Up Down
 
+    human_name = "NullDC"
     platform = "Sega Dreamcast"
     depends = "wine"
 
