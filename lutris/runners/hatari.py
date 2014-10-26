@@ -8,7 +8,7 @@ from lutris.runners.runner import Runner
 
 class hatari(Runner):
     """Atari ST computers"""
-    name = "Hatari"
+    human_name = "Hatari"
     platform = "Atari ST computers"
 
     game_options = [

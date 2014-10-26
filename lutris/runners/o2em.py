@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 
 class o2em(Runner):
     """Magnavox Oyssey² Emulator"""
-    name = "O2EM"
+    human_name = "O2EM"
     package = "o2em"
     executable = "o2em"
     platform = "Magnavox Odyssey 2, Phillips Videopac+"

@@ -20,7 +20,7 @@ def dosexec(config_file=None, executable=None):
 
 class dosbox(Runner):
     """Runner for MS Dos games"""
-    name = "DOSBox"
+    human_name = "DOSBox"
     platform = "MS DOS"
     description = "DOS Emulator"
     game_options = [
