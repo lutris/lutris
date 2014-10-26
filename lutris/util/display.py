@@ -76,8 +76,9 @@ def change_resolution(resolution):
             logger.debug("Switching to %s on %s", display[1], display[0])
             display_resolution = display_geom.split('+')[0]
 
-            cmd = "xrandr --output %s --mode %s" % (
-                display_name, display_resolution)
+            # Restore mode and panning (for dual monitor setups)
+            cmd = "xrandr --output %s --mode %s --panning %s" % (
+                display_name, display_resolution, display_geom)
 
             subprocess.Popen(cmd, shell=True).communicate()
             logger.debug(cmd)
