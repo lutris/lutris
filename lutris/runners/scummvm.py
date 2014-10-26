@@ -10,6 +10,7 @@ SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
 
 class scummvm(Runner):
     """Runs various 2D point-and-click adventure games."""
+    name = "ScummVM"
     platform = "2D point-and-click games"
     game_options = [
         {

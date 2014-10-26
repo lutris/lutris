@@ -64,7 +64,8 @@ def kill():
 # pylint: disable=C0103
 class winesteam(wine.wine):
     """ Runs Steam for Windows games """
-    platform = "Steam (Windows)"
+    name = "Wine Steam"
+    platform = "Steam for Windows"
     is_watchable = False  # Steam games pids are not parent of Lutris
     game_options = [
         {

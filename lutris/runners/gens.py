@@ -6,6 +6,7 @@ from lutris.runners.runner import Runner
 
 class gens(Runner):
     """Runner for Sega Genesis games"""
+    name = "Gens"
     executable = 'gens'
     platform = 'Sega Genesis'
     description = 'Sega Genesis emulator.'

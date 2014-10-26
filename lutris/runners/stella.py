@@ -6,6 +6,7 @@ from lutris.runners.runner import Runner
 
 class stella(Runner):
     """Atari 2600 games emulator"""
+    name = "Stella"
     platform = "Atari 2600"
     game_options = [
         {
