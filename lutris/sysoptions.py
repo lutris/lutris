@@ -42,6 +42,14 @@ system_options = [
                  "into play to save your bacon.")
     },
     {
+        'option': 'restore_gamma',
+        'type': 'bool',
+        'default': False,
+        'label': 'Restore default gamma correction after game quits',
+        'help': ("Some games don't correctly restores gamma on exit, making "
+                 "your display too bright. Select this option to correct it.")
+    },
+    {
         'option': 'display',
         'type': 'choice',
         'label': 'Restrict to display',

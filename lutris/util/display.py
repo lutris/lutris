@@ -81,3 +81,8 @@ def change_resolution(resolution):
 
             subprocess.Popen(cmd, shell=True).communicate()
             logger.debug(cmd)
+
+
+def restore_gamma():
+    """Restores gamma to a normal level"""
+    subprocess.Popen(["xgamma", "-gamma", "1.0"])
