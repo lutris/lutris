@@ -6,7 +6,7 @@ from textwrap import dedent
 from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
-from lutris.util.system import find_executable
+from lutris.util import system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -393,7 +393,7 @@ class wine(Runner):
         version = self.wine_version
 
         if version == 'system':
-            if find_executable('wine'):
+            if system.find_executable('wine'):
                 return 'wine'
             # Fall back on bundled Wine
             version = DEFAULT_WINE
@@ -419,7 +419,7 @@ class wine(Runner):
     def is_installed(self):
         custom_path = self.runner_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
-            if find_executable('wine'):
+            if system.find_executable('wine'):
                 return True
             else:
                 dialogs.ErrorDialog(
@@ -489,10 +489,10 @@ class wine(Runner):
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         command = os.path.join(wine_root, "wineserver") + " -k"
-        if self.wineprefix:
-            command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
+        if self.prefix_path:
+            command = "WINEPREFIX=%s %s" % (self.prefix_path, command)
         logger.debug("Killing all wine processes: %s" % command)
-        os.popen(command, shell=True)
+        system.execute(command, shell=True)
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

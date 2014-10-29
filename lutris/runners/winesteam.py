@@ -43,19 +43,6 @@ def is_running():
     return bool(system.get_pid('Steam.exe$'))
 
 
-def shutdown():
-    """ Shutdown Steam in a clean way.
-        TODO: Detect wine binary
-    """
-    pid = system.get_pid('Steam.exe$')
-    if not pid:
-        return False
-    cwd = system.get_cwd(pid)
-    cmdline = system.get_command_line(pid)
-    steam_exe = os.path.join(cwd, cmdline)
-    logger.debug("Shutting winesteam: %s", steam_exe)
-    system.execute(['wine', steam_exe, '-shutdown'])
-
 
 def kill():
     system.kill_pid(system.get_pid('Steam.exe$'))
@@ -266,20 +253,22 @@ class winesteam(wine.wine):
                     return False
         return True
 
+    def get_steam_prefix(self):
+        if self.prefix_path:
+            # TODO: Verify if a prefix exists that it's created with the
+            # correct architecture
+            return self.prefix_path
+        else:
+            return self.get_default_prefix()
+
     def play(self):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
+        env.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
         command = []
-        prefix = self.game_config.get('prefix')
-        if prefix:
-            # TODO: Verify if a prefix exists that it's created with the
-            # correct architecture
-            env.append('WINEPREFIX="%s" ' % prefix)
-        else:
-            env.append('WINEPREFIX="%s" ' % self.get_default_prefix())
         command += self.launch_args
         if appid:
             command += ['steam://rungameid/%s' % appid]
@@ -287,9 +276,22 @@ class winesteam(wine.wine):
             command += [args]
         return {'command': command, 'env': env}
 
+    def shutdown(self):
+        """Shutdown Steam in a clean way."""
+        pid = system.get_pid('Steam.exe$')
+        if not pid:
+            return False
+
+        command = []
+        command.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
+        command += self.launch_args
+        command.append('-shutdown')
+        logger.debug("Shutting winesteam: %s", command)
+        system.execute(' '.join(command), shell=True)
+
     def stop(self):
-        shutdown()
-        time.sleep(2)
+        self.shutdown()
+        time.sleep(10)
         super(winesteam, self).stop()
 
     def remove_game_data(self, **kwargs):
@@ -298,15 +300,9 @@ class winesteam(wine.wine):
             if not installed:
                 return False
         appid = self.game_config.get('appid')
-        prefix = self.game_config.get('prefix')
 
         command = []
-        if prefix:
-            # TODO: Verify if a prefix exists that it's created with the
-            # correct architecture
-            command.append('WINEPREFIX="%s" ' % prefix)
-        else:
-            command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+        command.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
 

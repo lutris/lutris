@@ -147,9 +147,6 @@ class steam(Runner):
     def prelaunch(self):
         from lutris.runners import winesteam
         if winesteam.is_running():
-            winesteam.shutdown()
-            logger.info("Waiting for Steam to shutdown...")
-            time.sleep(2)
             if winesteam.is_running():
                 logger.info("Steam does not shutdown, killing it...")
                 winesteam.kill()
