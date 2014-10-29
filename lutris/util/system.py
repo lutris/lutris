@@ -8,11 +8,16 @@ import subprocess
 from lutris.util.log import logger
 
 
-def execute(command):
+def execute(command, shell=False):
     """Execute a system command and return its results."""
-    stdout, stderr = subprocess.Popen(command,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE).communicate()
+    try:
+        stdout, stderr = subprocess.Popen(command,
+                                          shell=shell,
+                                          stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE).communicate()
+    except OSError as ex:
+        logger.error('Could run command %s: %s', command, ex)
+        return
     return stdout.strip()
 
 
