@@ -74,11 +74,12 @@ class LutrisThread(threading.Thread):
                     return line.split()[1]
 
     def set_stop_command(self, func):
-        logger.debug("TODO: set_stop_command: %s", func)
+        self.stop_func = func
 
     def stop(self):
         if hasattr(self, 'stop_func'):
             self.stop_func()
+            return
         for child in self.child_processes:
             child.stop()
         pid = self.game_process.pid + 1
