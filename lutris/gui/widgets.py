@@ -163,7 +163,7 @@ class GameStore(object):
                                      is_installed=game.is_installed)
         name = game.name.replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, game.year, game.runner_name,
+            (game.slug, name, pixbuf, str(game.year), game.runner_name,
              game.is_installed)
         )
 
