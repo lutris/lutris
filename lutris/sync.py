@@ -191,7 +191,7 @@ class Sync(object):
                 with open(appmanifest_path, "r") as appmanifest_file:
                     appmanifest = vdf_parse(appmanifest_file, {})
                 appstate = appmanifest.get('AppState') or {}
-                is_installed = appstate.get('BytesToDownload') or '0'
+                is_installed = appstate.get('LastOwner') or '0'
                 if not is_installed == '0':
                     installed.append(steamid)
         return installed
