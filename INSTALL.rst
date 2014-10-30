@@ -41,6 +41,8 @@ Install required packaging tools::
 
     yum install @development-tools
     yum install fedora-packager
+    yum install python-devel
+    yum install pyxdg
 
 Create a user to build the package with::
 
@@ -52,3 +54,23 @@ Log out of the root account and login as the makerpm user then create the
 required directory structure::
 
     rpmdev-setuptree
+
+You can now fetch the lutris sources either from a local drive or
+remotely::
+
+    cd ~/rpmbuild/SOURCES
+    curl -O  https://lutris.net/releases/lutris_0.3.6.tar.gz 
+
+Extract the specs file from the archive::
+
+    cd ../SPECS/
+    tar xvzf ../SOURCES/lutris_0.3.6.tar.gz lutris/lutris.spec
+    mv lutris/lutris.spec .
+    rmdir lutris
+
+You can now build the RPM::
+
+    rpmbuild -ba lutris.spec
+
+The resulting package will be available at
+~/rpmbuild/RPMS/noarch/lutris-0.3.6-3.fc20.noarch.rpm
