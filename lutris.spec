@@ -1,7 +1,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           lutris
-Version:        0.3.5
+Version:        0.3.6
 Release:        3%{?dist}
 Summary:        Install and play any video game easily
 
@@ -10,8 +10,37 @@ URL:            http://lutris.net
 Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
 
 BuildArch:      noarch
+
+%if 0%{?fedora_version}
+
 BuildRequires:  python-devel, pyxdg
+
 Requires:       pygobject3, pyxdg, PyYAML
+
+%endif
+%if 0%{?rhel_version} || 0%{?centos_version}
+
+BuildRequires:  python-devel, python3-xdg
+
+Requires:       pygobject3, python3-xdg, PyYAML
+
+%endif
+%if 0%{?suse_version}
+
+BuildRequires:  python-devel, python-xdg
+
+Requires:		python-gobject, python-gtk, python-xdg, python-PyYAML
+
+#!BuildIgnore: rpmlint-mini
+
+%endif
+
+%if 0%{?suse_version}
+BuildRequires: update-desktop-files
+%endif
+# Common build dependencies
+BuildRequires:	desktop-file-utils
+
 
 %description
 Install and play any video game easily
@@ -33,8 +62,27 @@ Install and play any video game easily
 rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
 
+#desktop icon
+#rm %{buildroot}%{_datadir}/applications/%{name}.desktop
+%if 0%{?suse_version}
+%suse_update_desktop_file -r -i %{name} Network FileTransfer
+%endif
+
+%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+desktop-file-install --dir=${RPM_BUILD_ROOT}%{_datadir}/applications %{name}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+%endif
 
 %files
+%defattr(-,root,root)
+%dir %{_datadir}/glib-2.0
+%dir %{_datadir}/glib-2.0/schemas
+%dir %{_datadir}/icons
+%dir %{_datadir}/icons/hicolor
+%dir %{_datadir}/icons/hicolor/scalable
+%dir %{_datadir}/icons/hicolor/scalable/apps
+%dir %{_datadir}/polkit-1
+%dir %{_datadir}/polkit-1/actions
 %{_bindir}/lutris
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/glib-2.0/schemas/apps.%{name}.gschema.xml
@@ -47,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Oct 30 2014 Mathieu Comandon <strycore@gmail.com> - 0.3.6-1
+- Bump to version 0.3.6
+- Add OpenSuse compatibility (contribution by @malkavi)
+
 * Fri Sep 12 2014 Mathieu Comandon <strycore@gmail.com> - 0.3.5-1
 - Bump version to 0.3.5
 
@@ -61,3 +113,4 @@ rm -rf $RPM_BUILD_ROOT
 
 * Tue Jun 03 2014 Travis Nickles <nickles.travis@gmail.com> - 0.3.4-1
 - Initial version of the package
+
