@@ -187,7 +187,7 @@ class wine(Runner):
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
-            'default': 'None',
+            'default': 'auto',
             'help': ("The architecture of the Windows environment.\n"
                      "32-bit is recommended unless running "
                      "a 64-bit only game.")
@@ -376,9 +376,8 @@ class wine(Runner):
 
         Get it from the config or detect it from the prefix"""
         arch = self.game_config.get('arch') or 'auto'
-        prefix = self.game_config.get('prefix') or ''
         if arch not in ('win32', 'win64'):
-            arch = detect_prefix_arch(prefix) or 'win32'
+            arch = detect_prefix_arch(self.prefix_path) or 'win32'
         return arch
 
     @property

@@ -75,6 +75,18 @@ class winesteam(wine.wine):
             'option': 'prefix',
             'type': 'directory_chooser',
             'label': 'Prefix'
+        },
+        {
+            'option': 'arch',
+            'type': 'choice',
+            'label': 'Prefix architecture',
+            'choices': [('Auto', 'auto'),
+                        ('32-bit', 'win32'),
+                        ('64-bit', 'win64')],
+            'default': 'auto',
+            'help': ("The architecture of the Windows environment.\n"
+                     "32-bit is recommended unless running "
+                     "a 64-bit only game.")
         }
     ]
 
@@ -277,6 +289,7 @@ class winesteam(wine.wine):
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
         env.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
+        env.append('WINEARCH=%s ' % self.wine_arch)
         command = []
         prefix = self.game_config.get('prefix')
         if not prefix:
