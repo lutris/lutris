@@ -44,6 +44,7 @@ def set_regedit(path, key, value='', type_='REG_SZ',
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new wineprefix"""
+    logger.debug("Creating a wine prefix in %s", prefix)
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
     wine_path = os.path.join(wine_dir, 'wineboot')
@@ -54,7 +55,6 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
              working_dir=None, winetricks_env=''):
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
-    prefix_env = 'WINEPREFIX="%s" ' % prefix if prefix else ''
     if arch not in ('win32', 'win64'):
         arch = detected_arch or 'win32'
     if not wine_path:
@@ -62,17 +62,21 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
-    if winetricks_env:
-        winetricks_env = 'WINE="%s"' % winetricks_env
 
     # Create prefix if none
+    # XXX Wat?
     in_function_loop = os.path.basename(wine_path) == 'wineboot'
     if not detected_arch and not in_function_loop:
         create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
 
-    command = '%s WINEARCH=%s %s "%s" "%s" %s' % (
-        winetricks_env, arch, prefix_env, wine_path, executable, args
-    )
+    env = ['WINEARCH=%s' % arch]
+    if winetricks_env:
+        env.append('WINE="%s"' % winetricks_env)
+    if prefix:
+        env.append('WINEPREFIX="%s" ' % prefix)
+
+    command = '{0} "{1}" "{2}" {3}'.format(" ".join(env), wine_path,
+                                       executable, args)
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
 
