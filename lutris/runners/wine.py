@@ -64,8 +64,6 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
             working_dir = os.path.dirname(executable)
     if winetricks_env:
         winetricks_env = 'WINE="%s"' % winetricks_env
-    if executable:
-        executable = '"%s"' % executable
 
     # Create prefix if none
     in_function_loop = os.path.basename(wine_path) == 'wineboot'
@@ -74,13 +72,11 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
 
     disable_desktop_integration(prefix)
 
-    command = '%s WINEARCH=%s %s "%s" %s %s' % (
+    command = '%s WINEARCH=%s %s "%s" "%s" %s' % (
         winetricks_env, arch, prefix_env, wine_path, executable, args
     )
-    logger.debug("START wineexec(%s)", command)
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
-    logger.debug("END wineexec")
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=False):
