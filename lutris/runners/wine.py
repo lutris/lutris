@@ -70,8 +70,6 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if not detected_arch and not in_function_loop:
         create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
 
-    disable_desktop_integration(prefix)
-
     command = '%s WINEARCH=%s %s "%s" "%s" %s' % (
         winetricks_env, arch, prefix_env, wine_path, executable, args
     )
