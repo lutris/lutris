@@ -117,6 +117,8 @@ def detect_prefix_arch(directory=None):
 
 def disable_desktop_integration(prefix):
     """Remove links to user directories in a prefix."""
+    if not prefix:
+        raise ValueError('Missing prefix')
     user = os.getenv('USER')
     user_dir = os.path.join(prefix, "drive_c/users/", user)
     # Replace symlinks
