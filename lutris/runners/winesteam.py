@@ -276,8 +276,6 @@ class winesteam(wine.wine):
 
     def get_steam_prefix(self):
         if self.prefix_path:
-            # TODO: Verify if a prefix exists that it's created with the
-            # correct architecture
             return self.prefix_path
         else:
             return self.get_default_prefix()
@@ -287,16 +285,15 @@ class winesteam(wine.wine):
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
+
         env = ["WINEDEBUG=fixme-all"]
         env.append('WINEARCH=%s ' % self.wine_arch)
-        command = []
         prefix = self.game_config.get('prefix')
         if not prefix:
             prefix = self.get_or_create_default_prefix()
-
-        # TODO: Verify if a prefix exists that it's created with the correct
-        # architecture
         env.append('WINEPREFIX="%s" ' % prefix)
+
+        command = []
         command += self.launch_args
         if appid:
             command += ['steam://rungameid/%s' % appid]
@@ -311,6 +308,7 @@ class winesteam(wine.wine):
             return False
 
         command = []
+        command.append('WINEARCH=%s ' % self.wine_arch)
         command.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
         command += self.launch_args
         command.append('-shutdown')
@@ -331,9 +329,7 @@ class winesteam(wine.wine):
         prefix = self.game_config.get('prefix')
 
         command = []
-
-        # TODO: Verify if a prefix exists that it's created with the correct
-        # architecture
+        command.append('WINEARCH=%s ' % self.wine_arch)
         if not prefix:
             prefix = self.get_or_create_default_prefix()
         command.append('WINEPREFIX="%s" ' % prefix)
