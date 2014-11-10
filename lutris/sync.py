@@ -131,12 +131,12 @@ class Sync(object):
     def sync_steam_local(self, caller):
         """Sync Steam games in library with Steam and Wine Steam"""
         logger.debug("Syncing local steam games")
-        steam_ = steam()
-        winesteam_ = winesteam()
+        steamrunner = steam()
+        winesteamrunner = winesteam()
 
         # Get installed steamapps
-        installed_steamapps = self._get_installed_steamapps(steam_)
-        installed_winesteamapps = self._get_installed_steamapps(winesteam_)
+        installed_steamapps = self._get_installed_steamapps(steamrunner)
+        installed_winesteamapps = self._get_installed_steamapps(winesteamrunner)
 
         for game_info in self.library:
             runner = game_info['runner']
@@ -162,9 +162,9 @@ class Sync(object):
             elif not (installed_in_steam or installed_in_winesteam):
                 if runner not in ['steam', 'winesteam']:
                     continue
-                if runner == 'steam' and not steam_.is_installed():
+                if runner == 'steam' and not steamrunner.is_installed():
                     continue
-                if runner == 'winesteam' and not winesteam_.is_installed():
+                if runner == 'winesteam' and not winesteamrunner.is_installed():
                     continue
                 logger.debug("Setting %s as uninstalled" % game_info['name'])
                 pga.add_or_update(game_info['name'], '',
