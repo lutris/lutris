@@ -219,25 +219,27 @@ class winesteam(wine.wine):
                 i += 1
         return dirs
 
+    def create_prefix(self, winesteam_dir, prefix_dir):
+        logger.debug("Creating default winesteam prefix")
+        wine_dir = os.path.dirname(self.get_executable())
+
+        if not os.path.exists(winesteam_dir):
+            os.makedirs(winesteam_dir)
+        create_prefix(prefix_dir, arch=self.wine_arch, wine_dir=wine_dir)
+
+        # Fix steam text display
+        set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
+                    'DWriteEnable', '0', 'REG_DWORD',
+                    wine_path=self.get_executable(),
+                    prefix=prefix_dir)
+
     def get_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""
         winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
         default_prefix = os.path.join(winesteam_dir, 'prefix')
 
         if not os.path.exists(default_prefix):
-            logger.debug("Creating default winesteam prefix")
-            wine_dir = os.path.dirname(self.get_executable())
-
-            if not os.path.exists(winesteam_dir):
-                os.makedirs(winesteam_dir)
-            create_prefix(default_prefix, arch=self.wine_arch,
-                          wine_dir=wine_dir)
-
-            # Fix steam text display
-            set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
-                        'DWriteEnable', '0', 'REG_DWORD',
-                        wine_path=self.get_executable(),
-                        prefix=default_prefix)
+            self.create_prefix(winesteam_dir, default_prefix)
         return default_prefix
 
     def install_game(self, appid):
