@@ -234,14 +234,17 @@ class winesteam(wine.wine):
                     wine_path=self.get_executable(),
                     prefix=prefix_dir)
 
-    def get_or_create_default_prefix(self):
-        """Return the default prefix' path. Create it if it doesn't exist"""
+    def get_default_prefix(self):
+        """Return the default prefix' path."""
         winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
         # XXX I don't get the point of creating a 'prefix' subdirectory here.
         #     What could possibly go in the winesteam directory other than
         #     the prefix ? Why not have it directly in winesteam_dir?
-        default_prefix = os.path.join(winesteam_dir, 'prefix')
+        return os.path.join(winesteam_dir, 'prefix')
 
+    def get_or_create_default_prefix(self):
+        """Return the default prefix' path. Create it if it doesn't exist"""
+        default_prefix = self.get_default_prefix()
         if not os.path.exists(default_prefix):
             self.create_prefix(default_prefix)
         return default_prefix
