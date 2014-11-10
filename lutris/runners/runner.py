@@ -131,15 +131,16 @@ class Runner(object):
     def install_dialog(self):
         """Ask the user if she wants to install the runner.
 
-        Return True if the runner was installed."""
+        Return success of runner installation.
+        """
         dialog = dialogs.QuestionDialog({
             'question': ("The required runner is not installed.\n"
                          "Do you wish to install it now?"),
             'title': "Required runner unavailable"
         })
         if Gtk.ResponseType.YES == dialog.result:
-            if self.install() or self.is_installed():
-                return True
+            return self.install()
+        return False
 
     def is_installed(self):
         """Return  True if runner is installed else False."""
