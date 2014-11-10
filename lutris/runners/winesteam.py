@@ -219,12 +219,12 @@ class winesteam(wine.wine):
                 i += 1
         return dirs
 
-    def create_prefix(self, winesteam_dir, prefix_dir):
+    def create_prefix(self, prefix_dir):
         logger.debug("Creating default winesteam prefix")
         wine_dir = os.path.dirname(self.get_executable())
 
-        if not os.path.exists(winesteam_dir):
-            os.makedirs(winesteam_dir)
+        if not os.path.exists(os.path.dirname(prefix_dir)):
+            os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=self.wine_arch, wine_dir=wine_dir)
 
         # Fix steam text display
@@ -242,7 +242,7 @@ class winesteam(wine.wine):
         default_prefix = os.path.join(winesteam_dir, 'prefix')
 
         if not os.path.exists(default_prefix):
-            self.create_prefix(winesteam_dir, default_prefix)
+            self.create_prefix(default_prefix)
         return default_prefix
 
     def install_game(self, appid):
