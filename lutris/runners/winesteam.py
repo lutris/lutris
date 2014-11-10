@@ -278,13 +278,11 @@ class winesteam(wine.wine):
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
         command = []
-        prefix = self.game_config.get('prefix')
-        if prefix:
-            # TODO: Verify if a prefix exists that it's created with the
-            # correct architecture
-            env.append('WINEPREFIX="%s" ' % prefix)
-        else:
-            env.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+        prefix = self.game_config.get('prefix') or self.get_default_prefix()
+
+        # TODO: Verify if a prefix exists that it's created with the correct
+        # architecture
+        env.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         if appid:
             command += ['steam://rungameid/%s' % appid]
@@ -306,12 +304,12 @@ class winesteam(wine.wine):
         prefix = self.game_config.get('prefix')
 
         command = []
-        if prefix:
-            # TODO: Verify if a prefix exists that it's created with the
-            # correct architecture
-            command.append('WINEPREFIX="%s" ' % prefix)
-        else:
-            command.append('WINEPREFIX="%s" ' % self.get_default_prefix())
+
+        # TODO: Verify if a prefix exists that it's created with the correct
+        # architecture
+        if not prefix:
+            prefix = self.get_default_prefix()
+        command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
 
