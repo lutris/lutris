@@ -151,7 +151,7 @@ class winesteam(wine.wine):
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
         if not prefix:
-            prefix = os.path.expanduser("~/.wine")
+            prefix = self.get_default_prefix()
         user_reg = os.path.join(prefix, "user.reg")
         if not os.path.exists(user_reg):
             return
