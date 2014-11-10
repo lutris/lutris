@@ -170,7 +170,7 @@ class winesteam(wine.wine):
             super(winesteam, self).install()
         if not installer_path:
             installer_path = download_steam()
-        prefix = self.get_default_prefix()
+        prefix = self.get_or_create_default_prefix()
         self.msi_exec(installer_path, quiet=True, prefix=prefix)
 
     def is_wine_installed(self):
@@ -234,7 +234,7 @@ class winesteam(wine.wine):
                     wine_path=self.get_executable(),
                     prefix=prefix_dir)
 
-    def get_default_prefix(self):
+    def get_or_create_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""
         winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
         # XXX I don't get the point of creating a 'prefix' subdirectory here.
@@ -279,7 +279,9 @@ class winesteam(wine.wine):
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
         command = []
-        prefix = self.game_config.get('prefix') or self.get_default_prefix()
+        prefix = self.game_config.get('prefix')
+        if not prefix:
+            prefix = self.get_or_create_default_prefix()
 
         # TODO: Verify if a prefix exists that it's created with the correct
         # architecture
@@ -309,7 +311,7 @@ class winesteam(wine.wine):
         # TODO: Verify if a prefix exists that it's created with the correct
         # architecture
         if not prefix:
-            prefix = self.get_default_prefix()
+            prefix = self.get_or_create_default_prefix()
         command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
