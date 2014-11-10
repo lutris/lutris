@@ -75,8 +75,9 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if prefix:
         env.append('WINEPREFIX="%s" ' % prefix)
 
-    command = '{0} "{1}" "{2}" {3}'.format(" ".join(env), wine_path,
-                                       executable, args)
+    command = '{0} "{1}" "{2}" {3}'.format(
+        " ".join(env), wine_path, executable, args
+    )
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
 

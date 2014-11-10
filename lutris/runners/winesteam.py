@@ -43,7 +43,6 @@ def is_running():
     return bool(system.get_pid('Steam.exe$'))
 
 
-
 def kill():
     system.kill_pid(system.get_pid('Steam.exe$'))
 
