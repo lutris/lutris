@@ -288,7 +288,6 @@ class winesteam(wine.wine):
         logger.debug("Checking Steam installation")
         self.prepare_launch()
         env = ["WINEDEBUG=fixme-all"]
-        env.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
         env.append('WINEARCH=%s ' % self.wine_arch)
         command = []
         prefix = self.game_config.get('prefix')
@@ -329,6 +328,7 @@ class winesteam(wine.wine):
             if not installed:
                 return False
         appid = self.game_config.get('appid')
+        prefix = self.game_config.get('prefix')
 
         command = []
 
