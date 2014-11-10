@@ -138,7 +138,7 @@ class winesteam(wine.wine):
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
         if not prefix:
-            prefix = os.path.expanduser("~/.wine")
+            prefix = self.get_default_prefix()
         user_reg = os.path.join(prefix, "user.reg")
         if not os.path.exists(user_reg):
             return
@@ -157,7 +157,8 @@ class winesteam(wine.wine):
             super(winesteam, self).install()
         if not installer_path:
             installer_path = download_steam()
-        self.msi_exec(installer_path, quiet=True)
+        prefix = self.get_or_create_default_prefix()
+        self.msi_exec(installer_path, quiet=True, prefix=prefix)
 
     def is_wine_installed(self):
         return super(winesteam, self).is_installed()
@@ -206,25 +207,33 @@ class winesteam(wine.wine):
                 i += 1
         return dirs
 
+    def create_prefix(self, prefix_dir):
+        logger.debug("Creating default winesteam prefix")
+        wine_dir = os.path.dirname(self.get_executable())
+
+        if not os.path.exists(os.path.dirname(prefix_dir)):
+            os.makedirs(os.path.dirname(prefix_dir))
+        create_prefix(prefix_dir, arch=self.wine_arch, wine_dir=wine_dir)
+
+        # Fix steam text display
+        set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
+                    'DWriteEnable', '0', 'REG_DWORD',
+                    wine_path=self.get_executable(),
+                    prefix=prefix_dir)
+
     def get_default_prefix(self):
-        """Return the default prefix' path. Create it if it doesn't exist"""
+        """Return the default prefix' path."""
         winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
-        default_prefix = os.path.join(winesteam_dir, 'prefix')
+        # XXX I don't get the point of creating a 'prefix' subdirectory here.
+        #     What could possibly go in the winesteam directory other than
+        #     the prefix ? Why not have it directly in winesteam_dir?
+        return os.path.join(winesteam_dir, 'prefix')
 
+    def get_or_create_default_prefix(self):
+        """Return the default prefix' path. Create it if it doesn't exist"""
+        default_prefix = self.get_default_prefix()
         if not os.path.exists(default_prefix):
-            logger.debug("Creating default winesteam prefix")
-            wine_dir = os.path.dirname(self.get_executable())
-
-            if not os.path.exists(winesteam_dir):
-                os.makedirs(winesteam_dir)
-            create_prefix(default_prefix, arch=self.wine_arch,
-                          wine_dir=wine_dir)
-
-            # Fix steam text display
-            set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
-                        'DWriteEnable', '0', 'REG_DWORD',
-                        wine_path=self.get_executable(),
-                        prefix=default_prefix)
+            self.create_prefix(default_prefix)
         return default_prefix
 
     def install_game(self, appid):
@@ -269,6 +278,13 @@ class winesteam(wine.wine):
         env = ["WINEDEBUG=fixme-all"]
         env.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
         command = []
+        prefix = self.game_config.get('prefix')
+        if not prefix:
+            prefix = self.get_or_create_default_prefix()
+
+        # TODO: Verify if a prefix exists that it's created with the correct
+        # architecture
+        env.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         if appid:
             command += ['steam://rungameid/%s' % appid]
@@ -302,7 +318,12 @@ class winesteam(wine.wine):
         appid = self.game_config.get('appid')
 
         command = []
-        command.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
+
+        # TODO: Verify if a prefix exists that it's created with the correct
+        # architecture
+        if not prefix:
+            prefix = self.get_or_create_default_prefix()
+        command.append('WINEPREFIX="%s" ' % prefix)
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
 
