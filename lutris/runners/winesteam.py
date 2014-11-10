@@ -96,6 +96,10 @@ class winesteam(wine.wine):
         self.no_game_remove_warning = True
 
     @property
+    def prefix_path(self):
+        return self.game_config.get('prefix') or self.get_default_prefix()
+
+    @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
         if not self.is_installed():
@@ -274,12 +278,6 @@ class winesteam(wine.wine):
                     return False
         return True
 
-    def get_steam_prefix(self):
-        if self.prefix_path:
-            return self.prefix_path
-        else:
-            return self.get_default_prefix()
-
     def play(self):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
@@ -309,7 +307,7 @@ class winesteam(wine.wine):
 
         command = []
         command.append('WINEARCH=%s ' % self.wine_arch)
-        command.append('WINEPREFIX="%s" ' % self.get_steam_prefix())
+        command.append('WINEPREFIX="%s" ' % self.prefix_path)
         command += self.launch_args
         command.append('-shutdown')
         logger.debug("Shutting winesteam: %s", command)
