@@ -209,7 +209,7 @@ Example:
 Writing into an INI type config file
 ------------------------------------
 
-Modify or create a config file with the ``set_config`` directive. A config file
+Modify or create a config file with the ``write_config`` directive. A config file
 is a text file composed of key=value (or key: value) lines grouped under
 [sections]. Use the ``file`` (an absolute path or a ``file id``), ``section``,
 ``key`` and ``value`` parameters. Not that the file is entirely rewritten and

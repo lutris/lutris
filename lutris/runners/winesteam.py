@@ -174,6 +174,7 @@ class winesteam(wine.wine):
             installer_path = download_steam()
         prefix = self.get_or_create_default_prefix()
         self.msi_exec(installer_path, quiet=True, prefix=prefix)
+        return True
 
     def is_wine_installed(self):
         return super(winesteam, self).is_installed()
