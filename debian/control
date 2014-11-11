@@ -15,7 +15,7 @@ Package: lutris
 Architecture: all
 Depends: ${misc:Depends},
  ${python:Depends},
- python-yaml, gir1.2-gtk-3.0, python-xdg
+ python-yaml, gir1.2-gtk-3.0, python-xdg, gvfs-backends
 Description: Install and play any video game easily
  Lutris is a gaming platform for GNU/Linux. Its goal is to make
  gaming on Linux as easy as possible by taking care of installing

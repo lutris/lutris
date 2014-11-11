@@ -125,6 +125,7 @@ The following command line arguments are available::
 
 Additionally, you can pass a `lutris:` protocol link followed by a game
 identifier on the command line such as::
+
     lutris lutris:quake
 
 This will install the game if not already installed or launch the game
@@ -139,7 +140,6 @@ are yet to be implemented!
 Here's what to expect from the future versions of lutris:
 
 * Better support for multiple wine version
-* Lutris runtime: a collection of libs ensuring your games always run
 * Integration with GOG and Humble Bundle
 * Integration with the TOSEC databse
 * Management of Personnal Game Archives (let you store your games files on
