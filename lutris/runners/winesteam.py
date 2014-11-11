@@ -170,10 +170,11 @@ class winesteam(wine.wine):
         logger.debug("Installing steam from %s", installer_path)
         if not self.is_wine_installed():
             super(winesteam, self).install()
-        if not installer_path:
-            installer_path = download_steam()
         prefix = self.get_or_create_default_prefix()
-        self.msi_exec(installer_path, quiet=True, prefix=prefix)
+        if not self.get_steam_path():
+            if not installer_path:
+                installer_path = download_steam()
+            self.msi_exec(installer_path, quiet=True, prefix=prefix)
         return True
 
     def is_wine_installed(self):
@@ -183,7 +184,9 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if not self.is_wine_installed() or not self.get_steam_path():
+        if (not self.is_wine_installed()
+            or not self.get_steam_path()
+            or not os.path.exists(self.get_default_prefix())):
             return False
         return os.path.exists(self.get_steam_path())
 
@@ -286,10 +289,7 @@ class winesteam(wine.wine):
 
         env = ["WINEDEBUG=fixme-all"]
         env.append('WINEARCH=%s ' % self.wine_arch)
-        prefix = self.game_config.get('prefix')
-        if not prefix:
-            prefix = self.get_or_create_default_prefix()
-        env.append('WINEPREFIX="%s" ' % prefix)
+        env.append('WINEPREFIX="%s" ' % self.prefix_path)
 
         command = []
         command += self.launch_args
@@ -328,9 +328,7 @@ class winesteam(wine.wine):
 
         command = []
         command.append('WINEARCH=%s ' % self.wine_arch)
-        if not prefix:
-            prefix = self.get_or_create_default_prefix()
-        command.append('WINEPREFIX="%s" ' % prefix)
+        command.append('WINEPREFIX="%s" ' % self.prefix_path)
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
 
