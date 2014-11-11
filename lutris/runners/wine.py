@@ -452,7 +452,7 @@ class wine(Runner):
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
-        prefix = self.game_config.get('prefix') or ''
+        prefix = self.prefix_path
         for key in self.reg_keys.keys():
             if key in self.runner_config:
                 set_regedit(self.reg_keys[key], key,
@@ -463,7 +463,7 @@ class wine(Runner):
         self.check_regedit_keys(self.runner_config)
 
     def play(self):
-        prefix = self.game_config.get('prefix') or ''
+        prefix = self.prefix_path or ''
         arch = self.wine_arch
         arguments = self.game_config.get('args') or ''
 
