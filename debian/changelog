@@ -1,3 +1,10 @@
+lutris (0.3.6.2) utopic; urgency=medium
+
+  * Add gvfs-backend to fix downloads on non-Gnome environments
+  * Fix winesteam install
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 11 Nov 2014 15:05:49 +0100
+
 lutris (0.3.6.1) utopic; urgency=medium
 
   * Fixed an issue with Steam sync
