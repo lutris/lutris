@@ -197,7 +197,6 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
-        self.wineprefix = None
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
@@ -474,7 +473,6 @@ class wine(Runner):
         command = []
         if os.path.exists(prefix):
             env.append("WINEPREFIX=\"%s\" " % prefix)
-            self.wineprefix = prefix
 
         self.prepare_launch()
         command.append(self.get_executable())
