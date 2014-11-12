@@ -189,7 +189,9 @@ class winesteam(wine.wine):
                 if not steam_path:
                     continue
             path = registry.get_unix_path(steam_path)
-            return fix_path_case(path)
+            path = fix_path_case(path)
+            if path:
+                return path
 
     def install(self, installer_path=None):
         logger.debug("Installing steam from %s", installer_path)
