@@ -1,4 +1,4 @@
-VERSION="0.3.6.2"
+VERSION="0.3.6.3"
 
 cover:
 	rm tests/fixtures/pga.db -f

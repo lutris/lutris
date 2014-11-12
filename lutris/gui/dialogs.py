@@ -3,6 +3,7 @@
 import os
 from gi.repository import Gtk, GObject
 
+from lutris import settings
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
 from lutris import pga
@@ -35,6 +36,9 @@ class GtkBuilderDialog(GObject.Object):
 class AboutDialog(GtkBuilderDialog):
     glade_file = 'about-dialog.ui'
     dialog_object = "about_dialog"
+
+    def initialize(self):
+        self.dialog.set_version(settings.VERSION)
 
 
 class NoticeDialog(Gtk.MessageDialog):

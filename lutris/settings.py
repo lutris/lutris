@@ -5,7 +5,7 @@ from xdg import BaseDirectory
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
-VERSION = "0.3.6.2"
+VERSION = "0.3.6.3"
 COPYRIGHT = "(c) 2010-2014 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
