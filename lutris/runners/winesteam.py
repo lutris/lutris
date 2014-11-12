@@ -93,6 +93,17 @@ class winesteam(wine.wine):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
+        self.runner_options.append(
+            {
+                'option': 'steam_path',
+                'type': 'directory_chooser',
+                'label': 'Custom Steam location',
+                'help': ("Choose a folder containing Steam.exe.\n"
+                         "By default, Lutris will look for a Windows Steam "
+                         "installation into ~/.wine or will install it in "
+                         "its own custom Wine prefix.")
+            },
+        )
 
     @property
     def prefix_path(self):
@@ -152,6 +163,12 @@ class winesteam(wine.wine):
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
+        custom_path = self.runner_config.get('steam_path') or ''
+        if custom_path:
+            custom_path = os.path.join(custom_path, 'Steam.exe')
+            if os.path.exists(custom_path):
+                return custom_path
+
         candidates = [self.get_default_prefix(),
                       os.path.expanduser("~/.wine"),]
         for prefix in candidates:
