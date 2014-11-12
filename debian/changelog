@@ -1,3 +1,11 @@
+lutris (0.3.6.3) utopic; urgency=medium
+
+  * Added "Custom Steam location" option to winesteam runner
+  * Use Windows Steam from ~/.wine if not installed in Lutris' own prefix
+  * Fixed Winetricks used in installers
+
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 14 Nov 2014 00:10:00 +0100
+
 lutris (0.3.6.2) utopic; urgency=medium
 
   * Add gvfs-backend to fix downloads on non-Gnome environments
