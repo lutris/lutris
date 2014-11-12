@@ -43,20 +43,6 @@ def is_running():
     return bool(system.get_pid('Steam.exe$'))
 
 
-def shutdown():
-    """ Shutdown Steam in a clean way.
-        TODO: Detect wine binary
-    """
-    pid = system.get_pid('Steam.exe$')
-    if not pid:
-        return False
-    cwd = system.get_cwd(pid)
-    cmdline = system.get_command_line(pid)
-    steam_exe = os.path.join(cwd, cmdline)
-    logger.debug("Shutting winesteam: %s", steam_exe)
-    system.execute(['wine', steam_exe, '-shutdown'])
-
-
 def kill():
     system.kill_pid(system.get_pid('Steam.exe$'))
 
@@ -88,6 +74,18 @@ class winesteam(wine.wine):
             'option': 'prefix',
             'type': 'directory_chooser',
             'label': 'Prefix'
+        },
+        {
+            'option': 'arch',
+            'type': 'choice',
+            'label': 'Prefix architecture',
+            'choices': [('Auto', 'auto'),
+                        ('32-bit', 'win32'),
+                        ('64-bit', 'win64')],
+            'default': 'auto',
+            'help': ("The architecture of the Windows environment.\n"
+                     "32-bit is recommended unless running "
+                     "a 64-bit only game.")
         }
     ]
 
@@ -95,6 +93,21 @@ class winesteam(wine.wine):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
+        self.runner_options.append(
+            {
+                'option': 'steam_path',
+                'type': 'directory_chooser',
+                'label': 'Custom Steam location',
+                'help': ("Choose a folder containing Steam.exe.\n"
+                         "By default, Lutris will look for a Windows Steam "
+                         "installation into ~/.wine or will install it in "
+                         "its own custom Wine prefix.")
+            },
+        )
+
+    @property
+    def prefix_path(self):
+        return self.game_config.get('prefix') or self.get_default_prefix()
 
     @property
     def browse_dir(self):
@@ -150,28 +163,46 @@ class winesteam(wine.wine):
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
-        if not prefix:
-            prefix = self.get_default_prefix()
-        user_reg = os.path.join(prefix, "user.reg")
-        if not os.path.exists(user_reg):
-            return
-        registry = WineRegistry(user_reg)
-        steam_path = registry.query("Software/Valve/Steam", "SteamExe")
-        if not steam_path:
-            steam_path = self.get_open_command(registry)
+        custom_path = self.runner_config.get('steam_path') or ''
+        if custom_path:
+            custom_path = os.path.join(custom_path, 'Steam.exe')
+            if os.path.exists(custom_path):
+                return custom_path
+
+        candidates = [self.get_default_prefix(),
+                      os.path.expanduser("~/.wine"),]
+        for prefix in candidates:
+            # Try the default install path
+            steam_path = os.path.join(prefix,
+                                      "drive_c/Program Files/Steam/Steam.exe")
+            if os.path.exists(steam_path):
+                return steam_path
+
+            # Try from the registry key
+            user_reg = os.path.join(prefix, "user.reg")
+            if not os.path.exists(user_reg):
+                continue
+            registry = WineRegistry(user_reg)
+            steam_path = registry.query("Software/Valve/Steam", "SteamExe")
             if not steam_path:
-                return
-        path = registry.get_unix_path(steam_path)
-        return fix_path_case(path)
+                steam_path = self.get_open_command(registry)
+                if not steam_path:
+                    continue
+            path = registry.get_unix_path(steam_path)
+            path = fix_path_case(path)
+            if path:
+                return path
 
     def install(self, installer_path=None):
         logger.debug("Installing steam from %s", installer_path)
         if not self.is_wine_installed():
             super(winesteam, self).install()
-        if not installer_path:
-            installer_path = download_steam()
         prefix = self.get_or_create_default_prefix()
-        self.msi_exec(installer_path, quiet=True, prefix=prefix)
+        if not self.get_steam_path():
+            if not installer_path:
+                installer_path = download_steam()
+            self.msi_exec(installer_path, quiet=True, prefix=prefix)
+        return True
 
     def is_wine_installed(self):
         return super(winesteam, self).is_installed()
@@ -180,7 +211,9 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if not self.is_wine_installed() or not self.get_steam_path():
+        if (not self.is_wine_installed()
+            or not self.get_steam_path()
+            or not os.path.exists(self.get_default_prefix())):
             return False
         return os.path.exists(self.get_steam_path())
 
@@ -280,15 +313,12 @@ class winesteam(wine.wine):
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
-        env = ["WINEDEBUG=fixme-all"]
-        command = []
-        prefix = self.game_config.get('prefix')
-        if not prefix:
-            prefix = self.get_or_create_default_prefix()
 
-        # TODO: Verify if a prefix exists that it's created with the correct
-        # architecture
-        env.append('WINEPREFIX="%s" ' % prefix)
+        env = ["WINEDEBUG=fixme-all"]
+        env.append('WINEARCH=%s ' % self.wine_arch)
+        env.append('WINEPREFIX="%s" ' % self.prefix_path)
+
+        command = []
         command += self.launch_args
         if appid:
             command += ['steam://rungameid/%s' % appid]
@@ -296,9 +326,23 @@ class winesteam(wine.wine):
             command += [args]
         return {'command': command, 'env': env}
 
+    def shutdown(self):
+        """Shutdown Steam in a clean way."""
+        pid = system.get_pid('Steam.exe$')
+        if not pid:
+            return False
+
+        command = []
+        command.append('WINEARCH=%s ' % self.wine_arch)
+        command.append('WINEPREFIX="%s" ' % self.prefix_path)
+        command += self.launch_args
+        command.append('-shutdown')
+        logger.debug("Shutting winesteam: %s", command)
+        system.execute(' '.join(command), shell=True)
+
     def stop(self):
-        shutdown()
-        time.sleep(2)
+        self.shutdown()
+        time.sleep(10)
         super(winesteam, self).stop()
 
     def remove_game_data(self, **kwargs):
@@ -310,12 +354,8 @@ class winesteam(wine.wine):
         prefix = self.game_config.get('prefix')
 
         command = []
-
-        # TODO: Verify if a prefix exists that it's created with the correct
-        # architecture
-        if not prefix:
-            prefix = self.get_or_create_default_prefix()
-        command.append('WINEPREFIX="%s" ' % prefix)
+        command.append('WINEARCH=%s ' % self.wine_arch)
+        command.append('WINEPREFIX="%s" ' % self.prefix_path)
         command += self.launch_args
         command += ['steam://uninstall/%s' % appid]
 

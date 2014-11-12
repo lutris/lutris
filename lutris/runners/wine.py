@@ -6,7 +6,7 @@ from textwrap import dedent
 from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
-from lutris.util.system import find_executable
+from lutris.util import system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -76,9 +76,12 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         env.append('WINE="%s"' % winetricks_env)
     if prefix:
         env.append('WINEPREFIX="%s" ' % prefix)
+    if executable:
+        executable = '"%s"' % executable
 
-    command = '{0} "{1}" "{2}" {3}'.format(" ".join(env), wine_path,
-                                       executable, args)
+    command = '{0} "{1}" {2} {3}'.format(
+        " ".join(env), wine_path, executable, args
+    )
     subprocess.Popen(command, cwd=working_dir, shell=True,
                      stdout=subprocess.PIPE).communicate()
 
@@ -189,7 +192,7 @@ class wine(Runner):
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
-            'default': 'None',
+            'default': 'auto',
             'help': ("The architecture of the Windows environment.\n"
                      "32-bit is recommended unless running "
                      "a 64-bit only game.")
@@ -198,7 +201,6 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
-        self.wineprefix = None
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
@@ -378,9 +380,8 @@ class wine(Runner):
 
         Get it from the config or detect it from the prefix"""
         arch = self.game_config.get('arch') or 'auto'
-        prefix = self.game_config.get('prefix') or ''
         if arch not in ('win32', 'win64'):
-            arch = detect_prefix_arch(prefix) or 'win32'
+            arch = detect_prefix_arch(self.prefix_path) or 'win32'
         return arch
 
     @property
@@ -395,7 +396,7 @@ class wine(Runner):
         version = self.wine_version
 
         if version == 'system':
-            if find_executable('wine'):
+            if system.find_executable('wine'):
                 return 'wine'
             # Fall back on bundled Wine
             version = DEFAULT_WINE
@@ -421,7 +422,7 @@ class wine(Runner):
     def is_installed(self):
         custom_path = self.runner_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
-            if find_executable('wine'):
+            if system.find_executable('wine'):
                 return True
             else:
                 dialogs.ErrorDialog(
@@ -454,7 +455,7 @@ class wine(Runner):
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
-        prefix = self.game_config.get('prefix') or ''
+        prefix = self.prefix_path
         for key in self.reg_keys.keys():
             if key in self.runner_config:
                 set_regedit(self.reg_keys[key], key,
@@ -465,7 +466,7 @@ class wine(Runner):
         self.check_regedit_keys(self.runner_config)
 
     def play(self):
-        prefix = self.game_config.get('prefix') or ''
+        prefix = self.prefix_path or ''
         arch = self.wine_arch
         arguments = self.game_config.get('args') or ''
 
@@ -476,7 +477,6 @@ class wine(Runner):
         command = []
         if os.path.exists(prefix):
             env.append("WINEPREFIX=\"%s\" " % prefix)
-            self.wineprefix = prefix
 
         self.prepare_launch()
         command.append(self.get_executable())
@@ -491,10 +491,10 @@ class wine(Runner):
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         command = os.path.join(wine_root, "wineserver") + " -k"
-        if self.wineprefix:
-            command = "WINEPREFIX=%s %s" % (self.wineprefix, command)
+        if self.prefix_path:
+            command = "WINEPREFIX=%s %s" % (self.prefix_path, command)
         logger.debug("Killing all wine processes: %s" % command)
-        os.popen(command, shell=True)
+        system.execute(command, shell=True)
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

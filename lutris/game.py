@@ -169,7 +169,7 @@ class Game(object):
             self.joy2key(gameplay_info['joy2key'])
         xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
-            self.xboxdrv(xboxdrv_config)
+            self.xboxdrv_start(xboxdrv_config)
         if self.runner.is_watchable:
             # Create heartbeat every
             self.heartbeat = GLib.timeout_add(5000, self.poke_process)
@@ -195,14 +195,17 @@ class Game(object):
         self.game_thread.attach_thread(joy2key_thread)
         joy2key_thread.start()
 
-    @staticmethod
-    def xboxdrv(config):
+    def xboxdrv_start(self, config):
         command = ("pkexec xboxdrv --daemon --detach-kernel-driver "
                    "--dbus session --silent %s"
                    % config)
         logger.debug("xboxdrv command: %s", command)
-        thread = LutrisThread(command)
-        thread.start()
+        self.xboxdrv_thread = LutrisThread(command)
+        self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
+        self.xboxdrv_thread.start()
+
+    def xboxdrv_stop(self):
+        os.system("pkexec xboxdrvctl --shutdown")
 
     def poke_process(self):
         """Watch game's process."""
@@ -225,8 +228,7 @@ class Game(object):
             display.restore_gamma()
 
         if self.runner.system_config.get('xboxdrv'):
-            logger.debug("Shutting down xboxdrv")
-            os.system("pkexec xboxdrvctl --shutdown")
+            self.xboxdrv_thread.stop()
 
         if self.game_thread:
             self.game_thread.stop()
