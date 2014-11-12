@@ -26,6 +26,7 @@ upload-ppa:
 	dput ppa:strycore/ppa ../lutris_${VERSION}_i386.changes
 
 clean:
+	rm -rf build
 	debclean
 
 build-all: deb
