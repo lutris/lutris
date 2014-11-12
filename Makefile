@@ -25,15 +25,11 @@ changelog-edit:
 upload-ppa:
 	dput ppa:strycore/ppa ../lutris_${VERSION}_i386.changes
 
-rpm:
-	cd build && sudo alien lutris_${VERSION}_all.deb --scripts --to-rpm
-
 clean:
 	debclean
 
-build-all: deb rpm
+build-all: deb
 
 upload:
 	scp build/lutris_${VERSION}_all.deb lutris.net:/srv/releases/
 	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
-	scp build/lutris-${VERSION}-2.noarch.rpm lutris.net:/srv/releases/
