@@ -49,6 +49,8 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
         wine_dir = os.path.dirname(wine().get_executable())
     wine_path = os.path.join(wine_dir, 'wineboot')
     wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
+    if prefix:
+        disable_desktop_integration(prefix)
 
 
 def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
