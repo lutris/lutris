@@ -15,21 +15,21 @@ BuildArch:      noarch
 
 BuildRequires:  python-devel, pyxdg
 
-Requires:       pygobject3, pyxdg, PyYAML, gvfs
+Requires:       pygobject3, pyxdg, PyYAML, gvfs, glib-networking
 
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 
 BuildRequires:  python-devel, python3-xdg
 
-Requires:       pygobject3, python3-xdg, PyYAML, gvfs
+Requires:       pygobject3, python3-xdg, PyYAML, gvfs, glib-networking
 
 %endif
 %if 0%{?suse_version}
 
 BuildRequires:  python-devel, python-xdg
 
-Requires:		python-gobject, python-gtk, python-xdg, python-PyYAML, gvfs-backends
+Requires:		python-gobject, python-gtk, python-xdg, python-PyYAML, gvfs-backends, glib-networking
 
 #!BuildIgnore: rpmlint-mini
 
