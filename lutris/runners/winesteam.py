@@ -152,19 +152,27 @@ class winesteam(wine.wine):
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
-        if not prefix:
-            prefix = self.get_default_prefix()
-        user_reg = os.path.join(prefix, "user.reg")
-        if not os.path.exists(user_reg):
-            return
-        registry = WineRegistry(user_reg)
-        steam_path = registry.query("Software/Valve/Steam", "SteamExe")
-        if not steam_path:
-            steam_path = self.get_open_command(registry)
+        candidates = [self.get_default_prefix(),
+                      os.path.expanduser("~/.wine"),]
+        for prefix in candidates:
+            # Try the default install path
+            steam_path = os.path.join(prefix,
+                                      "drive_c/Program Files/Steam/Steam.exe")
+            if os.path.exists(steam_path):
+                return steam_path
+
+            # Try from the registry key
+            user_reg = os.path.join(prefix, "user.reg")
+            if not os.path.exists(user_reg):
+                continue
+            registry = WineRegistry(user_reg)
+            steam_path = registry.query("Software/Valve/Steam", "SteamExe")
             if not steam_path:
-                return
-        path = registry.get_unix_path(steam_path)
-        return fix_path_case(path)
+                steam_path = self.get_open_command(registry)
+                if not steam_path:
+                    continue
+            path = registry.get_unix_path(steam_path)
+            return fix_path_case(path)
 
     def install(self, installer_path=None):
         logger.debug("Installing steam from %s", installer_path)
