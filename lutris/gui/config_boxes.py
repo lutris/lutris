@@ -223,13 +223,13 @@ class ConfigBox(VBox):
         wrapper.pack_start(hbox, False, False, PADDING)
 
     # Directory chooser
-    def generate_directory_chooser(self, wrapper, option_name, label,
+    def generate_directory_chooser(self, wrapper, option_name, label_text,
                                    value=None):
         """Generate a file chooser button to select a directory."""
         hbox = Gtk.HBox()
-        label = Label(label)
+        label = Label(label_text)
         directory_chooser = Gtk.FileChooserButton(
-            title="Choose a directory for %s" % label
+            title="Choose a directory for %s" % label_text
         )
         directory_chooser.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
         if value:
