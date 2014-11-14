@@ -65,6 +65,11 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
+    if executable.endswith(".msi"):
+        executable = 'msiexec /i "%s"' % executable
+    elif executable:
+        executable = '"%s"' % executable
+
     # Create prefix if none
     # XXX Wat?
     in_function_loop = os.path.basename(wine_path) == 'wineboot'
@@ -76,8 +81,6 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
         env.append('WINE="%s"' % winetricks_env)
     if prefix:
         env.append('WINEPREFIX="%s" ' % prefix)
-    if executable:
-        executable = '"%s"' % executable
 
     command = '{0} "{1}" {2} {3}'.format(
         " ".join(env), wine_path, executable, args
@@ -468,10 +471,15 @@ class wine(Runner):
     def play(self):
         prefix = self.prefix_path or ''
         arch = self.wine_arch
+        game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
 
-        if not os.path.exists(self.game_exe):
-            return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
+        if not os.path.exists(game_exe):
+            return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
+        if game_exe.endswith(".msi"):
+            game_exe = 'msiexec /i "%s"' % game_exe
+        else:
+            game_exe = '"%s"' % game_exe
 
         env = ['WINEARCH=%s' % arch]
         command = []
@@ -480,7 +488,7 @@ class wine(Runner):
 
         self.prepare_launch()
         command.append(self.get_executable())
-        command.append('"%s"' % self.game_exe)
+        command.append(game_exe)
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
