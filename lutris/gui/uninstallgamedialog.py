@@ -19,6 +19,7 @@ class UninstallGameDialog(GtkBuilderDialog):
         else:
             raise TypeError("Unsupported type %s" % type(widget))
 
+        replacement = replacement.replace('&', '&amp;')
         set_text(get_text().replace("{%s}" % name, replacement))
 
     def initialize(self, slug=None, callback=None):
