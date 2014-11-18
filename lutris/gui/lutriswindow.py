@@ -20,6 +20,7 @@ from lutris.util.strings import slugify
 from lutris.util import datapath
 
 from lutris.gui import dialogs
+from lutris.gui.sidebar import Sidebar
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.config_dialogs import (
@@ -135,6 +136,10 @@ class LutrisWindow(object):
 
         # Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
+
+        sidebar_treeview = self.builder.get_object('sidebar_treeview')
+        sidebar_liststore = self.builder.get_object('sidebar_liststore')
+        self.sidebar = Sidebar(sidebar_treeview, sidebar_liststore)
 
         # Window initialization
         self.window = self.builder.get_object("window")
