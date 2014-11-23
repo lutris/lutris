@@ -137,6 +137,8 @@ class LutrisWindow(object):
         # Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
 
+        sidebar_paned = self.builder.get_object('sidebar_paned')
+        sidebar_paned.set_position(150)
         sidebar_treeview = SidebarTreeView()
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
         self.sidebar_viewport.add(sidebar_treeview)

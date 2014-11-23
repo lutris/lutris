@@ -1,4 +1,6 @@
 from gi.repository import Gtk, GdkPixbuf
+from lutris import pga
+from lutris.gui.widgets import get_runner_icon
 
 LABEL = 0
 ICON = 1
@@ -7,7 +9,7 @@ ICON = 1
 class SidebarTreeView(Gtk.TreeView):
 
     def __init__(self):
-        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, int, bool)
+        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf)
 
         super(SidebarTreeView, self).__init__(model=self.model)
 
@@ -23,3 +25,13 @@ class SidebarTreeView(Gtk.TreeView):
         self.append_column(column)
         self.set_headers_visible(False)
         self.set_fixed_height_mode(True)
+
+        self.get_runners()
+        self.expand_all()
+
+    def get_runners(self):
+        runner_node = self.model.append(None, ["Runners", None])
+        runners = pga.get_runners()
+        for runner in runners:
+            icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
+            self.model.append(runner_node, [runner, icon])

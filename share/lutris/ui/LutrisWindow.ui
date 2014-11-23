@@ -494,7 +494,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkPaned" id="paned1">
+          <object class="GtkPaned" id="sidebar_paned">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>

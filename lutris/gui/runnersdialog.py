@@ -1,10 +1,9 @@
 # -*- coding:Utf-8 -*-
-import os
 from gi.repository import Gtk, GObject
 
 import lutris.runners
 from lutris import settings
-from lutris.util import datapath
+from lutris.gui.widgets import get_runner_icon
 from lutris.util import system
 from lutris.runners import import_runner
 from lutris.gui.config_dialogs import RunnerConfigDialog
@@ -59,10 +58,7 @@ class RunnersDialog(Gtk.Window):
 
         hbox = Gtk.HBox()
         # Icon
-        icon_path = os.path.join(datapath.get(), 'media/runner_icons',
-                                 runner_name + '.png')
-        icon = Gtk.Image()
-        icon.set_from_file(icon_path)
+        icon = get_runner_icon(runner_name)
         icon.set_alignment(0.5, 0.1)
         hbox.pack_start(icon, False, False, 10)
 

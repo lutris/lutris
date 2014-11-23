@@ -494,7 +494,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkPaned" id="paned1">
+          <object class="GtkPaned" id="sidebar_paned">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
@@ -502,14 +502,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkTreeView" id="sidebar_treeview">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">sidebar_liststore</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection1"/>
-                    </child>
-                  </object>
+                  <placeholder/>
                 </child>
               </object>
               <packing>

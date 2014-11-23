@@ -28,6 +28,20 @@ ICON_SIZE = (32, 32)
 ) = range(6)
 
 
+def get_runner_icon(runner_name, format='image', size=None):
+    icon_path = os.path.join(datapath.get(), 'media/runner_icons',
+                             runner_name + '.png')
+    if format == 'image':
+        icon = Gtk.Image()
+        icon.set_from_file(icon_path)
+    elif format == 'pixbuf' and size:
+        icon = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path,
+                                                      size[0], size[1])
+    else:
+        raise ValueError("Invalid arguments")
+    return icon
+
+
 def sort_func(store, a_iter, b_iter, _user_data):
     """Default sort function."""
     a_name = store.get(a_iter, COL_NAME)
