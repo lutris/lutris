@@ -240,3 +240,12 @@ def check_for_file(game, file_id):
             if game_base == file_id:
                 return os.path.join(game_dir, game_file)
     return False
+
+
+def get_runners():
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = ("select distinct runner from games "
+                 "where runner is not null order by runner")
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return [result[0] for result in results if result[0]]
