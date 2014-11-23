@@ -371,7 +371,8 @@ class LutrisWindow(object):
         dialogs.PgaSourceDialog()
 
     def on_search_entry_changed(self, widget):
-        self.view.emit('filter-updated', widget.get_text())
+        self.view.game_store.filter_text = widget.get_text()
+        self.view.emit('filter-updated')
 
     def on_game_clicked(self, *args):
         """Launch a game."""
@@ -522,4 +523,5 @@ class LutrisWindow(object):
             self.sidebar_viewport.show()
 
     def on_sidebar_changed(self, widget):
-        runner = widget.get_selected_runner()
+        self.view.game_store.filter_runner = widget.get_selected_runner()
+        self.view.emit('filter-updated')

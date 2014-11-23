@@ -141,8 +141,9 @@ class GridViewCellRenderer(Gtk.CellRendererText):
 
 class GameStore(object):
 
-    def __init__(self, games, filter_text=None, icon_type=None):
+    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
         self.filter_text = filter_text
+        self.filter_runner = filter_runner
         self.icon_type = icon_type
         self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
         self.store.set_default_sort_func(sort_func)
@@ -153,13 +154,17 @@ class GameStore(object):
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
-        if not self.filter_text:
-            return True
         name = model.get_value(_iter, COL_NAME)
-        if self.filter_text.lower() in name.lower():
-            return True
+        runner = model.get_value(_iter, COL_RUNNER)
+        if self.filter_text:
+            name_matches = self.filter_text.lower() in name.lower()
         else:
-            return False
+            name_matches = True
+        if self.filter_runner:
+            runner_matches = self.filter_runner == runner
+        else:
+            runner_matches = True
+        return name_matches and runner_matches
 
     def fill_store(self, games):
         self.store.clear()
@@ -184,11 +189,16 @@ class GameView(object):
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
     selected_game = None
     current_path = None
     contextual_menu = None
+
+    def connect_signals(self):
+        """Signal handlers common to all views"""
+        self.connect('filter-updated', self.update_filter)
+        self.connect('button-press-event', self.popup_contextual_menu)
 
     @property
     def n_games(self):
@@ -229,9 +239,7 @@ class GameView(object):
         row[COL_RUNNER] = ''
         self.update_image(game_slug, is_installed=False)
 
-    def update_filter(self, widget, filter_text=None):
-        self.filter_text = filter_text
-        self.game_store.filter_text = self.filter_text
+    def update_filter(self, widget):
         self.game_store.modelfilter.refilter()
 
     def update_row(self, game):
@@ -278,11 +286,11 @@ class GameListView(Gtk.TreeView, GameView):
     """Show the main list of games."""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games, filter_text="", icon_type=None):
-        self.filter_text = filter_text
+    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
-                                    filter_text=self.filter_text)
+                                    filter_text=filter_text,
+                                    filter_runner=filter_runner)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameListView, self).__init__(self.model)
         self.set_rules_hint(True)
@@ -306,10 +314,9 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
+        self.connect_signals()
         self.connect('row-activated', self.get_selected_game, True)
         self.connect('cursor-changed', self.get_selected_game, False)
-        self.connect('filter-updated', self.update_filter)
-        self.connect('button-press-event', self.popup_contextual_menu)
 
     def set_text_cell(self):
         text_cell = Gtk.CellRendererText()
@@ -346,11 +353,11 @@ class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
     icon_padding = 1
 
-    def __init__(self, games, filter_text="", icon_type=None):
-        self.filter_text = filter_text
+    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
-                                    filter_text=self.filter_text)
+                                    filter_text=filter_text,
+                                    filter_runner=filter_runner)
         self.model = self.game_store.modelfilter
         super(GameGridView, self).__init__(model=self.model)
         self.set_columns(1)
@@ -363,10 +370,9 @@ class GameGridView(Gtk.IconView, GameView):
         self.add_attribute(gridview_cell_renderer, 'markup', COL_NAME)
         self.set_item_padding(self.icon_padding)
 
+        self.connect_signals()
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
-        self.connect('filter-updated', self.update_filter)
-        self.connect('button-press-event', self.popup_contextual_menu)
         self.connect('size-allocate', self.on_size_allocate)
 
     def set_fluid_columns(self, width):

@@ -13,7 +13,7 @@ class SidebarTreeView(Gtk.TreeView):
 
         super(SidebarTreeView, self).__init__(model=self.model)
 
-        column = Gtk.TreeViewColumn("Files")
+        column = Gtk.TreeViewColumn("Runners")
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         text_renderer = Gtk.CellRendererText()
         icon_renderer = Gtk.CellRendererPixbuf()
@@ -39,4 +39,6 @@ class SidebarTreeView(Gtk.TreeView):
     def get_selected_runner(self):
         selection = self.get_selection()
         model, iter = selection.get_selected()
-        return model.get_value(iter, LABEL)
+        runner_name = model.get_value(iter, LABEL)
+        if runner_name != 'Runners':
+            return runner_name
