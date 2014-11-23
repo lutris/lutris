@@ -35,3 +35,8 @@ class SidebarTreeView(Gtk.TreeView):
         for runner in runners:
             icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
             self.model.append(runner_node, [runner, icon])
+
+    def get_selected_runner(self):
+        selection = self.get_selection()
+        model, iter = selection.get_selected()
+        return model.get_value(iter, LABEL)

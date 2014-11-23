@@ -140,6 +140,7 @@ class LutrisWindow(object):
         sidebar_paned = self.builder.get_object('sidebar_paned')
         sidebar_paned.set_position(150)
         sidebar_treeview = SidebarTreeView()
+        sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
         self.sidebar_viewport.add(sidebar_treeview)
 
@@ -519,3 +520,6 @@ class LutrisWindow(object):
             self.sidebar_viewport.hide()
         else:
             self.sidebar_viewport.show()
+
+    def on_sidebar_changed(self, widget):
+        runner = widget.get_selected_runner()
