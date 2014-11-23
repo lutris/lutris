@@ -55,18 +55,6 @@ def sort_func(store, a_iter, b_iter, _user_data):
         return 0
 
 
-def filter_view(model, _iter, user_data):
-    """Filter the game list."""
-    filter_text = user_data(None)
-    if not filter_text:
-        return True
-    name = model.get(_iter, COL_NAME)[0]
-    if filter_text.lower() in name.lower():
-        return True
-    else:
-        return False
-
-
 def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
     if icon_type in ("banner", "banner_small"):
         size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
@@ -161,8 +149,17 @@ class GameStore(object):
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
         self.fill_store(games)
         self.modelfilter = self.store.filter_new()
-        self.modelfilter.set_visible_func(filter_view,
-                                          lambda x: self.filter_text)
+        self.modelfilter.set_visible_func(self.filter_view)
+
+    def filter_view(self, model, _iter, filter_data=None):
+        """Filter the game list."""
+        if not self.filter_text:
+            return True
+        name = model.get_value(_iter, COL_NAME)
+        if self.filter_text.lower() in name.lower():
+            return True
+        else:
+            return False
 
     def fill_store(self, games):
         self.store.clear()
@@ -232,11 +229,8 @@ class GameView(object):
         row[COL_RUNNER] = ''
         self.update_image(game_slug, is_installed=False)
 
-    def update_filter(self, widget, data=None):
-        self.filter_text = data
-        self.filter_view()
-
-    def filter_view(self):
+    def update_filter(self, widget, filter_text=None):
+        self.filter_text = filter_text
         self.game_store.filter_text = self.filter_text
         self.game_store.modelfilter.refilter()
 
