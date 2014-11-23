@@ -3,7 +3,7 @@
 import os
 import time
 
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, Gdk, GLib
 
 from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
@@ -20,7 +20,7 @@ from lutris.util.strings import slugify
 from lutris.util import datapath
 
 from lutris.gui import dialogs
-from lutris.gui.sidebar import Sidebar
+from lutris.gui.sidebar import SidebarTreeView
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.config_dialogs import (
@@ -137,9 +137,9 @@ class LutrisWindow(object):
         # Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
 
-        sidebar_treeview = self.builder.get_object('sidebar_treeview')
-        sidebar_liststore = self.builder.get_object('sidebar_liststore')
-        self.sidebar = Sidebar(sidebar_treeview, sidebar_liststore)
+        sidebar_treeview = SidebarTreeView()
+        self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
+        self.sidebar_viewport.add(sidebar_treeview)
 
         # Window initialization
         self.window = self.builder.get_object("window")
@@ -182,6 +182,7 @@ class LutrisWindow(object):
         self.view.connect("game-activated", self.on_game_clicked)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.get_size)
+        self.window.connect("key-press-event", self.on_keypress)
 
     def get_view_type(self):
         view_type = settings.read_setting('view_type')
@@ -385,6 +386,10 @@ class LutrisWindow(object):
             else:
                 InstallerDialog(game_slug, self)
 
+    def on_keypress(self, widget, event):
+        if event.keyval == Gdk.KEY_F9:
+            self.toggle_sidebar()
+
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -506,3 +511,9 @@ class LutrisWindow(object):
         game_slug = slugify(self.view.selected_game)
         create_launcher(game_slug, desktop=True)
         dialogs.NoticeDialog('Shortcut created on your desktop.')
+
+    def toggle_sidebar(self):
+        if self.sidebar_viewport.is_visible():
+            self.sidebar_viewport.hide()
+        else:
+            self.sidebar_viewport.show()
