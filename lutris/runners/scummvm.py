@@ -39,11 +39,11 @@ class scummvm(Runner):
             "option": "aspect",
             "label": "Aspect ratio correction",
             "type": "bool",
-            'help': ("Most games supported by ScummVM were made for a 4:3 "
-                     "screens with rectangular pixels, but modern screens "
-                     "have square pixels, which results in a vertically "
-                     "squeezed image. This option corrects this by displaying "
-                     "rectangular pixels.")
+            "default": True,
+            'help': ("Most games supported by ScummVM were made for VGA "
+                     "display modes using rectangular pixels. Activating "
+                     "this option for these games will preserve the 4:3 "
+                     "aspect ratio they were made for.")
         },
         {
             "option": "gfx-mode",
