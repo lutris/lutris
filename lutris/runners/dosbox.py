@@ -27,8 +27,8 @@ class dosbox(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Executable",
-            'help': ("The EXE, COM or BAT file to launch.\n"
+            "label": "Main file",
+            'help': ("The CONF, EXE, COM or BAT file to launch.\n"
                      "It can be left blank if the launch of the executable is"
                      "managed in the config file.")
         },
@@ -40,7 +40,14 @@ class dosbox(Runner):
                      "It can have a section in which you can put commands "
                      "to execute on startup. Read Dosbox's documentation "
                      "for more information.")
-        }
+        },
+        {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Command arguments',
+            'help': ("Command line arguments used when launching "
+                     "DOSBox")
+        },
     ]
 
     scaler_modes = [
@@ -102,6 +109,7 @@ class dosbox(Runner):
         main_file = self.main_file
         if not os.path.exists(main_file):
             return {'error': "FILE_NOT_FOUND", 'file': main_file}
+        args = self.game_config.get('args') or ''
 
         command = [self.get_executable()]
 
@@ -118,6 +126,9 @@ class dosbox(Runner):
 
         if self.runner_config.get("exit"):
             command.append("-exit")
+
+        if args:
+            command.append(arg)
         # /Options
 
         return {'command': command}
