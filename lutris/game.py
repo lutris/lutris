@@ -130,6 +130,10 @@ class Game(object):
         if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
+        primusrun = system_config.get('primusrun')
+        if primusrun and system.find_executable('primusrun'):
+            launch_arguments.insert(0, 'primusrun')
+
         prefix_command = system_config.get("prefix_command", '').strip()
         if prefix_command and system.find_executable(prefix_command):
             launch_arguments.insert(0, prefix_command)
