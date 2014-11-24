@@ -958,6 +958,7 @@ class InstallerDialog(Gtk.Window):
         self.install_button.hide()
         self.play_button.show()
         self.close_button.show()
+        self.set_urgency_hint(True)
 
     def notify_install_success(self):
         if self.parent:
