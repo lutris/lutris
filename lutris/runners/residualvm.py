@@ -81,14 +81,14 @@ class residualvm(Runner):
             command.append("--fullscreen")
 
         if self.runner_config.get("soft-renderer"):
-            command.append("soft-renderer")
+            command.append("--soft-renderer")
         else:
-            command.append("no-soft-renderer")
+            command.append("--no-soft-renderer")
 
         if self.runner_config.get("show-fps"):
-            command.append("show-fps")
+            command.append("--show-fps")
         else:
-            command.append("no-show-fps")
+            command.append("--no-show-fps")
         # /Options
 
         command.append("--path=\"%s\"" % self.game_path)
