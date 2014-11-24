@@ -124,17 +124,20 @@ Example:
 Moving files and directories
 ----------------------------
 
-Move files by using the ``move`` command. ``move``  requires two parameters:
-``src`` and ``dst``.
+Move files or directories by using the ``move`` command. ``move``  requires
+two parameters: ``src`` (the source file or folder) and ``dst`` (the
+destination folder).
 
-The ``src`` parameter can either be a ``file id`` or a path relative to game
+The ``src`` parameter can either be a ``file ID`` or a path relative to game
 dir. If the parameter value is not found in the list of file ids,
 then it must be prefixed by either ``$CACHE`` or ``$GAMEDIR`` to move a file or
 directory from the download cache or the game's install dir, respectively.
 
 The ``dst`` parameter should be prefixed by either ``$GAMEDIR`` or ``$HOME``
 to move files to path relative to the game dir or the current user's home
-directory.
+
+If the source is a ``file ID``, it will be updated with the new destination
+path. It can then be used in following commands to access the moved file.
 
 The ``move`` command cannot overwrite files.
 
@@ -155,6 +158,9 @@ destination directory. When merging into an existing directory, original files
 with the same name as the ones present in the merged directory will be
 overwritten. Take this into account when writing your script and order your
 actions accordingly.
+
+If the source is a ``file ID``, it will be updated with the new destination
+path. It can then be used in following commands to access the copied file.
 
 Example:
 
