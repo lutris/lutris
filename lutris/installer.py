@@ -417,7 +417,8 @@ class ScriptInterpreter(object):
             "GAMEDIR": self.target_path,
             "CACHE": settings.CACHE_DIR,
             "HOME": os.path.expanduser("~"),
-            "DISC": self.game_disc
+            "DISC": self.game_disc,
+            "USER": os.getenv('USER'),
         }
         replacements.update(self.game_files)
         return system.substitute(template_string, replacements)
