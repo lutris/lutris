@@ -1,6 +1,7 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
+import subprocess
 import time
 
 from gi.repository import Gtk, Gdk, GLib
@@ -329,6 +330,9 @@ class LutrisWindow(object):
             connection_status = "Not connected"
         logger.info(connection_status)
         connection_label.set_text(connection_status)
+
+    def on_register_account(self, *args):
+        subprocess.Popen(["xdg-open", "http://lutris.net/user/register"])
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""

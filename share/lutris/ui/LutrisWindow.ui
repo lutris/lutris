@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.16.1 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <!-- interface-local-resource-path ../media -->
@@ -58,6 +58,7 @@
                       <object class="GtkMenuItem" id="connect_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Connect to your Lutris account</property>
                         <property name="label" translatable="yes">Connect</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_connect" swapped="no"/>
@@ -70,6 +71,16 @@
                         <property name="label" translatable="yes">Disconnect</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_disconnect" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="register_account">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Register a new account on lutris.net</property>
+                        <property name="label" translatable="yes">Register account</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_register_account" swapped="no"/>
                       </object>
                     </child>
                     <child>
