@@ -120,11 +120,13 @@ class Game(object):
         restrict_to_display = system_config.get('display')
         if restrict_to_display:
             display.turn_off_except(restrict_to_display)
+            time.sleep(3)
             self.resolution_changed = True
 
         resolution = system_config.get('resolution')
         if resolution:
             display.change_resolution(resolution)
+            time.sleep(3)
             self.resolution_changed = True
 
         if system_config.get('reset_pulse'):
