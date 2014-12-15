@@ -57,7 +57,7 @@ class residualvm(Runner):
         return self.game_config.get('path')
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'ResidualVM')
+        return os.path.join(settings.RUNNER_DIR, 'ResidualVM/ResidualVM')
 
     def get_residualvm_data_dir(self):
         root_dir = os.path.dirname(self.get_executable())
@@ -100,10 +100,10 @@ class residualvm(Runner):
 
     def get_game_list(self):
         """ Return the entire list of games supported by ResidualVM """
-        scumm_output = subprocess.Popen(
+        residual_output = subprocess.Popen(
             [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
         ).communicate()[0]
-        game_list = str.split(scumm_output, "\n")
+        game_list = str.split(residual_output, "\n")
         game_array = []
         game_list_start = False
         for game in game_list:
