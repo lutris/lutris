@@ -99,6 +99,13 @@ class Game(object):
             return self.runner.prelaunch()
         return True
 
+    def use_runtime(self, system_config):
+        disable_runtime = system_config.get('disable_runtime')
+        env_runtime = os.getenv('LUTRIS_RUNTIME')
+        if env_runtime and env_runtime.lower() in ('0', 'off'):
+            disable_runtime = True
+        return not disable_runtime
+
     def play(self):
         """Launch the game."""
         if not self.runner:
@@ -145,7 +152,7 @@ class Game(object):
             launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
 
         ld_library_path = []
-        if os.getenv("LUTRIS_RUNTIME", 1) == 1:
+        if self.use_runtime(system_config):
             runtime64_path = os.path.join(settings.RUNTIME_DIR, "lib64")
             if os.path.exists(runtime64_path):
                 ld_library_path.append(runtime64_path)

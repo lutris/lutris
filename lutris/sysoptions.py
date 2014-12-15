@@ -26,6 +26,15 @@ system_options = [
                  "install a new game.")
     },
     {
+        'option': 'disable_runtime',
+        'type': 'bool',
+        'label': 'Disable Lutris Runtime',
+        'default': False,
+        'help': ("The Lutris Runtime loads some libraries before running the "
+                 "game. Which can cause some conflicts in some cases (mostly "
+                 "with Steam). Check this option to diasble it.")
+    },
+    {
         'option': 'resolution',
         'type': 'choice',
         'label': 'Screen resolution',
