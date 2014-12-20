@@ -82,6 +82,10 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     if prefix:
         env.append('WINEPREFIX="%s" ' % prefix)
 
+    if settings.RUNNER_DIR in wine_path:
+        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
+        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
+
     command = '{0} "{1}" {2} {3}'.format(
         " ".join(env), wine_path, executable, args
     )
