@@ -44,11 +44,18 @@ def set_regedit(path, key, value='', type_='REG_SZ',
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new wineprefix"""
-    logger.debug("Creating a wine prefix in %s", prefix)
+    logger.debug("Creating a Wine prefix in %s", prefix)
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
-    wine_path = os.path.join(wine_dir, 'wineboot')
-    wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
+    wineboot_path = os.path.join(wine_dir, 'wineboot')
+
+    env = ['WINEARCH=%s' % arch]
+    if prefix:
+        env.append('WINEPREFIX="%s" ' % prefix)
+
+    command = " ".join(env) + wineboot_path
+    subprocess.Popen(command, cwd=None, shell=True,
+                     stdout=subprocess.PIPE).communicate()
     if prefix:
         disable_desktop_integration(prefix)
 
@@ -70,10 +77,8 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     elif executable:
         executable = '"%s"' % executable
 
-    # Create prefix if none
-    # XXX Wat?
-    in_function_loop = os.path.basename(wine_path) == 'wineboot'
-    if not detected_arch and not in_function_loop:
+    # Create prefix if necessary
+    if not detected_arch:
         create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
 
     env = ['WINEARCH=%s' % arch]
