@@ -156,6 +156,31 @@ def set_drive_path(prefix, letter, path):
     os.symlink(path, drive_path)
 
 
+def get_wine_versions():
+    """Return the list of wine folders installed by lutris"""
+    if os.path.exists(WINE_DIR):
+        return os.listdir(WINE_DIR)
+    return []
+
+
+def get_wine_exes():
+    """Return the list of wine executables installed"""
+    versions = []
+    for version in get_wine_versions():
+        wine_exe = get_wine_version_exe(version)
+        if os.path.isfile(wine_exe):
+            versions.append(wine_exe)
+    return versions
+
+
+def get_wine_version_exe(version):
+    return os.path.join(WINE_DIR, version, 'bin/wine')
+
+
+def is_version_installed(version):
+    return os.path.isfile(get_wine_version_exe(version))
+
+
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""
@@ -359,18 +384,11 @@ class wine(Runner):
     @property
     def local_wine_versions(self):
         """Return the list of downloaded Wine versions."""
-        runner_path = WINE_DIR
-        versions = []
-        # Get list from folder names
-        if os.path.exists(runner_path):
-            dirnames = os.listdir(runner_path)
-            # Make sure the Wine executable is present
-            for version in dirnames:
-                wine_exe = os.path.join(runner_path, version, 'bin/wine')
-                if os.path.isfile(wine_exe):
-                    version = version.replace('-i386', '')
-                    versions.append(version)
-        return versions
+        return [
+            version.replace('-i386', '')
+            for version in get_wine_versions()
+            if is_version_installed(version)
+        ]
 
     @property
     def system_wine_version(self):
