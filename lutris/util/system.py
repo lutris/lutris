@@ -75,10 +75,14 @@ def get_cwd(pid):
 
 
 def get_command_line(pid):
-    cmdline_path = '/proc/%d/cmdline' % int(pid)
-    if not os.path.exists(cmdline_path):
-        return False
-    return open(cmdline_path, 'r').read().replace('\x00', ' ').strip()
+    """Return command line used to run the process `pid`"""
+    cmdline = None
+    cmdline_path = '/proc/{}/cmdline'.format(pid)
+    if os.path.exists(cmdline_path):
+        with open(cmdline_path) as cmdline_file:
+            cmdline = cmdline_file.read()
+            cmdline = cmdline.replace('\x00', ' ')
+    return cmdline
 
 
 def python_identifier(string):
@@ -171,3 +175,43 @@ def fix_path_case(path):
 
 def xdg_open(path):
     subprocess.Popen(['xdg-open', path])
+
+
+def get_threads(pid):
+    """Return a list of thread ids opened by process `pid`"""
+    basedir = '/proc/{}/task/'.format(pid)
+    return [tid for tid in os.listdir(basedir)]
+
+
+def get_child_of_thread(pid, tid):
+    """Return pid of child process opened by thread `tid` of process `pid`"""
+    child = None
+    children_path = '/proc/{}/task/{}/children'.format(pid, tid)
+    if os.path.exists(children_path):
+        with open(children_path) as children_file:
+            child = children_file.read()
+            child = child.strip()
+    return child
+
+
+def get_child_tree(pid):
+    """Return a tree containing all children of all thread from process `pid`"""
+    pid_info = {
+        'pid': pid,
+        'children': [],
+        'cmdline': get_command_line(pid)
+    }
+    for tid in get_threads(pid):
+        child = get_child_of_thread(pid, tid)
+        if child:
+            pid_info['children'].append(get_child_tree(child))
+    return pid_info
+
+
+def get_pids_using_file(path):
+    """Return a list of pids using file `path`"""
+    if not os.path.exists(path):
+        logger.error("No file %s", path)
+        return
+    lsof_output = execute("lsof -t \"{}\"".format(path))
+    return lsof_output.split('\n')
