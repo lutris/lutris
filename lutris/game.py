@@ -12,7 +12,7 @@ from lutris.runners import import_runner
 from lutris.util.log import logger
 from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
-from lutris.thread import LutrisThread
+from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 
 
@@ -43,6 +43,7 @@ class Game(object):
         self.game_thread = None
         self.heartbeat = None
         self.config = None
+        self.killswitch = None
 
         game_data = pga.get_game_by_slug(slug)
         self.runner_name = game_data.get('runner') or ''
@@ -173,10 +174,13 @@ class Game(object):
         for var in env:
             launch_arguments.insert(0, var)
 
-        killswitch = system_config.get('killswitch')
+        self.killswitch = system_config.get('killswitch')
+        if self.killswitch and not os.path.exists(self.killswitch):
+            # Prevent setting a killswitch to a file that doesn't exists
+            self.killswitch = None
+
         self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.working_dir,
-                                        killswitch=killswitch)
+                                        path=self.runner.working_dir)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -187,7 +191,7 @@ class Game(object):
             self.xboxdrv_start(xboxdrv_config)
         if self.runner.is_watchable:
             # Create heartbeat every
-            self.heartbeat = GLib.timeout_add(5000, self.poke_process)
+            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def joy2key(self, config):
         """Run a joy2key thread."""
@@ -222,9 +226,12 @@ class Game(object):
     def xboxdrv_stop(self):
         os.system("pkexec xboxdrvctl --shutdown")
 
-    def poke_process(self):
+    def beat(self):
         """Watch game's process."""
-        if not self.game_thread.pid:
+        game_thread_has_quit = not self.game_thread.pid
+        killswitch_engage = self.killswitch and \
+            not os.path.exists(self.killswitch)
+        if game_thread_has_quit or killswitch_engage:
             self.quit_game()
             return False
         return True

@@ -28,11 +28,14 @@ from signal import SIGKILL
 from gi.repository import GLib
 
 from lutris.util.log import logger
+from lutris.util import system
+
+HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    def __init__(self, command, path="/tmp", killswitch=None):
+    def __init__(self, command, path="/tmp"):
         """Thread init"""
         threading.Thread.__init__(self)
         self.command = command
@@ -41,22 +44,20 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.pid = 99999
-        self.child_processes = []
+        self.attached_threads = []
+        self.prerun_children = set()
+        self.watched_children = set()
         logger.debug('Running thread from %s', self.path)
-        if type(killswitch) == type(str()) and not os.path.exists(killswitch):
-            # Prevent setting a killswitch to a file that doesn't exists
-            self.killswitch = None
-        else:
-            self.killswitch = killswitch
 
     def attach_thread(self, thread):
         """Attach child process that need to be killed on game exit"""
-        self.child_processes.append(thread)
+        self.attached_threads.append(thread)
 
     def run(self):
         """Run the thread"""
+        self.prerun_children = self.get_children_pids()
         logger.debug("Thread running: %s", self.command)
-        GLib.timeout_add(2000, self.poke_process)
+        GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
         self.game_process = subprocess.Popen(self.command, shell=True,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
@@ -67,11 +68,12 @@ class LutrisThread(threading.Thread):
             line = self.game_process.stdout.read(80)
             sys.stdout.write(line)
 
-    def get_process_status(self):
-        with open("/proc/%s/status" % self.pid) as status_file:
-            for line in status_file.read():
-                if line.startswith("State:"):
-                    return line.split()[1]
+    def get_children(self):
+        return system.get_child_tree(os.getpid())['children']
+
+    def get_children_pids(self):
+        """Return a set containing all children pids launched by main process"""
+        return set([child['pid'] for child in self.get_children()])
 
     def set_stop_command(self, func):
         self.stop_func = func
@@ -80,8 +82,8 @@ class LutrisThread(threading.Thread):
         if hasattr(self, 'stop_func'):
             self.stop_func()
             return
-        for child in self.child_processes:
-            child.stop()
+        for thread in self.attached_threads:
+            thread.stop()
         pid = self.game_process.pid + 1
         logger.debug('SIGKILL %d', pid)
         try:
@@ -90,15 +92,9 @@ class LutrisThread(threading.Thread):
             logger.error("Could not kill PID %s", pid)
         self.pid = None
 
-    def poke_process(self):
+    def watch_children(self):
         """pokes at the running process"""
-        if not self.game_process:
-            logger.debug("game not running")
-            return True
-        else:
-            if self.killswitch and not os.path.exists(self.killswitch):
-                # How are we sure that pid + 1 is actually the game process ?
-                return False
+        self.watched_children = self.get_children_pids() - self.prerun_children
         self.pid = self.game_process.pid
         self.return_code = self.game_process.poll()
         if self.return_code is not None:

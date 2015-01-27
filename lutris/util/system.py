@@ -58,6 +58,13 @@ def get_pid(program, multiple=False):
         return pids[0]
 
 
+def get_process_status(pid):
+    with open("/proc/{}/status".format(pid)) as status_file:
+        for line in status_file.read():
+            if line.startswith("State:"):
+                return line.split()[1]
+
+
 def kill_pid(pid):
     try:
         int(pid)

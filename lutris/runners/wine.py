@@ -446,7 +446,6 @@ class wine(Runner):
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
-        custom_path = self.runner_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
             if system.find_executable('wine'):
                 return True
@@ -458,6 +457,7 @@ class wine(Runner):
                     "(To get rid of this message, either install Wine \n"
                     "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
+            custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
@@ -468,9 +468,7 @@ class wine(Runner):
                     "(To get rid of this message, fix your "
                     "Custom Wine path \n"
                     "or change the Wine version in the game's configuration.)")
-        if os.path.exists(self.get_executable()):
-            return True
-        return False
+        return os.path.exists(self.get_executable())
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None):
