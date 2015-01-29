@@ -445,7 +445,13 @@ class DownloadProgressBox(Gtk.HBox):
 
     def start(self):
         """Start downloading a file."""
-        self.downloader = Downloader(self.url, self.dest)
+        try:
+            self.downloader = Downloader(self.url, self.dest)
+        except RuntimeError as ex:
+            from lutris.gui.dialogs import ErrorDialog
+            ErrorDialog(ex.message)
+            self.emit('cancelrequested', {})
+            return
         timer_id = GLib.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()
