@@ -6,15 +6,15 @@ from gi.repository import Gio, GLib, Gtk, Gdk
 
 
 class Downloader():
-    # FIXME
-    downloaded_bytes = 0
-    total_bytes = 0
-    time_elapsed = 0
-    time_remaining = 0
-    speed = 0
-    cancelled = False
 
     def __init__(self, url, dest):
+        self.downloaded_bytes = 0
+        self.total_bytes = 0
+        self.time_elapsed = 0
+        self.time_remaining = 0
+        self.speed = 0
+        self.cancelled = False
+
         self.remote = Gio.File.new_for_uri(url)
         self.local = Gio.File.new_for_path(dest)
         self.cancellable = Gio.Cancellable()
