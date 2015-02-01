@@ -432,15 +432,14 @@ class wine(Runner):
         version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self):
-        if self.wine_version in ['custom', 'system']:
-            # Fall back on default bundled version
-            version = DEFAULT_WINE
-        else:
+    def install(self, version=None, arch='i386'):
+        if not version:
             version = self.wine_version
-        version += '-i386'
-        tarball = "wine-%s.tar.gz" % version
-        destination = os.path.join(WINE_DIR, version)
+            if version in ['custom', 'system']:
+                # Fall back on default bundled version
+                version = DEFAULT_WINE
+        tarball = "wine-%s-%s.tar.gz" % (version, arch)
+        destination = os.path.join(WINE_DIR, '%s-%s' % (version, arch))
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
