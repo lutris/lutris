@@ -281,6 +281,7 @@ class ScriptInterpreter(object):
 
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
+        self.parent.continue_button.hide()
 
         commands = self.script.get('installer', [])
         if exception:
