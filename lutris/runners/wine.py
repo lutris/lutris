@@ -38,8 +38,13 @@ def set_regedit(path, key, value='', type_='REG_SZ',
         "%s"=%s
         """ % (path, key, formatted_value[type_])))
     reg_file.close()
-    wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
+    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix)
     os.remove(reg_path)
+
+
+def set_regedit_file(filename, wine_path=None, prefix=None):
+    """Apply a regedit file to the Windows registry"""
+    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
@@ -60,7 +65,7 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
         disable_desktop_integration(prefix)
 
 
-def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
+def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_env=''):
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''

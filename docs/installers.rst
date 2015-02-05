@@ -289,6 +289,15 @@ Currently, the following tasks are implemented:
             value: 00000000
             type: REG_DWORD
 
+* wine / winesteam: ``set_regedit_file`` Apply a regedit file to the
+  registry
+
+  Example::
+
+    - task:
+        name: set_regedit_file
+        prefix: $GAMEDIR
+        filename: myregfile
 
 Trying the installer locally
 ============================
