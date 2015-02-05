@@ -281,6 +281,7 @@ class ScriptInterpreter(object):
 
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
+        self.parent.continue_button.hide()
 
         commands = self.script.get('installer', [])
         if exception:
@@ -637,10 +638,24 @@ class ScriptInterpreter(object):
             runner_name, task_name = task_name.split('.')
         else:
             runner_name = self.script["runner"]
-
-        # Check that runner is installed or install it
         runner = import_runner(runner_name)()
-        if not runner.is_installed():
+
+        # Check/install Wine runner at version specified in the script
+        wine_version = None
+        wine_arch = None
+        if runner_name == 'wine' and self.script.get('wine'):
+            wine_version = self.script.get('wine').get('version')
+            wine_arch = self.script.get('wine').get('arch')
+        if wine_version and task_name == 'wineexec':
+            if not wine.is_version_installed(wine_version, wine_arch):
+                Gdk.threads_init()
+                Gdk.threads_enter()
+                runner.install(wine_version, wine_arch)
+                Gdk.threads_leave()
+            data['wine_path'] = wine.get_wine_version_exe(wine_version,
+                                                          wine_arch)
+        # Check/install other runner
+        elif not runner.is_installed():
             Gdk.threads_init()
             Gdk.threads_enter()
             runner.install()

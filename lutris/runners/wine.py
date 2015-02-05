@@ -157,28 +157,37 @@ def set_drive_path(prefix, letter, path):
 
 
 def get_wine_versions():
-    """Return the list of wine folders installed by lutris"""
-    if os.path.exists(WINE_DIR):
-        return os.listdir(WINE_DIR)
-    return []
+    """Return the list of Wine versions installed by lutris.
+
+    :returns: list of (version, architecture) tuples
+    """
+    if not os.path.exists(WINE_DIR):
+        return []
+    dirs = os.listdir(WINE_DIR)
+    versions = []
+    for dirname in dirs:
+        split = dirname.split('-')
+        if len(split) == 2 and is_version_installed(split[0], split[1]):
+            versions.append((split[0], split[1]))
+    return versions
 
 
 def get_wine_exes():
     """Return the list of wine executables installed"""
     versions = []
-    for version in get_wine_versions():
-        wine_exe = get_wine_version_exe(version)
-        if os.path.isfile(wine_exe):
-            versions.append(wine_exe)
+    for version, arch in get_wine_versions():
+        versions.append(get_wine_version_exe(version, arch))
     return versions
 
 
-def get_wine_version_exe(version):
-    return os.path.join(WINE_DIR, version, 'bin/wine')
+def get_wine_version_exe(version, arch=None):
+    arch = arch if arch else 'i386'
+    return os.path.join(WINE_DIR, '%s-%s/bin/wine' % (version, arch))
 
 
-def is_version_installed(version):
-    return os.path.isfile(get_wine_version_exe(version))
+def is_version_installed(version, arch=None):
+    arch = arch if arch else 'i386'
+    return os.path.isfile(get_wine_version_exe(version, arch))
 
 
 # pylint: disable=C0103
@@ -237,7 +246,7 @@ class wine(Runner):
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
-            [(version, version) for version in self.local_wine_versions]
+            [(version, version) for version, arch in get_wine_versions()]
 
         orm_choices = [('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
@@ -382,15 +391,6 @@ class wine(Runner):
             return super(wine, self).working_dir
 
     @property
-    def local_wine_versions(self):
-        """Return the list of downloaded Wine versions."""
-        return [
-            version.replace('-i386', '')
-            for version in get_wine_versions()
-            if is_version_installed(version)
-        ]
-
-    @property
     def system_wine_version(self):
         """Return the version of Wine installed on the system."""
         try:
@@ -434,15 +434,15 @@ class wine(Runner):
         version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self):
-        if self.wine_version in ['custom', 'system']:
-            # Fall back on default bundled version
-            version = DEFAULT_WINE
-        else:
+    def install(self, version=None, arch=None):
+        if not version:
             version = self.wine_version
-        version += '-i386'
-        tarball = "wine-%s.tar.gz" % version
-        destination = os.path.join(WINE_DIR, version)
+            if version in ['custom', 'system']:
+                # Fall back on default bundled version
+                version = DEFAULT_WINE
+        arch = arch if arch else 'i386'
+        tarball = "wine-%s-%s.tar.gz" % (version, arch)
+        destination = os.path.join(WINE_DIR, '%s-%s' % (version, arch))
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
