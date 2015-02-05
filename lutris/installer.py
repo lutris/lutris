@@ -17,7 +17,7 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
-from lutris.util.strings import slugify, add_url_tags
+from lutris.util.strings import add_url_tags
 
 from lutris.game import Game
 from lutris.config import LutrisConfig
@@ -99,8 +99,8 @@ class ScriptInterpreter(object):
             return
         if not self.is_valid():
             raise ScriptingError("Invalid script", (self.script, self.errors))
-        self.game_name = self.script.get('name')
-        self.game_slug = slugify(self.game_name)
+        self.game_name = self.script['name']
+        self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
         if self.requires:
             self._check_dependecy()
@@ -134,7 +134,7 @@ class ScriptInterpreter(object):
 
     def is_valid(self):
         """ Return True if script is usable """
-        required_fields = ('runner', 'name')
+        required_fields = ('runner', 'name', 'game_slug')
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
