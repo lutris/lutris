@@ -306,7 +306,7 @@ Request input from the user by displaying a menu filled with options to choose
 from with the ``input_menu`` directive.
 The ``description`` parameter holds the message to the user, ``options`` is an
 indented list of ``value: label`` lines where "value" is the text that will be
-stored and "label" is the text displayed (), and the optional ``preselect``
+stored and "label" is the text displayed, and the optional ``preselect``
 parameter is the value to preselect for the user.
 
 The result of the last input directive is available with the ``$INPUT`` alias.
