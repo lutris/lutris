@@ -299,6 +299,40 @@ Currently, the following tasks are implemented:
         prefix: $GAMEDIR
         filename: myregfile
 
+Displaying a drop-down menu with options
+----------------------------------------
+
+Request input from the user by displaying a menu filled with options to choose
+from with the ``input_menu`` directive.
+The ``description`` parameter holds the message to the user, ``options`` is an
+indented list of ``value: label`` lines where "value" is the text that will be
+stored and "label" is the text displayed (), and the optional ``preselect``
+parameter is the value to preselect for the user.
+
+The result of the last input directive is available with the ``$INPUT`` alias.
+If need be, you can add an ``id`` parameter to the directive which will make the
+selected value available with ``$INPUT_<id>`` with "<id>" obviously being the
+id you specified. The id must contain only numbers, letters and underscores.
+
+Example:
+
+::
+
+    - input_menu:
+        description: Choose the game's language:
+        id: LANG
+        options:
+        - en: English
+        - bf: Brainfuck
+        - "value and": "label can be anything, surround them with quotes to avoid issues"
+        preselect: lah
+
+In this example, English would be preselected. If the option eventually
+selected is Brainfuck, the "$INPUT_LANG" alias would be available in
+following directives and would correspond to "bf". "$INPUT" would work as well,
+up until the next input directive.
+
+
 Trying the installer locally
 ============================
 

@@ -93,6 +93,7 @@ class ScriptInterpreter(object):
         self.game_slug = None
         self.game_files = {}
         self.game_disc = None
+        self.user_inputs = []
         self.steam_data = {}
         self.script = script
         if not self.script:
@@ -420,9 +421,19 @@ class ScriptInterpreter(object):
             "HOME": os.path.expanduser("~"),
             "DISC": self.game_disc,
             "USER": os.getenv('USER'),
+            "INPUT": self._get_last_user_input(),
         }
+        # Add 'INPUT_<id>' replacements for user inputs with an id
+        for input_data in self.user_inputs:
+            alias = input_data['alias']
+            if alias:
+                replacements[alias] = input_data['value']
+
         replacements.update(self.game_files)
         return system.substitute(template_string, replacements)
+
+    def _get_last_user_input(self):
+        return self.user_inputs[-1]['value'] if self.user_inputs else ''
 
     def _get_move_paths(self, params):
         """ Validate and converts raw data passed to 'move' """
@@ -476,6 +487,27 @@ class ScriptInterpreter(object):
         _hash = system.get_md5_hash(filename)
         if _hash != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
+
+    def input_menu(self, data):
+        """Display an input request as a dropdown menu with options."""
+        identifier = data.get('id')
+        alias = 'INPUT_%s' % identifier if identifier else None
+        has_entry = data.get('entry')
+        options = data.get('options')
+        preselect = self._substitute(data.get('preselect', ''))
+        self.parent.input_menu(alias, options, preselect, has_entry,
+                               self._on_input_menu_validated)
+        return 'STOP'
+
+    def _on_input_menu_validated(self, widget, *args):
+        alias = args[0]
+        menu = args[1]
+        choosen_option = menu.get_active_id()
+        if choosen_option:
+            self.user_inputs.append({'alias': alias,
+                                     'value': choosen_option})
+            self.parent.continue_button.hide()
+            self._iter_commands()
 
     def insert_disc(self, data):
         requires = data.get('requires')
@@ -900,7 +932,7 @@ class InstallerDialog(Gtk.Window):
         self.show_non_empty_warning()
 
     def on_install_clicked(self, button):
-        button.set_sensitive(False)
+        button.hide()
         self.interpreter.iter_game_files()
 
     def ask_user_for_file(self, message):
@@ -957,6 +989,35 @@ class InstallerDialog(Gtk.Window):
         button.connect('clicked', callback, data)
         self.widget_box.add(button)
         button.show()
+
+    def input_menu(self, alias, options, preselect, has_entry, callback):
+        """Display an input request as a dropdown menu with options."""
+        time.sleep(0.3)
+        self.clean_widgets()
+
+        model = Gtk.ListStore(str, str)
+        for option in options:
+            key, label = option.popitem()
+            model.append([key, label])
+        combobox = Gtk.ComboBox.new_with_model(model)
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 1)
+        combobox.set_id_column(0)
+        combobox.set_active_id(preselect)
+        self.widget_box.pack_start(combobox, True, False, 100)
+
+        combobox.connect("changed", self.on_input_menu_changed)
+        combobox.show()
+        self.continue_handler = self.continue_button.connect(
+            'clicked', callback, alias, combobox)
+        if not preselect:
+            self.continue_button.set_sensitive(False)
+        self.continue_button.show()
+
+    def on_input_menu_changed(self, widget):
+        if widget.get_active_id():
+            self.continue_button.set_sensitive(True)
 
     def download_complete(self, widget, data, more_data=None):
         """Action called on a completed download"""
