@@ -43,6 +43,7 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.pid = 99999
+        self.stdout = []
         self.attached_threads = []
         self.prerun_children = set()
         self.watched_children = set()
@@ -63,6 +64,7 @@ class LutrisThread(threading.Thread):
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
         for line in iter(self.game_process.stdout.readline, ''):
+            self.stdout.append(line)
             sys.stdout.write(line)
 
     def get_children(self):
