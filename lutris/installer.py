@@ -368,30 +368,29 @@ class ScriptInterpreter(object):
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
 
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
-            if launcher in self.script:
-                if launcher == "exe64":
-                    key = "exe"
-                else:
-                    key = launcher
-                game_resource = self.script[launcher]
-                if type(game_resource) == list:
-                    resource_paths = []
-                    for res in game_resource:
-                        if res in self.game_files:
-                            resource_paths.append(self.game_files[res])
-                        else:
-                            resource_paths.append(res)
-                    config['game'][key] = resource_paths
-                else:
-                    if game_resource in self.game_files:
-                        game_resource = self.game_files[game_resource]
-                    elif os.path.exists(os.path.join(self.target_path,
-                                                     game_resource)):
-                        game_resource = os.path.join(self.target_path,
-                                                     game_resource)
+            if launcher not in self.script:
+                continue
+            launcher_description = self.script[launcher]
+            if launcher == "exe64":
+                launcher = "exe"
+            if type(launcher_description) == list:
+                game_files = []
+                for game_file in launcher_description:
+                    if game_file in self.game_files:
+                        game_files.append(self.game_files[game_file])
                     else:
-                        game_resource = game_resource
-                    config['game'][key] = game_resource
+                        game_files.append(game_file)
+                config['game'][launcher] = game_files
+            else:
+                if launcher_description in self.game_files:
+                    launcher_description = self.game_files[launcher_description]
+                elif os.path.exists(os.path.join(self.target_path,
+                                                 launcher_description)):
+                    launcher_description = os.path.join(self.target_path,
+                                                        launcher_description)
+                else:
+                    launcher_description = launcher_description
+                config['game'][launcher] = launcher_description
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         logger.debug(yaml_config)
