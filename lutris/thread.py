@@ -40,7 +40,6 @@ class LutrisThread(threading.Thread):
         threading.Thread.__init__(self)
         self.command = command
         self.path = path
-        self.output = ""
         self.game_process = None
         self.return_code = None
         self.pid = 99999
@@ -59,13 +58,11 @@ class LutrisThread(threading.Thread):
         logger.debug("Thread running: %s", self.command)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
         self.game_process = subprocess.Popen(self.command, shell=True,
+                                             bufsize=1,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
-        self.output = self.game_process.stdout
-        line = "\n"
-        while line:
-            line = self.game_process.stdout.read(80)
+        for line in iter(self.game_process.stdout.readline, ''):
             sys.stdout.write(line)
 
     def get_children(self):
