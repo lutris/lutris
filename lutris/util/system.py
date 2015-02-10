@@ -190,15 +190,14 @@ def get_threads(pid):
     return [tid for tid in os.listdir(basedir)]
 
 
-def get_child_of_thread(pid, tid):
+def get_children_of_thread(pid, tid):
     """Return pid of child process opened by thread `tid` of process `pid`"""
-    child = None
+    children = []
     children_path = '/proc/{}/task/{}/children'.format(pid, tid)
     if os.path.exists(children_path):
         with open(children_path) as children_file:
-            child = children_file.read()
-            child = child.strip()
-    return child
+            children = children_file.read().strip().split()
+    return children
 
 
 def get_child_tree(pid):
@@ -209,8 +208,7 @@ def get_child_tree(pid):
         'cmdline': get_command_line(pid)
     }
     for tid in get_threads(pid):
-        child = get_child_of_thread(pid, tid)
-        if child:
+        for child in get_children_of_thread(pid, tid):
             pid_info['children'].append(get_child_tree(child))
     return pid_info
 
