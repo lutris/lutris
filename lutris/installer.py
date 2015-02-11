@@ -804,7 +804,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
-        if os.path.exists(game_ref):
+        if os.path.isfile(game_ref):
             # local script
             logger.debug("Opening script: %s", game_ref)
             self.scripts = yaml.safe_load(open(game_ref, 'r').read())
