@@ -38,6 +38,8 @@ class SidebarTreeView(Gtk.TreeView):
 
     def get_selected_runner(self):
         selection = self.get_selection()
+        if not selection:
+            return
         model, iter = selection.get_selected()
         runner_name = model.get_value(iter, LABEL)
         if runner_name != 'Runners':
