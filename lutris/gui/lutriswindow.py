@@ -106,6 +106,7 @@ class LutrisWindow(object):
         self.icon_menuitem.set_active(self.icon_type == 'grid')
 
         self.search_entry = self.builder.get_object('search_entry')
+        self.search_entry.connect('icon-press', self.on_clear_search)
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
@@ -298,6 +299,10 @@ class LutrisWindow(object):
             self.stop_button.set_sensitive(False)
 
     # Callbacks
+    def on_clear_search(self, widget, icon_pos, event):
+        if icon_pos == Gtk.EntryIconPosition.SECONDARY:
+            widget.set_text('')
+
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog()

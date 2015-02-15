@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <!-- interface-local-resource-path ../media -->
@@ -431,6 +431,7 @@
                     <property name="invisible_char">•</property>
                     <property name="width_chars">30</property>
                     <property name="primary_icon_stock">gtk-find</property>
+                    <property name="secondary_icon_stock">gtk-clear</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="primary_icon_sensitive">False</property>
                     <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>
