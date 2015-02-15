@@ -60,7 +60,9 @@ def get_pid(program, multiple=False):
 
 def get_process_status(pid):
     with open("/proc/{}/status".format(pid)) as status_file:
-        for line in status_file.read():
+        line = '.'
+        while line:
+            line = status_file.readline()
             if line.startswith("State:"):
                 return line.split()[1]
 
