@@ -190,42 +190,7 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
-            try:
-                parts = file_uri.split(":", 2)
-                steam_rel_path = parts[2].strip()
-            except IndexError:
-                raise ScriptingError("Malformed steam path: %s" % file_uri)
-            if steam_rel_path == "/":
-                steam_rel_path = "."
-            self.steam_data = {
-                'appid': parts[1],
-                'steam_rel_path': steam_rel_path,
-                'file_id': file_id
-            }
-            if parts[0] == '$WINESTEAM':
-                appid = self.steam_data['appid']
-                logger.debug("Getting Wine Steam data for appid %s" % appid)
-                self.parent.set_status('Getting Wine Steam game data')
-                self.steam_data['platform'] = "windows"
-                # Check that wine is installed
-                wine_runner = wine.wine()
-                if not wine_runner.is_installed():
-                    wine_runner.install()
-                # Getting data from Wine Steam
-                steam_runner = winesteam.winesteam()
-                if not steam_runner.is_installed():
-                    winesteam.download_steam(
-                        downloader=self.parent.start_download,
-                        callback=self.parent.on_steam_downloaded
-                    )
-                else:
-                    self.install_steam_game(winesteam.winesteam)
-                return
-            else:
-                # Getting data from Linux Steam
-                self.parent.set_status('Getting Steam game data')
-                self.steam_data['platform'] = "linux"
-                self.install_steam_game(steam.steam)
+            if self._download_steam_data(file_uri, file_id):
                 return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -261,6 +226,45 @@ class ScriptInterpreter(object):
         self.parent.set_status('Fetching %s' % file_uri)
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
+
+    def _download_steam_data(self, file_uri, file_id):
+        try:
+            parts = file_uri.split(":", 2)
+            steam_rel_path = parts[2].strip()
+        except IndexError:
+            raise ScriptingError("Malformed steam path: %s" % file_uri)
+        if steam_rel_path == "/":
+            steam_rel_path = "."
+        self.steam_data = {
+            'appid': parts[1],
+            'steam_rel_path': steam_rel_path,
+            'file_id': file_id
+        }
+        if parts[0] == '$WINESTEAM':
+            appid = self.steam_data['appid']
+            logger.debug("Getting Wine Steam data for appid %s" % appid)
+            self.parent.set_status('Getting Wine Steam game data')
+            self.steam_data['platform'] = "windows"
+            # Check that wine is installed
+            wine_runner = wine.wine()
+            if not wine_runner.is_installed():
+                wine_runner.install()
+            # Getting data from Wine Steam
+            steam_runner = winesteam.winesteam()
+            if not steam_runner.is_installed():
+                winesteam.download_steam(
+                    downloader=self.parent.start_download,
+                    callback=self.parent.on_steam_downloaded
+                )
+            else:
+                self.install_steam_game(winesteam.winesteam)
+            return True
+        else:
+            # Getting data from Linux Steam
+            self.parent.set_status('Getting Steam game data')
+            self.steam_data['platform'] = "linux"
+            self.install_steam_game(steam.steam)
+            return True
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -435,13 +439,7 @@ class ScriptInterpreter(object):
         return self.user_inputs[-1]['value'] if self.user_inputs else ''
 
     def _get_move_paths(self, params):
-        """ Validate and converts raw data passed to 'move' """
-        for required_param in ('dst', 'src'):
-            if required_param not in params:
-                raise ScriptingError(
-                    "The '%s' parameter is required for 'move'"
-                    % required_param, params
-                )
+        """Convert raw data passed to 'move'."""
         src_ref = params['src']
         src = (self.game_files.get(src_ref) or self._substitute(src_ref))
         if not src:
@@ -455,6 +453,23 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
+    def _check_required_params(self, params, script_data, command_name):
+        """Verify presence of a list of parameters required by a command."""
+        if type(params) is str:
+            params = [params]
+        for param in params:
+            if param not in script_data:
+                raise ScriptingError('The "%s" parameter is mandatory for '
+                                     'the %s command' % (param, command_name),
+                                     script_data)
+
+    def check_md5(self, data):
+        self._check_required_params(['file', 'value'], data, 'check_md5')
+        filename = self._get_file(data['file'])
+        _hash = system.get_md5_hash(filename)
+        if _hash != data['value']:
+            raise ScriptingError("MD5 checksum mismatch", data)
+
     def chmodx(self, filename):
         filename = self._substitute(filename)
         os.popen('chmod +x "%s"' % filename)
@@ -462,6 +477,7 @@ class ScriptInterpreter(object):
     def execute(self, data):
         """Run an executable file"""
         if isinstance(data, dict):
+            self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             args = [self._substitute(arg)
                     for arg in data.get('args', '').split()]
@@ -481,18 +497,34 @@ class ScriptInterpreter(object):
             logger.debug("Executing %s %s" % (exec_path, args))
             subprocess.call([exec_path] + args)
 
-    def check_md5(self, data):
+    def extract(self, data):
+        """Extract a file, guessing the compression method."""
+        self._check_required_params('file', data, 'extract')
         filename = self._get_file(data['file'])
-        _hash = system.get_md5_hash(filename)
-        if _hash != data['value']:
-            raise ScriptingError("MD5 checksum mismatch", data)
+        if not filename:
+            filename = self._substitute(data['file'])
+
+        if not os.path.exists(filename):
+            raise ScriptingError("%s does not exists" % filename)
+        if 'dst' in data:
+            dest_path = self._substitute(data['dst'])
+        else:
+            dest_path = self.target_path
+        msg = "Extracting %s" % os.path.basename(filename)
+        logger.debug(msg)
+        self.parent.set_status(msg)
+        merge_single = 'nomerge' not in data
+        extractor = data.get('format')
+        logger.debug("extracting file %s to %s", filename, dest_path)
+        extract.extract_archive(filename, dest_path, merge_single, extractor)
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
+        self._check_required_params('options', data, 'input_menu')
         identifier = data.get('id')
         alias = 'INPUT_%s' % identifier if identifier else None
         has_entry = data.get('entry')
-        options = data.get('options')
+        options = data['options']
         preselect = self._substitute(data.get('preselect', ''))
         self.parent.input_menu(alias, options, preselect, has_entry,
                                self._on_input_menu_validated)
@@ -509,6 +541,7 @@ class ScriptInterpreter(object):
             self._iter_commands()
 
     def insert_disc(self, data):
+        self._check_required_params('requires', data, 'insert_disc')
         requires = data.get('requires')
         message = data.get(
             'message',
@@ -519,9 +552,6 @@ class ScriptInterpreter(object):
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
-        if not requires:
-            raise ScriptingError("The installer's `insert_disc` command is "
-                                 "missing the `requires` parameter." * 2)
         self.parent.wait_for_user_action(message, self._find_matching_disc,
                                          requires)
         return 'STOP'
@@ -548,6 +578,7 @@ class ScriptInterpreter(object):
             logger.debug("Created directory %s" % directory)
 
     def merge(self, params):
+        self._check_required_params(['src', 'dst'], params, 'merge')
         src, dst = self._get_move_paths(params)
         logger.debug("Merging %s into %s" % (src, dst))
         if not os.path.exists(src):
@@ -569,6 +600,7 @@ class ScriptInterpreter(object):
 
     def move(self, params):
         """ Move a file or directory """
+        self._check_required_params(['src', 'dst'], params, 'move')
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s" % (src, dst))
         if not os.path.exists(src):
@@ -595,35 +627,11 @@ class ScriptInterpreter(object):
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
 
-    def extract(self, data):
-        """ Extracts a file, guessing the compression method """
-        if 'file' not in data:
-            raise ScriptingError('"file" parameter is mandatory for the '
-                                 'extract command', data)
-        filename = self._get_file(data['file'])
-        if not filename:
-            filename = self._substitute(data['file'])
-
-        if not os.path.exists(filename):
-            raise ScriptingError("%s does not exists" % filename)
-        if 'dst' in data:
-            dest_path = self._substitute(data['dst'])
-        else:
-            dest_path = self.target_path
-        msg = "Extracting %s" % os.path.basename(filename)
-        logger.debug(msg)
-        self.parent.set_status(msg)
-        merge_single = 'nomerge' not in data
-        extractor = data.get('format')
-        logger.debug("extracting file %s to %s", filename, dest_path)
-        extract.extract_archive(filename, dest_path, merge_single, extractor)
-
     def write_config(self, params):
+        self._check_required_params(['file', 'section', 'key', 'value'],
+                                    params, 'move')
         """Writes a key-value pair into an INI type config file."""
         # Get file
-        if 'file' not in params:
-            raise ScriptingError('"file" parameter is mandatory for the '
-                                 'write_conf command', params)
         config_file = self._get_file(params['file'])
         if not config_file:
             config_file = self._substitute(params['file'])
@@ -645,25 +653,13 @@ class ScriptInterpreter(object):
         with open(config_file, 'wb') as f:
             parser.write(f)
 
-    def _append_steam_data_to_files(self, runner_class):
-        steam_runner = runner_class()
-        data_path = steam_runner.get_game_path_from_appid(
-            self.steam_data['appid'])
-        if not data_path or not os.path.exists(data_path):
-            raise ScriptingError("Unable to get Steam data for game")
-        logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id']] = \
-            os.path.join(data_path, self.steam_data['steam_rel_path'])
-        self.iter_game_files()
-
     def task(self, data):
         """ This action triggers a task within a runner.
             The 'name' parameter is mandatory. If 'args' is provided it will be
             passed to the runner task.
         """
+        self._check_required_params('name', params, 'task')
         task_name = data.pop('name')
-        if not task_name:
-            raise ScriptingError("Missing required task name", data)
         if '.' in task_name:
             # Run a task from a different runner than the one for this installer
             runner_name, task_name = task_name.split('.')
@@ -716,13 +712,6 @@ class ScriptInterpreter(object):
         else:
             self._append_steam_data_to_files(runner_class)
 
-    def complete_steam_install(self, dest):
-        winesteam_runner = winesteam.winesteam()
-        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
-
-    def on_winesteam_installed(self, *args):
-        self.install_steam_game(winesteam.winesteam)
-
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
         if self.steam_data['platform'] == 'windows':
@@ -730,6 +719,24 @@ class ScriptInterpreter(object):
         else:
             runner_class = steam.steam
         self._append_steam_data_to_files(runner_class)
+
+    def _append_steam_data_to_files(self, runner_class):
+        steam_runner = runner_class()
+        data_path = steam_runner.get_game_path_from_appid(
+            self.steam_data['appid'])
+        if not data_path or not os.path.exists(data_path):
+            raise ScriptingError("Unable to get Steam data for game")
+        logger.debug("got data path: %s" % data_path)
+        self.game_files[self.steam_data['file_id']] = \
+            os.path.join(data_path, self.steam_data['steam_rel_path'])
+        self.iter_game_files()
+
+    def complete_steam_install(self, dest):
+        winesteam_runner = winesteam.winesteam()
+        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
+
+    def on_winesteam_installed(self, *args):
+        self.install_steam_game(winesteam.winesteam)
 
 
 # pylint: disable=R0904
@@ -1004,6 +1011,7 @@ class InstallerDialog(Gtk.Window):
         combobox.add_attribute(renderer_text, "text", 1)
         combobox.set_id_column(0)
         combobox.set_active_id(preselect)
+        combobox.set_halign(Gtk.Align.CENTER)
         self.widget_box.pack_start(combobox, True, False, 100)
 
         combobox.connect("changed", self.on_input_menu_changed)
