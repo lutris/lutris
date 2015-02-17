@@ -459,6 +459,12 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
+    def check_md5(self, data):
+        filename = self._get_file(data['file'])
+        _hash = system.get_md5_hash(filename)
+        if _hash != data['value']:
+            raise ScriptingError("MD5 checksum mismatch", data)
+
     def chmodx(self, filename):
         filename = self._substitute(filename)
         os.popen('chmod +x "%s"' % filename)
@@ -485,11 +491,28 @@ class ScriptInterpreter(object):
             logger.debug("Executing %s %s" % (exec_path, args))
             subprocess.call([exec_path] + args)
 
-    def check_md5(self, data):
+    def extract(self, data):
+        """ Extracts a file, guessing the compression method """
+        if 'file' not in data:
+            raise ScriptingError('"file" parameter is mandatory for the '
+                                 'extract command', data)
         filename = self._get_file(data['file'])
-        _hash = system.get_md5_hash(filename)
-        if _hash != data['value']:
-            raise ScriptingError("MD5 checksum mismatch", data)
+        if not filename:
+            filename = self._substitute(data['file'])
+
+        if not os.path.exists(filename):
+            raise ScriptingError("%s does not exists" % filename)
+        if 'dst' in data:
+            dest_path = self._substitute(data['dst'])
+        else:
+            dest_path = self.target_path
+        msg = "Extracting %s" % os.path.basename(filename)
+        logger.debug(msg)
+        self.parent.set_status(msg)
+        merge_single = 'nomerge' not in data
+        extractor = data.get('format')
+        logger.debug("extracting file %s to %s", filename, dest_path)
+        extract.extract_archive(filename, dest_path, merge_single, extractor)
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -599,29 +622,6 @@ class ScriptInterpreter(object):
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
 
-    def extract(self, data):
-        """ Extracts a file, guessing the compression method """
-        if 'file' not in data:
-            raise ScriptingError('"file" parameter is mandatory for the '
-                                 'extract command', data)
-        filename = self._get_file(data['file'])
-        if not filename:
-            filename = self._substitute(data['file'])
-
-        if not os.path.exists(filename):
-            raise ScriptingError("%s does not exists" % filename)
-        if 'dst' in data:
-            dest_path = self._substitute(data['dst'])
-        else:
-            dest_path = self.target_path
-        msg = "Extracting %s" % os.path.basename(filename)
-        logger.debug(msg)
-        self.parent.set_status(msg)
-        merge_single = 'nomerge' not in data
-        extractor = data.get('format')
-        logger.debug("extracting file %s to %s", filename, dest_path)
-        extract.extract_archive(filename, dest_path, merge_single, extractor)
-
     def write_config(self, params):
         """Writes a key-value pair into an INI type config file."""
         # Get file
@@ -648,17 +648,6 @@ class ScriptInterpreter(object):
 
         with open(config_file, 'wb') as f:
             parser.write(f)
-
-    def _append_steam_data_to_files(self, runner_class):
-        steam_runner = runner_class()
-        data_path = steam_runner.get_game_path_from_appid(
-            self.steam_data['appid'])
-        if not data_path or not os.path.exists(data_path):
-            raise ScriptingError("Unable to get Steam data for game")
-        logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id']] = \
-            os.path.join(data_path, self.steam_data['steam_rel_path'])
-        self.iter_game_files()
 
     def task(self, data):
         """ This action triggers a task within a runner.
@@ -720,13 +709,6 @@ class ScriptInterpreter(object):
         else:
             self._append_steam_data_to_files(runner_class)
 
-    def complete_steam_install(self, dest):
-        winesteam_runner = winesteam.winesteam()
-        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
-
-    def on_winesteam_installed(self, *args):
-        self.install_steam_game(winesteam.winesteam)
-
     def on_steam_game_installed(self, *args):
         logger.debug("Steam game installed")
         if self.steam_data['platform'] == 'windows':
@@ -734,6 +716,24 @@ class ScriptInterpreter(object):
         else:
             runner_class = steam.steam
         self._append_steam_data_to_files(runner_class)
+
+    def _append_steam_data_to_files(self, runner_class):
+        steam_runner = runner_class()
+        data_path = steam_runner.get_game_path_from_appid(
+            self.steam_data['appid'])
+        if not data_path or not os.path.exists(data_path):
+            raise ScriptingError("Unable to get Steam data for game")
+        logger.debug("got data path: %s" % data_path)
+        self.game_files[self.steam_data['file_id']] = \
+            os.path.join(data_path, self.steam_data['steam_rel_path'])
+        self.iter_game_files()
+
+    def complete_steam_install(self, dest):
+        winesteam_runner = winesteam.winesteam()
+        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
+
+    def on_winesteam_installed(self, *args):
+        self.install_steam_game(winesteam.winesteam)
 
 
 # pylint: disable=R0904
