@@ -190,42 +190,7 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
-            try:
-                parts = file_uri.split(":", 2)
-                steam_rel_path = parts[2].strip()
-            except IndexError:
-                raise ScriptingError("Malformed steam path: %s" % file_uri)
-            if steam_rel_path == "/":
-                steam_rel_path = "."
-            self.steam_data = {
-                'appid': parts[1],
-                'steam_rel_path': steam_rel_path,
-                'file_id': file_id
-            }
-            if parts[0] == '$WINESTEAM':
-                appid = self.steam_data['appid']
-                logger.debug("Getting Wine Steam data for appid %s" % appid)
-                self.parent.set_status('Getting Wine Steam game data')
-                self.steam_data['platform'] = "windows"
-                # Check that wine is installed
-                wine_runner = wine.wine()
-                if not wine_runner.is_installed():
-                    wine_runner.install()
-                # Getting data from Wine Steam
-                steam_runner = winesteam.winesteam()
-                if not steam_runner.is_installed():
-                    winesteam.download_steam(
-                        downloader=self.parent.start_download,
-                        callback=self.parent.on_steam_downloaded
-                    )
-                else:
-                    self.install_steam_game(winesteam.winesteam)
-                return
-            else:
-                # Getting data from Linux Steam
-                self.parent.set_status('Getting Steam game data')
-                self.steam_data['platform'] = "linux"
-                self.install_steam_game(steam.steam)
+            if self._download_steam_data(file_uri, file_id):
                 return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
@@ -261,6 +226,45 @@ class ScriptInterpreter(object):
         self.parent.set_status('Fetching %s' % file_uri)
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
+
+    def _download_steam_data(self, file_uri, file_id):
+        try:
+            parts = file_uri.split(":", 2)
+            steam_rel_path = parts[2].strip()
+        except IndexError:
+            raise ScriptingError("Malformed steam path: %s" % file_uri)
+        if steam_rel_path == "/":
+            steam_rel_path = "."
+        self.steam_data = {
+            'appid': parts[1],
+            'steam_rel_path': steam_rel_path,
+            'file_id': file_id
+        }
+        if parts[0] == '$WINESTEAM':
+            appid = self.steam_data['appid']
+            logger.debug("Getting Wine Steam data for appid %s" % appid)
+            self.parent.set_status('Getting Wine Steam game data')
+            self.steam_data['platform'] = "windows"
+            # Check that wine is installed
+            wine_runner = wine.wine()
+            if not wine_runner.is_installed():
+                wine_runner.install()
+            # Getting data from Wine Steam
+            steam_runner = winesteam.winesteam()
+            if not steam_runner.is_installed():
+                winesteam.download_steam(
+                    downloader=self.parent.start_download,
+                    callback=self.parent.on_steam_downloaded
+                )
+            else:
+                self.install_steam_game(winesteam.winesteam)
+            return True
+        else:
+            # Getting data from Linux Steam
+            self.parent.set_status('Getting Steam game data')
+            self.steam_data['platform'] = "linux"
+            self.install_steam_game(steam.steam)
+            return True
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
