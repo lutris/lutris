@@ -1004,6 +1004,7 @@ class InstallerDialog(Gtk.Window):
         combobox.add_attribute(renderer_text, "text", 1)
         combobox.set_id_column(0)
         combobox.set_active_id(preselect)
+        combobox.set_halign(Gtk.Align.CENTER)
         self.widget_box.pack_start(combobox, True, False, 100)
 
         combobox.connect("changed", self.on_input_menu_changed)
