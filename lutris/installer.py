@@ -439,13 +439,7 @@ class ScriptInterpreter(object):
         return self.user_inputs[-1]['value'] if self.user_inputs else ''
 
     def _get_move_paths(self, params):
-        """ Validate and converts raw data passed to 'move' """
-        for required_param in ('dst', 'src'):
-            if required_param not in params:
-                raise ScriptingError(
-                    "The '%s' parameter is required for 'move'"
-                    % required_param, params
-                )
+        """Convert raw data passed to 'move'."""
         src_ref = params['src']
         src = (self.game_files.get(src_ref) or self._substitute(src_ref))
         if not src:
@@ -459,7 +453,18 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
+    def _check_required_params(self, params, script_data, command_name):
+        """Verify presence of a list of parameters required by a command."""
+        if type(params) is str:
+            params = [params]
+        for param in params:
+            if param not in script_data:
+                raise ScriptingError('The "%s" parameter is mandatory for '
+                                     'the %s command' % (param, command_name),
+                                     script_data)
+
     def check_md5(self, data):
+        self._check_required_params(['file', 'value'], data, 'check_md5')
         filename = self._get_file(data['file'])
         _hash = system.get_md5_hash(filename)
         if _hash != data['value']:
@@ -472,6 +477,7 @@ class ScriptInterpreter(object):
     def execute(self, data):
         """Run an executable file"""
         if isinstance(data, dict):
+            self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             args = [self._substitute(arg)
                     for arg in data.get('args', '').split()]
@@ -492,10 +498,8 @@ class ScriptInterpreter(object):
             subprocess.call([exec_path] + args)
 
     def extract(self, data):
-        """ Extracts a file, guessing the compression method """
-        if 'file' not in data:
-            raise ScriptingError('"file" parameter is mandatory for the '
-                                 'extract command', data)
+        """Extract a file, guessing the compression method."""
+        self._check_required_params('file', data, 'extract')
         filename = self._get_file(data['file'])
         if not filename:
             filename = self._substitute(data['file'])
@@ -516,10 +520,11 @@ class ScriptInterpreter(object):
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
+        self._check_required_params('options', data, 'input_menu')
         identifier = data.get('id')
         alias = 'INPUT_%s' % identifier if identifier else None
         has_entry = data.get('entry')
-        options = data.get('options')
+        options = data['options']
         preselect = self._substitute(data.get('preselect', ''))
         self.parent.input_menu(alias, options, preselect, has_entry,
                                self._on_input_menu_validated)
@@ -536,6 +541,7 @@ class ScriptInterpreter(object):
             self._iter_commands()
 
     def insert_disc(self, data):
+        self._check_required_params('requires', data, 'insert_disc')
         requires = data.get('requires')
         message = data.get(
             'message',
@@ -546,9 +552,6 @@ class ScriptInterpreter(object):
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
-        if not requires:
-            raise ScriptingError("The installer's `insert_disc` command is "
-                                 "missing the `requires` parameter." * 2)
         self.parent.wait_for_user_action(message, self._find_matching_disc,
                                          requires)
         return 'STOP'
@@ -575,6 +578,7 @@ class ScriptInterpreter(object):
             logger.debug("Created directory %s" % directory)
 
     def merge(self, params):
+        self._check_required_params(['src', 'dst'], params, 'merge')
         src, dst = self._get_move_paths(params)
         logger.debug("Merging %s into %s" % (src, dst))
         if not os.path.exists(src):
@@ -596,6 +600,7 @@ class ScriptInterpreter(object):
 
     def move(self, params):
         """ Move a file or directory """
+        self._check_required_params(['src', 'dst'], params, 'move')
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s" % (src, dst))
         if not os.path.exists(src):
@@ -623,11 +628,10 @@ class ScriptInterpreter(object):
             self.game_files['src'] = src
 
     def write_config(self, params):
+        self._check_required_params(['file', 'section', 'key', 'value'],
+                                    params, 'move')
         """Writes a key-value pair into an INI type config file."""
         # Get file
-        if 'file' not in params:
-            raise ScriptingError('"file" parameter is mandatory for the '
-                                 'write_conf command', params)
         config_file = self._get_file(params['file'])
         if not config_file:
             config_file = self._substitute(params['file'])
@@ -654,9 +658,8 @@ class ScriptInterpreter(object):
             The 'name' parameter is mandatory. If 'args' is provided it will be
             passed to the runner task.
         """
+        self._check_required_params('name', params, 'task')
         task_name = data.pop('name')
-        if not task_name:
-            raise ScriptingError("Missing required task name", data)
         if '.' in task_name:
             # Run a task from a different runner than the one for this installer
             runner_name, task_name = task_name.split('.')
