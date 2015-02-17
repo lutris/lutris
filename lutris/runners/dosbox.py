@@ -121,14 +121,14 @@ class dosbox(Runner):
         if self.game_config.get('config_file'):
             command.append('-conf "%s"' % self.game_config['config_file'])
 
-        if "scaler" in self.runner_config:
+        if self.runner_config.get('scaler'):
             command.append("-scaler %s" % self.runner_config['scaler'])
 
         if self.runner_config.get("exit"):
             command.append("-exit")
 
         if args:
-            command.append(arg)
+            command.append(args)
         # /Options
 
         return {'command': command}
