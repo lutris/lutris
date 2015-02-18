@@ -481,10 +481,7 @@ class ScriptInterpreter(object):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             for arg in data.get('args', '').split():
-                if arg in self.game_files:
-                    args.append(self._get_file(arg))
-                else:
-                    args.append(self._substitute(arg))
+                args.append(self._substitute(arg))
         else:
             file_ref = data
         # Determine whether 'file' value is a file id or a path
