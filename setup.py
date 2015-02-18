@@ -70,7 +70,7 @@ def update_desktop_file(datadir):
 data_files = []
 
 for directory, _, filenames in os.walk(u'share'):
-    dest = directory[5:]
+    dest = directory[6:]
     if filenames:
         files = []
         for filename in filenames:

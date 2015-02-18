@@ -476,14 +476,17 @@ class ScriptInterpreter(object):
 
     def execute(self, data):
         """Run an executable file"""
+        args = []
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
-            args = [self._substitute(arg)
-                    for arg in data.get('args', '').split()]
+            for arg in data.get('args', '').split():
+                if arg in self.game_files:
+                    args.append(self._get_file(arg))
+                else:
+                    args.append(self._substitute(arg))
         else:
             file_ref = data
-            args = []
         # Determine whether 'file' value is a file id or a path
         exec_path = self._get_file(file_ref) or self._substitute(file_ref)
         if not exec_path:
