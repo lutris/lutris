@@ -28,7 +28,6 @@ from signal import SIGKILL
 from gi.repository import GLib
 
 from lutris.util.log import logger
-from lutris.util import system
 from lutris.util.process import Process
 
 HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
@@ -66,12 +65,15 @@ class LutrisThread(threading.Thread):
             self.stdout.append(line)
             sys.stdout.write(line)
 
-    def iter_children(self, process):
+    def iter_children(self, process, topdown=True):
         for child in process.children:
-            yield child
+            if topdown:
+                yield child
             gen = self.iter_children(child)
             for c in gen:
                 yield c
+            if not topdown:
+                yield child
 
     def set_stop_command(self, func):
         self.stop_func = func
@@ -82,13 +84,8 @@ class LutrisThread(threading.Thread):
             return
         for thread in self.attached_threads:
             thread.stop()
-        pid = self.game_process.pid + 1
-        logger.debug('SIGKILL %d', pid)
-        try:
-            os.kill(pid, SIGKILL)
-        except OSError:
-            logger.error("Could not kill PID %s", pid)
-        self.pid = None
+        for process in self.iter_children(topdown=False):
+            process.kill()
 
     def watch_children(self):
         """pokes at the running process"""

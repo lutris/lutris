@@ -1,4 +1,5 @@
 import os
+import signal
 
 
 class Process(object):
@@ -72,3 +73,6 @@ class Process(object):
     def cwd(self):
         cwd_path = '/proc/%d/cwd' % int(self.pid)
         return os.readlink(cwd_path)
+
+    def kill(self):
+        os.kill(self.pid, signal.SIGKILL)
