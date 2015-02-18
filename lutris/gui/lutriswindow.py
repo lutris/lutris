@@ -9,7 +9,7 @@ from gi.repository import Gtk, Gdk, GLib
 from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
-from lutris.installer import InstallerDialog
+from lutris.gui.installgamedialog import InstallerDialog
 from lutris.sync import Sync
 
 from lutris.util import runtime
