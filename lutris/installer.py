@@ -1042,11 +1042,16 @@ class InstallerDialog(Gtk.Window):
         self.install_button.hide()
         self.play_button.show()
         self.close_button.show()
-        self.set_urgency_hint(True)
+        if not self.is_active():
+            self.set_urgency_hint(True)  # Blink in taskbar
+            self.connect('focus-in-event', self.on_window_focus)
 
     def notify_install_success(self):
         if self.parent:
             self.parent.view.emit('game-installed', self.game_ref)
+
+    def on_window_focus(self, widget, *args):
+        self.set_urgency_hint(False)
 
     def on_install_error(self, message):
         self.status_label.set_text(message)
