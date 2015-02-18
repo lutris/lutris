@@ -29,6 +29,7 @@ from gi.repository import GLib
 
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.util.process import Process
 
 HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
 
@@ -46,8 +47,6 @@ class LutrisThread(threading.Thread):
         self.pid = 99999
         self.stdout = []
         self.attached_threads = []
-        self.prerun_children = set()
-        self.watched_children = set()
         logger.debug('Running thread from %s', self.path)
 
     def attach_thread(self, thread):
@@ -56,7 +55,6 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread"""
-        self.prerun_children = self.get_children_pids()
         logger.debug("Thread running: %s", self.command)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
         self.game_process = subprocess.Popen(self.command, shell=True,
@@ -68,12 +66,12 @@ class LutrisThread(threading.Thread):
             self.stdout.append(line)
             sys.stdout.write(line)
 
-    def get_children(self):
-        return system.get_child_tree(os.getpid())['children']
-
-    def get_children_pids(self):
-        """Return a set containing all children pids launched by main process"""
-        return set([child['pid'] for child in self.get_children()])
+    def iter_children(self, process):
+        for child in process.children:
+            yield child
+            gen = self.iter_children(child)
+            for c in gen:
+                yield c
 
     def set_stop_command(self, func):
         self.stop_func = func
@@ -94,11 +92,12 @@ class LutrisThread(threading.Thread):
 
     def watch_children(self):
         """pokes at the running process"""
-        self.watched_children = self.get_children_pids() - self.prerun_children
-        self.pid = self.game_process.pid
-        self.return_code = self.game_process.poll()
-        if self.return_code is not None:
-            logger.debug("Game quit")
-            self.pid = None
-            return False
+        process = Process(self.rootpid)
+        print "ROOT: {} {}".format(process.pid, process.name)
+        for child in self.iter_children(process):
+            if "steamwebhelper" in child.cmdline:
+                continue
+            print "{}\t{}\t{}".format(child.pid,
+                                      child.state,
+                                      child.name)
         return True

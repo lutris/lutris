@@ -12,7 +12,7 @@ class Process(object):
         with open("/proc/{}/stat".format(self.pid)) as stat_file:
             _stat = stat_file.readline()
         if parsed:
-            return _stat[_stat.lfind(")")+1:].split()
+            return _stat[_stat.rfind(")")+1:].split()
         return _stat
 
     def get_thread_ids(self):
@@ -39,7 +39,7 @@ class Process(object):
     def name(self):
         """Filename of the executable"""
         _stat = self.get_stat(parsed=False)
-        return _stat[_stat.find("(")+1:_stat.lfind(")")]
+        return _stat[_stat.find("(")+1:_stat.rfind(")")]
 
     @property
     def state(self):
