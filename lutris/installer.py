@@ -655,7 +655,7 @@ class ScriptInterpreter(object):
             The 'name' parameter is mandatory. If 'args' is provided it will be
             passed to the runner task.
         """
-        self._check_required_params('name', params, 'task')
+        self._check_required_params('name', data, 'task')
         task_name = data.pop('name')
         if '.' in task_name:
             # Run a task from a different runner than the one for this installer
