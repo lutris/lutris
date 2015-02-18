@@ -35,13 +35,14 @@ HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    def __init__(self, command, path="/tmp"):
+    def __init__(self, command, path="/tmp", rootpid=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.command = command
         self.path = path
         self.game_process = None
         self.return_code = None
+        self.rootpid = rootpid or os.getpid()
         self.pid = 99999
         self.stdout = []
         self.attached_threads = []

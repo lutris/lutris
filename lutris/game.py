@@ -180,7 +180,8 @@ class Game(object):
             self.killswitch = None
 
         self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.working_dir)
+                                        path=self.runner.working_dir,
+                                        rootpid=gameplay_info.get('rootpid'))
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
