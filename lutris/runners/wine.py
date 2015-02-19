@@ -498,9 +498,18 @@ class wine(Runner):
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)
 
+    def get_env(self, full=True):
+        if full:
+            env = os.environ.copy()
+        else:
+            env = {}
+        env['WINEDEBUG'] = "-fixme-all"
+        env['WINEARCH'] = self.wine_arch
+        if self.prefix_path:
+            env['WINEPREFIX'] = self.prefix_path
+        return env
+
     def play(self):
-        prefix = self.prefix_path or ''
-        arch = self.wine_arch
         game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
 
@@ -511,14 +520,9 @@ class wine(Runner):
         else:
             game_exe = '"%s"' % game_exe
 
-        env = ['WINEARCH=%s' % arch]
-        command = []
-        if os.path.exists(prefix):
-            env.append("WINEPREFIX=\"%s\" " % prefix)
-
         self.prepare_launch()
-        command.append(self.get_executable())
-        command.append(game_exe)
+        env = self.get_env()
+        command = [self.get_executable(), game_exe]
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
@@ -528,11 +532,10 @@ class wine(Runner):
         """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
+        env = self.get_env(full=True)
         command = os.path.join(wine_root, "wineserver") + " -k"
-        if self.prefix_path:
-            command = "WINEPREFIX=%s %s" % (self.prefix_path, command)
         logger.debug("Killing all wine processes: %s" % command)
-        system.execute(command, shell=True)
+        subprocess.Popen(command, env=env)
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

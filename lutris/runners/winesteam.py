@@ -301,16 +301,6 @@ class winesteam(wine.wine):
                     return False
         return True
 
-    def get_env(self, full=True):
-        if full:
-            env = os.environ.copy()
-        else:
-            env = {}
-        env['WINEDEBUG'] = "-fixme-all"
-        env['WINEARCH'] = self.wine_arch
-        env['WINEPREFIX'] = self.prefix_path
-        return env
-
     def play(self):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
