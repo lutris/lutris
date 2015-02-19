@@ -1,4 +1,4 @@
-# -*- coding:Utf-8 -*-
+# -*- coding: utf-8 -*-
 """Runner for the Steam platform"""
 import os
 import time
@@ -20,9 +20,6 @@ create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
 
-# Directly downloading from steam's cdn seems to be buggy with
-# current implementation
-# STEAM_INSTALLER_URL = "http://cdn.steampowered.com/download/SteamInstall.msi"
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
@@ -169,8 +166,7 @@ class winesteam(wine.wine):
             if os.path.exists(custom_path):
                 return custom_path
 
-        candidates = [self.get_default_prefix(),
-                      os.path.expanduser("~/.wine"),]
+        candidates = [self.get_default_prefix(), os.path.expanduser("~/.wine")]
         for prefix in candidates:
             # Try the default install path
             steam_path = os.path.join(prefix,
@@ -211,9 +207,9 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if (not self.is_wine_installed()
-            or not self.get_steam_path()
-            or not os.path.exists(self.get_default_prefix())):
+        if(not self.is_wine_installed()
+           or not self.get_steam_path()
+           or not os.path.exists(self.get_default_prefix())):
             return False
         return os.path.exists(self.get_steam_path())
 
@@ -284,14 +280,11 @@ class winesteam(wine.wine):
 
     def install_game(self, appid):
         command = self.launch_args + ["steam://install/%s" % appid]
-        string = ' '.join(command)
-        logger.debug("Thread running: %s", string)
-        subprocess.Popen(string, shell=True)
+        subprocess.Popen(command, env=self.get_env())
 
     def validate_game(self, appid):
         command = self.launch_args + ["steam://validate/%s" % appid]
-        string = ' '.join(command)
-        subprocess.Popen(string, shell=True)
+        subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
         from lutris.runners import steam
@@ -308,37 +301,35 @@ class winesteam(wine.wine):
                     return False
         return True
 
+    def get_env(self, full=True):
+        if full:
+            env = os.environ.copy()
+        else:
+            env = {}
+        env['WINEDEBUG'] = "-fixme-all"
+        env['WINEARCH'] = self.wine_arch
+        env['WINEPREFIX'] = self.prefix_path
+        return env
+
     def play(self):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
         self.prepare_launch()
 
-        env = ["WINEDEBUG=fixme-all"]
-        env.append('WINEARCH=%s ' % self.wine_arch)
-        env.append('WINEPREFIX="%s" ' % self.prefix_path)
-
-        command = []
-        command += self.launch_args
+        command = [self.launch_args]
         if appid:
             command += ['steam://rungameid/%s' % appid]
         if args:
             command += [args]
-        return {'command': command, 'env': env}
+        return {'command': command, 'env': self.get_env(full=False)}
 
     def shutdown(self):
         """Shutdown Steam in a clean way."""
         pid = system.get_pid('Steam.exe$')
         if not pid:
             return False
-
-        command = []
-        command.append('WINEARCH=%s ' % self.wine_arch)
-        command.append('WINEPREFIX="%s" ' % self.prefix_path)
-        command += self.launch_args
-        command.append('-shutdown')
-        logger.debug("Shutting winesteam: %s", command)
-        system.execute(' '.join(command), shell=True)
+        subprocess.Popen([self.launch_args, '-shutdown'], env=self.get_env())
 
     def stop(self):
         self.shutdown()
@@ -351,14 +342,9 @@ class winesteam(wine.wine):
             if not installed:
                 return False
         appid = self.game_config.get('appid')
-        prefix = self.game_config.get('prefix')
 
-        command = []
-        command.append('WINEARCH=%s ' % self.wine_arch)
-        command.append('WINEPREFIX="%s" ' % self.prefix_path)
-        command += self.launch_args
-        command += ['steam://uninstall/%s' % appid]
-
+        env = self.get_env()
+        command = [self.launch_args, 'steam://uninstall/%s' % appid]
         self.prepare_launch()
-        thread = LutrisThread(' '.join(command), path=self.working_dir)
+        thread = LutrisThread(' '.join(command), path=self.working_dir, env=env)
         thread.start()

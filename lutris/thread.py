@@ -1,29 +1,10 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-#
-#  Copyright (C) 2010, 2011 Mathieu Comandon <strider@strycore.com>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-"""
-Threading module, used to launch games while keeping Lutris operational.
-"""
+# -*- coding: utf-8 -*-
+"""Threading module, used to launch games while monitoring them"""
 
 import os
 import sys
 import threading
 import subprocess
-from signal import SIGKILL
 
 from gi.repository import GLib
 
