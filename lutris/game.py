@@ -147,10 +147,13 @@ class Game(object):
         prefix_command = system_config.get("prefix_command", '').strip()
         if prefix_command:
             launch_arguments.insert(0, prefix_command)
+        env = os.environ.copy()
+        game_env = gameplay_info.get('env') or {}
+        env.update(game_env)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
-            launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
+            env["LD_PRELOAD"] = ld_preload
 
         ld_library_path = []
         if self.use_runtime(system_config):
@@ -167,12 +170,7 @@ class Game(object):
 
         if ld_library_path:
             ld_full = ':'.join(ld_library_path)
-            ld_arg = 'LD_LIBRARY_PATH="{}:$LD_LIBRARY_PATH"'.format(ld_full)
-            launch_arguments.insert(0, ld_arg)
-
-        env = gameplay_info.get('env') or []
-        for var in env:
-            launch_arguments.insert(0, var)
+            env["LD_LIBRARY_PATH"] = "{}:$LD_LIBRARY_PATH".format(ld_full)
 
         self.killswitch = system_config.get('killswitch')
         if self.killswitch and not os.path.exists(self.killswitch):
@@ -180,7 +178,7 @@ class Game(object):
             self.killswitch = None
 
         self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.working_dir,
+                                        path=self.runner.working_dir, env=env,
                                         rootpid=gameplay_info.get('rootpid'))
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)

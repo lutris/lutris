@@ -16,9 +16,10 @@ HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    def __init__(self, command, path="/tmp", rootpid=None):
+    def __init__(self, command, path="/tmp", env={}, rootpid=None):
         """Thread init"""
         threading.Thread.__init__(self)
+        self.env = env
         self.command = command
         self.path = path
         self.game_process = None
@@ -37,11 +38,10 @@ class LutrisThread(threading.Thread):
         """Run the thread"""
         logger.debug("Thread running: %s", self.command)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-        self.game_process = subprocess.Popen(self.command, shell=True,
-                                             bufsize=1,
+        self.game_process = subprocess.Popen(self.command, bufsize=1,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
-                                             cwd=self.path)
+                                             cwd=self.path, env=self.env)
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout.append(line)
             sys.stdout.write(line)
