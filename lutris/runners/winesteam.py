@@ -131,8 +131,7 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return ['"%s"' % self.get_executable(),
-                '"%s"' % self.get_steam_path(), '-no-dwrite']
+        return [self.get_executable(), self.get_steam_path(), '-no-dwrite']
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
@@ -307,11 +306,11 @@ class winesteam(wine.wine):
         logger.debug("Checking Steam installation")
         self.prepare_launch()
 
-        command = [self.launch_args]
+        command = self.launch_args
         if appid:
-            command += ['steam://rungameid/%s' % appid]
+            command.append('steam://rungameid/%s' % appid)
         if args:
-            command += [args]
+            command.append(args)
         return {'command': command, 'env': self.get_env(full=False)}
 
     def shutdown(self):
@@ -319,7 +318,7 @@ class winesteam(wine.wine):
         pid = system.get_pid('Steam.exe$')
         if not pid:
             return False
-        subprocess.Popen([self.launch_args, '-shutdown'], env=self.get_env())
+        subprocess.Popen(self.launch_args + ['-shutdown'], env=self.get_env())
 
     def stop(self):
         self.shutdown()
@@ -334,7 +333,7 @@ class winesteam(wine.wine):
         appid = self.game_config.get('appid')
 
         env = self.get_env()
-        command = [self.launch_args, 'steam://uninstall/%s' % appid]
+        command = self.launch_args + ['steam://uninstall/%s' % appid]
         self.prepare_launch()
         thread = LutrisThread(' '.join(command), path=self.working_dir, env=env)
         thread.start()

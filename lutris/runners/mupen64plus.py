@@ -51,5 +51,5 @@ class mupen64plus(Runner):
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        arguments.append("\"%s\"" % rom)
+        arguments.append(rom)
         return {'command': arguments}

@@ -41,4 +41,4 @@ class virtualjaguar(Runner):
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        return {'command': [self.get_executable(), "\"%s\"" % rom]}
+        return {'command': [self.get_executable(), rom]}

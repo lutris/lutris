@@ -132,34 +132,41 @@ class hatari(Runner):
         else:
             params.append("--window")
 
+        params.append("--zoom")
         if self.runner_config.get("zoom"):
-            params.append("--zoom 2")
+            params.append("2")
         else:
-            params.append("--zoom 1")
+            params.append("1")
 
+        params.append('--borders')
         if self.runner_config.get("borders"):
-            params.append('--borders true')
+            params.append('true')
         else:
-            params.append('--borders false')
+            params.append('false')
 
+        params.append('--statusbar')
         if self.runner_config.get("status"):
-            params.append('--statusbar true')
+            params.append('true')
         else:
-            params.append('--statusbar false')
+            params.append('false')
 
         if self.runner_config.get("joy0"):
-            params.append("--joy0 " + self.runner_config['joy0'])
+            params.append("--joy0")
+            params.append(self.runner_config['joy0'])
 
         if self.runner_config.get("joy1"):
-            params.append("--joy1 " + self.runner_config['joy1'])
+            params.append("--joy1")
+            params.append(self.runner_config['joy1'])
 
         if os.path.exists(self.runner_config.get('bios_file', '')):
-            params.append('--tos "%s"' % self.runner_config["bios_file"])
+            params.append('--tos')
+            params.append(self.runner_config["bios_file"])
         else:
             return {'error': 'NO_BIOS'}
         diska = self.game_config.get('disk-a')
         if not os.path.exists(diska):
             return {'error': 'FILE_NOT_FOUND', 'file': diska}
-        params.append("--disk-a \"%s\"" % diska)
+        params.append("--disk-a")
+        params.append(diska)
 
         return {"command": params}

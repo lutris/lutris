@@ -177,7 +177,7 @@ class Game(object):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
 
-        self.game_thread = LutrisThread(" ".join(launch_arguments),
+        self.game_thread = LutrisThread(launch_arguments,
                                         path=self.runner.working_dir, env=env,
                                         rootpid=gameplay_info.get('rootpid'))
         if hasattr(self.runner, 'stop'):
