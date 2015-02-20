@@ -255,13 +255,13 @@ class ScriptInterpreter(object):
                 )
             else:
                 self.install_steam_game(winesteam.winesteam)
-            return True
         else:
             # Getting data from Linux Steam
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam)
-            return True
+        self.iter_game_files()
+        return True
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -726,7 +726,6 @@ class ScriptInterpreter(object):
         logger.debug("got data path: %s" % data_path)
         self.game_files[self.steam_data['file_id']] = \
             os.path.join(data_path, self.steam_data['steam_rel_path'])
-        self.iter_game_files()
 
     def complete_steam_install(self, dest):
         winesteam_runner = winesteam.winesteam()
