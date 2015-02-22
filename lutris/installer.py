@@ -101,7 +101,7 @@ class ScriptInterpreter(object):
         self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
         if self.requires:
-            self._check_dependecy()
+            self._check_dependency()
         else:
             self.target_path = self.default_target
 
@@ -121,9 +121,9 @@ class ScriptInterpreter(object):
         return (not os.path.exists(self.target_path)
                 and 'nocreatedir' not in self.script)
 
-    def _check_dependecy(self):
+    def _check_dependency(self):
         # XXX Maybe handle this with Game instead of hitting directly the PGA?
-        game = pga.get_game_by_slug(self.requires)
+        game = pga.get_game_by_slug(self.requires, field='installer_slug')
         if not game or not game['directory']:
             raise ScriptingError(
                 "You need to install {} before".format(self.requires)
