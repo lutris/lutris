@@ -11,19 +11,24 @@ from lutris.util.steam import (get_path_from_appmanifest, read_config,
 
 
 def shutdown():
-    """ Cleanly quit Steam """
+    """Cleanly quit Steam"""
     logger.debug("Shutting down Steam")
     subprocess.call(['steam', '-shutdown'])
 
 
+def get_steam_pid():
+    """Return pid of Steam process"""
+    return system.get_pid('steam$')
+
+
 def kill():
-    """ Force quit Steam """
-    system.kill_pid(system.get_pid('steam$'))
+    """Force quit Steam"""
+    system.kill_pid(get_steam_pid())
 
 
 def is_running():
-    """ Checks if Steam is running """
-    return bool(system.get_pid('steam$'))
+    """Checks if Steam is running"""
+    return bool(get_steam_pid())
 
 
 class steam(Runner):
@@ -160,8 +165,14 @@ class steam(Runner):
         return True
 
     def play(self):
+
+        # Get current steam pid to act as the root pid instead of lutris
+        steampid = get_steam_pid()
         appid = self.game_config.get('appid')
-        return {'command': [self.steam_exe, 'steam://rungameid/%s' % appid]}
+        return {
+            'command': [self.steam_exe, 'steam://rungameid/%s' % appid],
+            'rootpid': steampid
+        }
 
     def stop(self):
         shutdown()

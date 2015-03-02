@@ -51,5 +51,5 @@ class mame(Runner):
         return {'command': [self.get_executable(),
                             "-inipath", mameconfigdir,
                             "-skip_gameinfo",
-                            "-rompath", "\"%s\"" % rompath,
-                            "\"%s\"" % rom] + options}
+                            "-rompath", rompath,
+                            rom] + options}

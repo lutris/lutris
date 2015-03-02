@@ -58,15 +58,6 @@ def get_pid(program, multiple=False):
         return pids[0]
 
 
-def get_process_status(pid):
-    with open("/proc/{}/status".format(pid)) as status_file:
-        line = '.'
-        while line:
-            line = status_file.readline()
-            if line.startswith("State:"):
-                return line.split()[1]
-
-
 def kill_pid(pid):
     try:
         int(pid)
@@ -74,13 +65,6 @@ def kill_pid(pid):
         logger.error("Invalid pid %s")
         return
     execute(['kill', '-9', pid])
-
-
-def get_cwd(pid):
-    cwd_file = '/proc/%d/cwd' % int(pid)
-    if not os.path.exists(cwd_file):
-        return False
-    return os.readlink(cwd_file)
 
 
 def get_command_line(pid):
@@ -184,35 +168,6 @@ def fix_path_case(path):
 
 def xdg_open(path):
     subprocess.Popen(['xdg-open', path])
-
-
-def get_threads(pid):
-    """Return a list of thread ids opened by process `pid`"""
-    basedir = '/proc/{}/task/'.format(pid)
-    return [tid for tid in os.listdir(basedir)]
-
-
-def get_children_of_thread(pid, tid):
-    """Return pid of child process opened by thread `tid` of process `pid`"""
-    children = []
-    children_path = '/proc/{}/task/{}/children'.format(pid, tid)
-    if os.path.exists(children_path):
-        with open(children_path) as children_file:
-            children = children_file.read().strip().split()
-    return children
-
-
-def get_child_tree(pid):
-    """Return a tree containing all children of all thread from process `pid`"""
-    pid_info = {
-        'pid': pid,
-        'children': [],
-        'cmdline': get_command_line(pid)
-    }
-    for tid in get_threads(pid):
-        for child in get_children_of_thread(pid, tid):
-            pid_info['children'].append(get_child_tree(child))
-    return pid_info
 
 
 def get_pids_using_file(path):

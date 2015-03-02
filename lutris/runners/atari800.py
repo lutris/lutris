@@ -138,12 +138,11 @@ class atari800(Runner):
         good_bios = self.find_good_bioses(bios_path)
         for bios in good_bios.keys():
             arguments.append("-%s" % bios)
-            arguments.append("\"%s\"" %
-                             os.path.join(bios_path, good_bios[bios]))
+            arguments.append(os.path.join(bios_path, good_bios[bios]))
 
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        arguments.append("\"%s\"" % rom)
+        arguments.append(rom)
 
         return {"command": arguments}

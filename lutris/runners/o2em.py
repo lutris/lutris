@@ -103,5 +103,5 @@ class o2em(Runner):
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
         arguments.append("-romdir=\"%s\"/" % romdir)
-        arguments.append("\"%s\"" % romfile)
+        arguments.append(romfile)
         return {'command': [self.get_executable()] + arguments}

@@ -53,5 +53,6 @@ class gens(Runner):
             os.makedirs(plugins_dir)
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        arguments.append("--game \"%s\"" % rom)
+        arguments.append("--game")
+        arguments.append(rom)
         return {"command": arguments}

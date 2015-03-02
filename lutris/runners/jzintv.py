@@ -21,9 +21,9 @@ class jzintv(Runner):
         'type': 'file',
         'label': "ROM file",
         'default_path': 'game_path',
-            'help': ("The game data, commonly called a ROM image. \n"
-                     "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
-                     "The file extension must be lower-case.")
+        'help': ("The game data, commonly called a ROM image. \n"
+                 "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
+                 "The file extension must be lower-case.")
     }]
     runner_options = [
         {
@@ -62,5 +62,5 @@ class jzintv(Runner):
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
         arguments += ["--rom-path=\"%s/\"" % romdir]
-        arguments += ["\"%s\"" % romfile]
+        arguments += [romfile]
         return {'command': arguments}

@@ -71,7 +71,7 @@ class linux(Runner):
         if self.game_exe:
             return os.path.dirname(self.game_exe)
         else:
-            return super(wine, self).working_dir
+            return super(linux, self).working_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
@@ -100,8 +100,7 @@ class linux(Runner):
         if ld_library_path:
             launch_info['ld_library_path'] = ld_library_path
 
-        command = []
-        command.append('"%s"' % self.game_exe)
+        command = [self.game_exe]
 
         args = self.game_config.get('args', "")
         for arg in args.split():
