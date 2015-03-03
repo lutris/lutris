@@ -156,6 +156,7 @@ Want to make Lutris better? Help implement feature, fix bug, test our
 pre-releases or simply chat with the developers?
 
 You can always reach us on:
+
 * IRC: #lutris on the Freenode servers
 * Github: http://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
