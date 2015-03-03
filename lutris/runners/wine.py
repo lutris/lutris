@@ -535,9 +535,12 @@ class wine(Runner):
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         env = self.get_env(full=True)
-        command = os.path.join(wine_root, "wineserver") + " -k"
+        command = [os.path.join(wine_root, "wineserver"), " -k"]
         logger.debug("Killing all wine processes: %s" % command)
-        subprocess.Popen(command, env=env)
+        try:
+            subprocess.Popen(command, env=env)
+        except OSError:
+            logger.exception('Could not terminate wineserver %s', command)
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
