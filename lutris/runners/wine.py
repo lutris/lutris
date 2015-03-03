@@ -250,6 +250,18 @@ class wine(Runner):
         }
     ]
 
+    reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
+    reg_keys = {
+        "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
+        "Audio": r"%s\Drivers" % reg_prefix,
+        "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
+        "Multisampling": r"%s\Direct3D" % reg_prefix,
+        "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
+        "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
+        "Version": r"%s" % reg_prefix,
+        "Desktop": r"%s\Explorer" % reg_prefix
+    }
+
     def __init__(self, config=None):
         super(wine, self).__init__(config)
         wine_versions = \
@@ -364,17 +376,6 @@ class wine(Runner):
                 'help': "Which audio backend to use."
             }
         ]
-        reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
-        self.reg_keys = {
-            "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
-            "Audio": r"%s\Drivers" % reg_prefix,
-            "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
-            "Multisampling": r"%s\Direct3D" % reg_prefix,
-            "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
-            "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
-            "Version": r"%s" % reg_prefix,
-            "Desktop": r"%s\Explorer" % reg_prefix
-        }
 
     @property
     def prefix_path(self):
