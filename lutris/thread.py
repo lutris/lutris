@@ -71,11 +71,16 @@ class LutrisThread(threading.Thread):
     def watch_children(self):
         """pokes at the running process"""
         process = Process(self.rootpid)
-        print "ROOT: {} {}".format(process.pid, process.name)
+        num_childs = 0
         for child in self.iter_children(process):
+            num_childs += 1
             if "steamwebhelper" in child.cmdline:
                 continue
             print "{}\t{}\t{}".format(child.pid,
                                       child.state,
                                       child.name)
+            if child.state == 'Z':
+                self.game_process.wait()
+        if num_childs == 0:
+            return False
         return True
