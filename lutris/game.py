@@ -227,16 +227,15 @@ class Game(object):
 
     def beat(self):
         """Watch game's process."""
-        game_thread_has_quit = not self.game_thread.pid
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
-        if game_thread_has_quit or killswitch_engage:
-            self.quit_game()
+        if not self.game_thread.is_running or killswitch_engage:
+            self.on_game_quit()
             return False
         return True
 
-    def quit_game(self):
-        """Quit the game and cleanup."""
+    def on_game_quit(self):
+        """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)

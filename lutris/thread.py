@@ -25,7 +25,7 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
-        self.pid = 99999
+        self.is_running = True
         self.stdout = []
         self.attached_threads = []
         logger.debug('Running thread from %s', self.path)
@@ -65,7 +65,7 @@ class LutrisThread(threading.Thread):
             return
         for thread in self.attached_threads:
             thread.stop()
-        for process in self.iter_children(topdown=False):
+        for process in self.iter_children(Process(self.rootpid), topdown=False):
             process.kill()
 
     def watch_children(self):
@@ -82,5 +82,6 @@ class LutrisThread(threading.Thread):
             if child.state == 'Z':
                 self.game_process.wait()
         if num_childs == 0:
+            self.is_running = False
             return False
         return True
