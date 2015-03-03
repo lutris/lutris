@@ -9,6 +9,9 @@ class Process(object):
         self.parent = None
         self.get_children()
 
+    def __repr__(self):
+        return "Process {}".format(self.pid)
+
     def get_stat(self, parsed=True):
         with open("/proc/{}/stat".format(self.pid)) as stat_file:
             _stat = stat_file.readline()
