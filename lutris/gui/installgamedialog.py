@@ -115,7 +115,7 @@ class InstallerDialog(Gtk.Window):
             self.non_empty_label = Gtk.Label()
             self.non_empty_label.set_markup(
                 "<b>Warning!</b> The selected path "
-                "contains files, installation might not work property."
+                "contains files, installation might not work properly."
             )
             self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
