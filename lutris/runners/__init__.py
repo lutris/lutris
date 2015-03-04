@@ -23,12 +23,13 @@ __all__ = (
 )
 
 
+class InvalidRunner(Exception):
+    pass
+
+
 def get_runner_module(runner_name):
-    if not runner_name:
-        raise ValueError("Missing runner name")
     if runner_name not in __all__:
-        logger.error("Invalid runner name '%s'", runner_name)
-        return False
+        raise InvalidRunner("Invalid runner name '%s'", runner_name)
     return __import__('lutris.runners.%s' % runner_name,
                       globals(), locals(), [runner_name], -1)
 
