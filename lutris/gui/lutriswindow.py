@@ -125,7 +125,7 @@ class LutrisWindow(object):
         # Contextual menu
         menu_callbacks = [
             ('play', self.on_game_clicked),
-            ('install', self.on_game_clicked),
+            ('install', self.on_install_clicked),
             ('add', self.add_manually),
             ('configure', self.edit_game_configuration),
             ('browse', self.on_browse_files),
@@ -383,21 +383,34 @@ class LutrisWindow(object):
         self.view.game_store.filter_text = widget.get_text()
         self.view.emit('filter-updated')
 
-    def on_game_clicked(self, *args):
-        """Launch a game."""
+    def _get_current_game_slug(self):
+        """Return the slug of the current selected game while taking care of the
+        double clic bug.
+        """
         # Wait two seconds to avoid running a game twice
         if time.time() - self.game_launch_time < 2:
             return
         self.game_launch_time = time.time()
+        return self.view.selected_game
 
-        game_slug = self.view.selected_game
-        if game_slug:
-            self.running_game = Game(game_slug)
-            if self.running_game.is_installed:
-                self.stop_button.set_sensitive(True)
-                self.running_game.play()
-            else:
-                InstallerDialog(game_slug, self)
+    def on_game_clicked(self, *args):
+        """Launch a game, or install it if it is not"""
+        game_slug = self._get_current_game_slug()
+        if not game_slug:
+            return
+        self.running_game = Game(game_slug)
+        if self.running_game.is_installed:
+            self.stop_button.set_sensitive(True)
+            self.running_game.play()
+        else:
+            InstallerDialog(game_slug, self)
+
+    def on_install_clicked(self, *args):
+        """Install a game"""
+        game_slug = self._get_current_game_slug()
+        if not game_slug:
+            return
+        InstallerDialog(game_slug, self)
 
     def on_keypress(self, widget, event):
         if event.keyval == Gdk.KEY_F9:
