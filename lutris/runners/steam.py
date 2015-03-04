@@ -13,7 +13,8 @@ from lutris.util.steam import (get_path_from_appmanifest, read_config,
 def shutdown():
     """Cleanly quit Steam"""
     logger.debug("Shutting down Steam")
-    subprocess.call(['steam', '-shutdown'])
+    if is_running():
+        subprocess.call(['steam', '-shutdown'])
 
 
 def get_steam_pid():
@@ -46,11 +47,22 @@ class steam(Runner):
                      "http://store.steampowered.com/app/<b>235320</b>/")
         }
     ]
+    runner_options = [
+        {
+            'option': 'quit_steam_on_exit',
+            'label': "Stop Steam after game exits",
+            'type': 'bool',
+            'default': False,
+            'help': ("Quit Steam after the game has quit\n"
+                     "(only if it was started by Lutris)")
+        }
+    ]
 
     def __init__(self, config=None):
         super(steam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Steam)"
         self.no_game_remove_warning = True
+        self.original_steampid = None
 
     @property
     def browse_dir(self):
@@ -167,15 +179,17 @@ class steam(Runner):
     def play(self):
 
         # Get current steam pid to act as the root pid instead of lutris
-        steampid = get_steam_pid()
+        self.original_steampid = get_steam_pid()
         appid = self.game_config.get('appid')
         return {
             'command': [self.steam_exe, 'steam://rungameid/%s' % appid],
-            'rootpid': steampid
+            'rootpid': self.original_steampid
         }
 
     def stop(self):
-        shutdown()
+        if self.runner_config.get('quit_steam_on_exit') \
+           and not self.original_steampid:
+            shutdown()
 
     def remove_game_data(self, **kwargs):
         if not self.is_installed():

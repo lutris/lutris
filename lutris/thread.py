@@ -60,12 +60,13 @@ class LutrisThread(threading.Thread):
     def set_stop_command(self, func):
         self.stop_func = func
 
-    def stop(self):
-        if hasattr(self, 'stop_func'):
-            self.stop_func()
-            return
+    def stop(self, killall=False):
         for thread in self.attached_threads:
             thread.stop()
+        if hasattr(self, 'stop_func'):
+            self.stop_func()
+            if not killall:
+                return
         for process in self.iter_children(Process(self.rootpid), topdown=False):
             process.kill()
 

@@ -256,7 +256,7 @@ class Game(object):
         return True
 
     def stop(self):
-        self.game_thread.stop()
+        self.game_thread.stop(killall=True)
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
@@ -275,6 +275,5 @@ class Game(object):
         if self.runner.system_config.get('xboxdrv'):
             self.xboxdrv_thread.stop()
 
-        # XXX might do more harm than good
-        # if self.game_thread:
-        #    self.game_thread.stop()
+        if self.game_thread:
+            self.game_thread.stop()
