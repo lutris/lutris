@@ -28,6 +28,7 @@ class LutrisThread(threading.Thread):
         self.is_running = True
         self.stdout = ''
         self.attached_threads = []
+        self.cycles_without_children = 0
         logger.debug('Running thread from %s', self.path)
 
     def attach_thread(self, thread):
@@ -71,17 +72,24 @@ class LutrisThread(threading.Thread):
     def watch_children(self):
         """pokes at the running process"""
         process = Process(self.rootpid)
-        num_childs = 0
+        num_children = 0
+        num_watched_children = 0
+        terminated_children = 0
         for child in self.iter_children(process):
-            if child.name in ('steamwebhelper', 'steam', 'sh'):
+            num_children += 1
+            if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash'):
                 continue
-            num_childs += 1
+            num_watched_children += 1
             print "{}\t{}\t{}".format(child.pid,
                                       child.state,
                                       child.name)
             if child.state == 'Z':
-                self.game_process.wait()
-        if num_childs == 0:
+                terminated_children += 1
+        if terminated_children and terminated_children == num_watched_children:
+            self.game_process.wait()
+        if num_watched_children == 0:
+            self.cycles_without_children += 1
+        if num_children == 0 or self.cycles_without_children >= 3:
             self.is_running = False
             return False
         return True

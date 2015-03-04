@@ -275,5 +275,6 @@ class Game(object):
         if self.runner.system_config.get('xboxdrv'):
             self.xboxdrv_thread.stop()
 
-        if self.game_thread:
-            self.game_thread.stop()
+        # XXX might do more harm than good
+        # if self.game_thread:
+        #    self.game_thread.stop()
