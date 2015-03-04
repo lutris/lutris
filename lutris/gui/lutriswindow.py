@@ -291,9 +291,7 @@ class LutrisWindow(object):
     def reset(self, *args):
         """Reset the desktop to it's initial state."""
         if self.running_game:
-            self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s" % self.running_game.name)
-            self.running_game = None
+            self.running_game.stop()
             self.stop_button.set_sensitive(False)
 
     # Callbacks

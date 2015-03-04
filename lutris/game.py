@@ -255,6 +255,9 @@ class Game(object):
             return False
         return True
 
+    def stop(self):
+        self.game_thread.stop()
+
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None

@@ -22,7 +22,10 @@ class Process(object):
     def get_thread_ids(self):
         """Return a list of thread ids opened by process"""
         basedir = '/proc/{}/task/'.format(self.pid)
-        return [tid for tid in os.listdir(basedir)]
+        if os.path.isdir(basedir):
+            return [tid for tid in os.listdir(basedir)]
+        else:
+            return []
 
     def get_children_pids_of_thread(self, tid):
         """Return pids of child processes opened by thread `tid` of process"""

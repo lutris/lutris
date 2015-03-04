@@ -73,9 +73,9 @@ class LutrisThread(threading.Thread):
         process = Process(self.rootpid)
         num_childs = 0
         for child in self.iter_children(process):
-            num_childs += 1
-            if "steamwebhelper" in child.cmdline:
+            if child.name in ('steamwebhelper', 'steam', 'sh'):
                 continue
+            num_childs += 1
             print "{}\t{}\t{}".format(child.pid,
                                       child.state,
                                       child.name)
