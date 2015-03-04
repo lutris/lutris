@@ -733,3 +733,17 @@ class ScriptInterpreter(object):
 
     def on_winesteam_installed(self, *args):
         self.install_steam_game(winesteam.winesteam)
+
+    def substitute_vars(self, data):
+        self._check_required_params('file', data, 'execute')
+        filename = self._substitute(data['file'])
+        logger.debug('Substituting variables for file %s', filename)
+        tmp_filename = filename + '.tmp'
+        with open(filename, 'r') as source_file:
+            with open(tmp_filename, 'w') as dest_file:
+                line = '.'
+                while line:
+                    line = source_file.readline()
+                    line = self._substitute(line)
+                    dest_file.write(line)
+        os.rename(tmp_filename, filename)
