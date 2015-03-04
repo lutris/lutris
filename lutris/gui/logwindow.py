@@ -5,7 +5,7 @@ from lutris.gui.widgets import Dialog
 class LogTextView(Gtk.TextView):
     bg_rgb = 'rgb(47,47,47)'
     fg_rgb = 'rgb(255, 199, 116)'
-    font_face = 'Monospace 11'
+    font_face = 'Monospace 10'
 
     def __init__(self):
         super(LogTextView, self).__init__()
@@ -24,7 +24,7 @@ class LogTextView(Gtk.TextView):
         self.set_editable(False)
         self.override_font(font_description)
 
-        self.textbuffer = self.textview.get_buffer()
+        self.textbuffer = self.get_buffer()
 
     def set_text(self, content):
         self.textbuffer.set_text(content)
@@ -32,9 +32,13 @@ class LogTextView(Gtk.TextView):
 
 class LogWindow(Dialog):
     def __init__(self, title, parent):
+        super(LogWindow, self).__init__(title, parent)
+        self.set_size_request(640, 480)
+        self.grid = Gtk.Grid()
+        self.logtextview = LogTextView()
         scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.set_hexpand(True)
         scrolledwindow.set_vexpand(True)
-        self.logtextview = LogTextView()
-        self.add(scrolledwindow)
-        self.add(self.logtextview)
+        scrolledwindow.add(self.logtextview)
+        self.vbox.add(scrolledwindow)
+        self.show_all()

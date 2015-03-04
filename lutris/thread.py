@@ -26,7 +26,7 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
         self.is_running = True
-        self.stdout = []
+        self.stdout = ''
         self.attached_threads = []
         logger.debug('Running thread from %s', self.path)
 
@@ -43,7 +43,7 @@ class LutrisThread(threading.Thread):
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path, env=self.env)
         for line in iter(self.game_process.stdout.readline, ''):
-            self.stdout.append(line)
+            self.stdout += line
             sys.stdout.write(line)
 
     def iter_children(self, process, topdown=True):

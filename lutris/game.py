@@ -49,6 +49,7 @@ class Game(object):
         self.config = None
         self.killswitch = None
         self.state = self.STATE_IDLE
+        self.game_log = ''
 
         game_data = pga.get_game_by_slug(slug)
         self.runner_name = game_data.get('runner') or ''
@@ -260,7 +261,7 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
         self.state = self.STATE_STOPPED
-
+        self.game_log = self.game_thread.stdout
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)

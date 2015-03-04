@@ -9,7 +9,6 @@ from gi.repository import Gtk, Gdk, GLib
 from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
-from lutris.gui.installgamedialog import InstallerDialog
 from lutris.sync import Sync
 
 from lutris.util import runtime
@@ -22,8 +21,10 @@ from lutris.util import datapath
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
-from lutris.gui.uninstallgamedialog import UninstallGameDialog
+from lutris.gui.logwindow import LogWindow
 from lutris.gui.runnersdialog import RunnersDialog
+from lutris.gui.installgamedialog import InstallerDialog
+from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
@@ -441,6 +442,13 @@ class LutrisWindow(object):
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.view.set_installed(game)
+
+    def on_view_game_log_activate(self, widget):
+        if not self.running_game:
+            dialogs.ErrorDialog('No game log available')
+        log_title = "Log for {}".format(self.running_game)
+        log_window = LogWindow(log_title, self.window)
+        log_window.logtextview.set_text(self.running_game.game_log)
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
