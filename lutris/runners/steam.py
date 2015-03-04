@@ -120,7 +120,7 @@ class steam(Runner):
             while ('BaseInstallFolder_%s' % i) in steam_config:
                 path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
                 path = system.fix_path_case(path)
-                if os.path.exists(path):
+                if path:
                     dirs.append(path)
                 i += 1
         return dirs
