@@ -21,7 +21,9 @@ from lutris.game import Game
 from lutris.config import LutrisConfig
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, NoInstallerDialog
-from lutris.runners import wine, winesteam, steam, import_task, import_runner
+from lutris.runners import (
+    wine, winesteam, steam, import_task, import_runner, InvalidRunner
+)
 
 
 class ScriptingError(Exception):
@@ -450,15 +452,15 @@ class ScriptInterpreter(object):
     def _get_file(self, fileid):
         return self.game_files.get(fileid)
 
-    def _check_required_params(self, params, script_data, command_name):
+    def _check_required_params(self, params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""
         if type(params) is str:
             params = [params]
         for param in params:
-            if param not in script_data:
+            if param not in command_data:
                 raise ScriptingError('The "%s" parameter is mandatory for '
                                      'the %s command' % (param, command_name),
-                                     script_data)
+                                     command_data)
 
     def check_md5(self, data):
         self._check_required_params(['file', 'value'], data, 'check_md5')
@@ -662,7 +664,12 @@ class ScriptInterpreter(object):
             runner_name, task_name = task_name.split('.')
         else:
             runner_name = self.script["runner"]
-        runner = import_runner(runner_name)()
+        try:
+            runner_class = import_runner(runner_name)
+        except InvalidRunner:
+            raise ScriptingError('Invalid runner provided %s', runner_name)
+
+        runner = runner_class()
 
         # Check/install Wine runner at version specified in the script
         wine_version = None

@@ -8,7 +8,7 @@ from gi.repository import GLib
 
 from lutris import pga
 from lutris import settings
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
@@ -72,13 +72,17 @@ class Game(object):
     def load_config(self):
         """Load the game's configuration."""
         self.config = LutrisConfig(game=self.slug)
-        if self.is_installed:
+        if not self.is_installed:
+            return
+        if not self.runner_name:
+            logger.error('Incomplete data for %s', self.slug)
+            return
+        try:
             runner_class = import_runner(self.runner_name)
-            if runner_class:
-                self.runner = runner_class(self.config)
-            else:
-                logger.error("Unable to import runner %s for %s",
-                             self.runner_name, self.slug)
+        except InvalidRunner:
+            logger.error("Unable to import runner %s for %s",
+                         self.runner_name, self.slug)
+        self.runner = runner_class(self.config)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
@@ -88,6 +92,16 @@ class Game(object):
             self.config.remove()
         else:
             pga.set_uninstalled(self.slug)
+
+    def save(self):
+        self.config.save()
+        pga.add_or_update(
+            name=self.name,
+            runner=self.runner_name,
+            slug=self.slug,
+            directory=self.directory,
+            installed=self.is_installed
+        )
 
     def prelaunch(self):
         """Verify that the current game can be launched."""

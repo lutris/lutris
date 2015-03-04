@@ -429,14 +429,14 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
         add_game_dialog.run()
-        if add_game_dialog.installed:
+        if add_game_dialog.saved:
             self.view.set_installed(game)
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
         add_game_dialog = AddGameDialog(self)
         add_game_dialog.run()
-        if add_game_dialog.runner_name and add_game_dialog.slug:
+        if add_game_dialog.saved:
             self.add_game_to_view(add_game_dialog.slug)
 
     def add_game_to_view(self, slug):
@@ -480,7 +480,7 @@ class LutrisWindow(object):
         game_slug = game.slug
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game)
-            if dialog.slug:
+            if dialog.saved:
                 game = Game(dialog.slug)
                 self.view.remove_game(game_slug)
                 self.view.add_game(game)

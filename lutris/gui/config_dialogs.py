@@ -4,7 +4,6 @@ from gi.repository import Gtk, Pango
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.game import Game
-from lutris import pga
 import lutris.runners
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
@@ -184,18 +183,30 @@ class GameDialogCommon(object):
         if not self.is_valid():
             return False
         name = self.name_entry.get_text()
+
+        # Do not modify slug
+        if not self.slug:
+            self.slug = slugify(name)
+
+        if not self.game:
+            self.game = Game(self.slug)
+            self.game.config = self.lutris_config
+
         if not self.lutris_config.game:
-            self.lutris_config.game = slugify(name)
+            self.lutris_config.game = self.slug
         self.lutris_config.save()
-        self.slug = self.lutris_config.game
+
         runner_class = lutris.runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
-        pga.add_or_update(name, self.runner_name, slug=self.slug,
-                          directory=runner.game_path,
-                          installed=1)
+        self.game.name = name
+        self.game.slug = self.slug
+        self.game.runner_name = self.runner_name
+        self.game.directory = runner.game_path
+        self.game.is_installed = True
+        self.game.save()
         self.destroy()
         logger.debug("Saved %s", name)
-        return True
+        self.saved = True
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
@@ -206,7 +217,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.parent_window = parent
         self.lutris_config = LutrisConfig()
         self.game = game
-        self.installed = False
+        self.saved = False
 
         self.set_size_request(-1, 500)
         if game:
@@ -222,11 +233,6 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_action_area("Add", self.on_save)
         self.show_all()
 
-    def on_save(self, _button):
-        name = self.name_entry.get_text()
-        self.lutris_config.game = self.slug if self.slug else slugify(name)
-        self.installed = super(AddGameDialog, self).on_save(_button)
-
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
@@ -239,6 +245,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.lutris_config = game.config
         self.slug = game.slug
         self.runner_name = game.runner_name
+        self.saved = False
 
         self.set_size_request(500, 550)
 
