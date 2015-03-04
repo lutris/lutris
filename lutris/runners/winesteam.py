@@ -244,7 +244,7 @@ class winesteam(wine.wine):
                 path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
-                if os.path.exists(linux_path):
+                if linux_path:
                     dirs.append(linux_path)
                 i += 1
         return dirs
