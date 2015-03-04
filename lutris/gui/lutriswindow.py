@@ -266,16 +266,13 @@ class LutrisWindow(object):
     def refresh_status(self):
         """Refresh status bar."""
         if self.running_game:
-            if hasattr(self.running_game.game_thread, "pid"):
-                pid = self.running_game.game_thread.pid
-                name = self.running_game.name
-                if pid == 99999:
-                    self.status_label.set_text("Preparing to launch %s" % name)
-                elif pid is None:
-                    self.status_label.set_text("Game has quit")
-                else:
-                    self.status_label.set_text("Playing %s (pid: %r)"
-                                               % (name, pid))
+            name = self.running_game.name
+            if self.running_game.state == self.running_game.STATE_IDLE:
+                self.status_label.set_text("Preparing to launch %s" % name)
+            elif self.running_game.state == self.running_game.STATE_STOPPED:
+                self.status_label.set_text("Game has quit")
+            elif self.running_game.state == self.running_game.STATE_RUNNING:
+                self.status_label.set_text("Playing %s" % name)
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')

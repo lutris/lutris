@@ -37,6 +37,10 @@ class Game(object):
     """This class takes cares about loading the configuration for a game
        and running it.
     """
+    STATE_IDLE = 'idle'
+    STATE_STOPPED = 'stopped'
+    STATE_RUNNING = 'running'
+
     def __init__(self, slug):
         self.slug = slug
         self.runner = None
@@ -44,6 +48,7 @@ class Game(object):
         self.heartbeat = None
         self.config = None
         self.killswitch = None
+        self.state = self.STATE_IDLE
 
         game_data = pga.get_game_by_slug(slug)
         self.runner_name = game_data.get('runner') or ''
@@ -194,6 +199,7 @@ class Game(object):
         self.game_thread = LutrisThread(launch_arguments,
                                         path=self.runner.working_dir, env=env,
                                         rootpid=gameplay_info.get('rootpid'))
+        self.state = self.STATE_RUNNING
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -253,6 +259,7 @@ class Game(object):
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
+        self.state = self.STATE_STOPPED
 
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
