@@ -489,10 +489,10 @@ class ScriptInterpreter(object):
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
-        else:
-            self.chmodx(exec_path)
-            logger.debug("Executing %s %s" % (exec_path, args))
-            subprocess.call([exec_path] + args)
+        self.chmodx(exec_path)
+        command = [exec_path] + args
+        logger.debug("Executing %s" % command)
+        subprocess.call(command)
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""
