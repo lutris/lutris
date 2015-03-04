@@ -1,3 +1,4 @@
+import os
 from lutris.runners.runner import Runner
 
 
@@ -20,4 +21,4 @@ class openmsx(Runner):
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        return {'command': [self.executable, "\"%s\"" % rom]}
+        return {'command': [self.executable, rom]}

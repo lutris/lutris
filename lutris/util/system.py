@@ -67,18 +67,15 @@ def kill_pid(pid):
     execute(['kill', '-9', pid])
 
 
-def get_cwd(pid):
-    cwd_file = '/proc/%d/cwd' % int(pid)
-    if not os.path.exists(cwd_file):
-        return False
-    return os.readlink(cwd_file)
-
-
 def get_command_line(pid):
-    cmdline_path = '/proc/%d/cmdline' % int(pid)
-    if not os.path.exists(cmdline_path):
-        return False
-    return open(cmdline_path, 'r').read().replace('\x00', ' ').strip()
+    """Return command line used to run the process `pid`"""
+    cmdline = None
+    cmdline_path = '/proc/{}/cmdline'.format(pid)
+    if os.path.exists(cmdline_path):
+        with open(cmdline_path) as cmdline_file:
+            cmdline = cmdline_file.read()
+            cmdline = cmdline.replace('\x00', ' ')
+    return cmdline
 
 
 def python_identifier(string):
@@ -171,3 +168,15 @@ def fix_path_case(path):
 
 def xdg_open(path):
     subprocess.Popen(['xdg-open', path])
+
+
+def get_pids_using_file(path):
+    """Return a list of pids using file `path`"""
+    if not os.path.exists(path):
+        logger.error("No file %s", path)
+        return
+    lsof_output = execute("lsof -t \"{}\"".format(path))
+    if lsof_output:
+        return lsof_output.split('\n')
+    else:
+        return []

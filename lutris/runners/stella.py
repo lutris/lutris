@@ -31,4 +31,4 @@ class stella(Runner):
         cart = self.game_config.get('main_file') or ''
         if not os.path.exists(cart):
             return {'error': 'FILE_NOT_FOUND', 'file': cart}
-        return {'command': [self.get_executable(), "\"%s\"" % cart]}
+        return {'command': [self.get_executable(), cart]}

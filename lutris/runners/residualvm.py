@@ -48,8 +48,8 @@ class residualvm(Runner):
     ]
 
     tarballs = {
-        'i386': "residualvm-linux32.tar.gz",
-        'x64': "residualvm-linux64.tar.gz",
+        'i386': "residualvm-0.2.1-linux32.tar.gz",
+        'x64': "residualvm-0.2.1-linux64.tar.gz",
     }
 
     @property

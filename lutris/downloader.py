@@ -1,23 +1,27 @@
 """ Non-blocking Gio Downloader  """
+import os
 import time
 from lutris.util.log import logger
 from gi.repository import Gio, GLib, Gtk, Gdk
 
 
 class Downloader():
-    downloaded_bytes = 0
-    total_bytes = 0
-    time_elapsed = 0
-    time_remaining = 0
-    speed = 0
-    cancelled = False
 
     def __init__(self, url, dest):
+        self.downloaded_bytes = 0
+        self.total_bytes = 0
+        self.time_elapsed = 0
+        self.time_remaining = 0
+        self.speed = 0
+        self.cancelled = False
+
         self.remote = Gio.File.new_for_uri(url)
         self.local = Gio.File.new_for_path(dest)
         self.cancellable = Gio.Cancellable()
         self.progress = 0
         self.start_time = None
+        if not os.environ.get('DBUS_SESSION_BUS_ADDRESS'):
+            raise RuntimeError("DBus session not started, downloads won't work")
 
     def progress_callback(self, downloaded_bytes, total_bytes, _user_data):
         self.downloaded_bytes = downloaded_bytes

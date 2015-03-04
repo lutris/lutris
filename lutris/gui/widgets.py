@@ -113,7 +113,7 @@ class ContextualMenu(Gtk.Menu):
 
     def popup(self, event, game_row):
         is_installed = game_row[COL_INSTALLED]
-        hide_when_installed = ('install', 'add')
+        hide_when_installed = ('add', )
         hide_when_not_installed = ('play', 'configure', 'desktop-shortcut',
                                    'menu-shortcut', 'browse')
 
@@ -445,7 +445,13 @@ class DownloadProgressBox(Gtk.HBox):
 
     def start(self):
         """Start downloading a file."""
-        self.downloader = Downloader(self.url, self.dest)
+        try:
+            self.downloader = Downloader(self.url, self.dest)
+        except RuntimeError as ex:
+            from lutris.gui.dialogs import ErrorDialog
+            ErrorDialog(ex.message)
+            self.emit('cancelrequested', {})
+            return
         timer_id = GLib.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
         self.downloader.start()

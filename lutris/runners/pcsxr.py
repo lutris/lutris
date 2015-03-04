@@ -99,5 +99,7 @@ class pcsxr(Runner):
            and os.path.exists(os.path.expanduser("~/.pcsxr")):
             command.append("-nogui")
 
-        command.append("-cdfile \"" + iso + "\" -runcd")
+        command.append("-cdfile")
+        command.append(iso)
+        command.append("-runcd")
         return {'command': command}

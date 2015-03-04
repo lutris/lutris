@@ -205,5 +205,5 @@ class mednafen(Runner):
         command = [self.get_executable()]
         for option in options:
             command.append(option)
-        command.append("\"%s\"" % rom)
+        command.append(rom)
         return {'command': command}

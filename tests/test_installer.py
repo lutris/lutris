@@ -15,7 +15,8 @@ class TestScriptInterpreter(TestCase):
         script = {
             'runner': 'foo',
             'installer': 'bar',
-            'name': 'baz'
+            'name': 'baz',
+            'game_slug': 'baz',
         }
         interpreter = ScriptInterpreter(script, None)
         self.assertFalse(interpreter.errors)
@@ -25,7 +26,8 @@ class TestScriptInterpreter(TestCase):
         script = {
             'foo': 'bar',
             'installer': {},
-            'name': 'missing_runner'
+            'name': 'missing_runner',
+            'game_slug': 'missing-runner'
         }
         with self.assertRaises(ScriptingError):
             interpreter = ScriptInterpreter(script, None)

@@ -38,22 +38,34 @@ def set_regedit(path, key, value='', type_='REG_SZ',
         "%s"=%s
         """ % (path, key, formatted_value[type_])))
     reg_file.close()
-    wineexec('regedit', args=reg_path, prefix=prefix, wine_path=wine_path)
+    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix)
     os.remove(reg_path)
+
+
+def set_regedit_file(filename, wine_path=None, prefix=None):
+    """Apply a regedit file to the Windows registry"""
+    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new wineprefix"""
-    logger.debug("Creating a wine prefix in %s", prefix)
+    logger.debug("Creating a Wine prefix in %s", prefix)
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
-    wine_path = os.path.join(wine_dir, 'wineboot')
-    wineexec(None, prefix=prefix, wine_path=wine_path, arch=arch)
+    wineboot_path = os.path.join(wine_dir, 'wineboot')
+
+    env = ['WINEARCH=%s' % arch]
+    if prefix:
+        env.append('WINEPREFIX="%s" ' % prefix)
+
+    command = " ".join(env) + wineboot_path
+    subprocess.Popen(command, cwd=None, shell=True,
+                     stdout=subprocess.PIPE).communicate()
     if prefix:
         disable_desktop_integration(prefix)
 
 
-def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
+def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_env=''):
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
@@ -70,10 +82,8 @@ def wineexec(executable, args="", prefix=None, wine_path=None, arch=None,
     elif executable:
         executable = '"%s"' % executable
 
-    # Create prefix if none
-    # XXX Wat?
-    in_function_loop = os.path.basename(wine_path) == 'wineboot'
-    if not detected_arch and not in_function_loop:
+    # Create prefix if necessary
+    if not detected_arch:
         create_prefix(prefix, wine_dir=os.path.dirname(wine_path), arch=arch)
 
     env = ['WINEARCH=%s' % arch]
@@ -155,6 +165,40 @@ def set_drive_path(prefix, letter, path):
     os.symlink(path, drive_path)
 
 
+def get_wine_versions():
+    """Return the list of Wine versions installed by lutris.
+
+    :returns: list of (version, architecture) tuples
+    """
+    if not os.path.exists(WINE_DIR):
+        return []
+    dirs = os.listdir(WINE_DIR)
+    versions = []
+    for dirname in dirs:
+        split = dirname.split('-')
+        if len(split) == 2 and is_version_installed(split[0], split[1]):
+            versions.append((split[0], split[1]))
+    return versions
+
+
+def get_wine_exes():
+    """Return the list of wine executables installed"""
+    versions = []
+    for version, arch in get_wine_versions():
+        versions.append(get_wine_version_exe(version, arch))
+    return versions
+
+
+def get_wine_version_exe(version, arch=None):
+    arch = arch if arch else 'i386'
+    return os.path.join(WINE_DIR, '%s-%s/bin/wine' % (version, arch))
+
+
+def is_version_installed(version, arch=None):
+    arch = arch if arch else 'i386'
+    return os.path.isfile(get_wine_version_exe(version, arch))
+
+
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""
@@ -206,12 +250,24 @@ class wine(Runner):
         }
     ]
 
+    reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
+    reg_keys = {
+        "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
+        "Audio": r"%s\Drivers" % reg_prefix,
+        "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
+        "Multisampling": r"%s\Direct3D" % reg_prefix,
+        "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
+        "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
+        "Version": r"%s" % reg_prefix,
+        "Desktop": r"%s\Explorer" % reg_prefix
+    }
+
     def __init__(self, config=None):
         super(wine, self).__init__(config)
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
-            [(version, version) for version in self.local_wine_versions]
+            [(version, version) for version, arch in get_wine_versions()]
 
         orm_choices = [('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
@@ -320,17 +376,6 @@ class wine(Runner):
                 'help': "Which audio backend to use."
             }
         ]
-        reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
-        self.reg_keys = {
-            "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
-            "Audio": r"%s\Drivers" % reg_prefix,
-            "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
-            "Multisampling": r"%s\Direct3D" % reg_prefix,
-            "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
-            "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
-            "Version": r"%s" % reg_prefix,
-            "Desktop": r"%s\Explorer" % reg_prefix
-        }
 
     @property
     def prefix_path(self):
@@ -354,22 +399,6 @@ class wine(Runner):
             return os.path.dirname(self.game_exe)
         else:
             return super(wine, self).working_dir
-
-    @property
-    def local_wine_versions(self):
-        """Return the list of downloaded Wine versions."""
-        runner_path = WINE_DIR
-        versions = []
-        # Get list from folder names
-        if os.path.exists(runner_path):
-            dirnames = os.listdir(runner_path)
-            # Make sure the Wine executable is present
-            for version in dirnames:
-                wine_exe = os.path.join(runner_path, version, 'bin/wine')
-                if os.path.isfile(wine_exe):
-                    version = version.replace('-i386', '')
-                    versions.append(version)
-        return versions
 
     @property
     def system_wine_version(self):
@@ -415,19 +444,18 @@ class wine(Runner):
         version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self):
-        if self.wine_version in ['custom', 'system']:
-            # Fall back on default bundled version
-            version = DEFAULT_WINE
-        else:
+    def install(self, version=None, arch=None):
+        if not version:
             version = self.wine_version
-        version += '-i386'
-        tarball = "wine-%s.tar.gz" % version
-        destination = os.path.join(WINE_DIR, version)
+            if version in ['custom', 'system']:
+                # Fall back on default bundled version
+                version = DEFAULT_WINE
+        arch = arch if arch else 'i386'
+        tarball = "wine-%s-%s.tar.gz" % (version, arch)
+        destination = os.path.join(WINE_DIR, '%s-%s' % (version, arch))
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):
-        custom_path = self.runner_config.get('custom_wine_path', '')
         if self.wine_version == 'system':
             if system.find_executable('wine'):
                 return True
@@ -439,6 +467,7 @@ class wine(Runner):
                     "(To get rid of this message, either install Wine \n"
                     "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
+            custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
@@ -449,9 +478,7 @@ class wine(Runner):
                     "(To get rid of this message, fix your "
                     "Custom Wine path \n"
                     "or change the Wine version in the game's configuration.)")
-        if os.path.exists(self.get_executable()):
-            return True
-        return False
+        return os.path.exists(self.get_executable())
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None):
@@ -472,27 +499,32 @@ class wine(Runner):
     def prepare_launch(self):
         self.check_regedit_keys(self.runner_config)
 
+    def get_env(self, full=True):
+        if full:
+            env = os.environ.copy()
+        else:
+            env = {}
+        env['WINEDEBUG'] = "-fixme-all"
+        env['WINEARCH'] = self.wine_arch
+        if self.prefix_path:
+            env['WINEPREFIX'] = self.prefix_path
+        return env
+
     def play(self):
-        prefix = self.prefix_path or ''
-        arch = self.wine_arch
         game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
-        if game_exe.endswith(".msi"):
-            game_exe = 'msiexec /i "%s"' % game_exe
-        else:
-            game_exe = '"%s"' % game_exe
 
-        env = ['WINEARCH=%s' % arch]
-        command = []
-        if os.path.exists(prefix):
-            env.append("WINEPREFIX=\"%s\" " % prefix)
+        command = [self.get_executable(), game_exe]
+        if game_exe.endswith(".msi"):
+            command.append('msiexec')
+            command.append('/i')
+        command.append(game_exe)
 
         self.prepare_launch()
-        command.append(self.get_executable())
-        command.append(game_exe)
+        env = self.get_env()
         if arguments:
             for arg in arguments.split():
                 command.append(arg)
@@ -502,11 +534,13 @@ class wine(Runner):
         """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
-        command = os.path.join(wine_root, "wineserver") + " -k"
-        if self.prefix_path:
-            command = "WINEPREFIX=%s %s" % (self.prefix_path, command)
+        env = self.get_env(full=True)
+        command = [os.path.join(wine_root, "wineserver"), " -k"]
         logger.debug("Killing all wine processes: %s" % command)
-        system.execute(command, shell=True)
+        try:
+            subprocess.Popen(command, env=env)
+        except OSError:
+            logger.exception('Could not terminate wineserver %s', command)
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

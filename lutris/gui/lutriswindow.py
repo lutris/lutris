@@ -9,7 +9,6 @@ from gi.repository import Gtk, Gdk, GLib
 from lutris import api, pga, settings
 from lutris.game import Game, get_game_list
 from lutris.shortcuts import create_launcher
-from lutris.installer import InstallerDialog
 from lutris.sync import Sync
 
 from lutris.util import runtime
@@ -22,8 +21,10 @@ from lutris.util import datapath
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
-from lutris.gui.uninstallgamedialog import UninstallGameDialog
+from lutris.gui.logwindow import LogWindow
 from lutris.gui.runnersdialog import RunnersDialog
+from lutris.gui.installgamedialog import InstallerDialog
+from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
@@ -106,6 +107,7 @@ class LutrisWindow(object):
         self.icon_menuitem.set_active(self.icon_type == 'grid')
 
         self.search_entry = self.builder.get_object('search_entry')
+        self.search_entry.connect('icon-press', self.on_clear_search)
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
@@ -124,7 +126,7 @@ class LutrisWindow(object):
         # Contextual menu
         menu_callbacks = [
             ('play', self.on_game_clicked),
-            ('install', self.on_game_clicked),
+            ('install', self.on_install_clicked),
             ('add', self.add_manually),
             ('configure', self.edit_game_configuration),
             ('browse', self.on_browse_files),
@@ -265,16 +267,13 @@ class LutrisWindow(object):
     def refresh_status(self):
         """Refresh status bar."""
         if self.running_game:
-            if hasattr(self.running_game.game_thread, "pid"):
-                pid = self.running_game.game_thread.pid
-                name = self.running_game.name
-                if pid == 99999:
-                    self.status_label.set_text("Preparing to launch %s" % name)
-                elif pid is None:
-                    self.status_label.set_text("Game has quit")
-                else:
-                    self.status_label.set_text("Playing %s (pid: %r)"
-                                               % (name, pid))
+            name = self.running_game.name
+            if self.running_game.state == self.running_game.STATE_IDLE:
+                self.status_label.set_text("Preparing to launch %s" % name)
+            elif self.running_game.state == self.running_game.STATE_STOPPED:
+                self.status_label.set_text("Game has quit")
+            elif self.running_game.state == self.running_game.STATE_RUNNING:
+                self.status_label.set_text("Playing %s" % name)
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -292,12 +291,14 @@ class LutrisWindow(object):
     def reset(self, *args):
         """Reset the desktop to it's initial state."""
         if self.running_game:
-            self.running_game.quit_game()
-            self.status_label.set_text("Stopped %s" % self.running_game.name)
-            self.running_game = None
+            self.running_game.stop()
             self.stop_button.set_sensitive(False)
 
     # Callbacks
+    def on_clear_search(self, widget, icon_pos, event):
+        if icon_pos == Gtk.EntryIconPosition.SECONDARY:
+            widget.set_text('')
+
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog()
@@ -378,21 +379,34 @@ class LutrisWindow(object):
         self.view.game_store.filter_text = widget.get_text()
         self.view.emit('filter-updated')
 
-    def on_game_clicked(self, *args):
-        """Launch a game."""
+    def _get_current_game_slug(self):
+        """Return the slug of the current selected game while taking care of the
+        double clic bug.
+        """
         # Wait two seconds to avoid running a game twice
         if time.time() - self.game_launch_time < 2:
             return
         self.game_launch_time = time.time()
+        return self.view.selected_game
 
-        game_slug = self.view.selected_game
-        if game_slug:
-            self.running_game = Game(game_slug)
-            if self.running_game.is_installed:
-                self.stop_button.set_sensitive(True)
-                self.running_game.play()
-            else:
-                InstallerDialog(game_slug, self)
+    def on_game_clicked(self, *args):
+        """Launch a game, or install it if it is not"""
+        game_slug = self._get_current_game_slug()
+        if not game_slug:
+            return
+        self.running_game = Game(game_slug)
+        if self.running_game.is_installed:
+            self.stop_button.set_sensitive(True)
+            self.running_game.play()
+        else:
+            InstallerDialog(game_slug, self)
+
+    def on_install_clicked(self, *args):
+        """Install a game"""
+        game_slug = self._get_current_game_slug()
+        if not game_slug:
+            return
+        InstallerDialog(game_slug, self)
 
     def on_keypress(self, widget, event):
         if event.keyval == Gdk.KEY_F9:
@@ -424,14 +438,21 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
         add_game_dialog.run()
-        if add_game_dialog.installed:
+        if add_game_dialog.saved:
             self.view.set_installed(game)
+
+    def on_view_game_log_activate(self, widget):
+        if not self.running_game:
+            dialogs.ErrorDialog('No game log available')
+        log_title = "Log for {}".format(self.running_game)
+        log_window = LogWindow(log_title, self.window)
+        log_window.logtextview.set_text(self.running_game.game_log)
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
         add_game_dialog = AddGameDialog(self)
         add_game_dialog.run()
-        if add_game_dialog.runner_name and add_game_dialog.slug:
+        if add_game_dialog.saved:
             self.add_game_to_view(add_game_dialog.slug)
 
     def add_game_to_view(self, slug):
@@ -475,7 +496,7 @@ class LutrisWindow(object):
         game_slug = game.slug
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game)
-            if dialog.slug:
+            if dialog.saved:
                 game = Game(dialog.slug)
                 self.view.remove_game(game_slug)
                 self.view.add_game(game)

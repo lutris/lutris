@@ -61,6 +61,8 @@ class mess(Runner):
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
+            rompath = os.path.join(settings.RUNNER_DIR, "mess/bios")
+        if not os.path.exists(rompath):
             return {'error': 'NO_BIOS'}
         machine = self.game_config.get('machine')
         if not machine:
@@ -70,6 +72,6 @@ class mess(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.game_config.get('device')
         command = [self.get_executable(),
-                   '-rompath', "\"%s\"" % rompath, machine,
-                   '-' + device, "\"%s\"" % rom]
+                   '-rompath', rompath, machine,
+                   '-' + device, rom]
         return {'command': command}

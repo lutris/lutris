@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <!-- interface-local-resource-path ../media -->
@@ -7,6 +7,12 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-play</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-file</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkRadioAction" id="radioaction1">
     <property name="hide_if_empty">False</property>
@@ -306,6 +312,22 @@
                         <signal name="activate" handler="on_remove_game" swapped="no"/>
                       </object>
                     </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separator2">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="view_game_log">
+                        <property name="label" translatable="yes">View log of last game</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="image">image2</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="on_view_game_log_activate" swapped="no"/>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -427,9 +449,11 @@
                   <object class="GtkEntry" id="search_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="has_focus">True</property>
                     <property name="invisible_char">•</property>
                     <property name="width_chars">30</property>
                     <property name="primary_icon_stock">gtk-find</property>
+                    <property name="secondary_icon_stock">gtk-clear</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="primary_icon_sensitive">False</property>
                     <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>

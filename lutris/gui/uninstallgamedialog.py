@@ -3,6 +3,7 @@ from lutris.gui.dialogs import GtkBuilderDialog
 from lutris.game import Game
 from lutris.util.system import is_removeable
 from lutris.gui.dialogs import QuestionDialog
+from lutris.runners import InvalidRunner
 
 
 class UninstallGameDialog(GtkBuilderDialog):
@@ -45,7 +46,11 @@ class UninstallGameDialog(GtkBuilderDialog):
                     default_path = runner.default_path
                 except AttributeError:
                     default_path = "/"
-                if not is_removeable(runner.game_path, excludes=[default_path]):
+                try:
+                    game_path = runner.game_path
+                except AttributeError:
+                    game_path = '/'
+                if not is_removeable(game_path, excludes=[default_path]):
                     remove_contents_button.set_sensitive(False)
 
             path = self.game.directory or 'disk'

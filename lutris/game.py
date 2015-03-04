@@ -8,11 +8,11 @@ from gi.repository import GLib
 
 from lutris import pga
 from lutris import settings
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
-from lutris.thread import LutrisThread
+from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 
 
@@ -37,12 +37,19 @@ class Game(object):
     """This class takes cares about loading the configuration for a game
        and running it.
     """
+    STATE_IDLE = 'idle'
+    STATE_STOPPED = 'stopped'
+    STATE_RUNNING = 'running'
+
     def __init__(self, slug):
         self.slug = slug
         self.runner = None
         self.game_thread = None
         self.heartbeat = None
         self.config = None
+        self.killswitch = None
+        self.state = self.STATE_IDLE
+        self.game_log = ''
 
         game_data = pga.get_game_by_slug(slug)
         self.runner_name = game_data.get('runner') or ''
@@ -71,13 +78,17 @@ class Game(object):
     def load_config(self):
         """Load the game's configuration."""
         self.config = LutrisConfig(game=self.slug)
-        if self.is_installed:
+        if not self.is_installed:
+            return
+        if not self.runner_name:
+            logger.error('Incomplete data for %s', self.slug)
+            return
+        try:
             runner_class = import_runner(self.runner_name)
-            if runner_class:
-                self.runner = runner_class(self.config)
-            else:
-                logger.error("Unable to import runner %s for %s",
-                             self.runner_name, self.slug)
+        except InvalidRunner:
+            logger.error("Unable to import runner %s for %s",
+                         self.runner_name, self.slug)
+        self.runner = runner_class(self.config)
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
@@ -87,6 +98,16 @@ class Game(object):
             self.config.remove()
         else:
             pga.set_uninstalled(self.slug)
+
+    def save(self):
+        self.config.save()
+        pga.add_or_update(
+            name=self.name,
+            runner=self.runner_name,
+            slug=self.slug,
+            directory=self.directory,
+            installed=self.is_installed
+        )
 
     def prelaunch(self):
         """Verify that the current game can be launched."""
@@ -146,10 +167,13 @@ class Game(object):
         prefix_command = system_config.get("prefix_command", '').strip()
         if prefix_command:
             launch_arguments.insert(0, prefix_command)
+        env = os.environ.copy()
+        game_env = gameplay_info.get('env') or {}
+        env.update(game_env)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
-            launch_arguments.insert(0, 'LD_PRELOAD="{}"'.format(ld_preload))
+            env["LD_PRELOAD"] = ld_preload
 
         ld_library_path = []
         if self.use_runtime(system_config):
@@ -166,17 +190,17 @@ class Game(object):
 
         if ld_library_path:
             ld_full = ':'.join(ld_library_path)
-            ld_arg = 'LD_LIBRARY_PATH="{}:$LD_LIBRARY_PATH"'.format(ld_full)
-            launch_arguments.insert(0, ld_arg)
+            env["LD_LIBRARY_PATH"] = "{}:$LD_LIBRARY_PATH".format(ld_full)
 
-        env = gameplay_info.get('env') or []
-        for var in env:
-            launch_arguments.insert(0, var)
+        self.killswitch = system_config.get('killswitch')
+        if self.killswitch and not os.path.exists(self.killswitch):
+            # Prevent setting a killswitch to a file that doesn't exists
+            self.killswitch = None
 
-        killswitch = system_config.get('killswitch')
-        self.game_thread = LutrisThread(" ".join(launch_arguments),
-                                        path=self.runner.working_dir,
-                                        killswitch=killswitch)
+        self.game_thread = LutrisThread(launch_arguments,
+                                        path=self.runner.working_dir, env=env,
+                                        rootpid=gameplay_info.get('rootpid'))
+        self.state = self.STATE_RUNNING
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -187,7 +211,7 @@ class Game(object):
             self.xboxdrv_start(xboxdrv_config)
         if self.runner.is_watchable:
             # Create heartbeat every
-            self.heartbeat = GLib.timeout_add(5000, self.poke_process)
+            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def joy2key(self, config):
         """Run a joy2key thread."""
@@ -222,19 +246,25 @@ class Game(object):
     def xboxdrv_stop(self):
         os.system("pkexec xboxdrvctl --shutdown")
 
-    def poke_process(self):
+    def beat(self):
         """Watch game's process."""
-        if not self.game_thread.pid:
-            self.quit_game()
+        killswitch_engage = self.killswitch and \
+            not os.path.exists(self.killswitch)
+        if not self.game_thread.is_running or killswitch_engage:
+            self.on_game_quit()
             return False
         return True
 
-    def quit_game(self):
-        """Quit the game and cleanup."""
+    def stop(self):
+        self.game_thread.stop(killall=True)
+
+    def on_game_quit(self):
+        """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("game has quit at %s" % quit_time)
-
+        self.state = self.STATE_STOPPED
+        self.game_log = self.game_thread.stdout
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)

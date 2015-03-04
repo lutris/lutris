@@ -168,43 +168,17 @@ class Runner(object):
         if tarball:
             self.download_and_extract(tarball)
             return True
-
-        # Return false if runner has no package, must be then another method
-        # and install method should be overridden by the specific runner
-        if not hasattr(self, 'package'):
+        else:
+            dialogs.ErrorDialog(
+                'This runner is not available for your platform'
+            )
             return False
-
-        package_installer_candidates = (
-            'gpk-install-package-name',
-            'software-center',
-        )
-        package_installer = None
-        for candidate in package_installer_candidates:
-            if find_executable(candidate):
-                package_installer = candidate
-                break
-
-        if not package_installer:
-            logger.error("The distribution you're running is not supported.")
-            logger.error("Edit runners/runner.py to add support for it")
-            return False
-
-        if not self.package:
-            dialogs.ErrorDialog('This runner is not yet installable')
-            logger.error("The requested runner %s can't be installed",
-                         self.__class__.__name__)
-            return False
-
-        subprocess.Popen("%s %s" % (package_installer, self.package),
-                         shell=True, stderr=subprocess.PIPE)
-        return True
 
     def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
         merge_single = opts.get('merge_single', False)
         source_url = opts.get('source_url', settings.RUNNERS_URL)
-        dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
-        dialog.run()
+        dialogs.DownloadDialog(source_url + tarball, runner_archive)
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
             dialogs.ErrorDialog("Installation aborted")
