@@ -550,7 +550,8 @@ class wine(Runner):
         command = [os.path.join(wine_root, "wineserver"), " -k"]
         logger.debug("Killing all wine processes: %s" % command)
         try:
-            subprocess.Popen(command, env=env)
+            proc = subprocess.Popen(command, env=env)
+            proc.wait()
         except OSError:
             logger.exception('Could not terminate wineserver %s', command)
 
