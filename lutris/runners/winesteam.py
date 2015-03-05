@@ -336,5 +336,5 @@ class winesteam(wine.wine):
         env = self.get_env()
         command = self.launch_args + ['steam://uninstall/%s' % appid]
         self.prepare_launch()
-        thread = LutrisThread(' '.join(command), path=self.working_dir, env=env)
+        thread = LutrisThread(' '.join(command), runner=self, env=env)
         thread.start()

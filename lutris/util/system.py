@@ -174,8 +174,8 @@ def get_pids_using_file(path):
     """Return a list of pids using file `path`"""
     if not os.path.exists(path):
         logger.error("No file %s", path)
-        return
-    lsof_output = execute("lsof -t \"{}\"".format(path))
+        return []
+    lsof_output = execute(["lsof", "-t", path])
     if lsof_output:
         return lsof_output.split('\n')
     else:

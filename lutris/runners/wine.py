@@ -203,7 +203,6 @@ def is_version_installed(version, arch=None):
 class wine(Runner):
     """Run Windows games with Wine."""
     human_name = "Wine"
-    executable = 'wine'
     platform = 'Windows'
     game_options = [
         {
@@ -261,6 +260,14 @@ class wine(Runner):
         "Version": r"%s" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix
     }
+
+    core_processes = (
+        'services.exe',
+        'winedevice.exe',
+        'plugplay.exe',
+        'explorer.exe',
+        'rpcss.exe',
+    )
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
@@ -509,6 +516,13 @@ class wine(Runner):
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
         return env
+
+    def get_pids(self):
+        """Return a list of pids of processes using the current wine exe"""
+        exe = self.get_executable()
+        if not exe.startswith('/'):
+            exe = system.find_executable(exe)
+        return system.get_pids_using_file(exe)
 
     def play(self):
         game_exe = self.game_exe

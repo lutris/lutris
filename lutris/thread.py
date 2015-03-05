@@ -16,12 +16,14 @@ HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    def __init__(self, command, path="/tmp", env={}, rootpid=None):
+    debug_output = False
+
+    def __init__(self, command, runner=None, env={}, rootpid=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
         self.command = command
-        self.path = path
+        self.runner = runner
         self.game_process = None
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
@@ -29,7 +31,11 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
-        logger.debug('Running thread from %s', self.path)
+
+        if self.runner:
+            self.path = runner.working_dir
+        else:
+            self.path = '/tmp/'
 
     def attach_thread(self, thread):
         """Attach child process that need to be killed on game exit"""
@@ -45,15 +51,22 @@ class LutrisThread(threading.Thread):
                                              cwd=self.path, env=self.env)
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
-            sys.stdout.write(line)
+            if self.debug_output:
+                sys.stdout.write(line)
 
-    def iter_children(self, process, topdown=True):
+    def iter_children(self, process, topdown=True, first=True):
+        if self.runner.name.startswith('wine') and first:
+            pids = self.runner.get_pids()
+            for pid in pids:
+                wineprocess = Process(pid)
+                if wineprocess.name not in self.runner.core_processes:
+                    process.children.append(wineprocess)
         for child in process.children:
             if topdown:
                 yield child
-            gen = self.iter_children(child)
-            for c in gen:
-                yield c
+            subs = self.iter_children(child, topdown=topdown, first=False)
+            for sub in subs:
+                yield sub
             if not topdown:
                 yield child
 
