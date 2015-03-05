@@ -1,10 +1,18 @@
 import os
 import signal
+from lutris.util.log import logger
+
+
+class InvalidPid(Exception):
+    pass
 
 
 class Process(object):
     def __init__(self, pid, parent=None):
-        self.pid = pid
+        try:
+            self.pid = int(pid)
+        except ValueError:
+            raise InvalidPid("'%s' is not a valid pid" % pid)
         self.children = []
         self.parent = None
         self.get_children()
@@ -81,4 +89,7 @@ class Process(object):
         return os.readlink(cwd_path)
 
     def kill(self):
-        os.kill(self.pid, signal.SIGKILL)
+        try:
+            os.kill(self.pid, signal.SIGKILL)
+        except OSError:
+            logger.error("Could not kill process %s", self.pid)
