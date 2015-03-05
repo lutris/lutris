@@ -254,9 +254,9 @@ class wine(Runner):
         "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
         "Audio": r"%s\Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
-        "Multisampling": r"%s\Direct3D" % reg_prefix,
         "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
         "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
+        "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Version": r"%s" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix
     }
@@ -338,20 +338,6 @@ class wine(Runner):
                 )
             },
             {
-                'option': 'Multisampling',
-                'label': 'Multisampling',
-                'type': 'choice',
-                'choices': [
-                    ('Enabled', 'enabled'),
-                    ('Disabled', 'disabled')
-                ],
-                'help': ("Set to Disabled to prevent applications from "
-                         "seeing Wine's multisampling support. "
-                         "This is another Wine legacy option that will most "
-                         "likely disappear at some point. There should be "
-                         "no reason to set this.")
-            },
-            {
                 'option': 'OffscreenRenderingMode',
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
@@ -361,6 +347,18 @@ class wine(Runner):
                          "offscreen rendering \n"
                          "<b>Backbuffer</b>: Render offscreen render targets "
                          "in the backbuffer.\n")
+            },
+            {
+                'option': 'StrictDrawOrdering',
+                'label': "Strict Draw Ordering",
+                'type': 'choice',
+                'choices': [
+                    ('Enabled', 'enabled'),
+                    ('Disabled', 'disabled')
+                ],
+                'help': ("This option ensures any pending drawing operations "
+                         "are submitted to the driver, but at a significant "
+                         "performance cost.")
             },
             {
                 'option': 'RenderTargetLockMode',
