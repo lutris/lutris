@@ -21,7 +21,10 @@ class Process(object):
         return "Process {}".format(self.pid)
 
     def get_stat(self, parsed=True):
-        with open("/proc/{}/stat".format(self.pid)) as stat_file:
+        stat_filename = "/proc/{}/stat".format(self.pid)
+        if not os.path.exists(stat_filename):
+            return
+        with open(stat_filename) as stat_file:
             _stat = stat_file.readline()
         if parsed:
             return _stat[_stat.rfind(")")+1:].split()
@@ -54,7 +57,8 @@ class Process(object):
     def name(self):
         """Filename of the executable"""
         _stat = self.get_stat(parsed=False)
-        return _stat[_stat.find("(")+1:_stat.rfind(")")]
+        if _stat:
+            return _stat[_stat.find("(")+1:_stat.rfind(")")]
 
     @property
     def state(self):
@@ -63,17 +67,23 @@ class Process(object):
         sleep, Z is zombie, T is traced or stopped (on a signal), and W is
         paging.
         """
-        return self.get_stat()[0]
+        _stat = self.get_stat()
+        if _stat:
+            return _stat[0]
 
     @property
     def ppid(self):
         """PID of the parent"""
-        return self.get_stat()[1]
+        _stat = self.get_stat()
+        if _stat:
+            return _stat[1]
 
     @property
     def pgrp(self):
         """Process group ID of the process"""
-        return self.get_stat()[2]
+        _stat = self.get_stat()
+        if _stat:
+            return _stat[2]
 
     @property
     def cmdline(self):
