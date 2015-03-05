@@ -172,7 +172,7 @@ def get_wine_versions():
     """
     if not os.path.exists(WINE_DIR):
         return []
-    dirs = os.listdir(WINE_DIR)
+    dirs = sorted(os.listdir(WINE_DIR), reverse=True)
     versions = []
     for dirname in dirs:
         split = dirname.split('-')
