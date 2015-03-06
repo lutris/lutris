@@ -124,6 +124,7 @@ class InstallerDialog(Gtk.Window):
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
         self.continue_button.connect('clicked', self.on_file_selected)
+        self.install_button.grab_focus()
         self.install_button.show()
 
     def choose_installer(self):
@@ -144,6 +145,7 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
         self.installer_choice_box.show_all()
 
+        self.continue_button.grab_focus()
         self.continue_button.show()
         self.continue_handler = self.continue_button.connect(
             'clicked', self.on_installer_selected
@@ -198,6 +200,7 @@ class InstallerDialog(Gtk.Window):
             self.location_entry.entry.connect('changed', callback)
         else:
             self.install_button.set_visible(False)
+            self.continue_button.grab_focus()
             self.continue_button.show()
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
@@ -264,6 +267,7 @@ class InstallerDialog(Gtk.Window):
         button = Gtk.Button(label='Ok')
         button.connect('clicked', callback, data)
         self.widget_box.add(button)
+        button.grab_focus()
         button.show()
 
     def input_menu(self, alias, options, preselect, has_entry, callback):
@@ -290,6 +294,7 @@ class InstallerDialog(Gtk.Window):
             'clicked', callback, alias, combobox)
         if not preselect:
             self.continue_button.set_sensitive(False)
+        self.continue_button.grab_focus()
         self.continue_button.show()
 
     def on_input_menu_changed(self, widget):
@@ -311,6 +316,7 @@ class InstallerDialog(Gtk.Window):
         self.continue_button.hide()
         self.install_button.hide()
         self.play_button.show()
+        self.close_button.grab_focus()
         self.close_button.show()
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
@@ -326,6 +332,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_error(self, message):
         self.status_label.set_text(message)
         self.clean_widgets()
+        self.close_button.grab_focus()
         self.close_button.show()
 
     def launch_game(self, widget, _data=None):
