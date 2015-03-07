@@ -305,8 +305,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
         self.connect_signals()
-        self.connect('row-activated', self.get_selected_game, True)
-        self.connect('cursor-changed', self.get_selected_game, False)
+        self.connect('row-activated', self.on_row_activated)
+        self.connect('cursor-changed', self.on_cursor_changed)
 
     def set_text_cell(self):
         text_cell = Gtk.CellRendererText()
@@ -322,21 +322,28 @@ class GameListView(Gtk.TreeView, GameView):
         column.set_reorderable(True)
         return column
 
-    def get_selected_game(self, widget, line=None, column=None, launch=False):
+    def get_selected_game(self):
+        """Return the currently selected game's slug."""
         selection = self.get_selection()
         if not selection:
             return
         model, select_iter = selection.get_selected()
-        self.selected_game = model.get_value(select_iter, COL_ID)
-        if launch:
-            self.emit("game-activated")
-        else:
-            self.emit("game-selected")
+        if not select_iter:
+            return
+        return model.get_value(select_iter, COL_ID)
 
     def set_selected_game(self, game):
         row = self.get_row_by_slug(game.slug)
         if row:
             self.set_cursor(row.path)
+
+    def on_cursor_changed(self, widget, line=None, column=None):
+        self.selected_game = self.get_selected_game()
+        self.emit("game-selected")
+
+    def on_row_activated(self, widget, line=None, column=None):
+        self.selected_game = self.get_selected_game()
+        self.emit("game-activated")
 
 
 class GameGridView(Gtk.IconView, GameView):
@@ -376,29 +383,27 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_fluid_columns(width - 20)
         self.do_size_allocate(widget, rect)
 
-    def on_item_activated(self, view, path):
-        self.get_selected_game(True)
-
-    def on_selection_changed(self, view):
-        self.get_selected_game(False)
-
-    def get_selected_game(self, launch=False):
+    def get_selected_game(self):
+        """Return the currently selected game's slug."""
         selection = self.get_selected_items()
         if not selection:
             return
         self.current_path = selection[0]
         store = self.get_model()
-        self.selected_game = store.get(store.get_iter(self.current_path),
-                                       COL_ID)[0]
-        if launch:
-            self.emit("game-activated")
-        else:
-            self.emit("game-selected")
+        return store.get(store.get_iter(self.current_path), COL_ID)[0]
 
     def set_selected_game(self, game):
         row = self.get_row_by_slug(game.slug)
         if row:
             self.select_path(row.path)
+
+    def on_item_activated(self, view, path):
+        self.selected_game = self.get_selected_game()
+        self.emit("game-activated")
+
+    def on_selection_changed(self, view):
+        self.selected_game = self.get_selected_game()
+        self.emit("game-selected")
 
 
 class DownloadProgressBox(Gtk.HBox):
