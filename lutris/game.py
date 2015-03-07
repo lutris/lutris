@@ -235,11 +235,12 @@ class Game(object):
         joy2key_thread.start()
 
     def xboxdrv_start(self, config):
-        command = ("pkexec xboxdrv --daemon --detach-kernel-driver "
-                   "--dbus session --silent %s"
-                   % config)
+        command = [
+            "pkexec", "xboxdrv", "--daemon", "--detach-kernel-driver",
+            "--dbus", "session", "--silent"
+        ] + config.split()
         logger.debug("xboxdrv command: %s", command)
-        self.xboxdrv_thread = LutrisThread(command)
+        self.xboxdrv_thread = LutrisThread(command, env=os.environ)
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
