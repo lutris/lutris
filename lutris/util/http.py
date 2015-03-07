@@ -25,23 +25,40 @@ def download_asset(url, dest, overwrite=False):
 
 
 def download_content(url, data=None, log_errors=True):
-    timeout = 5
-    content = None
-    try:
-        request = urllib2.urlopen(url, data, timeout)
-    except urllib2.HTTPError as e:
-        if log_errors:
-            logger.error("Unavailable url (%s): %s", url, e)
-    except (socket.timeout, urllib2.URLError) as e:
-        if log_errors:
-            logger.error("Unable to connect to server (%s): %s", url, e)
-    else:
-        content = request.read()
-    return content
+    request = Request(url, log_errors).get(data)
+    return request.content
 
 
 def download_json(url, params=''):
     """Download and decode json string at URL."""
-    content = download_content(url + "?" + params)
+    if params:
+        url = url + "?" + params
+    content = download_content(url)
     if content:
         return json.loads(content)
+
+
+class Request(object):
+    def __init__(self, url, error_logging=True):
+        self.url = url
+        self.error_logging = error_logging
+        self.content = None
+
+    def get(self, data=None, timeout=5):
+        try:
+            request = urllib2.urlopen(self.url, data, timeout)
+        except urllib2.HTTPError as e:
+            if self.error_logging:
+                logger.error("Unavailable url (%s): %s", self.url, e)
+        except (socket.timeout, urllib2.URLError) as e:
+            if self.error_logging:
+                logger.error("Unable to connect to server (%s): %s",
+                             self.url, e)
+        else:
+            self.content = request.read()
+        return self
+
+    @property
+    def json(self):
+        if self.content:
+            return json.loads(self.content)

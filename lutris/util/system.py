@@ -118,6 +118,11 @@ def merge_folders(source, destination):
                         os.path.join(dst_abspath, filename))
 
 
+def remove_folder(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)
+
+
 def is_removeable(path, excludes=None):
     """Check if a folder is safe to remove (not system or home, ...)"""
     if not path:

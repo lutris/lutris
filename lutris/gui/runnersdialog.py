@@ -7,6 +7,7 @@ from lutris.gui.widgets import get_runner_icon
 from lutris.util import system
 from lutris.runners import import_runner
 from lutris.gui.config_dialogs import RunnerConfigDialog
+from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 
 
 class RunnersDialog(Gtk.Window):
@@ -30,9 +31,11 @@ class RunnersDialog(Gtk.Window):
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         self.vbox.pack_start(scrolled_window, True, True, 0)
+        self.show_all()
 
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
+        runner_vbox.show()
 
         self.runner_labels = {}
         for runner_name in runner_list:
@@ -43,12 +46,13 @@ class RunnersDialog(Gtk.Window):
         scrolled_window.add_with_viewport(runner_vbox)
 
         buttons_box = Gtk.Box()
+        buttons_box.show()
         open_runner_button = Gtk.Button("Open Runners Folder")
+        open_runner_button.show()
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
         buttons_box.add(open_runner_button)
-        self.vbox.pack_start(buttons_box, False, False, 5)
 
-        self.show_all()
+        self.vbox.pack_start(buttons_box, False, False, 5)
 
     def get_runner_hbox(self, runner_name):
         # Get runner details
@@ -57,13 +61,16 @@ class RunnersDialog(Gtk.Window):
         description = runner.description
 
         hbox = Gtk.HBox()
+        hbox.show()
         # Icon
         icon = get_runner_icon(runner_name)
+        icon.show()
         icon.set_alignment(0.5, 0.1)
         hbox.pack_start(icon, False, False, 10)
 
         # Label
         runner_label = Gtk.Label()
+        runner_label.show()
         if not runner.is_installed():
             runner_label.set_sensitive(False)
         runner_label.set_markup(
@@ -78,43 +85,52 @@ class RunnersDialog(Gtk.Window):
         runner_label.set_padding(5, 0)
         self.runner_labels[runner] = runner_label
         hbox.pack_start(runner_label, True, True, 5)
-        # Button
-        button = Gtk.Button()
-        button.set_size_request(100, 30)
-        button_align = Gtk.Alignment.new(1.0, 0.0, 0.0, 0.0)
-        self.configure_button(button, runner)
-        button_align.add(button)
-        hbox.pack_start(button_align, False, False, 15)
+
+        # Buttons
+        self.configure_button = Gtk.Button("Configure")
+        self.configure_button.set_size_request(120, 30)
+        self.configure_button.connect("clicked", self.on_configure_clicked,
+                                      runner)
+        hbox.pack_start(self.configure_button, False, False, 15)
+
+        self.versions_button = Gtk.Button("Manage versions")
+        self.versions_button.set_size_request(120, 30)
+        self.versions_button.connect("clicked", self.on_versions_clicked,
+                                     runner)
+        hbox.pack_start(self.versions_button, False, False, 15)
+
+        self.install_button = Gtk.Button("Install")
+        self.install_button.set_size_request(120, 30)
+        self.install_button.connect("clicked", self.on_install_clicked, runner)
+        hbox.pack_start(self.install_button, False, False, 15)
+
+        self.set_button_display(runner)
+
         return hbox
 
-    def configure_button(self, widget, runner):
-        try:
-            widget.disconnect(widget.click_signal)
-        except AttributeError:
-            pass
-        if runner.is_installed():
-            self.runner_labels[runner].set_sensitive(True)
-            self.setup_configure_button(widget, runner)
+    def set_button_display(self, runner):
+        if runner.multiple_versions:
+            self.versions_button.show()
+            self.install_button.hide()
         else:
-            self.setup_install_button(widget, runner)
+            self.versions_button.hide()
+            self.install_button.show()
 
-    def setup_configure_button(self, widget, runner):
-        widget.set_label('Configure')
-        widget.set_size_request(100, 30)
-        handler_id = widget.connect("clicked",
-                                    self.on_configure_clicked,
-                                    runner)
-        widget.click_signal = handler_id
+        if runner.is_installed():
+            self.configure_button.show()
+            self.install_button.hide()
+        else:
+            self.configure_button.hide()
 
-    def setup_install_button(self, widget, runner):
-        widget.set_label('Install')
-        handler_id = widget.connect("clicked", self.on_install_clicked, runner)
-        widget.click_signal = handler_id
+    def on_versions_clicked(self, widget, runner):
+        dlg_title = "Manage %s versions" % runner.name
+        RunnerInstallDialog(dlg_title, self, runner.name)
+        self.set_button_display(runner)
 
     def on_install_clicked(self, widget, runner):
         """Install a runner"""
         runner.install()
-        self.configure_button(widget, runner)
+        self.set_button_display(runner)
 
     @staticmethod
     def on_configure_clicked(widget, runner):

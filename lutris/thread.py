@@ -55,7 +55,7 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def iter_children(self, process, topdown=True, first=True):
-        if self.runner.name.startswith('wine') and first:
+        if self.runner and self.runner.name.startswith('wine') and first:
             pids = self.runner.get_pids()
             for pid in pids:
                 wineprocess = Process(pid)

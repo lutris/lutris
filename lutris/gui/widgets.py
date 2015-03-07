@@ -5,6 +5,7 @@ import os
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
+from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
 from lutris.util import datapath
 # from lutris.util.log import logger
@@ -126,17 +127,6 @@ class ContextualMenu(Gtk.Menu):
 
         super(ContextualMenu, self).popup(None, None, None, None,
                                           event.button, event.time)
-
-
-class GridViewCellRenderer(Gtk.CellRendererText):
-    def __init__(self, width=None, *args, **kwargs):
-        super(GridViewCellRenderer, self).__init__(*args, **kwargs)
-        self.props.alignment = Pango.Alignment.CENTER
-        self.props.wrap_mode = Pango.WrapMode.WORD
-        self.props.xalign = 0.5
-        self.props.yalign = 0
-        self.props.width = width
-        self.props.wrap_width = width
 
 
 class GameStore(object):
@@ -365,7 +355,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_pixbuf_column(COL_ICON)
         self.cell_width = BANNER_SIZE[0] if icon_type == "banner" \
             else BANNER_SMALL_SIZE[0]
-        gridview_cell_renderer = GridViewCellRenderer(width=self.cell_width)
+        gridview_cell_renderer = GridViewCellRendererText(width=self.cell_width)
         self.pack_end(gridview_cell_renderer, False)
         self.add_attribute(gridview_cell_renderer, 'markup', COL_NAME)
         self.set_item_padding(self.icon_padding)

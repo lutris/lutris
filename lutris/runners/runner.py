@@ -1,8 +1,6 @@
 # -*- coding:Utf-8 -*-
 """Generic runner."""
 import os
-import shutil
-import subprocess
 import platform
 
 from gi.repository import Gtk
@@ -13,7 +11,7 @@ from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
-from lutris.util.system import find_executable
+from lutris.util import system
 
 
 def get_arch():
@@ -28,6 +26,7 @@ class Runner(object):
     """Generic runner (base class for other runners)."""
 
     is_watchable = True  # Is the game's pid a parent of Lutris ?
+    multiple_versions = False
     tarballs = {
         'i386': None,
         'x64': None
@@ -144,7 +143,6 @@ class Runner(object):
 
     def is_installed(self):
         """Return  True if runner is installed else False."""
-        is_installed = False
         # Check 'get_executable' first
         if hasattr(self, 'get_executable'):
             executable = self.get_executable()
@@ -154,16 +152,10 @@ class Runner(object):
         # Fallback to 'executable' attribute (ssytem-wide install)
         if not getattr(self, 'executable', None):
             return False
-        result = find_executable(self.executable)
-        if result == '':
-            is_installed = False
-        else:
-            is_installed = True
-        return is_installed
+        return bool(system.find_executable(self.executable))
 
     def install(self):
         """Install runner using package management systems."""
-        # Prioritize provided tarballs.
         tarball = self.tarballs.get(self.arch)
         if tarball:
             self.download_and_extract(tarball)
@@ -187,5 +179,4 @@ class Runner(object):
         os.remove(runner_archive)
 
     def remove_game_data(self, game_path=None):
-        if os.path.exists(game_path):
-            shutil.rmtree(game_path)
+        system.remove_folder(game_path)

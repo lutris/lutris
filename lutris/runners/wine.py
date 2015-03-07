@@ -204,6 +204,7 @@ class wine(Runner):
     """Run Windows games with Wine."""
     human_name = "Wine"
     platform = 'Windows'
+    multiple_versions = True
     game_options = [
         {
             'option': 'exe',
