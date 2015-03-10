@@ -1,6 +1,7 @@
 import os
 from lutris.util import http
 from lutris.util import extract
+from lutris.util import system
 from lutris import settings
 
 LOCAL_VERSION_PATH = os.path.join(settings.RUNTIME_DIR, "VERSION")
@@ -42,6 +43,8 @@ def update_runtime():
     runtime64_path = os.path.join(settings.RUNTIME_DIR, runtime64_file)
     http.download_asset(settings.RUNTIME_URL + runtime64_file, runtime64_path,
                         overwrite=True)
+    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib32'))
+    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib64'))
     extract.extract_archive(runtime32_path, settings.RUNTIME_DIR,
                             merge_single=False)
     extract.extract_archive(runtime64_path, settings.RUNTIME_DIR,

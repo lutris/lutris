@@ -119,6 +119,7 @@ def merge_folders(source, destination):
 
 
 def remove_folder(path):
+    logger.debug("Removing folder %s" % path)
     if os.path.exists(path):
         shutil.rmtree(path)
 
