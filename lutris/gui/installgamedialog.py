@@ -88,7 +88,8 @@ class InstallerDialog(Gtk.Window):
         else:
             self.scripts = installer.fetch_script(self, game_ref)
         if not self.scripts:
-            raise installer.ScriptingError("Failed to get installer script")
+            self.destroy()
+            return
         if not isinstance(self.scripts, list):
             self.scripts = [self.scripts]
         self.show_all()

@@ -248,13 +248,17 @@ class ClientLoginDialog(GtkBuilderDialog):
 
 
 class NoInstallerDialog(Gtk.MessageDialog):
+    MANUAL_CONF = 1
+    NEW_INSTALLER = 2
+    EXIT = 4
+
     def __init__(self, parent=None):
         Gtk.MessageDialog.__init__(self, parent, 0, Gtk.MessageType.ERROR,
                                    Gtk.ButtonsType.NONE,
                                    "Unable to install the game")
         self.format_secondary_text("No installer is available for this game")
-        self.add_buttons("Configure manually", 1,
-                         "Write installer", 2,
-                         "Exit", 4)
+        self.add_buttons("Configure manually", self.MANUAL_CONF,
+                         "Write installer", self.NEW_INSTALLER,
+                         "Exit", self.EXIT)
         self.result = self.run()
         self.destroy()

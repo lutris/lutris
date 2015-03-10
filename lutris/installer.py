@@ -63,13 +63,13 @@ def fetch_script(window, game_ref):
         script_contents = request.read()
     except IOError:
         dlg = NoInstallerDialog(window)
-        if dlg.result == 1:
+        if dlg.result == dlg.MANUAL_CONF:
             game = Game(game_ref)
             game_dialog = AddGameDialog(window, game)
             game_dialog.run()
             if game_dialog.installed:
                 window.notify_install_success()
-        elif dlg.result == 2:
+        elif dlg.result == dlg.NEW_INSTALLER:
             installer_url = settings.SITE_URL + "games/%s/" % game_ref
             webbrowser.open(installer_url)
         return

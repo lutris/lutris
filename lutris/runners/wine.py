@@ -268,6 +268,8 @@ class wine(Runner):
         'plugplay.exe',
         'explorer.exe',
         'rpcss.exe',
+        'rundll32.exe',
+        'wineboot.exe',
     )
 
     def __init__(self, config=None):
@@ -548,7 +550,7 @@ class wine(Runner):
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         env = self.get_env(full=True)
-        command = [os.path.join(wine_root, "wineserver"), " -k"]
+        command = [os.path.join(wine_root, "wineserver"), "-k"]
         logger.debug("Killing all wine processes: %s" % command)
         try:
             proc = subprocess.Popen(command, env=env)
