@@ -13,7 +13,7 @@ class osmose(Runner):
     platform = "Sega Master System"
     tarballs = {
         'i386': "osmose-0.9.96-i386.tar.gz",
-        'x64': "osmose-0.9.96-x64.tar.gz"
+        'x64': "osmose-0.9.96-x86_64.tar.gz",
     }
     game_options = [
         {
