@@ -50,13 +50,13 @@ class osmose(Runner):
     def play(self):
         """Run Sega Master System game"""
         arguments = [self.get_executable()]
-        if self.runner_config.get('fullscreen'):
-            arguments.append('-fs')
-            arguments.append('-bilinear')
         if self.runner_config.get('joy'):
             arguments.append('-joy')
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append(rom)
+        if self.runner_config.get('fullscreen'):
+            arguments.append('-fs')
+            arguments.append('-bilinear')
         return {'command': arguments}
