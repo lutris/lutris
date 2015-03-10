@@ -20,6 +20,7 @@ class osmose(Runner):
             'option': 'main_file',
             'type': 'file',
             'label': 'ROM file',
+            'default_path': 'game_path',
             'help': ("The game data, commonly called a ROM image.\n"
                      "Supported formats: SMS and GG files. ZIP compressed "
                      "ROMs are supported.")
@@ -30,11 +31,6 @@ class osmose(Runner):
             'option': 'fullscreen',
             'type': 'bool',
             'label': 'Fullscreen'
-        },
-        {
-            'option': 'joy',
-            'type': 'bool',
-            'label': 'Use joystick'
         }
     ]
 
@@ -50,8 +46,6 @@ class osmose(Runner):
     def play(self):
         """Run Sega Master System game"""
         arguments = [self.get_executable()]
-        if self.runner_config.get('joy'):
-            arguments.append('-joy')
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
