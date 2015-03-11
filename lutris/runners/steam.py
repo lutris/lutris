@@ -198,6 +198,6 @@ class steam(Runner):
                 return False
         appid = self.game_config.get('appid')
         logger.debug("Launching Wine Steam uninstall of game %s" % appid)
-        command = '"%s" steam://uninstall/%s' % (self.steam_exe, appid)
+        command = [self.steam_exe, 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self)
         thread.start()
