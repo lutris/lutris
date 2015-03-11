@@ -11,7 +11,7 @@ from gi.repository import GLib
 from lutris.util.log import logger
 from lutris.util.process import Process
 
-HEARTBEAT_DELAY = 5000  # Number of milliseconds between each heartbeat
+HEARTBEAT_DELAY = 1000  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
