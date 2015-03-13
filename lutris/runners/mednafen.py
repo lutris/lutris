@@ -78,95 +78,95 @@ class mednafen(Runner):
             joy_ids.append(joy_id)
         return joy_ids
 
-    def set_joystick_controls(self, joy_ids):
+    def set_joystick_controls(self, joy_ids, machine):
         """ Setup joystick mappings per machine """
         nes_controls = [
             "-nes.input.port1.gamepad.a",
-            "\"joystick " + joy_ids[0] + " 00000001\"",
+            "joystick " + joy_ids[0] + " 00000001",
             "-nes.input.port1.gamepad.b",
-            "\"joystick " + joy_ids[0] + " 00000002\"",
+            "joystick " + joy_ids[0] + " 00000002",
             "-nes.input.port1.gamepad.start",
-            "\"joystick " + joy_ids[0] + " 00000009\"",
+            "joystick " + joy_ids[0] + " 00000009",
             "-nes.input.port1.gamepad.select",
-            "\"joystick " + joy_ids[0] + " 00000008\"",
+            "joystick " + joy_ids[0] + " 00000008",
             "-nes.input.port1.gamepad.up",
-            "\"joystick " + joy_ids[0] + " 0000c001\"",
+            "joystick " + joy_ids[0] + " 0000c001",
             "-nes.input.port1.gamepad.down",
-            "\"joystick " + joy_ids[0] + " 00008001\"",
+            "joystick " + joy_ids[0] + " 00008001",
             "-nes.input.port1.gamepad.left",
-            "\"joystick " + joy_ids[0] + " 0000c000\"",
+            "joystick " + joy_ids[0] + " 0000c000",
             "-nes.input.port1.gamepad.right",
-            "\"joystick " + joy_ids[0] + " 00008000\""
+            "joystick " + joy_ids[0] + " 00008000"
         ]
 
         gba_controls = [
             "-gba.input.builtin.gamepad.a",
-            "\"joystick " + joy_ids[0] + " 00000001\"",
+            "joystick " + joy_ids[0] + " 00000001",
             "-gba.input.builtin.gamepad.b",
-            "\"joystick " + joy_ids[0] + " 00000002\"",
+            "joystick " + joy_ids[0] + " 00000002",
             "-gba.input.builtin.gamepad.shoulder_r",
-            "\"joystick " + joy_ids[0] + " 00000007\"",
+            "joystick " + joy_ids[0] + " 00000007",
             "-gba.input.builtin.gamepad.shoulder_l",
-            "\"joystick " + joy_ids[0] + " 00000006\"",
+            "joystick " + joy_ids[0] + " 00000006",
             "-gba.input.builtin.gamepad.start",
-            "\"joystick " + joy_ids[0] + " 00000009\"",
+            "joystick " + joy_ids[0] + " 00000009",
             "-gba.input.builtin.gamepad.select",
-            "\"joystick " + joy_ids[0] + " 00000008\"",
+            "joystick " + joy_ids[0] + " 00000008",
             "-gba.input.builtin.gamepad.up",
-            "\"joystick " + joy_ids[0] + " 0000c001\"",
+            "joystick " + joy_ids[0] + " 0000c001",
             "-gba.input.builtin.gamepad.down",
-            "\"joystick " + joy_ids[0] + " 00008001\"",
+            "joystick " + joy_ids[0] + " 00008001",
             "-gba.input.builtin.gamepad.left",
-            "\"joystick " + joy_ids[0] + " 0000c000\"",
+            "joystick " + joy_ids[0] + " 0000c000",
             "-gba.input.builtin.gamepad.right",
-            "\"joystick " + joy_ids[0] + " 00008000\""
+            "joystick " + joy_ids[0] + " 00008000"
         ]
 
         gb_controls = [
             "-gb.input.builtin.gamepad.a",
-            "\"joystick " + joy_ids[0] + " 00000001\"",
+            "joystick " + joy_ids[0] + " 00000001",
             "-gb.input.builtin.gamepad.b",
-            "\"joystick " + joy_ids[0] + " 00000002\"",
+            "joystick " + joy_ids[0] + " 00000002",
             "-gb.input.builtin.gamepad.start",
-            "\"joystick " + joy_ids[0] + " 00000009\"",
+            "joystick " + joy_ids[0] + " 00000009",
             "-gb.input.builtin.gamepad.select",
-            "\"joystick " + joy_ids[0] + " 00000008\"",
+            "joystick " + joy_ids[0] + " 00000008",
             "-gb.input.builtin.gamepad.up",
-            "\"joystick " + joy_ids[0] + " 0000c001\"",
+            "joystick " + joy_ids[0] + " 0000c001",
             "-gb.input.builtin.gamepad.down",
-            "\"joystick " + joy_ids[0] + " 00008001\"",
+            "joystick " + joy_ids[0] + " 00008001",
             "-gb.input.builtin.gamepad.left",
-            "\"joystick " + joy_ids[0] + " 0000c000\"",
+            "joystick " + joy_ids[0] + " 0000c000",
             "-gb.input.builtin.gamepad.right",
-            "\"joystick " + joy_ids[0] + " 00008000\""
+            "joystick " + joy_ids[0] + " 00008000"
         ]
 
         pce_controls = [
             "-pce.input.port1.gamepad.i",
-            "\"joystick " + joy_ids[0] + " 00000001\"",
+            "joystick " + joy_ids[0] + " 00000001",
             "-pce.input.port1.gamepad.ii",
-            "\"joystick " + joy_ids[0] + " 00000002\"",
+            "joystick " + joy_ids[0] + " 00000002",
             "-pce.input.port1.gamepad.run",
-            "\"joystick " + joy_ids[0] + " 00000009\"",
+            "joystick " + joy_ids[0] + " 00000009",
             "-pce.input.port1.gamepad.select",
-            "\"joystick " + joy_ids[0] + " 00000008\"",
+            "joystick " + joy_ids[0] + " 00000008",
             "-pce.input.port1.gamepad.up",
-            "\"joystick " + joy_ids[0] + " 0000c001\"",
+            "joystick " + joy_ids[0] + " 0000c001",
             "-pce.input.port1.gamepad.down",
-            "\"joystick " + joy_ids[0] + " 00008001\"",
+            "joystick " + joy_ids[0] + " 00008001",
             "-pce.input.port1.gamepad.left",
-            "\"joystick " + joy_ids[0] + " 0000c000\"",
+            "joystick " + joy_ids[0] + " 0000c000",
             "-pce.input.port1.gamepad.right",
-            "\"joystick " + joy_ids[0] + " 00008000\""
+            "joystick " + joy_ids[0] + " 00008000"
         ]
 
-        if self.machine == "pce":
+        if machine == "pce":
             controls = pce_controls
-        elif self.machine == "nes":
+        elif machine == "nes":
             controls = nes_controls
-        elif self.machine == "gba":
+        elif machine == "gba":
             controls = gba_controls
-        elif self.machine == "gb":
+        elif machine == "gb":
             controls = gb_controls
         else:
             controls = []
@@ -193,7 +193,7 @@ class mednafen(Runner):
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
         if len(joy_ids) > 0:
-            controls = self.set_joystick_controls(joy_ids)
+            controls = self.set_joystick_controls(joy_ids, machine)
             for control in controls:
                 options.append(control)
         else:
