@@ -95,8 +95,8 @@ class fsuae(Runner):
         floppy_drives = []
         floppy_images = []
         for drive, disk in enumerate(disks):
-            floppy_drives.append("--%s_%d=\"%s\"" % (disk_param, drive, disk))
-            floppy_images.append("--floppy_image_%d=\"%s\"" % (drive, disk))
+            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk))
+            floppy_images.append("--floppy_image_%d=%s" % (drive, disk))
         return floppy_drives + floppy_images
 
     def get_executable(self):
@@ -107,7 +107,7 @@ class fsuae(Runner):
         model = self.runner_config.get('model')
         kickstart_file = self.runner_config.get('kickstart_file')
         if kickstart_file:
-            params.append("--kickstart_file=\"%s\"" % kickstart_file)
+            params.append("--kickstart_file=%s" % kickstart_file)
         if model:
             params.append('--amiga_model=%s' % model)
         if self.runner_config.get("gfx_fullscreen_amiga", False):

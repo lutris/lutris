@@ -65,7 +65,7 @@ class nulldc(Runner):
 
         command = [
             "wine", self.get_executable(),
-            "-config", "ImageReader:DefaultImage=\"%s\"" % path
+            "-config", "ImageReader:DefaultImage=%s" % path
         ]
         launch_arguments = {'command': command}
         if self.runner_config.get('joy2key'):

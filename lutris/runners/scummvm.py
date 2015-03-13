@@ -84,8 +84,8 @@ class scummvm(Runner):
     def play(self):
         command = [
             self.get_executable(),
-            "--extrapath=\"%s\"" % self.get_scummvm_data_dir(),
-            "--themepath=\"%s\"" % self.get_scummvm_data_dir(),
+            "--extrapath=%s" % self.get_scummvm_data_dir(),
+            "--themepath=%s" % self.get_scummvm_data_dir(),
         ]
 
         # Options
@@ -105,7 +105,7 @@ class scummvm(Runner):
             command.append("--gfx-mode=%s" % mode)
         # /Options
 
-        command.append("--path=\"%s\"" % self.game_path)
+        command.append("--path=%s" % self.game_path)
         command.append(self.game_config.get('game_id'))
 
         launch_info = {'command': command}

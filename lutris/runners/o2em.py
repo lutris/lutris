@@ -85,7 +85,7 @@ class o2em(Runner):
 
     def play(self):
         bios_path = os.path.join(os.path.expanduser("~"), ".o2em/bios/")
-        arguments = ["-biosdir=\"%s\"" % bios_path]
+        arguments = ["-biosdir=%s" % bios_path]
 
         if self.runner_config.get("fullscreen"):
             arguments.append("-fullscreen")
@@ -102,6 +102,6 @@ class o2em(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
-        arguments.append("-romdir=\"%s\"/" % romdir)
+        arguments.append("-romdir=%s/" % romdir)
         arguments.append(romfile)
         return {'command': [self.get_executable()] + arguments}

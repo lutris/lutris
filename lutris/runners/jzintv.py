@@ -52,8 +52,8 @@ class jzintv(Runner):
             arguments = arguments + ["-f"]
         bios_path = self.runner_config.get("bios_path", '')
         if os.path.exists(bios_path):
-            arguments.append("--execimg=\"%s/exec.bin\"" % bios_path)
-            arguments.append("--gromimg=\"%s/grom.bin\"" % bios_path)
+            arguments.append("--execimg=%s/exec.bin" % bios_path)
+            arguments.append("--gromimg=%s/grom.bin" % bios_path)
         else:
             return {'error': 'NO_BIOS'}
         rom_path = self.game_config.get('main_file') or ''
@@ -61,6 +61,6 @@ class jzintv(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
-        arguments += ["--rom-path=\"%s/\"" % romdir]
+        arguments += ["--rom-path=%s/" % romdir]
         arguments += [romfile]
         return {'command': arguments}

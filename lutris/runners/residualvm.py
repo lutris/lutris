@@ -66,8 +66,8 @@ class residualvm(Runner):
     def play(self):
         command = [
             self.get_executable(),
-            "--extrapath=\"%s\"" % self.get_residualvm_data_dir(),
-            "--themepath=\"%s\"" % self.get_residualvm_data_dir(),
+            "--extrapath=%s" % self.get_residualvm_data_dir(),
+            "--themepath=%s" % self.get_residualvm_data_dir(),
         ]
 
         # Options
@@ -91,7 +91,7 @@ class residualvm(Runner):
             command.append("--no-show-fps")
         # /Options
 
-        command.append("--path=\"%s\"" % self.game_path)
+        command.append("--path=%s" % self.game_path)
         command.append(self.game_config.get('game_id'))
 
         launch_info = {'command': command}
