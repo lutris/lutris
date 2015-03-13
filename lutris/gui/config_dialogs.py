@@ -231,6 +231,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_tabs()
 
         self.build_action_area("Add", self.on_save)
+        self.name_entry.grab_focus()
         self.show_all()
 
 
