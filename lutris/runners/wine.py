@@ -107,7 +107,7 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True):
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
-    if str(silent).lower() in ('no', 'off', 'false'):
+    if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + app
     else:
         args = app
