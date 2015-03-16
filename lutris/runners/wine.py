@@ -103,11 +103,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
                      stdout=subprocess.PIPE).communicate()
 
 
-def winetricks(app, prefix=None, winetricks_env=None, silent=False):
+def winetricks(app, prefix=None, winetricks_env=None, silent=True):
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
-    if str(silent).lower() in ('yes', 'on', 'true'):
+    if str(silent).lower() in ('no', 'off', 'false'):
         args = "-q " + app
     else:
         args = app
