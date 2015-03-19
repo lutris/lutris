@@ -361,7 +361,8 @@ class wine(Runner):
                 ],
                 'help': ("This option ensures any pending drawing operations "
                          "are submitted to the driver, but at a significant "
-                         "performance cost.")
+                         "performance cost.\n"
+                         "<b>Default</b>: disabled")
             },
             {
                 'option': 'RenderTargetLockMode',
@@ -381,7 +382,10 @@ class wine(Runner):
                 'label': 'Audio driver',
                 'type': 'choice',
                 'choices': audio_choices,
-                'help': "Which audio backend to use."
+                'help': ("Which audio backend to use.\n"
+                         "By default, Wine automatically picks the right one "
+                         "for your system. Alsa is the default for modern"
+                         "Linux distributions.")
             }
         ]
 
