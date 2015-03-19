@@ -226,7 +226,7 @@ Example:
 
 ::
 
-    - set_config:
+    - write_config:
         file: $GAMEDIR/game.ini
         section: Engine
         key: Renderer
@@ -245,9 +245,25 @@ with ``wine.wineexec`` as the task's ``name``)
 
 Currently, the following tasks are implemented:
 
+*   wine / winesteam: ``create_prefix`` Creates an empty Wine prefix at the
+    specified path. The other wine/winesteam directives below include the
+    creation of the prefix, so in most cases you won't need to use the
+    create_prefix command. Parameters are ``prefix`` (the path), ``arch``
+    (optional architecture of the prefix, default: win32).
+
+    Example:
+
+    ::
+
+        - task:
+            name: create_prefix
+            prefix: $GAMEDIR
+            arch: win64
+
 *   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
-    ``executable``, ``args`` (optional arguments passed to the executable),
-    ``prefix`` (optional WINEPREFIX), ``working_dir`` (optional working directory).
+    ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
+    to the executable), ``prefix`` (optional WINEPREFIX),
+    ``working_dir`` (optional working directory).
 
     Example:
 
