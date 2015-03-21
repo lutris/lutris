@@ -58,7 +58,7 @@ class Runner(object):
 
     def options_as_dict(self, options_type):
         """Convert the option list to a dict with option name as keys"""
-        if options_type == 'runners':
+        if options_type == 'runner':
             options = self.runner_options
         elif options_type == 'game':
             options = self.game_options
