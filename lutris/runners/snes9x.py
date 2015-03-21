@@ -117,17 +117,8 @@ class snes9x(Runner):
         os.link(lib_abspath[:-3], lib_abspath[:-5])
         os.link(lib_abspath[:-3], lib_abspath[:-8])
 
-    def options_as_dict(self):
-        """ Return the `runner_options` class attribute as a dictionnary with
-            option name as key.
-        """
-        option_dict = {}
-        for option in self.runner_options:
-            option_dict[option['option']] = option
-        return option_dict
-
     def play(self):
-        options = self.options_as_dict()
+        options = self.options_as_dict('runner')
         for option_name in options:
             self.set_option(
                 option_name,

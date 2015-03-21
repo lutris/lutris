@@ -56,6 +56,16 @@ class Runner(object):
         """Leave the ability to override the docstring."""
         self.__doc__ = value
 
+    def options_as_dict(self, options_type):
+        """Convert the option list to a dict with option name as keys"""
+        if options_type == 'runners':
+            options = self.runner_options
+        elif options_type == 'game':
+            options = self.game_options
+        else:
+            raise ValueError("Invalid option type %s" % options_type)
+        return dict((opt['option'], opt) for opt in options)
+
     @property
     def name(self):
         return self.__class__.__name__
