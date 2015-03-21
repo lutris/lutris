@@ -173,7 +173,7 @@ def fix_path_case(path):
 
 
 def xdg_open(path):
-    subprocess.Popen(['xdg-open', path])
+    subprocess.Popen(['xdg-open', path], close_fds=True)
 
 
 def get_pids_using_file(path):
