@@ -275,7 +275,6 @@ Currently, the following tasks are implemented:
             executable: drive_c/Program Files/Game/Game.exe
             args: --windowed
 
-
 *   wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
     ``prefix`` is an optional WINEPREFIX path.
 
@@ -314,6 +313,23 @@ Currently, the following tasks are implemented:
         name: set_regedit_file
         prefix: $GAMEDIR
         filename: myregfile
+
+*   dosbox: ``dosexec`` Runs dosbox. Parameters are ``executable`` (optional
+    ``file ID`` or path to executable), ``config_file``
+    (optional ``file ID`` or path to .conf file), ``args`` (optional command
+    arguments), ``working_dir`` (optional working directory, defaults to the
+    ``executable``'s dir or the ``config_file``'s dir), ``exit`` (set to
+    ``false`` to prevent DOSBox to exit when the ``executable`` is terminated).
+
+    Example:
+
+    ::
+
+        - task:
+            name: dosexec
+            executable: file_id
+            config: $GAMEDIR/game_install.conf
+            args: -scaler normal3x -conf more_conf.conf
 
 Displaying a drop-down menu with options
 ----------------------------------------

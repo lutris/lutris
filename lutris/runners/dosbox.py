@@ -6,16 +6,26 @@ from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
-def dosexec(config_file=None, executable=None):
+def dosexec(config_file=None, executable=None, args=None, exit=True,
+            working_dir=None):
     """Execute Dosbox with given config_file"""
     logger.debug("Running dosbox with config %s" % config_file)
     dbx = dosbox()
     command = '"{}"'.format(dbx.get_executable())
     if config_file:
         command += ' -conf "{}"'.format(config_file)
+        if not working_dir:
+            working_dir = os.path.dirname(config_file)
     if executable:
         command += ' "{}"'.format(executable)
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
+        if not working_dir:
+            working_dir = os.path.dirname(executable)
+    if args:
+        command += ' ' + args
+    if exit:
+        command += " -exit"
+    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
+                     cwd=working_dir).communicate()
 
 
 class dosbox(Runner):
