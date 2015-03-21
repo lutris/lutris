@@ -333,7 +333,7 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        subprocess.Popen(["xdg-open", "http://lutris.net/user/register"])
+        system.xdg_open("http://lutris.net/user/register")
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
