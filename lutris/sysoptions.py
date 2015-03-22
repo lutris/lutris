@@ -11,7 +11,7 @@ oss_list = [
 
 resolutions = display.get_resolutions()
 resolution_choices = zip(resolutions, resolutions)
-resolution_choices.insert(0, ("No change", None))
+resolution_choices.insert(0, ("Keep current", None))
 
 outputs = display.get_output_names()
 output_choices = zip(outputs, outputs)
@@ -24,22 +24,6 @@ system_options = [
         'help': ("The main folder where you install your games.\n"
                  "Lutris uses it to propose you a default path when you \n"
                  "install a new game.")
-    },
-    {
-        'option': 'disable_runtime',
-        'type': 'bool',
-        'label': 'Disable Lutris Runtime',
-        'default': False,
-        'help': ("The Lutris Runtime loads some libraries before running the "
-                 "game. Which can cause some conflicts in some cases (mostly "
-                 "with Steam). Check this option to diasble it.")
-    },
-    {
-        'option': 'resolution',
-        'type': 'choice',
-        'label': 'Screen resolution',
-        'choices': resolution_choices,
-        'help': "Switch to this screen resolution while the game is running."
     },
     {
         'option': 'reset_desktop',
@@ -79,11 +63,27 @@ system_options = [
                  "having display issues when running a game in fullscreen.")
     },
     {
+        'option': 'resolution',
+        'type': 'choice',
+        'label': 'Switch resolution to',
+        'choices': resolution_choices,
+        'help': "Switch to this screen resolution while the game is running."
+    },
+    {
         'option': 'prefix_command',
         'type': 'string',
         'label': 'Command prefix',
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
+    },
+    {
+        'option': 'disable_runtime',
+        'type': 'bool',
+        'label': 'Disable Lutris Runtime',
+        'default': False,
+        'help': ("The Lutris Runtime loads some libraries before running the "
+                 "game. Which can cause some conflicts in some cases (mostly "
+                 "with Steam). Check this option to diasble it.")
     },
     {
         'option': 'reset_pulse',

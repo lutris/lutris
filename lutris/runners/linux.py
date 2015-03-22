@@ -30,7 +30,6 @@ class linux(Runner):
                      "By default, Lutris uses the directory of the "
                      "executable.")
         },
-
         {
             "option": "ld_preload",
             "type": "file",
