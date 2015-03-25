@@ -10,7 +10,7 @@ from lutris.util import system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.37'
+DEFAULT_WINE = '1.7.39-i686'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -173,30 +173,16 @@ def get_wine_versions():
     if not os.path.exists(WINE_DIR):
         return []
     dirs = sorted(os.listdir(WINE_DIR), reverse=True)
-    versions = []
-    for dirname in dirs:
-        split = dirname.split('-')
-        if len(split) == 2 and is_version_installed(split[0], split[1]):
-            versions.append((split[0], split[1]))
+    versions = [dirname for dirname in dirs if is_version_installed(dirname)]
     return versions
 
 
-def get_wine_exes():
-    """Return the list of wine executables installed"""
-    versions = []
-    for version, arch in get_wine_versions():
-        versions.append(get_wine_version_exe(version, arch))
-    return versions
+def get_wine_version_exe(version):
+    return os.path.join(WINE_DIR, '{}/bin/wine'.format(version))
 
 
-def get_wine_version_exe(version, arch=None):
-    arch = arch if arch else 'i386'
-    return os.path.join(WINE_DIR, '%s-%s/bin/wine' % (version, arch))
-
-
-def is_version_installed(version, arch=None):
-    arch = arch if arch else 'i386'
-    return os.path.isfile(get_wine_version_exe(version, arch))
+def is_version_installed(version):
+    return os.path.isfile(get_wine_version_exe(version))
 
 
 # pylint: disable=C0103
@@ -277,7 +263,7 @@ class wine(Runner):
         wine_versions = \
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
-            [(version, version) for version, arch in get_wine_versions()]
+            [(version, version) for version in get_wine_versions()]
 
         orm_choices = [('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
@@ -435,7 +421,10 @@ class wine(Runner):
     @property
     def wine_version(self):
         """Return the Wine version to use."""
-        return self.runner_config.get('version') or DEFAULT_WINE
+        runner_version = self.runner_config.get('version')
+        if '-' not in runner_version:
+            runner_version += '-i386'
+        return runner_version or DEFAULT_WINE
 
     def get_executable(self):
         """Return the path to the Wine executable."""
@@ -453,18 +442,16 @@ class wine(Runner):
                 return custom_path
             version = DEFAULT_WINE
 
-        version += '-i386'
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self, version=None, arch=None):
+    def install(self, version=None):
         if not version:
             version = self.wine_version
             if version in ['custom', 'system']:
                 # Fall back on default bundled version
                 version = DEFAULT_WINE
-        arch = arch if arch else 'i386'
-        tarball = "wine-%s-%s.tar.gz" % (version, arch)
-        destination = os.path.join(WINE_DIR, '%s-%s' % (version, arch))
+        tarball = "wine-{}.tar.gz".format(version)
+        destination = os.path.join(WINE_DIR, version)
         self.download_and_extract(tarball, destination, merge_single=True)
 
     def is_installed(self):

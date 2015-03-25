@@ -673,18 +673,22 @@ class ScriptInterpreter(object):
 
         # Check/install Wine runner at version specified in the script
         wine_version = None
-        wine_arch = None
         if runner_name == 'wine' and self.script.get('wine'):
             wine_version = self.script.get('wine').get('version')
-            wine_arch = self.script.get('wine').get('arch')
+
+        # Old lutris versions used a version + arch tuple, we now include
+        # everything in the version.
+        # Before that change every wine runner was for i386
+        if '-' not in wine_version:
+            wine_version += '-i386'
+
         if wine_version and task_name == 'wineexec':
-            if not wine.is_version_installed(wine_version, wine_arch):
+            if not wine.is_version_installed(wine_version):
                 Gdk.threads_init()
                 Gdk.threads_enter()
-                runner.install(wine_version, wine_arch)
+                runner.install(wine_version)
                 Gdk.threads_leave()
-            data['wine_path'] = wine.get_wine_version_exe(wine_version,
-                                                          wine_arch)
+            data['wine_path'] = wine.get_wine_version_exe(wine_version)
         # Check/install other runner
         elif not runner.is_installed():
             Gdk.threads_init()
