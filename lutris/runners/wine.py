@@ -189,6 +189,8 @@ def support_legacy_version(version):
     """In Lutris 0.3.7, wine version now contains architecture and optional
     info. Call this to keep exiting games compatible with previous
     configurations"""
+    if not version:
+        return
     if version not in ('custom', 'system') and '-' not in version:
         version += '-i386'
     return version
