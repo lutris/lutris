@@ -185,6 +185,15 @@ def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
 
 
+def support_legacy_version(version):
+    """In Lutris 0.3.7, wine version now contains architecture and optional
+    info. Call this to keep exiting games compatible with previous
+    configurations"""
+    if version not in ('custom', 'system') and '-' not in version:
+        version += '-i386'
+    return version
+
+
 # pylint: disable=C0103
 class wine(Runner):
     """Run Windows games with Wine."""
@@ -422,8 +431,8 @@ class wine(Runner):
     def wine_version(self):
         """Return the Wine version to use."""
         runner_version = self.runner_config.get('version')
-        if '-' not in runner_version:
-            runner_version += '-i386'
+        runner_version = support_legacy_version(runner_version)
+
         return runner_version or DEFAULT_WINE
 
     def get_executable(self):
