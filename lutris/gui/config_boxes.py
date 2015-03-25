@@ -144,12 +144,13 @@ class ConfigBox(VBox):
         combobox.pack_start(cell, True)
         combobox.add_attribute(cell, 'text', 0)
         index = selected_index = -1
-        if value:
-            for choice in choices:
-                if choice[1] == value:
-                    selected_index = index + 1
-                    break
-                index += 1
+
+        for choice in choices:
+            if choice[1] == value:
+                selected_index = index + 1
+                break
+            index += 1
+
         combobox.set_active(selected_index)
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)

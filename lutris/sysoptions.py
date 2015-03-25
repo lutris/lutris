@@ -15,7 +15,7 @@ resolution_choices.insert(0, ("No change", None))
 
 outputs = display.get_output_names()
 output_choices = zip(outputs, outputs)
-output_choices.insert(0, ("No change", None))
+output_choices.insert(0, ("Auto", None))
 system_options = [
     {
         'option': 'game_path',
