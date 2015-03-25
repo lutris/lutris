@@ -91,7 +91,9 @@ class LutrisThread(threading.Thread):
         terminated_children = 0
         for child in self.iter_children(process):
             num_children += 1
-            if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash'):
+            if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
+                              'Steam.exe', 'steamwebhelper.',
+                              'steamerrorrepor'):
                 continue
             num_watched_children += 1
             print "{}\t{}\t{}".format(child.pid,
