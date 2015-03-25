@@ -61,7 +61,7 @@ class dosbox(Runner):
     ]
 
     scaler_modes = [
-        ("none", "none"),
+        ("none", None),
         ("normal2x", "normal2x"),
         ("normal3x", "normal3x"),
         ("hq2x", "hq2x"),
@@ -86,6 +86,7 @@ class dosbox(Runner):
             "label": "Graphic scaler",
             "type": "choice",
             "choices": scaler_modes,
+            "default": None,
             'help': ("The algorithm used to scale up the game's base "
                      "resolution, resulting in different visual styles. ")
         },
@@ -95,6 +96,13 @@ class dosbox(Runner):
             "type": "bool",
             "default": True,
             'help': ("Shut down Dosbox when the game is quit.")
+        },
+        {
+            "option": "fullscreen",
+            "label": "Open game in fullscreen",
+            "type": "bool",
+            "default": False,
+            'help': ("Tells Dosbox to launch the game in fullscreen.")
         }
     ]
 
@@ -136,6 +144,9 @@ class dosbox(Runner):
         if self.runner_config.get('scaler'):
             command.append("-scaler")
             command.append(self.runner_config['scaler'])
+
+        if self.runner_config.get("fullscreen"):
+            command.append("-fullscreen")
 
         if self.runner_config.get("exit"):
             command.append("-exit")
