@@ -80,84 +80,102 @@ class mednafen(Runner):
 
     def set_joystick_controls(self, joy_ids, machine):
         """ Setup joystick mappings per machine """
+
+        # Button mappings (based on Xbox360 controller)
+        BTN_A = "00000000"
+        BTN_B = "00000001"
+        BTN_X = "00000002"
+        BTN_Y = "00000003"
+        BTN_R = "00000004"
+        BTN_L = "00000005"
+        BTN_SELECT = "00000006"
+        BTN_START = "00000007"
+        BTN_HOME = "00000008"
+        BTN_THUMB_L = "00000009"
+        BTN_THUMB_R = "00000010"
+        AXIS_UP = "0000c001"
+        AXIS_DOWN = "00008001"
+        AXIS_LEFT = "0000c000"
+        AXIS_RIGHT = "00008000"
+
         nes_controls = [
             "-nes.input.port1.gamepad.a",
-            "joystick " + joy_ids[0] + " 00000001",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-nes.input.port1.gamepad.b",
-            "joystick " + joy_ids[0] + " 00000002",
+            "joystick {} {}".format(joy_ids[0], BTN_B),
             "-nes.input.port1.gamepad.start",
-            "joystick " + joy_ids[0] + " 00000009",
+            "joystick {} {}".format(joy_ids[0], BTN_START),
             "-nes.input.port1.gamepad.select",
-            "joystick " + joy_ids[0] + " 00000008",
+            "joystick {} {}".format(joy_ids[0], BTN_SELECT),
             "-nes.input.port1.gamepad.up",
-            "joystick " + joy_ids[0] + " 0000c001",
+            "joystick {} {}".format(joy_ids[0], AXIS_UP),
             "-nes.input.port1.gamepad.down",
-            "joystick " + joy_ids[0] + " 00008001",
+            "joystick {} {}".format(joy_ids[0], AXIS_DOWN),
             "-nes.input.port1.gamepad.left",
-            "joystick " + joy_ids[0] + " 0000c000",
+            "joystick {} {}".format(joy_ids[0], AXIS_LEFT),
             "-nes.input.port1.gamepad.right",
-            "joystick " + joy_ids[0] + " 00008000"
+            "joystick {} {}".format(joy_ids[0], AXIS_RIGHT),
         ]
 
         gba_controls = [
             "-gba.input.builtin.gamepad.a",
-            "joystick " + joy_ids[0] + " 00000001",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-gba.input.builtin.gamepad.b",
-            "joystick " + joy_ids[0] + " 00000002",
+            "joystick {} {}".format(joy_ids[0], BTN_B),
             "-gba.input.builtin.gamepad.shoulder_r",
-            "joystick " + joy_ids[0] + " 00000007",
+            "joystick {} {}".format(joy_ids[0], BTN_R),
             "-gba.input.builtin.gamepad.shoulder_l",
-            "joystick " + joy_ids[0] + " 00000006",
+            "joystick {} {}".format(joy_ids[0], BTN_L),
             "-gba.input.builtin.gamepad.start",
-            "joystick " + joy_ids[0] + " 00000009",
+            "joystick {} {}".format(joy_ids[0], BTN_START),
             "-gba.input.builtin.gamepad.select",
-            "joystick " + joy_ids[0] + " 00000008",
+            "joystick {} {}".format(joy_ids[0], BTN_SELECT),
             "-gba.input.builtin.gamepad.up",
-            "joystick " + joy_ids[0] + " 0000c001",
+            "joystick {} {}".format(joy_ids[0], AXIS_UP),
             "-gba.input.builtin.gamepad.down",
-            "joystick " + joy_ids[0] + " 00008001",
+            "joystick {} {}".format(joy_ids[0], AXIS_DOWN),
             "-gba.input.builtin.gamepad.left",
-            "joystick " + joy_ids[0] + " 0000c000",
+            "joystick {} {}".format(joy_ids[0], AXIS_LEFT),
             "-gba.input.builtin.gamepad.right",
-            "joystick " + joy_ids[0] + " 00008000"
+            "joystick {} {}".format(joy_ids[0], AXIS_RIGHT),
         ]
 
         gb_controls = [
             "-gb.input.builtin.gamepad.a",
-            "joystick " + joy_ids[0] + " 00000001",
+            "joystick {} {}".format(joy_ids[0], BTN_B),
             "-gb.input.builtin.gamepad.b",
-            "joystick " + joy_ids[0] + " 00000002",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-gb.input.builtin.gamepad.start",
-            "joystick " + joy_ids[0] + " 00000009",
+            "joystick {} {}".format(joy_ids[0], BTN_START),
             "-gb.input.builtin.gamepad.select",
-            "joystick " + joy_ids[0] + " 00000008",
+            "joystick {} {}".format(joy_ids[0], BTN_SELECT),
             "-gb.input.builtin.gamepad.up",
-            "joystick " + joy_ids[0] + " 0000c001",
+            "joystick {} {}".format(joy_ids[0], AXIS_UP),
             "-gb.input.builtin.gamepad.down",
-            "joystick " + joy_ids[0] + " 00008001",
+            "joystick {} {}".format(joy_ids[0], AXIS_DOWN),
             "-gb.input.builtin.gamepad.left",
-            "joystick " + joy_ids[0] + " 0000c000",
+            "joystick {} {}".format(joy_ids[0], AXIS_LEFT),
             "-gb.input.builtin.gamepad.right",
-            "joystick " + joy_ids[0] + " 00008000"
+            "joystick {} {}".format(joy_ids[0], AXIS_RIGHT),
         ]
 
         pce_controls = [
             "-pce.input.port1.gamepad.i",
-            "joystick " + joy_ids[0] + " 00000001",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-pce.input.port1.gamepad.ii",
-            "joystick " + joy_ids[0] + " 00000002",
+            "joystick {} {}".format(joy_ids[0], BTN_B),
             "-pce.input.port1.gamepad.run",
-            "joystick " + joy_ids[0] + " 00000009",
+            "joystick {} {}".format(joy_ids[0], BTN_START),
             "-pce.input.port1.gamepad.select",
-            "joystick " + joy_ids[0] + " 00000008",
+            "joystick {} {}".format(joy_ids[0], BTN_SELECT),
             "-pce.input.port1.gamepad.up",
-            "joystick " + joy_ids[0] + " 0000c001",
+            "joystick {} {}".format(joy_ids[0], AXIS_UP),
             "-pce.input.port1.gamepad.down",
-            "joystick " + joy_ids[0] + " 00008001",
+            "joystick {} {}".format(joy_ids[0], AXIS_DOWN),
             "-pce.input.port1.gamepad.left",
-            "joystick " + joy_ids[0] + " 0000c000",
+            "joystick {} {}".format(joy_ids[0], AXIS_LEFT),
             "-pce.input.port1.gamepad.right",
-            "joystick " + joy_ids[0] + " 00008000"
+            "joystick {} {}".format(joy_ids[0], AXIS_RIGHT),
         ]
 
         if machine == "pce":
