@@ -61,7 +61,7 @@ class dosbox(Runner):
     ]
 
     scaler_modes = [
-        ("none", None),
+        ("none", "none"),
         ("normal2x", "normal2x"),
         ("normal3x", "normal3x"),
         ("hq2x", "hq2x"),
@@ -86,7 +86,7 @@ class dosbox(Runner):
             "label": "Graphic scaler",
             "type": "choice",
             "choices": scaler_modes,
-            "default": None,
+            "default": "normal3x",
             'help': ("The algorithm used to scale up the game's base "
                      "resolution, resulting in different visual styles. ")
         },
