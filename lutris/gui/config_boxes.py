@@ -48,6 +48,11 @@ class ConfigBox(VBox):
                                        option_key,
                                        option["choices"],
                                        option["label"], value)
+            elif option["type"] == "choice_with_entry":
+                self.generate_combobox(wrapper,
+                                       option_key,
+                                       option["choices"],
+                                       option["label"], value, has_entry=True)
             elif option["type"] == "bool":
                 self.generate_checkbox(wrapper, option, value)
             elif option["type"] == "range":
@@ -131,7 +136,7 @@ class ConfigBox(VBox):
 
     # ComboBox
     def generate_combobox(self, wrapper, option_name, choices, label,
-                          value=None):
+                          value=None, has_entry=False):
         """Generate a combobox (drop-down menu)."""
         hbox = Gtk.HBox()
         liststore = Gtk.ListStore(str, str)
@@ -139,19 +144,26 @@ class ConfigBox(VBox):
             if type(choice) is str:
                 choice = [choice, choice]
             liststore.append(choice)
-        combobox = Gtk.ComboBox.new_with_model(liststore)
-        cell = Gtk.CellRendererText()
-        combobox.pack_start(cell, True)
-        combobox.add_attribute(cell, 'text', 0)
-        index = selected_index = -1
 
-        for choice in choices:
-            if choice[1] == value:
-                selected_index = index + 1
-                break
-            index += 1
+        if has_entry:
+            combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
+            combobox.set_entry_text_column(1)
+            if value:
+                combobox.get_child().set_text(value)
+        else:
+            combobox = Gtk.ComboBox.new_with_model(liststore)
+            cell = Gtk.CellRendererText()
+            combobox.pack_start(cell, True)
+            combobox.add_attribute(cell, 'text', 0)
 
-        combobox.set_active(selected_index)
+            index = selected_index = -1
+            for choice in choices:
+                if choice[1] == value:
+                    selected_index = index + 1
+                    break
+                index += 1
+            combobox.set_active(selected_index)
+
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)
         label.set_alignment(0.5, 0.5)
@@ -162,11 +174,14 @@ class ConfigBox(VBox):
 
     def on_combobox_change(self, combobox, option):
         """Action triggered on combobox 'changed' signal."""
-        model = combobox.get_model()
-        active = combobox.get_active()
-        if active < 0:
-            return None
-        option_value = model[active][1]
+        if combobox.get_has_entry():
+            option_value = combobox.get_child().get_text()
+        else:
+            model = combobox.get_model()
+            active = combobox.get_active()
+            if active < 0:
+                return None
+            option_value = model[active][1]
         self.real_config[self.config_type][option] = option_value
 
     # Range
