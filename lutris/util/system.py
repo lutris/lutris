@@ -186,3 +186,26 @@ def get_pids_using_file(path):
         return lsof_output.split('\n')
     else:
         return []
+
+
+def get_terminal_apps():
+    candidates = [
+        'x-terminal-emulator', 'aterm', 'cool-retro-term', 'Eterm',
+        'gnome-terminal', 'guake', 'konsole', 'lilyterm', 'lxterminal',
+        'pantheon-terminal', 'roxterm', 'rxvt', 'sakura', 'st', 'terminator',
+        'terminology', 'termite', 'urxvt', 'wterm', 'xfce4-terminal', 'xterm',
+        'yuakuake',
+    ]
+    installed_terms = []
+    for exe in candidates:
+        if find_executable(exe):
+            installed_terms.append(exe)
+    return installed_terms
+
+
+def get_default_terminal():
+    terms = get_terminal_apps()
+    if terms:
+        return terms[0]
+    else:
+        logger.debug("Couldn't find a terminal emulator.")

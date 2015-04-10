@@ -1,4 +1,4 @@
-from lutris.util import display
+from lutris.util import display, system
 
 
 oss_list = [
@@ -68,6 +68,23 @@ system_options = [
         'label': 'Switch resolution to',
         'choices': resolution_choices,
         'help': "Switch to this screen resolution while the game is running."
+    },
+    {
+        'option': 'terminal',
+        'label': "Run in a terminal",
+        'type': 'bool',
+        'help': "Run the game in a new terminal window."
+    },
+    {
+        'option': 'terminal_app',
+        'label': "Terminal application",
+        'type': 'choice_with_entry',
+        'choices': system.get_terminal_apps(),
+        'default': system.get_default_terminal(),
+        'help': ("The terminal emulator to be run with the previous option."
+                 "Choose from the list of detected terminal apps or enter "
+                 "the terminal's command or path."
+                 "Note: Not all terminal emulators are guaranteed to work.")
     },
     {
         'option': 'prefix_command',

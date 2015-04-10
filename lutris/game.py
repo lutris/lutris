@@ -143,8 +143,6 @@ class Game(object):
             show_error_message(gameplay_info)
             return False
 
-        launch_arguments = gameplay_info['command']
-
         restrict_to_display = system_config.get('display')
         if restrict_to_display:
             display.turn_off_except(restrict_to_display)
@@ -160,6 +158,14 @@ class Game(object):
         if system_config.get('reset_pulse'):
             audio.reset_pulse()
 
+        self.killswitch = system_config.get('killswitch')
+        if self.killswitch and not os.path.exists(self.killswitch):
+            # Prevent setting a killswitch to a file that doesn't exists
+            self.killswitch = None
+
+        # Command
+        launch_arguments = gameplay_info['command']
+
         primusrun = system_config.get('primusrun')
         if primusrun and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
@@ -167,6 +173,18 @@ class Game(object):
         prefix_command = system_config.get("prefix_command", '').strip()
         if prefix_command:
             launch_arguments.insert(0, prefix_command)
+
+        if system_config.get('terminal'):
+            term = system_config.get("terminal_app",
+                                     system.get_default_terminal())
+            if term and system.find_executable(term):
+                launch_arguments.insert(0, term)
+                launch_arguments.insert(1, '-e')
+            else:
+                dialogs.ErrorDialog("The default or selected terminal "
+                                    "application could not be launched: '%s'"
+                                    % term)
+        # Env vars
         env = os.environ.copy()
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
@@ -191,11 +209,7 @@ class Game(object):
         if ld_library_path:
             ld_full = ':'.join(ld_library_path)
             env["LD_LIBRARY_PATH"] = "{}:$LD_LIBRARY_PATH".format(ld_full)
-
-        self.killswitch = system_config.get('killswitch')
-        if self.killswitch and not os.path.exists(self.killswitch):
-            # Prevent setting a killswitch to a file that doesn't exists
-            self.killswitch = None
+        # /Env vars
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner, env=env,
