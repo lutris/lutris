@@ -1,8 +1,9 @@
 import os
+from lutris import settings
 from lutris.util import http
 from lutris.util import extract
 from lutris.util import system
-from lutris import settings
+from lutris.util.log import logger
 
 LOCAL_VERSION_PATH = os.path.join(settings.RUNTIME_DIR, "VERSION")
 
@@ -30,9 +31,11 @@ def get_remote_version():
 
 
 def update_runtime():
+    logger.debug("Updating runtime")
     remote_version = get_remote_version()
     local_version = get_local_version()
     if remote_version <= local_version:
+        logger.debug("Runtime already up to date")
         return
     runtime32_file = "lutris-runtime-i386.tar.gz"
     runtime64_file = "lutris-runtime-amd64.tar.gz"
@@ -54,3 +57,4 @@ def update_runtime():
 
     with open(LOCAL_VERSION_PATH, 'w') as version_file:
         version_file.write(str(remote_version))
+    logger.debug("Runtime updated")
