@@ -7,8 +7,8 @@ from lutris.util.log import logger
 
 
 class mednafen(Runner):
-    human_name = "Mednafen"
     """Multi-system emulator including NES, GB(A), PC Engine support"""
+    human_name = "Mednafen"
     platform = (
         "Atari Lynx, GameBoy, GameBoy Color, "
         "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
