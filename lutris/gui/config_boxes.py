@@ -41,18 +41,21 @@ class ConfigBox(VBox):
 
             # Load value if there is one.
             value = config.get(option_key, option.get('default'))
+            default = option.get('default')
 
             # Different types of widgets.
             if option["type"] == "choice":
                 self.generate_combobox(wrapper,
                                        option_key,
                                        option["choices"],
-                                       option["label"], value)
+                                       option["label"],
+                                       value, default)
             elif option["type"] == "choice_with_entry":
                 self.generate_combobox(wrapper,
                                        option_key,
                                        option["choices"],
-                                       option["label"], value, has_entry=True)
+                                       option["label"],
+                                       value, default, has_entry=True)
             elif option["type"] == "bool":
                 self.generate_checkbox(wrapper, option, value)
             elif option["type"] == "range":
@@ -136,14 +139,17 @@ class ConfigBox(VBox):
 
     # ComboBox
     def generate_combobox(self, wrapper, option_name, choices, label,
-                          value=None, has_entry=False):
+                          value=None, default=None, has_entry=False):
         """Generate a combobox (drop-down menu)."""
         hbox = Gtk.HBox()
         liststore = Gtk.ListStore(str, str)
         for choice in choices:
             if type(choice) is str:
                 choice = [choice, choice]
-            liststore.append(choice)
+            if choice[1] == default:
+                liststore.append([choice[0] + "  (default)", default])
+            else:
+                liststore.append(choice)
 
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
