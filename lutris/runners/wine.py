@@ -533,7 +533,7 @@ class wine(Runner):
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
-        command = [self.get_executable(), game_exe]
+        command = [self.get_executable()]
         if game_exe.endswith(".msi"):
             command.append('msiexec')
             command.append('/i')
