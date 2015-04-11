@@ -6,7 +6,7 @@ from textwrap import dedent
 from lutris import settings
 from lutris.gui import dialogs
 from lutris.util.log import logger
-from lutris.util import system
+from lutris.util import display, system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -261,7 +261,8 @@ class wine(Runner):
         "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Version": r"%s" % reg_prefix,
-        "Desktop": r"%s\Explorer" % reg_prefix
+        "Desktop": r"%s\Explorer" % reg_prefix,
+        "Desktop_res": r"%s\Explorer\Desktops" % reg_prefix,
     }
 
     core_processes = (
@@ -292,7 +293,7 @@ class wine(Runner):
                          ('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
-        desktop_choices = [('Yes', 'Default'),
+        desktop_choices = [('Yes', 'Desktop_res'),
                            ('No', 'None')]
         self.runner_options = [
             {
@@ -323,6 +324,15 @@ class wine(Runner):
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
                          "This corresponds to Wine's Virtual Desktop option.")
+            },
+            {
+                'option': 'Desktop_res',
+                'label': 'Virtual desktop resolution',
+                'type': 'choice_with_entry',
+                'choices': display.get_resolutions(),
+                'default': '800x600',
+                'help': ("The size of the virtual desktop in pixels.\n"
+                         "Default: 800x600")
             },
             # {
             #     'option': 'cdrom_path',
