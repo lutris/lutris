@@ -167,6 +167,8 @@ class ConfigBox(VBox):
                 if choice[1] == value:
                     selected_index = index + 1
                     break
+                if choice[1] == default:
+                    selected_index = index + 1
                 index += 1
             combobox.set_active(selected_index)
 
