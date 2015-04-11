@@ -282,9 +282,18 @@ class wine(Runner):
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in get_wine_versions()]
 
+        desktop_choices = [('Yes', 'Desktop_res'),
+                           ('No', 'None')]
+        mwo_choices = [('Auto', 'None'),
+                       ('Enable', 'enable'),
+                       ('Disable', 'disable'),
+                       ('Force', 'force')]
         orm_choices = [('Auto', 'None'),
                        ('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
+        sdo_choices = [('Auto', 'None'),
+                       ('Enabled', 'enabled'),
+                       ('Disabled', 'disabled')]
         rtlm_choices = [('Auto', 'None'),
                         ('Disabled', 'disabled'),
                         ('ReadTex', 'readtex'),
@@ -293,8 +302,6 @@ class wine(Runner):
                          ('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
-        desktop_choices = [('Yes', 'Desktop_res'),
-                           ('No', 'None')]
         self.runner_options = [
             {
                 'option': 'version',
@@ -343,12 +350,7 @@ class wine(Runner):
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
-                'choices': [
-                    ('Auto', 'None'),
-                    ('Enable', 'enable'),
-                    ('Disable', 'disable'),
-                    ('Force', 'force')
-                ],
+                'choices': mwo_choices,
                 'default': 'None',
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
@@ -374,11 +376,7 @@ class wine(Runner):
                 'option': 'StrictDrawOrdering',
                 'label': "Strict Draw Ordering",
                 'type': 'choice',
-                'choices': [
-                    ('Auto', 'None'),
-                    ('Enabled', 'enabled'),
-                    ('Disabled', 'disabled')
-                ],
+                'choices': sdo_choices,
                 'default': 'None',
                 'help': ("This option ensures any pending drawing operations "
                          "are submitted to the driver, but at a significant "
