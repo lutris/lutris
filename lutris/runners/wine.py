@@ -276,12 +276,15 @@ class wine(Runner):
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in get_wine_versions()]
 
-        orm_choices = [('FBO', 'fbo'),
+        orm_choices = [('Auto', 'None'),
+                       ('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
-        rtlm_choices = [('Disabled', 'disabled'),
+        rtlm_choices = [('Auto', 'None'),
+                        ('Disabled', 'disabled'),
                         ('ReadTex', 'readtex'),
                         ('ReadDraw', 'readdraw')]
-        audio_choices = [('Alsa', 'alsa'),
+        audio_choices = [('Auto', 'None'),
+                         ('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
         desktop_choices = [('Yes', 'Default'),
@@ -311,6 +314,7 @@ class wine(Runner):
                 'label': 'Windowed (virtual desktop)',
                 'type': 'choice',
                 'choices': desktop_choices,
+                'default': 'None',
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
                          "This corresponds to Wine's Virtual Desktop option.")
@@ -325,10 +329,12 @@ class wine(Runner):
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
                 'choices': [
+                    ('Auto', 'None'),
                     ('Enable', 'enable'),
                     ('Disable', 'disable'),
                     ('Force', 'force')
                 ],
+                'default': 'None',
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
                     "<b>Enable</b>: (default) warp the pointer when the mouse"
@@ -342,6 +348,7 @@ class wine(Runner):
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
                 'choices': orm_choices,
+                'default': 'None',
                 'help': ("Select the offscreen rendering implementation.\n"
                          "<b>FBO</b>: (default) Use framebuffer objects for "
                          "offscreen rendering \n"
@@ -353,9 +360,11 @@ class wine(Runner):
                 'label': "Strict Draw Ordering",
                 'type': 'choice',
                 'choices': [
+                    ('Auto', 'None'),
                     ('Enabled', 'enabled'),
                     ('Disabled', 'disabled')
                 ],
+                'default': 'None',
                 'help': ("This option ensures any pending drawing operations "
                          "are submitted to the driver, but at a significant "
                          "performance cost.\n"
@@ -366,6 +375,7 @@ class wine(Runner):
                 'label': 'Render Target Lock Mode',
                 'type': 'choice',
                 'choices': rtlm_choices,
+                'default': 'None',
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
@@ -379,6 +389,7 @@ class wine(Runner):
                 'label': 'Audio driver',
                 'type': 'choice',
                 'choices': audio_choices,
+                'default': 'None',
                 'help': ("Which audio backend to use.\n"
                          "By default, Wine automatically picks the right one "
                          "for your system. Alsa is the default for modern"
