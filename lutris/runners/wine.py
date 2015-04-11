@@ -47,6 +47,10 @@ def set_regedit_file(filename, wine_path=None, prefix=None):
     wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix)
 
 
+def delete_registry_key(key, wine_path=None, prefix=None):
+    wineexec('regedit /D', args=key, wine_path=wine_path, prefix=prefix)
+
+
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new Wine prefix."""
     logger.debug("Creating a Wine prefix in %s", prefix)
