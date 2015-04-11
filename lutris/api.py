@@ -59,7 +59,8 @@ def get_library():
     url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.urlencode({'api_key': api_key, 'username': username,
                                'format': 'json'})
-    return http.download_json(url, params)['games']
+    response = http.download_json(url, params)
+    return response['games'] if response else []
 
 
 # TODO: use it when switched API to DRF
