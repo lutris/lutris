@@ -496,24 +496,26 @@ class wine(Runner):
             if system.find_executable('wine'):
                 return True
             else:
-                dialogs.ErrorDialog(
-                    "Wine is not installed on your system.\n"
-                    "Let's fall back on Wine " + DEFAULT_WINE +
-                    " bundled with Lutris, alright?\n\n"
-                    "(To get rid of this message, either install Wine \n"
-                    "or change the Wine version in the game's configuration.)")
+                return False
+                # dialogs.ErrorDialog(
+                #    "Wine is not installed on your system.\n"
+                #    "Let's fall back on Wine " + DEFAULT_WINE +
+                #    " bundled with Lutris, alright?\n\n"
+                #    "(To get rid of this message, either install Wine \n"
+                #    "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
             custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
-                dialogs.ErrorDialog(
-                    "Your custom Wine version can't be launched.\n"
-                    "Let's fall back on Wine " + DEFAULT_WINE +
-                    " bundled with Lutris, alright? \n\n"
-                    "(To get rid of this message, fix your "
-                    "Custom Wine path \n"
-                    "or change the Wine version in the game's configuration.)")
+                return False
+                # dialogs.ErrorDialog(
+                #    "Your custom Wine version can't be launched.\n"
+                #    "Let's fall back on Wine " + DEFAULT_WINE +
+                #    " bundled with Lutris, alright? \n\n"
+                #    "(To get rid of this message, fix your "
+                #    "Custom Wine path \n"
+                #    "or change the Wine version in the game's configuration.)")
         return os.path.exists(self.get_executable())
 
     @classmethod
