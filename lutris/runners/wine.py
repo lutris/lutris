@@ -43,12 +43,12 @@ def set_regedit(path, key, value='', type_='REG_SZ',
 
 
 def set_regedit_file(filename, wine_path=None, prefix=None):
-    """Apply a regedit file to the Windows registry"""
+    """Apply a regedit file to the Windows registry."""
     wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
-    """Create a new wineprefix"""
+    """Create a new Wine prefix."""
     logger.debug("Creating a Wine prefix in %s", prefix)
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
@@ -67,6 +67,7 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_env=''):
+    """Execute a Wine command."""
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
     if arch not in ('win32', 'win64'):
