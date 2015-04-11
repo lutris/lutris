@@ -16,7 +16,7 @@ resolution_choices.insert(0, ("Keep current", None))
 
 outputs = display.get_output_names()
 output_choices = zip(outputs, outputs)
-output_choices.insert(0, ("Auto", None))
+output_choices.insert(0, ("Off", None))
 system_options = [
     {
         'option': 'game_path',
@@ -61,7 +61,7 @@ system_options = [
         'choices': output_choices,
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
-                 "This is used if you have a dual-screen setup, and are \n"
+                 "This is useful if you have a dual-screen setup, and are \n"
                  "having display issues when running a game in fullscreen.")
     },
     {
