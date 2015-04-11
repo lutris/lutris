@@ -141,7 +141,7 @@ msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 msgstr ""
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
-msgstr "gtk-annuler"
+msgstr "gtk-cancel"
 #: ../data/ui/PreferencesLutrisDialog.ui.h:2
 msgid "gtk-ok"
 msgstr "gtk-ok"
