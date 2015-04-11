@@ -1,3 +1,4 @@
+import os
 from lutris.util import display, system
 
 
@@ -21,6 +22,7 @@ system_options = [
         'option': 'game_path',
         'type': 'directory_chooser',
         'label': 'Library default folder',
+        'default': os.path.expanduser('~/Games'),
         'help': ("The main folder where you install your games.\n"
                  "Lutris uses it to propose you a default path when you \n"
                  "install a new game.")
