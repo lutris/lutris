@@ -41,7 +41,7 @@ class fsuae(Runner):
             "label": "Amiga model",
             "type": "choice",
             "choices": [
-                ("Amiga 500 (default)", 'A500'),
+                ("Amiga 500", 'A500'),
                 ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
                 ("Amiga 600 with 1 MB chip RAM", 'A600'),
                 ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
@@ -51,6 +51,7 @@ class fsuae(Runner):
                 ("CD32 unit", 'CD32'),
                 ("Commodore CDTV unit", 'CDTV'),
             ],
+            'default': 'A500',
             'help': ("Specify the Amiga model you want to emulate.")
         },
         {
@@ -66,14 +67,16 @@ class fsuae(Runner):
         {
             "option": "gfx_fullscreen_amiga",
             "label": "Fullscreen (F12 + s to Switch)",
-            "type": "bool"
+            "type": "bool",
+            'default': False,
         },
         {
             "option": "scanlines",
             "label": "Enable scanlines",
             "type": "bool",
-            'help': ("Activates a display filter adding scanlines to look "
-                     "more like yesteryear matieral.")
+            'default': False,
+            'help': ("Activates a display filter adding scanlines to imitate "
+                     "the displays of yesteryear.")
         }
     ]
 

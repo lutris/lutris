@@ -59,6 +59,7 @@ system_options = [
         'type': 'choice',
         'label': 'Restrict to display',
         'choices': output_choices,
+        'default': None,
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
                  "This is useful if you have a dual-screen setup, and are \n"
@@ -69,12 +70,14 @@ system_options = [
         'type': 'choice',
         'label': 'Switch resolution to',
         'choices': resolution_choices,
+        'default': None,
         'help': "Switch to this screen resolution while the game is running."
     },
     {
         'option': 'terminal',
         'label': "Run in a terminal",
         'type': 'bool',
+        'default': False,
         'help': "Run the game in a new terminal window."
     },
     {
@@ -108,6 +111,7 @@ system_options = [
         'option': 'reset_pulse',
         'type': 'bool',
         'label': 'Reset PulseAudio',
+        'default': False,
         'help': "Restart PulseAudio before launching the game."
     },
     {

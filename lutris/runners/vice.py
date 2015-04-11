@@ -21,17 +21,20 @@ class vice(Runner):
         {
             "option": "joy",
             "type": "bool",
-            "label": "Use joysticks"
+            "label": "Use joysticks",
+            'default': False,
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen"
+            "label": "Fullscreen",
+            'default': False,
         },
         {
             "option": "double",
             "type": "bool",
-            "label": "Scale up display by 2"
+            "label": "Scale up display by 2",
+            'default': True,
         },
         {
             "option": "machine",

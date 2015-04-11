@@ -51,7 +51,8 @@ class hatari(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen"
+            "label": "Fullscreen",
+            'default': False,
         },
         {
             "option": "zoom",
@@ -64,6 +65,7 @@ class hatari(Runner):
             "option": "borders",
             "type": "bool",
             'label': 'Add borders to display',
+            'default': False,
             'help': ("Useful for some games and demos using the overscan "
                      "technique. The Atari ST displayed borders around the "
                      "screen because it was not powerful enough to display "
@@ -75,6 +77,7 @@ class hatari(Runner):
             "option": "status",
             "type": "bool",
             'label': 'Display status bar',
+            'default': False,
             'help': ("Displays a status bar with some useful information, "
                      "like green leds lighting up when the floppy disks are "
                      "read.")
@@ -83,13 +86,15 @@ class hatari(Runner):
             "option": "joy0",
             "type": "choice",
             "label": "Joystick 1",
-            "choices": joystick_choices
+            "choices": joystick_choices,
+            'default': 'none',
         },
         {
             "option": "joy1",
             "type": "choice",
             "label": "Joystick 2",
-            "choices": joystick_choices
+            "choices": joystick_choices,
+            'default': 'none',
         }
     ]
 

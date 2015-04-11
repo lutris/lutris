@@ -31,7 +31,6 @@ class nulldc(Runner):
     game_options = [{
         'option': 'iso',
         'type': 'file',
-        'name': 'iso',
         'label': 'Disc image file',
         'help': ("The game data.\n"
                  "Supported formats: ISO, CDI")
@@ -41,6 +40,7 @@ class nulldc(Runner):
         'option': 'joy2key',
         'type': 'bool',
         'label': "Simulate joypad with joy2key",
+        'default': False,
         'help': ("Requires joy2key installed on your system.")
     }]
 

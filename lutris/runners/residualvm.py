@@ -26,24 +26,28 @@ class residualvm(Runner):
         {
             "option": "subtitles",
             "label": "Enable subtitles (if the game has voice)",
-            "type": "bool"
+            "type": "bool",
+            'default': False,
         }
     ]
     runner_options = [
         {
-            "option": "windowed",
-            "label": "Windowed mode",
-            "type": "bool"
+            "option": "fullscreen",
+            "label": "Fullscreen mode",
+            "type": "bool",
+            'default': False,
         },
         {
             "option": "soft-renderer",
             "label": "Software renderer",
-            "type": "bool"
+            "type": "bool",
+            'default': False,
         },
         {
             "option": "show-fps",
             "label": "Display FPS information",
-            "type": "bool"
+            "type": "bool",
+            'default': False,
         }
     ]
 
@@ -75,10 +79,10 @@ class residualvm(Runner):
         if self.game_config.get("subtitles"):
             command.append("--subtitles")
 
-        if self.runner_config.get("windowed"):
-            command.append("--no-fullscreen")
-        else:
+        if self.runner_config.get("fullscreen"):
             command.append("--fullscreen")
+        else:
+            command.append("--no-fullscreen")
 
         if self.runner_config.get("soft-renderer"):
             command.append("--soft-renderer")

@@ -19,9 +19,10 @@ class mame(Runner):
 
     runner_options = [
         {
-            "option": "windowed",
+            "option": "fullscreen",
             "type": "bool",
-            "label": "Windowed"
+            "label": "Fullscreen",
+            'default': True,
         }
     ]
 
@@ -37,7 +38,7 @@ class mame(Runner):
         rompath = os.path.dirname(self.game_config.get('main_file'))
         rom = os.path.basename(self.game_config.get('main_file'))
         mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
-        if self.runner_config.get("windowed", False):
+        if not self.runner_config.get('fullscreen'):
             options.append("-window")
         if not os.path.exists(os.path.join(mameconfigdir, "mame.ini")):
             try:

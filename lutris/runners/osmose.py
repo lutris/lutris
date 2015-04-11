@@ -30,7 +30,8 @@ class osmose(Runner):
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen'
+            'label': 'Fullscreen',
+            'default': False,
         }
     ]
 

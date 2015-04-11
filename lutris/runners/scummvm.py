@@ -26,14 +26,16 @@ class scummvm(Runner):
         {
             "option": "subtitles",
             "label": "Enable subtitles (if the game has voice)",
-            "type": "bool"
+            "type": "bool",
+            'default': False,
         }
     ]
     runner_options = [
         {
-            "option": "windowed",
-            "label": "Windowed mode",
-            "type": "bool"
+            "option": "fullscreen",
+            "label": "Fullscreen mode",
+            "type": "bool",
+            'default': False,
         },
         {
             "option": "aspect",
@@ -49,6 +51,7 @@ class scummvm(Runner):
             "option": "gfx-mode",
             "label": "Graphic scaler",
             "type": "choice",
+            'default': '3x',
             "choices": [("normal", "normal"),
                         ("2x", "2x"),
                         ("3x", "3x"),
@@ -95,10 +98,10 @@ class scummvm(Runner):
         if self.game_config.get("subtitles"):
             command.append("--subtitles")
 
-        if self.runner_config.get("windowed"):
-            command.append("--no-fullscreen")
-        else:
+        if self.runner_config.get("fullscreen"):
             command.append("--fullscreen")
+        else:
+            command.append("--no-fullscreen")
 
         mode = self.runner_config.get("gfx-mode")
         if mode:

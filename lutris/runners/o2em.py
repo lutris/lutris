@@ -46,31 +46,36 @@ class o2em(Runner):
             "option": "bios",
             "type": "choice",
             "choices": bios_choices,
-            "label": "Bios"
+            "label": "Bios",
+            'default': 'o2rom',
         },
         {
             "option": "controller1",
             "type": "choice",
             "choices": controller_choices,
-            "label": "First controller"
+            "label": "First controller",
+            'default': '2',
         },
         {
             "option": "controller2",
             "type": "choice",
             "choices": controller_choices,
-            "label": "Second controller"
+            "label": "Second controller",
+            'default': '1',
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen"
+            "label": "Fullscreen",
+            'default': False,
         },
         {
             "option": "scanlines",
             "type": "bool",
             "label": "Scanlines",
-            'help': ("Activates a display filter adding scanlines to look "
-                     "more like yesteryear matieral.")
+            'default': False,
+            'help': ("Activates a display filter adding scanlines to imitate "
+                     "the displays of yesteryear.")
         }
     ]
 

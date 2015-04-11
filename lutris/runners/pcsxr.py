@@ -33,7 +33,8 @@ class pcsxr(Runner):
         {
             'option': 'nogui',
             'type': 'bool',
-            'label': "No emulator interface",
+            'label': "No emulator interface on exit",
+            'default': False,
             'help': ("With this option on, hitting the Escape key during "
                      "play will stop the game. Otherwise it pauses the "
                      "emulation and displays PCSX-Reloaded's user interface, "

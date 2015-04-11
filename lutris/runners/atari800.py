@@ -45,6 +45,7 @@ class atari800(Runner):
                               for resolution in get_resolutions()]
     except OSError:
         screen_resolutions = []
+    screen_resolutions.insert(0, ('Desktop resolution', None))
 
     runner_options = [
         {
@@ -58,24 +59,25 @@ class atari800(Runner):
         {
             "option": "machine",
             "type": "choice",
-            "choices": (
-                ("Emulate Atari 800", "atari"),
-                ("Emulate Atari 800 XL", "xl"),
-                ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
-                ("Emulate Atari 320 XE (Rambo)", "rambo"),
-                ("Emulate Atari 5200", "5200")
-            ),
+            "choices": [("Emulate Atari 800", "atari"),
+                        ("Emulate Atari 800 XL", "xl"),
+                        ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
+                        ("Emulate Atari 320 XE (Rambo)", "rambo"),
+                        ("Emulate Atari 5200", "5200")],
+            "default": "atari",
             "label": "Machine"
         },
         {
             "option": "fullscreen",
             "type": "bool",
+            "default": False,
             "label": "Fullscreen"
         },
         {
             "option": "resolution",
             "type": "choice",
             "choices": screen_resolutions,
+            "default": None,
             "label": "Fullscreen resolution"
         }
     ]
