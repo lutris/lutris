@@ -11,7 +11,7 @@ LOCAL_VERSION_PATH = os.path.join(settings.RUNTIME_DIR, "VERSION")
 def parse_version(version_content):
     try:
         version = int(version_content)
-    except ValueError:
+    except (ValueError, TypeError):
         version = 0
     return version
 
