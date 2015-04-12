@@ -42,6 +42,7 @@ class ConfigBox(VBox):
             # Load value if there is one.
             value = config.get(option_key, option.get('default'))
             default = option.get('default')
+            self.tooltip_default = default if type(default) is str else None
 
             # Different types of widgets.
             if option["type"] == "choice":
@@ -88,6 +89,9 @@ class ConfigBox(VBox):
 
             # Tooltip
             helptext = option.get("help")
+            if type(self.tooltip_default) is str:
+                helptext = helptext + '\n\n' if helptext else ''
+                helptext += "<b>Default</b>: " + self.tooltip_default
             if helptext:
                 wrapper.props.has_tooltip = True
                 wrapper.connect('query-tooltip', self.on_query_tooltip,
@@ -108,6 +112,9 @@ class ConfigBox(VBox):
         checkbox = Gtk.CheckButton(label=option["label"])
         if value:
             checkbox.set_active(value)
+            self.tooltip_default = 'Enabled'
+        else:
+            self.tooltip_default = 'Disabled'
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         checkbox.set_margin_left(20)
         checkbox.show()
@@ -148,14 +155,16 @@ class ConfigBox(VBox):
                 choice = [choice, choice]
             if choice[1] == default:
                 liststore.append([choice[0] + "  (default)", default])
+                self.tooltip_default = choice[0]
             else:
                 liststore.append(choice)
-
+        # With entry ("choice_with_entry" type)
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
             combobox.set_entry_text_column(1)
             if value:
                 combobox.get_child().set_text(value)
+        # No entry ("choice" type)
         else:
             combobox = Gtk.ComboBox.new_with_model(liststore)
             cell = Gtk.CellRendererText()

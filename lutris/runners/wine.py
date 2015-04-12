@@ -291,8 +291,7 @@ class wine(Runner):
         orm_choices = [('Auto', 'None'),
                        ('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
-        sdo_choices = [('Auto', 'None'),
-                       ('Enabled', 'enabled'),
+        sdo_choices = [('Enabled', 'enabled'),
                        ('Disabled', 'disabled')]
         rtlm_choices = [('Auto', 'None'),
                         ('Disabled', 'disabled'),
@@ -338,8 +337,7 @@ class wine(Runner):
                 'type': 'choice_with_entry',
                 'choices': display.get_resolutions(),
                 'default': '800x600',
-                'help': ("The size of the virtual desktop in pixels.\n"
-                         "Default: 800x600")
+                'help': ("The size of the virtual desktop in pixels.")
             },
             # {
             #     'option': 'cdrom_path',
@@ -354,7 +352,7 @@ class wine(Runner):
                 'default': 'None',
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
-                    "<b>Enable</b>: (default) warp the pointer when the mouse"
+                    "<b>Enable</b>: (Wine default) warp the pointer when the mouse"
                     " is exclusively acquired \n"
                     "<b>Disable</b>: never warp the mouse pointer \n"
                     "<b>Force</b>: always warp the pointer"
@@ -367,21 +365,20 @@ class wine(Runner):
                 'choices': orm_choices,
                 'default': 'None',
                 'help': ("Select the offscreen rendering implementation.\n"
-                         "<b>FBO</b>: (default) Use framebuffer objects for "
+                         "<b>FBO</b>: (Wine default) Use framebuffer objects for "
                          "offscreen rendering \n"
                          "<b>Backbuffer</b>: Render offscreen render targets "
-                         "in the backbuffer.\n")
+                         "in the backbuffer.")
             },
             {
                 'option': 'StrictDrawOrdering',
                 'label': "Strict Draw Ordering",
                 'type': 'choice',
                 'choices': sdo_choices,
-                'default': 'None',
+                'default': 'disabled',
                 'help': ("This option ensures any pending drawing operations "
                          "are submitted to the driver, but at a significant "
-                         "performance cost.\n"
-                         "<b>Default</b>: disabled")
+                         "performance cost.")
             },
             {
                 'option': 'RenderTargetLockMode',
@@ -392,7 +389,7 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (default) Reads by glReadPixels, writes "
+                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, writes "
                     "by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
