@@ -67,7 +67,7 @@ class RunnerInstallDialog(Dialog):
 
     def get_store(self):
         liststore = Gtk.ListStore(str, str, str, bool, int)
-        for version_info in self.get_versions():
+        for version_info in reversed(self.get_versions()):
             version = version_info['version']
             architecture = version_info['architecture']
             progress = 0
