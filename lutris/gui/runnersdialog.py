@@ -87,22 +87,25 @@ class RunnersDialog(Gtk.Window):
         hbox.pack_start(runner_label, True, True, 5)
 
         # Buttons
-        self.configure_button = Gtk.Button("Configure")
-        self.configure_button.set_size_request(120, 30)
-        self.configure_button.connect("clicked", self.on_configure_clicked,
-                                      runner)
-        hbox.pack_start(self.configure_button, False, False, 15)
-
         self.versions_button = Gtk.Button("Manage versions")
         self.versions_button.set_size_request(120, 30)
+        self.versions_button.set_valign(Gtk.Align.CENTER)
         self.versions_button.connect("clicked", self.on_versions_clicked,
                                      runner)
-        hbox.pack_start(self.versions_button, False, False, 15)
+        hbox.pack_start(self.versions_button, False, False, 5)
 
         self.install_button = Gtk.Button("Install")
-        self.install_button.set_size_request(120, 30)
+        self.install_button.set_size_request(80, 30)
+        self.install_button.set_valign(Gtk.Align.CENTER)
         self.install_button.connect("clicked", self.on_install_clicked, runner)
-        hbox.pack_start(self.install_button, False, False, 15)
+        hbox.pack_start(self.install_button, False, False, 5)
+
+        self.configure_button = Gtk.Button("Configure")
+        self.configure_button.set_size_request(90, 30)
+        self.configure_button.set_valign(Gtk.Align.CENTER)
+        self.configure_button.connect("clicked", self.on_configure_clicked,
+                                      runner)
+        hbox.pack_start(self.configure_button, False, False, 5)
 
         self.set_button_display(runner)
 
@@ -117,10 +120,9 @@ class RunnersDialog(Gtk.Window):
             self.install_button.show()
 
         if runner.is_installed():
-            self.configure_button.show()
             self.install_button.hide()
-        else:
-            self.configure_button.hide()
+
+        self.configure_button.show()
 
     def on_versions_clicked(self, widget, runner):
         dlg_title = "Manage %s versions" % runner.name
