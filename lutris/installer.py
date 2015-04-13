@@ -676,11 +676,11 @@ class ScriptInterpreter(object):
         if runner_name == 'wine' and self.script.get('wine'):
             wine_version = self.script.get('wine').get('version')
 
-        # Old lutris versions used a version + arch tuple, we now include
-        # everything in the version.
-        # Before that change every wine runner was for i386
-        if '-' not in wine_version:
-            wine_version += '-i386'
+            # Old lutris versions used a version + arch tuple, we now include
+            # everything in the version.
+            # Before that change every wine runner was for i386
+            if '-' not in wine_version:
+                wine_version += '-i386'
 
         if wine_version and task_name == 'wineexec':
             if not wine.is_version_installed(wine_version):
