@@ -170,8 +170,8 @@ class Game(object):
         if primusrun and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
 
-        prefix_command = system_config.get("prefix_command", '').strip()
-        if prefix_command:
+        prefix_command = system_config.get("prefix_command") or ''
+        if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
 
         if system_config.get('terminal'):

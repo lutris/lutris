@@ -101,7 +101,7 @@ class linux(Runner):
 
         command = [self.game_exe]
 
-        args = self.game_config.get('args', "")
+        args = self.game_config.get('args') or ''
         for arg in args.split():
             command.append(arg)
         launch_info['command'] = command

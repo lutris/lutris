@@ -86,7 +86,7 @@ class fsuae(Runner):
         if main_disk:
             disks.append(main_disk)
 
-        game_disks = self.game_config.get('disks', [])
+        game_disks = self.game_config.get('disks') or []
         for disk in game_disks:
             if disk not in disks:
                 disks.append(disk)

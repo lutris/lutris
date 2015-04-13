@@ -78,9 +78,8 @@ class desura(Runner):
         return url
 
     def get_path(self):
-        return self.runner_config.get(
-            'desura_path', os.path.join(settings.RUNNER_DIR, "desura")
-        )
+        return (self.runner_config.get('desura_path')
+                or os.path.join(settings.RUNNER_DIR, "desura"))
 
     def get_executable(self):
         return os.path.join(self.get_path(), "desura")
