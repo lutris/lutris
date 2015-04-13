@@ -37,6 +37,11 @@ class ConfigBox(VBox):
         # Go thru all options.
         for option in self.options:
             option_key = option["option"]
+
+            if 'scope' in option:
+                if self.caller not in option['scope']:
+                    continue
+
             wrapper = Gtk.VBox()
 
             # Load value if there is one.

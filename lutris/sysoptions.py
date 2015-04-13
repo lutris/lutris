@@ -23,6 +23,7 @@ system_options = [
         'type': 'directory_chooser',
         'label': 'Library default folder',
         'default': os.path.expanduser('~/Games'),
+        'scope': ['runner', 'system'],
         'help': ("The main folder where you install your games.\n"
                  "Lutris uses it to propose you a default path when you \n"
                  "install a new game.")
