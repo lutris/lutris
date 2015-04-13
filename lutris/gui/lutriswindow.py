@@ -104,7 +104,7 @@ class LutrisWindow(object):
         self.banner_menuitem = self.builder.get_object('banner_menuitem')
         self.banner_menuitem.set_active(self.icon_type == 'banner')
         self.icon_menuitem = self.builder.get_object('icon_menuitem')
-        self.icon_menuitem.set_active(self.icon_type == 'grid')
+        self.icon_menuitem.set_active(self.icon_type == 'icon')
 
         self.search_entry = self.builder.get_object('search_entry')
         self.search_entry.connect('icon-press', self.on_clear_search)
