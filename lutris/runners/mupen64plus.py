@@ -43,7 +43,9 @@ class mupen64plus(Runner):
     def play(self):
         arguments = [self.get_executable()]
         if self.runner_config.get('nogui'):
-            arguments.append('--nogui')
+            arguments.append('--noosd')
+        else:
+            arguments.append('--osd')
         if self.runner_config.get('fullscreen'):
             arguments.append('--fullscreen')
         else:
