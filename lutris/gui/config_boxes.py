@@ -97,6 +97,10 @@ class ConfigBox(VBox):
                 wrapper.connect('query-tooltip', self.on_query_tooltip,
                                 helptext)
 
+            # Grey out option if condition unmet
+            if 'condition' in option and not option['condition']:
+                wrapper.set_sensitive(False)
+
             self.pack_start(wrapper, False, False, 0)
 
     # Label

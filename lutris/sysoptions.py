@@ -48,6 +48,7 @@ system_options = [
         'option': 'primusrun',
         'type': 'bool',
         'default': False,
+        'condition': system.find_executable('primusrun'),
         'label': 'Use primusrun (NVIDIA Optimus laptops)',
         'help': ("If you have installed the primus package, selecting this "
                  "option will run the game with the primusrun command, "
@@ -112,6 +113,7 @@ system_options = [
         'type': 'bool',
         'label': 'Reset PulseAudio',
         'default': False,
+        'condition': system.find_executable('pulseaudio'),
         'help': "Restart PulseAudio before launching the game."
     },
     {
@@ -126,7 +128,8 @@ system_options = [
         'option': 'xboxdrv',
         'type': 'string',
         'label': 'xboxdrv config',
+        'condition': system.find_executable('xboxdrv'),
         'help': ("Command line options for xboxdrv, a driver for XBOX 360"
-                 "controllers")
+                 "controllers. Requires the xboxdrv package installed.")
     }
 ]
