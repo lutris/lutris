@@ -16,12 +16,16 @@ class RunnersDialog(Gtk.Window):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.set_title("Manage runners")
-        self.set_default_size(750, 750)
+        width = int(settings.read_setting('runners_manager_width') or 700)
+        height = int(settings.read_setting('runners_manager_height') or 500)
+        self.dialog_size = (width, height)
+        self.set_default_size(width, height)
         self.set_border_width(10)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.vbox = Gtk.VBox()
         self.add(self.vbox)
 
+        # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
@@ -29,6 +33,7 @@ class RunnersDialog(Gtk.Window):
         self.vbox.pack_start(scrolled_window, True, True, 0)
         self.show_all()
 
+        # Runner list
         runner_list = lutris.runners.__all__
         runner_vbox = Gtk.VBox()
         runner_vbox.show()
@@ -41,12 +46,17 @@ class RunnersDialog(Gtk.Window):
             runner_vbox.pack_start(separator, False, False, 5)
         scrolled_window.add_with_viewport(runner_vbox)
 
+        # Bottom bar
         buttons_box = Gtk.Box()
         buttons_box.show()
         open_runner_button = Gtk.Button("Open Runners Folder")
         open_runner_button.show()
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
         buttons_box.add(open_runner_button)
+
+        # Signals
+        self.connect('destroy', self.on_destroy)
+        self.connect('configure-event', self.on_resize)
 
         self.vbox.pack_start(buttons_box, False, False, 5)
 
@@ -136,3 +146,13 @@ class RunnersDialog(Gtk.Window):
 
     def on_runner_open_clicked(self, widget):
         system.xdg_open(settings.RUNNER_DIR)
+
+    def on_resize(self, widget, *args):
+        """Store the dialog's new size."""
+        self.dialog_size = self.get_size()
+
+    def on_destroy(self, widget):
+        # Save window size
+        width, height = self.dialog_size
+        settings.write_setting('runners_manager_width', width)
+        settings.write_setting('runners_manager_height', height)
