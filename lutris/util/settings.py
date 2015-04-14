@@ -22,7 +22,7 @@ class SettingsIO(object):
     def write_setting(self, key, value, section='lutris'):
         if not self.config.has_section(section):
             self.config.add_section(section)
-        self.config.set(section, key, value)
+        self.config.set(section, key, str(value))
 
         with open(self.config_file, 'wb') as config_file:
             self.config.write(config_file)
