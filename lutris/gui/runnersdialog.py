@@ -16,7 +16,7 @@ class RunnersDialog(Gtk.Window):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.set_title("Manage runners")
-        self.set_size_request(750, 750)
+        self.set_default_size(750, 750)
         self.set_border_width(10)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.vbox = Gtk.VBox()
