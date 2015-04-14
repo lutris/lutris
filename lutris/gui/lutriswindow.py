@@ -187,7 +187,7 @@ class LutrisWindow(object):
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_clicked)
         self.view.connect("game-selected", self.game_selection_changed)
-        self.window.connect("configure-event", self.get_size)
+        self.window.connect("configure-event", self.on_resize)
         self.window.connect("key-press-event", self.on_keypress)
 
     def get_view_type(self):
@@ -207,9 +207,6 @@ class LutrisWindow(object):
         if icon_type not in ("banner_small", "banner", "icon"):
             icon_type = default
         return icon_type
-
-    def get_size(self, widget, _):
-        self.window_size = widget.get_size()
 
     def switch_splash_screen(self):
         if self.view.n_games == 0:
@@ -345,6 +342,9 @@ class LutrisWindow(object):
             sync.sync_steam_local(caller=self)
         self.sync_icons()
         dialogs.NoticeDialog('Library synchronized')
+
+    def on_resize(self, widget, *args):
+        self.window_size = widget.get_size()
 
     def on_destroy(self, *args):
         """Signal for window close."""
