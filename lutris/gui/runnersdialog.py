@@ -15,16 +15,12 @@ class RunnersDialog(Gtk.Window):
 
     def __init__(self):
         GObject.GObject.__init__(self)
-        self.set_title("Configure runners")
+        self.set_title("Manage runners")
         self.set_size_request(750, 750)
         self.set_border_width(10)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.vbox = Gtk.VBox()
         self.add(self.vbox)
-
-        label = Gtk.Label()
-        label.set_markup("<b>Install and configure the game runners</b>")
-        self.vbox.pack_start(label, False, True, 10)
 
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,

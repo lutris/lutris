@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.16.1 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <!-- interface-local-resource-path ../media -->
@@ -103,7 +103,7 @@
                       <object class="GtkMenuItem" id="runners_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Install and configure runners</property>
+                        <property name="tooltip_text" translatable="yes">Install and configure the game runners</property>
                         <property name="label" translatable="yes">Manage runners</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_runners_activate" swapped="no"/>
