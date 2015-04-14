@@ -179,7 +179,10 @@ class Game(object):
                                      system.get_default_terminal())
             if term and system.find_executable(term):
                 launch_arguments.insert(0, term)
-                launch_arguments.insert(1, '-e')
+                if term == 'gnome-terminal':
+                    launch_arguments.insert(1, '-x')
+                else:
+                    launch_arguments.insert(1, '-e')
             else:
                 dialogs.ErrorDialog("The default or selected terminal "
                                     "application could not be launched: '%s'"
