@@ -1,13 +1,13 @@
 """Configuration dialogs"""
 from gi.repository import Gtk, Pango
 
-from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.game import Game
 import lutris.runners
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
+from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
@@ -71,6 +71,8 @@ class GameDialogCommon(object):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_info_tab(self):
+        if not self.game:
+            return
         info_box = VBox()
         self.name_entry = Gtk.Entry()
         if self.game:
@@ -97,6 +99,8 @@ class GameDialogCommon(object):
         self.add_notebook_tab(info_sw, "Game info")
 
     def build_game_tab(self):
+        if not self.game:
+            return
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             self.game_box = GameBox(self.lutris_config, "game", self.game)
@@ -214,7 +218,6 @@ class AddGameDialog(Dialog, GameDialogCommon):
 
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__("Add a new game")
-        self.parent_window = parent
         self.lutris_config = LutrisConfig()
         self.game = game
         self.saved = False
@@ -241,7 +244,6 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         super(EditGameConfigDialog, self).__init__(
             "Edit game configuration for %s" % game.name
         )
-        self.parent_window = parent
         self.game = game
         self.lutris_config = game.config
         self.slug = game.slug
@@ -252,57 +254,30 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs()
-
         self.build_action_area("Edit", self.on_save)
         self.show_all()
         self.run()
 
 
-class RunnerConfigDialog(Dialog):
+class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runners management dialog."""
     def __init__(self, runner):
-        runner_name = runner.__class__.__name__
-        super(RunnerConfigDialog, self).__init__("Configure %s" % runner_name)
-        self.set_size_request(570, 500)
-        self.runner_name = runner_name
-        self.lutris_config = LutrisConfig(runner=runner_name)
+        self.runner_name = runner.__class__.__name__
+        super(RunnerConfigDialog, self).__init__(
+            "Configure %s" % self.runner_name
+        )
 
-        # Notebook for choosing between runner and system configuration
-        self.notebook = Gtk.Notebook()
-        self.vbox.pack_start(self.notebook, True, True, 0)
+        self.game = None
+        self.saved = False
+        self.lutris_config = LutrisConfig(runner=self.runner_name)
 
-        # Runner configuration
-        self.runner_config_vbox = RunnerBox(self.lutris_config, "runner",
-                                            self.runner_name)
-        runner_scrollwindow = Gtk.ScrolledWindow()
-        runner_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                       Gtk.PolicyType.AUTOMATIC)
-        runner_scrollwindow.add_with_viewport(self.runner_config_vbox)
-        self.notebook.append_page(runner_scrollwindow,
-                                  Gtk.Label(label="Runner configuration"))
+        self.set_size_request(500, 550)
 
-        # System configuration
-        self.system_config_vbox = SystemBox(self.lutris_config, "runner")
-        system_scrollwindow = Gtk.ScrolledWindow()
-        system_scrollwindow.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                       Gtk.PolicyType.AUTOMATIC)
-        system_scrollwindow.add_with_viewport(self.system_config_vbox)
-        self.notebook.append_page(system_scrollwindow,
-                                  Gtk.Label(label="System configuration"))
-
-        # Action buttons
-        cancel_button = Gtk.Button("Cancel")
-        ok_button = Gtk.Button("Ok")
-        self.action_area.pack_start(cancel_button, True, True, 0)
-        self.action_area.pack_start(ok_button, True, True, 0)
-        cancel_button.connect("clicked", self.close)
-        ok_button.connect("clicked", self.ok_clicked)
-
+        self.build_notebook()
+        self.build_tabs()
+        self.build_action_area("Edit", self.ok_clicked)
         self.show_all()
         self.run()
-
-    def close(self, _widget):
-        self.destroy()
 
     def ok_clicked(self, _wigdet):
         self.lutris_config.config_type = "runner"
