@@ -31,7 +31,7 @@ system_options = [
     {
         'option': 'reset_desktop',
         'type': 'bool',
-        'label': 'Restore desktop resolution when the game quits',
+        'label': 'Restore desktop resolution when game quits',
         'default': True,
         'help': ("Some games don't restore your screen resolution when \n"
                  "closed or when they crash. This is when this option comes \n"

@@ -15,13 +15,18 @@ class SidebarTreeView(Gtk.TreeView):
 
         column = Gtk.TreeViewColumn("Runners")
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        text_renderer = Gtk.CellRendererText()
+
+        # Icon
         icon_renderer = Gtk.CellRendererPixbuf()
         icon_renderer.set_property('stock-size', 16)
         column.pack_start(icon_renderer, False)
+        column.add_attribute(icon_renderer, "pixbuf", ICON)
+
+        # Label
+        text_renderer = Gtk.CellRendererText()
         column.pack_start(text_renderer, True)
         column.add_attribute(text_renderer, "text", LABEL)
-        column.add_attribute(icon_renderer, "pixbuf", ICON)
+
         self.append_column(column)
         self.set_headers_visible(False)
         self.set_fixed_height_mode(True)
@@ -30,6 +35,7 @@ class SidebarTreeView(Gtk.TreeView):
         self.expand_all()
 
     def get_runners(self):
+        """Append runners to the model."""
         runner_node = self.model.append(None, ["Runners", None])
         runners = pga.get_runners()
         for runner in runners:
@@ -37,6 +43,7 @@ class SidebarTreeView(Gtk.TreeView):
             self.model.append(runner_node, [runner, icon])
 
     def get_selected_runner(self):
+        """Return the selected runner's name."""
         selection = self.get_selection()
         if not selection:
             return
