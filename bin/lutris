@@ -21,6 +21,7 @@ import logging
 import optparse
 import signal
 
+import lutris.util.removefakegir
 # pylint: disable=E0611
 from gi.repository import Gtk, GObject
 
