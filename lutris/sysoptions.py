@@ -80,6 +80,7 @@ system_options = [
         'label': "Run in a terminal",
         'type': 'bool',
         'default': False,
+        'advanced': True,
         'help': "Run the game in a new terminal window."
     },
     {
@@ -88,6 +89,7 @@ system_options = [
         'type': 'choice_with_entry',
         'choices': system.get_terminal_apps(),
         'default': system.get_default_terminal(),
+        'advanced': True,
         'help': ("The terminal emulator to be run with the previous option."
                  "Choose from the list of detected terminal apps or enter "
                  "the terminal's command or path."
@@ -97,6 +99,7 @@ system_options = [
         'option': 'prefix_command',
         'type': 'string',
         'label': 'Command prefix',
+        'advanced': True,
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
     },
@@ -105,6 +108,7 @@ system_options = [
         'type': 'bool',
         'label': 'Disable Lutris Runtime',
         'default': False,
+        'advanced': True,
         'help': ("The Lutris Runtime loads some libraries before running the "
                  "game. Which can cause some conflicts in some cases (mostly "
                  "with Steam). Check this option to diasble it.")
@@ -114,6 +118,7 @@ system_options = [
         'type': 'bool',
         'label': 'Reset PulseAudio',
         'default': False,
+        'advanced': True,
         'condition': system.find_executable('pulseaudio'),
         'help': "Restart PulseAudio before launching the game."
     },
@@ -121,6 +126,7 @@ system_options = [
         'option': 'killswitch',
         'type': 'string',
         'label': 'Killswitch file',
+        'advanced': True,
         'help': ("Path to a file which will stop the game when deleted \n"
                  "(usually /dev/input/js0 to stop the game on joystick "
                  "unplugging)")
@@ -129,6 +135,7 @@ system_options = [
         'option': 'xboxdrv',
         'type': 'string',
         'label': 'xboxdrv config',
+        'advanced': True,
         'condition': system.find_executable('xboxdrv'),
         'help': ("Command line options for xboxdrv, a driver for XBOX 360"
                  "controllers. Requires the xboxdrv package installed.")

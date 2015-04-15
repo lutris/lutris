@@ -71,7 +71,10 @@ class winesteam(wine.wine):
         {
             'option': 'prefix',
             'type': 'directory_chooser',
-            'label': 'Prefix'
+            'label': 'Prefix',
+            'help': ("The prefix (also named \"bottle\") used by Wine.\n"
+                     "It's a directory containing a set of files and "
+                     "folders making up a confined Windows environment.")
         },
         {
             'option': 'arch',
@@ -91,12 +94,12 @@ class winesteam(wine.wine):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
-        self.runner_options.append(
+        self.runner_options.insert(0,
             {
                 'option': 'steam_path',
                 'type': 'directory_chooser',
                 'label': 'Custom Steam location',
-                'help': ("Choose a folder containing Steam.exe.\n"
+                'help': ("Choose a folder containing Steam.exe\n"
                          "By default, Lutris will look for a Windows Steam "
                          "installation into ~/.wine or will install it in "
                          "its own custom Wine prefix.")

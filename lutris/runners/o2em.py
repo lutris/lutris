@@ -72,7 +72,7 @@ class o2em(Runner):
         {
             "option": "scanlines",
             "type": "bool",
-            "label": "Scanlines",
+            "label": "Scanlines display style",
             'default': False,
             'help': ("Activates a display filter adding scanlines to imitate "
                      "the displays of yesteryear.")

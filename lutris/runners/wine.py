@@ -350,6 +350,7 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': mwo_choices,
                 'default': 'None',
+                'advanced': True,
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
                     "<b>Enable</b>: (Wine default) warp the pointer when the mouse"
@@ -364,6 +365,7 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': orm_choices,
                 'default': 'None',
+                'advanced': True,
                 'help': ("Select the offscreen rendering implementation.\n"
                          "<b>FBO</b>: (Wine default) Use framebuffer objects for "
                          "offscreen rendering \n"
@@ -376,6 +378,7 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': sdo_choices,
                 'default': 'disabled',
+                'advanced': True,
                 'help': ("This option ensures any pending drawing operations "
                          "are submitted to the driver, but at a significant "
                          "performance cost.")
@@ -386,6 +389,7 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': rtlm_choices,
                 'default': 'None',
+                'advanced': True,
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"

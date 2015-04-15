@@ -66,13 +66,13 @@ class fsuae(Runner):
         },
         {
             "option": "gfx_fullscreen_amiga",
-            "label": "Fullscreen (F12 + s to Switch)",
+            "label": "Fullscreen (F12 + s to switch)",
             "type": "bool",
             'default': False,
         },
         {
             "option": "scanlines",
-            "label": "Enable scanlines",
+            "label": "Scanlines display style",
             "type": "bool",
             'default': False,
             'help': ("Activates a display filter adding scanlines to imitate "

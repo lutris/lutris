@@ -1,9 +1,9 @@
 """Configuration dialogs"""
 from gi.repository import Gtk, Pango
 
+from lutris import runners, settings
 from lutris.config import LutrisConfig
 from lutris.game import Game
-import lutris.runners
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
@@ -19,8 +19,8 @@ class GameDialogCommon(object):
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
-        for runner_name in lutris.runners.__all__:
-            runner_class = lutris.runners.import_runner(runner_name)
+        for runner_name in runners.__all__:
+            runner_class = runners.import_runner(runner_name)
             runner = runner_class()
             if runner.is_installed():
                 description = runner.description
@@ -60,7 +60,6 @@ class GameDialogCommon(object):
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add_with_viewport(widget)
-        scrolled_window.show_all()
         return scrolled_window
 
     def build_notebook(self):
@@ -71,8 +70,6 @@ class GameDialogCommon(object):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_info_tab(self):
-        if not self.game:
-            return
         info_box = VBox()
         self.name_entry = Gtk.Entry()
         if self.game:
@@ -99,8 +96,6 @@ class GameDialogCommon(object):
         self.add_notebook_tab(info_sw, "Game info")
 
     def build_game_tab(self):
-        if not self.game:
-            return
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             self.game_box = GameBox(self.lutris_config, "game", self.game)
@@ -112,7 +107,6 @@ class GameDialogCommon(object):
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
-            game_sw.show()
         self.add_notebook_tab(game_sw, "Game configuration")
 
     def build_runner_tab(self):
@@ -122,7 +116,6 @@ class GameDialogCommon(object):
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
-            runner_sw.show()
         self.add_notebook_tab(runner_sw, "Runner configuration")
 
     def build_system_tab(self):
@@ -130,9 +123,10 @@ class GameDialogCommon(object):
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
-    def build_tabs(self):
-        self.build_info_tab()
-        self.build_game_tab()
+    def build_tabs(self, game=True):
+        if game:
+            self.build_info_tab()
+            self.build_game_tab()
         self.build_runner_tab()
         self.build_system_tab()
 
@@ -142,15 +136,57 @@ class GameDialogCommon(object):
         self.build_game_tab()
         self.build_runner_tab()
         self.build_system_tab()
+        self.finalize_dialog()
 
     def build_action_area(self, label, button_callback):
+        self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
+
+        # Advanced settings checkbox
+        checkbox = Gtk.CheckButton(label="Show advanced options")
+        value = settings.read_setting('show_advanced_options')
+        if value == 'True':
+            checkbox.set_active(value)
+        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
+        self.action_area.pack_start(checkbox, False, False, 5)
+
+        # Buttons
+        hbox = Gtk.HBox()
         cancel_button = Gtk.Button(label="Cancel")
         cancel_button.connect("clicked", self.on_cancel_clicked)
-        self.action_area.pack_start(cancel_button, True, True, 0)
+        hbox.pack_start(cancel_button, True, True, 10)
 
         button = Gtk.Button(label=label)
         button.connect("clicked", button_callback)
-        self.action_area.pack_start(button, True, True, 0)
+        hbox.pack_start(button, True, True, 0)
+        self.action_area.pack_start(hbox, True, True, 0)
+
+    def finalize_dialog(self):
+        self.show_all()
+        self.hide_advanced_options()
+
+    def hide_advanced_options(self):
+        """Hide them according to the main settings."""
+        show_advanced = settings.read_setting('show_advanced_options')
+        if not show_advanced == 'True':
+            self.set_advanced_options_visible(False)
+
+    def set_advanced_options_visible(self, value):
+        """Change visibility of advanced options across all config tabs."""
+        widgets = self.system_box.get_children()
+        if self.runner_name:
+            widgets += self.runner_box.get_children()
+        if self.game:
+            widgets += self.game_box.get_children()
+
+        for widget in widgets:
+            if widget.get_style_context().has_class('advanced'):
+                widget.set_visible(value)
+
+    def on_show_advanced_options_toggled(self, checkbox):
+        value = True if checkbox.get_active() else False
+        settings.write_setting('show_advanced_options', value)
+
+        self.set_advanced_options_visible(value)
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
@@ -200,7 +236,7 @@ class GameDialogCommon(object):
             self.lutris_config.game = self.slug
         self.lutris_config.save()
 
-        runner_class = lutris.runners.import_runner(self.runner_name)
+        runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
         self.game.name = name
         self.game.slug = self.slug
@@ -232,10 +268,9 @@ class AddGameDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs()
-
         self.build_action_area("Add", self.on_save)
         self.name_entry.grab_focus()
-        self.show_all()
+        self.finalize_dialog()
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
@@ -255,8 +290,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.build_notebook()
         self.build_tabs()
         self.build_action_area("Edit", self.on_save)
-        self.show_all()
-        self.run()
+        self.finalize_dialog()
 
 
 class RunnerConfigDialog(Dialog, GameDialogCommon):
@@ -274,10 +308,9 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.set_size_request(500, 550)
 
         self.build_notebook()
-        self.build_tabs()
+        self.build_tabs(game=False)
         self.build_action_area("Edit", self.ok_clicked)
-        self.show_all()
-        self.run()
+        self.finalize_dialog()
 
     def ok_clicked(self, _wigdet):
         self.lutris_config.config_type = "runner"
@@ -288,13 +321,18 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self):
         super(SystemConfigDialog, self).__init__("System preferences")
-        self.set_size_request(500, 500)
-        self.lutris_config = LutrisConfig()
-        self.system_config_vbox = SystemBox(self.lutris_config, 'system')
-        self.vbox.pack_start(self.system_config_vbox, True, True, 0)
 
+        self.game = None
+        self.runner_name = None
+        self.lutris_config = LutrisConfig()
+
+        self.set_size_request(500, 500)
+
+        self.system_box = SystemBox(self.lutris_config, 'system')
+        self.system_sw = self.build_scrolled_window(self.system_box)
+        self.vbox.pack_start(self.system_sw, True, True, 0)
         self.build_action_area("Save", self.save_config)
-        self.show_all()
+        self.finalize_dialog()
 
     def save_config(self, widget):
         self.lutris_config.save()

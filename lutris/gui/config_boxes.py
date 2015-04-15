@@ -1,10 +1,11 @@
 """Widget generators and their signal handlers"""
 import os
 from gi.repository import Gtk, Gdk
-from lutris.gui.widgets import VBox, Label, PADDING
-from lutris.util.log import logger
-from lutris.runners import import_runner
+
 from lutris import sysoptions
+from lutris.gui.widgets import VBox, Label, PADDING
+from lutris.runners import import_runner
+from lutris.util.log import logger
 
 
 class ConfigBox(VBox):
@@ -105,6 +106,10 @@ class ConfigBox(VBox):
             # Grey out option if condition unmet
             if 'condition' in option and not option['condition']:
                 wrapper.set_sensitive(False)
+
+            # Add class to show/hide if option is advanced
+            if option.get('advanced'):
+                wrapper.get_style_context().add_class('advanced')
 
             self.pack_start(wrapper, False, False, 0)
 
