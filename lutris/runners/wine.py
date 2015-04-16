@@ -229,7 +229,6 @@ class wine(Runner):
                      "By default, Lutris uses the directory of the "
                      "executable.")
         },
-
         {
             'option': 'prefix',
             'type': 'directory_chooser',
