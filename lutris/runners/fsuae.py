@@ -30,7 +30,7 @@ class fsuae(Runner):
             "type": "multiple",
             "label": "Additionnal floppies",
             'default_path': 'game_path',
-            'help': ("If the game comes in multiples floppy images, you can"
+            'help': ("If the game comes in multiples floppy images, you can "
                      "add them here one by one.")
         }
     ]
@@ -113,7 +113,7 @@ class fsuae(Runner):
             params.append("--kickstart_file=%s" % kickstart_file)
         if model:
             params.append('--amiga_model=%s' % model)
-        if self.runner_config.get("gfx_fullscreen_amiga", False):
+        if self.runner_config.get('gfx_fullscreen_amiga'):
             width = int(get_current_resolution().split('x')[0])
             params.append("--fullscreen")
             # params.append("--fullscreen_mode=fullscreen-window")

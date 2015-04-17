@@ -139,7 +139,7 @@ class GameDialogCommon(object):
         self.build_game_tab()
         self.build_runner_tab('game')
         self.build_system_tab('game')
-        self.finalize_dialog()
+        self.show_all()
 
     def build_action_area(self, label, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
@@ -163,16 +163,6 @@ class GameDialogCommon(object):
         hbox.pack_start(button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
-    def finalize_dialog(self):
-        self.show_all()
-        self.hide_advanced_options()
-
-    def hide_advanced_options(self):
-        """Hide them according to the main settings."""
-        show_advanced = settings.read_setting('show_advanced_options')
-        if not show_advanced == 'True':
-            self.set_advanced_options_visible(False)
-
     def set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
         widgets = self.system_box.get_children()
@@ -184,6 +174,9 @@ class GameDialogCommon(object):
         for widget in widgets:
             if widget.get_style_context().has_class('advanced'):
                 widget.set_visible(value)
+                if value:
+                    widget.set_no_show_all(not value)
+                    widget.show_all()
 
     def on_show_advanced_options_toggled(self, checkbox):
         value = True if checkbox.get_active() else False
@@ -273,7 +266,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_tabs('game')
         self.build_action_area("Add", self.on_save)
         self.name_entry.grab_focus()
-        self.finalize_dialog()
+        self.show_all()
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
@@ -293,7 +286,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.build_notebook()
         self.build_tabs('game')
         self.build_action_area("Edit", self.on_save)
-        self.finalize_dialog()
+        self.show_all()
 
 
 class RunnerConfigDialog(Dialog, GameDialogCommon):
@@ -313,7 +306,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.build_notebook()
         self.build_tabs('runner')
         self.build_action_area("Edit", self.ok_clicked)
-        self.finalize_dialog()
+        self.show_all()
 
     def ok_clicked(self, _wigdet):
         self.lutris_config.save()
@@ -334,7 +327,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.vbox.pack_start(self.system_sw, True, True, 0)
         self.build_action_area("Save", self.save_config)
-        self.finalize_dialog()
+        self.show_all()
 
     def save_config(self, widget):
         self.lutris_config.save()

@@ -2,7 +2,7 @@
 import os
 from gi.repository import Gtk, Gdk
 
-from lutris import sysoptions
+from lutris import settings, sysoptions
 from lutris.gui.widgets import VBox, Label
 from lutris.runners import import_runner
 from lutris.util.log import logger
@@ -59,7 +59,6 @@ class ConfigBox(VBox):
             icon = Gtk.Image(stock=Gtk.STOCK_CLEAR)
             self.reset_btn = Gtk.Button(image=icon)
             self.reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            self.reset_btn.set_name('reset_' + option_key)
             self.reset_btn.set_tooltip_text("Reset option to global or "
                                             "default config")
 
@@ -124,9 +123,12 @@ class ConfigBox(VBox):
             if 'condition' in option and not option['condition']:
                 hbox.set_sensitive(False)
 
-            # Add class to show/hide if option is advanced
+            # Hide if advanced
             if option.get('advanced'):
                 hbox.get_style_context().add_class('advanced')
+                show_advanced = settings.read_setting('show_advanced_options')
+                if not show_advanced == 'True':
+                    hbox.set_no_show_all(True)
 
             self.reset_btn.connect('clicked', self.on_reset_button_clicked,
                                    option, self.the_widget, self.wrapper)
