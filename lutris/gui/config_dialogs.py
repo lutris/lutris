@@ -10,6 +10,9 @@ from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
+DIALOG_WIDTH = 550
+DIALOG_HEIGHT = 550
+
 
 class GameDialogCommon(object):
     no_runner_label = "Select a runner from the list"
@@ -109,33 +112,33 @@ class GameDialogCommon(object):
             game_sw = Gtk.Label(label=self.no_runner_label)
         self.add_notebook_tab(game_sw, "Game configuration")
 
-    def build_runner_tab(self):
+    def build_runner_tab(self, config_type):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config, "game",
+            self.runner_box = RunnerBox(self.lutris_config, config_type,
                                         self.runner_name)
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
         self.add_notebook_tab(runner_sw, "Runner configuration")
 
-    def build_system_tab(self):
-        self.system_box = SystemBox(self.lutris_config, "game")
+    def build_system_tab(self, config_type):
+        self.system_box = SystemBox(self.lutris_config, config_type)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
-    def build_tabs(self, game=True):
-        if game:
+    def build_tabs(self, config_type):
+        if config_type == 'game':
             self.build_info_tab()
             self.build_game_tab()
-        self.build_runner_tab()
-        self.build_system_tab()
+        self.build_runner_tab(config_type)
+        self.build_system_tab(config_type)
 
     def rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self.build_game_tab()
-        self.build_runner_tab()
-        self.build_system_tab()
+        self.build_runner_tab('game')
+        self.build_system_tab('game')
         self.finalize_dialog()
 
     def build_action_area(self, label, button_callback):
@@ -258,7 +261,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.game = game
         self.saved = False
 
-        self.set_size_request(-1, 500)
+        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         if game:
             self.runner_name = game.runner_name
             self.slug = game.slug
@@ -267,7 +270,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.slug = None
 
         self.build_notebook()
-        self.build_tabs()
+        self.build_tabs('game')
         self.build_action_area("Add", self.on_save)
         self.name_entry.grab_focus()
         self.finalize_dialog()
@@ -285,10 +288,10 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.runner_name = game.runner_name
         self.saved = False
 
-        self.set_size_request(500, 550)
+        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_notebook()
-        self.build_tabs()
+        self.build_tabs('game')
         self.build_action_area("Edit", self.on_save)
         self.finalize_dialog()
 
@@ -305,15 +308,14 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.saved = False
         self.lutris_config = LutrisConfig(runner=self.runner_name)
 
-        self.set_size_request(500, 550)
+        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_notebook()
-        self.build_tabs(game=False)
+        self.build_tabs('runner')
         self.build_action_area("Edit", self.ok_clicked)
         self.finalize_dialog()
 
     def ok_clicked(self, _wigdet):
-        self.lutris_config.config_type = "runner"
         self.lutris_config.save()
         self.destroy()
 
@@ -326,7 +328,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.runner_name = None
         self.lutris_config = LutrisConfig()
 
-        self.set_size_request(500, 500)
+        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.system_box = SystemBox(self.lutris_config, 'system')
         self.system_sw = self.build_scrolled_window(self.system_box)

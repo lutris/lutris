@@ -45,7 +45,7 @@ class atari800(Runner):
                               for resolution in get_resolutions()]
     except OSError:
         screen_resolutions = []
-    screen_resolutions.insert(0, ('Desktop resolution', None))
+    screen_resolutions.insert(0, ('Desktop resolution', 'desktop'))
 
     runner_options = [
         {
@@ -77,7 +77,7 @@ class atari800(Runner):
             "option": "resolution",
             "type": "choice",
             "choices": screen_resolutions,
-            "default": None,
+            "default": 'desktop',
             "label": "Fullscreen resolution"
         }
     ]

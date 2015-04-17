@@ -12,11 +12,11 @@ oss_list = [
 
 resolutions = display.get_resolutions()
 resolution_choices = zip(resolutions, resolutions)
-resolution_choices.insert(0, ("Keep current", None))
+resolution_choices.insert(0, ("Keep current", 'off'))
 
 outputs = display.get_output_names()
 output_choices = zip(outputs, outputs)
-output_choices.insert(0, ("Off", None))
+output_choices.insert(0, ("Off", 'off'))
 system_options = [
     {
         'option': 'game_path',
@@ -61,7 +61,7 @@ system_options = [
         'type': 'choice',
         'label': 'Restrict to display',
         'choices': output_choices,
-        'default': None,
+        'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
                  "This is useful if you have a dual-screen setup, and are \n"
@@ -72,7 +72,7 @@ system_options = [
         'type': 'choice',
         'label': 'Switch resolution to',
         'choices': resolution_choices,
-        'default': None,
+        'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },
     {
