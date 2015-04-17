@@ -4,7 +4,6 @@ import subprocess
 from textwrap import dedent
 
 from lutris import settings
-from lutris.gui import dialogs
 from lutris.util.log import logger
 from lutris.util import display, system
 from lutris.runners.runner import Runner
@@ -48,7 +47,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None):
 
 
 def delete_registry_key(key, wine_path=None, prefix=None):
-    wineexec('regedit /D', args=key, wine_path=wine_path, prefix=prefix)
+    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path, prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
@@ -257,9 +256,7 @@ class wine(Runner):
         "Audio": r"%s\Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
-        "DirectDrawRenderer": r"%s\Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
-        "Version": r"%s" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix,
         "Desktop_res": r"%s\Explorer\Desktops" % reg_prefix,
     }
@@ -282,21 +279,18 @@ class wine(Runner):
             [(version, version) for version in get_wine_versions()]
 
         desktop_choices = [('Yes', 'Desktop_res'),
-                           ('No', 'None')]
-        mwo_choices = [('Auto', 'None'),
-                       ('Enable', 'enable'),
+                           ('No', 'off')]
+        mwo_choices = [('Enable', 'enable'),
                        ('Disable', 'disable'),
                        ('Force', 'force')]
-        orm_choices = [('Auto', 'None'),
-                       ('FBO', 'fbo'),
+        orm_choices = [('FBO', 'fbo'),
                        ('BackBuffer', 'backbuffer')]
         sdo_choices = [('Enabled', 'enabled'),
                        ('Disabled', 'disabled')]
-        rtlm_choices = [('Auto', 'None'),
-                        ('Disabled', 'disabled'),
+        rtlm_choices = [('Disabled', 'disabled'),
                         ('ReadTex', 'readtex'),
                         ('ReadDraw', 'readdraw')]
-        audio_choices = [('Auto', 'None'),
+        audio_choices = [('Auto', 'auto'),
                          ('Alsa', 'alsa'),
                          ('OSS', 'oss'),
                          ('Jack', 'jack')]
@@ -325,7 +319,7 @@ class wine(Runner):
                 'label': 'Windowed (virtual desktop)',
                 'type': 'choice',
                 'choices': desktop_choices,
-                'default': 'None',
+                'default': 'off',
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
                          "This corresponds to Wine's Virtual Desktop option.")
@@ -348,7 +342,7 @@ class wine(Runner):
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
                 'choices': mwo_choices,
-                'default': 'None',
+                'default': 'enable',
                 'advanced': True,
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
@@ -363,7 +357,7 @@ class wine(Runner):
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
                 'choices': orm_choices,
-                'default': 'None',
+                'default': 'fbo',
                 'advanced': True,
                 'help': ("Select the offscreen rendering implementation.\n"
                          "<b>FBO</b>: (Wine default) Use framebuffer objects for "
@@ -387,7 +381,7 @@ class wine(Runner):
                 'label': 'Render Target Lock Mode',
                 'type': 'choice',
                 'choices': rtlm_choices,
-                'default': 'None',
+                'default': 'readtex',
                 'advanced': True,
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
@@ -402,7 +396,7 @@ class wine(Runner):
                 'label': 'Audio driver',
                 'type': 'choice',
                 'choices': audio_choices,
-                'default': 'None',
+                'default': 'auto',
                 'help': ("Which audio backend to use.\n"
                          "By default, Wine automatically picks the right one "
                          "for your system. Alsa is the default for modern"
@@ -526,10 +520,13 @@ class wine(Runner):
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
-        for key in self.reg_keys.keys():
-            if key in self.runner_config:
-                set_regedit(self.reg_keys[key], key,
-                            value=self.runner_config[key],
+        for key, path in self.reg_keys.iteritems():
+            value = self.runner_config.get(key) or 'auto'
+            if value == 'auto':
+                delete_registry_key(path, wine_path=self.get_executable(),
+                                    prefix=prefix)
+            elif key in self.runner_config:
+                set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
 
     def prepare_launch(self):
