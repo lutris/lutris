@@ -11,7 +11,7 @@ from gi.repository import GLib
 from lutris.util.log import logger
 from lutris.util.process import Process
 
-HEARTBEAT_DELAY = 100  # Number of milliseconds between each heartbeat
+HEARTBEAT_DELAY = 1000  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
@@ -96,9 +96,9 @@ class LutrisThread(threading.Thread):
                               'steamerrorrepor'):
                 continue
             num_watched_children += 1
-            # print "{}\t{}\t{}".format(child.pid,
-                                      # child.state,
-                                      # child.name)
+            print "{}\t{}\t{}".format(child.pid,
+                                      child.state,
+                                      child.name)
             if child.state == 'Z':
                 terminated_children += 1
         if terminated_children and terminated_children == num_watched_children:
