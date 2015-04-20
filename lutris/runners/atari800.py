@@ -100,10 +100,9 @@ class atari800(Runner):
             return
         extract_archive(bios_archive, config_path)
         os.remove(bios_archive)
-        runner_config = LutrisConfig(runner='atari800')
-        runner_config.config_type = 'runner'
-        runner_config.runner_config = {'atari800': {'bios_path': config_path}}
-        runner_config.save()
+        config = LutrisConfig(runner='atari800')
+        config.runner_config = {'atari800': {'bios_path': config_path}}
+        config.save()
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'atari800/bin/atari800')

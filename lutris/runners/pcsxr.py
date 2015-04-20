@@ -85,10 +85,9 @@ class pcsxr(Runner):
             shutil.copy(bios_src, bios_path)
             # Save bios in config
             bios_path = os.path.join(bios_path, os.path.basename(bios_src))
-            runner_config = LutrisConfig(runner='pcsxr')
-            runner_config.config_type = 'runner'
-            runner_config.runner_config = {'pcsxr': {'bios': bios_path}}
-            runner_config.save()
+            config = LutrisConfig(runner='pcsxr')
+            config.runner_config = {'pcsxr': {'bios': bios_path}}
+            config.save()
         return True
 
     def play(self):

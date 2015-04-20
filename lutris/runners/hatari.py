@@ -121,10 +121,9 @@ class hatari(Runner):
             bios_filename = bios_dlg.filename
             shutil.copy(bios_filename, bios_path)
             bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
-            runner_config = LutrisConfig(runner='hatari')
-            runner_config.config_type = 'runner'
-            runner_config.runner_config = {'hatari': {'bios_file': bios_path}}
-            runner_config.save()
+            config = LutrisConfig(runner='hatari')
+            config.runner_config = {'hatari': {'bios_file': bios_path}}
+            config.save()
         return True
 
     def get_executable(self):

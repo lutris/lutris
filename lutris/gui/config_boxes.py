@@ -10,35 +10,33 @@ from lutris.util.log import logger
 
 class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
-    def __init__(self, config_type, caller, game=None):
+    def __init__(self, config_section, game=None):
         super(ConfigBox, self).__init__()
         self.options = None
-        # Section of the configuration file to save options in. Can be "game",
-        # "runner" or "system"
-        self.config_type = config_type
-        self.caller = caller
         self.game = game
+        self.config_section = config_section
 
     def generate_widgets(self):
         """Parse the config dict and generates widget accordingly."""
-        # Select what data to load based on caller.
-        if self.caller == "system":
-            real_config = self.lutris_config.system_config
-        elif self.caller == "runner":
-            real_config = self.lutris_config.runner_config
-        elif self.caller == "game":
-            real_config = self.lutris_config.game_config
+        # Select raw config data depending on config level.
+        config_level = self.lutris_config.level
+        if config_level == "system":
+            raw_config = self.lutris_config.system_config
+        elif config_level == "runner":
+            raw_config = self.lutris_config.runner_config
+        elif config_level == "game":
+            raw_config = self.lutris_config.game_config
 
-        # Select part of config to load or create it.
-        if self.config_type in real_config:
-            self.config = real_config[self.config_type]
+        # Select section of config to load or create it.
+        if self.config_section in raw_config:
+            self.config = raw_config[self.config_section]
         else:
-            self.config = real_config[self.config_type] = {}
+            self.config = raw_config[self.config_section] = {}
 
         # Go thru all options.
         for option in self.options:
             if 'scope' in option:
-                if self.caller not in option['scope']:
+                if config_level not in option['scope']:
                     continue
             option_key = option["option"]
             option_type = option['type']
@@ -139,7 +137,7 @@ class ConfigBox(VBox):
         """Clear option (remove from config, reset option widget)."""
         option_key = option['option']
         option_type = option['type']
-        current_value = self.config.get(option_key)
+        current_value = self.config[option_key]
         default = option.get('default')
 
         btn.set_visible(False)
@@ -452,13 +450,11 @@ class ConfigBox(VBox):
 
 
 class GameBox(ConfigBox):
-    def __init__(self, lutris_config, caller, game):
-        ConfigBox.__init__(self, "game", caller, game)
+    def __init__(self, lutris_config, game):
+        ConfigBox.__init__(self, 'game', game)
         self.lutris_config = lutris_config
-        self.lutris_config.config_type = "game"
         if game.runner_name:
-            self.runner_name = game.runner_name
-            runner = import_runner(self.runner_name)()
+            runner = game.runner or import_runner(game.runner_name)()
             self.options = runner.game_options
         else:
             logger.warning("No runner in game supplied to GameBox")
@@ -467,19 +463,17 @@ class GameBox(ConfigBox):
 
 
 class RunnerBox(ConfigBox):
-    def __init__(self, lutris_config, caller, runner_name):
-        ConfigBox.__init__(self, runner_name, caller)
-        runner = import_runner(runner_name)()
-
-        self.options = runner.runner_options
+    def __init__(self, lutris_config):
+        ConfigBox.__init__(self, lutris_config.runner)
         self.lutris_config = lutris_config
+        runner = import_runner(self.lutris_config.runner)()
+        self.options = runner.runner_options
         self.generate_widgets()
 
 
 class SystemBox(ConfigBox):
-    def __init__(self, lutris_config, caller):
-        """Box init"""
-        ConfigBox.__init__(self, "system", caller)
+    def __init__(self, lutris_config):
+        ConfigBox.__init__(self, 'system')
         self.lutris_config = lutris_config
         self.options = sysoptions.system_options
         self.generate_widgets()

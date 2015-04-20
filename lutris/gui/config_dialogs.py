@@ -101,37 +101,36 @@ class GameDialogCommon(object):
     def build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            self.game_box = GameBox(self.lutris_config, "game", self.game)
+            self.game_box = GameBox(self.lutris_config, self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
-            self.game_box = GameBox(self.lutris_config, "game", game)
+            self.game_box = GameBox(self.lutris_config, game)
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
         self.add_notebook_tab(game_sw, "Game configuration")
 
-    def build_runner_tab(self, config_type):
+    def build_runner_tab(self, config_level):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config, config_type,
-                                        self.runner_name)
+            self.runner_box = RunnerBox(self.lutris_config)
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
         self.add_notebook_tab(runner_sw, "Runner configuration")
 
-    def build_system_tab(self, config_type):
-        self.system_box = SystemBox(self.lutris_config, config_type)
+    def build_system_tab(self, config_level):
+        self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.add_notebook_tab(self.system_sw, "System configuration")
 
-    def build_tabs(self, config_type):
-        if config_type == 'game':
+    def build_tabs(self, config_level):
+        if config_level == 'game':
             self.build_info_tab()
             self.build_game_tab()
-        self.build_runner_tab(config_type)
-        self.build_system_tab(config_type)
+        self.build_runner_tab(config_level)
+        self.build_system_tab(config_level)
 
     def rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
@@ -195,7 +194,8 @@ class GameDialogCommon(object):
         else:
             self.runner_name = widget.get_model()[runner_index][1]
             # XXX DANGER ZONE
-            self.lutris_config = LutrisConfig(runner=self.runner_name)
+            self.lutris_config = LutrisConfig(runner=self.runner_name,
+                                              level='game')
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)
@@ -250,7 +250,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
 
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__("Add a new game")
-        self.lutris_config = LutrisConfig()
+        self.lutris_config = LutrisConfig(level='game')
         self.game = game
         self.saved = False
 
@@ -273,7 +273,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__(
-            "Edit game configuration for %s" % game.name
+            "Configure %s" % game.name
         )
         self.game = game
         self.lutris_config = game.config
@@ -323,7 +323,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
-        self.system_box = SystemBox(self.lutris_config, 'system')
+        self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.vbox.pack_start(self.system_sw, True, True, 0)
         self.build_action_area("Save", self.save_config)
