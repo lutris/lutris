@@ -109,7 +109,7 @@ class ScriptInterpreter(object):
 
     @property
     def default_target(self):
-        lutris_config = LutrisConfig(runner=self.script['runner'])
+        lutris_config = LutrisConfig(runner_slug=self.script['runner'])
         games_dir = lutris_config.get_path() or os.path.expanduser('~')
         return os.path.join(games_dir, self.game_slug)
 
@@ -341,8 +341,8 @@ class ScriptInterpreter(object):
             # The installer is patching an existing game, update its config
             # XXX Maybe drop the self.requires condition and always update
             #     the existing config?
-            lutris_config = LutrisConfig(game=self.game_slug)
-            config = lutris_config.game_config
+            lutris_config = LutrisConfig(game_slug=self.game_slug)
+            config = lutris_config.game_level
         else:
             config = {
                 'game': {},

@@ -100,55 +100,48 @@ class LutrisConfig(object):
     each higher, more specific level overrides the lower ones
 
     The levels are (highest to lowest): game, runner and system.
-    Each level has its own set of options (option type), available to and
+    Each level has its own set of options (config section), available to and
     overriden by upper levels:
 
-    Level   |Option types
-    --------|--------------------
-    game    |system, runner, game
-    runner  |system, runner
-    system  |system
+     level | Config sections
+    -------|----------------------
+      game | system, runner, game
+    runner | system, runner
+    system | system
 
-    Example: if requesting system options at game level, their returned value
+    Example: if requesting runner options at game level, their returned value
     will be from the game level config if it's set at this level; if not it
-    will be the value from runner level if available; if not, from system
-    level if available; and if not, the default value set in the sysoptions
-    module, or None.
-
-    Example 2: if requesting the game options (only available at game level),
-    their returned value will be from the game level config if available;
-    otherwise, the default value set in the game's runner's module, or None.
+    will be the value from runner level if available; and if not, the default
+    value set in the runner's module, or None.
 
     The config levels are stored in separate YAML format text files.
-
     """
-    def __init__(self, runner=None, game=None, level=None):
-        # Initialize configuration
-        self.config = {'system': {}}
+    def __init__(self, runner_slug=None, game_slug=None, level=None):
+        self.game_slug = game_slug
+        self.runner_slug = runner_slug
+        if game_slug and not runner_slug:
+            self.runner_slug = pga.get_game_by_slug(game_slug).get('runner')
+
         self.game_config = {}
         self.runner_config = {}
         self.system_config = {}
 
-        self.game = game  # This is actually a game *slug*
-        self.runner = runner
-        if game and not runner:
-            self.runner = pga.get_game_by_slug(self.game).get('runner')
 
         # Set config level
         self.level = level
         if not level:
-            if game:
-                self.level = "game"
-            elif runner:
-                self.level = "runner"
+            if game_slug:
+                self.level = 'game'
+            elif runner_slug:
+                self.level = 'runner'
             else:
-                self.level = "system"
+                self.level = 'system'
 
         # Load config files
-        self.game_config = read_yaml_from_file(self.game_config_path)
-        self.runner_config = read_yaml_from_file(self.runner_config_path)
-        self.system_config = read_yaml_from_file(self.system_config_path)
         self.update_global_config()
+        self.game_level = read_yaml_from_file(self.game_config_path)
+        self.runner_level = read_yaml_from_file(self.runner_config_path)
+        self.system_level = read_yaml_from_file(self.system_config_path)
 
     @property
     def system_config_path(self):
@@ -156,16 +149,17 @@ class LutrisConfig(object):
 
     @property
     def runner_config_path(self):
-        if not self.runner:
+        if not self.runner_slug:
             return
         return os.path.join(settings.CONFIG_DIR, "runners/%s.yml" %
-                            self.runner)
+                            self.runner_slug)
 
     @property
     def game_config_path(self):
-        if not self.game:
+        if not self.game_slug:
             return
-        return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game)
+        return os.path.join(settings.CONFIG_DIR, "games/%s.yml" %
+                            self.game_slug)
 
     def __str__(self):
         return str(self.config)
@@ -176,22 +170,22 @@ class LutrisConfig(object):
             return self.config.get(key)
         try:
             if self.level == "game":
-                value = self.game_config[key]
+                value = self.game_level[key]
             elif self.level == "runner":
-                value = self.runner_config[key]
+                value = self.runner_level[key]
             else:
-                value = self.system_config[key]
+                value = self.system_level[key]
         except KeyError:
             value = default
         return value
 
     def __setitem__(self, key, value):
         if self.level == "game":
-            self.game_config[key] = value
+            self.game_level[key] = value
         elif self.level == "runner":
-            self.runner_config[key] = value
+            self.runner_level[key] = value
         elif self.level == "system":
-            self.system_config = value
+            self.system_level = value
         self.update_global_config()
 
     def get(self, key, default=None):
@@ -221,7 +215,7 @@ class LutrisConfig(object):
     def remove(self, game=None):
         """Delete the configuration file from disk."""
         if game is None:
-            game = self.game
+            game = self.game_slug
         logging.debug("removing config for %s", game)
         if os.path.exists(self.game_config_path):
             os.remove(self.game_config_path)
@@ -231,13 +225,13 @@ class LutrisConfig(object):
     def save(self):
         """Save configuration file according to its type"""
         if self.level == "system":
-            config = self.system_config
+            config = self.system_level
             config_path = self.system_config_path
         elif self.level == "runner":
-            config = self.runner_config
+            config = self.runner_level
             config_path = self.runner_config_path
         elif self.level == "game":
-            config = self.game_config
+            config = self.game_level
             config_path = self.game_config_path
         else:
             raise ValueError("Invalid config level '%s'" % self.level)

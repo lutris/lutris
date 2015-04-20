@@ -466,7 +466,7 @@ class RunnerBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self, lutris_config.runner)
         self.lutris_config = lutris_config
-        runner = import_runner(self.lutris_config.runner)()
+        runner = import_runner(self.lutris_config.runner_slug)()
         self.options = runner.runner_options
         self.generate_widgets()
 

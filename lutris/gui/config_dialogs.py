@@ -194,7 +194,7 @@ class GameDialogCommon(object):
         else:
             self.runner_name = widget.get_model()[runner_index][1]
             # XXX DANGER ZONE
-            self.lutris_config = LutrisConfig(runner=self.runner_name,
+            self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
                                               level='game')
 
         self.rebuild_tabs()
@@ -228,8 +228,8 @@ class GameDialogCommon(object):
             self.game = Game(self.slug)
             self.game.config = self.lutris_config
 
-        if not self.lutris_config.game:
-            self.lutris_config.game = self.slug
+        if not self.lutris_config.game_slug:
+            self.lutris_config.game_slug = self.slug
         self.lutris_config.save()
 
         runner_class = runners.import_runner(self.runner_name)
@@ -299,7 +299,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
         self.game = None
         self.saved = False
-        self.lutris_config = LutrisConfig(runner=self.runner_name)
+        self.lutris_config = LutrisConfig(runner_slug=self.runner_name)
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 

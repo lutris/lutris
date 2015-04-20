@@ -53,7 +53,7 @@ class TestGameDialog(TestCase):
         self.assertEqual(buttons[1].get_label(), 'Add')
 
         self.dlg.runner_dropdown.set_active(1)
-        self.assertEqual(self.dlg.lutris_config.runner, runners.__all__[0])
+        self.assertEqual(self.dlg.lutris_config.runner_slug, runners.__all__[0])
         game_box = self.get_game_box()
         self.assertEqual(game_box.runner_name, runners.__all__[0])
         exe_box = game_box.get_children()[0].get_children()[0]

@@ -153,7 +153,7 @@ class Sync(object):
                 pga.add_or_update(game_info['name'], 'steam',
                                   game_info['slug'],
                                   installed=1)
-                game.config.game_config.update({'game':
+                game.config.game_level.update({'game':
                                                 {'appid': str(steamid)}})
                 game.config.save()
                 caller.view.set_installed(Game(game_info['slug']))

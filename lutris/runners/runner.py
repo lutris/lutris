@@ -42,7 +42,7 @@ class Runner(object):
         self.config = config or {}
         self.game_data = {}
         if config:
-            self.game_data = pga.get_game_by_slug(self.config.game)
+            self.game_data = pga.get_game_by_slug(self.config.game_slug)
 
     @property
     def description(self):
@@ -81,7 +81,7 @@ class Runner(object):
 
     @property
     def default_config(self):
-        return LutrisConfig(runner=self.name)
+        return LutrisConfig(runner_slug=self.name)
 
     @property
     def game_config(self):
