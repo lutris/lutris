@@ -122,7 +122,7 @@ class hatari(Runner):
             shutil.copy(bios_filename, bios_path)
             bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
             config = LutrisConfig(runner_slug='hatari')
-            config.runner_level = {'hatari': {'bios_file': bios_path}}
+            config.raw_runner_config.update({'bios_file': bios_path})
             config.save()
         return True
 

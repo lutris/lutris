@@ -110,7 +110,7 @@ class GameDialogCommon(object):
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
-        self.add_notebook_tab(game_sw, "Game configuration")
+        self.add_notebook_tab(game_sw, "Game options")
 
     def build_runner_tab(self, config_level):
         if self.runner_name:
@@ -118,12 +118,12 @@ class GameDialogCommon(object):
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
-        self.add_notebook_tab(runner_sw, "Runner configuration")
+        self.add_notebook_tab(runner_sw, "Runner options")
 
     def build_system_tab(self, config_level):
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
-        self.add_notebook_tab(self.system_sw, "System configuration")
+        self.add_notebook_tab(self.system_sw, "System options")
 
     def build_tabs(self, config_level):
         if config_level == 'game':

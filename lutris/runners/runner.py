@@ -86,45 +86,22 @@ class Runner(object):
     @property
     def game_config(self):
         """Return the game config including default values, as a dict."""
-        game_level = self.config.get('game') or {}
         defaults = self.get_options_defaults('game')
-        # Game level config overrides defaults
-        defaults.update(game_level)
+        defaults.update(self.config.game_config)
         return defaults
 
     @property
     def runner_config(self):
         """Return the cascaded runner config (runner < game)."""
         defaults = self.get_options_defaults('runner')
-
-        # Runner level overrides defaults
-        runner_level = self.default_config.runner_config.get(self.name) or {}
-        defaults.update(runner_level)
-
-        # Game level overrides all
-        game_level = self.config.get(self.name)
-        if game_level:
-            defaults.update(game_level)
-
+        defaults.update(self.default_config.runner_config)
         return defaults
 
     @property
     def system_config(self):
         """Return the cascaded system config (system < runner < game)."""
         defaults = self.get_options_defaults('system')
-
-        # System level config overrides defaults
-        system_level = LutrisConfig().system_config.get('system', {})
-        defaults.update(system_level)
-
-        # Runner level overrides system
-        runner_level = self.default_config.config.get('system')
-        defaults.update(runner_level)
-
-        # Game level overrides all
-        game_level = self.config.get('system') or {}
-        defaults.update(game_level)
-
+        defaults.update(self.default_config.system_config)
         return defaults
 
     @property

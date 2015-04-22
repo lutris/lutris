@@ -8,7 +8,7 @@ if __name__ == "__main__":
     print "runner level config : "
     print lc.runner_level
     print "global config"
-    print lc.config
+    print lc.raw_config
 
     print ("*****************")
     print ("* testing games *")
@@ -25,4 +25,4 @@ if __name__ == "__main__":
     print lc.game_level
     print ("-----------------------")
     print "global config"
-    print lc.config
+    print lc.raw_config

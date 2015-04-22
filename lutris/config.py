@@ -96,25 +96,42 @@ def write_yaml_to_file(filepath, config):
 class LutrisConfig(object):
     """Class where all the configuration handling happens.
 
+    Description
+    ===========
     Lutris' configuration uses a cascading mecanism where
     each higher, more specific level overrides the lower ones
 
-    The levels are (highest to lowest): game, runner and system.
+    The levels are (highest to lowest): `game`, `runner` and `system`.
     Each level has its own set of options (config section), available to and
     overriden by upper levels:
-
+    ```
      level | Config sections
     -------|----------------------
       game | system, runner, game
     runner | system, runner
     system | system
-
+    ```
     Example: if requesting runner options at game level, their returned value
     will be from the game level config if it's set at this level; if not it
     will be the value from runner level if available; and if not, the default
     value set in the runner's module, or None.
 
     The config levels are stored in separate YAML format text files.
+
+    Usage
+    =====
+    The config level will be auto set depending on what you pass to __init__:
+    - For game level, pass game slug and optionally runner_slug (better perfs)
+    - For runner level, pass runner_slug
+    - For system level, pass nothing
+    If need be, you can pass the level manually.
+
+    To read, use the config sections dicts: game_config, runner_config and
+    system_config.
+
+    To write, modify the relevant `raw_XXXX_config` section dict, then run
+    `save()`.
+
     """
     def __init__(self, runner_slug=None, game_slug=None, level=None):
         self.game_slug = game_slug
@@ -122,10 +139,17 @@ class LutrisConfig(object):
         if game_slug and not runner_slug:
             self.runner_slug = pga.get_game_by_slug(game_slug).get('runner')
 
+        # Cascaded config sections (for reading)
         self.game_config = {}
         self.runner_config = {}
         self.system_config = {}
 
+        # Raw (non-cascaded) sections (for writing)
+        self.raw_game_config = {}
+        self.raw_runner_config = {}
+        self.raw_system_config = {}
+
+        self.raw_config = {}
 
         # Set config level
         self.level = level
@@ -137,11 +161,16 @@ class LutrisConfig(object):
             else:
                 self.level = 'system'
 
-        # Load config files
-        self.update_global_config()
-        self.game_level = read_yaml_from_file(self.game_config_path)
-        self.runner_level = read_yaml_from_file(self.runner_config_path)
-        self.system_level = read_yaml_from_file(self.system_config_path)
+        # Init and load config files
+        self.game_level = {'system': {}, self.runner_slug: {}, 'game': {}}
+        self.runner_level = {'system': {}, self.runner_slug: {}}
+        self.system_level = {'system': {}}
+        self.game_level.update(read_yaml_from_file(self.game_config_path))
+        self.runner_level.update(read_yaml_from_file(self.runner_config_path))
+        self.system_level.update(read_yaml_from_file(self.system_config_path))
+
+        self.update_cascaded_config()
+        self.update_raw_config()
 
     @property
     def system_config_path(self):
@@ -164,53 +193,38 @@ class LutrisConfig(object):
     def __str__(self):
         return str(self.config)
 
-    def __getitem__(self, key, default=None):
-        """Allow to access config data directly by keys."""
-        if key in ('game', 'runner', 'system'):
-            return self.config.get(key)
-        try:
-            if self.level == "game":
-                value = self.game_level[key]
-            elif self.level == "runner":
-                value = self.runner_level[key]
-            else:
-                value = self.system_level[key]
-        except KeyError:
-            value = default
-        return value
+    def update_cascaded_config(self):
+        self.system_config.clear()
+        self.system_config.update(self.system_level['system'])
 
-    def __setitem__(self, key, value):
-        if self.level == "game":
-            self.game_level[key] = value
-        elif self.level == "runner":
-            self.runner_level[key] = value
-        elif self.level == "system":
-            self.system_level = value
-        self.update_global_config()
+        if self.level in ['runner', 'game']:
+            self.runner_config.clear()
+            self.runner_config.update(self.runner_level[self.runner_slug])
+            self.system_config.update(self.runner_level['system'])
 
-    def get(self, key, default=None):
-        return self.__getitem__(key, default)
+        if self.level == 'game':
+            self.game_config.clear()
+            self.game_config.update(self.game_level['game'])
+            self.runner_config.update(self.game_level[self.runner_slug])
+            self.system_config.update(self.game_level['system'])
 
-    def update_global_config(self):
-        """Update the global config dict."""
-        for key in self.system_config.keys():
-            if key in self.config:
-                self.config[key].update(self.system_config[key])
-            else:
-                self.config[key] = self.system_config[key]
+    def update_raw_config(self):
+        # Select the right level of config
+        if self.level == 'game':
+            raw_config = self.game_level
+        elif self.level == 'runner':
+            raw_config = self.runner_level
+        else:
+            raw_config = self.system_level
 
-        for key in self.runner_config.keys():
-            if key in self.config:
-                self.config[key].update(self.runner_config[key])
-            else:
-                self.config[key] = self.runner_config[key]
+        # Load config sections
+        self.raw_system_config = raw_config['system']
+        if self.level in ['runner', 'game']:
+            self.raw_runner_config = raw_config[self.runner_slug]
+        if self.level == 'game':
+            self.raw_game_config = raw_config['game']
 
-        for key in self.game_config.keys():
-            if key in self.config:
-                if type(self.config[key]) is dict:
-                    self.config[key].update(self.game_config[key])
-            else:
-                self.config[key] = self.game_config[key]
+        self.raw_config = raw_config
 
     def remove(self, game=None):
         """Delete the configuration file from disk."""
@@ -236,17 +250,12 @@ class LutrisConfig(object):
         else:
             raise ValueError("Invalid config level '%s'" % self.level)
         write_yaml_to_file(config_path, config)
-        self.update_global_config()
+        self.update_cascaded_config()
 
     def get_path(self, default=None):
-        """Get the path to install games for a given runner.
-
-        Return False if it can't find an installation path
-        """
-
-        if "system" in self.config and "game_path" in self.config["system"]:
-            return self.config["system"]["game_path"]
-        if not default or not os.path.exists(default):
-            return False
-        else:
+        """Return the main install path if exists."""
+        path = self.system_config.get('game_path') or ''
+        if os.path.exists(path):
+            return path
+        if default and os.path.exists(default):
             return default

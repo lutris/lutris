@@ -341,7 +341,8 @@ class ScriptInterpreter(object):
             # The installer is patching an existing game, update its config
             # XXX Maybe drop the self.requires condition and always update
             #     the existing config?
-            lutris_config = LutrisConfig(game_slug=self.game_slug)
+            lutris_config = LutrisConfig(runner_slug=runner_name,
+                                         game_slug=self.game_slug)
             config = lutris_config.game_level
         else:
             config = {

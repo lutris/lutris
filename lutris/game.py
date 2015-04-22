@@ -77,7 +77,8 @@ class Game(object):
 
     def load_config(self):
         """Load the game's configuration."""
-        self.config = LutrisConfig(game_slug=self.slug)
+        self.config = LutrisConfig(runner_slug=self.runner_name,
+                                   game_slug=self.slug)
         if not self.is_installed:
             return
         if not self.runner_name:

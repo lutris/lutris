@@ -3,7 +3,7 @@
 import os
 import re
 
-from lutris import api, pga
+from lutris import api, config, pga
 from lutris.game import Game
 from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
@@ -140,7 +140,6 @@ class Sync(object):
 
         for game_info in self.library:
             runner = game_info['runner']
-            game = Game(game_info['slug'])
             steamid = game_info['steamid']
             installed_in_steam = steamid in installed_steamapps
             installed_in_winesteam = steamid in installed_winesteamapps
@@ -153,10 +152,12 @@ class Sync(object):
                 pga.add_or_update(game_info['name'], 'steam',
                                   game_info['slug'],
                                   installed=1)
-                game.config.game_level.update({'game':
-                                                {'appid': str(steamid)}})
-                game.config.save()
+                game_config = config.LutrisConfig(runner_slug='steam',
+                                                  game_slug=game_info['slug'])
+                game_config.raw_game_config.update({'appid': str(steamid)})
+                game_config.save()
                 caller.view.set_installed(Game(game_info['slug']))
+                continue
 
             # Set uninstalled
             elif not (installed_in_steam or installed_in_winesteam):

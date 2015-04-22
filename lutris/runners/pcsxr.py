@@ -86,7 +86,7 @@ class pcsxr(Runner):
             # Save bios in config
             bios_path = os.path.join(bios_path, os.path.basename(bios_src))
             config = LutrisConfig(runner_slug='pcsxr')
-            config.runner_level = {'pcsxr': {'bios': bios_path}}
+            config.raw_runner_config.update({'bios': bios_path})
             config.save()
         return True
 
