@@ -3,7 +3,7 @@ import os
 from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
-from lutris.gui.widgets import VBox, Label
+from lutris.gui.widgets import VBox, Label, FileChooserEntry
 from lutris.runners import import_runner
 from lutris.util.log import logger
 
@@ -148,6 +148,7 @@ class ConfigBox(VBox):
             widget_function(value)
             widget.handler_unblock_by_func(signal_function)
 
+        # Reset widget
         if option_type == 'choice':
             reset(widget.set_active_id, default, self.on_combobox_change)
         elif option_type == 'choice_with_entry':
@@ -160,15 +161,8 @@ class ConfigBox(VBox):
         elif option_type == 'string':
             reset(widget.set_text, default or '', self.entry_changed)
         elif option_type == 'directory_chooser':
-            # Here, destroy/recreate the widget because
-            # the methods to reset FileChoosers are buggy.
-            self.wrapper = wrapper
-            label, widget = wrapper.get_children()
-            label.destroy()
-            widget.destroy()
-            self.generate_directory_chooser(option_key, option['label'],
-                                            default)
-            self.wrapper.show_all()
+            widget = widget.entry
+            reset(widget.set_text, default or '', self.on_chooser_dir_set)
         elif option_type == 'file':
             widget.handler_block_by_func(self.on_chooser_file_set)
             if default:
@@ -333,27 +327,31 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.the_widget = file_chooser
 
+    def on_chooser_file_set(self, widget, option):
+        """Action triggered on file select dialog 'file-set' signal."""
+        filename = widget.get_filename()
+        self.option_changed(widget, option, filename)
+
     # Directory chooser
     def generate_directory_chooser(self, option_name, label_text, value=None):
         """Generate a file chooser button to select a directory."""
         label = Label(label_text)
-        directory_chooser = Gtk.FileChooserButton(
-            title="Choose a directory for %s" % label_text
+        directory_chooser = FileChooserEntry(
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            default=value
         )
-        directory_chooser.set_action(Gtk.FileChooserAction.SELECT_FOLDER)
-        if value:
-            directory_chooser.set_current_folder(value)
-        directory_chooser.connect("file-set", self.on_chooser_file_set,
-                                  option_name)
+        directory_chooser.entry.connect('changed', self.on_chooser_dir_set,
+                                        option_name)
+        directory_chooser.set_valign(Gtk.Align.CENTER)
         label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.the_widget = directory_chooser
 
-    def on_chooser_file_set(self, filechooser_widget, option):
+    def on_chooser_dir_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        filename = filechooser_widget.get_filename()
-        self.option_changed(filechooser_widget, option, filename)
+        filename = entry.get_text()
+        self.option_changed(entry.get_parent(), option, filename)
 
     # Multiple file selector
     def generate_multiple_file_chooser(self, option_name, label, value=None):
