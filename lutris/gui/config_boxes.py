@@ -371,7 +371,8 @@ class ConfigBox(VBox):
         files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
         files_chooser_button.connect('file-set', self.add_files_callback,
                                      option_name)
-        game_path = self.lutris_config.get_path(os.path.expanduser('~'))
+        game_path = self.system_config.get('game_path',
+                                           os.path.expanduser('~'))
         if game_path:
             files_chooser_button.set_current_folder(game_path)
         if value:

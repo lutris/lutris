@@ -255,14 +255,6 @@ class LutrisConfig(object):
         write_yaml_to_file(config_path, config)
         self.update_cascaded_config()
 
-    def get_path(self, default=None):
-        """Return the main install path if exists."""
-        path = self.system_config.get('game_path') or ''
-        if os.path.exists(path):
-            return path
-        if default and os.path.exists(default):
-            return default
-
     def get_defaults(self, options_type):
         """Return a dict of options' default value."""
         options_dict = self.options_as_dict(options_type)

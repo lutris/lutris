@@ -109,8 +109,9 @@ class ScriptInterpreter(object):
 
     @property
     def default_target(self):
-        lutris_config = LutrisConfig(runner_slug=self.script['runner'])
-        games_dir = lutris_config.get_path() or os.path.expanduser('~')
+        config = LutrisConfig(runner_slug=self.script['runner'])
+        games_dir = config.system_config.get('game_path',
+                                             os.path.expanduser('~'))
         return os.path.join(games_dir, self.game_slug)
 
     @property
