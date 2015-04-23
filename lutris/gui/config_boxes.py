@@ -263,6 +263,7 @@ class ConfigBox(VBox):
         combobox.connect('changed', self.on_combobox_change, option_name)
         label = Label(label)
         label.set_alignment(0.5, 0.5)
+        combobox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(combobox, True, True, 0)
         self.the_widget = combobox
@@ -325,6 +326,7 @@ class ConfigBox(VBox):
             file_chooser.unselect_all()
             file_chooser.select_filename(path)
         label.set_alignment(0.5, 0.5)
+        file_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.the_widget = file_chooser
