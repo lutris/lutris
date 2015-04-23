@@ -5,7 +5,7 @@ import platform
 
 from gi.repository import Gtk
 
-from lutris import pga, settings, sysoptions
+from lutris import pga, settings
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.util.extract import extract_archive
@@ -54,27 +54,6 @@ class Runner(object):
         """Leave the ability to override the docstring."""
         self.__doc__ = value
 
-    def options_as_dict(self, options_type):
-        """Convert the option list to a dict with option name as keys"""
-        if options_type == 'runner':
-            options = self.runner_options
-        elif options_type == 'game':
-            options = self.game_options
-        elif options_type == 'system':
-            options = sysoptions.system_options
-        else:
-            raise ValueError("Invalid option type %s" % options_type)
-        return dict((opt['option'], opt) for opt in options)
-
-    def get_options_defaults(self, options_type):
-        """Return a dict of options' default value."""
-        options_dict = self.options_as_dict(options_type)
-        defaults = {}
-        for option, params in options_dict.iteritems():
-            if 'default' in params:
-                defaults[option] = params['default']
-        return defaults
-
     @property
     def name(self):
         return self.__class__.__name__
@@ -85,24 +64,18 @@ class Runner(object):
 
     @property
     def game_config(self):
-        """Return the game config including default values, as a dict."""
-        defaults = self.get_options_defaults('game')
-        defaults.update(self.config.game_config)
-        return defaults
+        """Return the cascaded game config as a dict."""
+        return self.config.game_config
 
     @property
     def runner_config(self):
-        """Return the cascaded runner config (runner < game)."""
-        defaults = self.get_options_defaults('runner')
-        defaults.update(self.default_config.runner_config)
-        return defaults
+        """Return the cascaded runner config as a dict."""
+        return self.default_config.runner_config
 
     @property
     def system_config(self):
-        """Return the cascaded system config (system < runner < game)."""
-        defaults = self.get_options_defaults('system')
-        defaults.update(self.default_config.system_config)
-        return defaults
+        """Return the cascaded system config as a dict."""
+        return self.default_config.system_config
 
     @property
     def default_path(self):

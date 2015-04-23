@@ -43,7 +43,7 @@ class ConfigBox(VBox):
 
             # Load value if there is one.
             default = option.get('default')
-            value = self.config.get(option_key, default)
+            value = self.config.get(option_key)
 
             # Set tooltip's "Default" part
             self.tooltip_default = default if type(default) is str else None
@@ -138,7 +138,7 @@ class ConfigBox(VBox):
         self.raw_config.pop(option_key)
         self.lutris_config.update_cascaded_config()
 
-        default = self.config.get(option_key) or option.get('default')
+        default = self.config.get(option_key)
         if current_value == default:
             return
 

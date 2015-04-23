@@ -25,9 +25,9 @@ from os.path import join
 
 from gi.repository import Gio
 
-from lutris import pga
+from lutris import pga, settings, sysoptions
+from lutris.runners import import_runner
 from lutris.util.log import logger
-from lutris import settings
 
 
 def register_handler():
@@ -195,15 +195,18 @@ class LutrisConfig(object):
 
     def update_cascaded_config(self):
         self.system_config.clear()
+        self.system_config.update(self.get_defaults('system'))
         self.system_config.update(self.system_level['system'])
 
-        if self.level in ['runner', 'game']:
+        if self.level in ['runner', 'game'] and self.runner_slug:
             self.runner_config.clear()
+            self.runner_config.update(self.get_defaults('runner'))
             self.runner_config.update(self.runner_level[self.runner_slug])
             self.system_config.update(self.runner_level['system'])
 
-        if self.level == 'game':
+        if self.level == 'game' and self.runner_slug:
             self.game_config.clear()
+            self.game_config.update(self.get_defaults('game'))
             self.game_config.update(self.game_level['game'])
             self.runner_config.update(self.game_level[self.runner_slug])
             self.system_config.update(self.game_level['system'])
@@ -259,3 +262,25 @@ class LutrisConfig(object):
             return path
         if default and os.path.exists(default):
             return default
+
+    def get_defaults(self, options_type):
+        """Return a dict of options' default value."""
+        options_dict = self.options_as_dict(options_type)
+        defaults = {}
+        for option, params in options_dict.iteritems():
+            if 'default' in params:
+                defaults[option] = params['default']
+        return defaults
+
+    def options_as_dict(self, options_type):
+        """Convert the option list to a dict with option name as keys"""
+        options = {}
+        if options_type == 'system':
+            options = sysoptions.system_options
+        elif options_type == 'runner' and self.runner_slug:
+            runner = import_runner(self.runner_slug)()
+            options = runner.runner_options
+        elif options_type == 'game' and self.runner_slug:
+            runner = import_runner(self.runner_slug)()
+            options = runner.game_options
+        return dict((opt['option'], opt) for opt in options)
