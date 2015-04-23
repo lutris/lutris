@@ -5,11 +5,12 @@ import os
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
+from lutris import settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
 from lutris.util import datapath
 # from lutris.util.log import logger
-from lutris import settings
+from lutris.util.system import reverse_expanduser
 
 PADDING = 5
 DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
@@ -513,14 +514,20 @@ class FileChooserEntry(Gtk.Box):
             Gtk.STOCK_OPEN, Gtk.ResponseType.OK
         )
         if default:
-            self.file_chooser_dlg.set_current_folder(default)
+            self.file_chooser_dlg.set_current_folder(
+                os.path.expanduser(default)
+            )
 
         button = Gtk.Button()
         button.set_label("Browse...")
-        button.connect('clicked', self.open_filechooser)
+        button.connect('clicked', self.open_filechooser, default)
         self.add(button)
 
-    def open_filechooser(self, widget):
+    def open_filechooser(self, widget, default):
+        if default:
+            self.file_chooser_dlg.set_current_folder(
+                os.path.expanduser(default)
+            )
         self.file_chooser_dlg.connect('response', self.select_file)
         self.file_chooser_dlg.run()
 
@@ -553,7 +560,7 @@ class FileChooserEntry(Gtk.Box):
             target_path = dialog.get_filename()
             if target_path:
                 self.file_chooser_dlg.set_current_folder(target_path)
-                self.entry.set_text(target_path)
+                self.entry.set_text(reverse_expanduser(target_path))
         dialog.hide()
 
     def get_text(self):

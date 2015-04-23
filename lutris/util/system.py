@@ -209,3 +209,14 @@ def get_default_terminal():
         return terms[0]
     else:
         logger.debug("Couldn't find a terminal emulator.")
+
+
+def reverse_expanduser(path):
+    """Replace '/home/username' with '~' in given path."""
+    if not path:
+        return path
+    user_path = os.path.expanduser('~')
+    if path.startswith(user_path):
+        path = path.strip(user_path)
+        return os.path.join('~', path)
+    return path

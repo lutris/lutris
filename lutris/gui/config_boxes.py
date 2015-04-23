@@ -6,6 +6,7 @@ from lutris import settings, sysoptions
 from lutris.gui.widgets import VBox, Label, FileChooserEntry
 from lutris.runners import import_runner
 from lutris.util.log import logger
+from lutris.util.system import reverse_expanduser
 
 
 class ConfigBox(VBox):
@@ -162,6 +163,7 @@ class ConfigBox(VBox):
             reset(widget.set_text, default or '', self.entry_changed)
         elif option_type == 'directory_chooser':
             widget = widget.entry
+            default = reverse_expanduser(default)
             reset(widget.set_text, default or '', self.on_chooser_dir_set)
         elif option_type == 'file':
             widget.handler_block_by_func(self.on_chooser_file_set)
@@ -338,7 +340,7 @@ class ConfigBox(VBox):
         label = Label(label_text)
         directory_chooser = FileChooserEntry(
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default=value
+            default=reverse_expanduser(value)
         )
         directory_chooser.entry.connect('changed', self.on_chooser_dir_set,
                                         option_name)
