@@ -160,6 +160,7 @@ class LutrisWindow(object):
 
         self.switch_splash_screen()
 
+        # Connect account and/or sync
         credentials = api.read_api_key()
         if credentials:
             self.on_connect_success(None, credentials)
@@ -171,8 +172,8 @@ class LutrisWindow(object):
                 lambda r, e: async_call(self.sync_icons, None),
                 caller=self
             )
-        # Update Lutris Runtime
-        async_call(runtime.update_runtime, None)
+        # Update Runtime
+        async_call(runtime.update_runtime, None, self.set_status)
 
     @property
     def current_view_type(self):

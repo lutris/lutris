@@ -30,7 +30,7 @@ def get_remote_version():
     return parse_version(version_content)
 
 
-def update_runtime():
+def update_runtime(set_status):
     logger.debug("Updating runtime")
     remote_version = get_remote_version()
     local_version = get_local_version()
@@ -40,6 +40,7 @@ def update_runtime():
     runtime32_file = "lutris-runtime-i386.tar.gz"
     runtime64_file = "lutris-runtime-amd64.tar.gz"
 
+    set_status("Updating Runtime")
     runtime32_path = os.path.join(settings.RUNTIME_DIR, runtime32_file)
     http.download_asset(settings.RUNTIME_URL + runtime32_file, runtime32_path,
                         overwrite=True)
@@ -57,4 +58,5 @@ def update_runtime():
 
     with open(LOCAL_VERSION_PATH, 'w') as version_file:
         version_file.write(str(remote_version))
+    set_status("Runtime updated")
     logger.debug("Runtime updated")
