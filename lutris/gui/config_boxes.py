@@ -314,7 +314,7 @@ class ConfigBox(VBox):
         label = Label(label + ':')
         self.files_chooser_dialog = Gtk.FileChooserDialog(
             title="Select files",
-            parent=self.get_parent_window(),
+            parent=None,
             action=Gtk.FileChooserAction.OPEN,
             buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
                      Gtk.STOCK_ADD, Gtk.ResponseType.OK)
@@ -323,8 +323,7 @@ class ConfigBox(VBox):
         files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
         files_chooser_button.connect('file-set', self.add_files_callback,
                                      option_name)
-        game_path = self.system_config.get('game_path',
-                                           os.path.expanduser('~'))
+        game_path = self.config.get('game_path', os.path.expanduser('~'))
         if game_path:
             files_chooser_button.set_current_folder(game_path)
         if value:
