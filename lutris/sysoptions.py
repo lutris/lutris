@@ -21,7 +21,7 @@ system_options = [
     {
         'option': 'game_path',
         'type': 'directory_chooser',
-        'label': 'Main directory',
+        'label': 'Main game folder',
         'default': os.path.expanduser('~/Games'),
         'scope': ['runner', 'system'],
         'help': ("The main folder where you install your games.\n"
