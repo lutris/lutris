@@ -218,6 +218,6 @@ def reverse_expanduser(path):
         return path
     user_path = os.path.expanduser('~')
     if path.startswith(user_path):
-        path = path.strip(user_path)
-        return os.path.join('~', path)
+        path = path[len(user_path):].strip('/')
+        return '~/' + path
     return path
