@@ -181,9 +181,9 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return []
-    lsof_output = execute(["lsof", "-t", path])
-    if lsof_output:
-        return lsof_output.split('\n')
+    fuser_output = execute(["fuser", path])
+    if fuser_output:
+        return fuser_output.split()
     else:
         return []
 
