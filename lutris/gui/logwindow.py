@@ -22,6 +22,7 @@ class LogTextView(Gtk.TextView):
         self.override_background_color(Gtk.StateFlags.SELECTED, fg_color)
         self.set_left_margin(10)
         self.set_editable(False)
+        self.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self.override_font(font_description)
 
         self.textbuffer = self.get_buffer()
