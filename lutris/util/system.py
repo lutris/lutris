@@ -16,7 +16,7 @@ def execute(command, shell=False):
                                           stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE).communicate()
     except OSError as ex:
-        logger.error('Could run command %s: %s', command, ex)
+        logger.error('Could not run command %s: %s', command, ex)
         return
     return stdout.strip()
 
@@ -181,11 +181,12 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return []
-    fuser_output = execute(["fuser", path])
-    if fuser_output:
-        return fuser_output.split()
+    fuser_output = []
+    if os.path.exists('/bin/fuser'):
+        fuser_output = execute(["fuser", path])
     else:
-        return []
+        fuser_output = execute(["/sbin/fuser", path])
+    return fuser_output.split()
 
 
 def get_terminal_apps():
