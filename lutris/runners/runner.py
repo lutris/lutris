@@ -70,11 +70,15 @@ class Runner(object):
     @property
     def runner_config(self):
         """Return the cascaded runner config as a dict."""
+        if self.config:
+            return self.config.runner_config
         return self.default_config.runner_config
 
     @property
     def system_config(self):
         """Return the cascaded system config as a dict."""
+        if self.config:
+            return self.config.system_config
         return self.default_config.system_config
 
     @property
