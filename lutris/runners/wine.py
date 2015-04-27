@@ -1,4 +1,5 @@
 import os
+import shlex
 import subprocess
 
 from textwrap import dedent
@@ -566,7 +567,7 @@ class wine(Runner):
         self.prepare_launch()
         env = self.get_env()
         if arguments:
-            for arg in arguments.split():
+            for arg in shlex.split(arguments):
                 command.append(arg)
         return {'command': command, 'env': env}
 

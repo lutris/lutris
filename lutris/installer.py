@@ -6,6 +6,7 @@ import yaml
 import shutil
 import urllib2
 import platform
+import shlex
 import subprocess
 import webbrowser
 
@@ -481,7 +482,8 @@ class ScriptInterpreter(object):
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
-            for arg in data.get('args', '').split():
+            args = data.get('args', '')
+            for arg in shlex.split(args):
                 args.append(self._substitute(arg))
         else:
             file_ref = data

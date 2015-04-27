@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import shlex
 import stat
 from lutris.runners.runner import Runner
 
@@ -104,7 +105,7 @@ class linux(Runner):
         command = [self.game_exe]
 
         args = self.game_config.get('args') or ''
-        for arg in args.split():
+        for arg in shlex.split(args):
             command.append(arg)
         launch_info['command'] = command
         return launch_info
