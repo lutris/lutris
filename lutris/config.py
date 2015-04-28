@@ -194,22 +194,34 @@ class LutrisConfig(object):
         return str(self.config)
 
     def update_cascaded_config(self):
+        if not self.system_level.get('system'):
+            self.system_level['system'] = {}
         self.system_config.clear()
         self.system_config.update(self.get_defaults('system'))
-        self.system_config.update(self.system_level['system'])
+        self.system_config.update(self.system_level.get('system'))
 
         if self.level in ['runner', 'game'] and self.runner_slug:
+            if not self.runner_level.get(self.runner_slug):
+                self.runner_level[self.runner_slug] = {}
+            if not self.runner_level.get('system'):
+                self.runner_level['system'] = {}
             self.runner_config.clear()
             self.runner_config.update(self.get_defaults('runner'))
-            self.runner_config.update(self.runner_level[self.runner_slug])
-            self.system_config.update(self.runner_level['system'])
+            self.runner_config.update(self.runner_level.get(self.runner_slug))
+            self.system_config.update(self.runner_level.get('system'))
 
         if self.level == 'game' and self.runner_slug:
+            if not self.game_level.get('game'):
+                self.game_level['game'] = {}
+            if not self.game_level.get(self.runner_slug):
+                self.game_level[self.runner_slug] = {}
+            if not self.game_level.get('system'):
+                self.game_level['system'] = {}
             self.game_config.clear()
             self.game_config.update(self.get_defaults('game'))
-            self.game_config.update(self.game_level['game'])
-            self.runner_config.update(self.game_level[self.runner_slug])
-            self.system_config.update(self.game_level['system'])
+            self.game_config.update(self.game_level.get('game'))
+            self.runner_config.update(self.game_level.get(self.runner_slug))
+            self.system_config.update(self.game_level.get('system'))
 
     def update_raw_config(self):
         # Select the right level of config
