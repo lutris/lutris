@@ -29,6 +29,21 @@ class frotz(Runner):
         }
     ]
 
+    def __init__(self, config=None):
+        super(frotz, self).__init__(config)
+
+        # Force 'Run in terminal' option
+        if config:
+            sys_conf = config.runner_level.get('system')
+            if sys_conf and not sys_conf.get('terminal'):
+                current_level = config.level
+                config.level = 'runner'
+                config.update_cascaded_config()
+                sys_conf['terminal'] = True
+                config.save()
+                config.level = current_level
+                config.update_cascaded_config()
+
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'frotz/frotz')
 
@@ -38,5 +53,5 @@ class frotz(Runner):
             return {'error': 'RUNNER_NOT_INSTALLED'}
         if not os.path.exists(story):
             return {'error': 'FILE_NOT_FOUND', 'file': story}
-        command = ['x-terminal-emulator', '-e', self.get_executable(), story]
+        command = [self.get_executable(), story]
         return {'command': command}
