@@ -270,6 +270,7 @@ class LutrisWindow(object):
                 self.status_label.set_text("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.status_label.set_text("Game has quit")
+                self.stop_button.set_sensitive(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.status_label.set_text("Playing %s" % name)
         for index in range(4):
