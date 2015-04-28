@@ -7,9 +7,12 @@ import threading
 import subprocess
 
 from gi.repository import GLib
+from textwrap import dedent
 
+from lutris import settings
 from lutris.util.log import logger
 from lutris.util.process import Process
+from lutris.util.system import find_executable
 
 HEARTBEAT_DELAY = 1000  # Number of milliseconds between each heartbeat
 
@@ -18,7 +21,7 @@ class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     debug_output = False
 
-    def __init__(self, command, runner=None, env={}, rootpid=None):
+    def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -27,6 +30,7 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
+        self.terminal = term
         self.is_running = True
         self.stdout = ''
         self.attached_threads = []
@@ -45,14 +49,48 @@ class LutrisThread(threading.Thread):
         """Run the thread"""
         logger.debug("Thread running: %s", self.command)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-        self.game_process = subprocess.Popen(self.command, bufsize=1,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT,
-                                             cwd=self.path, env=self.env)
+
+        if self.terminal and find_executable(self.terminal):
+            self.run_in_terminal()
+        else:
+            self.game_process = subprocess.Popen(self.command, bufsize=1,
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.STDOUT,
+                                                 cwd=self.path, env=self.env)
+
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
             if self.debug_output:
                 sys.stdout.write(line)
+
+    def run_in_terminal(self):
+        env = ''
+        for (k, v) in self.env.iteritems():
+            env += '%s=%s ' % (k, v)
+
+        # Write command in a script file.
+        '''
+        Running it from a file is likely the only way to set env vars only
+        for the command (not for the terminal app).
+        It also permits the only reliable way to keep the term open when the
+        game is exited.'''
+        file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
+        with open(file_path, 'w') as f:
+            f.write(dedent(
+                """\
+                    #!/bin/sh
+                    cd %s
+                    %s %s
+                    exec sh # Keep term open
+                    """ % (self.path, env, ' '.join(self.command))
+            ))
+            os.chmod(file_path, 0744)
+
+        command = [self.terminal, '-e', file_path]
+        self.game_process = subprocess.Popen(command, bufsize=1,
+                                             stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT,
+                                             cwd=self.path)
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:

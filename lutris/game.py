@@ -175,21 +175,20 @@ class Game(object):
         if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
 
-        if system_config.get('terminal'):
-            term = system_config.get("terminal_app",
+        terminal = system_config.get('terminal')
+        if terminal:
+            terminal = system_config.get("terminal_app",
                                      system.get_default_terminal())
-            if term and system.find_executable(term):
-                launch_arguments.insert(0, term)
-                if term == 'gnome-terminal':
-                    launch_arguments.insert(1, '-x')
-                else:
-                    launch_arguments.insert(1, '-e')
-            else:
-                dialogs.ErrorDialog("The default or selected terminal "
-                                    "application could not be launched: '%s'"
-                                    % term)
+            if terminal and not system.find_executable(terminal):
+                dialogs.ErrorDialog("The selected terminal application "
+                                    "could not be launched:\n"
+                                    "%s" % terminal)
+                return False
         # Env vars
-        env = os.environ.copy()
+        if terminal:
+            env = {}
+        else:
+            env = os.environ.copy()
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
 
@@ -217,7 +216,8 @@ class Game(object):
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner, env=env,
-                                        rootpid=gameplay_info.get('rootpid'))
+                                        rootpid=gameplay_info.get('rootpid'),
+                                        term=terminal)
         self.state = self.STATE_RUNNING
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
