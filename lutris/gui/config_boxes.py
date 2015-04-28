@@ -51,15 +51,17 @@ class ConfigBox(VBox):
 
             # Reset button
             icon = Gtk.Image(stock=Gtk.STOCK_CLEAR)
-            self.reset_btn = Gtk.Button(image=icon)
-            self.reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            self.reset_btn.set_tooltip_text("Reset option to global or "
-                                            "default config")
+            reset_btn = Gtk.Button(image=icon)
+            reset_btn.set_relief(Gtk.ReliefStyle.NONE)
+            reset_btn.set_tooltip_text("Reset option to global or "
+                                       "default config")
+            reset_btn.connect('clicked', self.on_reset_button_clicked,
+                              option, self.option_widget, self.wrapper)
 
             if option_key not in self.raw_config:
-                self.reset_btn.set_visible(False)
-                self.reset_btn.set_no_show_all(True)
-            placeholder.pack_start(self.reset_btn, False, False, 0)
+                reset_btn.set_visible(False)
+                reset_btn.set_no_show_all(True)
+            placeholder.pack_start(reset_btn, False, False, 0)
 
             # Set tooltip's "Default" part
             default = option.get('default')
@@ -86,8 +88,6 @@ class ConfigBox(VBox):
                 if not show_advanced == 'True':
                     hbox.set_no_show_all(True)
 
-            self.reset_btn.connect('clicked', self.on_reset_button_clicked,
-                                   option, self.option_widget, self.wrapper)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 5)
 
@@ -403,6 +403,8 @@ class ConfigBox(VBox):
         self.raw_config[option_name] = value
         self.config[option_name] = value
 
+        # Dirty way to get the reset btn. I tried passing it through the
+        # methods but got some strange unreliable behavior.
         wrapper = widget.get_parent().get_parent()
         reset_btn = wrapper.get_children()[1].get_children()[0]
         reset_btn.set_visible(True)
