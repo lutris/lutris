@@ -163,7 +163,8 @@ class Runner(object):
         runner_archive = os.path.join(settings.CACHE_DIR, tarball)
         merge_single = opts.get('merge_single', False)
         source_url = opts.get('source_url', settings.RUNNERS_URL)
-        dialogs.DownloadDialog(source_url + tarball, runner_archive)
+        dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
+        dialog.run()
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
             dialogs.ErrorDialog("Installation aborted")
