@@ -66,28 +66,28 @@ class LutrisThread(threading.Thread):
     def run_in_terminal(self):
         env = ''
         for (k, v) in self.env.iteritems():
-            env += '%s=%s ' % (k, v)
+            env += '%s="%s" ' % (k, v)
 
         # Write command in a script file.
-        '''
-        Running it from a file is likely the only way to set env vars only
+        '''Running it from a file is likely the only way to set env vars only
         for the command (not for the terminal app).
         It also permits the only reliable way to keep the term open when the
         game is exited.'''
+        command_string = ['"%s"' % token for token in self.command]
         file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
         with open(file_path, 'w') as f:
             f.write(dedent(
                 """\
                     #!/bin/sh
-                    cd %s
+                    cd "%s"
                     %s %s
                     exec sh # Keep term open
-                    """ % (self.path, env, ' '.join(self.command))
+                    """ % (self.path, env, ' '.join(command_string))
             ))
             os.chmod(file_path, 0744)
 
-        command = [self.terminal, '-e', file_path]
-        self.game_process = subprocess.Popen(command, bufsize=1,
+        term_command = [self.terminal, '-e', file_path]
+        self.game_process = subprocess.Popen(term_command, bufsize=1,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
