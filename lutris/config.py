@@ -190,9 +190,6 @@ class LutrisConfig(object):
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" %
                             self.game_slug)
 
-    def __str__(self):
-        return str(self.config)
-
     def update_cascaded_config(self):
         if not self.system_level.get('system'):
             self.system_level['system'] = {}

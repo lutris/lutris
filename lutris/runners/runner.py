@@ -39,7 +39,7 @@ class Runner(object):
         self.depends = None
         self.arch = get_arch()
         self.logger = logger
-        self.config = config or {}
+        self.config = config
         self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_slug(self.config.game_slug)
@@ -65,7 +65,7 @@ class Runner(object):
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        return self.config.game_config
+        return self.config.game_config if self.config else {}
 
     @property
     def runner_config(self):
