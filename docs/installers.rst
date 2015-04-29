@@ -146,7 +146,7 @@ Example:
 ::
 
     - move:
-        src: game-file-id
+        src: $game-file-id
         dst: $GAMEDIR/location
 
 Copying and merging directories
@@ -167,7 +167,7 @@ Example:
 ::
 
     - merge:
-        src: game-file-id
+        src: $game-file-id
         dst: $GAMEDIR/location
 
 Extracting archives
@@ -187,7 +187,7 @@ Example:
 ::
 
     - extract:
-        file: game-archive
+        file: $game-archive
         dst: $GAMEDIR/datadir/
 
 Making a file executable
@@ -211,7 +211,7 @@ Example:
 
     - execute:
         args: --argh
-        file: great-id
+        file: $great-id
 
 Writing into an INI type config file
 ------------------------------------
@@ -328,7 +328,7 @@ Currently, the following tasks are implemented:
 
         - task:
             name: dosexec
-            executable: file_id
+            executable: $file_id
             config: $GAMEDIR/game_install.conf
             args: -scaler normal3x -conf more_conf.conf
 
