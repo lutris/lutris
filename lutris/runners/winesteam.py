@@ -94,7 +94,8 @@ class winesteam(wine.wine):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
-        self.runner_options.insert(0,
+        self.runner_options.insert(
+            0,
             {
                 'option': 'steam_path',
                 'type': 'directory_chooser',
@@ -200,7 +201,7 @@ class winesteam(wine.wine):
         if not self.get_steam_path():
             if not installer_path:
                 installer_path = download_steam()
-            self.msi_exec(installer_path, quiet=True, prefix=prefix)
+            self.msi_exec(installer_path, quiet=True, prefix=prefix, wine_path=self.get_executable())
         return True
 
     def is_wine_installed(self):

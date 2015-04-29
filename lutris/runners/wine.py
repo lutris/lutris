@@ -512,11 +512,12 @@ class wine(Runner):
         return os.path.exists(self.get_executable())
 
     @classmethod
-    def msi_exec(cls, msi_file, quiet=False, prefix=None):
+    def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None):
         msi_args = "/i %s" % msi_file
         if quiet:
             msi_args += " /q"
-        return wineexec("msiexec", args=msi_args, prefix=prefix)
+        return wineexec("msiexec", args=msi_args, prefix=prefix,
+                        wine_path=wine_path)
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
