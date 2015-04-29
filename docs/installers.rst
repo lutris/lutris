@@ -174,8 +174,9 @@ Extracting archives
 -------------------
 
 Extracting archives is done with the ``extract`` directive, the ``file``
-argument is a ``file id``. If the archive should be extracted in some other
-location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
+argument is a ``file id`` or a file path. If the archive should be extracted
+in some other location than the ``$GAMEDIR``, you can specify a ``dst``
+argument.
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
