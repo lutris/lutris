@@ -9,7 +9,7 @@ The ``files`` section of the installer references every file needed for
 installing the game. This section's keys are unique identifier used later in
 the ``installer`` section. The value can either be a string containing a URI
 pointing at the required file or a dictionary containing the ``filename`` and
-``uri`` keys. The ``uri`` key is equivalent to passing only a string to the
+``url`` keys. The ``url`` key is equivalent to passing only a string to the
 installer and the ``filename`` key will be used to give the local copy another
 name. [TODO: example]
 
@@ -174,8 +174,9 @@ Extracting archives
 -------------------
 
 Extracting archives is done with the ``extract`` directive, the ``file``
-argument is a ``file id``. If the archive should be extracted in some other
-location than the ``$GAMEDIR``, you can specify a ``dst`` argument.
+argument is either a ``file id`` or a pathname. If the archive should be
+extracted in some other location than the ``$GAMEDIR``, you can specify a
+``dst`` argument.
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
