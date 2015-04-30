@@ -31,7 +31,7 @@ class gens(Runner):
             'option': 'quickexit',
             'type': 'bool',
             'label': 'Exit emulator with Esc',
-            'default': False,
+            'default': True,
         }
     ]
 
