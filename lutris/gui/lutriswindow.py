@@ -213,6 +213,7 @@ class LutrisWindow(object):
         if self.view.n_games == 0:
             self.splash_box.show()
             self.games_scrollwindow.hide()
+            self.sidebar_viewport.hide()
         else:
             self.splash_box.hide()
             self.games_scrollwindow.show()
