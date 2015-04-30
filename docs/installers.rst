@@ -9,7 +9,7 @@ The ``files`` section of the installer references every file needed for
 installing the game. This section's keys are unique identifier used later in
 the ``installer`` section. The value can either be a string containing a URI
 pointing at the required file or a dictionary containing the ``filename`` and
-``uri`` keys. The ``uri`` key is equivalent to passing only a string to the
+``url`` keys. The ``url`` key is equivalent to passing only a string to the
 installer and the ``filename`` key will be used to give the local copy another
 name. [TODO: example]
 
