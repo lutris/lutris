@@ -103,7 +103,8 @@ class RunnersDialog(Gtk.Window):
         self.install_button = Gtk.Button("Install")
         self.install_button.set_size_request(80, 30)
         self.install_button.set_valign(Gtk.Align.CENTER)
-        self.install_button.connect("clicked", self.on_install_clicked, runner)
+        self.install_button.connect("clicked", self.on_install_clicked, runner,
+                                    runner_label)
         hbox.pack_start(self.install_button, False, False, 5)
 
         self.configure_button = Gtk.Button("Configure")
@@ -130,15 +131,20 @@ class RunnersDialog(Gtk.Window):
 
         self.configure_button.show()
 
-    def on_versions_clicked(self, widget, runner):
+    def on_versions_clicked(self, widget, runner, label):
         dlg_title = "Manage %s versions" % runner.name
         RunnerInstallDialog(dlg_title, self, runner.name)
-        self.set_button_display(runner)
+        if runner.is_installed():
+            label.set_sensitive(True)
+        else:
+            label.set_sensitive(False)
 
-    def on_install_clicked(self, widget, runner):
+    def on_install_clicked(self, widget, runner, label):
         """Install a runner"""
         runner.install()
-        self.set_button_display(runner)
+        if runner.is_installed():
+            widget.hide()
+            label.set_sensitive(True)
 
     @staticmethod
     def on_configure_clicked(widget, runner):
