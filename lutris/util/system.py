@@ -1,11 +1,15 @@
+import hashlib
 import os
 import re
 import shutil
 import string
-import hashlib
 import subprocess
+import sys
 
 from lutris.util.log import logger
+
+
+is_64bit = sys.maxsize > 2**32
 
 
 def execute(command, shell=False):
@@ -119,8 +123,8 @@ def merge_folders(source, destination):
 
 
 def remove_folder(path):
-    logger.debug("Removing folder %s" % path)
     if os.path.exists(path):
+        logger.debug("Removing folder %s" % path)
         shutil.rmtree(path)
 
 

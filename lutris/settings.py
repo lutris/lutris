@@ -32,9 +32,7 @@ INSTALLER_URL = SITE_URL + 'games/install/%s/'
 ICON_URL = SITE_URL + 'games/icon/%s.png'
 BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
 RUNNERS_URL = SITE_URL + "files/runners/"
-LIB32_URL = SITE_URL + "files/lib32/"
-LIB64_URL = SITE_URL + "files/lib64/"
-RUNTIME_URL = SITE_URL + "files/runtime/"
+RUNTIME_URL = "http://ovocean.com/partage/lutris/runtime/"
 
 # Default config options
 KEEP_CACHED_ASSETS = True

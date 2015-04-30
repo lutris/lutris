@@ -37,9 +37,10 @@ def update_runtime(set_status):
     if remote_version <= local_version:
         logger.debug("Runtime already up to date")
         return
-    runtime32_file = "lutris-runtime-i386.tar.gz"
-    runtime64_file = "lutris-runtime-amd64.tar.gz"
+    runtime32_file = "steam-runtime_32.tar.gz"
+    runtime64_file = "steam-runtime_64.tar.gz"
 
+    # Download
     set_status("Updating Runtime")
     runtime32_path = os.path.join(settings.RUNTIME_DIR, runtime32_file)
     http.download_asset(settings.RUNTIME_URL + runtime32_file, runtime32_path,
@@ -47,8 +48,13 @@ def update_runtime(set_status):
     runtime64_path = os.path.join(settings.RUNTIME_DIR, runtime64_file)
     http.download_asset(settings.RUNTIME_URL + runtime64_file, runtime64_path,
                         overwrite=True)
+    # Remove current
+    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'steam'))
+    # Remove legacy folders
     system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib32'))
     system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib64'))
+
+    # Extract
     extract.extract_archive(runtime32_path, settings.RUNTIME_DIR,
                             merge_single=False)
     extract.extract_archive(runtime64_path, settings.RUNTIME_DIR,
@@ -60,3 +66,25 @@ def update_runtime(set_status):
         version_file.write(str(remote_version))
     set_status("Runtime updated")
     logger.debug("Runtime updated")
+
+
+def get_runtime_paths():
+    """Return a list of paths containing the runtime libraries."""
+    runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+    paths = ["/lutris-override32",
+             "/i386/lib/i386-linux-gnu",
+             "/i386/lib",
+             "/i386/usr/lib/i386-linux-gnu",
+             "/i386/usr/lib"]
+    paths = [runtime_dir + path for path in paths]
+
+    if system.is_64bit:
+        paths_64 = ["/lutris-override64",
+                    "/amd64/lib/x86_64-linux-gnu",
+                    "/amd64/lib",
+                    "/amd64/usr/lib/x86_64-linux-gnu",
+                    "/amd64/usr/lib"]
+        paths_64 = [runtime_dir + path for path in paths_64]
+        paths += paths_64
+    return paths
+

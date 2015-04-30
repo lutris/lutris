@@ -10,7 +10,7 @@ from lutris import pga
 from lutris import settings
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util import audio, display, system
+from lutris.util import audio, display, runtime, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
@@ -178,7 +178,7 @@ class Game(object):
         terminal = system_config.get('terminal')
         if terminal:
             terminal = system_config.get("terminal_app",
-                                     system.get_default_terminal())
+                                         system.get_default_terminal())
             if terminal and not system.find_executable(terminal):
                 dialogs.ErrorDialog("The selected terminal application "
                                     "could not be launched:\n"
@@ -189,6 +189,7 @@ class Game(object):
             env = {}
         else:
             env = os.environ.copy()
+
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
 
@@ -198,12 +199,9 @@ class Game(object):
 
         ld_library_path = []
         if self.use_runtime(system_config):
-            runtime64_path = os.path.join(settings.RUNTIME_DIR, "lib64")
-            if os.path.exists(runtime64_path):
-                ld_library_path.append(runtime64_path)
-            runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
-            if os.path.exists(runtime32_path):
-                ld_library_path.append(runtime32_path)
+            runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+            ld_library_path += runtime.get_runtime_paths()
+            env['STEAM_RUNTIME'] = runtime_dir
 
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
