@@ -97,7 +97,7 @@ class RunnersDialog(Gtk.Window):
         self.versions_button.set_size_request(120, 30)
         self.versions_button.set_valign(Gtk.Align.CENTER)
         self.versions_button.connect("clicked", self.on_versions_clicked,
-                                     runner)
+                                     runner, runner_label)
         hbox.pack_start(self.versions_button, False, False, 5)
 
         self.install_button = Gtk.Button("Install")
@@ -111,7 +111,7 @@ class RunnersDialog(Gtk.Window):
         self.configure_button.set_size_request(90, 30)
         self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.connect("clicked", self.on_configure_clicked,
-                                      runner)
+                                      runner, runner_label)
         hbox.pack_start(self.configure_button, False, False, 5)
 
         self.set_button_display(runner)
@@ -131,27 +131,32 @@ class RunnersDialog(Gtk.Window):
 
         self.configure_button.show()
 
-    def on_versions_clicked(self, widget, runner, label):
+    def on_versions_clicked(self, widget, runner, runner_label):
         dlg_title = "Manage %s versions" % runner.name
-        RunnerInstallDialog(dlg_title, self, runner.name)
-        if runner.is_installed():
-            label.set_sensitive(True)
-        else:
-            label.set_sensitive(False)
+        versions_dialog = RunnerInstallDialog(dlg_title, self, runner.name)
+        versions_dialog.connect('destroy', self.set_install_state,
+                                runner, runner_label)
 
-    def on_install_clicked(self, widget, runner, label):
+    def on_install_clicked(self, widget, runner, runner_label):
         """Install a runner"""
         runner.install()
         if runner.is_installed():
             widget.hide()
-            label.set_sensitive(True)
+            runner_label.set_sensitive(True)
 
-    @staticmethod
-    def on_configure_clicked(widget, runner):
-        RunnerConfigDialog(runner)
+    def on_configure_clicked(self, widget, runner, runner_label):
+        config_dialog = RunnerConfigDialog(runner)
+        config_dialog.connect('destroy', self.set_install_state,
+                              runner, runner_label)
 
     def on_runner_open_clicked(self, widget):
         system.xdg_open(settings.RUNNER_DIR)
+
+    def set_install_state(self, widget, runner, runner_label):
+        if runner.is_installed():
+            runner_label.set_sensitive(True)
+        else:
+            runner_label.set_sensitive(False)
 
     def on_resize(self, widget, *args):
         """Store the dialog's new size."""
