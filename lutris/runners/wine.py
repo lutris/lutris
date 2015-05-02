@@ -10,7 +10,7 @@ from lutris.util import display, system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.39-i686'
+DEFAULT_WINE = '1.7.39-i386'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
