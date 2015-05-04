@@ -18,7 +18,7 @@ class db_cursor(object):
 def db_insert(db_path, table, fields):
     field_names = ", ".join(fields.keys())
     placeholders = ("?, " * len(fields))[:-2]
-    field_values = tuple(fields.values())
+    field_values = _decode_utf8_values(fields.values())
     with db_cursor(db_path) as cursor:
         cursor.execute(
             "insert into {0}({1}) values ({2})".format(table,
@@ -33,7 +33,7 @@ def db_update(db_path, table, updated_fields, row):
         condition given with the tuple `row`
     """
     field_names = "=?, ".join(updated_fields.keys()) + "=?"
-    field_values = tuple(updated_fields.values())
+    field_values = _decode_utf8_values(updated_fields.values())
     condition_field = "{0}=?".format(row[0])
     condition_value = (row[1], )
     with db_cursor(db_path) as cursor:
@@ -72,3 +72,13 @@ def db_select(db_path, table, fields=None, condition=None):
             row_data[column] = row[index]
         results.append(row_data)
     return results
+
+
+def _decode_utf8_values(values_list):
+    '''Return a tuple of values with UTF-8 string values being decoded.'''
+    i = 0
+    for v in values_list:
+        if type(v) is str:
+            values_list[i] = v.decode('UTF-8')
+        i += 1
+    return tuple(values_list)
