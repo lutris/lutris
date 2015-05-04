@@ -482,8 +482,8 @@ class ScriptInterpreter(object):
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
-            args = data.get('args', '')
-            for arg in shlex.split(args):
+            args_string = data.get('args', '')
+            for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
         else:
             file_ref = data
