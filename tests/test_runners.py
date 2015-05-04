@@ -45,7 +45,7 @@ class ImportRunnerTest(DatabaseTester):
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
             wine = wine_runner()
-            self.assertEqual(wine.system_config, {'resolution': '640x480'})
+            self.assertEqual(wine.system_config.get('resolution'), '640x480')
 
     def test_runner_config_overrides_system_config(self):
         def fake_yaml_reader(path):
@@ -61,7 +61,7 @@ class ImportRunnerTest(DatabaseTester):
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
             wine = wine_runner()
-            self.assertEqual(wine.system_config, {'resolution': '800x600'})
+            self.assertEqual(wine.system_config.get('resolution'), '800x600')
 
     def test_game_config_overrides_all(self):
         def fake_yaml_reader(path):
@@ -78,9 +78,9 @@ class ImportRunnerTest(DatabaseTester):
         with patch('lutris.config.read_yaml_from_file') as yaml_reader:
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
-            game_config = LutrisConfig(game_slug='rage')
+            game_config = LutrisConfig(game_slug='rage', runner_slug='wine')
             wine = wine_runner(game_config)
-            self.assertEqual(wine.system_config, {'resolution': '1920x1080'})
+            self.assertEqual(wine.system_config.get('resolution'), '1920x1080')
 
     def test_system_config_with_no_system_yml(self):
         def fake_yaml_reader(path):
@@ -98,8 +98,8 @@ class ImportRunnerTest(DatabaseTester):
         with patch('lutris.config.read_yaml_from_file') as yaml_reader:
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
-            game_config = LutrisConfig(game_slug='rage')
+            game_config = LutrisConfig(runner_slug='wine', game_slug='rage')
             self.assertEqual(game_config.game_slug, 'rage')
             self.assertEqual(game_config.runner_slug, 'wine')
             wine = wine_runner(game_config)
-            self.assertEqual(wine.system_config, {'resolution': '1680x1050'})
+            self.assertEqual(wine.system_config.get('resolution'), '1680x1050')

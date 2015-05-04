@@ -39,7 +39,7 @@ class TestGameDialog(TestCase):
         return self.get_viewport(1)
 
     def get_buttons(self):
-        return self.dlg.vbox.get_children()[1]
+        return self.dlg.vbox.get_children()[1].get_children()[1]
 
     def test_dialog(self):
         self.assertEqual(self.dlg.notebook.get_current_page(), 0)
@@ -55,7 +55,7 @@ class TestGameDialog(TestCase):
         self.dlg.runner_dropdown.set_active(1)
         self.assertEqual(self.dlg.lutris_config.runner_slug, runners.__all__[0])
         game_box = self.get_game_box()
-        self.assertEqual(game_box.runner_name, runners.__all__[0])
+        self.assertEqual(game_box.game.runner_name, runners.__all__[0])
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_field = exe_box.get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
