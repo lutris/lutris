@@ -191,16 +191,16 @@ class LutrisConfig(object):
                             self.game_slug)
 
     def update_cascaded_config(self):
-        if not self.system_level.get('system'):
+        if self.system_level.get('system') == None:
             self.system_level['system'] = {}
         self.system_config.clear()
         self.system_config.update(self.get_defaults('system'))
         self.system_config.update(self.system_level.get('system'))
 
         if self.level in ['runner', 'game'] and self.runner_slug:
-            if not self.runner_level.get(self.runner_slug):
+            if self.runner_level.get(self.runner_slug) == None:
                 self.runner_level[self.runner_slug] = {}
-            if not self.runner_level.get('system'):
+            if self.runner_level.get('system') == None:
                 self.runner_level['system'] = {}
             self.runner_config.clear()
             self.runner_config.update(self.get_defaults('runner'))
@@ -208,11 +208,11 @@ class LutrisConfig(object):
             self.system_config.update(self.runner_level.get('system'))
 
         if self.level == 'game' and self.runner_slug:
-            if not self.game_level.get('game'):
+            if self.game_level.get('game') == None:
                 self.game_level['game'] = {}
-            if not self.game_level.get(self.runner_slug):
+            if self.game_level.get(self.runner_slug) == None:
                 self.game_level[self.runner_slug] = {}
-            if not self.game_level.get('system'):
+            if self.game_level.get('system') == None:
                 self.game_level['system'] = {}
             self.game_config.clear()
             self.game_config.update(self.get_defaults('game'))
