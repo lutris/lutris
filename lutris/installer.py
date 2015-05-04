@@ -7,7 +7,6 @@ import shutil
 import urllib2
 import platform
 import shlex
-import subprocess
 import webbrowser
 
 from gi.repository import Gdk
@@ -17,6 +16,7 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
+from lutris.util.runtime import get_runtime_env
 
 from lutris.game import Game
 from lutris.config import LutrisConfig
@@ -25,6 +25,7 @@ from lutris.gui.dialogs import ErrorDialog, NoInstallerDialog
 from lutris.runners import (
     wine, winesteam, steam, import_task, import_runner, InvalidRunner
 )
+from lutris.thread import LutrisThread
 
 
 class ScriptingError(Exception):
@@ -496,9 +497,15 @@ class ScriptInterpreter(object):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
         self.chmodx(exec_path)
+
+        terminal = data.get('terminal')
+        if terminal:
+            terminal = system.get_default_terminal()
+
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
-        subprocess.call(command)
+        thread = LutrisThread(command, env=get_runtime_env(), term=terminal)
+        thread.run()
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""

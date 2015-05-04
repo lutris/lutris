@@ -202,8 +202,11 @@ Example: ``- chmodx: $GAMEDIR/game_binary``
 Executing a file
 ----------------
 
-Execute files with the ``execute`` directive. Use the ``args`` parameter to add
-command arguments, and ``file`` to reference a ``file id`` or a path.
+Execute files with the ``execute`` directive. Use the ``file`` parameter to
+reference a ``file id`` or a path, ``args`` to add command arguments,
+``terminal`` (set to "true") to execute in a new terminal window.
+The command is executed within the Lutris Runtime (resolving most shared
+library dependencies).
 
 Example:
 
@@ -212,6 +215,7 @@ Example:
     - execute:
         args: --argh
         file: $great-id
+        terminal: true
 
 Writing into an INI type config file
 ------------------------------------

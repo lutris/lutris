@@ -68,6 +68,16 @@ def update_runtime(set_status):
     logger.debug("Runtime updated")
 
 
+def get_runtime_env():
+    """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars.
+
+    Ready for use! (Batteries not included (but not necessary))
+    """
+    runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+    ld_library_path = ':'.join(get_runtime_paths()) + ':$LD_LIBRARY_PATH'
+    return {'STEAM_RUNTIME': runtime_dir, 'LD_LIBRARY_PATH': ld_library_path}
+
+
 def get_runtime_paths():
     """Return a list of paths containing the runtime libraries."""
     runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
