@@ -21,7 +21,7 @@ class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     debug_output = False
 
-    def __init__(self, command, runner=None, env=None, rootpid=None, term=None):
+    def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -53,10 +53,12 @@ class LutrisThread(threading.Thread):
         if self.terminal and find_executable(self.terminal):
             self.run_in_terminal()
         else:
+            env = os.environ.copy()
+            env.update(self.env)
             self.game_process = subprocess.Popen(self.command, bufsize=1,
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT,
-                                                 cwd=self.path, env=self.env)
+                                                 cwd=self.path, env=env)
 
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
@@ -64,7 +66,6 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
-        env = self.env or {}
         env_string = ''
         for (k, v) in self.env.iteritems():
             env_string += '%s="%s" ' % (k, v)

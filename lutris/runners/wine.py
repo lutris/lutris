@@ -566,7 +566,7 @@ class wine(Runner):
         command.append(game_exe)
 
         self.prepare_launch()
-        env = self.get_env()
+        env = self.get_env(full=False)
         if arguments:
             for arg in shlex.split(arguments):
                 command.append(arg)
@@ -576,7 +576,7 @@ class wine(Runner):
         """The kill command runs wineserver -k."""
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
-        env = self.get_env(full=True)
+        env = self.get_env()
         command = [os.path.join(wine_root, "wineserver"), "-k"]
         logger.debug("Killing all wine processes: %s" % command)
         try:

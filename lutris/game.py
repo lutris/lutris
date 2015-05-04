@@ -185,11 +185,7 @@ class Game(object):
                                     "%s" % terminal)
                 return False
         # Env vars
-        if terminal:
-            env = {}
-        else:
-            env = os.environ.copy()
-
+        env = {}
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
 
@@ -256,7 +252,7 @@ class Game(object):
             "--dbus", "session", "--silent"
         ] + config.split()
         logger.debug("xboxdrv command: %s", command)
-        self.xboxdrv_thread = LutrisThread(command, env=os.environ)
+        self.xboxdrv_thread = LutrisThread(command)
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
