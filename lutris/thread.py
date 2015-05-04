@@ -21,7 +21,7 @@ class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     debug_output = False
 
-    def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
+    def __init__(self, command, runner=None, env=None, rootpid=None, term=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -64,9 +64,10 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
-        env = ''
+        env = self.env or {}
+        env_string = ''
         for (k, v) in self.env.iteritems():
-            env += '%s="%s" ' % (k, v)
+            env_string += '%s="%s" ' % (k, v)
 
         # Write command in a script file.
         '''Running it from a file is likely the only way to set env vars only
@@ -82,7 +83,7 @@ class LutrisThread(threading.Thread):
                     cd "%s"
                     %s %s
                     exec sh # Keep term open
-                    """ % (self.path, env, ' '.join(command_string))
+                    """ % (self.path, env_string, ' '.join(command_string))
             ))
             os.chmod(file_path, 0744)
 
