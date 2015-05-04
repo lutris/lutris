@@ -1,11 +1,11 @@
 import os
-from lutris import settings
+from lutris.settings import RUNTIME_DIR, RUNTIME_URL
 from lutris.util import http
 from lutris.util import extract
 from lutris.util import system
 from lutris.util.log import logger
 
-LOCAL_VERSION_PATH = os.path.join(settings.RUNTIME_DIR, "VERSION")
+LOCAL_VERSION_PATH = os.path.join(RUNTIME_DIR, "VERSION")
 
 
 def parse_version(version_content):
@@ -25,7 +25,7 @@ def get_local_version():
 
 
 def get_remote_version():
-    version_url = settings.RUNTIME_URL + "VERSION"
+    version_url = RUNTIME_URL + "VERSION"
     version_content = http.download_content(version_url)
     return parse_version(version_content)
 
@@ -42,22 +42,22 @@ def update_runtime(set_status):
 
     # Download
     set_status("Updating Runtime")
-    runtime32_path = os.path.join(settings.RUNTIME_DIR, runtime32_file)
-    http.download_asset(settings.RUNTIME_URL + runtime32_file, runtime32_path,
+    runtime32_path = os.path.join(RUNTIME_DIR, runtime32_file)
+    http.download_asset(RUNTIME_URL + runtime32_file, runtime32_path,
                         overwrite=True)
-    runtime64_path = os.path.join(settings.RUNTIME_DIR, runtime64_file)
-    http.download_asset(settings.RUNTIME_URL + runtime64_file, runtime64_path,
+    runtime64_path = os.path.join(RUNTIME_DIR, runtime64_file)
+    http.download_asset(RUNTIME_URL + runtime64_file, runtime64_path,
                         overwrite=True)
     # Remove current
-    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'steam'))
+    system.remove_folder(os.path.join(RUNTIME_DIR, 'steam'))
     # Remove legacy folders
-    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib32'))
-    system.remove_folder(os.path.join(settings.RUNTIME_DIR, 'lib64'))
+    system.remove_folder(os.path.join(RUNTIME_DIR, 'lib32'))
+    system.remove_folder(os.path.join(RUNTIME_DIR, 'lib64'))
 
     # Extract
-    extract.extract_archive(runtime32_path, settings.RUNTIME_DIR,
+    extract.extract_archive(runtime32_path, RUNTIME_DIR,
                             merge_single=False)
-    extract.extract_archive(runtime64_path, settings.RUNTIME_DIR,
+    extract.extract_archive(runtime64_path, RUNTIME_DIR,
                             merge_single=False)
     os.unlink(runtime32_path)
     os.unlink(runtime64_path)
@@ -73,14 +73,14 @@ def get_runtime_env():
 
     Ready for use! (Batteries not included (but not necessary))
     """
-    runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+    runtime_dir = os.path.join(RUNTIME_DIR, 'steam')
     ld_library_path = ':'.join(get_runtime_paths()) + ':$LD_LIBRARY_PATH'
     return {'STEAM_RUNTIME': runtime_dir, 'LD_LIBRARY_PATH': ld_library_path}
 
 
 def get_runtime_paths():
     """Return a list of paths containing the runtime libraries."""
-    runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+    runtime_dir = os.path.join(RUNTIME_DIR, 'steam')
     paths = ["/lutris-override32",
              "/i386/lib/i386-linux-gnu",
              "/i386/lib",

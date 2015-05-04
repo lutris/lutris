@@ -195,9 +195,8 @@ class Game(object):
 
         ld_library_path = []
         if self.use_runtime(system_config):
-            runtime_dir = os.path.join(settings.RUNTIME_DIR, 'steam')
+            env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
             ld_library_path += runtime.get_runtime_paths()
-            env['STEAM_RUNTIME'] = runtime_dir
 
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
