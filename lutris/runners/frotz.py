@@ -34,11 +34,10 @@ class frotz(Runner):
 
         # Force 'Run in terminal' option
         if config:
-            sys_conf = config.runner_level.get('system')
-            if sys_conf and not sys_conf.get('terminal'):
+            sys_conf = config.runner_level['system']
+            if not sys_conf.get('terminal'):
                 current_level = config.level
                 config.level = 'runner'
-                config.update_cascaded_config()
                 sys_conf['terminal'] = True
                 config.save()
                 config.level = current_level
