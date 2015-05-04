@@ -337,14 +337,18 @@ class LutrisWindow(object):
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
-        sync = Sync()
         credentials = api.read_api_key()
         if credentials:  # Is connected
-            sync.sync_all(caller=self)
+            self.sync_library()
         else:
-            sync.sync_steam_local(caller=self)
-        self.sync_icons()
-        dialogs.NoticeDialog('Library synchronized')
+            sync = Sync()
+            async_call(
+                sync.sync_steam_local,
+                lambda r, e: async_call(self.sync_icons, None),
+                caller=self
+            )
+        # Update Runtime
+        async_call(runtime.update_runtime, None, self.set_status)
 
     def on_resize(self, widget, *args):
         self.window_size = widget.get_size()
