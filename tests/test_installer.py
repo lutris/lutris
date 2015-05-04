@@ -13,7 +13,7 @@ class MockInterpreter(ScriptInterpreter):
 class TestScriptInterpreter(TestCase):
     def test_script_with_correct_values_is_valid(self):
         script = {
-            'runner': 'foo',
+            'runner': 'wine',
             'installer': 'bar',
             'name': 'baz',
             'game_slug': 'baz',
