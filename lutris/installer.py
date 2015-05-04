@@ -68,7 +68,7 @@ def fetch_script(window, game_ref):
             game = Game(game_ref)
             game_dialog = AddGameDialog(window, game)
             game_dialog.run()
-            if game_dialog.installed:
+            if game_dialog.saved:
                 window.notify_install_success()
         elif dlg.result == dlg.NEW_INSTALLER:
             installer_url = settings.SITE_URL + "games/%s/" % game_ref
