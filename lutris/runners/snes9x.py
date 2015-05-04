@@ -65,7 +65,7 @@ class snes9x(Runner):
     def set_option(self, option, value):
         config_file = os.path.expanduser("~/.snes9x/snes9x.xml")
         if not os.path.exists(config_file):
-            subprocess.Popen([self.get_executable, '-help'])
+            subprocess.Popen([self.get_executable(), '-help'])
         if not os.path.exists(config_file):
             logger.error("Snes9x config file creation failed")
             return
@@ -77,8 +77,7 @@ class snes9x(Runner):
         tree.write(config_file)
 
     def play(self):
-        options = self.options_as_dict('runner')
-        for option_name in options:
+        for option_name in self.config.runner_config:
             self.set_option(option_name, self.runner_config.get(option_name))
 
         rom = self.game_config.get('main_file') or ''
