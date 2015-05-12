@@ -236,7 +236,6 @@ class GameView(object):
         self.game_store.modelfilter.refilter()
 
     def update_row(self, game):
-        print game
         """Update game informations.
 
         :param dict game: Dict holding game details
