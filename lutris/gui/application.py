@@ -1,14 +1,19 @@
+import os
 import logging
 from gettext import gettext as _
 from gi.repository import GLib, Gio, Gtk
 
+from lutris.util import datapath
 from lutris.util.log import logger
 from lutris.config import check_config  # , register_handler
 from lutris.game import Game
 from lutris import pga
 from lutris.settings import VERSION, GAME_CONFIG_DIR
+import dialogs
+from .runnersdialog import RunnersDialog
 from .installgamedialog import InstallerDialog
 from .lutriswindow import LutrisWindow
+from .config_dialogs import SystemConfigDialog
 
 class Application(Gtk.Application):
 
@@ -36,11 +41,38 @@ class Application(Gtk.Application):
     def do_startup(self):
         Gtk.Application.do_startup(self)
 
+        action = Gio.SimpleAction.new('preferences', None)
+        action.connect('activate', self.on_preferences)
+        self.add_action(action)
+
+        action = Gio.SimpleAction.new('runners', None)
+        action.connect('activate', self.on_runners)
+        self.add_action(action)
+
+        action = Gio.SimpleAction.new('pga', None)
+        action.connect('activate', self.on_pga)
+        self.add_action(action)
+
+        action = Gio.SimpleAction.new('about', None)
+        action.connect('activate', self.on_about)
+        self.add_action(action)
+
+        action = Gio.SimpleAction.new('quit', None)
+        action.connect('activate', self.on_quit)
+        self.add_action(action)
+
+        builder = Gtk.Builder.new_from_file(os.path.join(datapath.get(), 'gtk', 'menus.ui'))
+        appmenu = builder.get_object('app-menu')
+        self.set_app_menu(appmenu)
+
     def do_activate(self):
         if not self.window:
-            self.window = LutrisWindow()
-            self.add_window(self.window.window)
-        self.window.window.present()
+            self.window = LutrisWindow(self).window
+            provider = Gtk.CssProvider()
+            provider.load_from_path(os.path.join(datapath.get(), 'ui', 'style.css'))
+            Gtk.StyleContext.add_provider_for_screen(self.window.get_screen(), provider, 600)
+
+        self.window.present()
 
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
@@ -108,5 +140,20 @@ class Application(Gtk.Application):
 
     def do_shutdown(self):
         Gtk.Application.do_shutdown(self)
-        #self.quit()
+        self.quit()
+
+    def on_about(self, action, param):
+        dialogs.AboutDialog()
+
+    def on_preferences(self, action, param):
+        SystemConfigDialog()
+
+    def on_runners(self, action, param):
+        RunnersDialog()
+
+    def on_pga(self, action, param):
+        dialogs.PgaSourceDialog()
+
+    def on_quit(self, action, param):
+        self.quit()
 
