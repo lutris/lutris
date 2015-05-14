@@ -284,19 +284,24 @@ class GameListView(Gtk.TreeView, GameView):
                                     filter_runner=filter_runner)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameListView, self).__init__(self.model)
-        self.set_rules_hint(True)
+        self.set_enable_search(False)
+        self.set_fixed_height_mode(True)
 
-        # Icon column
+        # Icon
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
-        column.set_reorderable(True)
-        self.append_column(column)
+        column = Gtk.TreeViewColumn(title='Name')
+        column.pack_start(image_cell, False)
+        column.set_attributes(image_cell, pixbuf=COL_ICON)
 
-        # Text columns
+        # Text
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
-        column = self.set_column(name_cell, "Name", COL_NAME)
+        column.pack_start(name_cell, True)
+        column.set_attributes(name_cell, text=COL_NAME)
+        column.set_sort_column_id(COL_NAME)
+        column.set_expand(True)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         self.append_column(column)
         column = self.set_column(default_text_cell, "Year", COL_YEAR)
         self.append_column(column)
@@ -315,12 +320,11 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id):
-        column = Gtk.TreeViewColumn(header, cell, markup=column_id)
+    def set_column(self, cell, header, column_id, sort_id=None):
+        column = Gtk.TreeViewColumn(header, cell, text=column_id)
         column.set_sort_indicator(True)
-        column.set_sort_column_id(column_id)
-        column.set_resizable(True)
-        column.set_reorderable(True)
+        column.set_sort_column_id(sort_id if sort_id else column_id)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         return column
 
     def get_selected_game(self):
