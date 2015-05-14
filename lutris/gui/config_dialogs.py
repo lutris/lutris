@@ -1,7 +1,4 @@
 """Configuration dialogs"""
-
-import os
-
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
@@ -10,10 +7,8 @@ from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
-from lutris.util import datapath
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from shutil import copyfile
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
@@ -93,37 +88,15 @@ class GameDialogCommon(object):
             info_box.pack_start(slug_box, False, False, 5)
 
         runner_box = Gtk.HBox()
-        runner_label = Gtk.Label("Runner")
-        runner_label.set_alignment(0.5, 0.5)
+        label = Gtk.Label("Runner")
+        label.set_alignment(0.5, 0.5)
         runner_dropdown = self.get_runner_dropdown()
-        runner_box.pack_start(runner_label, False, False, 20)
+        runner_box.pack_start(label, False, False, 20)
         runner_box.pack_start(runner_dropdown, False, False, 20)
         info_box.pack_start(runner_box, False, False, 5)
 
-        banner_box = Gtk.HBox()
-        banner_label = Gtk.Label("Custom Banner")
-        banner_label.set_alignment(0.5, 0.5)
-        banner_file_chooser = Gtk.FileChooserButton("Choose a custom banner")
-        banner_file_chooser.set_size_request(200, 30)
-        banner_file_chooser.set_action(Gtk.FileChooserAction.OPEN)
-        banner_file_chooser.connect("file-set", self.on_custom_banner_select)
-        banner_file_chooser.set_valign(Gtk.Align.CENTER)
-        banner_box.pack_start(banner_label, False, False, 20)
-        banner_box.pack_start(banner_file_chooser, True, True, 20)
-        info_box.pack_start(banner_box, False, False, 5)
-        
-
         info_sw = self.build_scrolled_window(info_box)
         self.add_notebook_tab(info_sw, "Game info")
-
-    def on_custom_banner_select(self, widget):
-        """Copies the selected banner to datadir/banners/custom/slug.jpg"""
-        filename = widget.get_filename()
-        custom_banner_folder_path = os.path.join(settings.BANNER_PATH, "custom")
-        if not os.path.exists(custom_banner_folder_path):
-            os.makedirs(custom_banner_folder_path)
-        copyfile(filename, os.path.join(custom_banner_folder_path, self.game.slug + ".jpg"))
-        
 
     def build_game_tab(self):
         if self.game and self.runner_name:
