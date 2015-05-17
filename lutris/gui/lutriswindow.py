@@ -11,7 +11,6 @@ from lutris.sync import Sync
 
 from lutris.util import runtime
 from lutris.util import resources
-from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.jobs import async_call
 from lutris.util.strings import slugify
@@ -335,7 +334,7 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        system.xdg_open("http://lutris.net/user/register")
+        Gtk.show_uri(None, "http://lutris.net/user/register", Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
@@ -503,7 +502,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         path = game.get_browse_dir()
         if path and os.path.exists(path):
-            system.xdg_open(path)
+            Gtk.show_uri(None, 'file://' + path, Gdk.CURRENT_TIME)
         else:
             dialogs.NoticeDialog(
                 "Can't open %s \nThe folder doesn't exist." % path

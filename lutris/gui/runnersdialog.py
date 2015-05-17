@@ -1,10 +1,9 @@
 # -*- coding:Utf-8 -*-
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Gdk
 
 import lutris.runners
 from lutris import settings
 from lutris.gui.widgets import get_runner_icon
-from lutris.util import system
 from lutris.runners import import_runner
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
@@ -152,7 +151,7 @@ class RunnersDialog(Gtk.Window):
                               runner, runner_label)
 
     def on_runner_open_clicked(self, widget):
-        system.xdg_open(settings.RUNNER_DIR)
+        Gtk.show_uri(None, 'file://' + settings.RUNNER_DIR, Gdk.CURRENT_TIME)
 
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():

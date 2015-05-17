@@ -8,7 +8,6 @@ Lutris should work on any fairly recent GNU/Linux system, the following
 dependencies are required:
 
     * python == 2.7
-    * python-xdg
     * python-yaml
     * PyGobject
     * libsoup-gnome
