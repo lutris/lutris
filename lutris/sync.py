@@ -115,7 +115,7 @@ class Sync(object):
                 year=game['year'], updated=game['updated'],
                 steamid=game['steamid']
             )
-            caller.view.update_row(game)
+            caller.game_store.update_row(game)
 
             # Sync icons (TODO: Only update if icon actually updated)
             if sync_icons:
@@ -156,7 +156,7 @@ class Sync(object):
                                                   game_slug=game_info['slug'])
                 game_config.raw_game_config.update({'appid': str(steamid)})
                 game_config.save()
-                caller.view.set_installed(Game(game_info['slug']))
+                caller.game_store.set_installed(Game(game_info['slug']))
                 continue
 
             # Set uninstalled
@@ -171,7 +171,7 @@ class Sync(object):
                 pga.add_or_update(game_info['name'], '',
                                   game_info['slug'],
                                   installed=0)
-                caller.view.set_uninstalled(game_info['slug'])
+                caller.game_store.set_uninstalled(game_info['slug'])
 
     @staticmethod
     def _get_installed_steamapps(runner):

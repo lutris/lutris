@@ -27,21 +27,21 @@ from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
 from lutris.gui.widgets import (
-    GameListView, GameGridView, ContextualMenu
+    GameListView, GameGridView, ContextualMenu, GameStore
 )
 
 
-def load_view(view, games=[], filter_text=None, icon_type=None):
+def load_view(view, store):
     if view == 'grid':
-        view = GameGridView(games, filter_text=filter_text,
-                            icon_type=icon_type)
+        view = GameGridView(store)
     elif view == 'list':
-        view = GameListView(games, filter_text=filter_text,
-                            icon_type=icon_type)
+        view = GameListView(store)
     return view
 
 
 class LutrisWindow(object):
+    ICON_TO_ZOOM = {'icon':0, 'banner_small':1, 'banner':2}
+
     """Handler class for main window signals."""
     def __init__(self, application):
 
@@ -70,19 +70,19 @@ class LutrisWindow(object):
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
         view_type = self.get_view_type()
-        self.icon_type = self.get_icon_type(view_type)
+        icon_type = self.get_icon_type(view_type)
         filter_installed_setting = settings.read_setting(
             'filter_installed'
         ) or 'false'
-        self.filter_installed = filter_installed_setting == 'true'
-        logger.debug("Getting game list")
-        game_list = get_game_list(self.filter_installed)
+        filter_installed = filter_installed_setting == 'true'
         logger.debug("Switching view")
-        self.view = load_view(view_type, game_list,
-                              icon_type=self.icon_type)
+        self.game_store = GameStore([], filter_installed=filter_installed, icon_type=icon_type)
+        self.game_store.connect('games-loaded', self.on_games_loaded)
+        self.view = load_view(view_type, self.game_store)
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
+        self.loading_box = self.builder.get_object('loading_box')
         self.stack = self.builder.get_object('stack')
 
         # Scroll window
@@ -115,7 +115,6 @@ class LutrisWindow(object):
         self.window = self.builder.get_object("window")
         self.window.set_application(application)
         self.window.resize_to_geometry(width, height)
-        self.window.show_all()
         self.builder.connect_signals(self)
         self.connect_signals()
 
@@ -146,6 +145,7 @@ class LutrisWindow(object):
         filter_box.show_all()
 
         self.zoom_level = builder.get_object('zoom_level_scale')
+        self.zoom_level.set_value(self.ICON_TO_ZOOM[icon_type])
         self.zoom_level.connect('value-changed', self.on_zoom_changed)
 
         # Actions
@@ -155,7 +155,7 @@ class LutrisWindow(object):
         application.add_accelerator('<Primary>f', 'win.search', None)
 
         action = Gio.SimpleAction.new_stateful('show-installed-only', None,
-                                               GLib.Variant.new_boolean(self.filter_installed))
+                                               GLib.Variant.new_boolean(filter_installed))
         action.connect('change-state', self.on_show_installed_only_changed)
         self.window.add_action(action)
 
@@ -178,7 +178,9 @@ class LutrisWindow(object):
         action.connect('activate', self.on_view_game_log_activate)
         self.window.add_action(action)
 
-        self.switch_splash_screen()
+        # Show everything
+        self.init_gamestore()
+        self.window.show_all()
 
         # Connect account and/or sync
         credentials = api.read_api_key()
@@ -195,6 +197,12 @@ class LutrisWindow(object):
         # Update Runtime
         async_call(runtime.update_runtime, None, self.set_status)
 
+    def init_gamestore(self):
+        logger.debug("Getting game list")
+        game_list = get_game_list()
+        self.game_store.fill_store(game_list)
+        self.switch_splash_screen()
+
     @property
     def current_view_type(self):
         return 'grid' \
@@ -205,7 +213,6 @@ class LutrisWindow(object):
         """Connect signals from the view with the main window.
            This must be called each time the view is rebuilt.
         """
-        self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_clicked)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.on_resize)
@@ -229,7 +236,9 @@ class LutrisWindow(object):
         return icon_type
 
     def switch_splash_screen(self):
-        if self.view.n_games == 0:
+        if self.game_store.is_loading:
+            self.stack.set_visible_child(self.loading_box)
+        elif self.game_store.n_games == 0:
             self.stack.set_visible_child(self.splash_box)
         else:
             self.stack.set_visible_child(self.main_box)
@@ -237,22 +246,19 @@ class LutrisWindow(object):
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         logger.debug("Switching view")
-        self.icon_type = self.get_icon_type(view_type)
+        if view_type == self.get_view_type():
+            return
+        settings.write_setting('view_type', view_type)
+        icon_type = self.get_icon_type(view_type)
         self.view.destroy()
-        self.view = load_view(
-            view_type,
-            get_game_list(filter_installed=self.filter_installed),
-            filter_text=self.search_entry.get_text(),
-            icon_type=self.icon_type
-        )
+        self.game_store.set_icon_type(icon_type)
+        self.view = load_view(view_type, self.game_store)
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add(self.view)
         self.view.show_all()
-        self.view.check_resize()
 
-        scale = {'icon':0, 'banner_small':1, 'banner':2}
-        self.zoom_level.set_value(scale[self.icon_type])
+        self.zoom_level.set_value(self.ICON_TO_ZOOM[icon_type])
 
     def sync_library(self):
         def set_library_synced(result, error):
@@ -288,6 +294,9 @@ class LutrisWindow(object):
         return True
 
     # Callbacks
+    def on_games_loaded(self, obj):
+        self.switch_splash_screen()
+
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             widget.set_text('')
@@ -341,17 +350,16 @@ class LutrisWindow(object):
 
     def on_destroy(self, *args):
         """Signal for window close."""
-        view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
-        settings.write_setting('view_type', view_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
-        self.application.quit()
         logger.debug("Quitting lutris")
 
     def on_search_entry_changed(self, widget):
-        self.view.game_store.filter_text = widget.get_text()
-        self.view.emit('filter-updated')
+        new_filter = widget.get_text()
+        if new_filter != self.game_store.filter_text:
+            self.game_store.filter_text = new_filter
+            self.game_store.modelfilter.refilter()
 
     def _get_current_game_slug(self):
         """Return the slug of the current selected game while taking care of the
@@ -393,19 +401,16 @@ class LutrisWindow(object):
             self.game_selection_time = time.time()
             self.last_selected_game = self.view.selected_game
 
-    def on_game_installed(self, view, slug):
-        view.set_installed(Game(slug))
-
     def on_image_downloaded(self, game_slug):
         is_installed = Game(game_slug).is_installed
-        self.view.update_image(game_slug, is_installed)
+        self.game_store.update_image(game_slug, is_installed)
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
         add_game_dialog = AddGameDialog(self, game)
         add_game_dialog.run()
         if add_game_dialog.saved:
-            self.view.set_installed(game)
+            self.game_store.set_installed(game)
 
     def on_view_game_log_activate(self, action, param):
         if not self.running_game:
@@ -503,12 +508,14 @@ class LutrisWindow(object):
 
     def on_show_installed_only_changed(self, action, value):
         action.set_state(value)
-        self.filter_installed = value.get_boolean()
-        setting_value = 'true' if self.filter_installed else 'false'
+        filter_installed = value.get_boolean()
+        setting_value = 'true' if filter_installed else 'false'
         settings.write_setting(
             'filter_installed', setting_value
         )
-        self.switch_view(self.current_view_type)
+        if filter_installed != self.game_store.filter_installed:
+            self.game_store.filter_installed = filter_installed
+            self.game_store.modelfilter.refilter()
 
     def on_runner_filter_changed(self, action, value):
         action.set_state(value)
@@ -516,18 +523,19 @@ class LutrisWindow(object):
         runner = value.get_string()
         if runner == 'all':
             runner = None
-        if self.view.game_store.filter_runner != runner:
-            self.view.game_store.filter_runner = runner
-            self.view.emit('filter-updated')
+        if self.game_store.filter_runner != runner:
+            self.game_store.filter_runner = runner
+            self.game_store.modelfilter.refilter()
 
     def on_zoom_changed(self, _range):
         scale = ('icon', 'banner_small', 'banner')
         icon_type = scale[int(_range.get_value())]
-        if icon_type == self.icon_type:
+        view_type = self.get_view_type()
+        if icon_type == self.get_icon_type(view_type):
             return
 
-        if self.current_view_type == 'grid':
+        if view_type == 'grid':
             settings.write_setting('icon_type_gridview', icon_type)
-        elif self.current_view_type == 'list':
+        elif view_type == 'list':
             settings.write_setting('icon_type_listview', icon_type)
-        self.switch_view(self.current_view_type)
+        self.game_store.set_icon_type(icon_type)
