@@ -1,10 +1,10 @@
-""" xdg desktop file creator """
+""" desktop file creator """
 import os
 import stat
 import shutil
 import subprocess
 
-from xdg import BaseDirectory
+from gi.repository import GLib
 
 from lutris.game import Game
 from lutris.settings import CACHE_DIR
@@ -14,9 +14,7 @@ def create_launcher(game_slug, desktop=False, menu=False):
     """ Create desktop file """
     game = Game(game_slug)
 
-    desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
-                                   stdout=subprocess.PIPE).communicate()[0]
-    desktop_dir = desktop_dir.strip()
+    desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     launcher_content = """[Desktop Entry]
 Type=Application
 Name=%s
@@ -37,7 +35,7 @@ Categories=Game
         shutil.copy(tmp_launcher_path,
                     os.path.join(desktop_dir, launcher_filename))
     if menu:
-        menu_path = os.path.join(BaseDirectory.xdg_data_home, 'applications')
+        menu_path = os.path.join(GLib.get_user_data_dir(), 'applications')
         shutil.copy(tmp_launcher_path,
                     os.path.join(menu_path, launcher_filename))
     os.remove(tmp_launcher_path)

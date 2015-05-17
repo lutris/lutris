@@ -176,10 +176,6 @@ def fix_path_case(path):
         return current_path
 
 
-def xdg_open(path):
-    subprocess.Popen(['xdg-open', path], close_fds=True)
-
-
 def get_pids_using_file(path):
     """Return a list of pids using file `path`"""
     if not os.path.exists(path):
