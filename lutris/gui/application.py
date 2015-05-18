@@ -143,7 +143,7 @@ class Application(Gtk.Application):
         self.quit()
 
     def on_about(self, action, param):
-        dialogs.AboutDialog()
+        dialogs.AboutDialog(parent=self.window)
 
     def on_preferences(self, action, param):
         SystemConfigDialog()
