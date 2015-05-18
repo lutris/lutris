@@ -152,7 +152,7 @@ class Application(Gtk.Application):
         RunnersDialog()
 
     def on_pga(self, action, param):
-        dialogs.PgaSourceDialog()
+        dialogs.PgaSourceDialog(parent=self.window)
 
     def on_quit(self, action, param):
         self.quit()

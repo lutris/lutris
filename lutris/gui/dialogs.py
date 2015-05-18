@@ -12,7 +12,7 @@ from lutris import api
 
 class GtkBuilderDialog(GObject.Object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         super(GtkBuilderDialog, self).__init__()
         ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
@@ -22,6 +22,7 @@ class GtkBuilderDialog(GObject.Object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
+        self.dialog.set_transient_for(parent)
         self.builder.connect_signals(self)
         self.dialog.show_all()
         self.initialize(**kwargs)
@@ -139,8 +140,8 @@ class PgaSourceDialog(GtkBuilderDialog):
     glade_file = 'dialog-pga-sources.ui'
     dialog_object = 'pga_dialog'
 
-    def __init__(self):
-        super(PgaSourceDialog, self).__init__()
+    def __init__(self, parent=None):
+        super(PgaSourceDialog, self).__init__(parent=parent)
 
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
@@ -167,9 +168,10 @@ class PgaSourceDialog(GtkBuilderDialog):
     def sources_list(self):
         return [source[0] for source in self.sources_liststore]
 
-    def on_apply(self, widget, data=None):
-        pga.write_sources(self.sources_list)
-        self.on_close(widget, data)
+    def on_response(self, widget, response):
+        if response == Gtk.ResponseType.APPLY:
+            pga.write_sources(self.sources_list)
+        self.on_close(widget, None)
 
     def on_add_source_button_clicked(self, widget, data=None):
         chooser = Gtk.FileChooserDialog(
