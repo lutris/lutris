@@ -50,8 +50,7 @@ class ConfigBox(VBox):
             self.call_widget_generator(option)
 
             # Reset button
-            icon = Gtk.Image(stock=Gtk.STOCK_CLEAR)
-            reset_btn = Gtk.Button(image=icon)
+            reset_btn = Gtk.Button.new_from_icon_name('edit-clear-symbolic', Gtk.IconSize.MENU)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
             reset_btn.set_tooltip_text("Reset option to global or "
                                        "default config")

@@ -24,7 +24,7 @@ from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
-    AddGameDialog, EditGameConfigDialog, SystemConfigDialog
+    AddGameDialog, EditGameConfigDialog
 )
 from lutris.gui.widgets import (
     GameListView, GameGridView, ContextualMenu, GameStore
@@ -406,11 +406,13 @@ class LutrisWindow(object):
         self.game_store.update_image(game_slug, is_installed)
 
     def add_manually(self, *args):
+        def on_response(dialog, response, self):
+            if response == Gtk.ResponseType.APPLY:
+                self.game_store.set_installed(game)
         game = Game(self.view.selected_game)
-        add_game_dialog = AddGameDialog(self, game)
-        add_game_dialog.run()
-        if add_game_dialog.saved:
-            self.game_store.set_installed(game)
+        add_game_dialog = AddGameDialog(self.window, game)
+        add_game_dialog.connect('response', on_response, self)
+        add_game_dialog.show_all()
 
     def on_view_game_log_activate(self, action, param):
         if not self.running_game:
@@ -422,10 +424,12 @@ class LutrisWindow(object):
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
-        add_game_dialog = AddGameDialog(self)
-        add_game_dialog.run()
-        if add_game_dialog.saved:
-            self.add_game_to_view(add_game_dialog.slug)
+        def on_response(dialog, response, self):
+            if response == Gtk.ResponseType.APPLY:
+                self.add_game_to_view(dialog.slug)
+        add_game_dialog = AddGameDialog(self.window)
+        add_game_dialog.connect('response', on_response, self)
+        add_game_dialog.show_all()
 
     def add_game_to_view(self, slug):
         if not slug:
@@ -467,7 +471,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         game_slug = game.slug
         if game.is_installed:
-            dialog = EditGameConfigDialog(self, game)
+            dialog = EditGameConfigDialog(self.window, game)
             if dialog.saved:
                 game = Game(dialog.slug)
                 self.view.remove_game(game_slug)

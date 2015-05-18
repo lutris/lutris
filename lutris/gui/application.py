@@ -146,7 +146,7 @@ class Application(Gtk.Application):
         dialogs.AboutDialog(parent=self.window)
 
     def on_preferences(self, action, param):
-        SystemConfigDialog()
+        SystemConfigDialog(parent=self.window)
 
     def on_runners(self, action, param):
         RunnersDialog()
