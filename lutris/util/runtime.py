@@ -86,15 +86,10 @@ def get_runtime_paths():
              "/i386/lib",
              "/i386/usr/lib/i386-linux-gnu",
              "/i386/usr/lib"]
-    paths = [runtime_dir + path for path in paths]
-
     if system.is_64bit:
-        paths_64 = ["/lutris-override64",
-                    "/amd64/lib/x86_64-linux-gnu",
-                    "/amd64/lib",
-                    "/amd64/usr/lib/x86_64-linux-gnu",
-                    "/amd64/usr/lib"]
-        paths_64 = [runtime_dir + path for path in paths_64]
-        paths += paths_64
-    return paths
-
+        paths += ["/lutris-override64",
+                  "/amd64/lib/x86_64-linux-gnu",
+                  "/amd64/lib",
+                  "/amd64/usr/lib/x86_64-linux-gnu",
+                  "/amd64/usr/lib"]
+    return [os.path.join(runtime_dir, path) for path in paths]
