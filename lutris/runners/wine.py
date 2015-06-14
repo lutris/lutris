@@ -126,7 +126,8 @@ def detect_prefix_arch(directory=None):
     If no `directory` given, return the arch of the system's default prefix.
     If no prefix found, return None."""
     if not directory:
-        directory = os.path.expanduser("~/.wine")
+        directory = "~/.wine"
+    directory = os.path.expanduser(directory)
     registry_path = os.path.join(directory, 'system.reg')
     if not os.path.isdir(directory) or not os.path.isfile(registry_path):
         # No directory exists or invalid prefix
@@ -407,7 +408,7 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        return self.game_config.get('prefix')
+        return os.path.expanduser(self.game_config.get('prefix', ''))
 
     @property
     def game_exe(self):
