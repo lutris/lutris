@@ -70,16 +70,6 @@ def read_config(path_prefix):
         return config
 
 
-def get_steamapps_path(rootdir):
-    """Return an existing SteamApps path."""
-    if os.path.exists(rootdir):
-        return rootdir
-    elif os.path.exists(rootdir.replace('steamapps', 'SteamApps')):
-        return rootdir.replace('steamapps', 'SteamApps')
-    else:
-        logger.debug("SteamApps not found in %s" % rootdir)
-
-
 def get_path_from_appmanifest(steamapps_path, appid):
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
