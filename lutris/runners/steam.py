@@ -151,8 +151,8 @@ class steam(Runner):
         logger.debug("Installing steam game %s", appid)
         acf_data = get_default_acf(appid, appid)
         acf_content = to_vdf(acf_data)
-        acf_path = os.path.join(self.steam_data_dir, "SteamApps",
-                                "appmanifest_%s.acf" % appid)
+        steamapps_dirs = self.get_steamapps_dirs()
+        acf_path = os.path.join(steamapps_dirs[0], "appmanifest_%s.acf" % appid)
         with open(acf_path, "w") as acf_file:
             acf_file.write(acf_content)
         if is_running():
