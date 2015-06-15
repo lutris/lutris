@@ -540,7 +540,7 @@ class wine(Runner):
             env = os.environ.copy()
         else:
             env = {}
-        env['WINEDEBUG'] = "-fixme-all"
+        env['WINEDEBUG'] = "-all"
         env['WINEARCH'] = self.wine_arch
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
