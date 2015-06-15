@@ -61,15 +61,29 @@ class linux(Runner):
         exe = self.game_config.get('exe')
         if exe:
             if os.path.isabs(exe):
-                return exe
-            return os.path.join(self.game_path, exe)
+                exe_path = exe
+            else:
+                exe_path = os.path.join(self.game_path, exe)
+            return exe_path
+
+    def get_relative_exe(self):
+        """Return a relative path if a working dir is set in the options
+        Some games such as Unreal Gold fail to run if given the absolute path
+        """
+        exe_path = self.game_exe
+        working_dir = self.game_config.get('working_dir')
+        if working_dir:
+            parts = exe_path.split(os.path.expanduser(working_dir))
+            if len(parts) == 2:
+                return "." + parts[1]
+        return exe_path
 
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         option = self.game_config.get('working_dir')
         if option:
-            return option
+            return os.path.expanduser(option)
         if self.game_exe:
             return os.path.dirname(self.game_exe)
         else:
@@ -100,9 +114,9 @@ class linux(Runner):
 
         ld_library_path = self.game_config.get('ld_library_path')
         if ld_library_path:
-            launch_info['ld_library_path'] = ld_library_path
+            launch_info['ld_library_path'] = os.path.expanduser(ld_library_path)
 
-        command = [self.game_exe]
+        command = [self.get_relative_exe()]
 
         args = self.game_config.get('args') or ''
         for arg in shlex.split(args):
