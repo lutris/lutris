@@ -47,7 +47,7 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread"""
-        logger.debug("Thread running: %s", self.command)
+        logger.debug("Running command: %s", ' '.join(self.command))
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         if self.terminal and find_executable(self.terminal):
