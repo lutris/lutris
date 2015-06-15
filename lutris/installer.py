@@ -192,8 +192,8 @@ class ScriptInterpreter(object):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
-            if self._download_steam_data(file_uri, file_id):
-                return
+            self._download_steam_data(file_uri, file_id)
+            return
         logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
         # Check for file availability in PGA
@@ -265,8 +265,6 @@ class ScriptInterpreter(object):
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam)
-        self.iter_game_files()
-        return True
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -748,6 +746,7 @@ class ScriptInterpreter(object):
         logger.debug("got data path: %s" % data_path)
         self.game_files[self.steam_data['file_id']] = \
             os.path.join(data_path, self.steam_data['steam_rel_path'])
+        self.iter_game_files()
 
     def complete_steam_install(self, dest):
         winesteam_runner = winesteam.winesteam()
