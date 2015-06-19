@@ -41,6 +41,10 @@ class LutrisThread(threading.Thread):
         else:
             self.path = '/tmp/'
 
+        self.env_string = ''
+        for (k, v) in self.env.iteritems():
+            self.env_string += '%s="%s" ' % (k, v)
+
         self.command_string = ' '.join(
             ['"%s"' % token for token in self.command]
         )
@@ -51,6 +55,7 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread"""
+        logger.debug("Command env: " + self.env_string)
         logger.debug("Running command: " + self.command_string)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
@@ -70,9 +75,6 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
-        env_string = ''
-        for (k, v) in self.env.iteritems():
-            env_string += '%s="%s" ' % (k, v)
 
         # Write command in a script file.
         '''Running it from a file is likely the only way to set env vars only
@@ -123,7 +125,8 @@ class LutrisThread(threading.Thread):
             self.stop_func()
             if not killall:
                 return
-        for process in self.iter_children(Process(self.rootpid), topdown=False):
+        for process in self.iter_children(Process(self.rootpid),
+                                          topdown=False):
             process.kill()
 
     def watch_children(self):
