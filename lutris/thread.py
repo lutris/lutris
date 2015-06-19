@@ -41,13 +41,17 @@ class LutrisThread(threading.Thread):
         else:
             self.path = '/tmp/'
 
+        self.command_string = ' '.join(
+            ['"%s"' % token for token in self.command]
+        )
+
     def attach_thread(self, thread):
         """Attach child process that need to be killed on game exit"""
         self.attached_threads.append(thread)
 
     def run(self):
         """Run the thread"""
-        logger.debug("Running command: %s", ' '.join(self.command))
+        logger.debug("Running command: " + self.command_string)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         if self.terminal and find_executable(self.terminal):
@@ -75,16 +79,15 @@ class LutrisThread(threading.Thread):
         for the command (not for the terminal app).
         It also permits the only reliable way to keep the term open when the
         game is exited.'''
-        command_string = ['"%s"' % token for token in self.command]
         file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
         with open(file_path, 'w') as f:
             f.write(dedent(
                 """\
-                    #!/bin/sh
-                    cd "%s"
-                    %s %s
-                    exec sh # Keep term open
-                    """ % (self.path, env_string, ' '.join(command_string))
+                #!/bin/sh
+                cd "%s"
+                %s %s
+                exec sh # Keep term open
+                """ % (self.path, self.env_string, self.command_string)
             ))
             os.chmod(file_path, 0744)
 
