@@ -81,15 +81,15 @@ def get_runtime_env():
 def get_runtime_paths():
     """Return a list of paths containing the runtime libraries."""
     runtime_dir = os.path.join(RUNTIME_DIR, 'steam')
-    paths = ["/lutris-override32",
-             "/i386/lib/i386-linux-gnu",
-             "/i386/lib",
-             "/i386/usr/lib/i386-linux-gnu",
-             "/i386/usr/lib"]
+    paths = ["lutris-override32",
+             "i386/lib/i386-linux-gnu",
+             "i386/lib",
+             "i386/usr/lib/i386-linux-gnu",
+             "i386/usr/lib"]
     if system.is_64bit:
-        paths += ["/lutris-override64",
-                  "/amd64/lib/x86_64-linux-gnu",
-                  "/amd64/lib",
-                  "/amd64/usr/lib/x86_64-linux-gnu",
-                  "/amd64/usr/lib"]
+        paths += ["lutris-override64",
+                  "amd64/lib/x86_64-linux-gnu",
+                  "amd64/lib",
+                  "amd64/usr/lib/x86_64-linux-gnu",
+                  "amd64/usr/lib"]
     return [os.path.join(runtime_dir, path) for path in paths]
