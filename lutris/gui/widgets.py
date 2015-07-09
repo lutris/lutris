@@ -422,14 +422,14 @@ class DownloadProgressBox(Gtk.VBox):
         self.downloader = None
         self.url = params['url']
         self.dest = params['dest']
-        title = params.get('title')
+        title = params.get('title', "Downloading {}".format(self.url))
 
-        if title:
-            self.main_label = Gtk.Label(title)
-            self.main_label.set_alignment(0, 0)
-            self.main_label.set_margin_bottom(10)
-            self.main_label.set_selectable(True)
-            self.pack_start(self.main_label, True, True, 0)
+        self.main_label = Gtk.Label(title)
+        self.main_label.set_alignment(0, 0)
+        self.main_label.set_property('wrap', True)
+        self.main_label.set_margin_bottom(10)
+        self.main_label.set_selectable(True)
+        self.pack_start(self.main_label, True, True, 0)
 
         progress_box = Gtk.Box()
 
@@ -471,13 +471,13 @@ class DownloadProgressBox(Gtk.VBox):
         progress = min(self.downloader.progress, 1)
         if self.downloader.cancelled:
             self.progressbar.set_fraction(0)
-            self.set_text("Download canceled")
+            self.set_text("Download cancelled")
             self.emit('cancelrequested', {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = (
-            "%0.2fMb out of %0.2fMb (%0.2fMb/s), %d seconds remaining" % (
+            "%0.2f / %0.2fMB (%0.2fMB/s), %d seconds remaining" % (
                 float(self.downloader.downloaded_bytes) / megabytes,
                 float(self.downloader.total_bytes) / megabytes,
                 float(self.downloader.speed) / megabytes,
