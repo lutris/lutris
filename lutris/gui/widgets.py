@@ -407,7 +407,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.emit("game-selected")
 
 
-class DownloadProgressBox(Gtk.HBox):
+class DownloadProgressBox(Gtk.VBox):
     """Progress bar used to monitor a file download."""
     __gsignals__ = {
         'complete': (GObject.SignalFlags.RUN_LAST, None,
@@ -418,26 +418,39 @@ class DownloadProgressBox(Gtk.HBox):
 
     def __init__(self, params, cancelable=True):
         super(DownloadProgressBox, self).__init__()
+
         self.downloader = None
-
-        self.progress_box = Gtk.VBox()
-
-        self.progressbar = Gtk.ProgressBar()
-        self.progress_box.pack_start(self.progressbar, True, True, 10)
-        self.progress_label = Gtk.Label()
-        self.progress_box.pack_start(self.progress_label, True, True, 10)
-        self.pack_start(self.progress_box, True, True, 10)
-        self.progress_box.show_all()
-
-        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        if cancelable:
-            self.cancel_button.show()
-            self.cancel_button.set_sensitive(False)
-            self.cancel_button.connect('clicked', self.cancel)
-            self.pack_end(self.cancel_button, False, False, 10)
-
         self.url = params['url']
         self.dest = params['dest']
+        title = params.get('title')
+
+        if title:
+            self.main_label = Gtk.Label(title)
+            self.main_label.set_alignment(0, 0)
+            self.main_label.set_margin_bottom(10)
+            self.main_label.set_selectable(True)
+            self.pack_start(self.main_label, True, True, 0)
+
+        progress_box = Gtk.Box()
+
+        self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_margin_bottom(10)
+        self.progressbar.set_margin_right(10)
+        progress_box.pack_start(self.progressbar, True, True, 0)
+
+        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+        self.cancel_button.connect('clicked', self.cancel)
+        if not cancelable:
+            self.cancel_button.set_sensitive(False)
+        progress_box.pack_end(self.cancel_button, False, False, 0)
+
+        self.pack_start(progress_box, False, False, 0)
+
+        self.progress_label = Gtk.Label()
+        self.progress_label.set_alignment(0, 0)
+        self.pack_start(self.progress_label, True, True, 0)
+
+        self.show_all()
 
     def start(self):
         """Start downloading a file."""
@@ -458,7 +471,7 @@ class DownloadProgressBox(Gtk.HBox):
         progress = min(self.downloader.progress, 1)
         if self.downloader.cancelled:
             self.progressbar.set_fraction(0)
-            self.progress_label.set_text("Download canceled")
+            self.set_text("Download canceled")
             self.emit('cancelrequested', {})
             return False
         self.progressbar.set_fraction(progress)
@@ -471,7 +484,7 @@ class DownloadProgressBox(Gtk.HBox):
                 self.downloader.time_remaining
             )
         )
-        self.progress_label.set_text(progress_text)
+        self.set_text(progress_text)
         self.progressbar.set_fraction(progress)
         if progress >= 1.0:
             self.cancel_button.set_sensitive(False)
@@ -484,6 +497,10 @@ class DownloadProgressBox(Gtk.HBox):
         if self.downloader:
             self.downloader.cancel()
             self.cancel_button.set_sensitive(False)
+
+    def set_text(self, text):
+        markup = u"<span size='10000'>{}</span>".format(text)
+        self.progress_label.set_markup(markup)
 
 
 class FileChooserEntry(Gtk.Box):

@@ -112,18 +112,14 @@ class DownloadDialog(Gtk.Dialog):
 
     def __init__(self, url, dest):
         super(DownloadDialog, self).__init__("Downloading file")
-        self.set_size_request(560, 100)
-        params = {'url': url, 'dest': dest}
+        self.set_size_request(485, 104)
+        self.set_border_width(12)
+        params = {'url': url, 'dest': dest, 'title': 'Downloading %s' % url}
         self.download_progress_box = DownloadProgressBox(params)
         self.download_progress_box.connect('complete',
                                            self.download_complete)
         self.download_progress_box.connect('cancelrequested',
                                            self.download_cancelled)
-        label = Gtk.Label(label='Downloading %s' % url)
-        label.set_selectable(True)
-        label.set_padding(0, 0)
-        label.set_alignment(0.0, 1.0)
-        self.vbox.pack_start(label, True, True, 0)
         self.vbox.pack_start(self.download_progress_box, True, False, 0)
         self.show_all()
         self.download_progress_box.start()
