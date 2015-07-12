@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class ="GtkPopoverMenu" id="view_menu_widget">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">160</property>
+        <child>
+          <object class="GtkBox" id="views_box">
+            <property name="visible">True</property>
+            <property name="orientation">horizontal</property>
+            <property name="margin-bottom">6</property>
+            <style>
+                <class name="linked"/>
+            </style>
+            <child>
+              <object class="GtkModelButton" id="grid_button">
+                <property name="visible">True</property>
+                <property name="text">Grid</property>
+                <property name="action-name">win.view-mode</property>
+                <property name="action-target">'grid'</property>
+                <property name="iconic">True</property>
+                <property name="centered">True</property>
+                <property name="icon">icon_grid</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkModelButton" id="list_button">
+                <property name="visible">True</property>
+                <property name="text">List</property>
+                <property name="action-name">win.view-mode</property>
+                <property name="action-target">'list'</property>
+                <property name="iconic">True</property>
+                <property name="centered">True</property>
+                <property name="icon">icon_list</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScale" id="zoom_level_scale">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="draw_value">False</property>
+            <property name="has_origin">False</property>
+            <property name="adjustment">zoom_adjustment</property>
+            <property name="round_digits">0</property>
+            <property name="restrict_to_fill_level">False</property>
+            <marks>
+              <mark value="0" position="bottom"/>
+              <mark value="1" position="bottom"/>
+              <mark value="2" position="bottom"/>
+            </marks>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="show_installed_only">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Installed Games Only</property>
+            <property name="action-name">win.show-installed-only</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="menu-name">filter_box</property>
+            <property name="text" translatable="yes">Filter by runner…</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="visible">True</property>
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="stop">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Stop Current Game</property>
+            <property name="action-name">win.stop-current-game</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="view_logs">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">View Last Games' _Logs</property>
+            <property name="action-name">win.view-last-logs</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="filter_box">
+      <property name="visible">True</property>
+      <property name="orientation">vertical</property>
+      <property name="margin">10</property>
+    </object>
+    <packing>
+      <property name="submenu">filter_box</property>
+    </packing>
+  </child>
+  </object>
+  <object class="GThemedIcon" id="icon_grid">
+    <property name="name">view-grid-symbolic</property>
+  </object>
+  <object class="GThemedIcon" id="icon_list">
+    <property name="name">view-list-symbolic</property>
+  </object>
+  <object class="GtkAdjustment" id="zoom_adjustment">
+    <property name="lower">0</property>
+    <property name="upper">2</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+    <property name="value">1</property>
+  </object>
+</interface>

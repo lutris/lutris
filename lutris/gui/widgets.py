@@ -1,6 +1,7 @@
 # -*- coding:Utf-8 -*-
 """Misc widgets used in the GUI."""
 import os
+from backports.functools_lru_cache import lru_cache # TODO: Bundle
 
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -44,19 +45,25 @@ def get_runner_icon(runner_name, format='image', size=None):
     return icon
 
 
-def sort_func(store, a_iter, b_iter, _user_data):
-    """Default sort function."""
-    a_name = store.get(a_iter, COL_NAME)
-    b_name = store.get(b_iter, COL_NAME)
+@lru_cache(maxsize=3)
+def get_overlay(size):
+    x, y = size
+    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+        UNAVAILABLE_GAME_OVERLAY, x, y
+    )
+    transparent_pixbuf = transparent_pixbuf.scale_simple(
+        x, y, GdkPixbuf.InterpType.NEAREST
+    )
+    return transparent_pixbuf
 
-    if a_name > b_name:
-        return 1
-    elif a_name < b_name:
-        return -1
-    else:
-        return 0
 
+@lru_cache(maxsize=6)
+def get_default(icon, size):
+    x, y = size
+    return Pixbuf.new_from_file_at_size(icon, x, y)
 
+# Caching here really gets us far, the memory usage should be acceptable
+@lru_cache(maxsize=1500)
 def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
     if icon_type in ("banner", "banner_small"):
         size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
@@ -70,18 +77,14 @@ def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
                                  "lutris_%s.png" % game_slug)
 
     if not os.path.exists(icon_path):
-        icon_path = default_icon
-    try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
-    except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(default_icon, size[0], size[1])
+        pixbuf = get_default(default_icon, size)
+    else:
+        try:
+            pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
+        except GLib.GError:
+            pixbuf = get_default(default_icon, size)
     if not is_installed:
-        transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            UNAVAILABLE_GAME_OVERLAY, size[0], size[1]
-        )
-        transparent_pixbuf = transparent_pixbuf.scale_simple(
-            size[0], size[1], GdkPixbuf.InterpType.NEAREST
-        )
+        transparent_pixbuf = get_overlay(size).copy()
         pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
         return transparent_pixbuf
@@ -130,37 +133,63 @@ class ContextualMenu(Gtk.Menu):
                                           event.button, event.time)
 
 
-class GameStore(object):
-
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
+class GameStore(GObject.Object):
+    __gsignals__ = {
+        "games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,))
+    }
+    def __init__(self, games, filter_text='', filter_runner='', icon_type=None,
+                 filter_installed=False):
+        GObject.Object.__init__(self)
         self.filter_text = filter_text
         self.filter_runner = filter_runner
+        self.filter_installed = filter_installed
         self.icon_type = icon_type
         self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
-        self.store.set_default_sort_func(sort_func)
-        self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
-        self.fill_store(games)
+        self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+        self.games = games
+        if games:
+            self.fill_store(games)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
+        self.is_loading = False
+
+    @property
+    def n_games(self):
+        return len(self.store)
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
-        name = model.get_value(_iter, COL_NAME)
-        runner = model.get_value(_iter, COL_RUNNER)
+        if self.filter_installed:
+            installed = model.get_value(_iter, COL_INSTALLED)
+            if not installed:
+                return False
         if self.filter_text:
-            name_matches = self.filter_text.lower() in name.lower()
-        else:
-            name_matches = True
+            name = model.get_value(_iter, COL_NAME)
+            if not self.filter_text.lower() in name.lower():
+                return False
         if self.filter_runner:
-            runner_matches = self.filter_runner == runner
-        else:
-            runner_matches = True
-        return name_matches and runner_matches
+            runner = model.get_value(_iter, COL_RUNNER)
+            if not self.filter_runner == runner:
+                return False
+        return True
 
     def fill_store(self, games):
-        self.store.clear()
+        assert(not self.is_loading) # Should only happen once
+        assert(not self.games)
+        self.games = games
+        self.is_loading = True
+        adder = self._add_games_idle(games)
+        # Avoiding blocking the UI for multiple iterations
+        GLib.idle_add(adder.next)
+
+    def _add_games_idle(self, games):
         for game in games:
             self.add_game(game)
+            yield True
+        self.is_loading = False
+        self.emit('games-loaded')
+        yield False
 
     def add_game(self, game):
         """Add a game into the store."""
@@ -168,52 +197,22 @@ class GameStore(object):
             return
         pixbuf = get_pixbuf_for_game(game.slug, self.icon_type,
                                      is_installed=game.is_installed)
-        name = game.name.replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, str(game.year), game.runner_name,
+            (game.slug, game.name, pixbuf, str(game.year), game.runner_name,
              game.is_installed)
         )
 
-
-class GameView(object):
-    __gsignals__ = {
-        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
-        "filter-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
-    selected_game = None
-    current_path = None
-    contextual_menu = None
-
-    def connect_signals(self):
-        """Signal handlers common to all views"""
-        self.connect('filter-updated', self.update_filter)
-        self.connect('button-press-event', self.popup_contextual_menu)
-
-    @property
-    def n_games(self):
-        return len(self.game_store.store)
-
     def get_row_by_slug(self, game_slug):
         game_row = None
-        for model_row in self.game_store.store:
+        for model_row in self.store:
             if model_row[COL_ID] == game_slug:
                 game_row = model_row
         return game_row
 
-    def add_game(self, game):
-        self.game_store.add_game(game)
-
     def remove_game(self, removed_id):
         row = self.get_row_by_slug(removed_id)
         if row:
-            self.remove_row(row.iter)
-
-    def remove_row(self, model_iter):
-        """Remove a game from the view."""
-        store = self.game_store.store
-        store.remove(model_iter)
+            self.store.remove(row.iter)
 
     def set_installed(self, game):
         """Update a game row to show as installed"""
@@ -229,9 +228,6 @@ class GameView(object):
         row = self.get_row_by_slug(game_slug)
         row[COL_RUNNER] = ''
         self.update_image(game_slug, is_installed=False)
-
-    def update_filter(self, widget):
-        self.game_store.modelfilter.refilter()
 
     def update_row(self, game):
         """Update game informations.
@@ -251,8 +247,31 @@ class GameView(object):
                                               is_installed=is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
-            if type(self) is GameGridView:
-                GLib.idle_add(self.queue_draw)
+
+    def update_all_icons(self, icon_type):
+        for row in self.store:
+            row[COL_ICON] = get_pixbuf_for_game(row[COL_ID], icon_type,
+                                                is_installed=row[COL_INSTALLED])
+
+    def set_icon_type(self, icon_type):
+        if icon_type != self.icon_type:
+            self.icon_type = icon_type
+            self.update_all_icons(icon_type)
+            self.emit('icons-changed', icon_type)
+
+
+class GameView(object):
+    __gsignals__ = {
+        "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+    selected_game = None
+    current_path = None
+    contextual_menu = None
+
+    def connect_signals(self):
+        """Signal handlers common to all views"""
+        self.connect('button-press-event', self.popup_contextual_menu)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -269,7 +288,7 @@ class GameView(object):
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
         if view.current_path:
-            game_row = self.get_row_by_slug(self.selected_game)
+            game_row = self.store.get_row_by_slug(self.selected_game)
             self.contextual_menu.popup(event, game_row)
 
 
@@ -277,26 +296,27 @@ class GameListView(Gtk.TreeView, GameView):
     """Show the main list of games."""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
-        self.icon_type = icon_type
-        self.game_store = GameStore(games, icon_type=icon_type,
-                                    filter_text=filter_text,
-                                    filter_runner=filter_runner)
-        self.model = self.game_store.modelfilter.sort_new_with_model()
+    def __init__(self, store):
+        self.store = store
+        self.model = store.modelfilter.sort_new_with_model()
         super(GameListView, self).__init__(self.model)
-        self.set_rules_hint(True)
+        self.set_enable_search(False)
 
-        # Icon column
+        # Icon
         image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
-        column.set_reorderable(True)
-        self.append_column(column)
+        column = Gtk.TreeViewColumn(title='Name')
+        column.pack_start(image_cell, False)
+        column.set_attributes(image_cell, pixbuf=COL_ICON)
 
-        # Text columns
+        # Text
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
-        column = self.set_column(name_cell, "Name", COL_NAME)
+        column.pack_start(name_cell, True)
+        column.set_attributes(name_cell, text=COL_NAME)
+        column.set_sort_column_id(COL_NAME)
+        column.set_expand(True)
+        column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
         self.append_column(column)
         column = self.set_column(default_text_cell, "Year", COL_YEAR)
         self.append_column(column)
@@ -315,12 +335,11 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id):
-        column = Gtk.TreeViewColumn(header, cell, markup=column_id)
+    def set_column(self, cell, header, column_id, sort_id=None):
+        column = Gtk.TreeViewColumn(header, cell, text=column_id)
         column.set_sort_indicator(True)
-        column.set_sort_column_id(column_id)
-        column.set_resizable(True)
-        column.set_reorderable(True)
+        column.set_sort_column_id(sort_id if sort_id else column_id)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         return column
 
     def get_selected_game(self):
@@ -334,7 +353,7 @@ class GameListView(Gtk.TreeView, GameView):
         return model.get_value(select_iter, COL_ID)
 
     def set_selected_game(self, game_slug):
-        row = self.get_row_by_slug(game_slug)
+        row = self.store.get_row_by_slug(game_slug)
         if row:
             self.set_cursor(row.path)
 
@@ -349,40 +368,32 @@ class GameListView(Gtk.TreeView, GameView):
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
-    icon_padding = 1
 
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
-        self.icon_type = icon_type
-        self.game_store = GameStore(games, icon_type=icon_type,
-                                    filter_text=filter_text,
-                                    filter_runner=filter_runner)
-        self.model = self.game_store.modelfilter
+    def __init__(self, store):
+        self.store = store
+        self.model = store.modelfilter
         super(GameGridView, self).__init__(model=self.model)
-        self.set_columns(1)
         self.set_column_spacing(1)
+        self.set_item_padding(1)
+        self.set_spacing(1)
+        self.set_row_spacing(1)
         self.set_pixbuf_column(COL_ICON)
-        self.cell_width = BANNER_SIZE[0] if icon_type == "banner" \
-            else BANNER_SMALL_SIZE[0]
-        gridview_cell_renderer = GridViewCellRendererText(width=self.cell_width)
-        self.pack_end(gridview_cell_renderer, False)
-        self.add_attribute(gridview_cell_renderer, 'markup', COL_NAME)
-        self.set_item_padding(self.icon_padding)
+        width = BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0]
+        self.set_item_width(width)
+        self.gridview_cell_renderer = GridViewCellRendererText(width)
+        self.pack_end(self.gridview_cell_renderer, False)
+        self.add_attribute(self.gridview_cell_renderer, 'text', COL_NAME)
 
         self.connect_signals()
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
-        self.connect('size-allocate', self.on_size_allocate)
+        store.connect('icons-changed', self.on_icons_changed)
 
-    def set_fluid_columns(self, width):
-        cell_width = self.cell_width + self.icon_padding * 2
-        nb_columns = (width / cell_width)
-        self.set_columns(nb_columns)
-
-    def on_size_allocate(self, widget, rect):
-        """Recalculate the colum spacing based on total widget width."""
-        width = self.get_parent().get_allocated_width()
-        self.set_fluid_columns(width - 20)
-        self.do_size_allocate(widget, rect)
+    def on_icons_changed(self, store, icon_type):
+        width = BANNER_SIZE[0] if icon_type == "banner" else BANNER_SMALL_SIZE[0]
+        self.set_item_width(width)
+        self.gridview_cell_renderer.props.width = width
+        self.queue_draw()
 
     def get_selected_game(self):
         """Return the currently selected game's slug."""
@@ -394,7 +405,7 @@ class GameGridView(Gtk.IconView, GameView):
         return store.get(store.get_iter(self.current_path), COL_ID)[0]
 
     def set_selected_game(self, game_slug):
-        row = self.get_row_by_slug(game_slug)
+        row = self.store.get_row_by_slug(game_slug)
         if row:
             self.select_path(row.path)
 
@@ -585,10 +596,4 @@ class VBox(Gtk.VBox):
 
 class Dialog(Gtk.Dialog):
     def __init__(self, title=None, parent=None):
-        super(Dialog, self).__init__()
-        self.set_border_width(10)
-        if title:
-            self.set_title(title)
-        if parent:
-            self.set_transient_for(parent)
-        self.set_destroy_with_parent(True)
+        super(Dialog, self).__init__(title=title, parent=parent, use_header_bar=True)

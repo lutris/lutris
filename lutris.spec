@@ -13,23 +13,23 @@ BuildArch:      noarch
 
 %if 0%{?fedora_version}
 
-BuildRequires:  python-devel, pyxdg
+BuildRequires:  python-devel
 
-Requires:       pygobject3, pyxdg, PyYAML, gvfs, glib-networking
+Requires:       pygobject3, PyYAML, gvfs, glib-networking
 
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 
-BuildRequires:  python-devel, python3-xdg
+BuildRequires:  python-devel
 
-Requires:       pygobject3, python3-xdg, PyYAML, gvfs, glib-networking
+Requires:       pygobject3, PyYAML, gvfs, glib-networking
 
 %endif
 %if 0%{?suse_version}
 
-BuildRequires:  python-devel, python-xdg
+BuildRequires:  python-devel
 
-Requires:		python-gobject, python-gtk, python-xdg, python-PyYAML, gvfs-backends, glib-networking
+Requires:		python-gobject, python-gtk, python-PyYAML, gvfs-backends, glib-networking
 
 #!BuildIgnore: rpmlint-mini
 

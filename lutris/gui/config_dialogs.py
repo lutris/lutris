@@ -67,7 +67,16 @@ class GameDialogCommon(object):
 
     def build_notebook(self):
         self.notebook = Gtk.Notebook()
-        self.vbox.pack_start(self.notebook, True, True, 10)
+        self.vbox.pack_start(self.notebook, True, True, 0)
+
+    def build_adv_checkbox(self):
+        # Advanced settings checkbox
+        checkbox = Gtk.CheckButton(label="Show advanced options")
+        value = settings.read_setting('show_advanced_options')
+        if value == 'True':
+            checkbox.set_active(value)
+        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
+        self.vbox.pack_end(checkbox, False, False, 5)
 
     def add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
@@ -141,26 +150,13 @@ class GameDialogCommon(object):
         self.show_all()
 
     def build_action_area(self, label, button_callback):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
-
-        # Advanced settings checkbox
-        checkbox = Gtk.CheckButton(label="Show advanced options")
-        value = settings.read_setting('show_advanced_options')
-        if value == 'True':
-            checkbox.set_active(value)
-        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
-        self.action_area.pack_start(checkbox, False, False, 5)
-
         # Buttons
-        hbox = Gtk.HBox()
-        cancel_button = Gtk.Button(label="Cancel")
+        cancel_button = self.add_button("Cancel", Gtk.ResponseType.CANCEL)
         cancel_button.connect("clicked", self.on_cancel_clicked)
-        hbox.pack_start(cancel_button, True, True, 10)
 
-        button = Gtk.Button(label=label)
+        button = self.add_button(label, Gtk.ResponseType.APPLY)
+        self.set_default_response(Gtk.ResponseType.APPLY)
         button.connect("clicked", button_callback)
-        hbox.pack_start(button, True, True, 0)
-        self.action_area.pack_start(hbox, True, True, 0)
 
     def set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
@@ -263,17 +259,18 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.slug = None
 
         self.build_notebook()
+        self.build_adv_checkbox()
         self.build_tabs('game')
         self.build_action_area("Add", self.on_save)
         self.name_entry.grab_focus()
-        self.show_all()
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game):
         super(EditGameConfigDialog, self).__init__(
-            "Configure %s" % game.name
+            "Configure %s" % game.name,
+            parent=parent
         )
         self.game = game
         self.lutris_config = game.config
@@ -284,6 +281,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_notebook()
+        self.build_adv_checkbox()
         self.build_tabs('game')
         self.build_action_area("Edit", self.on_save)
         self.show_all()
@@ -304,6 +302,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_notebook()
+        self.build_adv_checkbox()
         self.build_tabs('runner')
         self.build_action_area("Edit", self.ok_clicked)
         self.show_all()
@@ -314,8 +313,8 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
-    def __init__(self):
-        super(SystemConfigDialog, self).__init__("System preferences")
+    def __init__(self, parent=None):
+        super(SystemConfigDialog, self).__init__("System preferences", parent=parent)
 
         self.game = None
         self.runner_name = None
@@ -324,6 +323,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.system_box = SystemBox(self.lutris_config)
+        self.build_adv_checkbox()
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.vbox.pack_start(self.system_sw, True, True, 0)
         self.build_action_area("Save", self.save_config)

@@ -1,12 +1,12 @@
 """Utility module for creating an application wide logger."""
 import logging
 import logging.handlers
-import xdg.BaseDirectory
+from gi.repository import GLib
 
 from os import makedirs
 from os.path import join, isdir, realpath
 
-CACHE_DIR = realpath(join(xdg.BaseDirectory.xdg_cache_home, "lutris"))
+CACHE_DIR = realpath(join(GLib.get_user_cache_dir(), "lutris"))
 if not isdir(CACHE_DIR):
     makedirs(CACHE_DIR)
 

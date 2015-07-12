@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class ="GtkPopoverMenu" id="account_menu_widget">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">160</property>
+        <child>
+          <object class="GtkLabel" id="connection_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">center</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="visible">True</property>
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="disconnect_btn">
+            <property name="visible">False</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Disconnect</property>
+            <signal name="clicked" handler="on_disconnect" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="register_btn">
+            <property name="visible">False</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Register</property>
+            <signal name="clicked" handler="on_register_account" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="connect_btn">
+            <property name="visible">False</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Connect</property>
+            <signal name="clicked" handler="on_connect" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton" id="sync_btn">
+            <property name="visible">False</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Syncronize Library</property>
+            <signal name="clicked" handler="on_synchronize_manually" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
