@@ -115,16 +115,19 @@ class ContextualMenu(Gtk.Menu):
 
     def popup(self, event, game_row):
         is_installed = game_row[COL_INSTALLED]
-        hide_when_installed = ('add', )
-        hide_when_not_installed = ('play', 'configure', 'desktop-shortcut',
-                                   'menu-shortcut', 'browse')
+        hiding_condition = {
+            'add': is_installed,
+            'play': not is_installed,
+            'configure': not is_installed,
+            'desktop-shortcut': not is_installed,
+            'menu-shortcut': not is_installed,
+            'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
+        }
 
         for menuitem in self.get_children():
             action = menuitem.action_id
-            if is_installed:
-                menuitem.set_visible(action not in hide_when_installed)
-            else:
-                menuitem.set_visible(action not in hide_when_not_installed)
+            visible = not hiding_condition.get(action)
+            menuitem.set_visible(visible)
 
         super(ContextualMenu, self).popup(None, None, None, None,
                                           event.button, event.time)
