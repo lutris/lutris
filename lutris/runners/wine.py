@@ -302,7 +302,7 @@ class wine(Runner):
 
         self.context_menu_entries = [
             ('winecfg', "Wine configuration", self.run_winecfg),
-            ('wine-regedit', "Edit Wine registry", self.run_regedit)
+            ('wine-regedit', "Wine registry", self.run_regedit)
         ]
 
         desktop_choices = [('Yes', 'Desktop_res'),
