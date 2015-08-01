@@ -33,6 +33,7 @@ class Runner(object):
     platform = NotImplemented
     game_options = []
     runner_options = []
+    context_menu_entries = []
 
     def __init__(self, config=None):
         """Initialize runner."""

@@ -1,7 +1,6 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
-import subprocess
 import time
 
 from gi.repository import Gtk, Gdk, GLib
@@ -124,17 +123,17 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(False)
 
         # Contextual menu
-        menu_callbacks = [
-            ('play', self.on_game_clicked),
-            ('install', self.on_install_clicked),
-            ('add', self.add_manually),
-            ('configure', self.edit_game_configuration),
-            ('browse', self.on_browse_files),
-            ('desktop-shortcut', self.create_desktop_shortcut),
-            ('menu-shortcut', self.create_menu_shortcut),
-            ('remove', self.on_remove_game),
+        main_entries = [
+            ('play', "Play", self.on_game_clicked),
+            ('install', "Install", self.on_install_clicked),
+            ('add', "Add manually", self.add_manually),
+            ('configure', "Configure", self.edit_game_configuration),
+            ('browse', "Browse files", self.on_browse_files),
+            ('desktop-shortcut', "Create desktop shortcut", self.create_desktop_shortcut),
+            ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
+            ('remove', "Remove", self.on_remove_game),
         ]
-        self.menu = ContextualMenu(menu_callbacks)
+        self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
 
         # Timer

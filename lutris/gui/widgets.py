@@ -8,6 +8,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
+from lutris.runners import import_runner
 from lutris.util import datapath
 # from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -89,31 +90,39 @@ def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
 
 
 class ContextualMenu(Gtk.Menu):
-    menu_labels = {
-        'play': "Play",
-        'install': "Install",
-        'add': "Add manually",
-        'configure': "Configure",
-        'browse': "Browse files",
-        'desktop-shortcut': "Create desktop shortcut",
-        'menu-shortcut': "Create application menu shortcut",
-        'remove': "Remove",
-    }
-
-    def __init__(self, callbacks):
+    def __init__(self, main_entries):
         super(ContextualMenu, self).__init__()
-        for callback in callbacks:
-            name = callback[0]
-            label = self.menu_labels[name]
+        self.main_entries = main_entries
+
+    def add_menuitems(self, entries):
+        for entry in entries:
+            name = entry[0]
+            label = entry[1]
             action = Gtk.Action(name=name, label=label,
                                 tooltip=None, stock_id=None)
-            action.connect('activate', callback[1])
+            action.connect('activate', entry[2])
             menuitem = action.create_menu_item()
             menuitem.action_id = name
             self.append(menuitem)
-        self.show_all()
 
     def popup(self, event, game_row):
+        # Clear existing menu
+        for item in self.get_children():
+            self.remove(item)
+
+        # Main items
+        self.add_menuitems(self.main_entries)
+        # Runner specific items
+        runner_entries = None
+        if game_row[COL_RUNNER]:
+            runner = import_runner(game_row[COL_RUNNER])()
+            runner_entries = runner.context_menu_entries
+        if runner_entries:
+            self.append(Gtk.SeparatorMenuItem())
+            self.add_menuitems(runner_entries)
+        self.show_all()
+
+        # Hide some items
         is_installed = game_row[COL_INSTALLED]
         hiding_condition = {
             'add': is_installed,
@@ -123,8 +132,9 @@ class ContextualMenu(Gtk.Menu):
             'menu-shortcut': not is_installed,
             'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
         }
-
         for menuitem in self.get_children():
+            if type(menuitem) is not Gtk.ImageMenuItem:
+                continue
             action = menuitem.action_id
             visible = not hiding_condition.get(action)
             menuitem.set_visible(visible)
@@ -271,6 +281,7 @@ class GameView(object):
         except ValueError:
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
+
         if view.current_path:
             game_row = self.get_row_by_slug(self.selected_game)
             self.contextual_menu.popup(event, game_row)
