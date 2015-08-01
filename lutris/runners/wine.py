@@ -109,6 +109,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=True):
+    """Execute winetricks."""
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
@@ -118,6 +119,25 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True):
         args = app
     wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
              wine_path='winetricks', arch=arch, args=args)
+
+
+def winecfg(wine_path=None, prefix=None):
+    """Execute winecfg."""
+    if not wine_path:
+        wine_path = wine().get_executable()
+
+    winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
+
+    env = []
+    if prefix:
+        env.append('WINEPREFIX="%s" ' % prefix)
+
+    if settings.RUNNER_DIR in wine_path:
+        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
+        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
+
+    command = '{0} "{1}"'.format(' '.join(env), winecfg_path)
+    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
 def detect_prefix_arch(directory=None):
@@ -279,6 +299,11 @@ class wine(Runner):
             [('System (%s)' % self.system_wine_version, 'system')] + \
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in get_wine_versions()]
+
+        self.context_menu_entries = [
+            ('winecfg', "Wine configuration", self.run_winecfg),
+            ('wine-regedit', "Edit Wine registry", self.run_regedit)
+        ]
 
         desktop_choices = [('Yes', 'Desktop_res'),
                            ('No', 'off')]
@@ -519,6 +544,13 @@ class wine(Runner):
             msi_args += " /q"
         return wineexec("msiexec", args=msi_args, prefix=prefix,
                         wine_path=wine_path)
+
+    def run_winecfg(self, *args):
+        winecfg(wine_path=self.get_executable(), prefix=self.prefix_path)
+
+    def run_regedit(self, *args):
+        wineexec("regedit", wine_path=self.get_executable(),
+                 prefix=self.prefix_path)
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
