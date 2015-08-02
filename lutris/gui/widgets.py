@@ -10,6 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
 from lutris.runners import import_runner
+from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util import datapath
 # from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -107,6 +108,9 @@ class ContextualMenu(Gtk.Menu):
             self.append(menuitem)
 
     def popup(self, event, game_row):
+        game_slug = game_row[COL_ID]
+        runner_slug = game_row[COL_RUNNER]
+
         # Clear existing menu
         for item in self.get_children():
             self.remove(item)
@@ -115,10 +119,9 @@ class ContextualMenu(Gtk.Menu):
         self.add_menuitems(self.main_entries)
         # Runner specific items
         runner_entries = None
-        runner_slug = game_row[COL_RUNNER]
         if runner_slug:
             game_config = LutrisConfig(runner_slug=runner_slug,
-                                       game_slug=game_row[COL_ID])
+                                       game_slug=game_slug)
             runner = import_runner(runner_slug)(game_config)
             runner_entries = runner.context_menu_entries
         if runner_entries:
@@ -132,8 +135,10 @@ class ContextualMenu(Gtk.Menu):
             'add': is_installed,
             'play': not is_installed,
             'configure': not is_installed,
-            'desktop-shortcut': not is_installed,
-            'menu-shortcut': not is_installed,
+            'desktop-shortcut': not is_installed or desktop_launcher_exists(game_slug),
+            'menu-shortcut': not is_installed or menu_launcher_exists(game_slug),
+            'rm-desktop-shortcut': not is_installed or not desktop_launcher_exists(game_slug),
+            'rm-menu-shortcut': not is_installed or not menu_launcher_exists(game_slug),
             'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
         }
         for menuitem in self.get_children():

@@ -5,9 +5,8 @@ import time
 
 from gi.repository import Gtk, Gdk, GLib
 
-from lutris import api, pga, settings
+from lutris import api, pga, settings, shortcuts
 from lutris.game import Game, get_game_list
-from lutris.shortcuts import create_launcher
 from lutris.sync import Sync
 
 from lutris.util import runtime
@@ -130,7 +129,9 @@ class LutrisWindow(object):
             ('configure', "Configure", self.edit_game_configuration),
             ('browse', "Browse files", self.on_browse_files),
             ('desktop-shortcut', "Create desktop shortcut", self.create_desktop_shortcut),
+            ('rm-desktop-shortcut', "Remove desktop shortcut", self.remove_desktop_shortcut),
             ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
+            ('rm-menu-shortcut', "Remove application menu shortcut", self.remove_menu_shortcut),
             ('remove', "Remove", self.on_remove_game),
         ]
         self.menu = ContextualMenu(main_entries)
@@ -538,15 +539,24 @@ class LutrisWindow(object):
     def create_menu_shortcut(self, *args):
         """Add the game to the system's Games menu."""
         game_slug = slugify(self.view.selected_game)
-        create_launcher(game_slug, menu=True)
+        game_name = Game(game_slug).name
+        shortcuts.create_launcher(game_slug, game_name, menu=True)
         dialogs.NoticeDialog(
             "Shortcut added to the Games category of the global menu.")
 
     def create_desktop_shortcut(self, *args):
         """Add the game to the system's Games menu."""
         game_slug = slugify(self.view.selected_game)
-        create_launcher(game_slug, desktop=True)
-        dialogs.NoticeDialog('Shortcut created on your desktop.')
+        game_name = Game(game_slug).name
+        shortcuts.create_launcher(game_slug, game_name, desktop=True)
+
+    def remove_menu_shortcut(self, *args):
+        game_slug = slugify(self.view.selected_game)
+        shortcuts.remove_launcher(game_slug, menu=True)
+
+    def remove_desktop_shortcut(self, *args):
+        game_slug = slugify(self.view.selected_game)
+        shortcuts.remove_launcher(game_slug, desktop=True)
 
     def toggle_sidebar(self):
         if self.sidebar_viewport.is_visible():
