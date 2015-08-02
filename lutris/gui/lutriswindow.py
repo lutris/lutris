@@ -537,15 +537,13 @@ class LutrisWindow(object):
         self.switch_view(self.current_view_type)
 
     def create_menu_shortcut(self, *args):
-        """Add the game to the system's Games menu."""
+        """Add the selected game to the system's Games menu."""
         game_slug = slugify(self.view.selected_game)
         game_name = Game(game_slug).name
         shortcuts.create_launcher(game_slug, game_name, menu=True)
-        dialogs.NoticeDialog(
-            "Shortcut added to the Games category of the global menu.")
 
     def create_desktop_shortcut(self, *args):
-        """Add the game to the system's Games menu."""
+        """Create a desktop launcher for the selected game."""
         game_slug = slugify(self.view.selected_game)
         game_name = Game(game_slug).name
         shortcuts.create_launcher(game_slug, game_name, desktop=True)
