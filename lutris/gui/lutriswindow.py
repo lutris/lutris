@@ -129,9 +129,9 @@ class LutrisWindow(object):
             ('configure', "Configure", self.edit_game_configuration),
             ('browse', "Browse files", self.on_browse_files),
             ('desktop-shortcut', "Create desktop shortcut", self.create_desktop_shortcut),
-            ('rm-desktop-shortcut', "Remove desktop shortcut", self.remove_desktop_shortcut),
+            ('rm-desktop-shortcut', "Delete desktop shortcut", self.remove_desktop_shortcut),
             ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
-            ('rm-menu-shortcut', "Remove application menu shortcut", self.remove_menu_shortcut),
+            ('rm-menu-shortcut', "Delete application menu shortcut", self.remove_menu_shortcut),
             ('remove', "Remove", self.on_remove_game),
         ]
         self.menu = ContextualMenu(main_entries)
