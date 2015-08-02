@@ -225,7 +225,7 @@ class InstallerDialog(Gtk.Window):
         self.set_location_entry(None, 'file', default_path=path)
 
     def on_file_selected(self, widget):
-        file_path = self.location_entry.get_text()
+        file_path = os.path.expanduser(self.location_entry.get_text())
         if os.path.isfile(file_path):
             self.selected_directory = os.path.dirname(file_path)
         else:
