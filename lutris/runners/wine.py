@@ -302,7 +302,8 @@ class wine(Runner):
 
         self.context_menu_entries = [
             ('winecfg', "Wine configuration", self.run_winecfg),
-            ('wine-regedit', "Wine registry", self.run_regedit)
+            ('wine-regedit', "Wine registry", self.run_regedit),
+            ('winetricks', 'Winetricks', self.run_winetricks),
         ]
 
         desktop_choices = [('Yes', 'Desktop_res'),
@@ -551,6 +552,10 @@ class wine(Runner):
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(),
                  prefix=self.prefix_path)
+
+    def run_winetricks(self, *args):
+        winetricks('', prefix=self.prefix_path,
+                   winetricks_env=self.get_executable())
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
