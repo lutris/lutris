@@ -229,6 +229,7 @@ class InstallerDialog(Gtk.Window):
         if os.path.isfile(file_path):
             self.selected_directory = os.path.dirname(file_path)
         else:
+            logger.warning('%s is not a file', file_path)
             return
         self.interpreter.file_selected(file_path)
 
