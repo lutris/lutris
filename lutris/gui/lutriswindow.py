@@ -500,15 +500,17 @@ class LutrisWindow(object):
 
     def edit_game_configuration(self, _button):
         """Edit game preferences."""
+        def on_dialog_saved():
+            game = Game(dialog.slug)
+            self.view.remove_game(game_slug)
+            self.view.add_game(game)
+            self.view.set_selected_game(game_slug)
+            self.sidebar_treeview.update()
+
         game = Game(self.view.selected_game)
         game_slug = game.slug
         if game.is_installed:
-            dialog = EditGameConfigDialog(self, game)
-            if dialog.saved:
-                game = Game(dialog.slug)
-                self.view.remove_game(game_slug)
-                self.view.add_game(game)
-                self.view.set_selected_game(game_slug)
+            dialog = EditGameConfigDialog(self, game, on_dialog_saved)
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'grid' if menuitem.get_active() else 'list'

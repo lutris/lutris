@@ -140,7 +140,7 @@ class GameDialogCommon(object):
         self.build_system_tab('game')
         self.show_all()
 
-    def build_action_area(self, label, button_callback):
+    def build_action_area(self, label, button_callback, callback2=None):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
 
         # Advanced settings checkbox
@@ -158,7 +158,7 @@ class GameDialogCommon(object):
         hbox.pack_start(cancel_button, True, True, 10)
 
         button = Gtk.Button(label=label)
-        button.connect("clicked", button_callback)
+        button.connect("clicked", button_callback, callback2)
         hbox.pack_start(button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
@@ -214,7 +214,7 @@ class GameDialogCommon(object):
             return False
         return True
 
-    def on_save(self, _button):
+    def on_save(self, _button, callback=None):
         """Save game info and destroy widget. Return True if success."""
         if not self.is_valid():
             return False
@@ -243,6 +243,8 @@ class GameDialogCommon(object):
         self.destroy()
         logger.debug("Saved %s", name)
         self.saved = True
+        if callback:
+            callback()
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
@@ -271,7 +273,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
-    def __init__(self, parent, game):
+    def __init__(self, parent, game, callback):
         super(EditGameConfigDialog, self).__init__(
             "Configure %s" % game.name
         )
@@ -279,13 +281,12 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.lutris_config = game.config
         self.slug = game.slug
         self.runner_name = game.runner_name
-        self.saved = False
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_notebook()
         self.build_tabs('game')
-        self.build_action_area("Edit", self.on_save)
+        self.build_action_area("Edit", self.on_save, callback)
         self.show_all()
 
 
