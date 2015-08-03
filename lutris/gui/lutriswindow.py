@@ -140,12 +140,13 @@ class LutrisWindow(object):
         # Timer
         self.timer_id = GLib.timeout_add(2000, self.refresh_status)
 
+        # Sidebar
         sidebar_paned = self.builder.get_object('sidebar_paned')
         sidebar_paned.set_position(150)
-        sidebar_treeview = SidebarTreeView()
-        sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
+        self.sidebar_treeview = SidebarTreeView()
+        self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
-        self.sidebar_viewport.add(sidebar_treeview)
+        self.sidebar_viewport.add(self.sidebar_treeview)
 
         # Window initialization
         self.window = self.builder.get_object("window")
@@ -247,6 +248,7 @@ class LutrisWindow(object):
         def set_library_synced(result, error):
             self.set_status("Library synced")
             self.switch_splash_screen()
+            self.sidebar_treeview.update()
         self.set_status("Syncing library")
         sync = Sync()
         async_call(
@@ -436,6 +438,7 @@ class LutrisWindow(object):
 
     def on_game_installed(self, view, slug):
         view.set_installed(Game(slug))
+        self.sidebar_treeview.update()
 
     def on_image_downloaded(self, game_slug):
         is_installed = Game(game_slug).is_installed
@@ -447,6 +450,7 @@ class LutrisWindow(object):
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.view.set_installed(game)
+            self.sidebar_treeview.update()
 
     def on_view_game_log_activate(self, widget):
         if not self.running_game:
@@ -471,6 +475,7 @@ class LutrisWindow(object):
         def do_add_game():
             self.view.add_game(game)
             self.switch_splash_screen()
+            self.sidebar_treeview.update()
         GLib.idle_add(do_add_game)
 
     def on_remove_game(self, _widget, _data=None):
@@ -482,11 +487,13 @@ class LutrisWindow(object):
         def do_remove_game():
             self.view.remove_game(game_slug)
             self.switch_splash_screen()
+            self.sidebar_treeview.update()
 
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_slug, is_installed=False)
+            self.sidebar_treeview.update()
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
