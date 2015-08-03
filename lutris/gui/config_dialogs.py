@@ -101,6 +101,7 @@ class GameDialogCommon(object):
     def build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
+            self.game.runner = runners.import_runner(self.runner_name)
             self.game_box = GameBox(self.lutris_config, self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
@@ -195,7 +196,7 @@ class GameDialogCommon(object):
             self.runner_name = widget.get_model()[runner_index][1]
             # XXX DANGER ZONE
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              level='game')
+                                              game_slug=self.game.slug)
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)
