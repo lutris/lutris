@@ -72,3 +72,9 @@ def get_games(slugs):
     game_set = ';'.join(slugs)
     url = settings.SITE_URL + "api/game/%s/" % game_set
     return http.download_json(url, params="?format=json")['objects']
+
+
+def get_runners(runner_name):
+    api_url = "https://lutris.net/api/runners/" + runner_name
+    response = http.Request(api_url).get()
+    return response.json
