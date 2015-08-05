@@ -310,7 +310,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.build_action_area("Edit", self.ok_clicked)
         self.show_all()
 
-    def ok_clicked(self, _wigdet):
+    def ok_clicked(self, wigdet, data=None):
         self.lutris_config.save()
         self.destroy()
 

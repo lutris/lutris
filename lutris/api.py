@@ -70,5 +70,5 @@ def get_games(slugs):
     :rtype: list of dicts"""
     logger.debug("Fetching game set")
     game_set = ';'.join(slugs)
-    url = settings.SITE_URL + "api/v1/game/set/%s/" % game_set
+    url = settings.SITE_URL + "api/game/%s/" % game_set
     return http.download_json(url, params="?format=json")['objects']
