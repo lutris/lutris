@@ -195,8 +195,9 @@ class GameDialogCommon(object):
         else:
             self.runner_name = widget.get_model()[runner_index][1]
             # XXX DANGER ZONE
+            game_slug = self.game.slug if self.game else None
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              game_slug=self.game.slug)
+                                              game_slug=game_slug)
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)
