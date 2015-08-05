@@ -456,7 +456,7 @@ class LutrisWindow(object):
         if not self.running_game:
             dialogs.ErrorDialog('No game log available')
             return
-        log_title = "Log for {}".format(self.running_game)
+        log_title = u"Log for {}".format(self.running_game)
         log_window = LogWindow(log_title, self.window)
         log_window.logtextview.set_text(self.running_game.game_log)
 
