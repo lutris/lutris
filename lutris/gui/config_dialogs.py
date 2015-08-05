@@ -277,7 +277,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
         super(EditGameConfigDialog, self).__init__(
-            "Configure %s" % game.name
+            "Configure %s" % game.name, parent
         )
         self.game = game
         self.lutris_config = game.config

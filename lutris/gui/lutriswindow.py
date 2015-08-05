@@ -519,7 +519,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         game_slug = game.slug
         if game.is_installed:
-            dialog = EditGameConfigDialog(self, game, on_dialog_saved)
+            dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'grid' if menuitem.get_active() else 'list'
