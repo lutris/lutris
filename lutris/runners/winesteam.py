@@ -50,7 +50,6 @@ class winesteam(wine.wine):
     multiple_versions = False
     human_name = "Wine Steam"
     platform = "Steam for Windows"
-    is_watchable = False  # Steam games pids are not parent of Lutris
     game_options = [
         {
             'option': 'appid',

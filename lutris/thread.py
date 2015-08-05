@@ -14,12 +14,12 @@ from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.system import find_executable
 
-HEARTBEAT_DELAY = 1000  # Number of milliseconds between each heartbeat
+HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
-    debug_output = False
+    debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
         """Thread init"""
@@ -35,6 +35,7 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
+        self.max_cycles_without_children = 40
 
         if self.runner:
             self.path = runner.working_dir
@@ -120,13 +121,16 @@ class LutrisThread(threading.Thread):
 
     def stop(self, killall=False):
         for thread in self.attached_threads:
+            logger.debug("Stopping thread %s", thread)
             thread.stop()
         if hasattr(self, 'stop_func'):
+            logger.debug("Calling custom stop function %s", self.stop_func)
             self.stop_func()
-            if not killall:
-                return
+        if not killall:
+            return
         for process in self.iter_children(Process(self.rootpid),
                                           topdown=False):
+            logger.debug("Killing process %s", process)
             process.kill()
 
     def watch_children(self):
@@ -142,16 +146,19 @@ class LutrisThread(threading.Thread):
                               'steamerrorrepor'):
                 continue
             num_watched_children += 1
-            print "{}\t{}\t{}".format(child.pid,
-                                      child.state,
-                                      child.name)
+            logger.debug("{}\t{}\t{}".format(child.pid,
+                                             child.state,
+                                             child.name))
             if child.state == 'Z':
                 terminated_children += 1
         if terminated_children and terminated_children == num_watched_children:
+            logger.debug("All children terminated")
             self.game_process.wait()
         if num_watched_children == 0:
             self.cycles_without_children += 1
-        if num_children == 0 or self.cycles_without_children >= 3:
+        if(num_children == 0
+           or self.cycles_without_children >= self.max_cycles_without_children):
+            logger.debug("No children left in thread, exiting")
             self.is_running = False
             return False
         return True

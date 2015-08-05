@@ -220,9 +220,7 @@ class Game(object):
         xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
-        if self.runner.is_watchable:
-            # Create heartbeat every
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def joy2key(self, config):
         """Run a joy2key thread."""
@@ -264,6 +262,7 @@ class Game(object):
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
+            logger.debug("Thread not running anymore or killswitch activated")
             self.on_game_quit()
             return False
         return True

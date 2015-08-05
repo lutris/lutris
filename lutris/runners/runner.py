@@ -24,7 +24,6 @@ def get_arch():
 class Runner(object):
     """Generic runner (base class for other runners)."""
 
-    is_watchable = True  # Is the game's pid a parent of Lutris ?
     multiple_versions = False
     tarballs = {
         'i386': None,
