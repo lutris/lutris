@@ -1,15 +1,15 @@
 import os
-from lutris.util.http import Request
 from gi.repository import Gtk, GObject, GLib
+from lutris.util.log import logger
 from lutris.gui.widgets import Dialog
 from lutris.util import system
 from lutris.util.extract import extract_archive
+from lutris import api
 from lutris import settings
 from lutris.downloader import Downloader
 
 
 class RunnerInstallDialog(Dialog):
-    BASE_API_URL = "https://lutris.net/api/runners/"
     COL_VER = 0
     COL_ARCH = 1
     COL_URL = 2
@@ -17,9 +17,11 @@ class RunnerInstallDialog(Dialog):
     COL_PROGRESS = 4
 
     def __init__(self, title, parent, runner):
-        super(RunnerInstallDialog, self).__init__(title, parent)
+        super(RunnerInstallDialog, self).__init__(
+            title, parent, 0, (Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        )
         self.runner = runner
-        self.runner_info = self.get_runner_info()
+        self.runner_info = api.get_runners(self.runner)
         label = Gtk.Label("%s version management" % self.runner_info['name'])
         self.vbox.add(label)
         self.runner_store = self.get_store()
@@ -27,11 +29,6 @@ class RunnerInstallDialog(Dialog):
 
         self.vbox.add(self.treeview)
         self.show_all()
-
-    def get_runner_info(self):
-        api_url = self.BASE_API_URL + self.runner
-        response = Request(api_url).get()
-        return response.json
 
     def get_treeview(self, model):
         treeview = Gtk.TreeView(model=model)
@@ -113,6 +110,7 @@ class RunnerInstallDialog(Dialog):
     def install_runner(self, path):
         row = self.runner_store[path]
         url = row[2]
+        logger.debug("Downloading %s", url)
         dest_path = self.get_dest_path(path)
         downloader = Downloader(url, dest_path)
         self.download_timer = GLib.timeout_add(100, self.get_progress,

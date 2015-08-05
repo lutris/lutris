@@ -242,7 +242,8 @@ def check_for_file(game, file_id):
     return False
 
 
-def get_runners():
+def get_used_runners():
+    """Return a list of the runners in use by installed games."""
     with sql.db_cursor(PGA_DB) as cursor:
         query = ("select distinct runner from games "
                  "where runner is not null order by runner")

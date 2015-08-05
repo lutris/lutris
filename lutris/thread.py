@@ -41,13 +41,22 @@ class LutrisThread(threading.Thread):
         else:
             self.path = '/tmp/'
 
+        self.env_string = ''
+        for (k, v) in self.env.iteritems():
+            self.env_string += '%s="%s" ' % (k, v)
+
+        self.command_string = ' '.join(
+            ['"%s"' % token for token in self.command]
+        )
+
     def attach_thread(self, thread):
         """Attach child process that need to be killed on game exit"""
         self.attached_threads.append(thread)
 
     def run(self):
         """Run the thread"""
-        logger.debug("Running command: %s", ' '.join(self.command))
+        logger.debug("Command env: " + self.env_string)
+        logger.debug("Running command: " + self.command_string)
         GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         if self.terminal and find_executable(self.terminal):
@@ -66,25 +75,21 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
-        env_string = ''
-        for (k, v) in self.env.iteritems():
-            env_string += '%s="%s" ' % (k, v)
 
         # Write command in a script file.
         '''Running it from a file is likely the only way to set env vars only
         for the command (not for the terminal app).
         It also permits the only reliable way to keep the term open when the
         game is exited.'''
-        command_string = ['"%s"' % token for token in self.command]
         file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
         with open(file_path, 'w') as f:
             f.write(dedent(
                 """\
-                    #!/bin/sh
-                    cd "%s"
-                    %s %s
-                    exec sh # Keep term open
-                    """ % (self.path, env_string, ' '.join(command_string))
+                #!/bin/sh
+                cd "%s"
+                %s %s
+                exec sh # Keep term open
+                """ % (self.path, self.env_string, self.command_string)
             ))
             os.chmod(file_path, 0744)
 
@@ -120,7 +125,8 @@ class LutrisThread(threading.Thread):
             self.stop_func()
             if not killall:
                 return
-        for process in self.iter_children(Process(self.rootpid), topdown=False):
+        for process in self.iter_children(Process(self.rootpid),
+                                          topdown=False):
             process.kill()
 
     def watch_children(self):

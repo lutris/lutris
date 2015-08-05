@@ -10,7 +10,7 @@ from lutris.util import display, system
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.39-i686'
+DEFAULT_WINE = '1.7.48-i686'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -109,6 +109,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=True):
+    """Execute winetricks."""
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
@@ -118,6 +119,25 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True):
         args = app
     wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
              wine_path='winetricks', arch=arch, args=args)
+
+
+def winecfg(wine_path=None, prefix=None):
+    """Execute winecfg."""
+    if not wine_path:
+        wine_path = wine().get_executable()
+
+    winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
+
+    env = []
+    if prefix:
+        env.append('WINEPREFIX="%s" ' % prefix)
+
+    if settings.RUNNER_DIR in wine_path:
+        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
+        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
+
+    command = '{0} "{1}"'.format(' '.join(env), winecfg_path)
+    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
 
 
 def detect_prefix_arch(directory=None):
@@ -280,6 +300,12 @@ class wine(Runner):
             [('Custom (select executable below)', 'custom')] + \
             [(version, version) for version in get_wine_versions()]
 
+        self.context_menu_entries = [
+            ('winecfg', "Wine configuration", self.run_winecfg),
+            ('wine-regedit', "Wine registry", self.run_regedit),
+            ('winetricks', 'Winetricks', self.run_winetricks),
+        ]
+
         desktop_choices = [('Yes', 'Desktop_res'),
                            ('No', 'off')]
         mwo_choices = [('Enable', 'enable'),
@@ -334,11 +360,6 @@ class wine(Runner):
                 'default': '800x600',
                 'help': ("The size of the virtual desktop in pixels.")
             },
-            # {
-            #     'option': 'cdrom_path',
-            #     'label': 'CDRom mount point',
-            #     'type': 'directory_chooser'
-            # },
             {
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
@@ -348,8 +369,8 @@ class wine(Runner):
                 'advanced': True,
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
-                    "<b>Enable</b>: (Wine default) warp the pointer when the mouse"
-                    " is exclusively acquired \n"
+                    "<b>Enable</b>: (Wine default) warp the pointer when the "
+                    "mouse is exclusively acquired \n"
                     "<b>Disable</b>: never warp the mouse pointer \n"
                     "<b>Force</b>: always warp the pointer"
                 )
@@ -362,8 +383,8 @@ class wine(Runner):
                 'default': 'fbo',
                 'advanced': True,
                 'help': ("Select the offscreen rendering implementation.\n"
-                         "<b>FBO</b>: (Wine default) Use framebuffer objects for "
-                         "offscreen rendering \n"
+                         "<b>FBO</b>: (Wine default) Use framebuffer objects "
+                         "for offscreen rendering \n"
                          "<b>Backbuffer</b>: Render offscreen render targets "
                          "in the backbuffer.")
             },
@@ -388,8 +409,8 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, writes "
-                    "by drawing a textured quad \n"
+                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
+                    "writes by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },
@@ -491,25 +512,12 @@ class wine(Runner):
                 return True
             else:
                 return False
-                # dialogs.ErrorDialog(
-                #    "Wine is not installed on your system.\n"
-                #    "Let's fall back on Wine " + DEFAULT_WINE +
-                #    " bundled with Lutris, alright?\n\n"
-                #    "(To get rid of this message, either install Wine \n"
-                #    "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
             custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
                 return False
-                # dialogs.ErrorDialog(
-                #    "Your custom Wine version can't be launched.\n"
-                #    "Let's fall back on Wine " + DEFAULT_WINE +
-                #    " bundled with Lutris, alright? \n\n"
-                #    "(To get rid of this message, fix your "
-                #    "Custom Wine path \n"
-                #    "or change the Wine version in the game's configuration.)")
         return os.path.exists(self.get_executable())
 
     @classmethod
@@ -519,6 +527,17 @@ class wine(Runner):
             msi_args += " /q"
         return wineexec("msiexec", args=msi_args, prefix=prefix,
                         wine_path=wine_path)
+
+    def run_winecfg(self, *args):
+        winecfg(wine_path=self.get_executable(), prefix=self.prefix_path)
+
+    def run_regedit(self, *args):
+        wineexec("regedit", wine_path=self.get_executable(),
+                 prefix=self.prefix_path)
+
+    def run_winetricks(self, *args):
+        winetricks('', prefix=self.prefix_path,
+                   winetricks_env=self.get_executable())
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""

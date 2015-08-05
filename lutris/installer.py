@@ -225,7 +225,7 @@ class ScriptInterpreter(object):
                 os.remove(dest_file)
 
         # Change parent's status
-        self.parent.set_status('Fetching %s' % file_uri)
+        self.parent.set_status('')
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file)
 
@@ -355,7 +355,7 @@ class ScriptInterpreter(object):
                           slug=self.game_slug,
                           directory=self.target_path,
                           installed=1,
-                          installer_slug=self.script.get('installer_slug'),
+                          installer_slug=self.script.get('slug'),
                           year=self.script.get('year'),
                           steamid=self.script.get('steamid'))
 

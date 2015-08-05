@@ -4,26 +4,26 @@ import stat
 import shutil
 import subprocess
 
+from textwrap import dedent
 from xdg import BaseDirectory
 
-from lutris.game import Game
 from lutris.settings import CACHE_DIR
 
 
-def create_launcher(game_slug, desktop=False, menu=False):
-    """ Create desktop file """
-    game = Game(game_slug)
-
+def create_launcher(game_slug, game_name, desktop=False, menu=False):
+    """Create .desktop file."""
     desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
                                    stdout=subprocess.PIPE).communicate()[0]
     desktop_dir = desktop_dir.strip()
-    launcher_content = """[Desktop Entry]
-Type=Application
-Name=%s
-Icon=%s
-Exec=lutris lutris:%s
-Categories=Game
-""" % (game.name, 'lutris_' + game_slug, game_slug)
+    launcher_content = dedent(
+        """
+        [Desktop Entry]
+        Type=Application
+        Name=%s
+        Icon=%s
+        Exec=lutris lutris:%s
+        Categories=Game
+        """ % (game_name, 'lutris_' + game_slug, game_slug))
 
     launcher_filename = "%s.desktop" % game_slug
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
@@ -41,3 +41,43 @@ Categories=Game
         shutil.copy(tmp_launcher_path,
                     os.path.join(menu_path, launcher_filename))
     os.remove(tmp_launcher_path)
+
+
+def desktop_launcher_exists(game_slug):
+    filename = "%s.desktop" % game_slug
+
+    desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
+                                   stdout=subprocess.PIPE).communicate()[0]
+    desktop_dir = desktop_dir.strip()
+    file_path = os.path.join(desktop_dir, filename)
+    if os.path.exists(file_path):
+        return True
+    return False
+
+
+def menu_launcher_exists(game_slug):
+    filename = "%s.desktop" % game_slug
+    menu_path = os.path.join(BaseDirectory.xdg_data_home, 'applications')
+    file_path = os.path.join(menu_path, filename)
+    if os.path.exists(file_path):
+        return True
+    return False
+
+
+def remove_launcher(game_slug, desktop=False, menu=False):
+    """Remove existing .desktop file."""
+    filename = "%s.desktop" % game_slug
+
+    if desktop:
+        desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
+                                       stdout=subprocess.PIPE).communicate()[0]
+        desktop_dir = desktop_dir.strip()
+        file_path = os.path.join(desktop_dir, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    if menu:
+        menu_path = os.path.join(BaseDirectory.xdg_data_home, 'applications')
+        file_path = os.path.join(menu_path, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)

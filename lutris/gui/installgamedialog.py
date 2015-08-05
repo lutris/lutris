@@ -3,7 +3,7 @@ import time
 from gi.repository import Gtk
 import yaml
 
-from lutris import installer
+from lutris import installer, settings, shortcuts
 from lutris.game import Game
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.util.log import logger
@@ -225,10 +225,11 @@ class InstallerDialog(Gtk.Window):
         self.set_location_entry(None, 'file', default_path=path)
 
     def on_file_selected(self, widget):
-        file_path = self.location_entry.get_text()
+        file_path = os.path.expanduser(self.location_entry.get_text())
         if os.path.isfile(file_path):
             self.selected_directory = os.path.dirname(file_path)
         else:
+            logger.warning('%s is not a file', file_path)
             return
         self.interpreter.file_selected(file_path)
 
@@ -312,13 +313,31 @@ class InstallerDialog(Gtk.Window):
     def on_install_finished(self):
         """Actual game installation"""
         self.status_label.set_text("Installation finished !")
-        self.clean_widgets()
         self.notify_install_success()
+        self.clean_widgets()
+
+        # Shortcut checkboxes
+        self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut")
+        self.menu_shortcut_box = Gtk.CheckButton("Create application menu "
+                                                 "shortcut")
+        self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
+        self.widget_box.pack_start(self.menu_shortcut_box, False, False, 5)
+        self.widget_box.show_all()
+
+        if settings.read_setting('create_desktop_shortcut') == 'True':
+            self.desktop_shortcut_box.set_active(True)
+        if settings.read_setting('create_menu_shortcut') == 'True':
+            self.menu_shortcut_box.set_active(True)
+
+        self.connect('destroy', self.create_shortcuts)
+
+        # Buttons
         self.continue_button.hide()
         self.install_button.hide()
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
+
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect('focus-in-event', self.on_window_focus)
@@ -345,3 +364,20 @@ class InstallerDialog(Gtk.Window):
 
     def close(self, _widget):
         self.destroy()
+
+    def create_shortcuts(self, *args):
+        """Create desktop and global menu shortcuts."""
+        game_slug = self.interpreter.game_slug
+        game_name = self.interpreter.game_name
+        create_desktop_shortcut = self.desktop_shortcut_box.get_active()
+        create_menu_shortcut = self.menu_shortcut_box.get_active()
+
+        if create_desktop_shortcut:
+            shortcuts.create_launcher(game_slug, game_name, desktop=True)
+        if create_menu_shortcut:
+            shortcuts.create_launcher(game_slug, game_name, menu=True)
+
+        settings.write_setting('create_desktop_shortcut',
+                               create_desktop_shortcut)
+        settings.write_setting('create_menu_shortcut', create_menu_shortcut)
+

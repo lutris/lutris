@@ -6,8 +6,11 @@ from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import settings
+from lutris.config import LutrisConfig
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
+from lutris.runners import import_runner
+from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util import datapath
 # from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -89,42 +92,61 @@ def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
 
 
 class ContextualMenu(Gtk.Menu):
-    menu_labels = {
-        'play': "Play",
-        'install': "Install",
-        'add': "Add manually",
-        'configure': "Configure",
-        'browse': "Browse files",
-        'desktop-shortcut': "Create desktop shortcut",
-        'menu-shortcut': "Create application menu shortcut",
-        'remove': "Remove",
-    }
-
-    def __init__(self, callbacks):
+    def __init__(self, main_entries):
         super(ContextualMenu, self).__init__()
-        for callback in callbacks:
-            name = callback[0]
-            label = self.menu_labels[name]
+        self.main_entries = main_entries
+
+    def add_menuitems(self, entries):
+        for entry in entries:
+            name = entry[0]
+            label = entry[1]
             action = Gtk.Action(name=name, label=label,
                                 tooltip=None, stock_id=None)
-            action.connect('activate', callback[1])
+            action.connect('activate', entry[2])
             menuitem = action.create_menu_item()
             menuitem.action_id = name
             self.append(menuitem)
-        self.show_all()
 
     def popup(self, event, game_row):
-        is_installed = game_row[COL_INSTALLED]
-        hide_when_installed = ('add', )
-        hide_when_not_installed = ('play', 'configure', 'desktop-shortcut',
-                                   'menu-shortcut', 'browse')
+        game_slug = game_row[COL_ID]
+        runner_slug = game_row[COL_RUNNER]
 
+        # Clear existing menu
+        for item in self.get_children():
+            self.remove(item)
+
+        # Main items
+        self.add_menuitems(self.main_entries)
+        # Runner specific items
+        runner_entries = None
+        if runner_slug:
+            game_config = LutrisConfig(runner_slug=runner_slug,
+                                       game_slug=game_slug)
+            runner = import_runner(runner_slug)(game_config)
+            runner_entries = runner.context_menu_entries
+        if runner_entries:
+            self.append(Gtk.SeparatorMenuItem())
+            self.add_menuitems(runner_entries)
+        self.show_all()
+
+        # Hide some items
+        is_installed = game_row[COL_INSTALLED]
+        hiding_condition = {
+            'add': is_installed,
+            'play': not is_installed,
+            'configure': not is_installed,
+            'desktop-shortcut': not is_installed or desktop_launcher_exists(game_slug),
+            'menu-shortcut': not is_installed or menu_launcher_exists(game_slug),
+            'rm-desktop-shortcut': not is_installed or not desktop_launcher_exists(game_slug),
+            'rm-menu-shortcut': not is_installed or not menu_launcher_exists(game_slug),
+            'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
+        }
         for menuitem in self.get_children():
+            if type(menuitem) is not Gtk.ImageMenuItem:
+                continue
             action = menuitem.action_id
-            if is_installed:
-                menuitem.set_visible(action not in hide_when_installed)
-            else:
-                menuitem.set_visible(action not in hide_when_not_installed)
+            visible = not hiding_condition.get(action)
+            menuitem.set_visible(visible)
 
         super(ContextualMenu, self).popup(None, None, None, None,
                                           event.button, event.time)
@@ -268,6 +290,7 @@ class GameView(object):
         except ValueError:
             (_, path) = view.get_selection().get_selected()
             view.current_path = path
+
         if view.current_path:
             game_row = self.get_row_by_slug(self.selected_game)
             self.contextual_menu.popup(event, game_row)
@@ -407,7 +430,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.emit("game-selected")
 
 
-class DownloadProgressBox(Gtk.HBox):
+class DownloadProgressBox(Gtk.VBox):
     """Progress bar used to monitor a file download."""
     __gsignals__ = {
         'complete': (GObject.SignalFlags.RUN_LAST, None,
@@ -418,26 +441,39 @@ class DownloadProgressBox(Gtk.HBox):
 
     def __init__(self, params, cancelable=True):
         super(DownloadProgressBox, self).__init__()
+
         self.downloader = None
-
-        self.progress_box = Gtk.VBox()
-
-        self.progressbar = Gtk.ProgressBar()
-        self.progress_box.pack_start(self.progressbar, True, True, 10)
-        self.progress_label = Gtk.Label()
-        self.progress_box.pack_start(self.progress_label, True, True, 10)
-        self.pack_start(self.progress_box, True, True, 10)
-        self.progress_box.show_all()
-
-        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
-        if cancelable:
-            self.cancel_button.show()
-            self.cancel_button.set_sensitive(False)
-            self.cancel_button.connect('clicked', self.cancel)
-            self.pack_end(self.cancel_button, False, False, 10)
-
         self.url = params['url']
         self.dest = params['dest']
+        title = params.get('title', "Downloading {}".format(self.url))
+
+        self.main_label = Gtk.Label(title)
+        self.main_label.set_alignment(0, 0)
+        self.main_label.set_property('wrap', True)
+        self.main_label.set_margin_bottom(10)
+        self.main_label.set_selectable(True)
+        self.pack_start(self.main_label, True, True, 0)
+
+        progress_box = Gtk.Box()
+
+        self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_margin_bottom(10)
+        self.progressbar.set_margin_right(10)
+        progress_box.pack_start(self.progressbar, True, True, 0)
+
+        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+        self.cancel_button.connect('clicked', self.cancel)
+        if not cancelable:
+            self.cancel_button.set_sensitive(False)
+        progress_box.pack_end(self.cancel_button, False, False, 0)
+
+        self.pack_start(progress_box, False, False, 0)
+
+        self.progress_label = Gtk.Label()
+        self.progress_label.set_alignment(0, 0)
+        self.pack_start(self.progress_label, True, True, 0)
+
+        self.show_all()
 
     def start(self):
         """Start downloading a file."""
@@ -458,20 +494,20 @@ class DownloadProgressBox(Gtk.HBox):
         progress = min(self.downloader.progress, 1)
         if self.downloader.cancelled:
             self.progressbar.set_fraction(0)
-            self.progress_label.set_text("Download canceled")
+            self.set_text("Download cancelled")
             self.emit('cancelrequested', {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = (
-            "%0.2fMb out of %0.2fMb (%0.2fMb/s), %d seconds remaining" % (
+            "%0.2f / %0.2fMB (%0.2fMB/s), %d seconds remaining" % (
                 float(self.downloader.downloaded_bytes) / megabytes,
                 float(self.downloader.total_bytes) / megabytes,
                 float(self.downloader.speed) / megabytes,
                 self.downloader.time_remaining
             )
         )
-        self.progress_label.set_text(progress_text)
+        self.set_text(progress_text)
         self.progressbar.set_fraction(progress)
         if progress >= 1.0:
             self.cancel_button.set_sensitive(False)
@@ -484,6 +520,10 @@ class DownloadProgressBox(Gtk.HBox):
         if self.downloader:
             self.downloader.cancel()
             self.cancel_button.set_sensitive(False)
+
+    def set_text(self, text):
+        markup = u"<span size='10000'>{}</span>".format(text)
+        self.progress_label.set_markup(markup)
 
 
 class FileChooserEntry(Gtk.Box):
@@ -584,11 +624,7 @@ class VBox(Gtk.VBox):
 
 
 class Dialog(Gtk.Dialog):
-    def __init__(self, title=None, parent=None):
-        super(Dialog, self).__init__()
+    def __init__(self, title=None, parent=None, flags=0, buttons=None):
+        super(Dialog, self).__init__(title, parent, flags, buttons)
         self.set_border_width(10)
-        if title:
-            self.set_title(title)
-        if parent:
-            self.set_transient_for(parent)
         self.set_destroy_with_parent(True)

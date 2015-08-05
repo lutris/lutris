@@ -6,8 +6,7 @@ import time
 
 from gi.repository import GLib
 
-from lutris import pga
-from lutris import settings
+from lutris import pga, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util import audio, display, runtime, system
@@ -99,6 +98,7 @@ class Game(object):
             self.config.remove()
         else:
             pga.set_uninstalled(self.slug)
+        shortcuts.remove_launcher(self.slug, desktop=True, menu=True)
 
     def save(self):
         self.config.save()
