@@ -459,6 +459,8 @@ class LutrisWindow(object):
         log_title = u"Log for {}".format(self.running_game)
         log_window = LogWindow(log_title, self.window)
         log_window.logtextview.set_text(self.running_game.game_log)
+        log_window.run()
+        log_window.destroy()
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""

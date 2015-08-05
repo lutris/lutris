@@ -624,11 +624,7 @@ class VBox(Gtk.VBox):
 
 
 class Dialog(Gtk.Dialog):
-    def __init__(self, title=None, parent=None):
-        super(Dialog, self).__init__()
+    def __init__(self, title=None, parent=None, flags=0, buttons=None):
+        super(Dialog, self).__init__(title, parent, flags, buttons)
         self.set_border_width(10)
-        if title:
-            self.set_title(title)
-        if parent:
-            self.set_transient_for(parent)
         self.set_destroy_with_parent(True)

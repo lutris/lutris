@@ -17,7 +17,9 @@ class RunnerInstallDialog(Dialog):
     COL_PROGRESS = 4
 
     def __init__(self, title, parent, runner):
-        super(RunnerInstallDialog, self).__init__(title, parent)
+        super(RunnerInstallDialog, self).__init__(
+            title, parent, 0, (Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        )
         self.runner = runner
         self.runner_info = self.get_runner_info()
         label = Gtk.Label("%s version management" % self.runner_info['name'])
