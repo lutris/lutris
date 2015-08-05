@@ -307,10 +307,10 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs('runner')
-        self.build_action_area("Edit", self.ok_clicked)
+        self.build_action_area("Edit", self.on_save)
         self.show_all()
 
-    def ok_clicked(self, wigdet, data=None):
+    def on_save(self, wigdet, data=None):
         self.lutris_config.save()
         self.destroy()
 
