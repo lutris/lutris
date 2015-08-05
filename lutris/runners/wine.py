@@ -360,11 +360,6 @@ class wine(Runner):
                 'default': '800x600',
                 'help': ("The size of the virtual desktop in pixels.")
             },
-            # {
-            #     'option': 'cdrom_path',
-            #     'label': 'CDRom mount point',
-            #     'type': 'directory_chooser'
-            # },
             {
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
@@ -374,8 +369,8 @@ class wine(Runner):
                 'advanced': True,
                 'help': (
                     "Override the default mouse pointer warping behavior\n"
-                    "<b>Enable</b>: (Wine default) warp the pointer when the mouse"
-                    " is exclusively acquired \n"
+                    "<b>Enable</b>: (Wine default) warp the pointer when the "
+                    "mouse is exclusively acquired \n"
                     "<b>Disable</b>: never warp the mouse pointer \n"
                     "<b>Force</b>: always warp the pointer"
                 )
@@ -388,8 +383,8 @@ class wine(Runner):
                 'default': 'fbo',
                 'advanced': True,
                 'help': ("Select the offscreen rendering implementation.\n"
-                         "<b>FBO</b>: (Wine default) Use framebuffer objects for "
-                         "offscreen rendering \n"
+                         "<b>FBO</b>: (Wine default) Use framebuffer objects "
+                         "for offscreen rendering \n"
                          "<b>Backbuffer</b>: Render offscreen render targets "
                          "in the backbuffer.")
             },
@@ -414,8 +409,8 @@ class wine(Runner):
                 'help': (
                     "Select which mode is used for onscreen render targets:\n"
                     "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, writes "
-                    "by drawing a textured quad \n"
+                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
+                    "writes by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
                 )
             },
@@ -517,25 +512,12 @@ class wine(Runner):
                 return True
             else:
                 return False
-                # dialogs.ErrorDialog(
-                #    "Wine is not installed on your system.\n"
-                #    "Let's fall back on Wine " + DEFAULT_WINE +
-                #    " bundled with Lutris, alright?\n\n"
-                #    "(To get rid of this message, either install Wine \n"
-                #    "or change the Wine version in the game's configuration.)")
         elif self.wine_version == 'custom':
             custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
                 return False
-                # dialogs.ErrorDialog(
-                #    "Your custom Wine version can't be launched.\n"
-                #    "Let's fall back on Wine " + DEFAULT_WINE +
-                #    " bundled with Lutris, alright? \n\n"
-                #    "(To get rid of this message, fix your "
-                #    "Custom Wine path \n"
-                #    "or change the Wine version in the game's configuration.)")
         return os.path.exists(self.get_executable())
 
     @classmethod
