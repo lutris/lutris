@@ -292,14 +292,23 @@ class Game(object):
 
     def process_return_codes(self):
         """Do things depending on how the game quitted."""
-        # If missing shared library
         if self.game_thread.return_code == 127:
-            error_string = ''
-            output_lines = self.game_thread.stdout.split('\n')
-            for line in output_lines:
-                if "error while loading shared lib" in line:
-                    error_string = line
-            if error_string:
+            # Error missing shared lib
+            error = "error while loading shared lib"
+            error_line = self.lookup_output_string(error)
+            if error_line:
                 dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
-                                        "\n\n%s" % error_string)
+                                    "\n\n%s" % error_line)
+        if self.game_thread.return_code == 1:
+            # Error Wine version conflict
+            error = "maybe the wrong wineserver"
+            if self.lookup_output_string(error):
+                dialogs.ErrorDialog("<b>Error: A different Wine version is "
+                                    "already using the same Wine prefix.</b>")
 
+    def lookup_output_string(self, string):
+        """Return full line if string found in thread output."""
+        output_lines = self.game_thread.stdout.split('\n')
+        for line in output_lines:
+            if string in line:
+                return line
