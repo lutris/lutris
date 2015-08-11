@@ -288,3 +288,18 @@ class Game(object):
 
         if self.game_thread:
             self.game_thread.stop()
+        self.process_return_codes()
+
+    def process_return_codes(self):
+        """Do things depending on how the game quitted."""
+        # If missing shared library
+        if self.game_thread.return_code == 127:
+            error_string = ''
+            output_lines = self.game_thread.stdout.split('\n')
+            for line in output_lines:
+                if "error while loading shared lib" in line:
+                    error_string = line
+            if error_string:
+                dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
+                                        "\n\n%s" % error_string)
+
