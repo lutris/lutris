@@ -110,6 +110,7 @@ class ConfigBox(VBox):
                                    value, default, has_entry=True)
         elif option_type == 'bool':
             self.generate_checkbox(option, value)
+            self.tooltip_default = 'Enabled' if default else 'Disabled'
         elif option_type == 'range':
             self.generate_range(option_key,
                                 option["min"],
@@ -149,9 +150,6 @@ class ConfigBox(VBox):
         checkbox = Gtk.CheckButton(label=option["label"])
         if value:
             checkbox.set_active(value)
-            self.tooltip_default = 'Enabled'
-        else:
-            self.tooltip_default = 'Disabled'
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         self.wrapper.pack_start(checkbox, True, True, 5)
         self.option_widget = checkbox
