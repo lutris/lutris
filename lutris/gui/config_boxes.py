@@ -45,6 +45,10 @@ class ConfigBox(VBox):
             placeholder.set_size_request(32, 32)
             hbox.pack_end(placeholder, False, False, 5)
 
+            # Set tooltip's "Default" part
+            default = option.get('default')
+            self.tooltip_default = default if type(default) is str else None
+
             # Generate option widget
             self.option_widget = None
             self.call_widget_generator(option)
@@ -62,10 +66,6 @@ class ConfigBox(VBox):
                 reset_btn.set_visible(False)
                 reset_btn.set_no_show_all(True)
             placeholder.pack_start(reset_btn, False, False, 0)
-
-            # Set tooltip's "Default" part
-            default = option.get('default')
-            self.tooltip_default = default if type(default) is str else None
 
             # Tooltip
             helptext = option.get("help")
