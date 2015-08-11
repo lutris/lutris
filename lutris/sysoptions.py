@@ -110,8 +110,8 @@ system_options = [
         'default': False,
         'advanced': True,
         'help': ("The Lutris Runtime loads some libraries before running the "
-                 "game. Which can cause some conflicts in some cases (mostly "
-                 "with Steam). Check this option to diasble it.")
+                 "game. Which can cause some incompatibilities in some cases. "
+                 "Check this option to disable it.")
     },
     {
         'option': 'reset_pulse',
