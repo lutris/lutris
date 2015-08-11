@@ -32,6 +32,7 @@ class Runner(object):
     platform = NotImplemented
     game_options = []
     runner_options = []
+    system_options_override = []
     context_menu_entries = []
 
     def __init__(self, config=None):

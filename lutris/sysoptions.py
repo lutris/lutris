@@ -141,3 +141,19 @@ system_options = [
                  "controllers. Requires the xboxdrv package installed.")
     }
 ]
+
+
+def with_runner_overrides(runner):
+    """Return system options updated with overrides from given runner."""
+    options = system_options
+    if runner.system_options_override:
+        opts_dict = dict((opt['option'], opt) for opt in options)
+        for option in runner.system_options_override:
+            key = option['option']
+            if opts_dict.get(key):
+                opts_dict[key] = opts_dict[key].copy()
+                opts_dict[key].update(option)
+            else:
+                opts_dict[key] = option
+        options = [opt for opt in opts_dict.values()]
+    return options

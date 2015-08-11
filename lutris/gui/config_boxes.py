@@ -455,5 +455,12 @@ class SystemBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config
-        self.options = sysoptions.system_options
+
+        if self.lutris_config.runner_slug:
+            runner = import_runner(self.lutris_config.runner_slug)
+            self.options = sysoptions.with_runner_overrides(runner)
+        else:
+            self.options = sysoptions.system_options
+
         self.generate_widgets('system')
+
