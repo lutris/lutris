@@ -135,10 +135,14 @@ class ContextualMenu(Gtk.Menu):
             'add': is_installed,
             'play': not is_installed,
             'configure': not is_installed,
-            'desktop-shortcut': not is_installed or desktop_launcher_exists(game_slug),
-            'menu-shortcut': not is_installed or menu_launcher_exists(game_slug),
-            'rm-desktop-shortcut': not is_installed or not desktop_launcher_exists(game_slug),
-            'rm-menu-shortcut': not is_installed or not menu_launcher_exists(game_slug),
+            'desktop-shortcut': (not is_installed
+                                 or desktop_launcher_exists(game_slug)),
+            'menu-shortcut': (not is_installed
+                              or menu_launcher_exists(game_slug)),
+            'rm-desktop-shortcut': (not is_installed
+                                    or not desktop_launcher_exists(game_slug)),
+            'rm-menu-shortcut': (not is_installed
+                                 or not menu_launcher_exists(game_slug)),
             'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
         }
         for menuitem in self.get_children():
@@ -154,7 +158,8 @@ class ContextualMenu(Gtk.Menu):
 
 class GameStore(object):
 
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
+    def __init__(self, games, filter_text='', filter_runner='',
+                 icon_type=None):
         self.filter_text = filter_text
         self.filter_runner = filter_runner
         self.icon_type = icon_type
@@ -300,7 +305,8 @@ class GameListView(Gtk.TreeView, GameView):
     """Show the main list of games."""
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
+    def __init__(self, games, filter_text='', filter_runner='',
+                 icon_type=None):
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=filter_text,
@@ -386,11 +392,13 @@ class GameListView(Gtk.TreeView, GameView):
             settings.write_setting(col_name + '_column_width',
                                    col.get_fixed_width(), 'list view')
 
+
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
     icon_padding = 1
 
-    def __init__(self, games, filter_text='', filter_runner='', icon_type=None):
+    def __init__(self, games, filter_text='', filter_runner='',
+                 icon_type=None):
         self.icon_type = icon_type
         self.game_store = GameStore(games, icon_type=icon_type,
                                     filter_text=filter_text,
@@ -402,9 +410,9 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_pixbuf_column(COL_ICON)
         self.cell_width = BANNER_SIZE[0] if icon_type == "banner" \
             else BANNER_SMALL_SIZE[0]
-        gridview_cell_renderer = GridViewCellRendererText(width=self.cell_width)
-        self.pack_end(gridview_cell_renderer, False)
-        self.add_attribute(gridview_cell_renderer, 'markup', COL_NAME)
+        cell_renderer = GridViewCellRendererText(width=self.cell_width)
+        self.pack_end(cell_renderer, False)
+        self.add_attribute(cell_renderer, 'markup', COL_NAME)
         self.set_item_padding(self.icon_padding)
 
         self.connect_signals()

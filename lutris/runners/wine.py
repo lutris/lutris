@@ -48,7 +48,8 @@ def set_regedit_file(filename, wine_path=None, prefix=None):
 
 
 def delete_registry_key(key, wine_path=None, prefix=None):
-    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path, prefix=prefix)
+    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
+             prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
@@ -411,7 +412,8 @@ class wine(Runner):
                     "<b>Disabled</b>: Disables render target locking \n"
                     "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
                     "writes by drawing a textured quad \n"
-                    "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
+                    "<b>ReadDraw</b>: Uses glReadPixels for reading and "
+                    "writing"
                 )
             },
             {
