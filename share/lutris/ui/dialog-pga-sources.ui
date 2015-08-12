@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.10"/>
   <object class="GtkDialog" id="pga_dialog">
     <property name="width_request">640</property>
     <property name="height_request">400</property>

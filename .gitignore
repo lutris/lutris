@@ -1,4 +1,8 @@
-/data/ui/LutrisWindow.ui~
+/share/lutris/ui/dialog-lutris-login.ui~
+/share/lutris/ui/dialog-pga-sources.ui~
+/share/lutris/ui/dialog-uninstall-game.ui~
+/share/lutris/ui/about-dialog.ui~
+/share/lutris/ui/LutrisWindow.ui~
 nbproject
 build
 .project
