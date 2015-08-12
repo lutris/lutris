@@ -327,19 +327,19 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell.set_padding(5, 0)
         column = self.set_column(name_cell, "Name", COL_NAME)
         width = settings.read_setting('name_column_width', 'list view')
-        column.set_fixed_width(int(width) or 200)
+        column.set_fixed_width(int(width) if width else 200)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
         column = self.set_column(default_text_cell, "Year", COL_YEAR)
         width = settings.read_setting('year_column_width', 'list view')
-        column.set_fixed_width(int(width) or 60)
+        column.set_fixed_width(int(width) if width else 60)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
         column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
         width = settings.read_setting('runner_column_width', 'list view')
-        column.set_fixed_width(int(width) or 100)
+        column.set_fixed_width(int(width) if width else 100)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
