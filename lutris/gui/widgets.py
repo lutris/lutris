@@ -320,11 +320,22 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
         column = self.set_column(name_cell, "Name", COL_NAME)
+        width = settings.read_setting('name_column_width', 'list view')
+        column.set_fixed_width(int(width) or 200)
         self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
+
         column = self.set_column(default_text_cell, "Year", COL_YEAR)
+        width = settings.read_setting('year_column_width', 'list view')
+        column.set_fixed_width(int(width) or 60)
         self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
+
         column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
+        width = settings.read_setting('runner_column_width', 'list view')
+        column.set_fixed_width(int(width) or 100)
         self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -369,6 +380,11 @@ class GameListView(Gtk.TreeView, GameView):
         self.selected_game = self.get_selected_game()
         self.emit("game-activated")
 
+    def on_column_width_changed(self, col, *args):
+        col_name = col.get_title()
+        if col_name:
+            settings.write_setting(col_name + '_column_width',
+                                   col.get_fixed_width(), 'list view')
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
