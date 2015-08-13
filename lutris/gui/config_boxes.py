@@ -33,6 +33,13 @@ class ConfigBox(VBox):
         self.show_all()
     def generate_widgets(self, config_section):
         """Parse the config dict and generates widget accordingly."""
+        if not self.options:
+            label = Label("No options available")
+            label.set_halign(Gtk.Align.CENTER)
+            label.set_valign(Gtk.Align.CENTER)
+            self.pack_start(label, True, True, 0)
+            return
+
         # Select config section.
         if config_section == 'game':
             self.config = self.lutris_config.game_config
