@@ -16,6 +16,21 @@ class ConfigBox(VBox):
         self.options = None
         self.game = game
 
+    def generate_top_info_box(self, text):
+        help_box = Gtk.HBox()
+        help_box.set_margin_left(15)
+        help_box.set_margin_right(15)
+        help_box.set_margin_bottom(5)
+        icon = Gtk.Image(icon_name='dialog-information')
+        label = Gtk.Label("<i>%s</i>" % text)
+        label.set_line_wrap(True)
+        label.set_alignment(0, 0.5)
+        label.set_use_markup(True)
+        help_box.pack_start(icon, False, False, 5)
+        help_box.pack_start(label, False, False, 5)
+        self.pack_start(help_box, False, False, 0)
+        self.pack_start(Gtk.HSeparator(), False, False, 10)
+        self.show_all()
     def generate_widgets(self, config_section):
         """Parse the config dict and generates widget accordingly."""
         # Select config section.
@@ -448,6 +463,12 @@ class RunnerBox(ConfigBox):
         self.lutris_config = lutris_config
         runner = import_runner(self.lutris_config.runner_slug)()
         self.options = runner.runner_options
+
+        if lutris_config.game_slug:
+            self.generate_top_info_box(
+                "These options override the same options from the base "
+                "runner configuration"
+            )
         self.generate_widgets('runner')
 
 
@@ -462,5 +483,15 @@ class SystemBox(ConfigBox):
         else:
             self.options = sysoptions.system_options
 
-        self.generate_widgets('system')
+        if lutris_config.game_slug and self.lutris_config.runner_slug:
+            self.generate_top_info_box(
+                "These options override the same options from the base "
+                "runner configuration and the global preferences"
+            )
+        elif self.lutris_config.runner_slug:
+            self.generate_top_info_box(
+                "These options override the same options from the global "
+                "preferences"
+            )
 
+        self.generate_widgets('system')
