@@ -58,6 +58,8 @@ class ConfigBox(VBox):
                 if config_section not in option['scope']:
                     continue
             option_key = option['option']
+            value = self.config.get(option_key)
+            default = option.get('default')
 
             hbox = Gtk.HBox()
             hbox.set_margin_left(20)
@@ -74,7 +76,7 @@ class ConfigBox(VBox):
 
             # Generate option widget
             self.option_widget = None
-            self.call_widget_generator(option)
+            self.call_widget_generator(option, option_key, value, default)
 
             # Reset button
             icon = Gtk.Image(stock=Gtk.STOCK_CLEAR)
@@ -95,6 +97,10 @@ class ConfigBox(VBox):
             if type(self.tooltip_default) is str:
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += "<b>Default</b>: " + self.tooltip_default
+            if value != default and not option_key in self.raw_config:
+                helptext = helptext + '\n\n' if helptext else ''
+                helptext += ("<i>(Italic indicates that this option is "
+                             "modified in a lower configuration level.)</i>")
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect('query-tooltip', self.on_query_tooltip,
@@ -114,12 +120,14 @@ class ConfigBox(VBox):
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 5)
 
-    def call_widget_generator(self, option):
+    def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
         option_type = option['type']
-        option_key = option['option']
-        default = option.get('default')
-        value = self.config.get(option_key)
+
+        if value != default and option_key in self.raw_config:
+            self.set_style_property('font-weight', 'bold', self.wrapper)
+        elif value != default:
+            self.set_style_property('font-style', 'italic', self.wrapper)
 
         if option_type == 'choice':
             self.generate_combobox(option_key,
@@ -426,8 +434,11 @@ class ConfigBox(VBox):
 
         # Dirty way to get the reset btn. I tried passing it through the
         # methods but got some strange unreliable behavior.
-        wrapper = widget.get_parent().get_parent()
-        reset_btn = wrapper.get_children()[1].get_children()[0]
+        wrapper = widget.get_parent()
+        hbox = wrapper.get_parent()
+
+        self.set_style_property('font-weight', 'bold', wrapper)
+        reset_btn = hbox.get_children()[1].get_children()[0]
         reset_btn.set_visible(True)
 
     def on_reset_button_clicked(self, btn, option, widget, wrapper):
@@ -436,11 +447,12 @@ class ConfigBox(VBox):
         current_value = self.config[option_key]
 
         btn.set_visible(False)
+        self.set_style_property('font-weight', 'normal', wrapper)
         self.raw_config.pop(option_key)
         self.lutris_config.update_cascaded_config()
 
-        default = self.config.get(option_key)
-        if current_value == default:
+        reset_value = self.config.get(option_key)
+        if current_value == reset_value:
             return
 
         # Destroy and recreate option widget
@@ -448,8 +460,17 @@ class ConfigBox(VBox):
         children = wrapper.get_children()
         for child in children:
             child.destroy()
-        self.call_widget_generator(option)
+        self.call_widget_generator(option, option_key, reset_value,
+                                   option.get('default'))
         self.wrapper.show_all()
+
+    def set_style_property(self, property_, value, wrapper):
+        """Add custom style."""
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data("GtkHBox {%s: %s;}" % (property_, value))
+        style_context = wrapper.get_style_context()
+        style_context.add_provider(style_provider,
+                                   Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 class GameBox(ConfigBox):
@@ -475,7 +496,7 @@ class RunnerBox(ConfigBox):
         if lutris_config.game_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
-                "the base runner configuration"
+                "the base runner configuration."
             )
         self.generate_widgets('runner')
 
@@ -495,12 +516,12 @@ class SystemBox(ConfigBox):
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration, which themselves supersede "
-                "the global preferences"
+                "the global preferences."
             )
         elif self.lutris_config.runner_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
-                "the global preferences"
+                "the global preferences."
             )
 
         self.generate_widgets('system')
