@@ -473,8 +473,8 @@ class RunnerBox(ConfigBox):
 
         if lutris_config.game_slug:
             self.generate_top_info_box(
-                "These options override the same options from the base "
-                "runner configuration"
+                "If modified, these options supersede the same options from "
+                "the base runner configuration"
             )
         self.generate_widgets('runner')
 
@@ -492,13 +492,14 @@ class SystemBox(ConfigBox):
 
         if lutris_config.game_slug and self.lutris_config.runner_slug:
             self.generate_top_info_box(
-                "These options override the same options from the base "
-                "runner configuration and the global preferences"
+                "If modified, these options supersede the same options from "
+                "the base runner configuration, which themselves supersede "
+                "the global preferences"
             )
         elif self.lutris_config.runner_slug:
             self.generate_top_info_box(
-                "These options override the same options from the global "
-                "preferences"
+                "If modified, these options supersede the same options from "
+                "the global preferences"
             )
 
         self.generate_widgets('system')
