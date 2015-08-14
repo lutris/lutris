@@ -30,7 +30,8 @@ class ConfigBox(VBox):
         help_box.pack_start(label, False, False, 5)
         self.pack_start(help_box, False, False, 0)
         self.pack_start(Gtk.HSeparator(), False, False, 10)
-        self.show_all()
+        help_box.show_all()
+
     def generate_widgets(self, config_section):
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
