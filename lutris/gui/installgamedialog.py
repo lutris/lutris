@@ -345,7 +345,7 @@ class InstallerDialog(Gtk.Window):
 
     def notify_install_success(self):
         if self.parent:
-            self.parent.view.emit('game-installed', self.game_ref)
+            self.parent.view.emit('game-installed', self.interpreter.game_slug)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)

@@ -123,7 +123,7 @@ class LutrisWindow(object):
 
         # Contextual menu
         main_entries = [
-            ('play', "Play", self.on_game_clicked),
+            ('play', "Play", self.on_game_run),
             ('install', "Install", self.on_install_clicked),
             ('add', "Add manually", self.add_manually),
             ('configure', "Configure", self.edit_game_configuration),
@@ -187,7 +187,7 @@ class LutrisWindow(object):
            This must be called each time the view is rebuilt.
         """
         self.view.connect('game-installed', self.on_game_installed)
-        self.view.connect("game-activated", self.on_game_clicked)
+        self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.on_resize)
         self.window.connect("key-press-event", self.on_keypress)
@@ -398,9 +398,10 @@ class LutrisWindow(object):
         self.game_launch_time = time.time()
         return self.view.selected_game
 
-    def on_game_clicked(self, *args):
+    def on_game_run(self, _widget=None, game_slug=None):
         """Launch a game, or install it if it is not"""
-        game_slug = self._get_current_game_slug()
+        if not game_slug:
+            game_slug = self._get_current_game_slug()
         if not game_slug:
             return
         self.running_game = Game(game_slug)
@@ -410,12 +411,13 @@ class LutrisWindow(object):
         else:
             InstallerDialog(game_slug, self)
 
-    def on_install_clicked(self, *args):
+    def on_install_clicked(self, _widget=None, game_ref=None):
         """Install a game"""
-        game_slug = self._get_current_game_slug()
-        if not game_slug:
+        if not game_ref:
+            game_ref = self._get_current_game_slug()
+        if not game_ref:
             return
-        InstallerDialog(game_slug, self)
+        InstallerDialog(game_ref, self)
 
     def on_keypress(self, widget, event):
         if event.keyval == Gdk.KEY_F9:
@@ -428,7 +430,7 @@ class LutrisWindow(object):
             is_double_click = time.time() - self.game_selection_time < 0.4
             is_same_game = self.view.selected_game == self.last_selected_game
             if is_double_click and is_same_game:
-                self.on_game_clicked()
+                self.on_game_run()
             self.game_selection_time = time.time()
             self.last_selected_game = self.view.selected_game
 
