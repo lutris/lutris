@@ -162,6 +162,7 @@ class InstallerDialog(Gtk.Window):
         self.show_non_empty_warning()
 
     def on_destroy(self, widget):
+        os.chdir(os.path.expanduser('~'))
         if self.interpreter:
             self.interpreter.cleanup()
         if self.parent:
