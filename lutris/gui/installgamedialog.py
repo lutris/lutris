@@ -359,9 +359,12 @@ class InstallerDialog(Gtk.Window):
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed"""
         widget.set_sensitive(False)
-        game = Game(self.interpreter.game_slug)
-        game.play()
         self.close(widget)
+        if self.parent:
+            self.parent.on_game_run(game_slug=self.interpreter.game_slug)
+        else:
+            game = Game(self.interpreter.game_slug)
+            game.play()
 
     def close(self, _widget):
         self.destroy()
