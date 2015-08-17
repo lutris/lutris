@@ -2,6 +2,18 @@
 <!-- Generated with glade 3.16.1 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">network-wired</property>
+    <property name="use_fallback">True</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">dialog-cancel</property>
+    <property name="use_fallback">True</property>
+  </object>
   <object class="GtkDialog" id="lutris-login">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -19,7 +31,7 @@
               <object class="GtkLinkButton" id="linkbutton1">
                 <property name="label" translatable="yes">Forgot password?</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="relief">none</property>
@@ -33,11 +45,12 @@
             </child>
             <child>
               <object class="GtkButton" id="cancel_button">
-                <property name="label">gtk-cancel</property>
+                <property name="label">C_ancel</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="image">image2</property>
+                <property name="use_underline">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -47,11 +60,14 @@
             </child>
             <child>
               <object class="GtkButton" id="connect_button">
-                <property name="label">gtk-connect</property>
+                <property name="label">_Connect</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="has_default">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
+                <property name="image">image1</property>
+                <property name="use_underline">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -85,8 +101,7 @@
                   <object class="GtkGrid" id="grid1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="row_spacing">30</property>
-                    <property name="column_spacing">40</property>
+                    <property name="column_spacing">14</property>
                     <property name="row_homogeneous">True</property>
                     <child>
                       <object class="GtkLabel" id="label2">

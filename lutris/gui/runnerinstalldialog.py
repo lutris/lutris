@@ -18,7 +18,7 @@ class RunnerInstallDialog(Dialog):
 
     def __init__(self, title, parent, runner):
         super(RunnerInstallDialog, self).__init__(
-            title, parent, 0, (Gtk.STOCK_OK, Gtk.ResponseType.OK)
+            title, parent, 0, ('_OK', Gtk.ResponseType.OK)
         )
         self.runner = runner
         self.runner_info = api.get_runners(self.runner)

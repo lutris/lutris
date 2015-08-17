@@ -91,8 +91,7 @@ class ContextualMenu(Gtk.Menu):
         for entry in entries:
             name = entry[0]
             label = entry[1]
-            action = Gtk.Action(name=name, label=label,
-                                tooltip=None, stock_id=None)
+            action = Gtk.Action(name=name, label=label)
             action.connect('activate', entry[2])
             menuitem = action.create_menu_item()
             menuitem.action_id = name

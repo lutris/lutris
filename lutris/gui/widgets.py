@@ -100,8 +100,7 @@ class ContextualMenu(Gtk.Menu):
         for entry in entries:
             name = entry[0]
             label = entry[1]
-            action = Gtk.Action(name=name, label=label,
-                                tooltip=None, stock_id=None)
+            action = Gtk.Action(name=name, label=label)
             action.connect('activate', entry[2])
             menuitem = action.create_menu_item()
             menuitem.action_id = name
@@ -485,7 +484,7 @@ class DownloadProgressBox(Gtk.VBox):
         self.progressbar.set_margin_right(10)
         progress_box.pack_start(self.progressbar, True, True, 0)
 
-        self.cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+        self.cancel_button = Gtk.Button('_Cancel')
         self.cancel_button.connect('clicked', self.cancel)
         if not cancelable:
             self.cancel_button.set_sensitive(False)
@@ -574,8 +573,8 @@ class FileChooserEntry(Gtk.Box):
         )
 
         self.file_chooser_dlg.add_buttons(
-            Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-            Gtk.STOCK_OPEN, Gtk.ResponseType.OK
+            '_Cancel', Gtk.ResponseType.CLOSE,
+            '_OK', Gtk.ResponseType.OK
         )
         if default:
             self.file_chooser_dlg.set_current_folder(
