@@ -341,28 +341,13 @@ class ConfigBox(VBox):
         """Generate a multiple file selector."""
         vbox = Gtk.VBox()
         label = Label(label + ':')
-        self.files_chooser_dialog = Gtk.FileChooserDialog(
-            title="Select files",
-            parent=None,
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-                     Gtk.STOCK_ADD, Gtk.ResponseType.OK)
-        )
-        self.files_chooser_dialog.set_select_multiple(True)
-        files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
-        files_chooser_button.connect('file-set', self.add_files_callback,
-                                     option_name)
-        game_path = self.config.get('game_path', os.path.expanduser('~'))
-        if game_path:
-            files_chooser_button.set_current_folder(game_path)
-        if value:
-            files_chooser_button.set_current_folder(os.path.dirname(value[0]))
-
         label.set_halign(Gtk.Align.START)
-        files_chooser_button.set_margin_left(10)
-        files_chooser_button.set_margin_right(10)
+        button = Gtk.Button('Add files')
+        button.connect('clicked', self.on_add_files_clicked,
+                       option_name, value)
+        button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
-        vbox.pack_start(files_chooser_button, False, False, 0)
+        vbox.pack_end(button, False, False, 0)
 
         if value:
             if type(value) == str:
@@ -378,21 +363,52 @@ class ConfigBox(VBox):
         files_treeview = Gtk.TreeView(self.files_list_store)
         files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.connect('key-press-event', self.on_files_treeview_event,
-                               option_name)
+        files_treeview.connect('key-press-event',
+                               self.on_files_treeview_keypress, option_name)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
+        treeview_scroll.set_margin_left(10)
+        treeview_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         treeview_scroll.add(files_treeview)
 
-        treeview_scroll.set_margin_left(10)
-        treeview_scroll.set_margin_right(10)
         vbox.pack_start(treeview_scroll, True, True, 0)
         self.wrapper.pack_start(vbox, True, True, 0)
         self.option_widget = self.files_list_store
 
-    def on_files_treeview_event(self, treeview, event, option):
+    def on_add_files_clicked(self, widget, option_name, value):
+        """Create and run multi-file chooser dialog."""
+        dialog = Gtk.FileChooserDialog(
+            title="Select files",
+            parent=None,
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=('_Cancel', Gtk.ResponseType.CANCEL,
+                     '_Add', Gtk.ResponseType.ACCEPT)
+        )
+        dialog.set_select_multiple(True)
+
+        first_file_dir = os.path.dirname(value[0]) if value else None
+        dialog.set_current_folder(first_file_dir
+                                  or self.game.directory
+                                  or self.config.get('game_path')
+                                  or os.path.expanduser('~'))
+        response = dialog.run()
+        if response == Gtk.ResponseType.ACCEPT:
+            self.add_files_to_treeview(dialog, option_name, self.wrapper)
+        dialog.destroy()
+
+    def add_files_to_treeview(self, dialog, option, wrapper):
+        """Add several files to the configuration"""
+        filenames = dialog.get_filenames()
+        files = self.config.get(option, [])
+        for filename in filenames:
+            self.files_list_store.append([filename])
+            if filename not in files:
+                files.append(filename)
+        self.option_changed(wrapper, option, files)
+
+    def on_files_treeview_keypress(self, treeview, event, option):
         """Action triggered when a row is deleted from the filechooser."""
         key = event.keyval
         if key == Gdk.KEY_Delete:
@@ -403,18 +419,6 @@ class ConfigBox(VBox):
                 treeiter = model.get_iter(treepath)
                 model.remove(treeiter)
                 self.raw_config[option].pop(row_index)
-                self.config[option].pop(row_index)
-
-    def add_files_callback(self, button, option=None):
-        """Add several files to the configuration"""
-        filenames = button.get_filenames()
-        files = self.config.get(option, [])
-        for filename in filenames:
-            self.files_list_store.append([filename])
-            if filename not in files:
-                files.append(filename)
-        self.option_changed(button.get_parent(), option, files)
-        self.files_chooser_dialog = None
 
     def on_query_tooltip(self, widget, x, y, keybmode, tooltip, text):
         """Prepare a custom tooltip with a fixed width"""
@@ -432,14 +436,14 @@ class ConfigBox(VBox):
         self.raw_config[option_name] = value
         self.config[option_name] = value
 
-        # Dirty way to get the reset btn. I tried passing it through the
-        # methods but got some strange unreliable behavior.
         wrapper = widget.get_parent()
         hbox = wrapper.get_parent()
 
-        self.set_style_property('font-weight', 'bold', wrapper)
+        # Dirty way to get the reset btn. I tried passing it through the
+        # methods but got some strange unreliable behavior.
         reset_btn = hbox.get_children()[1].get_children()[0]
         reset_btn.set_visible(True)
+        self.set_style_property('font-weight', 'bold', wrapper)
 
     def on_reset_button_clicked(self, btn, option, widget, wrapper):
         """Clear option (remove from config, reset option widget)."""
