@@ -157,7 +157,7 @@ class ContextualMenu(Gtk.Menu):
 
 class GameStore(object):
 
-    def __init__(self, games, filter_text='', filter_runner='',
+    def __init__(self, filter_text='', filter_runner='',
                  icon_type=None):
         self.filter_text = filter_text
         self.filter_runner = filter_runner
@@ -165,7 +165,6 @@ class GameStore(object):
         self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
         self.store.set_default_sort_func(sort_func)
         self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
-        self.fill_store(games)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
 
@@ -182,11 +181,6 @@ class GameStore(object):
         else:
             runner_matches = True
         return name_matches and runner_matches
-
-    def fill_store(self, games):
-        self.store.clear()
-        for game_slug in games:
-            self.add_game(game_slug)
 
     def add_game(self, game_slug):
         """Add a game into the store."""
@@ -218,6 +212,26 @@ class GameView(object):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
+    def fill_store(self, games):
+        """Fill the model asynchronously and in steps."""
+        loader = self._fill_store_generator(games)
+        GLib.idle_add(loader.next)
+
+    def _fill_store_generator(self, games, step=100):
+        """Generator to fill the model in steps."""
+        n = 0
+        self.freeze_child_notify()
+        for game_slug in games:
+            self.game_store.add_game(game_slug)
+
+            # Yield to GTK main loop once in a while
+            n += 1
+            if (n % step) == 0:
+                self.thaw_child_notify()
+                yield True
+                self.freeze_child_notify()
+        self.thaw_child_notify()
+        yield False
 
     @property
     def n_games(self):
@@ -309,9 +323,10 @@ class GameListView(Gtk.TreeView, GameView):
     def __init__(self, games, filter_text='', filter_runner='',
                  icon_type=None):
         self.icon_type = icon_type
-        self.game_store = GameStore(games, icon_type=icon_type,
+        self.game_store = GameStore(icon_type=icon_type,
                                     filter_text=filter_text,
                                     filter_runner=filter_runner)
+        self.fill_store(games)
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super(GameListView, self).__init__(self.model)
         self.set_rules_hint(True)
@@ -401,9 +416,10 @@ class GameGridView(Gtk.IconView, GameView):
     def __init__(self, games, filter_text='', filter_runner='',
                  icon_type=None):
         self.icon_type = icon_type
-        self.game_store = GameStore(games, icon_type=icon_type,
+        self.game_store = GameStore(icon_type=icon_type,
                                     filter_text=filter_text,
                                     filter_runner=filter_runner)
+        self.fill_store(games)
         self.model = self.game_store.modelfilter
         super(GameGridView, self).__init__(model=self.model)
         self.set_columns(1)
