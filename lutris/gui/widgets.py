@@ -5,7 +5,7 @@ import os
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
-from lutris import settings
+from lutris import pga, settings
 from lutris.config import LutrisConfig
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.downloader import Downloader
@@ -185,19 +185,20 @@ class GameStore(object):
 
     def fill_store(self, games):
         self.store.clear()
-        for game in games:
-            self.add_game(game)
+        for game_slug in games:
+            self.add_game(game_slug)
 
-    def add_game(self, game):
+    def add_game(self, game_slug):
         """Add a game into the store."""
-        if not game.name:
+        if not game_slug:
             return
-        pixbuf = get_pixbuf_for_game(game.slug, self.icon_type,
-                                     is_installed=game.is_installed)
-        name = game.name.replace('&', "&amp;")
+        game_data = pga.get_game_by_slug(game_slug)
+        pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
+                                     is_installed=game_data['installed'])
+        name = game_data['name'].replace('&', "&amp;")
         self.store.append(
-            (game.slug, name, pixbuf, str(game.year), game.runner_name,
-             game.is_installed)
+            (game_data['slug'], name, pixbuf, str(game_data['year']),
+             game_data['runner'], game_data['installed'])
         )
 
 
@@ -217,6 +218,7 @@ class GameView(object):
         self.connect('filter-updated', self.update_filter)
         self.connect('button-press-event', self.popup_contextual_menu)
 
+
     @property
     def n_games(self):
         return len(self.game_store.store)
@@ -228,8 +230,8 @@ class GameView(object):
                 game_row = model_row
         return game_row
 
-    def add_game(self, game):
-        self.game_store.add_game(game)
+    def add_game(self, game_slug):
+        self.game_store.add_game(game_slug)
 
     def remove_game(self, removed_id):
         row = self.get_row_by_slug(removed_id)
@@ -245,7 +247,7 @@ class GameView(object):
         """Update a game row to show as installed"""
         row = self.get_row_by_slug(game.slug)
         if not row:
-            self.add_game(game)
+            self.add_game(game.slug)
         else:
             row[COL_RUNNER] = game.runner_name
             self.update_image(game.slug, is_installed=True)

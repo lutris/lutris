@@ -126,6 +126,13 @@ def set_installed_games():
                           {'installed': 1}, ('slug', game['slug']))
 
 
+def get_table_length(table='games'):
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = "select count() from games"
+        cursor.execute(query)
+        return cursor.fetchone()[0]
+
+
 def get_games(name_filter=None, filter_installed=False):
     """Get the list of every game in database."""
     with sql.db_cursor(PGA_DB) as cursor:

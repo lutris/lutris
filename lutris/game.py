@@ -28,8 +28,8 @@ def show_error_message(message):
 
 
 def get_game_list(filter_installed=False):
-    return [Game(game['slug'])
-            for game in pga.get_games(filter_installed=filter_installed)]
+    games = pga.get_games(filter_installed=filter_installed)
+    return [game['slug'] for game in games]
 
 
 class Game(object):

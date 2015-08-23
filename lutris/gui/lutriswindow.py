@@ -210,7 +210,7 @@ class LutrisWindow(object):
         return icon_type
 
     def switch_splash_screen(self):
-        if self.view.n_games == 0:
+        if not pga.get_table_length():
             self.splash_box.show()
             self.games_scrollwindow.hide()
             self.sidebar_viewport.hide()
@@ -473,10 +473,9 @@ class LutrisWindow(object):
     def add_game_to_view(self, slug):
         if not slug:
             raise ValueError("Missing game slug")
-        game = Game(slug)
 
         def do_add_game():
-            self.view.add_game(game)
+            self.view.add_game(slug)
             self.switch_splash_screen()
             self.sidebar_treeview.update()
         GLib.idle_add(do_add_game)
@@ -511,9 +510,8 @@ class LutrisWindow(object):
     def edit_game_configuration(self, _button):
         """Edit game preferences."""
         def on_dialog_saved():
-            game = Game(dialog.slug)
             self.view.remove_game(game_slug)
-            self.view.add_game(game)
+            self.view.add_game(dialog.slug)
             self.view.set_selected_game(game_slug)
             self.sidebar_treeview.update()
 
