@@ -212,6 +212,7 @@ class LutrisWindow(object):
         else:
             self.splash_box.hide()
             self.games_scrollwindow.show()
+            self.sidebar_viewport.show()
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
