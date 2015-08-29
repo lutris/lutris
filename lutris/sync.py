@@ -4,7 +4,6 @@ import os
 import re
 
 from lutris import api, config, pga
-from lutris.game import Game
 from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
 from lutris.util import resources
@@ -16,16 +15,16 @@ class Sync(object):
     def __init__(self):
         self.library = pga.get_games()
 
-    def sync_all(self, caller):
-        self.sync_from_remote(caller)
-        self.sync_steam_local(caller)
+    def sync_all(self):
+        added, updated = self.sync_from_remote()
+        installed, uninstalled = self.sync_steam_local()
+        return added, updated, installed, uninstalled
 
-    def sync_from_remote(self, caller=None):
+    def sync_from_remote(self):
         """Synchronize from remote to local library.
 
-        :param caller: The LutrisWindow object
-        :return: The synchronized games (slugs)
-        :rtype: set of strings
+        :return: The added and updated games (slugs)
+        :rtype: tuple of sets
         """
         logger.debug("Syncing game library")
         # Get local library
@@ -39,15 +38,16 @@ class Sync(object):
 
         not_in_local = remote_slugs.difference(local_slugs)
 
-        added = self.sync_missing_games(not_in_local, remote_library, caller)
-        updated = self.sync_game_details(remote_library, caller)
-        return added.update(updated)
+        added = self.sync_missing_games(not_in_local, remote_library)
+        updated = self.sync_game_details(remote_library)
+        if added:
+            self.library = pga.get_games()
+        return (added, updated)
 
     @staticmethod
-    def sync_missing_games(not_in_local, remote_library, caller=None):
+    def sync_missing_games(not_in_local, remote_library):
         """Get missing games in local library from remote library.
 
-        :param caller: The LutrisWindow object
         :return: The slugs of the added games
         :rtype: set
         """
@@ -63,18 +63,15 @@ class Sync(object):
                     game['name'], slug=slug, year=game['year'],
                     updated=game['updated'], steamid=game['steamid']
                 )
-                if caller:
-                    caller.add_game_to_view(slug)
             else:
                 not_in_local.discard(slug)
         logger.debug("%d games added", len(not_in_local))
         return not_in_local
 
     @staticmethod
-    def sync_game_details(remote_library, caller):
+    def sync_game_details(remote_library):
         """Update local game details,
 
-        :param caller: The LutrisWindow object
         :return: The slugs of the updated games.
         :rtype: set
         """
@@ -115,30 +112,30 @@ class Sync(object):
                 year=game['year'], updated=game['updated'],
                 steamid=game['steamid']
             )
-            caller.view.update_row(game)
 
             # Sync icons (TODO: Only update if icon actually updated)
             if sync_icons:
-                resources.download_icon(slug, 'banner', overwrite=True,
-                                        callback=caller.on_image_downloaded)
-                resources.download_icon(slug, 'icon', overwrite=True,
-                                        callback=caller.on_image_downloaded)
+                resources.download_icon(slug, 'banner', overwrite=True)
+                resources.download_icon(slug, 'icon', overwrite=True)
                 updated.add(slug)
 
         logger.debug("%d games updated", len(updated))
         return updated
 
-    def sync_steam_local(self, caller):
+    def sync_steam_local(self):
         """Sync Steam games in library with Steam and Wine Steam"""
         logger.debug("Syncing local steam games")
         steamrunner = steam()
         winesteamrunner = winesteam()
+        installed = set()
+        uninstalled = set()
 
         # Get installed steamapps
         installed_steamapps = self._get_installed_steamapps(steamrunner)
         installed_winesteamapps = self._get_installed_steamapps(winesteamrunner)
 
         for game_info in self.library:
+            slug = game_info['slug']
             runner = game_info['runner']
             steamid = game_info['steamid']
             installed_in_steam = steamid in installed_steamapps
@@ -149,15 +146,13 @@ class Sync(object):
                 if not installed_in_steam:  # (Linux Steam only)
                     continue
                 logger.debug("Setting %s as installed" % game_info['name'])
-                pga.add_or_update(game_info['name'], 'steam',
-                                  game_info['slug'],
+                pga.add_or_update(game_info['name'], 'steam', slug,
                                   installed=1)
                 game_config = config.LutrisConfig(runner_slug='steam',
                                                   game_slug=game_info['slug'])
                 game_config.raw_game_config.update({'appid': str(steamid)})
                 game_config.save()
-                caller.view.set_installed(Game(game_info['slug']))
-                continue
+                installed.add(slug)
 
             # Set uninstalled
             elif not (installed_in_steam or installed_in_winesteam):
@@ -171,7 +166,8 @@ class Sync(object):
                 pga.add_or_update(game_info['name'], '',
                                   game_info['slug'],
                                   installed=0)
-                caller.view.set_uninstalled(game_info['slug'])
+                uninstalled.add(slug)
+        return (installed, uninstalled)
 
     @staticmethod
     def _get_installed_steamapps(runner):

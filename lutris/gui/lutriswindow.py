@@ -166,12 +166,7 @@ class LutrisWindow(object):
             self.on_connect_success(None, credentials)
         else:
             self.toggle_connection(False)
-            sync = Sync()
-            async_call(
-                sync.sync_steam_local,
-                lambda r, e: async_call(self.sync_icons, None),
-                caller=self
-            )
+            self.sync_library()
         # Update Runtime
         async_call(runtime.update_runtime, None, self.set_status)
 
@@ -244,17 +239,32 @@ class LutrisWindow(object):
             self.banner_menuitem.set_active(True)
 
     def sync_library(self):
-        def set_library_synced(result, error):
-            self.set_status("Library synced")
+        """Synchronize games with local stuff and server."""
+        def update_gui(result, error):
+            added, updated, installed, uninstalled = result
             self.switch_splash_screen()
-            self.sidebar_treeview.update()
+            self.view.fill_store(added)
+
+            def update_existing_games():
+                for game in updated.difference(added):
+                    self.view.update_row(pga.get_game_by_slug(game))
+
+                for game in installed.difference(added):
+                    if not self.view.get_row_by_slug(game):
+                        self.view.add_game(game)
+                    self.view.set_installed(Game(game))
+
+                for game in uninstalled.difference(added):
+                    self.view.set_uninstalled(game)
+
+                self.sidebar_treeview.update()
+                async_call(self.sync_icons, None)
+                self.set_status("Library synced")
+            GLib.idle_add(update_existing_games)
+
         self.set_status("Syncing library")
         sync = Sync()
-        async_call(
-            sync.sync_all,
-            lambda r, e: async_call(self.sync_icons, set_library_synced),
-            caller=self
-        )
+        async_call(sync.sync_all, update_gui)
 
     def sync_icons(self):
         game_list = pga.get_games()
@@ -338,17 +348,7 @@ class LutrisWindow(object):
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
-        credentials = api.read_api_key()
-        if credentials:  # Is connected
-            self.sync_library()
-        else:
-            sync = Sync()
-            async_call(
-                sync.sync_steam_local,
-                lambda r, e: async_call(self.sync_icons, None),
-                caller=self
-            )
-        # Update Runtime
+        self.sync_library()
         async_call(runtime.update_runtime, None, self.set_status)
 
     def on_resize(self, widget, *args):
@@ -438,6 +438,8 @@ class LutrisWindow(object):
         self.delete_button.set_sensitive(sensitive)
 
     def on_game_installed(self, view, slug):
+        if not self.view.get_row_by_slug(slug):
+            self.add_game_to_view(slug)
         view.set_installed(Game(slug))
         self.sidebar_treeview.update()
 

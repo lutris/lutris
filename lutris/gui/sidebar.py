@@ -70,6 +70,7 @@ class SidebarTreeView(Gtk.TreeView):
     def update(self):
         self.used_runners = pga.get_used_runners()
         self.model_filter.refilter()
+        self.expand_all()
 
     def popup_contextual_menu(self, view, event):
         if event.button != 3:
