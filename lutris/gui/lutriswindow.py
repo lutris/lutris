@@ -492,13 +492,12 @@ class LutrisWindow(object):
         def do_remove_game():
             self.view.remove_game(game_slug)
             self.switch_splash_screen()
-            self.sidebar_treeview.update()
 
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_slug, is_installed=False)
-            self.sidebar_treeview.update()
+        self.sidebar_treeview.update()
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
