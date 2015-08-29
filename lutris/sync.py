@@ -54,19 +54,23 @@ class Sync(object):
         if not not_in_local:
             return set()
 
+        missing_slugs = set()
+        missing = []
         for game in remote_library:
             slug = game['slug']
-            # Sync
             if slug in not_in_local:
                 logger.debug("Adding to local library: %s", slug)
-                pga.add_game(
-                    game['name'], slug=slug, year=game['year'],
-                    updated=game['updated'], steamid=game['steamid']
+                missing_slugs.add(slug)
+                missing.append(
+                    {'name': game['name'],
+                     'slug': slug,
+                     'year': game['year'],
+                     'updated': game['updated'],
+                     'steamid': game['steamid']}
                 )
-            else:
-                not_in_local.discard(slug)
-        logger.debug("%d games added", len(not_in_local))
-        return not_in_local
+        pga.add_games_bulk(missing)
+        logger.debug("%d games added", len(missing))
+        return missing_slugs
 
     @staticmethod
     def sync_game_details(remote_library):

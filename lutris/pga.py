@@ -176,6 +176,16 @@ def add_game(name, **game_data):
     sql.db_insert(PGA_DB, "games", game_data)
 
 
+def add_games_bulk(games):
+    """Adds a list of games to the PGA database.
+
+    The dicts must have an identical set of keys.
+
+    :type games: list of dicts
+    """
+    sql.db_insert_bulk(PGA_DB, "games", games)
+
+
 def add_or_update(name, runner, slug=None, **kwargs):
     if not slug:
         slug = slugify(name)
