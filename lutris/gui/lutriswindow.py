@@ -25,7 +25,7 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
-from lutris.gui.widgets import (
+from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu
 )
 
