@@ -9,6 +9,10 @@ class AsyncCall(threading.Thread):
         """Execute `function` in a new thread then schedule `on_done` for
         execution in the main loop.
         """
+        if kwargs.pop('stoppable', False):
+            self.stop_request = threading.Event()
+            kwargs['stop_request'] = self.stop_request
+
         super(AsyncCall, self).__init__(target=self.target, args=args,
                                         kwargs=kwargs)
         self.function = function

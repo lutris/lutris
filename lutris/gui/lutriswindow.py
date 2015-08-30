@@ -49,8 +49,8 @@ class LutrisWindow(object):
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
-        # Currently running game
         self.running_game = None
+        self.threads_stop_requests = []
 
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -258,18 +258,22 @@ class LutrisWindow(object):
                     self.view.set_uninstalled(game)
 
                 self.sidebar_treeview.update()
-                AsyncCall(self.sync_icons, None)
                 self.set_status("Library synced")
+
+                icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
+                self.threads_stop_requests.append(icons_sync.stop_request)
+
             GLib.idle_add(update_existing_games)
 
         self.set_status("Syncing library")
         sync = Sync()
         AsyncCall(sync.sync_all, update_gui)
 
-    def sync_icons(self):
+    def sync_icons(self, stop_request=None):
         game_list = pga.get_games()
         resources.fetch_icons([game_info['slug'] for game_info in game_list],
-                              callback=self.on_image_downloaded)
+                              callback=self.on_image_downloaded,
+                              stop_request=stop_request)
 
     def set_status(self, text):
         self.status_label.set_text(text)
@@ -356,11 +360,17 @@ class LutrisWindow(object):
 
     def on_destroy(self, *args):
         """Signal for window close."""
+        # Stop cancellable running threads
+        for request in self.threads_stop_requests:
+            request.set()
+
+        # Save settings
         view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
         settings.write_setting('view_type', view_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
+
         Gtk.main_quit(*args)
         logger.debug("Quitting lutris")
 
