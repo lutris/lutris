@@ -5,11 +5,10 @@ import time
 
 from gi.repository import Gtk, Gdk, GLib
 
-from lutris import api, pga, settings, shortcuts
+from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
 from lutris.sync import Sync
 
-from lutris.util import runtime
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import async_call

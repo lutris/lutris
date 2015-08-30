@@ -6,10 +6,10 @@ import time
 
 from gi.repository import GLib
 
-from lutris import pga, settings, shortcuts
+from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util import audio, display, runtime, system
+from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs

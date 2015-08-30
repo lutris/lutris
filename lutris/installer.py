@@ -12,11 +12,11 @@ import webbrowser
 from gi.repository import Gdk
 
 from lutris import pga, settings
+from lutris.runtime import get_runtime_env
 from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import async_call
 from lutris.util.log import logger
-from lutris.util.runtime import get_runtime_env
 
 from lutris.game import Game
 from lutris.config import LutrisConfig
