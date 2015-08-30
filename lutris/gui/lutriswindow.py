@@ -11,7 +11,7 @@ from lutris.sync import Sync
 
 from lutris.util import resources
 from lutris.util.log import logger
-from lutris.util.jobs import async_call
+from lutris.util.jobs import AsyncCall
 from lutris.util.strings import slugify
 from lutris.util import datapath
 
@@ -167,7 +167,7 @@ class LutrisWindow(object):
             self.toggle_connection(False)
             self.sync_library()
         # Update Runtime
-        async_call(runtime.update_runtime, None, self.set_status)
+        AsyncCall(runtime.update_runtime, None, self.set_status)
 
     @property
     def current_view_type(self):
@@ -258,13 +258,13 @@ class LutrisWindow(object):
                     self.view.set_uninstalled(game)
 
                 self.sidebar_treeview.update()
-                async_call(self.sync_icons, None)
+                AsyncCall(self.sync_icons, None)
                 self.set_status("Library synced")
             GLib.idle_add(update_existing_games)
 
         self.set_status("Syncing library")
         sync = Sync()
-        async_call(sync.sync_all, update_gui)
+        AsyncCall(sync.sync_all, update_gui)
 
     def sync_icons(self):
         game_list = pga.get_games()
@@ -349,7 +349,7 @@ class LutrisWindow(object):
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
-        async_call(runtime.update_runtime, None, self.set_status)
+        AsyncCall(runtime.update_runtime, None, self.set_status)
 
     def on_resize(self, widget, *args):
         self.window_size = widget.get_size()

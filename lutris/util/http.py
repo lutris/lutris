@@ -11,7 +11,7 @@ def download_asset(url, dest, overwrite=False):
         if overwrite:
             os.remove(dest)
         else:
-            logger.info("Destination %s exists, not overwritting" % dest)
+            logger.info("Destination %s exists, not overwriting" % dest)
             return
     # TODO: Downloading icons and banners makes a bunch of useless http
     # requests + it's really slow

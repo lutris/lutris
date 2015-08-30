@@ -15,7 +15,7 @@ from lutris import pga, settings
 from lutris.runtime import get_runtime_env
 from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
-from lutris.util.jobs import async_call
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 from lutris.game import Game
@@ -301,7 +301,7 @@ class ScriptInterpreter(object):
                 status_text = None
             if status_text:
                 self.parent.set_status(status_text)
-            async_call(method, self._iter_commands, params)
+            AsyncCall(method, self._iter_commands, params)
         else:
             self._finish_install()
 
@@ -725,7 +725,7 @@ class ScriptInterpreter(object):
                 appid
             )
             steam_runner.appid = appid
-            async_call(steam_runner.install_game, None, appid)
+            AsyncCall(steam_runner.install_game, None, appid)
         else:
             self._append_steam_data_to_files(runner_class)
 
@@ -750,7 +750,7 @@ class ScriptInterpreter(object):
 
     def complete_steam_install(self, dest):
         winesteam_runner = winesteam.winesteam()
-        async_call(winesteam_runner.install, self.on_winesteam_installed, dest)
+        AsyncCall(winesteam_runner.install, self.on_winesteam_installed, dest)
 
     def on_winesteam_installed(self, *args):
         self.install_steam_game(winesteam.winesteam)
