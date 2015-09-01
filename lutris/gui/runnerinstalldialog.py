@@ -87,8 +87,7 @@ class RunnerInstallDialog(Dialog):
         return os.path.join(settings.RUNNER_DIR, self.runner,
                             "{}-{}".format(version, arch))
 
-    def get_dest_path(self, path):
-        row = self.runner_store[path]
+    def get_dest_path(self, row):
         url = row[2]
         filename = os.path.basename(url)
         return os.path.join(settings.CACHE_DIR, filename)
@@ -96,43 +95,47 @@ class RunnerInstallDialog(Dialog):
     def on_installed_toggled(self, widget, path):
         row = self.runner_store[path]
         if row[self.COL_INSTALLED]:
-            self.uninstall_runner(path)
+            self.uninstall_runner(row)
         else:
-            self.install_runner(path)
+            self.install_runner(row)
 
-    def uninstall_runner(self, path):
-        row = self.runner_store[path]
+    def uninstall_runner(self, row):
         version = row[self.COL_VER]
         arch = row[self.COL_ARCH]
         system.remove_folder(self.get_runner_path(version, arch))
         row[self.COL_INSTALLED] = False
 
-    def install_runner(self, path):
-        row = self.runner_store[path]
+    def install_runner(self, row):
         url = row[2]
         logger.debug("Downloading %s", url)
-        dest_path = self.get_dest_path(path)
-        downloader = Downloader(url, dest_path)
-        self.download_timer = GLib.timeout_add(100, self.get_progress,
-                                               downloader, path)
+        dest_path = self.get_dest_path(row)
+        downloader = Downloader(url, dest_path, overwrite=True)
+        GLib.timeout_add(100, self.get_progress, downloader, row)
         downloader.start()
 
-    def get_progress(self, downloader, path):
-        row = self.runner_store[path]
+    def get_progress(self, downloader, row):
         progress = downloader.check_progress()
         row[4] = downloader.progress_percentage
         if progress >= 1.0:
-            self.on_installer_downloaded(path)
+            row[4] = 99
+            self.on_runner_downloaded(row)
             return False
         return True
 
-    def on_installer_downloaded(self, path):
-        row = self.runner_store[path]
+    def on_runner_downloaded(self, row):
         version = row[0]
         architecture = row[1]
-        archive_path = self.get_dest_path(path)
-        dest_path = self.get_runner_path(version, architecture)
-        extract_archive(archive_path, dest_path)
+        src = self.get_dest_path(row)
+        dst = self.get_runner_path(version, architecture)
+        from lutris.util import jobs
+        jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
+
+    def extract(self, src, dst, row):
+        extract_archive(src, dst)
+        return src, row
+
+    def on_extracted(self, (src, row), error):
+        os.remove(src)
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True
 
