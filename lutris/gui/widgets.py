@@ -56,7 +56,7 @@ class DownloadProgressBox(Gtk.VBox):
         self.progressbar.set_margin_right(10)
         progress_box.pack_start(self.progressbar, True, True, 0)
 
-        self.cancel_button = Gtk.Button('_Cancel')
+        self.cancel_button = Gtk.Button.new_with_mnemonic('_Cancel')
         self.cancel_button.connect('clicked', self.cancel)
         if not cancelable:
             self.cancel_button.set_sensitive(False)
@@ -73,7 +73,7 @@ class DownloadProgressBox(Gtk.VBox):
     def start(self):
         """Start downloading a file."""
         try:
-            self.downloader = Downloader(self.url, self.dest)
+            self.downloader = Downloader(self.url, self.dest, overwrite=True)
         except RuntimeError as ex:
             from lutris.gui.dialogs import ErrorDialog
             ErrorDialog(ex.message)
@@ -86,7 +86,7 @@ class DownloadProgressBox(Gtk.VBox):
 
     def progress(self):
         """Show download progress."""
-        progress = min(self.downloader.progress, 1)
+        progress = min(self.downloader.check_progress(), 1)
         if self.downloader.cancelled:
             self.progressbar.set_fraction(0)
             self.set_text("Download cancelled")
@@ -95,11 +95,11 @@ class DownloadProgressBox(Gtk.VBox):
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = (
-            "%0.2f / %0.2fMB (%0.2fMB/s), %d seconds remaining" % (
-                float(self.downloader.downloaded_bytes) / megabytes,
-                float(self.downloader.total_bytes) / megabytes,
-                float(self.downloader.speed) / megabytes,
-                self.downloader.time_remaining
+            "%0.2f / %0.2fMB (%0.2fMB/s), %s remaining" % (
+                float(self.downloader.downloaded_size) / megabytes,
+                float(self.downloader.full_size) / megabytes,
+                float(self.downloader.average_speed) / megabytes,
+                self.downloader.time_left
             )
         )
         self.set_text(progress_text)

@@ -119,8 +119,9 @@ class RunnerInstallDialog(Dialog):
 
     def get_progress(self, downloader, path):
         row = self.runner_store[path]
-        row[4] = downloader.progress * 100
-        if downloader.progress >= 1.0:
+        progress = downloader.check_progress()
+        row[4] = downloader.progress_percentage
+        if progress >= 1.0:
             self.on_installer_downloaded(path)
             return False
         return True
