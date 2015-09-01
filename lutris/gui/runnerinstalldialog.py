@@ -26,6 +26,7 @@ class RunnerInstallDialog(Dialog):
         self.vbox.add(label)
         self.runner_store = self.get_store()
         self.treeview = self.get_treeview(self.runner_store)
+        self.installing = {}
 
         self.vbox.add(self.treeview)
         self.show_all()
@@ -94,10 +95,18 @@ class RunnerInstallDialog(Dialog):
 
     def on_installed_toggled(self, widget, path):
         row = self.runner_store[path]
-        if row[self.COL_INSTALLED]:
+        if row[self.COL_VER] in self.installing:
+            self.cancel_install(row)
+        elif row[self.COL_INSTALLED]:
             self.uninstall_runner(row)
         else:
             self.install_runner(row)
+
+    def cancel_install(self, row):
+        self.installing[row[self.COL_VER]].cancel()
+        self.uninstall_runner(row)
+        row[self.COL_PROGRESS] = 0
+        self.installing.pop(row[self.COL_VER])
 
     def uninstall_runner(self, row):
         version = row[self.COL_VER]
@@ -105,15 +114,19 @@ class RunnerInstallDialog(Dialog):
         system.remove_folder(self.get_runner_path(version, arch))
         row[self.COL_INSTALLED] = False
 
+
     def install_runner(self, row):
         url = row[2]
         logger.debug("Downloading %s", url)
         dest_path = self.get_dest_path(row)
         downloader = Downloader(url, dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
+        self.installing[row[self.COL_VER]] = downloader
         downloader.start()
 
     def get_progress(self, downloader, row):
+        if downloader.cancelled:
+            return False
         progress = downloader.check_progress()
         row[4] = downloader.progress_percentage
         if progress >= 1.0:
@@ -138,6 +151,7 @@ class RunnerInstallDialog(Dialog):
         os.remove(src)
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True
+        self.installing.pop(row[self.COL_VER])
 
 
 if __name__ == "__main__":
