@@ -99,6 +99,8 @@ class desura(Runner):
         self.download_and_extract(tarball,
                                   settings.RUNNER_DIR,
                                   source_url="http://www.desura.com/")
+        if not self.is_installed():
+            return False
         subprocess.Popen([self.get_executable()], cwd=os.path.expanduser('~'))
 
     def is_installed(self):
