@@ -36,7 +36,7 @@ RUNNERS_URL = SITE_URL + "files/runners/"
 RUNTIME_URL = "http://ovocean.com/partage/lutris/runtime/"
 
 # Default config options
-KEEP_CACHED_ASSETS = True
+KEEP_CACHED_ASSETS = False  # TODO: needs verification of failed DLed files
 GAME_VIEW = 'grid'
 ICON_TYPE_GRIDVIEW = 'banner'
 ICON_TYPE_LISTVIEW = 'icon'
