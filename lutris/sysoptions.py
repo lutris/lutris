@@ -147,7 +147,8 @@ def with_runner_overrides(runner):
     """Return system options updated with overrides from given runner."""
     options = system_options
     if runner.system_options_override:
-        opts_dict = dict((opt['option'], opt) for opt in options)
+        from collections import OrderedDict
+        opts_dict = OrderedDict((opt['option'], opt) for opt in options)
         for option in runner.system_options_override:
             key = option['option']
             if opts_dict.get(key):
