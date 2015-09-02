@@ -124,7 +124,7 @@ class ConfigBox(VBox):
         """Call the right generation method depending on option type."""
         option_type = option['type']
 
-        if value != default and option_key in self.raw_config:
+        if option_key in self.raw_config:
             self.set_style_property('font-weight', 'bold', self.wrapper)
         elif value != default:
             self.set_style_property('font-style', 'italic', self.wrapper)
