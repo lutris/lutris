@@ -26,25 +26,29 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
             % path)
-    destination = temp_dir = os.path.join(to_directory, ".lutris_extracted")
+    temp_path = temp_dir = os.path.join(to_directory, ".lutris_extracted")
     handler = opener(path, mode)
-    handler.extractall(destination)
+    handler.extractall(temp_path)
     handler.close()
     if merge_single:
-        extracted = os.listdir(destination)
+        extracted = os.listdir(temp_path)
         if len(extracted) == 1:
-            destination = os.path.join(destination, extracted[0])
+            temp_path = os.path.join(temp_path, extracted[0])
 
-    if os.path.isfile(destination):
-        shutil.move(destination, to_directory)
+    if os.path.isfile(temp_path):
+        destination_path = os.path.join(to_directory, extracted[0])
+        if os.path.isfile(destination_path):
+            logger.warning("Overwrite existing file %s", destination_path)
+            os.remove(destination_path)
+        shutil.move(temp_path, to_directory)
         os.removedirs(temp_dir)
     else:
-        for f in os.listdir(destination):
+        for f in os.listdir(temp_path):
             logger.debug("Moving element %s of archive", f)
-            source_path = os.path.join(destination, f)
+            source_path = os.path.join(temp_path, f)
             destination_path = os.path.join(to_directory, f)
             if os.path.exists(destination_path):
-                logger.warning("%s already exists", destination_path)
+                logger.warning("Overwrite existing path %s", destination_path)
                 if os.path.isfile(destination_path):
                     os.remove(destination_path)
                     shutil.move(source_path, destination_path)
@@ -52,7 +56,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
                     merge_folders(source_path, destination_path)
             else:
                 shutil.move(source_path, destination_path)
-        shutil.rmtree(destination)
+        shutil.rmtree(temp_path)
     logger.debug("Finished extracting %s", path)
 
 
