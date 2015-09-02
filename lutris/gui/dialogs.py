@@ -81,8 +81,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         super(DirectoryDialog, self).__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-                     Gtk.STOCK_OK, Gtk.ResponseType.OK)
+            buttons=('_Cancel', Gtk.ResponseType.CLOSE,
+                     '_OK', Gtk.ResponseType.OK)
         )
         self.result = self.run()
         self.folder = self.get_current_folder()
@@ -96,8 +96,8 @@ class FileDialog(Gtk.FileChooserDialog):
             message = "Please choose a file"
         super(FileDialog, self).__init__(
             message, None, Gtk.FileChooserAction.OPEN,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+            ('_Cancel', Gtk.ResponseType.CANCEL,
+             '_OK', Gtk.ResponseType.OK)
         )
         self.set_local_only(False)
         response = self.run()
@@ -171,8 +171,8 @@ class PgaSourceDialog(GtkBuilderDialog):
         chooser = Gtk.FileChooserDialog(
             "Select directory", self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             "Select", Gtk.ResponseType.OK)
+            ('_Cancel', Gtk.ResponseType.CANCEL,
+             '_OK', Gtk.ResponseType.OK)
         )
         chooser.set_local_only(False)
         response = chooser.run()

@@ -16,8 +16,31 @@ class ConfigBox(VBox):
         self.options = None
         self.game = game
 
+    def generate_top_info_box(self, text):
+        help_box = Gtk.HBox()
+        help_box.set_margin_left(15)
+        help_box.set_margin_right(15)
+        help_box.set_margin_bottom(5)
+        icon = Gtk.Image(icon_name='dialog-information')
+        label = Gtk.Label("<i>%s</i>" % text)
+        label.set_line_wrap(True)
+        label.set_alignment(0, 0.5)
+        label.set_use_markup(True)
+        help_box.pack_start(icon, False, False, 5)
+        help_box.pack_start(label, False, False, 5)
+        self.pack_start(help_box, False, False, 0)
+        self.pack_start(Gtk.HSeparator(), False, False, 10)
+        help_box.show_all()
+
     def generate_widgets(self, config_section):
         """Parse the config dict and generates widget accordingly."""
+        if not self.options:
+            label = Label("No options available")
+            label.set_halign(Gtk.Align.CENTER)
+            label.set_valign(Gtk.Align.CENTER)
+            self.pack_start(label, True, True, 0)
+            return
+
         # Select config section.
         if config_section == 'game':
             self.config = self.lutris_config.game_config
@@ -35,6 +58,8 @@ class ConfigBox(VBox):
                 if config_section not in option['scope']:
                     continue
             option_key = option['option']
+            value = self.config.get(option_key)
+            default = option.get('default')
 
             hbox = Gtk.HBox()
             hbox.set_margin_left(20)
@@ -45,13 +70,17 @@ class ConfigBox(VBox):
             placeholder.set_size_request(32, 32)
             hbox.pack_end(placeholder, False, False, 5)
 
+            # Set tooltip's "Default" part
+            default = option.get('default')
+            self.tooltip_default = default if type(default) is str else None
+
             # Generate option widget
             self.option_widget = None
-            self.call_widget_generator(option)
+            self.call_widget_generator(option, option_key, value, default)
 
             # Reset button
-            icon = Gtk.Image(stock=Gtk.STOCK_CLEAR)
-            reset_btn = Gtk.Button(image=icon)
+            reset_btn = Gtk.Button.new_from_icon_name('edit-clear',
+                                                      Gtk.IconSize.MENU)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
             reset_btn.set_tooltip_text("Reset option to global or "
                                        "default config")
@@ -63,15 +92,15 @@ class ConfigBox(VBox):
                 reset_btn.set_no_show_all(True)
             placeholder.pack_start(reset_btn, False, False, 0)
 
-            # Set tooltip's "Default" part
-            default = option.get('default')
-            self.tooltip_default = default if type(default) is str else None
-
             # Tooltip
             helptext = option.get("help")
             if type(self.tooltip_default) is str:
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += "<b>Default</b>: " + self.tooltip_default
+            if value != default and not option_key in self.raw_config:
+                helptext = helptext + '\n\n' if helptext else ''
+                helptext += ("<i>(Italic indicates that this option is "
+                             "modified in a lower configuration level.)</i>")
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect('query-tooltip', self.on_query_tooltip,
@@ -91,12 +120,14 @@ class ConfigBox(VBox):
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 5)
 
-    def call_widget_generator(self, option):
+    def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
         option_type = option['type']
-        option_key = option['option']
-        default = option.get('default')
-        value = self.config.get(option_key)
+
+        if option_key in self.raw_config:
+            self.set_style_property('font-weight', 'bold', self.wrapper)
+        elif value != default:
+            self.set_style_property('font-style', 'italic', self.wrapper)
 
         if option_type == 'choice':
             self.generate_combobox(option_key,
@@ -110,6 +141,7 @@ class ConfigBox(VBox):
                                    value, default, has_entry=True)
         elif option_type == 'bool':
             self.generate_checkbox(option, value)
+            self.tooltip_default = 'Enabled' if default else 'Disabled'
         elif option_type == 'range':
             self.generate_range(option_key,
                                 option["min"],
@@ -149,9 +181,6 @@ class ConfigBox(VBox):
         checkbox = Gtk.CheckButton(label=option["label"])
         if value:
             checkbox.set_active(value)
-            self.tooltip_default = 'Enabled'
-        else:
-            self.tooltip_default = 'Disabled'
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         self.wrapper.pack_start(checkbox, True, True, 5)
         self.option_widget = checkbox
@@ -312,28 +341,13 @@ class ConfigBox(VBox):
         """Generate a multiple file selector."""
         vbox = Gtk.VBox()
         label = Label(label + ':')
-        self.files_chooser_dialog = Gtk.FileChooserDialog(
-            title="Select files",
-            parent=None,
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-                     Gtk.STOCK_ADD, Gtk.ResponseType.OK)
-        )
-        self.files_chooser_dialog.set_select_multiple(True)
-        files_chooser_button = Gtk.FileChooserButton(self.files_chooser_dialog)
-        files_chooser_button.connect('file-set', self.add_files_callback,
-                                     option_name)
-        game_path = self.config.get('game_path', os.path.expanduser('~'))
-        if game_path:
-            files_chooser_button.set_current_folder(game_path)
-        if value:
-            files_chooser_button.set_current_folder(os.path.dirname(value[0]))
-
         label.set_halign(Gtk.Align.START)
-        files_chooser_button.set_margin_left(10)
-        files_chooser_button.set_margin_right(10)
+        button = Gtk.Button('Add files')
+        button.connect('clicked', self.on_add_files_clicked,
+                       option_name, value)
+        button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
-        vbox.pack_start(files_chooser_button, False, False, 0)
+        vbox.pack_end(button, False, False, 0)
 
         if value:
             if type(value) == str:
@@ -349,21 +363,52 @@ class ConfigBox(VBox):
         files_treeview = Gtk.TreeView(self.files_list_store)
         files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.connect('key-press-event', self.on_files_treeview_event,
-                               option_name)
+        files_treeview.connect('key-press-event',
+                               self.on_files_treeview_keypress, option_name)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
+        treeview_scroll.set_margin_left(10)
+        treeview_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         treeview_scroll.add(files_treeview)
 
-        treeview_scroll.set_margin_left(10)
-        treeview_scroll.set_margin_right(10)
         vbox.pack_start(treeview_scroll, True, True, 0)
         self.wrapper.pack_start(vbox, True, True, 0)
         self.option_widget = self.files_list_store
 
-    def on_files_treeview_event(self, treeview, event, option):
+    def on_add_files_clicked(self, widget, option_name, value):
+        """Create and run multi-file chooser dialog."""
+        dialog = Gtk.FileChooserDialog(
+            title="Select files",
+            parent=None,
+            action=Gtk.FileChooserAction.OPEN,
+            buttons=('_Cancel', Gtk.ResponseType.CANCEL,
+                     '_Add', Gtk.ResponseType.ACCEPT)
+        )
+        dialog.set_select_multiple(True)
+
+        first_file_dir = os.path.dirname(value[0]) if value else None
+        dialog.set_current_folder(first_file_dir
+                                  or self.game.directory
+                                  or self.config.get('game_path')
+                                  or os.path.expanduser('~'))
+        response = dialog.run()
+        if response == Gtk.ResponseType.ACCEPT:
+            self.add_files_to_treeview(dialog, option_name, self.wrapper)
+        dialog.destroy()
+
+    def add_files_to_treeview(self, dialog, option, wrapper):
+        """Add several files to the configuration"""
+        filenames = dialog.get_filenames()
+        files = self.config.get(option, [])
+        for filename in filenames:
+            self.files_list_store.append([filename])
+            if filename not in files:
+                files.append(filename)
+        self.option_changed(wrapper, option, files)
+
+    def on_files_treeview_keypress(self, treeview, event, option):
         """Action triggered when a row is deleted from the filechooser."""
         key = event.keyval
         if key == Gdk.KEY_Delete:
@@ -374,18 +419,6 @@ class ConfigBox(VBox):
                 treeiter = model.get_iter(treepath)
                 model.remove(treeiter)
                 self.raw_config[option].pop(row_index)
-                self.config[option].pop(row_index)
-
-    def add_files_callback(self, button, option=None):
-        """Add several files to the configuration"""
-        filenames = button.get_filenames()
-        files = self.config.get(option, [])
-        for filename in filenames:
-            self.files_list_store.append([filename])
-            if filename not in files:
-                files.append(filename)
-        self.option_changed(button.get_parent(), option, files)
-        self.files_chooser_dialog = None
 
     def on_query_tooltip(self, widget, x, y, keybmode, tooltip, text):
         """Prepare a custom tooltip with a fixed width"""
@@ -403,11 +436,14 @@ class ConfigBox(VBox):
         self.raw_config[option_name] = value
         self.config[option_name] = value
 
+        wrapper = widget.get_parent()
+        hbox = wrapper.get_parent()
+
         # Dirty way to get the reset btn. I tried passing it through the
         # methods but got some strange unreliable behavior.
-        wrapper = widget.get_parent().get_parent()
-        reset_btn = wrapper.get_children()[1].get_children()[0]
+        reset_btn = hbox.get_children()[1].get_children()[0]
         reset_btn.set_visible(True)
+        self.set_style_property('font-weight', 'bold', wrapper)
 
     def on_reset_button_clicked(self, btn, option, widget, wrapper):
         """Clear option (remove from config, reset option widget)."""
@@ -415,11 +451,12 @@ class ConfigBox(VBox):
         current_value = self.config[option_key]
 
         btn.set_visible(False)
+        self.set_style_property('font-weight', 'normal', wrapper)
         self.raw_config.pop(option_key)
         self.lutris_config.update_cascaded_config()
 
-        default = self.config.get(option_key)
-        if current_value == default:
+        reset_value = self.config.get(option_key)
+        if current_value == reset_value:
             return
 
         # Destroy and recreate option widget
@@ -427,8 +464,17 @@ class ConfigBox(VBox):
         children = wrapper.get_children()
         for child in children:
             child.destroy()
-        self.call_widget_generator(option)
+        self.call_widget_generator(option, option_key, reset_value,
+                                   option.get('default'))
         self.wrapper.show_all()
+
+    def set_style_property(self, property_, value, wrapper):
+        """Add custom style."""
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data("GtkHBox {%s: %s;}" % (property_, value))
+        style_context = wrapper.get_style_context()
+        style_context.add_provider(style_provider,
+                                   Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 class GameBox(ConfigBox):
@@ -450,6 +496,12 @@ class RunnerBox(ConfigBox):
         self.lutris_config = lutris_config
         runner = import_runner(self.lutris_config.runner_slug)()
         self.options = runner.runner_options
+
+        if lutris_config.game_slug:
+            self.generate_top_info_box(
+                "If modified, these options supersede the same options from "
+                "the base runner configuration."
+            )
         self.generate_widgets('runner')
 
 
@@ -457,5 +509,23 @@ class SystemBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config
-        self.options = sysoptions.system_options
+
+        if self.lutris_config.runner_slug:
+            runner = import_runner(self.lutris_config.runner_slug)
+            self.options = sysoptions.with_runner_overrides(runner)
+        else:
+            self.options = sysoptions.system_options
+
+        if lutris_config.game_slug and self.lutris_config.runner_slug:
+            self.generate_top_info_box(
+                "If modified, these options supersede the same options from "
+                "the base runner configuration, which themselves supersede "
+                "the global preferences."
+            )
+        elif self.lutris_config.runner_slug:
+            self.generate_top_info_box(
+                "If modified, these options supersede the same options from "
+                "the global preferences."
+            )
+
         self.generate_widgets('system')

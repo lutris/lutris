@@ -162,6 +162,7 @@ class InstallerDialog(Gtk.Window):
         self.show_non_empty_warning()
 
     def on_destroy(self, widget):
+        os.chdir(os.path.expanduser('~'))
         if self.interpreter:
             self.interpreter.cleanup()
         if self.parent:
@@ -344,7 +345,7 @@ class InstallerDialog(Gtk.Window):
 
     def notify_install_success(self):
         if self.parent:
-            self.parent.view.emit('game-installed', self.game_ref)
+            self.parent.view.emit('game-installed', self.interpreter.game_slug)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)
@@ -358,9 +359,12 @@ class InstallerDialog(Gtk.Window):
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed"""
         widget.set_sensitive(False)
-        game = Game(self.interpreter.game_slug)
-        game.play()
         self.close(widget)
+        if self.parent:
+            self.parent.on_game_run(game_slug=self.interpreter.game_slug)
+        else:
+            game = Game(self.interpreter.game_slug)
+            game.play()
 
     def close(self, _widget):
         self.destroy()

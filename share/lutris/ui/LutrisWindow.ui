@@ -1,17 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.16.1 -->
 <interface>
-  <requires lib="gtk+" version="3.4"/>
+  <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-media-play</property>
+    <property name="icon_name">preferences-desktop</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-file</property>
+    <property name="icon_name">text-x-generic</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">application-exit</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image4">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">media-playback-start</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image5">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">media-playback-stop</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">list-add</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image7">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">list-remove</property>
+    <property name="use_fallback">True</property>
+    <property name="icon_size">1</property>
+  </object>
+  <object class="GtkImage" id="image8">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">help-about</property>
+    <property name="use_fallback">True</property>
     <property name="icon_size">1</property>
   </object>
   <object class="GtkRadioAction" id="radioaction1">
@@ -126,24 +171,26 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="preferences_menuitem">
-                        <property name="label">gtk-preferences</property>
+                        <property name="label" translatable="yes">_Preferences</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip_markup" translatable="yes">configure the default options</property>
                         <property name="tooltip_text" translatable="yes">configure the default options</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_preferences_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="quit_menuitem">
-                        <property name="label">gtk-quit</property>
+                        <property name="label">_Quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_destroy" swapped="no"/>
                       </object>
                     </child>
@@ -165,7 +212,7 @@
                       <object class="GtkRadioMenuItem" id="gridview_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Grid</property>
+                        <property name="label" translatable="yes">_Grid</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                         <property name="draw_as_radio">True</property>
@@ -176,7 +223,7 @@
                       <object class="GtkRadioMenuItem" id="listview_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">List</property>
+                        <property name="label" translatable="yes">_List</property>
                         <property name="use_underline">True</property>
                         <property name="draw_as_radio">True</property>
                         <property name="group">gridview_menuitem</property>
@@ -192,7 +239,7 @@
                       <object class="GtkMenuItem" id="icon_type_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Icon style</property>
+                        <property name="label" translatable="yes">_Icon style</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
                           <object class="GtkMenu" id="menu1">
@@ -248,7 +295,7 @@
                       <object class="GtkCheckMenuItem" id="filter_installed">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Installed games only</property>
+                        <property name="label" translatable="yes">I_nstalled games only</property>
                         <property name="use_underline">True</property>
                         <signal name="toggled" handler="on_show_installed_games_toggled" swapped="no"/>
                       </object>
@@ -269,20 +316,23 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="playgame_menuitem">
-                        <property name="label" translatable="yes">Start</property>
+                        <property name="label" translatable="yes">_Play</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">image4</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="on_game_clicked" swapped="no"/>
+                        <signal name="activate" handler="on_game_run" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="stopgame_menuitem">
-                        <property name="label">gtk-media-stop</property>
+                        <property name="label">_Stop</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image5</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="reset" swapped="no"/>
                       </object>
                     </child>
@@ -294,21 +344,23 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="addgame_menuitem">
-                        <property name="label">gtk-add</property>
+                        <property name="label">_Add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image6</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_game" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="removegame_menuitem">
-                        <property name="label">gtk-remove</property>
+                        <property name="label">_Remove</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image7</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_remove_game" swapped="no"/>
                       </object>
                     </child>
@@ -320,9 +372,10 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="view_game_log">
-                        <property name="label" translatable="yes">View log of last game</property>
+                        <property name="label" translatable="yes">View last game's _log</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="use_underline">True</property>
                         <property name="image">image2</property>
                         <property name="use_stock">False</property>
                         <signal name="activate" handler="on_view_game_log_activate" swapped="no"/>
@@ -344,11 +397,12 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="imagemenuitem10">
-                        <property name="label">gtk-about</property>
+                        <property name="label">_About</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image8</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="about" swapped="no"/>
                       </object>
                     </child>
@@ -375,9 +429,8 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Play game</property>
                 <property name="label" translatable="yes">Play</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-play</property>
-                <signal name="clicked" handler="on_game_clicked" swapped="no"/>
+                <property name="icon_name">media-playback-start</property>
+                <signal name="clicked" handler="on_game_run" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -390,8 +443,7 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Stop game</property>
                 <property name="label" translatable="yes">Stop</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-stop</property>
+                <property name="icon_name">media-playback-stop</property>
                 <signal name="clicked" handler="reset" swapped="no"/>
               </object>
               <packing>
@@ -405,8 +457,7 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Manually add a game</property>
                 <property name="label" translatable="yes">Add Game</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-add</property>
+                <property name="icon_name">list-add</property>
                 <signal name="clicked" handler="add_game" swapped="no"/>
               </object>
               <packing>
@@ -420,8 +471,7 @@
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Remove game from library</property>
                 <property name="label" translatable="yes">Remove</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-delete</property>
+                <property name="icon_name">edit-delete</property>
                 <signal name="clicked" handler="on_remove_game" swapped="no"/>
               </object>
               <packing>
@@ -452,8 +502,8 @@
                     <property name="has_focus">True</property>
                     <property name="invisible_char">•</property>
                     <property name="width_chars">30</property>
-                    <property name="primary_icon_stock">gtk-find</property>
-                    <property name="secondary_icon_stock">gtk-clear</property>
+                    <property name="primary_icon_name">edit-find</property>
+                    <property name="secondary_icon_name">edit-clear</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="primary_icon_sensitive">False</property>
                     <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>

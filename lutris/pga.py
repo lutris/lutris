@@ -126,6 +126,13 @@ def set_installed_games():
                           {'installed': 1}, ('slug', game['slug']))
 
 
+def get_table_length(table='games'):
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = "select count() from games"
+        cursor.execute(query)
+        return cursor.fetchone()[0]
+
+
 def get_games(name_filter=None, filter_installed=False):
     """Get the list of every game in database."""
     with sql.db_cursor(PGA_DB) as cursor:
@@ -167,6 +174,16 @@ def add_game(name, **game_data):
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
     sql.db_insert(PGA_DB, "games", game_data)
+
+
+def add_games_bulk(games):
+    """Adds a list of games to the PGA database.
+
+    The dicts must have an identical set of keys.
+
+    :type games: list of dicts
+    """
+    sql.db_insert_bulk(PGA_DB, "games", games)
 
 
 def add_or_update(name, runner, slug=None, **kwargs):

@@ -57,6 +57,12 @@ class steam(Runner):
                      "(only if it was started by Lutris)")
         }
     ]
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': True,
+        }
+    ]
 
     def __init__(self, config=None):
         super(steam, self).__init__(config)

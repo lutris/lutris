@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
 #
-#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
-#
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License version 3 as
 #  published by the Free Software Foundation.
@@ -191,16 +189,16 @@ class LutrisConfig(object):
                             self.game_slug)
 
     def update_cascaded_config(self):
-        if self.system_level.get('system') == None:
+        if self.system_level.get('system') is None:
             self.system_level['system'] = {}
         self.system_config.clear()
         self.system_config.update(self.get_defaults('system'))
         self.system_config.update(self.system_level.get('system'))
 
         if self.level in ['runner', 'game'] and self.runner_slug:
-            if self.runner_level.get(self.runner_slug) == None:
+            if self.runner_level.get(self.runner_slug) is None:
                 self.runner_level[self.runner_slug] = {}
-            if self.runner_level.get('system') == None:
+            if self.runner_level.get('system') is None:
                 self.runner_level['system'] = {}
             self.runner_config.clear()
             self.runner_config.update(self.get_defaults('runner'))
@@ -208,11 +206,11 @@ class LutrisConfig(object):
             self.system_config.update(self.runner_level.get('system'))
 
         if self.level == 'game' and self.runner_slug:
-            if self.game_level.get('game') == None:
+            if self.game_level.get('game') is None:
                 self.game_level['game'] = {}
-            if self.game_level.get(self.runner_slug) == None:
+            if self.game_level.get(self.runner_slug) is None:
                 self.game_level[self.runner_slug] = {}
-            if self.game_level.get('system') == None:
+            if self.game_level.get('system') is None:
                 self.game_level['system'] = {}
             self.game_config.clear()
             self.game_config.update(self.get_defaults('game'))
@@ -276,12 +274,15 @@ class LutrisConfig(object):
     def options_as_dict(self, options_type):
         """Convert the option list to a dict with option name as keys"""
         options = {}
+        runner = (import_runner(self.runner_slug)()
+                  if self.runner_slug
+                  else None)
         if options_type == 'system':
-            options = sysoptions.system_options
-        elif options_type == 'runner' and self.runner_slug:
-            runner = import_runner(self.runner_slug)()
+            options = (sysoptions.with_runner_overrides(runner)
+                       if runner
+                       else sysoptions.system_options)
+        elif options_type == 'runner' and runner:
             options = runner.runner_options
-        elif options_type == 'game' and self.runner_slug:
-            runner = import_runner(self.runner_slug)()
+        elif options_type == 'game' and runner:
             options = runner.game_options
         return dict((opt['option'], opt) for opt in options)

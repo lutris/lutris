@@ -24,7 +24,6 @@ def get_arch():
 class Runner(object):
     """Generic runner (base class for other runners)."""
 
-    is_watchable = True  # Is the game's pid a parent of Lutris ?
     multiple_versions = False
     tarballs = {
         'i386': None,
@@ -33,6 +32,7 @@ class Runner(object):
     platform = NotImplemented
     game_options = []
     runner_options = []
+    system_options_override = []
     context_menu_entries = []
 
     def __init__(self, config=None):
@@ -152,8 +152,8 @@ class Runner(object):
         """Install runner using package management systems."""
         tarball = self.tarballs.get(self.arch)
         if tarball:
-            self.download_and_extract(tarball)
-            return True
+            is_extracted = self.download_and_extract(tarball)
+            return is_extracted
         else:
             dialogs.ErrorDialog(
                 'This runner is not available for your platform'
@@ -168,10 +168,10 @@ class Runner(object):
         dialog.run()
         if not os.path.exists(runner_archive):
             logger.error("Can't find %s, aborting install", runner_archive)
-            dialogs.ErrorDialog("Installation aborted")
-            return
+            return False
         extract_archive(runner_archive, dest, merge_single=merge_single)
         os.remove(runner_archive)
+        return True
 
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)

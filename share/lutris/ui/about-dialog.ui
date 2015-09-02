@@ -14,7 +14,7 @@
     <property name="skip_pager_hint">True</property>
     <property name="program_name">Lutris</property>
     <property name="version"></property>
-    <property name="copyright" translatable="yes">© 2010, 2014 Mathieu Comandon</property>
+    <property name="copyright" translatable="yes">© 2010, 2015 Mathieu Comandon</property>
     <property name="comments" translatable="yes">Open Source Gaming Platform</property>
     <property name="website">http://lutris.net</property>
     <property name="website_label" translatable="yes">http://lutris.net</property>

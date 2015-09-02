@@ -6,10 +6,10 @@ import time
 
 from gi.repository import GLib
 
-from lutris import pga, settings, shortcuts
+from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util import audio, display, runtime, system
+from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
@@ -28,8 +28,8 @@ def show_error_message(message):
 
 
 def get_game_list(filter_installed=False):
-    return [Game(game['slug'])
-            for game in pga.get_games(filter_installed=filter_installed)]
+    games = pga.get_games(filter_installed=filter_installed)
+    return [game['slug'] for game in games]
 
 
 class Game(object):
@@ -220,9 +220,7 @@ class Game(object):
         xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
-        if self.runner.is_watchable:
-            # Create heartbeat every
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def joy2key(self, config):
         """Run a joy2key thread."""
@@ -264,6 +262,7 @@ class Game(object):
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
+            logger.debug("Thread not running anymore or killswitch activated")
             self.on_game_quit()
             return False
         return True
@@ -289,3 +288,27 @@ class Game(object):
 
         if self.game_thread:
             self.game_thread.stop()
+        self.process_return_codes()
+
+    def process_return_codes(self):
+        """Do things depending on how the game quitted."""
+        if self.game_thread.return_code == 127:
+            # Error missing shared lib
+            error = "error while loading shared lib"
+            error_line = self.lookup_output_string(error)
+            if error_line:
+                dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
+                                    "\n\n%s" % error_line)
+        if self.game_thread.return_code == 1:
+            # Error Wine version conflict
+            error = "maybe the wrong wineserver"
+            if self.lookup_output_string(error):
+                dialogs.ErrorDialog("<b>Error: A different Wine version is "
+                                    "already using the same Wine prefix.</b>")
+
+    def lookup_output_string(self, string):
+        """Return full line if string found in thread output."""
+        output_lines = self.game_thread.stdout.split('\n')
+        for line in output_lines:
+            if string in line:
+                return line

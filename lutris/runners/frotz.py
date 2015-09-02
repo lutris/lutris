@@ -28,20 +28,15 @@ class frotz(Runner):
                      'the game was written for.')
         }
     ]
+    system_options_override = [
+        {
+            'option': 'terminal',
+            'default': True,
+        }
+    ]
 
     def __init__(self, config=None):
         super(frotz, self).__init__(config)
-
-        # Force 'Run in terminal' option
-        if config:
-            sys_conf = config.runner_level['system']
-            if not sys_conf.get('terminal'):
-                current_level = config.level
-                config.level = 'runner'
-                sys_conf['terminal'] = True
-                config.save()
-                config.level = current_level
-                config.update_cascaded_config()
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'frotz/frotz')

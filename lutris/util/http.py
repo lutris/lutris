@@ -6,16 +6,17 @@ import urllib2
 from lutris.util.log import logger
 
 
-def download_asset(url, dest, overwrite=False):
+def download_asset(url, dest, overwrite=False, stop_request=None):
     if os.path.exists(dest):
         if overwrite:
             os.remove(dest)
         else:
-            logger.info("Destination %s exists, not overwritting" % dest)
+            logger.info("Destination %s exists, not overwriting" % dest)
             return
     # TODO: Downloading icons and banners makes a bunch of useless http
     # requests + it's really slow
-    content = download_content(url, log_errors=False)
+    content = download_content(url, log_errors=False,
+                               stop_request=stop_request)
     if content:
         with open(dest, 'w') as dest_file:
             dest_file.write(content)
@@ -24,8 +25,8 @@ def download_asset(url, dest, overwrite=False):
         return False
 
 
-def download_content(url, data=None, log_errors=True):
-    request = Request(url, log_errors).get(data)
+def download_content(url, data=None, log_errors=True, stop_request=None):
+    request = Request(url, log_errors, stop_request=stop_request).get(data)
     return request.content
 
 
@@ -39,12 +40,16 @@ def download_json(url, params=''):
 
 
 class Request(object):
-
-    def __init__(self, url, error_logging=True, timeout=5):
+    def __init__(self, url, error_logging=True, timeout=5, stop_request=None,
+                 thread_queue=None):
         self.url = url
         self.error_logging = error_logging
-        self.content = None
+        self.content = ''
         self.timeout = timeout
+        self.stop_request = stop_request
+        self.thread_queue = thread_queue
+        self.buffer_size = 32 * 1024  # Bytes
+        self.downloaded_size = 0
 
     def get(self, data=None):
         try:
@@ -57,7 +62,29 @@ class Request(object):
                 logger.error("Unable to connect to server (%s): %s",
                              self.url, e)
         else:
-            self.content = request.read()
+            try:
+                total_size = request.info().getheader('Content-Length').strip()
+                total_size = int(total_size)
+            except AttributeError:
+                total_size = 0
+
+            chunks = []
+            while 1:
+                if self.stop_request and self.stop_request.is_set():
+                    self.content = ''
+                    return self
+                chunk = request.read(self.buffer_size)
+                self.downloaded_size += len(chunk)
+                if self.thread_queue:
+                    self.thread_queue.put(
+                        (chunk, self.downloaded_size, total_size)
+                    )
+                else:
+                    chunks.append(chunk)
+                if not chunk:
+                    break
+            request.close()
+            self.content = ''.join(chunks)
         return self
 
     def post(self, data):

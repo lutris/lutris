@@ -362,7 +362,7 @@ Example:
         - en: English
         - bf: Brainfuck
         - "value and": "label can be anything, surround them with quotes to avoid issues"
-        preselect: lah
+        preselect: bf
 
 In this example, English would be preselected. If the option eventually
 selected is Brainfuck, the "$INPUT_LANG" alias would be available in

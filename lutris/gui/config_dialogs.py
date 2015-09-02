@@ -159,7 +159,10 @@ class GameDialogCommon(object):
         hbox.pack_start(cancel_button, True, True, 10)
 
         button = Gtk.Button(label=label)
-        button.connect("clicked", button_callback, callback2)
+        if callback2:
+            button.connect("clicked", button_callback, callback2)
+        else:
+            button.connect("clicked", button_callback)
         hbox.pack_start(button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
@@ -277,7 +280,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
         super(EditGameConfigDialog, self).__init__(
-            "Configure %s" % game.name
+            "Configure %s" % game.name, parent
         )
         self.game = game
         self.lutris_config = game.config
@@ -329,9 +332,9 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.vbox.pack_start(self.system_sw, True, True, 0)
-        self.build_action_area("Save", self.save_config)
+        self.build_action_area("Save", self.on_save)
         self.show_all()
 
-    def save_config(self, widget):
+    def on_save(self, widget):
         self.lutris_config.save()
         self.destroy()
