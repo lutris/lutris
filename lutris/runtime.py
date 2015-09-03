@@ -84,7 +84,8 @@ class Updater:
     @classmethod
     def cancel(cls):
         if cls.downloader:
-            cls.downloader.cancel()
+            if cls.downloader.state == cls.downloader.DOWNLOADING:
+                cls.downloader.cancel()
 
     @classmethod
     def check_download_progress(cls):
