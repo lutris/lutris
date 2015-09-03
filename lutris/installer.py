@@ -11,8 +11,7 @@ import webbrowser
 
 from gi.repository import Gdk
 
-from lutris import pga, settings
-from lutris.runtime import get_runtime_env
+from lutris import pga, runtime, settings
 from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import AsyncCall
@@ -502,7 +501,7 @@ class ScriptInterpreter(object):
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
-        thread = LutrisThread(command, env=get_runtime_env(), term=terminal)
+        thread = LutrisThread(command, env=runtime.get_env(), term=terminal)
         thread.run()
 
     def extract(self, data):

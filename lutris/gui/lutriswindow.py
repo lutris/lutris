@@ -50,7 +50,7 @@ class LutrisWindow(object):
             raise IOError('File %s not found' % ui_filename)
 
         self.running_game = None
-        self.threads_stop_requests = []
+        self.threads_stoppers = []
 
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -166,8 +166,6 @@ class LutrisWindow(object):
         else:
             self.toggle_connection(False)
             self.sync_library()
-        # Update Runtime
-        AsyncCall(runtime.update_runtime, None, self.set_status)
 
     @property
     def current_view_type(self):
@@ -261,13 +259,19 @@ class LutrisWindow(object):
                 self.set_status("Library synced")
 
                 icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
-                self.threads_stop_requests.append(icons_sync.stop_request)
+                self.threads_stoppers.append(icons_sync.stop_request.set)
+
+                self.on_library_synced()
 
             GLib.idle_add(update_existing_games)
 
         self.set_status("Syncing library")
         sync = Sync()
         AsyncCall(sync.sync_all, update_gui)
+
+    def on_library_synced(self):
+        runtime.Updater().start(self.set_status)
+        self.threads_stoppers.append(runtime.Updater.cancel)
 
     def sync_icons(self, stop_request=None):
         game_list = pga.get_games()
@@ -353,7 +357,6 @@ class LutrisWindow(object):
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
-        AsyncCall(runtime.update_runtime, None, self.set_status)
 
     def on_resize(self, widget, *args):
         self.window_size = widget.get_size()
@@ -361,8 +364,8 @@ class LutrisWindow(object):
     def on_destroy(self, *args):
         """Signal for window close."""
         # Stop cancellable running threads
-        for request in self.threads_stop_requests:
-            request.set()
+        for stopper in self.threads_stoppers:
+            stopper()
 
         # Save settings
         view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'

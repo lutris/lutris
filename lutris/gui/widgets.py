@@ -30,16 +30,18 @@ class DownloadProgressBox(Gtk.VBox):
     __gsignals__ = {
         'complete': (GObject.SignalFlags.RUN_LAST, None,
                      (GObject.TYPE_PYOBJECT,)),
-        'cancelrequested': (GObject.SignalFlags.RUN_LAST, None,
-                            (GObject.TYPE_PYOBJECT,))
+        'cancel': (GObject.SignalFlags.RUN_LAST, None,
+                   (GObject.TYPE_PYOBJECT,)),
+        'error': (GObject.SignalFlags.RUN_LAST, None,
+                  (GObject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, params, cancelable=True):
+    def __init__(self, params, cancelable=True, downloader=None):
         super(DownloadProgressBox, self).__init__()
 
-        self.downloader = None
-        self.url = params['url']
-        self.dest = params['dest']
+        self.downloader = downloader
+        self.url = params.get('url')
+        self.dest = params.get('dest')
         title = params.get('title', "Downloading {}".format(self.url))
 
         self.main_label = Gtk.Label(title)
@@ -52,7 +54,8 @@ class DownloadProgressBox(Gtk.VBox):
         progress_box = Gtk.Box()
 
         self.progressbar = Gtk.ProgressBar()
-        self.progressbar.set_margin_bottom(10)
+        self.progressbar.set_margin_top(5)
+        self.progressbar.set_margin_bottom(5)
         self.progressbar.set_margin_right(10)
         progress_box.pack_start(self.progressbar, True, True, 0)
 
@@ -72,16 +75,20 @@ class DownloadProgressBox(Gtk.VBox):
 
     def start(self):
         """Start downloading a file."""
-        try:
-            self.downloader = Downloader(self.url, self.dest, overwrite=True)
-        except RuntimeError as ex:
-            from lutris.gui.dialogs import ErrorDialog
-            ErrorDialog(ex.message)
-            self.emit('cancelrequested', {})
-            return
+        if not self.downloader:
+            try:
+                self.downloader = Downloader(self.url, self.dest,
+                                             overwrite=True)
+            except RuntimeError as ex:
+                from lutris.gui.dialogs import ErrorDialog
+                ErrorDialog(ex.message)
+                self.emit('cancel', {})
+                return
+
         timer_id = GLib.timeout_add(100, self.progress)
         self.cancel_button.set_sensitive(True)
-        self.downloader.start()
+        if not self.downloader.state == self.downloader.DOWNLOADING:
+            self.downloader.start()
         return timer_id
 
     def progress(self):
@@ -90,8 +97,9 @@ class DownloadProgressBox(Gtk.VBox):
         if self.downloader.state in [self.downloader.CANCELLED,
                                      self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
-            self.set_text("Download cancelled")
-            self.emit('cancelrequested', {})
+            self.set_text("Download interrupted")
+            if self.downloader.state == self.downloader.CANCELLED:
+                self.emit('cancel', {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
@@ -114,7 +122,8 @@ class DownloadProgressBox(Gtk.VBox):
         """Cancel the current download."""
         if self.downloader:
             self.downloader.cancel()
-            self.cancel_button.set_sensitive(False)
+        self.cancel_button.set_sensitive(False)
+        self.emit('cancel', {})
 
     def set_text(self, text):
         markup = u"<span size='10000'>{}</span>".format(text)

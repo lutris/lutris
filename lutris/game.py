@@ -4,7 +4,7 @@
 import os
 import time
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
@@ -117,6 +117,12 @@ class Game(object):
             if not installed:
                 return False
 
+        if self.use_runtime:
+            if runtime.is_outdated() or runtime.is_updating():
+                result = dialogs.RuntimeUpdateDialog().run()
+                if not result == Gtk.ResponseType.OK:
+                    return False
+
         if hasattr(self.runner, 'prelaunch'):
             return self.runner.prelaunch()
         return True
@@ -196,7 +202,7 @@ class Game(object):
         ld_library_path = []
         if self.use_runtime(system_config):
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
-            ld_library_path += runtime.get_runtime_paths()
+            ld_library_path += runtime.get_paths()
 
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
