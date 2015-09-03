@@ -283,12 +283,12 @@ class LutrisWindow(object):
         if self.running_game:
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
-                self.status_label.set_text("Preparing to launch %s" % name)
+                self.set_status("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
-                self.status_label.set_text("Game has quit")
+                self.set_status("Game has quit")
                 self.stop_button.set_sensitive(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
-                self.status_label.set_text("Playing %s" % name)
+                self.set_status("Playing %s" % name)
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -415,8 +415,11 @@ class LutrisWindow(object):
             return
         self.running_game = Game(game_slug)
         if self.running_game.is_installed:
-            self.stop_button.set_sensitive(True)
-            self.running_game.play()
+            running = self.running_game.play()
+            if running:
+                self.stop_button.set_sensitive(True)
+            else:
+                self.running_game.state = Game.STATE_STOPPED
         else:
             InstallerDialog(game_slug, self)
 
