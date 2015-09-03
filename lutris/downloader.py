@@ -13,13 +13,21 @@ class Downloader():
     Download is done when check_progress() returns 1.0.
     Stop with cancel().
     """
+    (INIT,
+     DOWNLOADING,
+     CANCELLED,
+     ERROR,
+     COMPLETED) = range(5)
+
     def __init__(self, url, dest, overwrite=False):
         self.url = url
         self.dest = dest
         self.overwrite = overwrite
-        self.file_pointer = None
+        self.stop_request = None
 
         # Read these after a check_progress()
+        self.state = self.INIT
+        self.error = None
         self.downloaded_size = 0  # Bytes
         self.full_size = 0  # Bytes
         self.progress_fraction = 0
@@ -33,24 +41,27 @@ class Downloader():
         self.speed_check_time = 0
         self.time_left_check_time = 0
 
-        self.cancelled = False
+        self.file_pointer = None
         self.queue = Queue.Queue()
 
     def start(self):
         """Start download job."""
         logger.debug("Starting download of:\n " + self.url)
+        self.state = self.DOWNLOADING
         self.last_check_time = time.time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, 'wb')
         self.thread = jobs.AsyncCall(self.async_download, self.on_done,
                                      self.url, self.queue, stoppable=True)
+        self.stop_request = self.thread.stop_request
 
     def check_progress(self):
         """Append last downloaded chunk to dest file and store stats.
 
         :return: progress (between 0.0 and 1.0)"""
-        if not self.queue.qsize() or self.cancelled:
+        if not self.queue.qsize() or self.state in [self.CANCELLED,
+                                                    self.ERROR]:
             return self.progress_fraction
 
         downloaded_size, full_size = self.write_queue()
@@ -61,21 +72,30 @@ class Downloader():
     def cancel(self):
         """Request download stop and remove destination file."""
         logger.debug("Download cancelled")
-        self.thread.stop_request.set()
-        self.cancelled = True
+        self.state = self.CANCELLED
+        if self.stop_request:
+            self.stop_request.set()
+        if self.file_pointer:
+            self.file_pointer.close()
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def on_done(self, request, error):
-        if self.cancelled:
+    def on_done(self, _result, error):
+        if self.state == self.CANCELLED:
+            return
+        if error or not self.downloaded_size:
+            self.state = self.ERROR
+            self.error = error
             self.file_pointer.close()
             return
+
         logger.debug("Download finished")
         while self.queue.qsize():
             self.check_progress()
         if not self.full_size and self.downloaded_size:
             self.progress_fraction = 1.0
             self.progress_percentage = 100
+        self.state = self.COMPLETED
         self.file_pointer.close()
 
     def async_download(self, url, queue, stop_request=None):

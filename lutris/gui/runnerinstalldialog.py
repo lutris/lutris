@@ -114,7 +114,6 @@ class RunnerInstallDialog(Dialog):
         system.remove_folder(self.get_runner_path(version, arch))
         row[self.COL_INSTALLED] = False
 
-
     def install_runner(self, row):
         url = row[2]
         logger.debug("Downloading %s", url)
@@ -125,11 +124,14 @@ class RunnerInstallDialog(Dialog):
         downloader.start()
 
     def get_progress(self, downloader, row):
-        if downloader.cancelled:
+        if downloader.state == downloader.CANCELLED:
             return False
-        progress = downloader.check_progress()
+        if downloader.state == downloader.ERROR:
+            self.cancel_install(row)
+            return False
+        downloader.check_progress()
         row[4] = downloader.progress_percentage
-        if progress >= 1.0:
+        if downloader.state == downloader.COMPLETED:
             row[4] = 99
             self.on_runner_downloaded(row)
             return False

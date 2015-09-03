@@ -87,7 +87,8 @@ class DownloadProgressBox(Gtk.VBox):
     def progress(self):
         """Show download progress."""
         progress = min(self.downloader.check_progress(), 1)
-        if self.downloader.cancelled:
+        if self.downloader.state in [self.downloader.CANCELLED,
+                                     self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
             self.set_text("Download cancelled")
             self.emit('cancelrequested', {})
@@ -103,8 +104,7 @@ class DownloadProgressBox(Gtk.VBox):
             )
         )
         self.set_text(progress_text)
-        self.progressbar.set_fraction(progress)
-        if progress >= 1.0:
+        if self.downloader.state == self.downloader.COMPLETED:
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False
