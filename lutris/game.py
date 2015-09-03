@@ -117,7 +117,7 @@ class Game(object):
             if not installed:
                 return False
 
-        if self.use_runtime:
+        if self.use_runtime():
             if runtime.is_outdated() or runtime.is_updating():
                 result = dialogs.RuntimeUpdateDialog().run()
                 if not result == Gtk.ResponseType.OK:
@@ -127,8 +127,8 @@ class Game(object):
             return self.runner.prelaunch()
         return True
 
-    def use_runtime(self, system_config):
-        disable_runtime = system_config.get('disable_runtime')
+    def use_runtime(self, system_config=None):
+        disable_runtime = self.runner.system_config.get('disable_runtime')
         env_runtime = os.getenv('LUTRIS_RUNTIME')
         if env_runtime and env_runtime.lower() in ('0', 'off'):
             disable_runtime = True
@@ -200,7 +200,7 @@ class Game(object):
             env["LD_PRELOAD"] = ld_preload
 
         ld_library_path = []
-        if self.use_runtime(system_config):
+        if self.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
             ld_library_path += runtime.get_paths()
 
