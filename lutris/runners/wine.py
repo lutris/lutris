@@ -424,7 +424,8 @@ class wine(Runner):
                 'option': 'show_debug',
                 'label': 'Output debugging info',
                 'type': 'choice',
-                'choices': bool_choices,
+                'choices': [('Enabled', 'enabled'),
+                            ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'help': ("Output debugging information in the game log "
                          "(might affect performance)")
