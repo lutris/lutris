@@ -34,7 +34,7 @@ class LogTextView(Gtk.TextView):
 class LogWindow(Dialog):
     def __init__(self, title, parent):
         super(LogWindow, self).__init__(title, parent, 0,
-                                        (Gtk.STOCK_OK, Gtk.ResponseType.OK))
+                                        ('_OK', Gtk.ResponseType.OK))
         self.set_size_request(640, 480)
         self.grid = Gtk.Grid()
         self.logtextview = LogTextView()

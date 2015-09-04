@@ -69,6 +69,7 @@ class LutrisThread(threading.Thread):
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT,
                                                  cwd=self.path, env=env)
+        os.chdir(os.path.expanduser('~'))
 
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
@@ -99,6 +100,7 @@ class LutrisThread(threading.Thread):
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
                                              cwd=self.path)
+        os.chdir(os.path.expanduser('~'))
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
@@ -160,5 +162,6 @@ class LutrisThread(threading.Thread):
            or self.cycles_without_children >= self.max_cycles_without_children):
             logger.debug("No children left in thread, exiting")
             self.is_running = False
+            self.return_code = self.game_process.returncode
             return False
         return True

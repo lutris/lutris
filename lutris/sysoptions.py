@@ -1,4 +1,6 @@
 import os
+from collections import OrderedDict
+
 from lutris.util import display, system
 
 
@@ -110,8 +112,8 @@ system_options = [
         'default': False,
         'advanced': True,
         'help': ("The Lutris Runtime loads some libraries before running the "
-                 "game. Which can cause some conflicts in some cases (mostly "
-                 "with Steam). Check this option to diasble it.")
+                 "game. Which can cause some incompatibilities in some cases. "
+                 "Check this option to disable it.")
     },
     {
         'option': 'reset_pulse',
@@ -141,3 +143,19 @@ system_options = [
                  "controllers. Requires the xboxdrv package installed.")
     }
 ]
+
+
+def with_runner_overrides(runner):
+    """Return system options updated with overrides from given runner."""
+    options = system_options
+    if runner.system_options_override:
+        opts_dict = OrderedDict((opt['option'], opt) for opt in options)
+        for option in runner.system_options_override:
+            key = option['option']
+            if opts_dict.get(key):
+                opts_dict[key] = opts_dict[key].copy()
+                opts_dict[key].update(option)
+            else:
+                opts_dict[key] = option
+        options = [opt for opt in opts_dict.values()]
+    return options

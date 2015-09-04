@@ -2,11 +2,11 @@
 import os
 import logging
 import logging.handlers
-import xdg.BaseDirectory
+from gi.repository import GLib
 
 
 CACHE_DIR = os.path.realpath(
-    os.path.join(xdg.BaseDirectory.xdg_cache_home, "lutris")
+    os.path.join(GLib.get_user_cache_dir(), "lutris")
 )
 if not os.path.isdir(CACHE_DIR):
     os.makedirs(CACHE_DIR)

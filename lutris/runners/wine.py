@@ -48,7 +48,8 @@ def set_regedit_file(filename, wine_path=None, prefix=None):
 
 
 def delete_registry_key(key, wine_path=None, prefix=None):
-    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path, prefix=prefix)
+    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
+             prefix=prefix)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
@@ -295,33 +296,18 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
-        wine_versions = \
-            [('System (%s)' % self.system_wine_version, 'system')] + \
-            [('Custom (select executable below)', 'custom')] + \
-            [(version, version) for version in get_wine_versions()]
-
         self.context_menu_entries = [
             ('winecfg', "Wine configuration", self.run_winecfg),
             ('wine-regedit', "Wine registry", self.run_regedit),
             ('winetricks', 'Winetricks', self.run_winetricks),
         ]
 
-        desktop_choices = [('Yes', 'Desktop_res'),
-                           ('No', 'off')]
-        mwo_choices = [('Enable', 'enable'),
-                       ('Disable', 'disable'),
-                       ('Force', 'force')]
-        orm_choices = [('FBO', 'fbo'),
-                       ('BackBuffer', 'backbuffer')]
-        sdo_choices = [('Enabled', 'enabled'),
-                       ('Disabled', 'disabled')]
-        rtlm_choices = [('Disabled', 'disabled'),
-                        ('ReadTex', 'readtex'),
-                        ('ReadDraw', 'readdraw')]
-        audio_choices = [('Auto', 'auto'),
-                         ('Alsa', 'alsa'),
-                         ('OSS', 'oss'),
-                         ('Jack', 'jack')]
+        wine_versions = (
+            [('System (%s)' % self.system_wine_version, 'system')] +
+            [('Custom (select executable below)', 'custom')] +
+            [(version, version) for version in get_wine_versions()]
+        )
+
         self.runner_options = [
             {
                 'option': 'version',
@@ -337,16 +323,15 @@ class wine(Runner):
                 'option': 'custom_wine_path',
                 'label': "Custom Wine executable",
                 'type': 'file',
-                'help': (
-                    "The Wine executable to be used if you have selected "
-                    "\"Custom\" as the Wine version."
-                )
+                'help': ('The Wine executable to be used if you have '
+                         'selected "Custom" as the Wine version.')
             },
             {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
                 'type': 'choice',
-                'choices': desktop_choices,
+                'choices': [('Yes', 'Desktop_res'),
+                            ('No', 'off')],
                 'default': 'off',
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
@@ -364,7 +349,9 @@ class wine(Runner):
                 'option': 'MouseWarpOverride',
                 'label': 'Mouse Warp Override',
                 'type': 'choice',
-                'choices': mwo_choices,
+                'choices': [('Enable', 'enable'),
+                            ('Disable', 'disable'),
+                            ('Force', 'force')],
                 'default': 'enable',
                 'advanced': True,
                 'help': (
@@ -379,7 +366,8 @@ class wine(Runner):
                 'option': 'OffscreenRenderingMode',
                 'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
-                'choices': orm_choices,
+                'choices': [('FBO', 'fbo'),
+                            ('BackBuffer', 'backbuffer')],
                 'default': 'fbo',
                 'advanced': True,
                 'help': ("Select the offscreen rendering implementation.\n"
@@ -392,7 +380,8 @@ class wine(Runner):
                 'option': 'StrictDrawOrdering',
                 'label': "Strict Draw Ordering",
                 'type': 'choice',
-                'choices': sdo_choices,
+                'choices': [('Enabled', 'enabled'),
+                            ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
                 'help': ("This option ensures any pending drawing operations "
@@ -403,7 +392,9 @@ class wine(Runner):
                 'option': 'RenderTargetLockMode',
                 'label': 'Render Target Lock Mode',
                 'type': 'choice',
-                'choices': rtlm_choices,
+                'choices': [('Disabled', 'disabled'),
+                            ('ReadTex', 'readtex'),
+                            ('ReadDraw', 'readdraw')],
                 'default': 'readtex',
                 'advanced': True,
                 'help': (
@@ -411,14 +402,18 @@ class wine(Runner):
                     "<b>Disabled</b>: Disables render target locking \n"
                     "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
                     "writes by drawing a textured quad \n"
-                    "<b>ReadDraw</b>: Uses glReadPixels for reading and writing"
+                    "<b>ReadDraw</b>: Uses glReadPixels for reading and "
+                    "writing"
                 )
             },
             {
                 'option': 'Audio',
                 'label': 'Audio driver',
                 'type': 'choice',
-                'choices': audio_choices,
+                'choices': [('Auto', 'auto'),
+                            ('Alsa', 'alsa'),
+                            ('OSS', 'oss'),
+                            ('Jack', 'jack')],
                 'default': 'auto',
                 'help': ("Which audio backend to use.\n"
                          "By default, Wine automatically picks the right one "

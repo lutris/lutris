@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
-#  Copyright (C) 2010 Mathieu Comandon <strider@strycore.com>
-#
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License version 3 as
 #  published by the Free Software Foundation.
@@ -89,7 +87,7 @@ setup(
     scripts=['bin/lutris'],
     data_files=data_files,
     # FIXME: find a way to install dependencies
-    # install_requires=['PyYAML', 'pyxdg', 'PyGObject'],
+    # install_requires=['PyYAML', 'PyGObject'],
     url='https://lutris.net',
     description='Install and play any video game on Linux',
     long_description="""Lutris is a gaming platform for GNU/Linux. It's goal is

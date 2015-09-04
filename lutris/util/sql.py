@@ -16,15 +16,33 @@ class db_cursor(object):
 
 
 def db_insert(db_path, table, fields):
-    field_names = ", ".join(fields.keys())
+    columns = ", ".join(fields.keys())
     placeholders = ("?, " * len(fields))[:-2]
     field_values = _decode_utf8_values(fields.values())
     with db_cursor(db_path) as cursor:
         cursor.execute(
             "insert into {0}({1}) values ({2})".format(table,
-                                                       field_names,
+                                                       columns,
                                                        placeholders),
             field_values
+        )
+
+
+def db_insert_bulk(db_path, table, fields_bulk):
+    """Insert several rows. The dicts must have an identical set of keys.
+
+    :type fields_bulk: list of dicts
+    """
+    columns = fields_bulk[0].keys()
+    placeholders = ("?, " * len(columns))[:-2]
+    for i, fields in enumerate(fields_bulk):
+        fields_bulk[i] = _decode_utf8_values(fields.values())
+    with db_cursor(db_path) as cursor:
+        cursor.executemany(
+            "insert into {0}({1}) values ({2})".format(table,
+                                                       ", ".join(columns),
+                                                       placeholders),
+            fields_bulk
         )
 
 
@@ -32,12 +50,12 @@ def db_update(db_path, table, updated_fields, row):
     """ update `table` with the values given in the dict `values` on the
         condition given with the tuple `row`
     """
-    field_names = "=?, ".join(updated_fields.keys()) + "=?"
+    columns = "=?, ".join(updated_fields.keys()) + "=?"
     field_values = _decode_utf8_values(updated_fields.values())
     condition_field = "{0}=?".format(row[0])
     condition_value = (row[1], )
     with db_cursor(db_path) as cursor:
-        query = "UPDATE {0} SET {1} WHERE {2}".format(table, field_names,
+        query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns,
                                                       condition_field)
         cursor.execute(query, field_values + condition_value)
 
@@ -50,19 +68,19 @@ def db_delete(db_path, table, field, value):
 
 def db_select(db_path, table, fields=None, condition=None):
     if fields:
-        field_names = ", ".join(fields)
+        columns = ", ".join(fields)
     else:
-        field_names = "*"
+        columns = "*"
     with db_cursor(db_path) as cursor:
         if condition:
             assert len(condition) == 2
             cursor.execute(
                 "SELECT {0} FROM {1} where {2}=?".format(
-                    field_names, table, condition[0]
+                    columns, table, condition[0]
                 ), (condition[1], )
             )
         else:
-            cursor.execute("SELECT {0} FROM {1}".format(field_names, table))
+            cursor.execute("SELECT {0} FROM {1}".format(columns, table))
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
     results = []

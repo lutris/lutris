@@ -1,28 +1,29 @@
 # -*- coding:Utf-8 -*-
 """Settings module"""
 import os
-from xdg import BaseDirectory
+from gi.repository import GLib
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = "0.3.6.3"
-COPYRIGHT = "(c) 2010-2014 Lutris Gaming Platform"
-AUTHORS = ["Mathieu Comandon <strycore@gmail.com>"]
+COPYRIGHT = "(c) 2010-2015 Lutris Gaming Platform"
+AUTHORS = ["Mathieu Comandon <strycore@gmail.com>",
+           "Pascal Reinhard (Xodetaetl) <dev@xod.me"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
 # Paths
-CONFIG_DIR = os.path.join(BaseDirectory.xdg_config_home, 'lutris')
+CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), 'lutris')
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
-DATA_DIR = os.path.join(BaseDirectory.xdg_data_home, 'lutris')
+DATA_DIR = os.path.join(GLib.get_user_data_dir(), 'lutris')
 RUNNER_DIR = os.path.join(DATA_DIR, "runners")
 RUNTIME_DIR = os.path.join(DATA_DIR, "runtime")
-CACHE_DIR = os.path.join(BaseDirectory.xdg_cache_home, 'lutris')
+CACHE_DIR = os.path.join(GLib.get_user_cache_dir(), 'lutris')
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, 'games')
 
 TMP_PATH = os.path.join(CACHE_DIR, 'tmp')
 BANNER_PATH = os.path.join(DATA_DIR, 'banners')
-ICON_PATH = os.path.join(BaseDirectory.xdg_data_home,
-                         'icons/hicolor/32x32/apps')
+ICON_PATH = os.path.join(GLib.get_user_data_dir(),
+                         'icons', 'hicolor', '32x32', 'apps')
 
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
@@ -35,7 +36,7 @@ RUNNERS_URL = SITE_URL + "files/runners/"
 RUNTIME_URL = "http://ovocean.com/partage/lutris/runtime/"
 
 # Default config options
-KEEP_CACHED_ASSETS = True
+KEEP_CACHED_ASSETS = False  # TODO: needs verification of failed DLed files
 GAME_VIEW = 'grid'
 ICON_TYPE_GRIDVIEW = 'banner'
 ICON_TYPE_LISTVIEW = 'icon'

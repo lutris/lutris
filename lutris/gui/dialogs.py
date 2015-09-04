@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """Common message dialogs"""
 import os
-from gi.repository import Gtk, GObject
+from gi.repository import GLib, Gtk, GObject
 
-from lutris import settings
+from lutris import api, pga, runtime, settings
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
-from lutris import pga
-from lutris import api
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -81,8 +79,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         super(DirectoryDialog, self).__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE,
-                     Gtk.STOCK_OK, Gtk.ResponseType.OK)
+            buttons=('_Cancel', Gtk.ResponseType.CLOSE,
+                     '_OK', Gtk.ResponseType.OK)
         )
         self.result = self.run()
         self.folder = self.get_current_folder()
@@ -96,8 +94,8 @@ class FileDialog(Gtk.FileChooserDialog):
             message = "Please choose a file"
         super(FileDialog, self).__init__(
             message, None, Gtk.FileChooserAction.OPEN,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+            ('_Cancel', Gtk.ResponseType.CANCEL,
+             '_OK', Gtk.ResponseType.OK)
         )
         self.set_local_only(False)
         response = self.run()
@@ -109,26 +107,61 @@ class FileDialog(Gtk.FileChooserDialog):
 
 class DownloadDialog(Gtk.Dialog):
     """ Dialog showing a download in progress. """
-
-    def __init__(self, url, dest):
-        super(DownloadDialog, self).__init__("Downloading file")
+    def __init__(self, url=None, dest=None, title=None, label=None,
+                 downloader=None):
+        Gtk.Dialog.__init__(self, title or "Downloading file")
         self.set_size_request(485, 104)
         self.set_border_width(12)
-        params = {'url': url, 'dest': dest, 'title': 'Downloading %s' % url}
-        self.download_progress_box = DownloadProgressBox(params)
-        self.download_progress_box.connect('complete',
-                                           self.download_complete)
-        self.download_progress_box.connect('cancelrequested',
-                                           self.download_cancelled)
-        self.vbox.pack_start(self.download_progress_box, True, False, 0)
+        params = {
+            'url': url,
+            'dest': dest,
+            'title': label or "Downloading %s" % url}
+        self.download_box = DownloadProgressBox(params, downloader=downloader)
+
+        self.download_box.connect('complete', self.download_complete)
+        self.download_box.connect('cancel', self.download_cancelled)
+        self.connect('response', self.on_response)
+
+        self.get_content_area().add(self.download_box)
         self.show_all()
-        self.download_progress_box.start()
+        self.download_box.start()
 
     def download_complete(self, _widget, _data):
+        self.response(Gtk.ResponseType.OK)
         self.destroy()
 
     def download_cancelled(self, _widget, data):
+        self.response(Gtk.ResponseType.CANCEL)
         self.destroy()
+
+    def on_response(self, dialog, response):
+        if response == Gtk.ResponseType.DELETE_EVENT:
+            self.download_box.downloader.cancel()
+            self.destroy()
+
+
+class RuntimeUpdateDialog(DownloadDialog):
+    def __init__(self):
+        runtime.Updater().start()
+        self.downloader = runtime.Updater.downloader
+
+        DownloadDialog.__init__(
+            self,
+            title="Updating runtime",
+            label="Downloading Lutris Runtime",
+            downloader=self.downloader,
+        )
+
+    def download_complete(self, *args):
+        self.download_box.main_label.set_text("Extracting...")
+        GLib.timeout_add(200, self.check_extracted)
+
+    def check_extracted(self):
+        if not runtime.is_updating():
+            self.response(Gtk.ResponseType.OK)
+            self.destroy()
+            return False
+        return True
 
 
 class PgaSourceDialog(GtkBuilderDialog):
@@ -171,8 +204,8 @@ class PgaSourceDialog(GtkBuilderDialog):
         chooser = Gtk.FileChooserDialog(
             "Select directory", self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             "Select", Gtk.ResponseType.OK)
+            ('_Cancel', Gtk.ResponseType.CANCEL,
+             '_OK', Gtk.ResponseType.OK)
         )
         chooser.set_local_only(False)
         response = chooser.run()
@@ -199,7 +232,10 @@ class ClientLoginDialog(GtkBuilderDialog):
     glade_file = 'dialog-lutris-login.ui'
     dialog_object = 'lutris-login'
     __gsignals__ = {
-        "connected": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        'complete': (GObject.SignalFlags.RUN_LAST, None,
+                     (GObject.TYPE_PYOBJECT,)),
+        'cancel': (GObject.SignalFlags.RUN_LAST, None,
+                   (GObject.TYPE_PYOBJECT,))
     }
 
     def __init__(self):

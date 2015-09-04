@@ -1,79 +1,179 @@
-""" Non-blocking Gio Downloader  """
 import os
 import time
+import Queue
+
+from lutris.util import http, jobs
 from lutris.util.log import logger
-from gi.repository import Gio, GLib, Gtk, Gdk
 
 
 class Downloader():
+    """Non-blocking downloader.
 
-    def __init__(self, url, dest):
-        self.downloaded_bytes = 0
-        self.total_bytes = 0
-        self.time_elapsed = 0
-        self.time_remaining = 0
+    Do start() then check_progress() at regular intervals.
+    Download is done when check_progress() returns 1.0.
+    Stop with cancel().
+    """
+    (INIT,
+     DOWNLOADING,
+     CANCELLED,
+     ERROR,
+     COMPLETED) = range(5)
+
+    def __init__(self, url, dest, overwrite=False):
+        self.url = url
+        self.dest = dest
+        self.overwrite = overwrite
+        self.stop_request = None
+
+        # Read these after a check_progress()
+        self.state = self.INIT
+        self.error = None
+        self.downloaded_size = 0  # Bytes
+        self.full_size = 0  # Bytes
+        self.progress_fraction = 0
+        self.progress_percentage = 0
         self.speed = 0
-        self.cancelled = False
+        self.average_speed = 0
+        self.time_left = '00:00:00'  # Based on average speed
 
-        self.remote = Gio.File.new_for_uri(url)
-        self.local = Gio.File.new_for_path(dest)
-        self.cancellable = Gio.Cancellable()
-        self.progress = 0
-        self.start_time = None
-        if not os.environ.get('DBUS_SESSION_BUS_ADDRESS'):
-            raise RuntimeError("DBus session not started, downloads won't work")
+        self.last_check_time = 0
+        self.last_speeds = []
+        self.speed_check_time = 0
+        self.time_left_check_time = 0
 
-    def progress_callback(self, downloaded_bytes, total_bytes, _user_data):
-        self.downloaded_bytes = downloaded_bytes
-        self.total_bytes = total_bytes
-        self.time_elapsed = time.time() - self.start_time
-        self.speed = self.downloaded_bytes / self.time_elapsed or 1
-        self.time_remaining = (total_bytes - downloaded_bytes) / self.speed
-        self.progress = float(downloaded_bytes) / float(total_bytes)
-
-    def cancel(self):
-        self.cancellable.cancel()
-        self.cancelled = True
-
-    def download(self, job, cancellable, _data):
-        flags = Gio.FileCopyFlags.OVERWRITE
-        try:
-            self.remote.copy(self.local, flags, self.cancellable,
-                             self.progress_callback, None)
-        except GLib.GError as ex:
-            print "transfer error:", ex.message
-            if ex.code == Gio.IOErrorEnum.TIMED_OUT:
-                # For unknown reasons, FTP transfers times out at 25 seconds
-                # Hint: 25 seconds is the default timeout of GDusProxy
-                # https://developer.gnome.org/gio/2.26/GDBusProxy.html#GDBusProxy--g-default-timeout
-                print "FTP tranfers not supported yet"
-
-    def mount_cb(self, fileobj, result, _data):
-        try:
-            mount_success = fileobj.mount_enclosing_volume_finish(result)
-            if mount_success:
-                Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT,
-                                     self.schedule_download, None)
-        except GLib.GError as ex:
-            if(ex.code != Gio.IOErrorEnum.ALREADY_MOUNTED and
-               ex.code != Gio.IOErrorEnum.NOT_SUPPORTED):
-                print ex.message
-
-    def schedule_download(self, *args):
-        Gio.io_scheduler_push_job(self.download, None,
-                                  GLib.PRIORITY_DEFAULT_IDLE,
-                                  Gio.Cancellable())
+        self.file_pointer = None
+        self.queue = Queue.Queue()
 
     def start(self):
-        self.start_time = time.time()
-        if not self.remote.query_exists(Gio.Cancellable()):
-            logger.debug("Mounting remote volume")
-            self.remote.mount_enclosing_volume(Gio.MountMountFlags.NONE,
-                                               Gtk.MountOperation(),
-                                               Gio.Cancellable(),
-                                               self.mount_cb,
-                                               None)
-        else:
-            logger.debug("Scheduling download")
-            Gdk.threads_add_idle(GLib.PRIORITY_DEFAULT,
-                                 self.schedule_download, None)
+        """Start download job."""
+        logger.debug("Starting download of:\n " + self.url)
+        self.state = self.DOWNLOADING
+        self.last_check_time = time.time()
+        if self.overwrite and os.path.isfile(self.dest):
+            os.remove(self.dest)
+        self.file_pointer = open(self.dest, 'wb')
+        self.thread = jobs.AsyncCall(self.async_download, self.on_done,
+                                     self.url, self.queue, stoppable=True)
+        self.stop_request = self.thread.stop_request
+
+    def check_progress(self):
+        """Append last downloaded chunk to dest file and store stats.
+
+        :return: progress (between 0.0 and 1.0)"""
+        if not self.queue.qsize() or self.state in [self.CANCELLED,
+                                                    self.ERROR]:
+            return self.progress_fraction
+
+        downloaded_size, full_size = self.write_queue()
+        self.get_stats(downloaded_size, full_size)
+
+        return self.progress_fraction
+
+    def cancel(self):
+        """Request download stop and remove destination file."""
+        logger.debug("Download cancelled")
+        self.state = self.CANCELLED
+        if self.stop_request:
+            self.stop_request.set()
+        if self.file_pointer:
+            self.file_pointer.close()
+        if os.path.isfile(self.dest):
+            os.remove(self.dest)
+
+    def on_done(self, _result, error):
+        if self.state == self.CANCELLED:
+            return
+        if error or not self.downloaded_size:
+            self.state = self.ERROR
+            self.error = error
+            self.file_pointer.close()
+            return
+
+        logger.debug("Download finished")
+        while self.queue.qsize():
+            self.check_progress()
+        if not self.full_size and self.downloaded_size:
+            self.progress_fraction = 1.0
+            self.progress_percentage = 100
+        self.state = self.COMPLETED
+        self.file_pointer.close()
+
+    def async_download(self, url, queue, stop_request=None):
+        request = http.Request(url, stop_request=stop_request,
+                               thread_queue=queue)
+        return request.get()
+
+    def write_queue(self):
+        """Append download queue to destination file."""
+        buffered_chunk = ''
+        while self.queue.qsize():
+            chunk, received_bytes, total_bytes = self.queue.get()
+            buffered_chunk += chunk
+
+        if buffered_chunk:
+            self.file_pointer.write(buffered_chunk)
+
+        return received_bytes, total_bytes
+
+    def get_stats(self, downloaded_size, full_size):
+        """Calculate and store download stats."""
+        self.last_size = self.downloaded_size
+        self.downloaded_size = downloaded_size
+        self.full_size = full_size
+        self.speed, self.average_speed = self.get_speed()
+        self.time_left = self.get_average_time_left()
+        self.last_check_time = time.time()
+
+        if self.full_size:
+            self.progress_fraction = (
+                float(self.downloaded_size) / float(self.full_size)
+            )
+            self.progress_percentage = self.progress_fraction * 100
+
+    def get_speed(self):
+        """Return (speed, average speed) tuple."""
+        elapsed_time = time.time() - self.last_check_time
+        chunk_size = self.downloaded_size - self.last_size
+        speed = chunk_size / elapsed_time or 1
+        self.last_speeds.append(speed)
+
+        # Average speed
+        if time.time() - self.speed_check_time < 1:  # Minimum delay
+            return self.speed, self.average_speed
+
+        sample_size = 20
+        while len(self.last_speeds) > sample_size:
+            self.last_speeds.pop(0)
+
+        sample = self.last_speeds
+        if len(sample) > 7:
+            # Skim extreme values
+            sample.pop()
+            sample.pop()
+            sample.pop(0)
+            sample.pop(0)
+
+        added_speeds = 0
+        for speed in sample:
+            added_speeds += speed
+        average_speed = added_speeds / len(sample)
+
+        self.speed_check_time = time.time()
+        return speed, average_speed
+
+    def get_average_time_left(self):
+        """Return average download time left as string."""
+        if not self.full_size:
+            return '???'
+
+        elapsed_time = time.time() - self.time_left_check_time
+        if elapsed_time < 1:  # Minimum delay
+            return self.time_left
+
+        average_time_left = (
+            (self.full_size - self.downloaded_size) / self.average_speed
+        )
+        m, s = divmod(average_time_left, 60)
+        h, m = divmod(m, 60)
+        self.time_left_check_time = time.time()
+        return '%d:%02d:%02d' % (h, m, s)

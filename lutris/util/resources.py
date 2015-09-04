@@ -31,7 +31,7 @@ def has_icon(game, icon_type):
         return os.path.exists(icon_path)
 
 
-def fetch_icons(games, callback=None):
+def fetch_icons(games, callback=None, stop_request=None):
     no_banners = []
     no_icons = []
     logger.debug("Fetching icons")
@@ -41,15 +41,22 @@ def fetch_icons(games, callback=None):
         if not has_icon(game, ICON):
             no_icons.append(game)
     for game in no_banners:
-        download_icon(game, BANNER, callback=callback)
+        if stop_request and stop_request.is_set():
+            break
+        download_icon(game, BANNER, callback=callback,
+                      stop_request=stop_request)
     for game in no_icons:
-        download_icon(game, ICON, callback=callback)
+        if stop_request and stop_request.is_set():
+            break
+        download_icon(game, ICON, callback=callback, stop_request=stop_request)
 
 
-def download_icon(game, icon_type, overwrite=False, callback=None):
+def download_icon(game, icon_type, overwrite=False, callback=None,
+                  stop_request=None):
     icon_url = get_icon_url(game, icon_type)
     icon_path = get_icon_path(game, icon_type)
-    icon_downloaded = http.download_asset(icon_url, icon_path, overwrite)
+    icon_downloaded = http.download_asset(icon_url, icon_path, overwrite,
+                                          stop_request=stop_request)
     if icon_downloaded and callback:
         logger.debug("Downloaded %s for %s" % (icon_type, game))
         callback(game)

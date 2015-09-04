@@ -4,12 +4,12 @@
 import os
 import time
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
-from lutris import pga, settings, shortcuts
+from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util import audio, display, runtime, system
+from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
@@ -28,8 +28,8 @@ def show_error_message(message):
 
 
 def get_game_list(filter_installed=False):
-    return [Game(game['slug'])
-            for game in pga.get_games(filter_installed=filter_installed)]
+    games = pga.get_games(filter_installed=filter_installed)
+    return [game['slug'] for game in games]
 
 
 class Game(object):
@@ -117,12 +117,18 @@ class Game(object):
             if not installed:
                 return False
 
+        if self.use_runtime():
+            if runtime.is_outdated() or runtime.is_updating():
+                result = dialogs.RuntimeUpdateDialog().run()
+                if not result == Gtk.ResponseType.OK:
+                    return False
+
         if hasattr(self.runner, 'prelaunch'):
             return self.runner.prelaunch()
         return True
 
-    def use_runtime(self, system_config):
-        disable_runtime = system_config.get('disable_runtime')
+    def use_runtime(self, system_config=None):
+        disable_runtime = self.runner.system_config.get('disable_runtime')
         env_runtime = os.getenv('LUTRIS_RUNTIME')
         if env_runtime and env_runtime.lower() in ('0', 'off'):
             disable_runtime = True
@@ -194,9 +200,9 @@ class Game(object):
             env["LD_PRELOAD"] = ld_preload
 
         ld_library_path = []
-        if self.use_runtime(system_config):
+        if self.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
-            ld_library_path += runtime.get_runtime_paths()
+            ld_library_path += runtime.get_paths()
 
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
@@ -288,3 +294,27 @@ class Game(object):
 
         if self.game_thread:
             self.game_thread.stop()
+        self.process_return_codes()
+
+    def process_return_codes(self):
+        """Do things depending on how the game quitted."""
+        if self.game_thread.return_code == 127:
+            # Error missing shared lib
+            error = "error while loading shared lib"
+            error_line = self.lookup_output_string(error)
+            if error_line:
+                dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
+                                    "\n\n%s" % error_line)
+        if self.game_thread.return_code == 1:
+            # Error Wine version conflict
+            error = "maybe the wrong wineserver"
+            if self.lookup_output_string(error):
+                dialogs.ErrorDialog("<b>Error: A different Wine version is "
+                                    "already using the same Wine prefix.</b>")
+
+    def lookup_output_string(self, string):
+        """Return full line if string found in thread output."""
+        output_lines = self.game_thread.stdout.split('\n')
+        for line in output_lines:
+            if string in line:
+                return line
