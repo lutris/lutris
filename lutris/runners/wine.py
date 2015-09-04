@@ -424,8 +424,10 @@ class wine(Runner):
                 'option': 'show_debug',
                 'label': 'Output debugging info',
                 'type': 'choice',
-                'choices': bool_choices,
-                'default': 'disabled',
+                'choices': [('Disabled', '-all'),
+                            ('Enabled', '')],
+                'default': '-all',
+                'advanced': True,
                 'help': ("Output debugging information in the game log "
                          "(might affect performance)")
             }
@@ -563,10 +565,7 @@ class wine(Runner):
             env = os.environ.copy()
         else:
             env = {}
-        if self.runner_config.get('show_debug') == 'enabled':
-            env['WINEDEBUG'] = ''
-        else:
-            env['WINEDEBUG'] = '-all'
+        env['WINEDEBUG'] = self.runner_config['show_debug']
         env['WINEARCH'] = self.wine_arch
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
