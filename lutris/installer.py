@@ -290,8 +290,21 @@ class ScriptInterpreter(object):
         self.iter_game_files()
 
     def _prepare_commands(self):
+        """Run the preliminary pre-installation steps and launch install"""
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
+        runner_name = self.script['runner']
+
+        # Add steam installation to commands if it's a Steam game
+        if runner_name in ('steam', 'winesteam'):
+            try:
+                self.steam_data['appid'] = self.script['game']['appid']
+            except KeyError:
+                raise ScriptingError("Missing appid for steam game")
+
+            commands = self.script.get('installer', [])
+            commands.insert(0, 'install_steam_game')
+            self.script['installer'] = commands
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
@@ -724,7 +737,14 @@ class ScriptInterpreter(object):
         task = import_task(runner_name, task_name)
         task(**data)
 
-    def install_steam_game(self, runner_class):
+    def install_steam_game(self, runner_class=None):
+        if not runner_class:
+            if self.script['runner'] == 'steam':
+                runner_class = steam.steam
+            elif self.script['runner'] == 'winesteam':
+                runner_class = winesteam.winesteam
+            else:
+                raise ScriptingError('Missing Steam platform')
         steam_runner = runner_class()
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
