@@ -9,13 +9,14 @@ import platform
 import shlex
 import webbrowser
 
-from gi.repository import Gdk
+from gi.repository import Gdk, GLib
 
 from lutris import pga, runtime, settings
 from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.steam import get_app_states
 
 from lutris.game import Game
 from lutris.config import LutrisConfig
@@ -273,12 +274,12 @@ class ScriptInterpreter(object):
                     callback=self.parent.on_steam_downloaded
                 )
             else:
-                self.install_steam_game(winesteam.winesteam)
+                self.install_steam_game(winesteam.winesteam, is_game_files=True)
         else:
             # Getting data from Linux Steam
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
-            self.install_steam_game(steam.steam)
+            self.install_steam_game(steam.steam, is_game_files=True)
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -737,7 +738,12 @@ class ScriptInterpreter(object):
         task = import_task(runner_name, task_name)
         task(**data)
 
-    def install_steam_game(self, runner_class=None):
+    def install_steam_game(self, runner_class=None, is_game_files=False):
+        """Launch installation of a steam game
+
+        runner_class: class of the steam runner to use
+        is_game_files: whether the game is used for the installer game files
+        """
         if not runner_class:
             if self.script['runner'] == 'steam':
                 runner_class = steam.steam
@@ -745,31 +751,52 @@ class ScriptInterpreter(object):
                 runner_class = winesteam.winesteam
             else:
                 raise ScriptingError('Missing Steam platform')
+
         steam_runner = runner_class()
+        self.steam_data['is_game_files'] = is_game_files
+        self.steam_data['steamapps_path'] = steam_runner.get_default_steamapps_path()
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s" % appid)
             # Here the user must wait for the game to finish installing, a
             # better way to handle this would be to poll StateFlags on the
             # game's config to check if the game has finished installing.
-            self.parent.wait_for_user_action(
-                "Steam will now download and install game %s, "
-                "press Ok when it's finished" % appid,
-                self.on_steam_game_installed,
-                appid
-            )
+            # self.parent.wait_for_user_action(
+            #    "Steam will now download and install game %s, "
+            #    "press Ok when it's finished" % appid,
+            #    self.on_steam_game_installed,
+            #    appid
+            # )
             steam_runner.appid = appid
             AsyncCall(steam_runner.install_game, None, appid)
-        else:
+            self.steam_poll = GLib.timeout_add(2000, self.monitor_steam_install)
+            return 'STOP'
+        elif is_game_files:
             self._append_steam_data_to_files(runner_class)
 
-    def on_steam_game_installed(self, *args):
-        logger.debug("Steam game installed")
-        if self.steam_data['platform'] == 'windows':
-            runner_class = winesteam.winesteam
+    def monitor_steam_install(self):
+        steamapps_path = self.steam_data['steamapps_path']
+        appid = self.steam_data['appid']
+        states = get_app_states(steamapps_path, appid)
+        logger.debug(states)
+        if 'Fully Installed' in states:
+            self.on_steam_game_installed()
+            logger.debug('Steam game has finished installing')
+            return False
         else:
-            runner_class = steam.steam
-        self._append_steam_data_to_files(runner_class)
+            logger.debug('Steam game still installing')
+            return True
+
+    def on_steam_game_installed(self, *args):
+        """Fired whenever a Steam game has finished installing"""
+        if self.steam_data['is_game_files']:
+            if self.steam_data['platform'] == 'windows':
+                runner_class = winesteam.winesteam
+            else:
+                runner_class = steam.steam
+            self._append_steam_data_to_files(runner_class)
+        else:
+            self._iter_commands()
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()

@@ -254,6 +254,11 @@ class winesteam(wine.wine):
                 i += 1
         return dirs
 
+    def get_default_steamapps_path(self):
+        steamapps_paths = self.get_steamapps_dirs()
+        if steamapps_paths:
+            return steamapps_paths[0]
+
     def create_prefix(self, prefix_dir):
         logger.debug("Creating default winesteam prefix")
         wine_dir = os.path.dirname(self.get_executable())

@@ -37,7 +37,7 @@ def get_default_acf(appid, name):
     appstate = OrderedDict()
     appstate['appID'] = appid
     appstate['Universe'] = "1"
-    appstate['StateFlags'] = "4"
+    appstate['StateFlags'] = "1026"
     appstate['installdir'] = name
     appstate['UserConfig'] = userconfig
     return {'AppState': appstate}
@@ -108,7 +108,7 @@ def get_manifest_info(steamapps_path, appid):
     appmanifest_path = os.path.join(steamapps_path,
                                     "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        return
+        return {}
     with open(appmanifest_path, "r") as appmanifest_file:
         config = vdf_parse(appmanifest_file, {})
     return config
@@ -128,10 +128,10 @@ def get_path_from_appmanifest(steamapps_path, appid):
 def get_app_states(steamapps_path, appid):
     """Return the states of a Steam game"""
     manifest_info = get_manifest_info(steamapps_path, appid)
-    state_flags = manifest_info.get('AppState', {}).get('StateFlags')
-    state_flags = bin(state_flags)[:1:-1]
+    state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
+    state_flags = bin(int(state_flags))[:1:-1]
     states = []
     for index, flag in enumerate(state_flags):
         if flag == '1':
-            states.append(APP_STATE_FLAGS[index])
+            states.append(APP_STATE_FLAGS[index + 1])
     return states

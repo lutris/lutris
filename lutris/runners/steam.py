@@ -143,6 +143,11 @@ class steam(Runner):
                 i += 1
         return dirs
 
+    def get_default_steamapps_path(self):
+        steamapps_paths = self.get_steamapps_dirs()
+        if steamapps_paths:
+            return steamapps_paths[0]
+
     def install(self):
         message = "Steam for Linux installation is not handled by Lutris.\n" \
             "Please go to " \
@@ -157,8 +162,8 @@ class steam(Runner):
         logger.debug("Installing steam game %s", appid)
         acf_data = get_default_acf(appid, appid)
         acf_content = to_vdf(acf_data)
-        steamapps_dirs = self.get_steamapps_dirs()
-        acf_path = os.path.join(steamapps_dirs[0], "appmanifest_%s.acf" % appid)
+        steamapps_path = self.get_default_steamapps_path()
+        acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
         with open(acf_path, "w") as acf_file:
             acf_file.write(acf_content)
         if is_running():
