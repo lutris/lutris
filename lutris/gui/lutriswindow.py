@@ -424,6 +424,7 @@ class LutrisWindow(object):
             else:
                 self.running_game.state = Game.STATE_STOPPED
         else:
+            self.running_game = None
             InstallerDialog(game_slug, self)
 
     def on_install_clicked(self, _widget=None, game_ref=None):
