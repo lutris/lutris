@@ -229,6 +229,18 @@ class ScriptInterpreter(object):
         self.parent.start_download(file_uri, dest_file)
 
     def _download_steam_data(self, file_uri, file_id):
+        """Downloads the game files from Steam to use them outside of Steam
+
+            file_uri: Colon separated game info containing:
+                       - $STEAM or $WINESTEAM depending on the version of Steam
+                         Since Steam for Linux can download games for any
+                         platform, using $WINESTEAM has little value except in
+                         some cases where the game needs to be started by Steam
+                         in order to get a CD key (ie. Doom 3 or UT2004)
+                       - The Steam appid
+                       - The relative path of files to retrieve
+            file_id: The lutris installer internal id for the game files
+        """
         try:
             parts = file_uri.split(":", 2)
             steam_rel_path = parts[2].strip()
@@ -241,9 +253,12 @@ class ScriptInterpreter(object):
             'steam_rel_path': steam_rel_path,
             'file_id': file_id
         }
+
+        logger.debug(
+            "Getting Steam data for appid %s" % self.steam_data['appid']
+        )
+
         if parts[0] == '$WINESTEAM':
-            appid = self.steam_data['appid']
-            logger.debug("Getting Wine Steam data for appid %s" % appid)
             self.parent.set_status('Getting Wine Steam game data')
             self.steam_data['platform'] = "windows"
             # Check that wine is installed
