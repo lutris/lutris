@@ -200,7 +200,8 @@ class GameDialogCommon(object):
             # XXX DANGER ZONE
             game_slug = self.game.slug if self.game else None
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              game_slug=game_slug)
+                                              game_slug=game_slug,
+                                              level='game')
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)
