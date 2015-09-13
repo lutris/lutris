@@ -227,6 +227,7 @@ class Game(object):
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        return True
 
     def joy2key(self, config):
         """Run a joy2key thread."""
