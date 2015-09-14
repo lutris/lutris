@@ -6,21 +6,28 @@ from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.widgets import get_runner_icon
 
-LABEL = 0
+SLUG = 0
 ICON = 1
+LABEL = 2
 
 
 class SidebarTreeView(Gtk.TreeView):
     def __init__(self):
         super(SidebarTreeView, self).__init__()
 
-        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf)
+        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, str)
         self.model_filter = self.model.filter_new()
         self.model_filter.set_visible_func(self.filter_rule)
         self.set_model(self.model_filter)
 
         column = Gtk.TreeViewColumn("Runners")
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+
+        # Runner slug
+        text_renderer = Gtk.CellRendererText()
+        text_renderer.set_visible(False)
+        column.pack_start(text_renderer, True)
+        column.add_attribute(text_renderer, "text", SLUG)
 
         # Icon
         icon_renderer = Gtk.CellRendererPixbuf()
@@ -29,9 +36,9 @@ class SidebarTreeView(Gtk.TreeView):
         column.add_attribute(icon_renderer, "pixbuf", ICON)
 
         # Label
-        text_renderer = Gtk.CellRendererText()
-        column.pack_start(text_renderer, True)
-        column.add_attribute(text_renderer, "text", LABEL)
+        text_renderer2 = Gtk.CellRendererText()
+        column.pack_start(text_renderer2, True)
+        column.add_attribute(text_renderer2, "text", LABEL)
 
         self.append_column(column)
         self.set_headers_visible(False)
@@ -39,7 +46,7 @@ class SidebarTreeView(Gtk.TreeView):
 
         self.connect('button-press-event', self.popup_contextual_menu)
 
-        self.runners = lutris.runners.__all__
+        self.runners = sorted(lutris.runners.__all__)
         self.used_runners = pga.get_used_runners()
         self.load_all_runners()
         self.update()
@@ -47,10 +54,11 @@ class SidebarTreeView(Gtk.TreeView):
 
     def load_all_runners(self):
         """Append runners to the model."""
-        runner_node = self.model.append(None, ["Runners", None])
-        for runner in self.runners:
-            icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
-            self.model.append(runner_node, [runner, icon])
+        runner_node = self.model.append(None, ['runners', None, "Runners"])
+        for slug in self.runners:
+            name = lutris.runners.import_runner(slug).human_name
+            icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
+            self.model.append(runner_node, [slug, icon, name])
 
     def get_selected_runner(self):
         """Return the selected runner's name."""
@@ -58,12 +66,12 @@ class SidebarTreeView(Gtk.TreeView):
         if not selection:
             return
         model, iter = selection.get_selected()
-        runner_name = model.get_value(iter, LABEL)
-        if runner_name != 'Runners':
-            return runner_name
+        runner_slug = model.get_value(iter, SLUG)
+        if runner_slug != 'runners':
+            return runner_slug
 
     def filter_rule(self, model, iter, data):
-        if model[iter][0] == 'Runners':
+        if model[iter][0] == 'runners':
             return True
         return model[iter][0] in self.used_runners
 

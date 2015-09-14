@@ -22,7 +22,7 @@ class GameDialogCommon(object):
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
-        for runner_name in runners.__all__:
+        for runner_name in sorted(runners.__all__):
             runner_class = runners.import_runner(runner_name)
             runner = runner_class()
             if runner.is_installed():
