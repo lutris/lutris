@@ -201,7 +201,8 @@ class winesteam(wine.wine):
         if not self.get_steam_path():
             if not installer_path:
                 installer_path = download_steam()
-            self.msi_exec(installer_path, quiet=True, prefix=prefix, wine_path=self.get_executable())
+            self.msi_exec(installer_path, quiet=True, prefix=prefix,
+                          wine_path=self.get_executable())
         return True
 
     def is_wine_installed(self):
@@ -310,6 +311,14 @@ class winesteam(wine.wine):
                     logger.error("Failed to shutdown Steam for Windows :(")
                     return False
         return True
+
+    def run(self, *args):
+        """Run winesteam alone."""
+        if not self.is_installed():
+            self.install()
+        if self.is_installed:
+            self.prelaunch()
+            subprocess.Popen(self.launch_args, env=self.get_env())
 
     def play(self):
         appid = self.game_config.get('appid') or ''

@@ -119,6 +119,8 @@ class ContextualMenu(Gtk.Menu):
         if self.runner.multiple_versions:
             entries.append(('versions', 'Manage versions',
                             self.on_manage_versions))
+        if hasattr(self.runner, 'run'):
+            entries.append(('run', 'Run', self.runner.run))
         self.add_menuitems(entries)
         self.show_all()
 

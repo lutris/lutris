@@ -187,6 +187,14 @@ class steam(Runner):
             logger.debug("winesteam not running")
         return True
 
+    def run(self, *args):
+        """Run Steam alone."""
+        if not self.is_installed():
+            self.install()
+        if self.is_installed:
+            self.prelaunch()
+            subprocess.Popen(self.steam_exe)
+
     def play(self):
 
         # Get current steam pid to act as the root pid instead of lutris
