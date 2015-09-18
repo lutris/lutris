@@ -10,6 +10,7 @@ class hatari(Runner):
     """Atari ST computers"""
     human_name = "Hatari"
     platform = "Atari ST computers"
+    runnable_alone = True
 
     game_options = [
         {

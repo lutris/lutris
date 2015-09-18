@@ -12,6 +12,7 @@ class scummvm(Runner):
     """Runs various 2D point-and-click adventure games."""
     human_name = "ScummVM"
     platform = "2D point-and-click games"
+    runnable_alone = True
     game_options = [
         {
             'option': 'game_id',
@@ -77,6 +78,18 @@ class scummvm(Runner):
     def game_path(self):
         return self.game_config.get('path')
 
+    @property
+    def libs_dir(self):
+        path = os.path.join(settings.RUNNER_DIR, 'scummvm/lib')
+        return path if os.path.exists(path) else ''
+
+    def get_command(self):
+        return [
+            self.get_executable(),
+            "--extrapath=%s" % self.get_scummvm_data_dir(),
+            "--themepath=%s" % self.get_scummvm_data_dir()
+        ]
+
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
 
@@ -84,12 +97,12 @@ class scummvm(Runner):
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
         return os.path.join(root_dir, 'share/scummvm')
 
+    def get_run_data(self):
+        env = {'LD_LIBRARY_PATH': "%s;$LD_LIBRARY_PATH" % self.libs_dir}
+        return {'env': env, 'command': self.get_command()}
+
     def play(self):
-        command = [
-            self.get_executable(),
-            "--extrapath=%s" % self.get_scummvm_data_dir(),
-            "--themepath=%s" % self.get_scummvm_data_dir(),
-        ]
+        command = self.get_command()
 
         # Options
         if self.runner_config.get("aspect"):
@@ -112,11 +125,7 @@ class scummvm(Runner):
         command.append(self.game_config.get('game_id'))
 
         launch_info = {'command': command}
-
-        # Additionnal libraries needed by ScummVM may be stored there.
-        lib_dir = os.path.join(settings.RUNNER_DIR, 'scummvm/lib')
-        if os.path.exists(lib_dir):
-            launch_info['ld_library_path'] = lib_dir
+        launch_info['ld_library_path'] = self.libs_dir
 
         return launch_info
 

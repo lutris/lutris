@@ -10,6 +10,7 @@ class gens(Runner):
     executable = 'gens'
     platform = 'Sega Genesis'
     description = 'Sega Genesis emulator.'
+    runnable_alone = True
     tarballs = {
         'i386': 'gens-2.16.7-i386.tar.gz',
         'x64': 'gens-2.16.7-i386.tar.gz',

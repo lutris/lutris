@@ -12,6 +12,7 @@ class pcsxr(Runner):
     human_name = "PCSX-Reloaded"
     package = "pcsxr"
     platform = "Playstation"
+    runnable_alone = True
     game_options = [
         {
             "option": "iso",

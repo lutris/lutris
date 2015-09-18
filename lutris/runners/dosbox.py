@@ -33,6 +33,7 @@ class dosbox(Runner):
     human_name = "DOSBox"
     platform = "MS DOS"
     description = "DOS Emulator"
+    runnable_alone = True
     game_options = [
         {
             "option": "main_file",

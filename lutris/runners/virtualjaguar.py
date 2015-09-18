@@ -8,6 +8,7 @@ class virtualjaguar(Runner):
     human_name = "Virtual Jaguar"
     executable = "virtualjaguar"
     platform = "Atari Jaguar"
+    runnable_alone = True
 
     game_options = [
         {

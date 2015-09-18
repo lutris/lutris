@@ -8,6 +8,7 @@ class stella(Runner):
     """Atari 2600 games emulator"""
     human_name = "Stella"
     platform = "Atari 2600"
+    runnable_alone = True
     game_options = [
         {
             "option": "main_file",
