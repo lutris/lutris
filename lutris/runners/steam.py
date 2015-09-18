@@ -36,6 +36,8 @@ class steam(Runner):
     """ Runs Steam for Linux games """
     human_name = "Steam"
     platform = "Steam for Linux"
+    executable = 'steam'
+    runnable_alone = True
     game_options = [
         {
             "option": 'appid',
@@ -96,11 +98,6 @@ class steam(Runner):
         logger.warning("Data path for SteamApp %s not found.", appid)
 
     @property
-    def steam_exe(self):
-        """Return Steam exe's path"""
-        return 'steam'
-
-    @property
     def steam_data_dir(self):
         """Return dir where Steam files lie"""
         candidates = (
@@ -155,9 +152,6 @@ class steam(Runner):
             " or install Steam with the package provided by your distribution."
         NoticeDialog(message)
 
-    def is_installed(self):
-        return bool(system.find_executable(self.steam_exe))
-
     def install_game(self, appid):
         logger.debug("Installing steam game %s", appid)
         acf_data = get_default_acf(appid, appid)
@@ -187,21 +181,13 @@ class steam(Runner):
             logger.debug("winesteam not running")
         return True
 
-    def run(self, *args):
-        """Run Steam alone."""
-        if not self.is_installed():
-            self.install()
-        if self.is_installed:
-            self.prelaunch()
-            subprocess.Popen(self.steam_exe)
-
     def play(self):
 
         # Get current steam pid to act as the root pid instead of lutris
         self.original_steampid = get_steam_pid()
         appid = self.game_config.get('appid')
         return {
-            'command': [self.steam_exe, 'steam://rungameid/%s' % appid],
+            'command': [self.executable, 'steam://rungameid/%s' % appid],
             'rootpid': self.original_steampid
         }
 
@@ -217,6 +203,6 @@ class steam(Runner):
                 return False
         appid = self.game_config.get('appid')
         logger.debug("Launching Wine Steam uninstall of game %s" % appid)
-        command = [self.steam_exe, 'steam://uninstall/%s' % appid]
+        command = [self.executable, 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self)
         thread.start()

@@ -50,6 +50,7 @@ class winesteam(wine.wine):
     multiple_versions = False
     human_name = "Wine Steam"
     platform = "Steam for Windows"
+    runnable_alone = True
     game_options = [
         {
             'option': 'appid',
@@ -312,13 +313,8 @@ class winesteam(wine.wine):
                     return False
         return True
 
-    def run(self, *args):
-        """Run winesteam alone."""
-        if not self.is_installed():
-            self.install()
-        if self.is_installed:
-            self.prelaunch()
-            subprocess.Popen(self.launch_args, env=self.get_env())
+    def get_run_data(self):
+        return {'command': self.launch_args, 'env': self.get_env(full=False)}
 
     def play(self):
         appid = self.game_config.get('appid') or ''
