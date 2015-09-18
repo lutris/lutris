@@ -269,6 +269,7 @@ class Game(object):
 
     def stop(self):
         self.game_thread.stop(killall=True)
+        self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
