@@ -63,6 +63,7 @@ class LutrisThread(threading.Thread):
         if self.terminal and find_executable(self.terminal):
             self.run_in_terminal()
         else:
+            self.terminal = False
             env = os.environ.copy()
             env.update(self.env)
             self.game_process = subprocess.Popen(self.command, bufsize=1,
@@ -141,8 +142,17 @@ class LutrisThread(threading.Thread):
         num_children = 0
         num_watched_children = 0
         terminated_children = 0
+        passed_terminal_procs = False
         for child in self.iter_children(process):
+            # Exclude terminal processes
+            if self.terminal:
+                if child.name == "run_in_term.sh":
+                    passed_terminal_procs = True
+                if not passed_terminal_procs:
+                    continue
+
             num_children += 1
+            # Exclude other wrapper processes
             if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
                               'Steam.exe', 'steamwebhelper.',
                               'steamerrorrepor'):

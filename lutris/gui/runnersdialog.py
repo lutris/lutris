@@ -33,7 +33,7 @@ class RunnersDialog(Gtk.Window):
         self.show_all()
 
         # Runner list
-        runner_list = lutris.runners.__all__
+        runner_list = sorted(lutris.runners.__all__)
         runner_vbox = Gtk.VBox()
         runner_vbox.show()
 

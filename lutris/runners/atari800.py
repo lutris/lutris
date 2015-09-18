@@ -6,9 +6,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import DownloadDialog, ErrorDialog
 from lutris.runners.runner import Runner
-from lutris.util.extract import extract_archive
-from lutris.util.system import get_md5_hash
-from lutris.util.display import get_resolutions
+from lutris.util import display, extract, system
 
 
 # pylint: disable=C0103
@@ -42,7 +40,7 @@ class atari800(Runner):
     ]
     try:
         screen_resolutions = [(resolution, resolution)
-                              for resolution in get_resolutions()]
+                              for resolution in display.get_resolutions()]
     except OSError:
         screen_resolutions = []
     screen_resolutions.insert(0, ('Desktop resolution', 'desktop'))
@@ -98,7 +96,7 @@ class atari800(Runner):
         if not os.path.exists(bios_archive):
             ErrorDialog("Could not download Atari800 BIOS archive")
             return
-        extract_archive(bios_archive, config_path)
+        extract.extract_archive(bios_archive, config_path)
         os.remove(bios_archive)
         config = LutrisConfig(runner_slug='atari800')
         config.raw_runner_config.update({'bios_path': config_path})
@@ -111,7 +109,7 @@ class atari800(Runner):
         """ Check for correct bios files """
         good_bios = {}
         for filename in os.listdir(bios_path):
-            real_hash = get_md5_hash(os.path.join(bios_path, filename))
+            real_hash = system.get_md5_hash(os.path.join(bios_path, filename))
             for bios_file in self.bios_checksums.keys():
                 if real_hash == self.bios_checksums[bios_file]:
                     logging.debug("%s Checksum : OK", filename)
@@ -125,8 +123,11 @@ class atari800(Runner):
         else:
             arguments.append("-windowed")
 
-        if self.runner_config.get("resolution"):
-            width, height = self.runner_config["resolution"].split('x')
+        resolution = self.runner_config.get("resolution")
+        if resolution:
+            if resolution == 'desktop':
+                resolution = display.get_current_resolution()
+            width, height = resolution.split('x')
             arguments += ["-fs-width", "%s" % width,
                           "-fs-height", "%s" % height]
 

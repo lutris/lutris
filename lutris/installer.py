@@ -9,14 +9,14 @@ import platform
 import shlex
 import webbrowser
 
-from gi.repository import Gdk
+from gi.repository import Gdk, GLib
 
-from lutris import pga, settings
-from lutris.runtime import get_runtime_env
+from lutris import pga, runtime, settings
 from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.steam import get_app_states
 
 from lutris.game import Game
 from lutris.config import LutrisConfig
@@ -230,6 +230,18 @@ class ScriptInterpreter(object):
         self.parent.start_download(file_uri, dest_file)
 
     def _download_steam_data(self, file_uri, file_id):
+        """Downloads the game files from Steam to use them outside of Steam
+
+            file_uri: Colon separated game info containing:
+                       - $STEAM or $WINESTEAM depending on the version of Steam
+                         Since Steam for Linux can download games for any
+                         platform, using $WINESTEAM has little value except in
+                         some cases where the game needs to be started by Steam
+                         in order to get a CD key (ie. Doom 3 or UT2004)
+                       - The Steam appid
+                       - The relative path of files to retrieve
+            file_id: The lutris installer internal id for the game files
+        """
         try:
             parts = file_uri.split(":", 2)
             steam_rel_path = parts[2].strip()
@@ -242,9 +254,12 @@ class ScriptInterpreter(object):
             'steam_rel_path': steam_rel_path,
             'file_id': file_id
         }
+
+        logger.debug(
+            "Getting Steam data for appid %s" % self.steam_data['appid']
+        )
+
         if parts[0] == '$WINESTEAM':
-            appid = self.steam_data['appid']
-            logger.debug("Getting Wine Steam data for appid %s" % appid)
             self.parent.set_status('Getting Wine Steam game data')
             self.steam_data['platform'] = "windows"
             # Check that wine is installed
@@ -259,12 +274,12 @@ class ScriptInterpreter(object):
                     callback=self.parent.on_steam_downloaded
                 )
             else:
-                self.install_steam_game(winesteam.winesteam)
+                self.install_steam_game(winesteam.winesteam, is_game_files=True)
         else:
             # Getting data from Linux Steam
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
-            self.install_steam_game(steam.steam)
+            self.install_steam_game(steam.steam, is_game_files=True)
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -276,8 +291,21 @@ class ScriptInterpreter(object):
         self.iter_game_files()
 
     def _prepare_commands(self):
+        """Run the preliminary pre-installation steps and launch install"""
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
+        runner_name = self.script['runner']
+
+        # Add steam installation to commands if it's a Steam game
+        if runner_name in ('steam', 'winesteam'):
+            try:
+                self.steam_data['appid'] = self.script['game']['appid']
+            except KeyError:
+                raise ScriptingError("Missing appid for steam game")
+
+            commands = self.script.get('installer', [])
+            commands.insert(0, 'install_steam_game')
+            self.script['installer'] = commands
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
@@ -502,7 +530,7 @@ class ScriptInterpreter(object):
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
-        thread = LutrisThread(command, env=get_runtime_env(), term=terminal)
+        thread = LutrisThread(command, env=runtime.get_env(), term=terminal)
         thread.run()
 
     def extract(self, data):
@@ -710,32 +738,65 @@ class ScriptInterpreter(object):
         task = import_task(runner_name, task_name)
         task(**data)
 
-    def install_steam_game(self, runner_class):
+    def install_steam_game(self, runner_class=None, is_game_files=False):
+        """Launch installation of a steam game
+
+        runner_class: class of the steam runner to use
+        is_game_files: whether the game is used for the installer game files
+        """
+        if not runner_class:
+            if self.script['runner'] == 'steam':
+                runner_class = steam.steam
+            elif self.script['runner'] == 'winesteam':
+                runner_class = winesteam.winesteam
+            else:
+                raise ScriptingError('Missing Steam platform')
+
         steam_runner = runner_class()
+        self.steam_data['is_game_files'] = is_game_files
+        self.steam_data['steamapps_path'] = steam_runner.get_default_steamapps_path()
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s" % appid)
             # Here the user must wait for the game to finish installing, a
             # better way to handle this would be to poll StateFlags on the
             # game's config to check if the game has finished installing.
-            self.parent.wait_for_user_action(
-                "Steam will now download and install game %s, "
-                "press Ok when it's finished" % appid,
-                self.on_steam_game_installed,
-                appid
-            )
+            # self.parent.wait_for_user_action(
+            #    "Steam will now download and install game %s, "
+            #    "press Ok when it's finished" % appid,
+            #    self.on_steam_game_installed,
+            #    appid
+            # )
             steam_runner.appid = appid
             AsyncCall(steam_runner.install_game, None, appid)
-        else:
+            self.steam_poll = GLib.timeout_add(2000, self.monitor_steam_install)
+            return 'STOP'
+        elif is_game_files:
             self._append_steam_data_to_files(runner_class)
 
-    def on_steam_game_installed(self, *args):
-        logger.debug("Steam game installed")
-        if self.steam_data['platform'] == 'windows':
-            runner_class = winesteam.winesteam
+    def monitor_steam_install(self):
+        steamapps_path = self.steam_data['steamapps_path']
+        appid = self.steam_data['appid']
+        states = get_app_states(steamapps_path, appid)
+        logger.debug(states)
+        if 'Fully Installed' in states:
+            self.on_steam_game_installed()
+            logger.debug('Steam game has finished installing')
+            return False
         else:
-            runner_class = steam.steam
-        self._append_steam_data_to_files(runner_class)
+            logger.debug('Steam game still installing')
+            return True
+
+    def on_steam_game_installed(self, *args):
+        """Fired whenever a Steam game has finished installing"""
+        if self.steam_data['is_game_files']:
+            if self.steam_data['platform'] == 'windows':
+                runner_class = winesteam.winesteam
+            else:
+                runner_class = steam.steam
+            self._append_steam_data_to_files(runner_class)
+        else:
+            self._iter_commands()
 
     def _append_steam_data_to_files(self, runner_class):
         steam_runner = runner_class()

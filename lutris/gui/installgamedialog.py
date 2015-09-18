@@ -136,12 +136,26 @@ class InstallerDialog(Gtk.Window):
 
         # Build list
         for index, script in enumerate(self.scripts):
-            label = script['version']
+            description = script['description']
+            runner = script['runner']
+            version = script['version']
+            label = "{} ({})".format(
+                description if description else version, runner
+            )
             btn = Gtk.RadioButton.new_with_label_from_widget(radio_group, label)
             btn.connect('toggled', self.on_installer_toggled, index)
-            self.installer_choice_box.pack_start(btn, False, False, 0)
+            self.installer_choice_box.pack_start(btn, False, False, 10)
             if not radio_group:
                 radio_group = btn
+
+        self.notes_label = Gtk.Label()
+        self.notes_label.set_max_width_chars(60)
+        self.notes_label.set_property('wrap', True)
+        self.notes_label.set_markup(
+            "<i>{}</i>".format(self.scripts[0]['notes'])
+        )
+
+        self.installer_choice_box.pack_start(self.notes_label, True, True, 40)
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
         self.installer_choice_box.show_all()
@@ -153,6 +167,9 @@ class InstallerDialog(Gtk.Window):
         )
 
     def on_installer_toggled(self, btn, script_index):
+        self.notes_label.set_markup(
+            "<i>{}</i>".format(self.scripts[script_index]['notes'])
+        )
         if btn.get_active():
             self.installer_choice = script_index
 

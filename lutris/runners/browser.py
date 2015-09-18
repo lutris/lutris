@@ -25,6 +25,12 @@ class browser(Runner):
                      "If left blank, Lutris will launch your default browser.")
         }
     ]
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': True,
+        }
+    ]
 
     def is_installed(self):
         return True

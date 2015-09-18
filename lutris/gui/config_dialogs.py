@@ -22,7 +22,7 @@ class GameDialogCommon(object):
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
-        for runner_name in runners.__all__:
+        for runner_name in sorted(runners.__all__):
             runner_class = runners.import_runner(runner_name)
             runner = runner_class()
             if runner.is_installed():
@@ -200,7 +200,8 @@ class GameDialogCommon(object):
             # XXX DANGER ZONE
             game_slug = self.game.slug if self.game else None
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              game_slug=game_slug)
+                                              game_slug=game_slug,
+                                              level='game')
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)

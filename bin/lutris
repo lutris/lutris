@@ -161,9 +161,18 @@ for arg in args:
         game_slug = arg[7:]
         break
 
-if game_slug or options.installer_file:
-    db_game = (pga.get_game_by_slug(game_slug)
-               or pga.get_game_by_slug(game_slug, field='installer_slug'))
+installer = options.installer_file
+
+if game_slug or installer:
+    if not game_slug and not os.path.isfile(installer):
+        print("No such file: %s" % installer)
+        exit()
+
+    db_game = None
+    if game_slug:
+        db_game = (pga.get_game_by_slug(game_slug)
+                   or pga.get_game_by_slug(game_slug, field='installer_slug'))
+
     if db_game and db_game['installed'] and not options.reinstall:
         logger.info("Launching %s", db_game['name'])
         if lutris.is_running():
@@ -174,9 +183,9 @@ if game_slug or options.installer_file:
     else:
         logger.info("Installing %s", game_slug)
         if lutris.is_running():
-            lutris.install_game(options.installer_file or game_slug)
+            lutris.install_game(installer or game_slug)
         else:
-            InstallerDialog(options.installer_file or game_slug)
+            InstallerDialog(installer or game_slug)
             GObject.threads_init()
             Gtk.main()
     exit()

@@ -419,6 +419,17 @@ class wine(Runner):
                          "By default, Wine automatically picks the right one "
                          "for your system. Alsa is the default for modern"
                          "Linux distributions.")
+            },
+            {
+                'option': 'show_debug',
+                'label': 'Output debugging info',
+                'type': 'choice',
+                'choices': [('Disabled', '-all'),
+                            ('Enabled', '')],
+                'default': '-all',
+                'advanced': True,
+                'help': ("Output debugging information in the game log "
+                         "(might affect performance)")
             }
         ]
 
@@ -554,7 +565,7 @@ class wine(Runner):
             env = os.environ.copy()
         else:
             env = {}
-        env['WINEDEBUG'] = "-all"
+        env['WINEDEBUG'] = self.runner_config['show_debug']
         env['WINEARCH'] = self.wine_arch
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
