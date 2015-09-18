@@ -21,7 +21,8 @@ class LutrisThread(threading.Thread):
     """Runs the game in a separate thread"""
     debug_output = True
 
-    def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
+    def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
+                 watch=True):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -31,6 +32,7 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
         self.terminal = term
+        self.watch = watch
         self.is_running = True
         self.stdout = ''
         self.attached_threads = []
@@ -58,7 +60,8 @@ class LutrisThread(threading.Thread):
         """Run the thread"""
         logger.debug("Command env: " + self.env_string)
         logger.debug("Running command: " + self.command_string)
-        GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
+        if self.watch:
+            GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         if self.terminal and find_executable(self.terminal):
             self.run_in_terminal()
@@ -78,12 +81,13 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
+        """Write command in a script file and run it.
 
-        # Write command in a script file.
-        '''Running it from a file is likely the only way to set env vars only
+        Running it from a file is likely the only way to set env vars only
         for the command (not for the terminal app).
-        It also permits the only reliable way to keep the term open when the
-        game is exited.'''
+        It's also the only reliable way to keep the term open when the
+        game is quit.
+        """
         file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
         with open(file_path, 'w') as f:
             f.write(dedent(
