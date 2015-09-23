@@ -106,7 +106,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         " ".join(env), wine_path, executable, args
     )
     p = subprocess.Popen(command, cwd=working_dir, shell=True,
-                               stdout=subprocess.PIPE)
+                         stdout=subprocess.PIPE)
     if blocking:
         p.communicate()
 
@@ -334,10 +334,8 @@ class wine(Runner):
             {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
-                'type': 'choice',
-                'choices': [('Yes', 'Desktop_res'),
-                            ('No', 'auto')],
-                'default': 'auto',
+                'type': 'bool',
+                'default': False,
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
                          "This corresponds to Wine's Virtual Desktop option.")
@@ -556,10 +554,12 @@ class wine(Runner):
         prefix = self.prefix_path
         for key, path in self.reg_keys.iteritems():
             value = self.runner_config.get(key) or 'auto'
-            if value == 'auto':
+            if not value or value == 'auto':
                 delete_registry_key(path, wine_path=self.get_executable(),
                                     prefix=prefix)
             elif key in self.runner_config:
+                if key == 'Desktop' and value is True:
+                    value = 'Desktop_res'
                 set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
 
