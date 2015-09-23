@@ -71,7 +71,7 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_env=''):
+             working_dir=None, winetricks_env='', blocking=True):
     """Execute a Wine command."""
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
@@ -105,11 +105,14 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     command = '{0} "{1}" {2} {3}'.format(
         " ".join(env), wine_path, executable, args
     )
-    subprocess.Popen(command, cwd=working_dir, shell=True,
-                     stdout=subprocess.PIPE).communicate()
+    p = subprocess.Popen(command, cwd=working_dir, shell=True,
+                               stdout=subprocess.PIPE)
+    if blocking:
+        p.communicate()
 
 
-def winetricks(app, prefix=None, winetricks_env=None, silent=True):
+def winetricks(app, prefix=None, winetricks_env=None, silent=True,
+               blocking=False):
     """Execute winetricks."""
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
@@ -119,10 +122,10 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True):
     else:
         args = app
     wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
-             wine_path='winetricks', arch=arch, args=args)
+             wine_path='winetricks', arch=arch, args=args, blocking=blocking)
 
 
-def winecfg(wine_path=None, prefix=None):
+def winecfg(wine_path=None, prefix=None, blocking=True):
     """Execute winecfg."""
     if not wine_path:
         wine_path = wine().get_executable()
@@ -138,7 +141,9 @@ def winecfg(wine_path=None, prefix=None):
         env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
 
     command = '{0} "{1}"'.format(' '.join(env), winecfg_path)
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    if blocking:
+        p.communicate()
 
 
 def detect_prefix_arch(directory=None):
@@ -535,15 +540,16 @@ class wine(Runner):
                         wine_path=wine_path)
 
     def run_winecfg(self, *args):
-        winecfg(wine_path=self.get_executable(), prefix=self.prefix_path)
+        winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
+                blocking=False)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(),
-                 prefix=self.prefix_path)
+                 prefix=self.prefix_path, blocking=False)
 
     def run_winetricks(self, *args):
         winetricks('', prefix=self.prefix_path,
-                   winetricks_env=self.get_executable())
+                   winetricks_env=self.get_executable(), blocking=False)
 
     def check_regedit_keys(self, wine_config):
         """Reset regedit keys according to config."""
