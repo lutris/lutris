@@ -336,8 +336,8 @@ class wine(Runner):
                 'label': 'Windowed (virtual desktop)',
                 'type': 'choice',
                 'choices': [('Yes', 'Desktop_res'),
-                            ('No', 'off')],
-                'default': 'off',
+                            ('No', 'auto')],
+                'default': 'auto',
                 'help': ("Run the whole Windows desktop in a window.\n"
                          "Otherwise, run it fullscreen.\n"
                          "This corresponds to Wine's Virtual Desktop option.")
