@@ -31,7 +31,11 @@ class Sync(object):
         local_slugs = set([game['slug'] for game in self.library])
         logger.debug("%d games in local library", len(local_slugs))
         # Get remote library
-        remote_library = api.get_library()
+        try:
+            remote_library = api.get_library()
+        except Exception as e:
+            logger.debug("Error while downloading the remote library: %s" % e)
+            remote_library = {}
         remote_slugs = set([game['slug'] for game in remote_library])
         logger.debug("%d games in remote library (inc. unpublished)",
                      len(remote_slugs))
