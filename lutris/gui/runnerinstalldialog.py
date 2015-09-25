@@ -27,6 +27,7 @@ class RunnerInstallDialog(Dialog):
         self.runner_store = self.get_store()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
+        self.connect('response', self.on_response)
 
         self.vbox.add(self.treeview)
         self.show_all()
@@ -154,6 +155,9 @@ class RunnerInstallDialog(Dialog):
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True
         self.installing.pop(row[self.COL_VER])
+
+    def on_response(self, dialog, response):
+        self.destroy()
 
 
 if __name__ == "__main__":

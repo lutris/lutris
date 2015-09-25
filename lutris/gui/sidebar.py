@@ -134,5 +134,3 @@ class ContextualMenu(Gtk.Menu):
         dlg_title = "Manage %s versions" % self.runner.name
         dialog = RunnerInstallDialog(dlg_title, self.parent_window,
                                      self.runner.name)
-        dialog.run()
-        dialog.destroy()

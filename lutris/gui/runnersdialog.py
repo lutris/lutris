@@ -135,8 +135,6 @@ class RunnersDialog(Gtk.Window):
         versions_dialog = RunnerInstallDialog(dlg_title, self, runner.name)
         versions_dialog.connect('destroy', self.set_install_state,
                                 runner, runner_label)
-        versions_dialog.run()
-        versions_dialog.destroy()
 
     def on_install_clicked(self, widget, runner, runner_label):
         """Install a runner"""
