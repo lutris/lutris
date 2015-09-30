@@ -11,29 +11,29 @@ from lutris.util.steam import (get_path_from_appmanifest, read_config,
 
 
 def shutdown():
-    """Cleanly quit Steam"""
+    """Cleanly quit Steam."""
     logger.debug("Shutting down Steam")
     if is_running():
         subprocess.call(['steam', '-shutdown'])
 
 
 def get_steam_pid():
-    """Return pid of Steam process"""
+    """Return pid of Steam process."""
     return system.get_pid('steam$')
 
 
 def kill():
-    """Force quit Steam"""
+    """Force quit Steam."""
     system.kill_pid(get_steam_pid())
 
 
 def is_running():
-    """Checks if Steam is running"""
+    """Checks if Steam is running."""
     return bool(get_steam_pid())
 
 
 class steam(Runner):
-    """ Runs Steam for Linux games """
+    description = "Runs Steam for Linux games"
     human_name = "Steam"
     platform = "Steam for Linux"
     executable = 'steam'
@@ -83,7 +83,7 @@ class steam(Runner):
 
     @property
     def steam_config(self):
-        """Return the "Steam" part of Steam's config.vdf as a dict"""
+        """Return the "Steam" part of Steam's config.vdf as a dict."""
         if not self.steam_data_dir:
             return
         return read_config(self.steam_data_dir)
@@ -99,7 +99,7 @@ class steam(Runner):
 
     @property
     def steam_data_dir(self):
-        """Return dir where Steam files lie"""
+        """Return dir where Steam files lie."""
         candidates = (
             "~/.local/share/Steam/",
             "~/.local/share/steam/",
@@ -112,7 +112,7 @@ class steam(Runner):
                 return path
 
     def get_game_path_from_appid(self, appid):
-        """Return the game directory"""
+        """Return the game directory."""
         for apps_path in self.get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:

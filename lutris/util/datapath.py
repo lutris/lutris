@@ -3,7 +3,7 @@ import sys
 
 
 def get():
-    """ Returns the path for the resources. """
+    """Return the path for the resources."""
     launch_path = os.path.realpath(sys.path[0])
     if launch_path.startswith("/usr/local"):
         data_path = '/usr/local/share/lutris'

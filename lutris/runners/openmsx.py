@@ -3,8 +3,8 @@ from lutris.runners.runner import Runner
 
 
 class openmsx(Runner):
-    """MSX computer emulator"""
     human_name = "openMSX"
+    description = "MSX computer emulator"
     package = "openmsx"
     executable = "openmsx"
     platform = "MSX, MSX2, MSX2+, MSX turboR"

@@ -11,7 +11,7 @@ from lutris.util.strings import add_url_tags
 
 
 class InstallerDialog(Gtk.Window):
-    """ Gtk Dialog used during the install process """
+    """GUI for the install process."""
     game_dir = None
     download_progress = None
 
@@ -224,7 +224,7 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
     def on_target_changed(self, text_entry):
-        """ Sets the installation target for the game """
+        """Set the installation target for the game."""
         path = text_entry.get_text()
         self.interpreter.target_path = path
         self.show_non_empty_warning()
@@ -322,14 +322,14 @@ class InstallerDialog(Gtk.Window):
             self.continue_button.set_sensitive(True)
 
     def download_complete(self, widget, data, more_data=None):
-        """Action called on a completed download"""
+        """Action called on a completed download."""
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, *args, **kwargs):
         self.interpreter.complete_steam_install(widget.dest)
 
     def on_install_finished(self):
-        """Actual game installation"""
+        """Actual game installation."""
         self.status_label.set_text("Installation finished !")
         self.notify_install_success()
         self.clean_widgets()
@@ -374,7 +374,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.show()
 
     def launch_game(self, widget, _data=None):
-        """Launch a game after it's been installed"""
+        """Launch a game after it's been installed."""
         widget.set_sensitive(False)
         self.close(widget)
         if self.parent:

@@ -1,4 +1,4 @@
-""" desktop file creator """
+"""Desktop file creator."""
 import os
 import stat
 import shutil
@@ -12,7 +12,7 @@ from lutris.settings import CACHE_DIR
 
 
 def create_launcher(game_slug, game_name, desktop=False, menu=False):
-    """Create .desktop file."""
+    """Create a .desktop file."""
     desktop_dir = (
         GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     )

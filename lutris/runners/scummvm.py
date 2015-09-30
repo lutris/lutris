@@ -9,7 +9,7 @@ SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".scummvmrc")
 
 
 class scummvm(Runner):
-    """Runs various 2D point-and-click adventure games."""
+    description = "Runs various 2D point-and-click adventure games."
     human_name = "ScummVM"
     platform = "2D point-and-click games"
     runnable_alone = True
@@ -130,7 +130,7 @@ class scummvm(Runner):
         return launch_info
 
     def get_game_list(self):
-        """ Return the entire list of games supported by ScummVM """
+        """Return the entire list of games supported by ScummVM."""
         scumm_output = subprocess.Popen(
             [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
         ).communicate()[0]

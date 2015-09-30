@@ -10,7 +10,7 @@ from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 
 
 class RunnersDialog(Gtk.Window):
-    """Dialog for the runner preferences"""
+    """Dialog to manage the runners."""
 
     def __init__(self):
         GObject.GObject.__init__(self)
@@ -137,7 +137,7 @@ class RunnersDialog(Gtk.Window):
                                 runner, runner_label)
 
     def on_install_clicked(self, widget, runner, runner_label):
-        """Install a runner"""
+        """Install a runner."""
         runner.install()
         if runner.is_installed():
             widget.hide()

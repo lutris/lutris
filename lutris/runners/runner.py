@@ -178,7 +178,7 @@ class Runner(object):
         return False
 
     def is_installed(self):
-        """Return  True if runner is installed else False."""
+        """Return True if runner is installed else False."""
         # Check 'get_executable' first
         if hasattr(self, 'get_executable'):
             executable = self.get_executable()

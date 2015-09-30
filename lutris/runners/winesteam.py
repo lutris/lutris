@@ -46,7 +46,7 @@ def kill():
 
 # pylint: disable=C0103
 class winesteam(wine.wine):
-    """ Runs Steam for Windows games """
+    description = "Runs Steam for Windows games"
     multiple_versions = False
     human_name = "Wine Steam"
     platform = "Steam for Windows"

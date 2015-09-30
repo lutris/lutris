@@ -7,8 +7,8 @@ from lutris.runners.runner import Runner
 
 
 class hatari(Runner):
-    """Atari ST computers"""
     human_name = "Hatari"
+    description = "Atari ST computers emulator"
     platform = "Atari ST computers"
     runnable_alone = True
 

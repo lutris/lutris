@@ -5,11 +5,11 @@ from lutris.runners.runner import Runner
 
 
 class gens(Runner):
-    """Runner for Sega Genesis games"""
     human_name = "Gens"
+    description = "Sega Genesis emulator"
     executable = 'gens'
     platform = 'Sega Genesis'
-    description = 'Sega Genesis emulator.'
+    description = 'Sega Genesis (aka Sega Mega Drive) emulator'
     runnable_alone = True
     tarballs = {
         'i386': 'gens-2.16.7-i386.tar.gz',
@@ -40,7 +40,7 @@ class gens(Runner):
         return os.path.join(settings.RUNNER_DIR, 'gens/gens')
 
     def play(self):
-        """ Run the game """
+        """Run the game."""
         arguments = [self.get_executable()]
         if self.runner_config.get('fullscreen', True):
             arguments.append('--fs')

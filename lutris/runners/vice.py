@@ -4,7 +4,7 @@ from lutris.runners.runner import Runner
 
 
 class vice(Runner):
-    """ Commodore Emulator """
+    description = "Commodore Emulator"
     human_name = "Vice"
     platform = "Commodore 64"
 

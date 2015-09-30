@@ -177,7 +177,7 @@ class ConfigBox(VBox):
 
     # Checkbox
     def generate_checkbox(self, option, value=None):
-        """Generates a checkbox."""
+        """Generate a checkbox."""
         checkbox = Gtk.CheckButton(label=option["label"])
         if value is True:
             checkbox.set_active(value)

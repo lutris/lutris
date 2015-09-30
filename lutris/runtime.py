@@ -89,6 +89,7 @@ class Updater:
 
     @classmethod
     def check_download_progress(cls):
+        """Call download.check_progress(), return True if download finished."""
         if (not cls.downloader
             or cls.downloader.state in [cls.downloader.CANCELLED,
                                         cls.downloader.ERROR]):

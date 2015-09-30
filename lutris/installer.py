@@ -1,5 +1,5 @@
 # pylint: disable=E1101, E0611
-"""Installer module"""
+"""Install a game by following its install script."""
 import os
 import sys
 import yaml
@@ -29,8 +29,8 @@ from lutris.thread import LutrisThread
 
 
 class ScriptingError(Exception):
-    """ Custom exception for scripting errors, can be caught by modifying
-    excepthook """
+    """Custom exception for scripting errors, can be caught by modifying
+    excepthook."""
     def __init__(self, message, faulty_data=None):
         self.message = message
         self.faulty_data = faulty_data
@@ -58,7 +58,7 @@ sys.excepthook = error_handler
 
 
 def fetch_script(window, game_ref):
-    """Downloads install script(s) for matching game_ref"""
+    """Download install script(s) for matching game_ref."""
     request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
     try:
         request = urllib2.urlopen(request)
@@ -82,7 +82,7 @@ def fetch_script(window, game_ref):
 
 
 class ScriptInterpreter(object):
-    """ Class that converts raw script data to actions """
+    """Convert raw installer script data into actions."""
 
     def __init__(self, script, parent):
         self.error = None
@@ -136,7 +136,7 @@ class ScriptInterpreter(object):
         self.target_path = game['directory']
 
     def is_valid(self):
-        """ Return True if script is usable """
+        """Return True if script is usable."""
         required_fields = ('runner', 'name', 'game_slug')
         for field in required_fields:
             if not self.script.get(field):
@@ -171,14 +171,14 @@ class ScriptInterpreter(object):
             self._prepare_commands()
 
     def _download_file(self, game_file):
-        """Download a file referenced in the installer script
+        """Download a file referenced in the installer script.
 
-           Game files can be either a string, containing the location of the
-           file to fetch or a dict with the following keys:
-           - url : location of file, if not present, filename will be used
-                   this should be the case for local files
-           - filename : force destination filename when url is present or path
-                        of local file
+        Game files can be either a string, containing the location of the
+        file to fetch or a dict with the following keys:
+        - url : location of file, if not present, filename will be used
+                this should be the case for local files.
+        - filename : force destination filename when url is present or path
+                     of local file.
         """
         # Setup file_id, file_uri and local filename
         file_id = game_file.keys()[0]
@@ -205,7 +205,7 @@ class ScriptInterpreter(object):
         dest_file = os.path.join(self.download_cache_path, filename)
 
         if file_uri.startswith("N/A"):
-            # Ask the user where is the file located
+            # Ask the user where the file is located
             parts = file_uri.split(":", 1)
             if len(parts) == 2:
                 message = parts[1]
@@ -230,17 +230,17 @@ class ScriptInterpreter(object):
         self.parent.start_download(file_uri, dest_file)
 
     def _download_steam_data(self, file_uri, file_id):
-        """Downloads the game files from Steam to use them outside of Steam
+        """Download the game files from Steam to use them outside of Steam.
 
-            file_uri: Colon separated game info containing:
-                       - $STEAM or $WINESTEAM depending on the version of Steam
-                         Since Steam for Linux can download games for any
-                         platform, using $WINESTEAM has little value except in
-                         some cases where the game needs to be started by Steam
-                         in order to get a CD key (ie. Doom 3 or UT2004)
-                       - The Steam appid
-                       - The relative path of files to retrieve
-            file_id: The lutris installer internal id for the game files
+        file_uri: Colon separated game info containing:
+                   - $STEAM or $WINESTEAM depending on the version of Steam
+                     Since Steam for Linux can download games for any
+                     platform, using $WINESTEAM has little value except in
+                     some cases where the game needs to be started by Steam
+                     in order to get a CD key (ie. Doom 3 or UT2004)
+                   - The Steam appid
+                   - The relative path of files to retrieve
+        file_id: The lutris installer internal id for the game files
         """
         try:
             parts = file_uri.split(":", 2)
@@ -291,7 +291,7 @@ class ScriptInterpreter(object):
         self.iter_game_files()
 
     def _prepare_commands(self):
-        """Run the preliminary pre-installation steps and launch install"""
+        """Run the pre-installation steps and launch install."""
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
         runner_name = self.script['runner']
@@ -347,7 +347,7 @@ class ScriptInterpreter(object):
             shutil.rmtree(self.download_cache_path)
 
     def _substitute_config(self, script_config):
-        """ Substitutes values such as $GAMEDIR in a config dict """
+        """Substitute values such as $GAMEDIR in a config dict."""
         config = {}
         for key in script_config:
             if not isinstance(key, basestring):
@@ -360,7 +360,7 @@ class ScriptInterpreter(object):
         return config
 
     def _write_config(self):
-        """Write the game configuration as a Lutris launcher."""
+        """Write the game configuration in the DB and config file."""
         runner_name = self.script['runner']
 
         # Get existing config
@@ -431,7 +431,8 @@ class ScriptInterpreter(object):
             config_file.write(yaml_config)
 
     def _map_command(self, command_data):
-        """ Converts a line from the installer directive an internal method """
+        """Map a directive from the `installer` section to an internal
+        method."""
         if isinstance(command_data, dict):
             command_name = command_data.keys()[0]
             command_params = command_data[command_name]
@@ -446,7 +447,7 @@ class ScriptInterpreter(object):
         return getattr(self, command_name), command_params
 
     def _substitute(self, template_string):
-        """ Replace path aliases with real paths """
+        """Replace path aliases with real paths."""
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": settings.CACHE_DIR,
@@ -504,7 +505,7 @@ class ScriptInterpreter(object):
         os.popen('chmod +x "%s"' % filename)
 
     def execute(self, data):
-        """Run an executable file"""
+        """Run an executable file."""
         args = []
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
@@ -635,7 +636,7 @@ class ScriptInterpreter(object):
         system.merge_folders(src, dst)
 
     def move(self, params):
-        """ Move a file or directory """
+        """Move a file or directory."""
         self._check_required_params(['src', 'dst'], params, 'move')
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s" % (src, dst))
@@ -666,7 +667,7 @@ class ScriptInterpreter(object):
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'move')
-        """Writes a key-value pair into an INI type config file."""
+        """Write a key-value pair into an INI type config file."""
         # Get file
         config_file = self._get_file(params['file'])
         if not config_file:
@@ -690,9 +691,10 @@ class ScriptInterpreter(object):
             parser.write(f)
 
     def task(self, data):
-        """ This action triggers a task within a runner.
-            The 'name' parameter is mandatory. If 'args' is provided it will be
-            passed to the runner task.
+        """Directive triggering another function specific to a runner.
+
+        The 'name' parameter is mandatory. If 'args' is provided it will be
+        passed to the runner task.
         """
         self._check_required_params('name', data, 'task')
         task_name = data.pop('name')
@@ -739,7 +741,7 @@ class ScriptInterpreter(object):
         task(**data)
 
     def install_steam_game(self, runner_class=None, is_game_files=False):
-        """Launch installation of a steam game
+        """Launch installation of a steam game.
 
         runner_class: class of the steam runner to use
         is_game_files: whether the game is used for the installer game files
@@ -788,7 +790,7 @@ class ScriptInterpreter(object):
             return True
 
     def on_steam_game_installed(self, *args):
-        """Fired whenever a Steam game has finished installing"""
+        """Fired whenever a Steam game has finished installing."""
         if self.steam_data['is_game_files']:
             if self.steam_data['platform'] == 'windows':
                 runner_class = winesteam.winesteam

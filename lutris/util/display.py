@@ -11,7 +11,7 @@ def get_vidmodes():
 
 
 def get_outputs():
-    """ Return list of tuples containing output name and geometry """
+    """Return list of tuples containing output name and geometry."""
     outputs = list()
     for line in get_vidmodes():
         parts = line.split()
@@ -59,9 +59,10 @@ def get_current_resolution(monitor=0):
 
 
 def change_resolution(resolution):
-    """ Change display resolution.
-        Takes a string for single monitors or a list of displays as returned
-        by get_outputs()
+    """Change display resolution.
+
+    Takes a string for single monitors or a list of displays as returned
+    by get_outputs().
     """
     if isinstance(resolution, basestring):
         logger.debug("Switching resolution to %s", resolution)
@@ -86,5 +87,5 @@ def change_resolution(resolution):
 
 
 def restore_gamma():
-    """Restores gamma to a normal level"""
+    """Restores gamma to a normal level."""
     subprocess.Popen(["xgamma", "-gamma", "1.0"])

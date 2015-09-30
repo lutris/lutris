@@ -6,8 +6,8 @@ from lutris.runners.runner import Runner
 
 
 class linux(Runner):
-    """Runs native games"""
     human_name = "Linux"
+    description = "Runs native games"
 
     game_options = [
         {

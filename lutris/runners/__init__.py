@@ -1,4 +1,4 @@
-"""Generic runner functions"""
+"""Generic runner functions."""
 from lutris.util.log import logger
 
 __all__ = (
@@ -35,7 +35,7 @@ def get_runner_module(runner_name):
 
 
 def import_runner(runner_name):
-    """Dynamically import a runner class"""
+    """Dynamically import a runner class."""
     runner_module = get_runner_module(runner_name)
     if not runner_module:
         return
@@ -43,7 +43,7 @@ def import_runner(runner_name):
 
 
 def import_task(runner, task):
-    """Return a runner task"""
+    """Return a runner task."""
     runner_module = get_runner_module(runner)
     if not runner_module:
         return

@@ -31,7 +31,7 @@ class Process(object):
         return _stat
 
     def get_thread_ids(self):
-        """Return a list of thread ids opened by process"""
+        """Return a list of thread ids opened by process."""
         basedir = '/proc/{}/task/'.format(self.pid)
         if os.path.isdir(basedir):
             return [tid for tid in os.listdir(basedir)]
@@ -39,7 +39,7 @@ class Process(object):
             return []
 
     def get_children_pids_of_thread(self, tid):
-        """Return pids of child processes opened by thread `tid` of process"""
+        """Return pids of child processes opened by thread `tid` of process."""
         children = []
         children_path = '/proc/{}/task/{}/children'.format(self.pid, tid)
         if os.path.exists(children_path):
@@ -55,7 +55,7 @@ class Process(object):
 
     @property
     def name(self):
-        """Filename of the executable"""
+        """Filename of the executable."""
         _stat = self.get_stat(parsed=False)
         if _stat:
             return _stat[_stat.find("(")+1:_stat.rfind(")")]
@@ -73,21 +73,21 @@ class Process(object):
 
     @property
     def ppid(self):
-        """PID of the parent"""
+        """PID of the parent."""
         _stat = self.get_stat()
         if _stat:
             return _stat[1]
 
     @property
     def pgrp(self):
-        """Process group ID of the process"""
+        """Process group ID of the process."""
         _stat = self.get_stat()
         if _stat:
             return _stat[2]
 
     @property
     def cmdline(self):
-        """Return command line used to run the process `pid`"""
+        """Return command line used to run the process `pid`."""
         cmdline_path = '/proc/{}/cmdline'.format(self.pid)
         with open(cmdline_path) as cmdline_file:
             _cmdline = cmdline_file.read().replace('\x00', ' ')

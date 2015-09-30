@@ -175,7 +175,8 @@ class LutrisWindow(object):
 
     def connect_signals(self):
         """Connect signals from the view with the main window.
-           This must be called each time the view is rebuilt.
+
+        This must be called each time the view is rebuilt.
         """
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_run)

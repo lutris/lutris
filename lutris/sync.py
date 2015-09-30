@@ -1,5 +1,5 @@
 # -*- coding:Utf-8 -*-
-"""Synchronization of the game library with the server and other platforms."""
+"""Synchronization of the game library with server and local data."""
 import os
 import re
 

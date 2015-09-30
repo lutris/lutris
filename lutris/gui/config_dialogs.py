@@ -297,7 +297,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
 
 class RunnerConfigDialog(Dialog, GameDialogCommon):
-    """Runners management dialog."""
+    """Runner config edit dialog."""
     def __init__(self, runner):
         self.runner_name = runner.__class__.__name__
         super(RunnerConfigDialog, self).__init__(

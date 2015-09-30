@@ -7,20 +7,17 @@ from lutris.util.log import logger
 
 
 class mednafen(Runner):
-    """Multi-system emulator including NES, GB(A), PC Engine support"""
     human_name = "Mednafen"
-    platform = (
-        "Atari Lynx, GameBoy, GameBoy Color, "
-        "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
-        "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan"
-    )
+    description = ("Multi-system emulator including NES, GB(A), PC Engine "
+                   "support.")
+    platform = ("Atari Lynx, GameBoy, GameBoy Color, "
+                "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
+                "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan")
     package = "mednafen"
-    machine_choices = (
-        ("NES", "nes"),
-        ("PC Engine", "pce"),
-        ('Game Boy', 'gb'),
-        ('Game Boy Advance', 'gba')
-    )
+    machine_choices = (("NES", "nes"),
+                       ("PC Engine", "pce"),
+                       ('Game Boy', 'gb'),
+                       ('Game Boy Advance', 'gba'))
     game_options = [
         {
             "option": "main_file",

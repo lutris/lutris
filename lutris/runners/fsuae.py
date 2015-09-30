@@ -6,8 +6,8 @@ from lutris.util.display import get_current_resolution
 
 
 class fsuae(Runner):
-    """Run Amiga games with FS-UAE"""
     human_name = "FS-UAE"
+    description = "Amiga emulator"
     executable = 'fs-uae'
     platform = "Amiga"
     tarballs = {

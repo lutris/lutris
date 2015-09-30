@@ -107,7 +107,7 @@ def migrate_sources():
 
 def syncdb():
     """Update the database to the current version, making necessary changes
-    for backwards compatibility,"""
+    for backwards compatibility."""
     migrated = migrate_games()
     if 'installed' in migrated:
         set_installed_games()
@@ -169,7 +169,7 @@ def get_game_by_slug(slug, field='slug'):
 
 
 def add_game(name, **game_data):
-    """Adds a game to the PGA database."""
+    """Add a game to the PGA database."""
     game_data['name'] = name
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
@@ -177,7 +177,7 @@ def add_game(name, **game_data):
 
 
 def add_games_bulk(games):
-    """Adds a list of games to the PGA database.
+    """Add a list of games to the PGA database.
 
     The dicts must have an identical set of keys.
 
@@ -201,7 +201,7 @@ def add_or_update(name, runner, slug=None, **kwargs):
 
 
 def delete_game(slug):
-    """Deletes a game from the PGA"""
+    """Delete a game from the PGA."""
     sql.db_delete(PGA_DB, "games", 'slug', slug)
 
 

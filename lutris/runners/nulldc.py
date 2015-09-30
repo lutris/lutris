@@ -5,7 +5,6 @@ from lutris.runners.runner import Runner
 
 
 class nulldc(Runner):
-    """Sega Dreamcast emulator"""
 
     #  Since there is no good Linux emulator out there, we have to use a
     #  Windows emulator. It runs pretty well.
@@ -20,6 +19,7 @@ class nulldc(Runner):
     #           -buttons y a b x c r l r o s -axis Left Right Up Down
 
     human_name = "NullDC"
+    description = "Sega Dreamcast emulator"
     platform = "Sega Dreamcast"
     depends = "wine"
 
@@ -45,7 +45,7 @@ class nulldc(Runner):
     }]
 
     def is_installed(self):
-        """Check if NullDC is installed"""
+        """Check if NullDC is installed."""
         wine_installed = super(nulldc, self).is_installed()
         if not wine_installed:
             return False
@@ -53,12 +53,12 @@ class nulldc(Runner):
         return nulldc_path and os.path.exists(nulldc_path)
 
     def get_executable(self):
-        """ Return the full path for the NullDC executable."""
+        """Return the full path for the NullDC executable."""
         return os.path.join(settings.RUNNER_DIR,
                             'nulldc/nullDC_1.0.3_nommu.exe')
 
     def play(self):
-        """Run Dreamcast game"""
+        """Run Dreamcast game."""
         path = self.game_config.get('iso')
         path = path.replace("/", "\\")
         path = 'Z:' + path

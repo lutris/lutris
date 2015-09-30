@@ -11,7 +11,7 @@ class EvilConfigParser(RawConfigParser):
                 if key == "__name__":
                     continue
                 if (value is not None) or (self._optcre == self.OPTCRE):
-                    # Duplicate keys writing support inside
+                    # Duplicated keys writing support inside
                     key = "=".join((key,
                                     str(value).replace('\n', '\n%s=' % key)))
                 fp.write("%s\n" % (key))

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Threading module, used to launch games while monitoring them"""
+"""Threading module, used to launch games while monitoring them."""
 
 import os
 import sys
@@ -18,7 +18,7 @@ HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
-    """Runs the game in a separate thread"""
+    """Run the game in a separate thread."""
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
@@ -53,11 +53,11 @@ class LutrisThread(threading.Thread):
         )
 
     def attach_thread(self, thread):
-        """Attach child process that need to be killed on game exit"""
+        """Attach child process that need to be killed on game exit."""
         self.attached_threads.append(thread)
 
     def run(self):
-        """Run the thread"""
+        """Run the thread."""
         logger.debug("Command env: " + self.env_string)
         logger.debug("Running command: " + self.command_string)
         if self.watch:
@@ -141,7 +141,7 @@ class LutrisThread(threading.Thread):
             process.kill()
 
     def watch_children(self):
-        """pokes at the running process"""
+        """Poke at the running process(es)."""
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0

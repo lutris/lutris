@@ -61,7 +61,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
 
 
 def decompress_gz(file_path, dest_path=None):
-    """Decompress a gzip file"""
+    """Decompress a gzip file."""
     if dest_path:
         dest_filename = os.path.join(dest_path,
                                      os.path.basename(file_path[:-3]))
@@ -80,7 +80,7 @@ def decompress_gz(file_path, dest_path=None):
 
 
 def unzip(filename, dest=None):
-    """Unzips a file"""
+    """Unzip a file."""
     command = ["unzip", '-o', filename]
     if dest:
         command = command + ['-d', dest]
@@ -88,13 +88,13 @@ def unzip(filename, dest=None):
 
 
 def unrar(filename):
-    """Unrar a file"""
+    """Unrar a file."""
 
     subprocess.call(["unrar", "x", filename])
 
 
 def untar(filename, dest=None, method='gzip'):
-    """Untar a file"""
+    """Untar a file."""
     cwd = os.getcwd()
     if dest is None or not os.path.exists(dest):
         dest = cwd

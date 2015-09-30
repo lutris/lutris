@@ -8,8 +8,8 @@ from lutris.util.system import find_executable
 
 
 class pcsxr(Runner):
-    """PlayStation emulator"""
     human_name = "PCSX-Reloaded"
+    description = "PlayStation emulator"
     package = "pcsxr"
     platform = "Playstation"
     runnable_alone = True
@@ -92,7 +92,7 @@ class pcsxr(Runner):
         return True
 
     def play(self):
-        """Run Playstation game"""
+        """Run Playstation game."""
         iso = self.game_config.get('iso')
         command = [self.get_executable()]
         # Options

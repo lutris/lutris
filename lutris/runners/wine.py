@@ -15,7 +15,7 @@ DEFAULT_WINE = '1.7.48-i686'
 
 def set_regedit(path, key, value='', type_='REG_SZ',
                 wine_path=None, prefix=None):
-    """Add keys to the windows registry
+    """Add keys to the windows registry.
 
     Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
@@ -218,9 +218,9 @@ def is_version_installed(version):
 
 
 def support_legacy_version(version):
-    """In Lutris 0.3.7, wine version now contains architecture and optional
-    info. Call this to keep exiting games compatible with previous
-    configurations"""
+    """Since Lutris 0.3.7, wine version contains architecture and optional
+    info. Call this to keep existing games compatible with previous
+    configurations."""
     if not version:
         return
     if version not in ('custom', 'system') and '-' not in version:
@@ -230,7 +230,7 @@ def support_legacy_version(version):
 
 # pylint: disable=C0103
 class wine(Runner):
-    """Run Windows games with Wine."""
+    description = "Runs Windows games"
     human_name = "Wine"
     platform = 'Windows'
     multiple_versions = True
@@ -471,7 +471,7 @@ class wine(Runner):
 
     @property
     def wine_arch(self):
-        """Return the wine architecture
+        """Return the wine architecture.
 
         Get it from the config or detect it from the prefix"""
         arch = self.game_config.get('arch') or 'auto'
@@ -578,7 +578,7 @@ class wine(Runner):
         return env
 
     def get_pids(self):
-        """Return a list of pids of processes using the current wine exe"""
+        """Return a list of pids of processes using the current wine exe."""
         exe = self.get_executable()
         if not exe.startswith('/'):
             exe = system.find_executable(exe)

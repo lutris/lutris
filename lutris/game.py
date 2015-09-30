@@ -33,7 +33,7 @@ def get_game_list(filter_installed=False):
 
 
 class Game(object):
-    """This class takes cares about loading the configuration for a game
+    """This class takes cares of loading the configuration for a game
        and running it.
     """
     STATE_IDLE = 'idle'
@@ -257,7 +257,7 @@ class Game(object):
         os.system("pkexec xboxdrvctl --shutdown")
 
     def beat(self):
-        """Watch game's process."""
+        """Watch the game's process(es)."""
         self.game_log = self.game_thread.stdout
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
