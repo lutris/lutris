@@ -8,8 +8,8 @@ from gi.repository import GLib, Gtk
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
+from lutris.util import audio, display, system, strings
 from lutris.util.log import logger
-from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
@@ -296,20 +296,15 @@ class Game(object):
         if self.game_thread.return_code == 127:
             # Error missing shared lib
             error = "error while loading shared lib"
-            error_line = self.lookup_output_string(error)
+            error_line = strings.lookup_string_in_text(error,
+                                                       self.game_thread.stdout)
             if error_line:
                 dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
                                     "\n\n%s" % error_line)
+
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
-            if self.lookup_output_string(error):
+            if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog("<b>Error: A different Wine version is "
                                     "already using the same Wine prefix.</b>")
-
-    def lookup_output_string(self, string):
-        """Return full line if string found in thread output."""
-        output_lines = self.game_thread.stdout.split('\n')
-        for line in output_lines:
-            if string in line:
-                return line
