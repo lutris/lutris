@@ -43,6 +43,7 @@ class GameDialogCommon(object):
     def get_runner_dropdown(self):
         runner_liststore = self.get_runner_liststore()
         self.runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
+        self.runner_dropdown.set_id_column(1)
         runner_index = 0
         if self.game:
             for runner in runner_liststore:
