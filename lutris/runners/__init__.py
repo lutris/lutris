@@ -48,3 +48,13 @@ def import_task(runner, task):
     if not runner_module:
         return
     return getattr(runner_module, task)
+
+
+def get_installed(sort=True):
+    """Return a list of installed runners (class instances)."""
+    installed = []
+    for runner_name in __all__:
+        runner = import_runner(runner_name)()
+        if runner.is_installed():
+            installed.append(runner)
+    return sorted(installed) if sort else installed
