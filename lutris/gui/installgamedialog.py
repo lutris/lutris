@@ -3,7 +3,8 @@ import time
 from gi.repository import Gtk
 import yaml
 
-from lutris import installer, settings, shortcuts
+from lutris import settings, shortcuts
+from lutris.installer import interpreter
 from lutris.game import Game
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.util.log import logger
@@ -86,7 +87,7 @@ class InstallerDialog(Gtk.Window):
             logger.debug("Opening script: %s", game_ref)
             self.scripts = yaml.safe_load(open(game_ref, 'r').read())
         else:
-            self.scripts = installer.fetch_script(self, game_ref)
+            self.scripts = interpreter.fetch_script(self, game_ref)
         if not self.scripts:
             self.destroy()
             return
@@ -157,7 +158,7 @@ class InstallerDialog(Gtk.Window):
 
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
-        self.interpreter = installer.ScriptInterpreter(script, self)
+        self.interpreter = interpreter.ScriptInterpreter(script, self)
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
         self.select_install_folder()

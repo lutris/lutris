@@ -1,0 +1,1 @@
+"""Install script interpreter package."""

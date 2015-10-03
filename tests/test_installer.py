@@ -1,9 +1,10 @@
 from unittest import TestCase
-from lutris.installer import ScriptInterpreter, ScriptingError
+from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.errors import ScriptingError
 
 
 class MockInterpreter(ScriptInterpreter):
-    """ a script interpreter mock """
+    """A script interpreter mock."""
     script = {'runner': 'linux'}
 
     def is_valid(self):
