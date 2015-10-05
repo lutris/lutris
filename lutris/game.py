@@ -122,20 +122,27 @@ class Game(object):
                 result = dialogs.RuntimeUpdateDialog().run()
                 if not result == Gtk.ResponseType.OK:
                     return False
-
-        if hasattr(self.runner, 'prelaunch'):
-            return self.runner.prelaunch()
         return True
 
     def play(self):
         """Launch the game."""
         if not self.runner:
             dialogs.ErrorDialog("Invalid game configuration: Missing runner")
+            self.state = self.STATE_STOPPED
             return
-        jobs.AsyncCall(self.prelaunch, self.do_play)
 
-    def do_play(self, prelaunched, _error):
+        if not self.prelaunch():
+            self.state = self.STATE_STOPPED
+            return
+
+        if hasattr(self.runner, 'prelaunch'):
+            jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+        else:
+            self.do_play(True)
+
+    def do_play(self, prelaunched, _error=None):
         if not prelaunched:
+            self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
@@ -143,6 +150,7 @@ class Game(object):
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
+            self.state = self.STATE_STOPPED
             return
 
         restrict_to_display = system_config.get('display')
@@ -184,6 +192,7 @@ class Game(object):
                 dialogs.ErrorDialog("The selected terminal application "
                                     "could not be launched:\n"
                                     "%s" % terminal)
+                self.state = self.STATE_STOPPED
                 return
         # Env vars
         env = {}
