@@ -10,7 +10,7 @@ from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
-from lutris.util import display
+from lutris.util import display, jobs
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
@@ -93,21 +93,32 @@ class InstallerDialog(Gtk.Window):
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
 
-        if os.path.isfile(game_ref):
+        self.get_scripts()
+
+    # ---------------------------
+    # "Get installer" stage
+    # ---------------------------
+
+    def get_scripts(self):
+        if os.path.isfile(self.game_ref):
             # local script
-            logger.debug("Opening script: %s", game_ref)
-            self.scripts = yaml.safe_load(open(game_ref, 'r').read())
+            logger.debug("Opening script: %s", self.game_ref)
+            scripts = yaml.safe_load(open(self.game_ref, 'r').read())
+            self.on_scripts_obtained(scripts)
         else:
-            self.scripts = interpreter.fetch_script(game_ref)
+            jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
+                           self.game_ref)
 
+    def on_scripts_obtained(self, scripts, _error=None):
         display.set_cursor('default', self.parent.window.get_window())
-
-        if not self.scripts:
+        if not scripts:
             self.destroy()
-            self.run_no_installer_dialog(game_ref)
+            self.run_no_installer_dialog()
             return
-        if not isinstance(self.scripts, list):
-            self.scripts = [self.scripts]
+
+        if not isinstance(scripts, list):
+            scripts = [scripts]
+        self.scripts = scripts
         self.show_all()
         self.close_button.hide()
         self.play_button.hide()
@@ -115,21 +126,21 @@ class InstallerDialog(Gtk.Window):
 
         self.choose_installer()
 
-    def run_no_installer_dialog(self, game_ref):
+    def run_no_installer_dialog(self):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game = Game(game_ref)
+            game = Game(self.game_ref)
             game_dialog = AddGameDialog(self, game)
             game_dialog.run()
             if game_dialog.saved:
                 self.notify_install_success()
         elif dlg.result == dlg.NEW_INSTALLER:
-            installer_url = settings.SITE_URL + "games/%s/" % game_ref
+            installer_url = settings.SITE_URL + "games/%s/" % self.game_ref
             webbrowser.open(installer_url)
 
     # ---------------------------
-    # "Pick install script" stage
+    # "Choose installer" stage
     # ---------------------------
 
     def choose_installer(self):
