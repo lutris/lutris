@@ -8,7 +8,7 @@ from gi.repository import GLib, Gtk
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
-from lutris.util import audio, display, system, strings
+from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
@@ -131,17 +131,19 @@ class Game(object):
         """Launch the game."""
         if not self.runner:
             dialogs.ErrorDialog("Invalid game configuration: Missing runner")
-            return False
-        if not self.prelaunch():
-            return False
+            return
+        jobs.AsyncCall(self.prelaunch, self.do_play)
 
+    def do_play(self, prelaunched, _error):
+        if not prelaunched:
+            return
         system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
         gameplay_info = self.runner.play()
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
-            return False
+            return
 
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
@@ -182,7 +184,7 @@ class Game(object):
                 dialogs.ErrorDialog("The selected terminal application "
                                     "could not be launched:\n"
                                     "%s" % terminal)
-                return False
+                return
         # Env vars
         env = {}
         game_env = gameplay_info.get('env') or {}
@@ -220,7 +222,6 @@ class Game(object):
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
-        return True
 
     def joy2key(self, config):
         """Run a joy2key thread."""
