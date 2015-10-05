@@ -1,12 +1,16 @@
 import os
 import time
 from gi.repository import Gtk
+import webbrowser
 import yaml
 
 from lutris import settings, shortcuts
 from lutris.installer import interpreter
 from lutris.game import Game
+from lutris.gui.config_dialogs import AddGameDialog
+from lutris.gui.dialogs import NoInstallerDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
+from lutris.util import display
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
@@ -94,9 +98,13 @@ class InstallerDialog(Gtk.Window):
             logger.debug("Opening script: %s", game_ref)
             self.scripts = yaml.safe_load(open(game_ref, 'r').read())
         else:
-            self.scripts = interpreter.fetch_script(self, game_ref)
+            self.scripts = interpreter.fetch_script(game_ref)
+
+        display.set_cursor('default', self.parent.window.get_window())
+
         if not self.scripts:
             self.destroy()
+            self.run_no_installer_dialog(game_ref)
             return
         if not isinstance(self.scripts, list):
             self.scripts = [self.scripts]
@@ -106,6 +114,19 @@ class InstallerDialog(Gtk.Window):
         self.install_button.hide()
 
         self.choose_installer()
+
+    def run_no_installer_dialog(self, game_ref):
+        """Open dialog for 'no script available' situation."""
+        dlg = NoInstallerDialog(self)
+        if dlg.result == dlg.MANUAL_CONF:
+            game = Game(game_ref)
+            game_dialog = AddGameDialog(self, game)
+            game_dialog.run()
+            if game_dialog.saved:
+                self.notify_install_success()
+        elif dlg.result == dlg.NEW_INSTALLER:
+            installer_url = settings.SITE_URL + "games/%s/" % game_ref
+            webbrowser.open(installer_url)
 
     # ---------------------------
     # "Pick install script" stage

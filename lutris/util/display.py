@@ -1,6 +1,20 @@
 import subprocess
+from gi.repository import Gdk
 
 from lutris.util.log import logger
+
+
+def set_cursor(name, window, display=None):
+    """Set a named mouse cursor for the given window."""
+    cursors = {
+        'default': Gdk.CursorType.ARROW,
+        'wait': Gdk.CursorType.WATCH,
+    }
+
+    if not display:
+        display = Gdk.Display.get_default()
+    cursor = Gdk.Cursor.new_for_display(display, cursors[name])
+    window.set_cursor(cursor)
 
 
 def get_vidmodes():
@@ -34,7 +48,8 @@ def get_output_names():
 def turn_off_except(display):
     for output in get_outputs():
         if output[0] != display:
-            subprocess.Popen("xrandr --output %s --off" % output[0], shell=True)
+            subprocess.Popen("xrandr --output %s --off" % output[0],
+                             shell=True)
 
 
 def get_resolutions():

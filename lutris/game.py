@@ -210,10 +210,10 @@ class Game(object):
                                         runner=self.runner, env=env,
                                         rootpid=gameplay_info.get('rootpid'),
                                         term=terminal)
-        self.state = self.STATE_RUNNING
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
+        self.state = self.STATE_RUNNING
         if 'joy2key' in gameplay_info:
             self.joy2key(gameplay_info['joy2key'])
         xboxdrv_config = system_config.get('xboxdrv')

@@ -9,7 +9,7 @@ from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
 from lutris.sync import Sync
 
-from lutris.util import resources
+from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util.strings import slugify
@@ -291,9 +291,11 @@ class LutrisWindow(object):
                 self.set_status("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
+                display.set_cursor('default', self.window.get_window())
                 self.stop_button.set_sensitive(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
+                display.set_cursor('default', self.window.get_window())
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -417,6 +419,7 @@ class LutrisWindow(object):
             game_slug = self._get_current_game_slug()
         if not game_slug:
             return
+        display.set_cursor('wait', self.window.get_window())
         self.running_game = Game(game_slug)
         if self.running_game.is_installed:
             running = self.running_game.play()
@@ -434,6 +437,7 @@ class LutrisWindow(object):
             game_ref = self._get_current_game_slug()
         if not game_ref:
             return
+        display.set_cursor('wait', self.window.get_window())
         InstallerDialog(game_ref, self)
 
     def on_keypress(self, widget, event):

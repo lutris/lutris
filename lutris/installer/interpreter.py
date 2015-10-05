@@ -5,7 +5,6 @@ import yaml
 import shutil
 import urllib2
 import platform
-import webbrowser
 
 from gi.repository import GLib
 
@@ -19,29 +18,16 @@ from lutris.util.log import logger
 from lutris.util.steam import get_app_states
 
 from lutris.config import LutrisConfig
-from lutris.game import Game
-from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog
 from lutris.runners import wine, winesteam, steam
 
 
-def fetch_script(window, game_ref):
+def fetch_script(game_ref):
     """Download install script(s) for matching game_ref."""
     request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
     try:
         request = urllib2.urlopen(request)
         script_contents = request.read()
     except IOError:
-        dlg = NoInstallerDialog(window)
-        if dlg.result == dlg.MANUAL_CONF:
-            game = Game(game_ref)
-            game_dialog = AddGameDialog(window, game)
-            game_dialog.run()
-            if game_dialog.saved:
-                window.notify_install_success()
-        elif dlg.result == dlg.NEW_INSTALLER:
-            installer_url = settings.SITE_URL + "games/%s/" % game_ref
-            webbrowser.open(installer_url)
         return
     # Data should be JSON here, but JSON is also valid YAML.
     # At some point we will be dropping the YAML parser and load installer
