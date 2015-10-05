@@ -63,21 +63,28 @@ class InstallerDialog(Gtk.Window):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
-        self.install_button = Gtk.Button(label='Install')
+        self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
+        self.cancel_button.set_tooltip_text("Abort and revert the "
+                                            "installation")
+        self.cancel_button.connect('clicked', self.on_cancel_clicked)
+        self.action_buttons.add(self.cancel_button)
+
+        self.install_button = Gtk.Button.new_with_mnemonic("_Install")
+        self.install_button.set_margin_left(20)
         self.install_button.connect('clicked', self.on_install_clicked)
         self.action_buttons.add(self.install_button)
 
-        self.continue_button = Gtk.Button(label='Continue')
+        self.continue_button = Gtk.Button.new_with_mnemonic("_Continue")
         self.continue_button.set_margin_left(20)
         self.continue_handler = None
         self.action_buttons.add(self.continue_button)
 
-        self.play_button = Gtk.Button(label="Launch game")
+        self.play_button = Gtk.Button.new_with_mnemonic("_Launch game")
         self.play_button.set_margin_left(20)
         self.play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(self.play_button)
 
-        self.close_button = Gtk.Button(label="Close")
+        self.close_button = Gtk.Button.new_with_mnemonic("_Close")
         self.close_button.set_margin_left(20)
         self.close_button.connect('clicked', self.close)
         self.action_buttons.add(self.close_button)
@@ -100,9 +107,9 @@ class InstallerDialog(Gtk.Window):
 
         self.choose_installer()
 
-    # ----------------------
+    # ---------------------------
     # "Pick install script" stage
-    # ----------------------
+    # ---------------------------
 
     def choose_installer(self):
         """Stage where we choose an install script."""
@@ -258,14 +265,17 @@ class InstallerDialog(Gtk.Window):
         self.download_progress = DownloadProgressBox(
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
+        self.download_progress.cancel_button.hide()
         callback_function = callback or self.on_download_complete
         self.download_progress.connect('complete', callback_function, data)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
+        self.interpreter.current_download = self.download_progress
 
     def on_download_complete(self, widget, data, more_data=None):
         """Action called on a completed download."""
+        self.interpreter.current_download = None
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, *args, **kwargs):
@@ -346,6 +356,7 @@ class InstallerDialog(Gtk.Window):
         self.connect('destroy', self.create_shortcuts)
 
         # Buttons
+        self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
         self.play_button.show()
@@ -410,6 +421,15 @@ class InstallerDialog(Gtk.Window):
         settings.write_setting('create_desktop_shortcut',
                                create_desktop_shortcut)
         settings.write_setting('create_menu_shortcut', create_menu_shortcut)
+
+    # --------------
+    # Cancel install
+    # --------------
+
+    def on_cancel_clicked(self, _button):
+        if self.interpreter:
+            self.interpreter.revert()
+        self.destroy()
 
     # -------------
     # Utility stuff

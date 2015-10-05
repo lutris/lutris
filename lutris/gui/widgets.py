@@ -118,7 +118,7 @@ class DownloadProgressBox(Gtk.VBox):
             return False
         return True
 
-    def cancel(self, _widget):
+    def cancel(self, _widget=None):
         """Cancel the current download."""
         if self.downloader:
             self.downloader.cancel()

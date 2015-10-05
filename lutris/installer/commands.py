@@ -16,7 +16,7 @@ from lutris.thread import LutrisThread
 
 
 class Commands(object):
-    """The directives for the "installer:" part of the install script."""
+    """The directives for the `installer:` part of the install script."""
 
     def _check_required_params(self, params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""

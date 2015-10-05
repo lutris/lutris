@@ -62,6 +62,7 @@ class ScriptInterpreter(Commands):
         self.game_slug = None
         self.game_files = {}
         self.game_disc = None
+        self.current_download = None
         self.user_inputs = []
         self.steam_data = {}
         self.script = script
@@ -441,6 +442,11 @@ class ScriptInterpreter(Commands):
     # --------------
 
     def revert(self):
+        # Abort current task
+        if self.current_download:
+            self.current_download.cancel()
+
+        # Cleanup
         if os.path.exists(self.download_cache_path):
             shutil.rmtree(self.download_cache_path)
 
