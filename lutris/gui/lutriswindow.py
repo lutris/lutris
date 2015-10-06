@@ -136,7 +136,7 @@ class LutrisWindow(object):
         self.view.contextual_menu = self.menu
 
         # Timer
-        self.timer_id = GLib.timeout_add(2000, self.refresh_status)
+        self.timer_id = GLib.timeout_add(300, self.refresh_status)
 
         # Sidebar
         sidebar_paned = self.builder.get_object('sidebar_paned')
