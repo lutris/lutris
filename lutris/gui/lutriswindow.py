@@ -296,6 +296,7 @@ class LutrisWindow(object):
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
                 display.set_cursor('default', self.window.get_window())
+                self.stop_button.set_sensitive(True)
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -423,7 +424,7 @@ class LutrisWindow(object):
         self.running_game = Game(game_slug)
         if self.running_game.is_installed:
             running = self.running_game.play()
-            self.stop_button.set_sensitive(True)
+            # self.stop_button.set_sensitive(True)
         else:
             self.running_game = None
             InstallerDialog(game_slug, self)
