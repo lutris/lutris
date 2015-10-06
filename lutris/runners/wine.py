@@ -549,7 +549,7 @@ class wine(Runner):
         winetricks('', prefix=self.prefix_path,
                    winetricks_env=self.get_executable(), blocking=False)
 
-    def check_regedit_keys(self, wine_config):
+    def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
         for key, path in self.reg_keys.iteritems():
@@ -563,8 +563,9 @@ class wine(Runner):
                 set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
 
-    def prepare_launch(self):
-        self.check_regedit_keys(self.runner_config)
+    def prelaunch(self):
+        self.set_regedit_keys()
+        return True
 
     def get_env(self, full=True):
         if full:
@@ -597,7 +598,6 @@ class wine(Runner):
             command.append('/i')
         command.append(game_exe)
 
-        self.prepare_launch()
         env = self.get_env(full=False)
         if arguments:
             for arg in shlex.split(arguments):
