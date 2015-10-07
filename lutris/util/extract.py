@@ -26,7 +26,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
             % path)
-    temp_path = temp_dir = os.path.join(to_directory, ".lutris_extracted")
+    temp_path = temp_dir = os.path.join(to_directory, "temp_lutris_extract")
     handler = opener(path, mode)
     handler.extractall(temp_path)
     handler.close()
