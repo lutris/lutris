@@ -22,7 +22,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True):
+                 watch=True, cwd='/tmp'):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -39,10 +39,7 @@ class LutrisThread(threading.Thread):
         self.cycles_without_children = 0
         self.max_cycles_without_children = 40
 
-        if self.runner:
-            self.path = runner.working_dir
-        else:
-            self.path = '/tmp/'
+        self.cwd = runner.working_dir if self.runner else cwd
 
         self.env_string = ''
         for (k, v) in self.env.iteritems():
@@ -72,7 +69,7 @@ class LutrisThread(threading.Thread):
             self.game_process = subprocess.Popen(self.command, bufsize=1,
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT,
-                                                 cwd=self.path, env=env)
+                                                 cwd=self.cwd, env=env)
         os.chdir(os.path.expanduser('~'))
 
         for line in iter(self.game_process.stdout.readline, ''):
@@ -96,7 +93,7 @@ class LutrisThread(threading.Thread):
                 cd "%s"
                 %s %s
                 exec sh # Keep term open
-                """ % (self.path, self.env_string, self.command_string)
+                """ % (self.cwd, self.env_string, self.command_string)
             ))
             os.chmod(file_path, 0744)
 
@@ -104,7 +101,7 @@ class LutrisThread(threading.Thread):
         self.game_process = subprocess.Popen(term_command, bufsize=1,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
-                                             cwd=self.path)
+                                             cwd=self.cwd)
         os.chdir(os.path.expanduser('~'))
 
     def iter_children(self, process, topdown=True, first=True):
@@ -135,6 +132,9 @@ class LutrisThread(threading.Thread):
             self.stop_func()
         if not killall:
             return
+        self.killall()
+
+    def killall(self):
         for process in self.iter_children(Process(self.rootpid),
                                           topdown=False):
             logger.debug("Killing process %s", process)

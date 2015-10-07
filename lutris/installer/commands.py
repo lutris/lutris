@@ -67,8 +67,11 @@ class Commands(object):
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
-        thread = LutrisThread(command, env=runtime.get_env(), term=terminal)
+        thread = LutrisThread(command, env=runtime.get_env(), term=terminal,
+                              cwd=self.target_path)
+        self.abort_current_task = thread.killall
         thread.run()
+        self.abort_current_task = None
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""
@@ -95,11 +98,11 @@ class Commands(object):
         process.apply_async(extract.extract_archive,
                             (filename, dest_path, merge_single, extractor),
                             callback=self._on_process_done)
-        self.current_process = process
+        self.abort_current_task = process.terminate
         return 'STOP'
 
     def _on_process_done(self, _return):
-        self.current_process = None
+        self.abort_current_task = None
         self._iter_commands()
 
     def input_menu(self, data):

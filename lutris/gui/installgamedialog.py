@@ -303,11 +303,11 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
-        self.interpreter.current_download = self.download_progress
+        self.interpreter.abort_current_task = self.download_progress.cancel
 
     def on_download_complete(self, widget, data, more_data=None):
         """Action called on a completed download."""
-        self.interpreter.current_download = None
+        self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
 
     def on_steam_downloaded(self, widget, *args, **kwargs):

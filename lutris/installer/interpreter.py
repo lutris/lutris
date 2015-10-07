@@ -48,8 +48,8 @@ class ScriptInterpreter(Commands):
         self.game_slug = None
         self.game_files = {}
         self.game_disc = None
-        self.current_download = None
-        self.current_process = None
+        self.cancelled = False
+        self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
         self.script = script
@@ -280,7 +280,7 @@ class ScriptInterpreter(Commands):
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
-        if result == 'STOP':
+        if result == 'STOP' or self.cancelled:
             return
 
         self.parent.set_status("Installing game data")
@@ -429,21 +429,15 @@ class ScriptInterpreter(Commands):
     # --------------
 
     def revert(self):
-        # Abort current task
-        if self.current_download:
-            self.current_download.cancel()
+        logger.debug("Install cancelled")
+        self.cancelled = True
 
-        if self.current_process:
-            self.current_process.terminate()
-
-        # Cleanup
-        if os.path.exists(self.download_cache_path):
-            shutil.rmtree(self.download_cache_path)
+        if self.abort_current_task:
+            self.abort_current_task()
 
         if self.reversion_data.get('created_main_dir'):
             if os.path.exists(self.target_path):
                 shutil.rmtree(self.target_path)
-            return
 
     # -------------
     # Utility stuff
