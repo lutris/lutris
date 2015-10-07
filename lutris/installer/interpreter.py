@@ -49,6 +49,7 @@ class ScriptInterpreter(Commands):
         self.game_files = {}
         self.game_disc = None
         self.current_download = None
+        self.current_process = None
         self.user_inputs = []
         self.steam_data = {}
         self.script = script
@@ -431,6 +432,9 @@ class ScriptInterpreter(Commands):
         # Abort current task
         if self.current_download:
             self.current_download.cancel()
+
+        if self.current_process:
+            self.current_process.terminate()
 
         # Cleanup
         if os.path.exists(self.download_cache_path):

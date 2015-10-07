@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import shutil
 import shlex
@@ -88,7 +89,18 @@ class Commands(object):
         merge_single = 'nomerge' not in data
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
-        extract.extract_archive(filename, dest_path, merge_single, extractor)
+
+        # Run in killable process
+        process = multiprocessing.Pool(1)
+        process.apply_async(extract.extract_archive,
+                            (filename, dest_path, merge_single, extractor),
+                            callback=self._on_process_done)
+        self.current_process = process
+        return 'STOP'
+
+    def _on_process_done(self, _return):
+        self.current_process = None
+        self._iter_commands()
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
