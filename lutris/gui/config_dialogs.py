@@ -255,7 +255,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
 
     def __init__(self, parent, game=None):
-        super(AddGameDialog, self).__init__("Add a new game")
+        super(AddGameDialog, self).__init__("Add a new game", parent=parent)
         self.lutris_config = LutrisConfig(level='game')
         self.game = game
         self.saved = False

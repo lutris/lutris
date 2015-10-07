@@ -469,7 +469,7 @@ class LutrisWindow(object):
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
-        add_game_dialog = AddGameDialog(self, game)
+        add_game_dialog = AddGameDialog(self.window, game)
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.view.set_installed(game)
@@ -487,7 +487,7 @@ class LutrisWindow(object):
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
-        add_game_dialog = AddGameDialog(self)
+        add_game_dialog = AddGameDialog(self.window)
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.add_game_to_view(add_game_dialog.slug)
