@@ -31,10 +31,12 @@ class Commands(object):
 
     def check_md5(self, data):
         self._check_required_params(['file', 'value'], data, 'check_md5')
-        filename = self._get_file(data['file'])
-        _hash = system.get_md5_hash(filename)
-        if _hash != data['value']:
+        filename = self._substitute(data['file'])
+        hash_string = self._killable_process(system.get_md5_hash, filename)
+
+        if hash_string != data['value']:
             raise ScriptingError("MD5 checksum mismatch", data)
+        self._iter_commands()
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
@@ -93,17 +95,8 @@ class Commands(object):
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
 
-        # Run in killable process
-        process = multiprocessing.Pool(1)
-        process.apply_async(extract.extract_archive,
-                            (filename, dest_path, merge_single, extractor),
-                            callback=self._on_process_done)
-        self.abort_current_task = process.terminate
-        return 'STOP'
-
-    def _on_process_done(self, _return):
-        self.abort_current_task = None
-        self._iter_commands()
+        self._killable_process(extract.extract_archive, filename, dest_path,
+                               merge_single, extractor)
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -177,13 +170,13 @@ class Commands(object):
             # can be used as executable. Skip copying if the source is the same
             # as destination.
             if os.path.dirname(src) != dst:
-                shutil.copy(src, dst)
+                self._killable_process(shutil.copy, src, dst)
             if params['src'] in self.game_files.keys():
                 self.game_files[params['src']] = os.path.join(
                     dst, os.path.basename(src)
                 )
             return
-        system.merge_folders(src, dst)
+        self._killable_process(system.merge_folders, src, dst)
 
     def move(self, params):
         """Move a file or directory."""
@@ -203,12 +196,12 @@ class Commands(object):
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
             else:
-                shutil.move(src, dst)
+                self._killable_process(shutil.move, src, dst)
         else:
             try:
-                shutil.move(src, dst)
+                self._killable_process(shutil.move, src, dst)
             except shutil.Error:
-                raise ScriptingError("Can't move %s to destination %s"
+                raise ScriptingError("Can't move %s \nto destination %s"
                                      % (src, dst))
         if os.path.isfile(src) and params['src'] in self.game_files.keys():
             # Change game file reference so it can be used as executable
@@ -319,3 +312,12 @@ class Commands(object):
 
         with open(config_file, 'wb') as f:
             parser.write(f)
+
+    def _killable_process(self, func, *args, **kwargs):
+        """Run function `func` in a separate, killable process."""
+        process = multiprocessing.Pool(1)
+        result_obj = process.apply_async(func, args, kwargs)
+        self.abort_current_task = process.terminate
+        result = result_obj.get()  # Wait process end & reraise exceptions
+        self.abort_current_task = None
+        return result
