@@ -421,6 +421,7 @@ class ScriptInterpreter(Commands):
     # --------------------
 
     def cleanup(self):
+        os.chdir(os.path.expanduser('~'))
         if os.path.exists(self.download_cache_path):
             shutil.rmtree(self.download_cache_path)
 

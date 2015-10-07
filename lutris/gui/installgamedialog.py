@@ -409,8 +409,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_error(self, message):
         self.set_status(message)
         self.clean_widgets()
-        self.close_button.grab_focus()
-        self.close_button.show()
+        self.cancel_button.grab_focus()
 
     # --------------------
     # "Afer the end" stage
@@ -430,7 +429,6 @@ class InstallerDialog(Gtk.Window):
         self.destroy()
 
     def on_destroy(self, widget):
-        os.chdir(os.path.expanduser('~'))
         if self.interpreter:
             self.interpreter.cleanup()
         if self.parent:
