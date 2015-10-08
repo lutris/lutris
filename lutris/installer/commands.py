@@ -243,6 +243,7 @@ class Commands(object):
         passed to the runner task.
         """
         self._check_required_params('name', data, 'task')
+        self.parent.cancel_button.set_sensitive(False)
         task_name = data.pop('name')
         if '.' in task_name:
             # Run a task from a different runner
@@ -253,6 +254,7 @@ class Commands(object):
         try:
             runner_class = import_runner(runner_name)
         except InvalidRunner:
+            self.parent.cancel_button.set_sensitive(True)
             raise ScriptingError('Invalid runner provided %s', runner_name)
 
         runner = runner_class()
@@ -286,6 +288,7 @@ class Commands(object):
             data[key] = self._substitute(data[key])
         task = import_task(runner_name, task_name)
         task(**data)
+        self.parent.cancel_button.set_sensitive(True)
 
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],
