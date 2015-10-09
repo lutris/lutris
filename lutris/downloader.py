@@ -83,7 +83,7 @@ class Downloader():
     def on_done(self, _result, error):
         if self.state == self.CANCELLED:
             return
-        if error or not self.downloaded_size:
+        if error:
             self.state = self.ERROR
             self.error = error
             self.file_pointer.close()
@@ -92,7 +92,10 @@ class Downloader():
         logger.debug("Download finished")
         while self.queue.qsize():
             self.check_progress()
-        if not self.full_size and self.downloaded_size:
+        if not self.downloaded_size:
+            logger.debug("Downloaded file is empty")
+
+        if not self.full_size:
             self.progress_fraction = 1.0
             self.progress_percentage = 100
         self.state = self.COMPLETED
