@@ -148,10 +148,8 @@ class Downloader():
         sample = self.last_speeds
         if len(sample) > 7:
             # Skim extreme values
-            sample.pop()
-            sample.pop()
-            sample.pop(0)
-            sample.pop(0)
+            sample.pop() * 2
+            sample.pop(0) * 2
 
         added_speeds = 0
         for speed in sample:
