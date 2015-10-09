@@ -17,8 +17,13 @@ class Sync(object):
 
     def sync_all(self):
         added, updated = self.sync_from_remote()
-        installed, uninstalled = self.sync_steam_local()
+        installed, uninstalled = self.sync_local()
         return added, updated, installed, uninstalled
+
+    def sync_local(self):
+        """Synchronize games state with local third parties."""
+        installed, uninstalled = self.sync_steam_local()
+        return installed, uninstalled
 
     def sync_from_remote(self):
         """Synchronize from remote to local library.
@@ -139,8 +144,8 @@ class Sync(object):
         uninstalled = set()
 
         # Get installed steamapps
-        installed_steamapps = self._get_installed_steamapps(steamrunner)
-        installed_winesteamapps = self._get_installed_steamapps(winesteamrunner)
+        installed_steamapps = self.get_installed_steamapps(steamrunner)
+        installed_winesteamapps = self.get_installed_steamapps(winesteamrunner)
 
         for game_info in self.library:
             slug = game_info['slug']
@@ -178,7 +183,7 @@ class Sync(object):
         return (installed, uninstalled)
 
     @staticmethod
-    def _get_installed_steamapps(runner):
+    def get_installed_steamapps(runner):
         """Return a list of appIDs of the installed Steam games."""
         if not runner.is_installed():
             return []

@@ -8,10 +8,9 @@ from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.thread import LutrisThread
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam import read_config, get_path_from_appmanifest
-from lutris.util import system
-from lutris.util.system import fix_path_case
 from lutris.util.wineregistry import WineRegistry
 
 # Redefine wine installer tasks
@@ -160,8 +159,9 @@ class winesteam(wine.wine):
     @property
     def steam_data_dir(self):
         """Return dir where Steam files lie"""
-        if self.get_steam_path():
-            return os.path.dirname(self.get_steam_path())
+        steam_path = self.get_steam_path()
+        if steam_path:
+            return os.path.dirname(steam_path)
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
@@ -190,7 +190,7 @@ class winesteam(wine.wine):
                 if not steam_path:
                     continue
             path = registry.get_unix_path(steam_path)
-            path = fix_path_case(path)
+            path = system.fix_path_case(path)
             if path:
                 return path
 
@@ -213,11 +213,12 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        if(not self.is_wine_installed()
-           or not self.get_steam_path()
-           or not os.path.exists(self.get_default_prefix())):
+        steam_path = self.get_steam_path()
+        if not (steam_path
+                and os.path.exists(self.get_default_prefix())
+                and self.is_wine_installed()):
             return False
-        return os.path.exists(self.get_steam_path())
+        return os.path.exists(steam_path)
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
@@ -238,8 +239,9 @@ class winesteam(wine.wine):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
         # Main steamapps dir
-        if self.steam_data_dir:
-            main_dir = os.path.join(self.steam_data_dir, 'SteamApps')
+        steam_data_dir = self.steam_data_dir
+        if steam_data_dir:
+            main_dir = os.path.join(steam_data_dir, 'SteamApps')
             main_dir = system.fix_path_case(main_dir)
             if main_dir:
                 dirs.append(main_dir)
@@ -278,9 +280,6 @@ class winesteam(wine.wine):
     def get_default_prefix(self):
         """Return the default prefix' path."""
         winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
-        # XXX I don't get the point of creating a 'prefix' subdirectory here.
-        #     What could possibly go in the winesteam directory other than
-        #     the prefix ? Why not have it directly in winesteam_dir?
         return os.path.join(winesteam_dir, 'prefix')
 
     def get_or_create_default_prefix(self):

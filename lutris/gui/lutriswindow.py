@@ -423,8 +423,7 @@ class LutrisWindow(object):
         display.set_cursor('wait', self.window.get_window())
         self.running_game = Game(game_slug)
         if self.running_game.is_installed:
-            running = self.running_game.play()
-            # self.stop_button.set_sensitive(True)
+            self.running_game.play()
         else:
             self.running_game = None
             InstallerDialog(game_slug, self)

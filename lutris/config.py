@@ -274,15 +274,18 @@ class LutrisConfig(object):
     def options_as_dict(self, options_type):
         """Convert the option list to a dict with option name as keys"""
         options = {}
-        runner = (import_runner(self.runner_slug)()
-                  if self.runner_slug
-                  else None)
         if options_type == 'system':
-            options = (sysoptions.with_runner_overrides(runner)
-                       if runner
+            options = (sysoptions.with_runner_overrides(self.runner_slug)
+                       if self.runner_slug
                        else sysoptions.system_options)
-        elif options_type == 'runner' and runner:
-            options = runner.runner_options
-        elif options_type == 'game' and runner:
-            options = runner.game_options
+        else:
+            if not self.runner_slug:
+                return
+            attribute_name = options_type + '_options'
+
+            runner = import_runner(self.runner_slug)
+            if not getattr(runner, attribute_name):
+                runner = runner()
+
+            options = getattr(runner, attribute_name)
         return dict((opt['option'], opt) for opt in options)

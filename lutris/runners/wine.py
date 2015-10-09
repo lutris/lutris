@@ -5,8 +5,8 @@ import subprocess
 from textwrap import dedent
 
 from lutris import settings
-from lutris.util.log import logger
 from lutris.util import display, system
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -307,18 +307,19 @@ class wine(Runner):
             ('winetricks', 'Winetricks', self.run_winetricks),
         ]
 
-        wine_versions = (
-            [('System (%s)' % self.system_wine_version, 'system')] +
-            [('Custom (select executable below)', 'custom')] +
-            [(version, version) for version in get_wine_versions()]
-        )
+        def get_wine_version_choices():
+            return (
+                [('System (%s)' % self.system_wine_version, 'system')] +
+                [('Custom (select executable below)', 'custom')] +
+                [(version, version) for version in get_wine_versions()]
+            )
 
         self.runner_options = [
             {
                 'option': 'version',
                 'label': "Wine version",
                 'type': 'choice',
-                'choices': wine_versions,
+                'choices': get_wine_version_choices,
                 'default': DEFAULT_WINE,
                 'help': ("The version of Wine used to launch the game.\n"
                          "Using the last version is generally recommended, "
@@ -344,7 +345,7 @@ class wine(Runner):
                 'option': 'Desktop_res',
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
-                'choices': display.get_resolutions(),
+                'choices': display.get_resolutions,
                 'default': '800x600',
                 'help': ("The size of the virtual desktop in pixels.")
             },
