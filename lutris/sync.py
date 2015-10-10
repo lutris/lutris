@@ -137,7 +137,7 @@ class Sync(object):
 
     def sync_steam_local(self):
         """Sync Steam games in library with Steam and Wine Steam"""
-        logger.debug("Syncing local steam games")
+        # logger.debug("Syncing local steam games")
         steamrunner = steam()
         winesteamrunner = winesteam()
         installed = set()

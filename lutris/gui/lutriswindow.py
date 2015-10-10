@@ -135,9 +135,6 @@ class LutrisWindow(object):
         self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
 
-        # Timer
-        self.timer_id = GLib.timeout_add(300, self.refresh_status)
-
         # Sidebar
         sidebar_paned = self.builder.get_object('sidebar_paned')
         sidebar_paned.set_position(150)
@@ -166,6 +163,10 @@ class LutrisWindow(object):
         else:
             self.toggle_connection(False)
             self.sync_library()
+
+        # Timers
+        self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
+                          GLib.timeout_add(5000, self.on_sync_timer)]
 
     @property
     def current_view_type(self):
@@ -244,33 +245,34 @@ class LutrisWindow(object):
             self.switch_splash_screen()
             self.view.fill_store(added)
 
-            def update_existing_games():
-                for game in updated.difference(added):
-                    self.view.update_row(pga.get_game_by_slug(game))
-
-                for game in installed.difference(added):
-                    if not self.view.get_row_by_slug(game):
-                        self.view.add_game(game)
-                    self.view.set_installed(Game(game))
-
-                for game in uninstalled.difference(added):
-                    self.view.set_uninstalled(game)
-
-                self.sidebar_treeview.update()
-                self.set_status("Library synced")
-
-                icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
-                self.threads_stoppers.append(icons_sync.stop_request.set)
-
-                self.on_library_synced()
-
-            GLib.idle_add(update_existing_games)
+            GLib.idle_add(self.update_existing_games,
+                          added, updated, installed, uninstalled, True)
 
         self.set_status("Syncing library")
-        sync = Sync()
-        AsyncCall(sync.sync_all, update_gui)
+        AsyncCall(Sync().sync_all, update_gui)
 
-    def on_library_synced(self):
+    def update_existing_games(self, added, updated, installed, uninstalled,
+                              first_run=False):
+        for game in updated.difference(added):
+            self.view.update_row(pga.get_game_by_slug(game))
+
+        for game in installed.difference(added):
+            if not self.view.get_row_by_slug(game):
+                self.view.add_game(game)
+            self.view.set_installed(Game(game))
+
+        for game in uninstalled.difference(added):
+            self.view.set_uninstalled(game)
+
+        self.sidebar_treeview.update()
+
+        if first_run:
+            icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
+            self.threads_stoppers.append(icons_sync.stop_request.set)
+            self.set_status("Library synced")
+            self.update_runtime()
+
+    def update_runtime(self):
         runtime.Updater().start(self.set_status)
         self.threads_stoppers.append(runtime.Updater.cancel)
 
@@ -361,6 +363,15 @@ class LutrisWindow(object):
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
+
+    def on_sync_timer(self):
+        if (not self.running_game
+           or self.running_game.state == Game.STATE_STOPPED):
+
+            def update_gui(result, error):
+                self.update_existing_games(set(), set(), *result)
+            AsyncCall(Sync().sync_local, update_gui)
+        return True
 
     def on_resize(self, widget, *args):
         self.window_size = widget.get_size()
