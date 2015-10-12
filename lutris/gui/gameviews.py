@@ -102,8 +102,7 @@ class GameStore(GObject.Object):
         self.filter_runner = None
 
         self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
-        self.store.set_default_sort_func(sort_func)
-        self.store.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
+        self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         if games:
@@ -354,17 +353,15 @@ class GameListView(Gtk.TreeView, GameView):
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
-    icon_padding = 1
 
     def __init__(self, store):
         self.game_store = store
         self.model = self.game_store.modelfilter
         super(GameGridView, self).__init__(model=self.model)
-        self.set_columns(1)
 
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
-        self.set_item_padding(self.icon_padding)
+        self.set_item_padding(1)
         self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner"
                            else BANNER_SMALL_SIZE[0])
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
@@ -374,18 +371,6 @@ class GameGridView(Gtk.IconView, GameView):
         self.connect_signals()
         self.connect('item-activated', self.on_item_activated)
         self.connect('selection-changed', self.on_selection_changed)
-        self.connect('size-allocate', self.on_size_allocate)
-
-    def set_fluid_columns(self, width):
-        cell_width = self.cell_width + self.icon_padding * 2
-        nb_columns = (width / cell_width)
-        self.set_columns(nb_columns)
-
-    def on_size_allocate(self, widget, rect):
-        """Recalculate the colum spacing based on total widget width."""
-        width = self.get_parent().get_allocated_width()
-        self.set_fluid_columns(width - 20)
-        self.do_size_allocate(widget, rect)
         store.connect('icons-changed', self.on_icons_changed)
 
     def get_selected_game(self):
