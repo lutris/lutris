@@ -5,8 +5,8 @@ from lutris.runners.runner import Runner
 
 
 class mame(Runner):
-    """Arcade game emulator"""
     human_name = "MAME"
+    description = "Arcade game emulator"
     platform = "Arcade"
     game_options = [
         {

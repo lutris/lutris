@@ -4,10 +4,11 @@ from lutris.runners.runner import Runner
 
 
 class virtualjaguar(Runner):
-    """ Run Atari Jaguar games """
+    description = "Atari Jaguar emulator"
     human_name = "Virtual Jaguar"
     executable = "virtualjaguar"
     platform = "Atari Jaguar"
+    runnable_alone = True
 
     game_options = [
         {

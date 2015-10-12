@@ -47,8 +47,8 @@ def db_insert_bulk(db_path, table, fields_bulk):
 
 
 def db_update(db_path, table, updated_fields, row):
-    """ update `table` with the values given in the dict `values` on the
-        condition given with the tuple `row`
+    """Update `table` with the values given in the dict `values` on the
+       condition given with the `row` tuple.
     """
     columns = "=?, ".join(updated_fields.keys()) + "=?"
     field_values = _decode_utf8_values(updated_fields.values())
@@ -93,7 +93,7 @@ def db_select(db_path, table, fields=None, condition=None):
 
 
 def _decode_utf8_values(values_list):
-    '''Return a tuple of values with UTF-8 string values being decoded.'''
+    """Return a tuple of values with UTF-8 string values being decoded."""
     i = 0
     for v in values_list:
         if type(v) is str:

@@ -119,7 +119,7 @@ class ContextualMenu(Gtk.Menu):
         if self.runner.multiple_versions:
             entries.append(('versions', 'Manage versions',
                             self.on_manage_versions))
-        if hasattr(self.runner, 'run'):
+        if self.runner.runnable_alone:
             entries.append(('run', 'Run', self.runner.run))
         self.add_menuitems(entries)
         self.show_all()
@@ -134,5 +134,3 @@ class ContextualMenu(Gtk.Menu):
         dlg_title = "Manage %s versions" % self.runner.name
         dialog = RunnerInstallDialog(dlg_title, self.parent_window,
                                      self.runner.name)
-        dialog.run()
-        dialog.destroy()

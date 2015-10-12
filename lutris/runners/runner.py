@@ -5,9 +5,11 @@ import platform
 
 from gi.repository import Gtk
 
-from lutris import pga, settings
+from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
+from lutris.thread import LutrisThread
+from lutris.util.cache import lru_cache
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system
@@ -30,6 +32,7 @@ class Runner(object):
         'x64': None
     }
     platform = NotImplemented
+    runnable_alone = False
     game_options = []
     runner_options = []
     system_options_override = []
@@ -60,6 +63,7 @@ class Runner(object):
         return self.__class__.__name__
 
     @property
+    @lru_cache(maxsize=50)  # /!\ Caution
     def default_config(self):
         return LutrisConfig(runner_slug=self.name)
 
@@ -121,6 +125,46 @@ class Runner(object):
         """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
 
+    def get_run_data(self):
+        """Return dict with command (exe & args list) and env vars (dict).
+
+        Reimplement in derived runner if need be."""
+        exe = (self.get_executable()
+               if hasattr(self, 'get_executable')
+               else getattr(self, 'executable', ''))
+        return {'command': [exe], 'env': {}}
+
+    def run(self, *args):
+        """Run the runner alone."""
+        if not self.runnable_alone:
+            return
+        if not self.is_installed():
+            installed = self.install_dialog()
+            if not installed:
+                return
+
+        if self.use_runtime():
+            if runtime.is_outdated() or runtime.is_updating():
+                result = dialogs.RuntimeUpdateDialog().run()
+                if not result == Gtk.ResponseType.OK:
+                    return
+
+        command_data = self.get_run_data()
+        command = command_data.get('command')
+        env = (command_data.get('env') or {}).copy()
+        if self.use_runtime():
+            env.update(runtime.get_env())
+
+        thread = LutrisThread(command, runner=self, env=env, watch=False)
+        thread.start()
+
+    def use_runtime(self, system_config=None):
+        disable_runtime = self.system_config.get('disable_runtime')
+        env_runtime = os.getenv('LUTRIS_RUNTIME')
+        if env_runtime and env_runtime.lower() in ('0', 'off'):
+            disable_runtime = True
+        return not disable_runtime
+
     def install_dialog(self):
         """Ask the user if she wants to install the runner.
 
@@ -136,7 +180,7 @@ class Runner(object):
         return False
 
     def is_installed(self):
-        """Return  True if runner is installed else False."""
+        """Return True if runner is installed else False."""
         # Check 'get_executable' first
         if hasattr(self, 'get_executable'):
             executable = self.get_executable()

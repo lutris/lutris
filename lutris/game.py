@@ -8,8 +8,8 @@ from gi.repository import GLib, Gtk
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
+from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
-from lutris.util import audio, display, system
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
@@ -27,13 +27,13 @@ def show_error_message(message):
         dialogs.ErrorDialog("The file %s is not executable" % message['file'])
 
 
-def get_game_list(filter_installed=False):
-    games = pga.get_games(filter_installed=filter_installed)
+def get_game_list():
+    games = pga.get_games()
     return [game['slug'] for game in games]
 
 
 class Game(object):
-    """This class takes cares about loading the configuration for a game
+    """This class takes cares of loading the configuration for a game
        and running it.
     """
     STATE_IDLE = 'idle'
@@ -117,38 +117,41 @@ class Game(object):
             if not installed:
                 return False
 
-        if self.use_runtime():
+        if self.runner.use_runtime():
             if runtime.is_outdated() or runtime.is_updating():
                 result = dialogs.RuntimeUpdateDialog().run()
                 if not result == Gtk.ResponseType.OK:
                     return False
-
-        if hasattr(self.runner, 'prelaunch'):
-            return self.runner.prelaunch()
         return True
-
-    def use_runtime(self, system_config=None):
-        disable_runtime = self.runner.system_config.get('disable_runtime')
-        env_runtime = os.getenv('LUTRIS_RUNTIME')
-        if env_runtime and env_runtime.lower() in ('0', 'off'):
-            disable_runtime = True
-        return not disable_runtime
 
     def play(self):
         """Launch the game."""
         if not self.runner:
             dialogs.ErrorDialog("Invalid game configuration: Missing runner")
-            return False
-        if not self.prelaunch():
-            return False
+            self.state = self.STATE_STOPPED
+            return
 
+        if not self.prelaunch():
+            self.state = self.STATE_STOPPED
+            return
+
+        if hasattr(self.runner, 'prelaunch'):
+            jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+        else:
+            self.do_play(True)
+
+    def do_play(self, prelaunched, _error=None):
+        if not prelaunched:
+            self.state = self.STATE_STOPPED
+            return
         system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
         gameplay_info = self.runner.play()
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
-            return False
+            self.state = self.STATE_STOPPED
+            return
 
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
@@ -189,7 +192,8 @@ class Game(object):
                 dialogs.ErrorDialog("The selected terminal application "
                                     "could not be launched:\n"
                                     "%s" % terminal)
-                return False
+                self.state = self.STATE_STOPPED
+                return
         # Env vars
         env = {}
         game_env = gameplay_info.get('env') or {}
@@ -200,7 +204,7 @@ class Game(object):
             env["LD_PRELOAD"] = ld_preload
 
         ld_library_path = []
-        if self.use_runtime():
+        if self.runner.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
             ld_library_path += runtime.get_paths()
 
@@ -217,17 +221,16 @@ class Game(object):
                                         runner=self.runner, env=env,
                                         rootpid=gameplay_info.get('rootpid'),
                                         term=terminal)
-        self.state = self.STATE_RUNNING
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
+        self.state = self.STATE_RUNNING
         if 'joy2key' in gameplay_info:
             self.joy2key(gameplay_info['joy2key'])
         xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
-        return True
 
     def joy2key(self, config):
         """Run a joy2key thread."""
@@ -264,7 +267,7 @@ class Game(object):
         os.system("pkexec xboxdrvctl --shutdown")
 
     def beat(self):
-        """Watch game's process."""
+        """Watch the game's process(es)."""
         self.game_log = self.game_thread.stdout
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
@@ -276,6 +279,7 @@ class Game(object):
 
     def stop(self):
         self.game_thread.stop(killall=True)
+        self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
@@ -302,20 +306,15 @@ class Game(object):
         if self.game_thread.return_code == 127:
             # Error missing shared lib
             error = "error while loading shared lib"
-            error_line = self.lookup_output_string(error)
+            error_line = strings.lookup_string_in_text(error,
+                                                       self.game_thread.stdout)
             if error_line:
                 dialogs.ErrorDialog("<b>Error: Missing shared library.</b>"
                                     "\n\n%s" % error_line)
+
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
-            if self.lookup_output_string(error):
+            if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog("<b>Error: A different Wine version is "
                                     "already using the same Wine prefix.</b>")
-
-    def lookup_output_string(self, string):
-        """Return full line if string found in thread output."""
-        output_lines = self.game_thread.stdout.split('\n')
-        for line in output_lines:
-            if string in line:
-                return line

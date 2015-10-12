@@ -9,9 +9,10 @@ RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
 
 
 class residualvm(Runner):
-    """Runs various 3D point-and-click adventure games, like Grim Fandango and Escape from Monkey Island."""
     human_name = "ResidualVM"
     platform = "3D point-and-click games"
+    description = ("Runs various 3D point-and-click adventure games, "
+                   "like Grim Fandango and Escape from Monkey Island.")
     game_options = [
         {
             'option': 'game_id',
@@ -103,7 +104,7 @@ class residualvm(Runner):
         return launch_info
 
     def get_game_list(self):
-        """ Return the entire list of games supported by ResidualVM """
+        """Return the entire list of games supported by ResidualVM."""
         residual_output = subprocess.Popen(
             [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
         ).communicate()[0]

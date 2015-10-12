@@ -61,6 +61,11 @@ class ConfigBox(VBox):
             value = self.config.get(option_key)
             default = option.get('default')
 
+            if callable(option.get('choices')):
+                option['choices'] = option['choices']()
+            if callable(option.get('condition')):
+                option['condition'] = option['condition']()
+
             hbox = Gtk.HBox()
             hbox.set_margin_left(20)
             self.wrapper = Gtk.HBox()
@@ -177,9 +182,9 @@ class ConfigBox(VBox):
 
     # Checkbox
     def generate_checkbox(self, option, value=None):
-        """Generates a checkbox."""
+        """Generate a checkbox."""
         checkbox = Gtk.CheckButton(label=option["label"])
-        if value:
+        if value is True:
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option['option'])
         self.wrapper.pack_start(checkbox, True, True, 5)
@@ -509,20 +514,20 @@ class SystemBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config
+        runner_slug = self.lutris_config.runner_slug
 
-        if self.lutris_config.runner_slug:
-            runner = import_runner(self.lutris_config.runner_slug)
-            self.options = sysoptions.with_runner_overrides(runner)
+        if runner_slug:
+            self.options = sysoptions.with_runner_overrides(runner_slug)
         else:
             self.options = sysoptions.system_options
 
-        if lutris_config.game_slug and self.lutris_config.runner_slug:
+        if lutris_config.game_slug and runner_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration, which themselves supersede "
                 "the global preferences."
             )
-        elif self.lutris_config.runner_slug:
+        elif runner_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
                 "the global preferences."

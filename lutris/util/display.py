@@ -1,6 +1,20 @@
 import subprocess
+from gi.repository import Gdk
 
 from lutris.util.log import logger
+
+
+def set_cursor(name, window, display=None):
+    """Set a named mouse cursor for the given window."""
+    cursors = {
+        'default': Gdk.CursorType.ARROW,
+        'wait': Gdk.CursorType.WATCH,
+    }
+
+    if not display:
+        display = Gdk.Display.get_default()
+    cursor = Gdk.Cursor.new_for_display(display, cursors[name])
+    window.set_cursor(cursor)
 
 
 def get_vidmodes():
@@ -11,7 +25,7 @@ def get_vidmodes():
 
 
 def get_outputs():
-    """ Return list of tuples containing output name and geometry """
+    """Return list of tuples containing output name and geometry."""
     outputs = list()
     for line in get_vidmodes():
         parts = line.split()
@@ -34,7 +48,8 @@ def get_output_names():
 def turn_off_except(display):
     for output in get_outputs():
         if output[0] != display:
-            subprocess.Popen("xrandr --output %s --off" % output[0], shell=True)
+            subprocess.Popen("xrandr --output %s --off" % output[0],
+                             shell=True)
 
 
 def get_resolutions():
@@ -59,9 +74,10 @@ def get_current_resolution(monitor=0):
 
 
 def change_resolution(resolution):
-    """ Change display resolution.
-        Takes a string for single monitors or a list of displays as returned
-        by get_outputs()
+    """Change display resolution.
+
+    Takes a string for single monitors or a list of displays as returned
+    by get_outputs().
     """
     if isinstance(resolution, basestring):
         logger.debug("Switching resolution to %s", resolution)
@@ -86,5 +102,5 @@ def change_resolution(resolution):
 
 
 def restore_gamma():
-    """Restores gamma to a normal level"""
+    """Restores gamma to a normal level."""
     subprocess.Popen(["xgamma", "-gamma", "1.0"])

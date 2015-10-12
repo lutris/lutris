@@ -11,7 +11,7 @@ from lutris.util import display, extract, system
 
 # pylint: disable=C0103
 class atari800(Runner):
-    """ Runs Atari800 games """
+    description = "Runs Atari 8bit games"
     human_name = "Atari800"
     package = "atari800"
     executable = "atari800"
@@ -20,7 +20,7 @@ class atari800(Runner):
         "http://kent.dl.sourceforge.net/project/atari800/"
         "ROM/Original%20XL%20ROM/xf25.zip"
     )
-    description = "Atari 400,800 and XL emulator."
+    description = "Atari 400,800 and XL emulator"
     bios_checksums = {
         "xlxe_rom": "06daac977823773a3eea3422fd26a703",
         "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
@@ -38,12 +38,15 @@ class atari800(Runner):
                      "and PRO.")
         }
     ]
-    try:
-        screen_resolutions = [(resolution, resolution)
-                              for resolution in display.get_resolutions()]
-    except OSError:
-        screen_resolutions = []
-    screen_resolutions.insert(0, ('Desktop resolution', 'desktop'))
+
+    def get_resolutions():
+        try:
+            screen_resolutions = [(resolution, resolution)
+                                  for resolution in display.get_resolutions()]
+        except OSError:
+            screen_resolutions = []
+        screen_resolutions.insert(0, ('Desktop resolution', 'desktop'))
+        return screen_resolutions
 
     runner_options = [
         {
@@ -74,7 +77,7 @@ class atari800(Runner):
         {
             "option": "resolution",
             "type": "choice",
-            "choices": screen_resolutions,
+            "choices": get_resolutions,
             "default": 'desktop',
             "label": "Fullscreen resolution"
         }

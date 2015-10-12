@@ -12,10 +12,11 @@ SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
 
 class snes9x(Runner):
-    """Runs Super Nintendo games with Snes9x"""
+    description = "Super Nintendo emulator"
     human_name = "Snes9x"
     executable = "snes9x-gtk"
     platform = "Super Nintendo"
+    runnable_alone = True
     tarballs = {
         'i386': 'snes9x-1.53-i686.tar.gz',
         'x64': 'snes9x-1.53-x86_64.tar.gz',

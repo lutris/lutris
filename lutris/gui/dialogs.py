@@ -40,7 +40,7 @@ class AboutDialog(GtkBuilderDialog):
 
 
 class NoticeDialog(Gtk.MessageDialog):
-    """ Displays a message to the user. """
+    """Display a message to the user."""
     def __init__(self, message):
         super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
@@ -49,7 +49,7 @@ class NoticeDialog(Gtk.MessageDialog):
 
 
 class ErrorDialog(Gtk.MessageDialog):
-    """ Displays an error message. """
+    """Display an error message."""
     def __init__(self, message):
         super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
         self.set_markup(message)
@@ -58,7 +58,7 @@ class ErrorDialog(Gtk.MessageDialog):
 
 
 class QuestionDialog(Gtk.MessageDialog):
-    """ Asks a question. """
+    """Ask the user a question."""
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
@@ -74,7 +74,7 @@ class QuestionDialog(Gtk.MessageDialog):
 
 
 class DirectoryDialog(Gtk.FileChooserDialog):
-    """Ask the user to select a directory"""
+    """Ask the user to select a directory."""
     def __init__(self, message):
         super(DirectoryDialog, self).__init__(
             title=message,
@@ -88,6 +88,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 
 
 class FileDialog(Gtk.FileChooserDialog):
+    """Ask the user to select a file."""
     def __init__(self, message=None):
         self.filename = None
         if not message:
@@ -106,7 +107,7 @@ class FileDialog(Gtk.FileChooserDialog):
 
 
 class DownloadDialog(Gtk.Dialog):
-    """ Dialog showing a download in progress. """
+    """Dialog showing a download in progress."""
     def __init__(self, url=None, dest=None, title=None, label=None,
                  downloader=None):
         Gtk.Dialog.__init__(self, title or "Downloading file")
@@ -141,6 +142,7 @@ class DownloadDialog(Gtk.Dialog):
 
 
 class RuntimeUpdateDialog(DownloadDialog):
+    """Dialog showing the progress of ongoing runtime update."""
     def __init__(self):
         runtime.Updater().start()
         self.downloader = runtime.Updater.downloader
@@ -216,14 +218,14 @@ class PgaSourceDialog(GtkBuilderDialog):
         chooser.destroy()
 
     def on_remove_source_button_clicked(self, widget, data=None):
-        """ Remove a source """
+        """Remove a source."""
         (model, treeiter) = self.sources_selection.get_selected()
         if treeiter:
             # TODO : Add confirmation
             model.remove(treeiter)
 
     def on_sources_selection_changed(self, widget, data=None):
-        """ Set sentivity of remove source button """
+        """Set sentivity of remove source button."""
         (model, treeiter) = self.sources_selection.get_selected()
         self.remove_source_button.set_sensitive(treeiter is not None)
 

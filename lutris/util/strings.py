@@ -15,10 +15,18 @@ def slugify(value):
 
 
 def add_url_tags(text):
-    """ Surrounds URL with <a> tags """
+    """Surround URL with <a> tags."""
     return re.sub(
         r'(http[s]?://('
         r'?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)',
         r'<a href="\1">\1</a>',
         text
     )
+
+
+def lookup_string_in_text(string, text):
+    """Return full line if string found in the multi-line text."""
+    output_lines = text.split('\n')
+    for line in output_lines:
+        if string in line:
+            return line

@@ -1,4 +1,4 @@
-"""Get games available from the XDG menu"""
+"""Get games available from the XDG menu."""
 
 import subprocess
 from gi.repository import Gio
@@ -7,7 +7,7 @@ IGNORED_ENTRIES = ("lutris", "mame", "dosbox", "steam", "playonlinux")
 
 
 def get_xdg_games():
-    """Return list of games stored in the XDG menu."""
+    """Return the list of games stored in the XDG menu."""
     xdg_games = []
 
     apps = Gio.AppInfo.get_all()

@@ -97,8 +97,8 @@ def read_config(path_prefix):
 
 
 def get_manifest_info(steamapps_path, appid):
-    """Given the steam apps path and appid, return the corresponding appmanifest
-    info."""
+    """Given the steam apps path and appid, return the corresponding
+    appmanifest info."""
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
     if not os.path.exists(steamapps_path):
@@ -115,7 +115,7 @@ def get_manifest_info(steamapps_path, appid):
 
 
 def get_path_from_appmanifest(steamapps_path, appid):
-    """Return the path where a Steam game is installed"""
+    """Return the path where a Steam game is installed."""
     config = get_manifest_info(steamapps_path, appid)
     if not config:
         return
@@ -126,7 +126,7 @@ def get_path_from_appmanifest(steamapps_path, appid):
 
 
 def get_app_states(steamapps_path, appid):
-    """Return the states of a Steam game"""
+    """Return the states of a Steam game."""
     manifest_info = get_manifest_info(steamapps_path, appid)
     state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
     state_flags = bin(int(state_flags))[:1:-1]

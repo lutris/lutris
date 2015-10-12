@@ -1,6 +1,8 @@
+"""Options list for system config."""
 import os
 from collections import OrderedDict
 
+from lutris import runners
 from lutris.util import display, system
 
 
@@ -12,13 +14,20 @@ oss_list = [
     ("aoss (OSS Wrapper for Alsa)", "aoss"),
 ]
 
-resolutions = display.get_resolutions()
-resolution_choices = zip(resolutions, resolutions)
-resolution_choices.insert(0, ("Keep current", 'off'))
 
-outputs = display.get_output_names()
-output_choices = zip(outputs, outputs)
-output_choices.insert(0, ("Off", 'off'))
+def get_resolution_choices():
+    resolutions = display.get_resolutions()
+    resolution_choices = zip(resolutions, resolutions)
+    resolution_choices.insert(0, ("Keep current", 'off'))
+    return resolution_choices
+
+
+def get_output_choices():
+    outputs = display.get_output_names()
+    output_choices = zip(outputs, outputs)
+    output_choices.insert(0, ("Off", 'off'))
+    return output_choices
+
 system_options = [
     {
         'option': 'game_path',
@@ -62,7 +71,7 @@ system_options = [
         'option': 'display',
         'type': 'choice',
         'label': 'Restrict to display',
-        'choices': output_choices,
+        'choices': get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
@@ -73,7 +82,7 @@ system_options = [
         'option': 'resolution',
         'type': 'choice',
         'label': 'Switch resolution to',
-        'choices': resolution_choices,
+        'choices': get_resolution_choices,
         'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },
@@ -89,7 +98,7 @@ system_options = [
         'option': 'terminal_app',
         'label': "Terminal application",
         'type': 'choice_with_entry',
-        'choices': system.get_terminal_apps(),
+        'choices': system.get_terminal_apps,
         'default': system.get_default_terminal(),
         'advanced': True,
         'help': ("The terminal emulator to be run with the previous option."
@@ -145,9 +154,12 @@ system_options = [
 ]
 
 
-def with_runner_overrides(runner):
+def with_runner_overrides(runner_slug):
     """Return system options updated with overrides from given runner."""
     options = system_options
+    runner = runners.import_runner(runner_slug)
+    if not getattr(runner, 'system_options_override'):
+        runner = runner()
     if runner.system_options_override:
         opts_dict = OrderedDict((opt['option'], opt) for opt in options)
         for option in runner.system_options_override:

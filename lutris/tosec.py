@@ -46,7 +46,7 @@ STANDARD_CODES = {
 
 
 class TOSEC:
-    '''A class to ease the use of TOSEC data files as a SQLite database.'''
+    """A class to ease the use of TOSEC data files as a SQLite database."""
     def __init__(self, directory):
         self.path = os.path.join(directory, "tosec.db")
 
@@ -89,11 +89,11 @@ class TOSEC:
         self.db.close()
 
     def parse_file(self, file, system):
-        ''' Add a data file for the given system and update the database if
-            this data file's version is newer than the previous one for the
-            given system or simply add it if there was no database for this
-            system.
-        '''
+        """Add a data file for the given system and update the database if
+           this data file's version is newer than the previous one for the
+           given system or simply add it if there was no database for this
+           system.
+        """
         words = tosec_to_words(file)
         info, games = get_games_from_words(words)
 
@@ -226,10 +226,10 @@ def tosec_to_words(file):
 
 
 def get_games_from_words(words):
-    ''' Transform a list of words into a tuple containing the clrmamepro object
-        and a list of the game objects both as nested dictionnaries having the
-        same structure than the original TOSEC file.
-    '''
+    """Transform a list of words into a tuple containing the clrmamepro object
+       and a list of the game objects both as nested dictionnaries having the
+       same structure than the original TOSEC file.
+    """
     clrmamepro = None
     games = []
     game = {}
@@ -281,9 +281,9 @@ def get_games_from_words(words):
 
 
 def split_game_title(game):
-    ''' Return a tuple containg the game title, the game flags and the ROM
-        flags
-    '''
+    """Return a tuple containg the game title, the game flags and the ROM
+       flags.
+    """
     title = ""
     game_flags = ""
     rom_flags = ""

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Threading module, used to launch games while monitoring them"""
+"""Threading module, used to launch games while monitoring them."""
 
 import os
 import sys
@@ -18,10 +18,11 @@ HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 
 
 class LutrisThread(threading.Thread):
-    """Runs the game in a separate thread"""
+    """Run the game in a separate thread."""
     debug_output = True
 
-    def __init__(self, command, runner=None, env={}, rootpid=None, term=None):
+    def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
+                 watch=True, cwd='/tmp'):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -31,16 +32,14 @@ class LutrisThread(threading.Thread):
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
         self.terminal = term
+        self.watch = watch
         self.is_running = True
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
         self.max_cycles_without_children = 40
 
-        if self.runner:
-            self.path = runner.working_dir
-        else:
-            self.path = '/tmp/'
+        self.cwd = runner.working_dir if self.runner else cwd
 
         self.env_string = ''
         for (k, v) in self.env.iteritems():
@@ -51,14 +50,15 @@ class LutrisThread(threading.Thread):
         )
 
     def attach_thread(self, thread):
-        """Attach child process that need to be killed on game exit"""
+        """Attach child process that need to be killed on game exit."""
         self.attached_threads.append(thread)
 
     def run(self):
-        """Run the thread"""
+        """Run the thread."""
         logger.debug("Command env: " + self.env_string)
         logger.debug("Running command: " + self.command_string)
-        GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
+        if self.watch:
+            GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         if self.terminal and find_executable(self.terminal):
             self.run_in_terminal()
@@ -69,7 +69,7 @@ class LutrisThread(threading.Thread):
             self.game_process = subprocess.Popen(self.command, bufsize=1,
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT,
-                                                 cwd=self.path, env=env)
+                                                 cwd=self.cwd, env=env)
         os.chdir(os.path.expanduser('~'))
 
         for line in iter(self.game_process.stdout.readline, ''):
@@ -78,12 +78,13 @@ class LutrisThread(threading.Thread):
                 sys.stdout.write(line)
 
     def run_in_terminal(self):
+        """Write command in a script file and run it.
 
-        # Write command in a script file.
-        '''Running it from a file is likely the only way to set env vars only
+        Running it from a file is likely the only way to set env vars only
         for the command (not for the terminal app).
-        It also permits the only reliable way to keep the term open when the
-        game is exited.'''
+        It's also the only reliable way to keep the term open when the
+        game is quit.
+        """
         file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
         with open(file_path, 'w') as f:
             f.write(dedent(
@@ -92,7 +93,7 @@ class LutrisThread(threading.Thread):
                 cd "%s"
                 %s %s
                 exec sh # Keep term open
-                """ % (self.path, self.env_string, self.command_string)
+                """ % (self.cwd, self.env_string, self.command_string)
             ))
             os.chmod(file_path, 0744)
 
@@ -100,7 +101,7 @@ class LutrisThread(threading.Thread):
         self.game_process = subprocess.Popen(term_command, bufsize=1,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
-                                             cwd=self.path)
+                                             cwd=self.cwd)
         os.chdir(os.path.expanduser('~'))
 
     def iter_children(self, process, topdown=True, first=True):
@@ -131,13 +132,16 @@ class LutrisThread(threading.Thread):
             self.stop_func()
         if not killall:
             return
+        self.killall()
+
+    def killall(self):
         for process in self.iter_children(Process(self.rootpid),
                                           topdown=False):
             logger.debug("Killing process %s", process)
             process.kill()
 
     def watch_children(self):
-        """pokes at the running process"""
+        """Poke at the running process(es)."""
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0

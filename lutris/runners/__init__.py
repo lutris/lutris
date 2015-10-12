@@ -1,4 +1,4 @@
-"""Generic runner functions"""
+"""Generic runner functions."""
 from lutris.util.log import logger
 
 __all__ = (
@@ -35,7 +35,7 @@ def get_runner_module(runner_name):
 
 
 def import_runner(runner_name):
-    """Dynamically import a runner class"""
+    """Dynamically import a runner class."""
     runner_module = get_runner_module(runner_name)
     if not runner_module:
         return
@@ -43,8 +43,18 @@ def import_runner(runner_name):
 
 
 def import_task(runner, task):
-    """Return a runner task"""
+    """Return a runner task."""
     runner_module = get_runner_module(runner)
     if not runner_module:
         return
     return getattr(runner_module, task)
+
+
+def get_installed(sort=True):
+    """Return a list of installed runners (class instances)."""
+    installed = []
+    for runner_name in __all__:
+        runner = import_runner(runner_name)()
+        if runner.is_installed():
+            installed.append(runner)
+    return sorted(installed) if sort else installed

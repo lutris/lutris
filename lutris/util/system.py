@@ -6,6 +6,7 @@ import string
 import subprocess
 import sys
 
+from lutris.util.cache import lru_cache
 from lutris.util.log import logger
 
 
@@ -45,12 +46,11 @@ def find_executable(exec_name):
 
 
 def get_pid(program, multiple=False):
-    """Return pid of process
+    """Return pid of process.
 
-    Parameters:
-        `program`: name of process
-        `multiple`: if multiple instances of program exists, return all of them
-                    otherwise only return the first one.
+    :param str program: Name of the process.
+    :param bool multiple: If True and multiple instances of the program exist,
+        return all of them; if False only return the first one.
     """
     pids = execute(['pgrep', program])
     if not pids.strip():
@@ -72,7 +72,7 @@ def kill_pid(pid):
 
 
 def get_command_line(pid):
-    """Return command line used to run the process `pid`"""
+    """Return command line used to run the process `pid`."""
     cmdline = None
     cmdline_path = '/proc/{}/cmdline'.format(pid)
     if os.path.exists(cmdline_path):
@@ -154,6 +154,7 @@ def is_removeable(path, excludes=None):
     return True
 
 
+@lru_cache(maxsize=100)
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
     if os.path.exists(path):
@@ -178,7 +179,7 @@ def fix_path_case(path):
 
 
 def get_pids_using_file(path):
-    """Return a list of pids using file `path`"""
+    """Return a list of pids using file `path`."""
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return []

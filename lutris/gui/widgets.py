@@ -118,7 +118,7 @@ class DownloadProgressBox(Gtk.VBox):
             return False
         return True
 
-    def cancel(self, _widget):
+    def cancel(self, _widget=None):
         """Cancel the current download."""
         if self.downloader:
             self.downloader.cancel()
@@ -214,7 +214,7 @@ class FileChooserEntry(Gtk.Box):
 class Label(Gtk.Label):
     """Standardised label for config vboxes."""
     def __init__(self, message=None):
-        """Custom init of label"""
+        """Custom init of label."""
         super(Label, self).__init__(label=message)
         self.set_alignment(0.1, 0.0)
         self.set_padding(PADDING, 0)

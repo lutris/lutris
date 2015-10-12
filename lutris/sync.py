@@ -1,5 +1,5 @@
 # -*- coding:Utf-8 -*-
-"""Synchronization of the game library with the server and other platforms."""
+"""Synchronization of the game library with server and local data."""
 import os
 import re
 
@@ -17,8 +17,13 @@ class Sync(object):
 
     def sync_all(self):
         added, updated = self.sync_from_remote()
-        installed, uninstalled = self.sync_steam_local()
+        installed, uninstalled = self.sync_local()
         return added, updated, installed, uninstalled
+
+    def sync_local(self):
+        """Synchronize games state with local third parties."""
+        installed, uninstalled = self.sync_steam_local()
+        return installed, uninstalled
 
     def sync_from_remote(self):
         """Synchronize from remote to local library.
@@ -31,7 +36,11 @@ class Sync(object):
         local_slugs = set([game['slug'] for game in self.library])
         logger.debug("%d games in local library", len(local_slugs))
         # Get remote library
-        remote_library = api.get_library()
+        try:
+            remote_library = api.get_library()
+        except Exception as e:
+            logger.debug("Error while downloading the remote library: %s" % e)
+            remote_library = {}
         remote_slugs = set([game['slug'] for game in remote_library])
         logger.debug("%d games in remote library (inc. unpublished)",
                      len(remote_slugs))
@@ -128,15 +137,15 @@ class Sync(object):
 
     def sync_steam_local(self):
         """Sync Steam games in library with Steam and Wine Steam"""
-        logger.debug("Syncing local steam games")
+        # logger.debug("Syncing local steam games")
         steamrunner = steam()
         winesteamrunner = winesteam()
         installed = set()
         uninstalled = set()
 
         # Get installed steamapps
-        installed_steamapps = self._get_installed_steamapps(steamrunner)
-        installed_winesteamapps = self._get_installed_steamapps(winesteamrunner)
+        installed_steamapps = self.get_installed_steamapps(steamrunner)
+        installed_winesteamapps = self.get_installed_steamapps(winesteamrunner)
 
         for game_info in self.library:
             slug = game_info['slug']
@@ -174,7 +183,7 @@ class Sync(object):
         return (installed, uninstalled)
 
     @staticmethod
-    def _get_installed_steamapps(runner):
+    def get_installed_steamapps(runner):
         """Return a list of appIDs of the installed Steam games."""
         if not runner.is_installed():
             return []

@@ -1,5 +1,5 @@
 # -*- coding:Utf-8 -*-
-"""Settings module"""
+"""Internal settings."""
 import os
 from gi.repository import GLib
 from lutris.util.settings import SettingsIO

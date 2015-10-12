@@ -11,10 +11,11 @@ from lutris import settings
 
 
 class desura(Runner):
-    """Run Desura games (or mods, or tools)"""
     human_name = "Desura"
+    description = "Runs Desura games (or mods, or tools)"
     platform = "Desura"
     package = "desura"
+    runnable_alone = True
     game_options = [
         {
             "option": "appid",
@@ -61,7 +62,7 @@ class desura(Runner):
 
     @property
     def game_path(self):
-        """Return game dir or Desura's main dir"""
+        """Return game dir or Desura's main dir."""
         appid = self.game_config.get('appid')
         if os.path.exists(self.get_installed_app_path(appid)):
             return self.get_installed_app_path(appid)
@@ -69,8 +70,8 @@ class desura(Runner):
             return self.get_common_path()
 
     def get_desura_url(self, action, section, appid):
-        """Return link for Desura game"""
-        section_choices = (k[0] for k in self.game_options[0]['choices'])
+        """Return link for Desura game."""
+        section_choices = (k[0] for k in self.game_options[1]['choices'])
         if section not in section_choices:
             section = 'games'
         url = ("desura://%(action)s/%(section)s/%(appid)s/" % locals())

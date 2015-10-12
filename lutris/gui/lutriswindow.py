@@ -9,7 +9,7 @@ from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
 from lutris.sync import Sync
 
-from lutris.util import resources
+from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util.strings import slugify
@@ -25,17 +25,15 @@ from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
 from lutris.gui.gameviews import (
-    GameListView, GameGridView, ContextualMenu
+    GameListView, GameGridView, ContextualMenu, GameStore
 )
 
 
-def load_view(view, games=[], filter_text=None, icon_type=None):
+def load_view(view, store):
     if view == 'grid':
-        view = GameGridView(games, filter_text=filter_text,
-                            icon_type=icon_type)
+        view = GameGridView(store)
     elif view == 'list':
-        view = GameListView(games, filter_text=filter_text,
-                            icon_type=icon_type)
+        view = GameListView(store)
     return view
 
 
@@ -61,7 +59,7 @@ class LutrisWindow(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
 
-        # load config
+        # Load settings
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
@@ -70,16 +68,17 @@ class LutrisWindow(object):
         filter_installed_setting = settings.read_setting(
             'filter_installed'
         ) or 'false'
-        self.filter_installed = filter_installed_setting == 'true'
+        filter_installed = filter_installed_setting == 'true'
         show_installed_games_menuitem = self.builder.get_object(
             'filter_installed'
         )
-        show_installed_games_menuitem.set_active(self.filter_installed)
-        logger.debug("Getting game list")
-        game_list = get_game_list(self.filter_installed)
-        logger.debug("Switching view")
-        self.view = load_view(view_type, game_list,
-                              icon_type=self.icon_type)
+        show_installed_games_menuitem.set_active(filter_installed)
+
+        # Load view
+        logger.debug("Loading view")
+        self.game_store = GameStore([], self.icon_type, filter_installed)
+        self.view = load_view(view_type, self.game_store)
+
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
@@ -135,9 +134,6 @@ class LutrisWindow(object):
         self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
 
-        # Timer
-        self.timer_id = GLib.timeout_add(2000, self.refresh_status)
-
         # Sidebar
         sidebar_paned = self.builder.get_object('sidebar_paned')
         sidebar_paned.set_position(150)
@@ -157,7 +153,7 @@ class LutrisWindow(object):
         pga_menuitem = self.builder.get_object('pga_menuitem')
         pga_menuitem.hide()
 
-        self.switch_splash_screen()
+        self.init_game_store()
 
         # Connect account and/or sync
         credentials = api.read_api_key()
@@ -167,6 +163,16 @@ class LutrisWindow(object):
             self.toggle_connection(False)
             self.sync_library()
 
+        # Timers
+        self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
+                          GLib.timeout_add(5000, self.on_sync_timer)]
+
+    def init_game_store(self):
+        logger.debug("Getting game list")
+        game_list = get_game_list()
+        self.game_store.fill_store(game_list)
+        self.switch_splash_screen()
+
     @property
     def current_view_type(self):
         return 'grid' \
@@ -175,7 +181,8 @@ class LutrisWindow(object):
 
     def connect_signals(self):
         """Connect signals from the view with the main window.
-           This must be called each time the view is rebuilt.
+
+        This must be called each time the view is rebuilt.
         """
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_run)
@@ -214,62 +221,63 @@ class LutrisWindow(object):
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         logger.debug("Switching view")
-        self.icon_type = self.get_icon_type(view_type)
+        if view_type == self.get_view_type():
+            return
         self.view.destroy()
-        self.view = load_view(
-            view_type,
-            get_game_list(filter_installed=self.filter_installed),
-            filter_text=self.search_entry.get_text(),
-            icon_type=self.icon_type
-        )
+        icon_type = self.get_icon_type(view_type)
+        self.game_store.set_icon_type(icon_type)
+
+        self.view = load_view(view_type, self.game_store)
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add(self.view)
         self.view.show_all()
-        self.view.check_resize()
+
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
         # in the group send the activate signal...
-        if self.icon_type == 'banner_small':
+        if icon_type == 'banner_small':
             self.banner_small_menuitem.set_active(True)
-        if self.icon_type == 'icon':
+        if icon_type == 'icon':
             self.icon_menuitem.set_active(True)
-        if self.icon_type == 'banner':
+        if icon_type == 'banner':
             self.banner_menuitem.set_active(True)
+        settings.write_setting('view_type', view_type)
 
     def sync_library(self):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             added, updated, installed, uninstalled = result
             self.switch_splash_screen()
-            self.view.fill_store(added)
+            self.game_store.fill_store(added)
 
-            def update_existing_games():
-                for game in updated.difference(added):
-                    self.view.update_row(pga.get_game_by_slug(game))
-
-                for game in installed.difference(added):
-                    if not self.view.get_row_by_slug(game):
-                        self.view.add_game(game)
-                    self.view.set_installed(Game(game))
-
-                for game in uninstalled.difference(added):
-                    self.view.set_uninstalled(game)
-
-                self.sidebar_treeview.update()
-                self.set_status("Library synced")
-
-                icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
-                self.threads_stoppers.append(icons_sync.stop_request.set)
-
-                self.on_library_synced()
-
-            GLib.idle_add(update_existing_games)
+            GLib.idle_add(self.update_existing_games,
+                          added, updated, installed, uninstalled, True)
 
         self.set_status("Syncing library")
-        sync = Sync()
-        AsyncCall(sync.sync_all, update_gui)
+        AsyncCall(Sync().sync_all, update_gui)
 
-    def on_library_synced(self):
+    def update_existing_games(self, added, updated, installed, uninstalled,
+                              first_run=False):
+        for game in updated.difference(added):
+            self.view.update_row(pga.get_game_by_slug(game))
+
+        for game in installed.difference(added):
+            if not self.view.get_row_by_slug(game):
+                self.view.add_game(game)
+            self.view.set_installed(Game(game))
+
+        for game in uninstalled.difference(added):
+            self.view.set_uninstalled(game)
+
+        self.sidebar_treeview.update()
+
+        if first_run:
+            icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
+            self.threads_stoppers.append(icons_sync.stop_request.set)
+            self.set_status("Library synced")
+            self.update_runtime()
+
+    def update_runtime(self):
         runtime.Updater().start(self.set_status)
         self.threads_stoppers.append(runtime.Updater.cancel)
 
@@ -290,9 +298,12 @@ class LutrisWindow(object):
                 self.set_status("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
+                display.set_cursor('default', self.window.get_window())
                 self.stop_button.set_sensitive(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
+                display.set_cursor('default', self.window.get_window())
+                self.stop_button.set_sensitive(True)
         for index in range(4):
             self.joystick_icons.append(
                 self.builder.get_object('js' + str(index) + 'image')
@@ -358,6 +369,15 @@ class LutrisWindow(object):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
 
+    def on_sync_timer(self):
+        if (not self.running_game
+           or self.running_game.state == Game.STATE_STOPPED):
+
+            def update_gui(result, error):
+                self.update_existing_games(set(), set(), *result)
+            AsyncCall(Sync().sync_local, update_gui)
+        return True
+
     def on_resize(self, widget, *args):
         self.window_size = widget.get_size()
 
@@ -368,8 +388,6 @@ class LutrisWindow(object):
             stopper()
 
         # Save settings
-        view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
-        settings.write_setting('view_type', view_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
@@ -386,19 +404,20 @@ class LutrisWindow(object):
         SystemConfigDialog()
 
     def on_show_installed_games_toggled(self, widget, data=None):
-        self.filter_installed = widget.get_active()
-        setting_value = 'true' if self.filter_installed else 'false'
+        filter_installed = widget.get_active()
+        setting_value = 'true' if filter_installed else 'false'
         settings.write_setting(
             'filter_installed', setting_value
         )
-        self.switch_view(self.current_view_type)
+        self.game_store.filter_installed = filter_installed
+        self.game_store.modelfilter.refilter()
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog()
 
     def on_search_entry_changed(self, widget):
-        self.view.game_store.filter_text = widget.get_text()
-        self.view.emit('filter-updated')
+        self.game_store.filter_text = widget.get_text()
+        self.game_store.modelfilter.refilter()
 
     def _get_current_game_slug(self):
         """Return the slug of the current selected game while taking care of the
@@ -416,13 +435,10 @@ class LutrisWindow(object):
             game_slug = self._get_current_game_slug()
         if not game_slug:
             return
+        display.set_cursor('wait', self.window.get_window())
         self.running_game = Game(game_slug)
         if self.running_game.is_installed:
-            running = self.running_game.play()
-            if running:
-                self.stop_button.set_sensitive(True)
-            else:
-                self.running_game.state = Game.STATE_STOPPED
+            self.running_game.play()
         else:
             self.running_game = None
             InstallerDialog(game_slug, self)
@@ -433,6 +449,7 @@ class LutrisWindow(object):
             game_ref = self._get_current_game_slug()
         if not game_ref:
             return
+        display.set_cursor('wait', self.window.get_window())
         InstallerDialog(game_ref, self)
 
     def on_keypress(self, widget, event):
@@ -466,7 +483,7 @@ class LutrisWindow(object):
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
-        add_game_dialog = AddGameDialog(self, game)
+        add_game_dialog = AddGameDialog(self.window, game)
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.view.set_installed(game)
@@ -484,7 +501,7 @@ class LutrisWindow(object):
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
-        add_game_dialog = AddGameDialog(self)
+        add_game_dialog = AddGameDialog(self.window)
         add_game_dialog.run()
         if add_game_dialog.saved:
             self.add_game_to_view(add_game_dialog.slug)
@@ -556,13 +573,13 @@ class LutrisWindow(object):
 
     def on_icon_type_activate(self, menuitem):
         icon_type = menuitem.get_name()
-        if icon_type == self.view.icon_type or not menuitem.get_active():
+        if icon_type == self.game_store.icon_type or not menuitem.get_active():
             return
         if self.current_view_type == 'grid':
             settings.write_setting('icon_type_gridview', icon_type)
         elif self.current_view_type == 'list':
             settings.write_setting('icon_type_listview', icon_type)
-        self.switch_view(self.current_view_type)
+        self.game_store.set_icon_type(icon_type)
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
@@ -592,4 +609,4 @@ class LutrisWindow(object):
 
     def on_sidebar_changed(self, widget):
         self.view.game_store.filter_runner = widget.get_selected_runner()
-        self.view.emit('filter-updated')
+        self.game_store.modelfilter.refilter()

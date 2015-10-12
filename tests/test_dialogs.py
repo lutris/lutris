@@ -17,15 +17,17 @@ class TestGameDialogCommon(TestCase):
         dlg = config_dialogs.GameDialogCommon()
         list_store = dlg.get_runner_liststore()
         self.assertEqual(list_store[0][0], dlg.no_runner_label)
-        self.assertTrue(list_store[1][0].startswith(runners.__all__[0]))
-        self.assertEqual(list_store[1][1], runners.__all__[0])
+        self.assertTrue(
+            list_store[1][0].startswith(runners.get_installed()[0].name)
+        )
+        self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
 
 
 class TestGameDialog(TestCase):
     def setUp(self):
         check_config()
         lutris_window = LutrisWindow()
-        self.dlg = config_dialogs.AddGameDialog(lutris_window)
+        self.dlg = config_dialogs.AddGameDialog(lutris_window.window)
 
     def get_notebook(self):
         return self.dlg.vbox.get_children()[0]
@@ -52,10 +54,10 @@ class TestGameDialog(TestCase):
         self.assertEqual(buttons[0].get_label(), 'Cancel')
         self.assertEqual(buttons[1].get_label(), 'Add')
 
-        self.dlg.runner_dropdown.set_active(1)
-        self.assertEqual(self.dlg.lutris_config.runner_slug, runners.__all__[0])
+        self.dlg.runner_dropdown.set_active_id('linux')
+        self.assertEqual(self.dlg.lutris_config.runner_slug, 'linux')
         game_box = self.get_game_box()
-        self.assertEqual(game_box.game.runner_name, runners.__all__[0])
+        self.assertEqual(game_box.game.runner_name, 'linux')
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_field = exe_box.get_children()[1]
         self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
@@ -63,7 +65,7 @@ class TestGameDialog(TestCase):
     def test_can_add_game(self):
         name_entry = self.dlg.name_entry
         name_entry.set_text("Test game")
-        self.dlg.runner_dropdown.set_active(1)
+        self.dlg.runner_dropdown.set_active_id('linux')
 
         game_box = self.get_game_box()
         exe_box = game_box.get_children()[0].get_children()[0]

@@ -22,14 +22,11 @@ class GameDialogCommon(object):
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
         runner_liststore.append(("Select a runner from the list", ""))
-        for runner_name in sorted(runners.__all__):
-            runner_class = runners.import_runner(runner_name)
-            runner = runner_class()
-            if runner.is_installed():
-                description = runner.description
-                runner_liststore.append(
-                    ("%s (%s)" % (runner_name, description), runner_name)
-                )
+        for runner in runners.get_installed():
+            description = runner.description
+            runner_liststore.append(
+                ("%s (%s)" % (runner.name, description), runner.name)
+            )
         return runner_liststore
 
     def build_entry_box(self, entry, label_text=None):
@@ -43,6 +40,7 @@ class GameDialogCommon(object):
     def get_runner_dropdown(self):
         runner_liststore = self.get_runner_liststore()
         self.runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
+        self.runner_dropdown.set_id_column(1)
         runner_index = 0
         if self.game:
             for runner in runner_liststore:
@@ -257,7 +255,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
 
     def __init__(self, parent, game=None):
-        super(AddGameDialog, self).__init__("Add a new game")
+        super(AddGameDialog, self).__init__("Add a new game", parent=parent)
         self.lutris_config = LutrisConfig(level='game')
         self.game = game
         self.saved = False
@@ -297,7 +295,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
 
 class RunnerConfigDialog(Dialog, GameDialogCommon):
-    """Runners management dialog."""
+    """Runner config edit dialog."""
     def __init__(self, runner):
         self.runner_name = runner.__class__.__name__
         super(RunnerConfigDialog, self).__init__(

@@ -8,7 +8,7 @@ from lutris.runners.runner import Runner
 
 def dosexec(config_file=None, executable=None, args=None, exit=True,
             working_dir=None):
-    """Execute Dosbox with given config_file"""
+    """Execute Dosbox with given config_file."""
     logger.debug("Running dosbox with config %s" % config_file)
     dbx = dosbox()
     command = '"{}"'.format(dbx.get_executable())
@@ -29,10 +29,11 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
 
 
 class dosbox(Runner):
-    """Runner for MS Dos games"""
     human_name = "DOSBox"
-    platform = "MS DOS"
+    description = "MS-Dos emulator"
+    platform = "MS-DOS"
     description = "DOS Emulator"
+    runnable_alone = True
     game_options = [
         {
             "option": "main_file",
