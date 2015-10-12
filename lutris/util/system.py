@@ -6,7 +6,7 @@ import string
 import subprocess
 import sys
 
-from lutris.util.cache import memoize
+from lutris.util.cache import lru_cache
 from lutris.util.log import logger
 
 
@@ -154,7 +154,7 @@ def is_removeable(path, excludes=None):
     return True
 
 
-@memoize
+@lru_cache(maxsize=100)
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
     if os.path.exists(path):

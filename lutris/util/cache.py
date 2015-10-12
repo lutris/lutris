@@ -1,95 +1,167 @@
 # -*- coding: utf-8 -*-
-import collections
-import functools
-import time
+from collections import namedtuple
+from functools import update_wrapper
+from threading import RLock
 
 
-class memoize(object):
-    '''Decorator. Caches a function's return value each time it is called.
+_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
-    If called later with the same arguments, the cached value is returned
-    (not reevaluated).
 
-    Code grabbed at https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-    '''
-    def __init__(self, func):
-        self.func = func
-        self.cache = {}
+class _HashedSeq(list):
+    __slots__ = 'hashvalue'
 
-    def __call__(self, *args):
-        if not isinstance(args, collections.Hashable):
-            # Uncacheable. a list, for instance.
-            # Better not cache than blow up.
-            return self.func(*args)
-        if args in self.cache:
-            return self.cache[args]
+    def __init__(self, tup, hash=hash):
+        self[:] = tup
+        self.hashvalue = hash(tup)
+
+    def __hash__(self):
+        return self.hashvalue
+
+
+def _make_key(args, kwds, typed,
+              kwd_mark=(object(),),
+              fasttypes={int, str, frozenset, type(None)},
+              sorted=sorted, tuple=tuple, type=type, len=len):
+    'Make a cache key from optionally typed positional and keyword arguments'
+    key = args
+    if kwds:
+        sorted_items = sorted(kwds.items())
+        key += kwd_mark
+        for item in sorted_items:
+            key += item
+    if typed:
+        key += tuple(type(v) for v in args)
+        if kwds:
+            key += tuple(type(v) for k, v in sorted_items)
+    elif len(key) == 1 and type(key[0]) in fasttypes:
+        return key[0]
+    return _HashedSeq(key)
+
+
+def lru_cache(maxsize=100, typed=False):
+    """Least-recently-used cache decorator.
+
+    If *maxsize* is set to None, the LRU features are disabled and the cache
+    can grow without bound.
+
+    If *typed* is True, arguments of different types will be cached separately.
+    For example, f(3.0) and f(3) will be treated as distinct calls with
+    distinct results.
+
+    Arguments to the cached function must be hashable.
+
+    View the cache statistics named tuple (hits, misses, maxsize, currsize)
+    with f.cache_info().  Clear the cache and statistics with f.cache_clear().
+    Access the underlying function with f.__wrapped__.
+
+    See:  http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used
+    """
+
+    # Users should only access the lru_cache through its public API:
+    #       cache_info, cache_clear, and f.__wrapped__
+    # The internals of the lru_cache are encapsulated for thread safety and
+    # to allow the implementation to change (including a possible C version).
+
+    def decorating_function(user_function):
+
+        cache = dict()
+        stats = [0, 0]                  # make statistics updateable non-locally
+        HITS, MISSES = 0, 1             # names for the stats fields
+        make_key = _make_key
+        cache_get = cache.get           # bound method to lookup key or return None
+        _len = len                      # localize the global len() function
+        lock = RLock()                  # because linkedlist updates aren't threadsafe
+        root = []                       # root of the circular doubly linked list
+        root[:] = [root, root, None, None]      # initialize by pointing to self
+        nonlocal_root = [root]                  # make updateable non-locally
+        PREV, NEXT, KEY, RESULT = 0, 1, 2, 3    # names for the link fields
+
+        if maxsize == 0:
+
+            def wrapper(*args, **kwds):
+                # no caching, just do a statistics update after a successful call
+                result = user_function(*args, **kwds)
+                stats[MISSES] += 1
+                return result
+
+        elif maxsize is None:
+
+            def wrapper(*args, **kwds):
+                # simple caching without ordering or size limit
+                key = make_key(args, kwds, typed)
+                result = cache_get(key, root)   # root used here as a unique not-found sentinel
+                if result is not root:
+                    stats[HITS] += 1
+                    return result
+                result = user_function(*args, **kwds)
+                cache[key] = result
+                stats[MISSES] += 1
+                return result
+
         else:
-            value = self.func(*args)
-            self.cache[args] = value
-            return value
 
-    def __repr__(self):
-        '''Return the function's docstring.'''
-        return self.func.__doc__
+            def wrapper(*args, **kwds):
+                # size limited caching that tracks accesses by recency
+                key = make_key(args, kwds, typed) if kwds or typed else args
+                with lock:
+                    link = cache_get(key)
+                    if link is not None:
+                        # record recent use of the key by moving it to the front of the list
+                        root, = nonlocal_root
+                        link_prev, link_next, key, result = link
+                        link_prev[NEXT] = link_next
+                        link_next[PREV] = link_prev
+                        last = root[PREV]
+                        last[NEXT] = root[PREV] = link
+                        link[PREV] = last
+                        link[NEXT] = root
+                        stats[HITS] += 1
+                        return result
+                result = user_function(*args, **kwds)
+                with lock:
+                    root, = nonlocal_root
+                    if key in cache:
+                        # getting here means that this same key was added to the
+                        # cache while the lock was released.  since the link
+                        # update is already done, we need only return the
+                        # computed result and update the count of misses.
+                        pass
+                    elif _len(cache) >= maxsize:
+                        # use the old root to store the new key and result
+                        oldroot = root
+                        oldroot[KEY] = key
+                        oldroot[RESULT] = result
+                        # empty the oldest link and make it the new root
+                        root = nonlocal_root[0] = oldroot[NEXT]
+                        oldkey = root[KEY]
+                        root[KEY] = root[RESULT] = None
+                        # now update the cache dictionary for the new links
+                        del cache[oldkey]
+                        cache[key] = oldroot
+                    else:
+                        # put result in a new link at the front of the list
+                        last = root[PREV]
+                        link = [last, root, key, result]
+                        last[NEXT] = root[PREV] = cache[key] = link
+                    stats[MISSES] += 1
+                return result
 
-    def __get__(self, obj, objtype):
-        '''Support instance methods.'''
-        return functools.partial(self.__call__, obj)
+        def cache_info():
+            """Report cache statistics"""
+            with lock:
+                return _CacheInfo(stats[HITS], stats[MISSES], maxsize, len(cache))
 
+        def cache_clear():
+            """Clear the cache and cache statistics"""
+            with lock:
+                cache.clear()
+                root = nonlocal_root[0]
+                root[:] = [root, root, None, None]
+                stats[:] = [0, 0]
 
-class cached_property(object):
-    '''Decorator for read-only properties evaluated only once within TTL period.
+        wrapper.__wrapped__ = user_function
+        wrapper.cache_info = cache_info
+        wrapper.cache_clear = cache_clear
+        return update_wrapper(wrapper, user_function)
 
-    © 2011 Christopher Arndt, MIT License
-    https://wiki.python.org/moin/PythonDecoratorLibrary#Cached_Properties
-
-    It can be used to created a cached property like this::
-
-        # the class containing the property must be a new-style class
-        class MyClass(object):
-            # create property whose value is cached for ten minutes
-            @cached_property(ttl=600)
-            def randint(self):
-                # will only be evaluated every 10 min. at maximum.
-                return random.randint(0, 100)
-
-    The value is cached  in the '_cache' attribute of the object instance that
-    has the property getter method wrapped by this decorator. The '_cache'
-    attribute value is a dictionary which has a key for every property of the
-    object which is wrapped by this decorator. Each entry in the cache is
-    created only when the property is accessed for the first time and is a
-    two-element tuple with the last computed property value and the last time
-    it was updated in seconds since the epoch.
-
-    The default time-to-live (TTL) is 300 seconds (5 minutes). Set the TTL to
-    zero for the cached value to never expire.
-
-    To expire a cached property value manually just do::
-
-        del instance._cache[<property name>]
-
-    '''
-    def __init__(self, ttl=300):
-        self.ttl = ttl
-
-    def __call__(self, fget, doc=None):
-        self.fget = fget
-        self.__doc__ = doc or fget.__doc__
-        self.__name__ = fget.__name__
-        self.__module__ = fget.__module__
-        return self
-
-    def __get__(self, inst, owner):
-        now = time.time()
-        try:
-            value, last_update = inst._cache[self.__name__]
-            if self.ttl > 0 and now - last_update > self.ttl:
-                raise AttributeError
-        except (KeyError, AttributeError):
-            value = self.fget(inst)
-            try:
-                cache = inst._cache
-            except AttributeError:
-                cache = inst._cache = {}
-            cache[self.__name__] = (value, now)
-        return value
+    return decorating_function

@@ -9,7 +9,7 @@ from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.thread import LutrisThread
-from lutris.util.cache import cached_property
+from lutris.util.cache import lru_cache
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system
@@ -62,7 +62,8 @@ class Runner(object):
     def name(self):
         return self.__class__.__name__
 
-    @cached_property(ttl=1)  # /!\ Caution
+    @property
+    @lru_cache(maxsize=50)  # /!\ Caution
     def default_config(self):
         return LutrisConfig(runner_slug=self.name)
 

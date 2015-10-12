@@ -4,7 +4,6 @@ from collections import OrderedDict
 
 from lutris import runners
 from lutris.util import display, system
-from lutris.util.cache import memoize
 
 
 oss_list = [
