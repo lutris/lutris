@@ -241,6 +241,7 @@ class LutrisWindow(object):
             self.icon_menuitem.set_active(True)
         if icon_type == 'banner':
             self.banner_menuitem.set_active(True)
+        settings.write_setting('view_type', view_type)
 
     def sync_library(self):
         """Synchronize games with local stuff and server."""
@@ -387,8 +388,6 @@ class LutrisWindow(object):
             stopper()
 
         # Save settings
-        view_type = 'grid' if 'GridView' in str(type(self.view)) else 'list'
-        settings.write_setting('view_type', view_type)
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
