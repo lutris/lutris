@@ -147,19 +147,13 @@ class LutrisService(dbus.service.Object):
 DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
 
-
-def get_lutris_service():
-    """Return a LutrisService instance or a D-Bus interface to the existing one
-    if Lutris was already running."""
-    request = bus.request_name(DBUS_INTERFACE, dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
-    if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-        lutris = LutrisService(bus, '/', DBUS_INTERFACE)
-    else:
-        proxy = bus.get_object(DBUS_INTERFACE, "/")
-        lutris = dbus.Interface(proxy, DBUS_INTERFACE)
-    return lutris
-
-lutris = get_lutris_service()
+# Get lutris service
+request = bus.request_name(DBUS_INTERFACE, dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
+if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
+    lutris = LutrisService(bus, '/', DBUS_INTERFACE)
+else:
+    proxy = bus.get_object(DBUS_INTERFACE, "/")
+    lutris = dbus.Interface(proxy, DBUS_INTERFACE)
 
 # Make sure the existing process is not frozen
 if type(lutris) is dbus.Interface:
@@ -187,8 +181,8 @@ if type(lutris) is dbus.Interface:
             logger.debug(e)
             exit()  # Give up :(
         else:
-            time.sleep(2)  # Wait for bus name to be available
-            lutris = get_lutris_service()
+            time.sleep(1)  # Wait for bus name to be available again
+            lutris = LutrisService(bus, '/', DBUS_INTERFACE)
 
 
 game_slug = ""
