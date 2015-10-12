@@ -132,21 +132,19 @@ class GameStore(GObject.Object):
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
-        name = model.get_value(_iter, COL_NAME)
-        runner = model.get_value(_iter, COL_RUNNER)
         if self.filter_installed:
             installed = model.get_value(_iter, COL_INSTALLED)
             if not installed:
                 return False
         if self.filter_text:
-            name_matches = self.filter_text.lower() in name.lower()
-        else:
-            name_matches = True
+            name = model.get_value(_iter, COL_NAME)
+            if not self.filter_text.lower() in name.lower():
+                return False
         if self.filter_runner:
-            runner_matches = self.filter_runner == runner
-        else:
-            runner_matches = True
-        return name_matches and runner_matches
+            runner = model.get_value(_iter, COL_RUNNER)
+            if not self.filter_runner == runner:
+                return False
+        return True
 
     def add_game(self, game_slug):
         """Add a game into the store."""

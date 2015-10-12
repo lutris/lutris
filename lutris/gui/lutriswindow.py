@@ -59,7 +59,7 @@ class LutrisWindow(object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
 
-        # load config
+        # Load settings
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
@@ -235,11 +235,11 @@ class LutrisWindow(object):
 
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
         # in the group send the activate signal...
-        if self.icon_type == 'banner_small':
+        if icon_type == 'banner_small':
             self.banner_small_menuitem.set_active(True)
-        if self.icon_type == 'icon':
+        if icon_type == 'icon':
             self.icon_menuitem.set_active(True)
-        if self.icon_type == 'banner':
+        if icon_type == 'banner':
             self.banner_menuitem.set_active(True)
 
     def sync_library(self):
