@@ -10,6 +10,7 @@ from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.runners import import_runner
 from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util import datapath
+from lutris.util.cache import lru_cache
 
 DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
@@ -41,7 +42,26 @@ def sort_func(store, a_iter, b_iter, _user_data):
         return 0
 
 
-def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
+@lru_cache(maxsize=6)
+def get_default_icon(icon, size):
+    x, y = size
+    return Pixbuf.new_from_file_at_size(icon, x, y)
+
+
+@lru_cache(maxsize=3)
+def get_overlay(size):
+    x, y = size
+    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+        UNAVAILABLE_GAME_OVERLAY, x, y
+    )
+    transparent_pixbuf = transparent_pixbuf.scale_simple(
+        x, y, GdkPixbuf.InterpType.NEAREST
+    )
+    return transparent_pixbuf
+
+
+@lru_cache(maxsize=1500)
+def get_pixbuf_for_game(game_slug, icon_type, is_installed):
     if icon_type in ("banner", "banner_small"):
         size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
         default_icon = DEFAULT_BANNER
@@ -54,18 +74,14 @@ def get_pixbuf_for_game(game_slug, icon_type="banner", is_installed=True):
                                  "lutris_%s.png" % game_slug)
 
     if not os.path.exists(icon_path):
-        icon_path = default_icon
-    try:
-        pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
-    except GLib.GError:
-        pixbuf = Pixbuf.new_from_file_at_size(default_icon, size[0], size[1])
+        pixbuf = get_default_icon(default_icon, size)
+    else:
+        try:
+            pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
+        except GLib.GError:
+            pixbuf = get_default_icon(default_icon, size)
     if not is_installed:
-        transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-            UNAVAILABLE_GAME_OVERLAY, size[0], size[1]
-        )
-        transparent_pixbuf = transparent_pixbuf.scale_simple(
-            size[0], size[1], GdkPixbuf.InterpType.NEAREST
-        )
+        transparent_pixbuf = get_overlay(size).copy()
         pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
         return transparent_pixbuf
@@ -105,7 +121,7 @@ class GameStore(object):
             return
         game_data = pga.get_game_by_slug(game_slug)
         pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
-                                     is_installed=game_data['installed'])
+                                     game_data['installed'])
         name = game_data['name'].replace('&', "&amp;")
         self.store.append(
             (game_data['slug'], name, pixbuf, str(game_data['year']),
@@ -203,8 +219,9 @@ class GameView(object):
         """Update game icon."""
         row = self.get_row_by_slug(game_slug)
         if row:
-            game_pixpuf = get_pixbuf_for_game(game_slug, self.icon_type,
-                                              is_installed=is_installed)
+            game_pixpuf = get_pixbuf_for_game(game_slug,
+                                              self.game_store.icon_type,
+                                              is_installed)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
             if type(self) is GameGridView:
