@@ -113,7 +113,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 class LutrisService(dbus.service.Object):
-    """D-Bus services to run Lutris."""
+    """Main D-Bus Lutris service."""
     def __init__(self, bus, path, name):
         dbus.service.Object.__init__(self, bus, path, name)
         self.running = False
@@ -143,16 +143,52 @@ class LutrisService(dbus.service.Object):
     def run_game(self, game_slug):
         self.lutris_window.on_game_run(game_slug=game_slug)
 
-
 # D-Bus init
 DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
-request = bus.request_name(DBUS_INTERFACE, dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
-if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-    lutris = LutrisService(bus, '/', DBUS_INTERFACE)
-else:
-    object = bus.get_object(DBUS_INTERFACE, "/")
-    lutris = dbus.Interface(object, DBUS_INTERFACE)
+
+
+def get_lutris_service():
+    """Return a LutrisService instance or a D-Bus interface to the existing one
+    if Lutris was already running."""
+    request = bus.request_name(DBUS_INTERFACE, dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
+    if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
+        lutris = LutrisService(bus, '/', DBUS_INTERFACE)
+    else:
+        proxy = bus.get_object(DBUS_INTERFACE, "/")
+        lutris = dbus.Interface(proxy, DBUS_INTERFACE)
+    return lutris
+
+lutris = get_lutris_service()
+
+# Make sure the existing process is not frozen
+if type(lutris) is dbus.Interface:
+    try:
+        lutris.is_running()
+    except dbus.exceptions.DBusException as e:
+        logger.debug(e)
+        q = dialogs.QuestionDialog(
+            {'title': "Error",
+             'question': ("Lutris is already running \n"
+                          "but seems unresponsive,\n"
+                          "do you want to restart it?")}
+        )
+        if q.result == Gtk.ResponseType.NO:
+            exit()
+        try:
+            # Get existing process' PID
+            dbus_proxy = bus.get_object('org.freedesktop.DBus',
+                                        '/org/freedesktop/DBus/Bus')
+            dbus_interface = dbus.Interface(dbus_proxy, 'org.freedesktop.DBus')
+            pid = dbus_interface.GetConnectionUnixProcessID(lutris.bus_name)
+
+            os.kill(pid, signal.SIGKILL)
+        except OSError, dbus.exceptions.DBusException:
+            logger.debug(e)
+            exit()  # Give up :(
+        else:
+            time.sleep(2)  # Wait for bus name to be available
+            lutris = get_lutris_service()
 
 
 game_slug = ""
