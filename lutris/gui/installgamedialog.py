@@ -152,7 +152,7 @@ class InstallerDialog(Gtk.Window):
 
         # Build list
         for index, script in enumerate(self.scripts):
-            description = script['description']
+            description = script['description'].encode('utf-8')
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(
@@ -169,7 +169,7 @@ class InstallerDialog(Gtk.Window):
         self.notes_label.set_max_width_chars(60)
         self.notes_label.set_property('wrap', True)
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self.scripts[0]['notes'])
+            "<i>{}</i>".format(self.scripts[0]['notes'].encode('utf-8'))
         )
 
         self.installer_choice_box.pack_start(self.notes_label, True, True, 40)
