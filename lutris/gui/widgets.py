@@ -131,13 +131,14 @@ class DownloadProgressBox(Gtk.VBox):
 
 
 class FileChooserEntry(Gtk.Box):
-    def __init__(self, action=Gtk.FileChooserAction.SELECT_FOLDER,
-                 default=None):
+    def __init__(self, title='Select file',
+                 action=Gtk.FileChooserAction.OPEN,
+                 default_path=None):
         super(FileChooserEntry, self).__init__()
 
         self.entry = Gtk.Entry()
-        if default:
-            self.entry.set_text(default)
+        if default_path:
+            self.entry.set_text(default_path)
         self.pack_start(self.entry, True, True, 0)
 
         self.path_completion = Gtk.ListStore(str)
@@ -148,7 +149,7 @@ class FileChooserEntry(Gtk.Box):
         self.entry.connect("changed", self.entry_changed)
 
         self.file_chooser_dlg = Gtk.FileChooserDialog(
-            title="Select folder",
+            title=title,
             transient_for=None,
             action=action
         )
@@ -157,20 +158,20 @@ class FileChooserEntry(Gtk.Box):
             '_Cancel', Gtk.ResponseType.CLOSE,
             '_OK', Gtk.ResponseType.OK
         )
-        if default:
+        if default_path:
             self.file_chooser_dlg.set_current_folder(
-                os.path.expanduser(default)
+                os.path.expanduser(default_path)
             )
 
         button = Gtk.Button()
         button.set_label("Browse...")
-        button.connect('clicked', self.open_filechooser, default)
+        button.connect('clicked', self.open_filechooser, default_path)
         self.add(button)
 
-    def open_filechooser(self, widget, default):
-        if default:
+    def open_filechooser(self, widget, default_path):
+        if default_path:
             self.file_chooser_dlg.set_current_folder(
-                os.path.expanduser(default)
+                os.path.expanduser(default_path)
             )
         self.file_chooser_dlg.connect('response', self.select_file)
         self.file_chooser_dlg.run()

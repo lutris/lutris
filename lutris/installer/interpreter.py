@@ -492,38 +492,35 @@ class ScriptInterpreter(Commands):
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s" % appid)
-            # Here the user must wait for the game to finish installing, a
-            # better way to handle this would be to poll StateFlags on the
-            # game's config to check if the game has finished installing.
-            # self.parent.wait_for_user_action(
-            #    "Steam will now download and install game %s, "
-            #    "press Ok when it's finished" % appid,
-            #    self.on_steam_game_installed,
-            #    appid
-            # )
             steam_runner.appid = appid
             AsyncCall(steam_runner.install_game, None, appid)
             self.steam_poll = GLib.timeout_add(2000,
-                                               self.monitor_steam_install)
+                                               self._monitor_steam_install)
+            self.abort_current_task = (
+                lambda:steam_runner.remove_game_data(appid=appid)
+            )
             return 'STOP'
         elif is_game_files:
             self._append_steam_data_to_files(runner_class)
 
-    def monitor_steam_install(self):
+    def _monitor_steam_install(self):
         steamapps_path = self.steam_data['steamapps_path']
         appid = self.steam_data['appid']
         states = get_app_states(steamapps_path, appid)
         logger.debug(states)
+        if self.cancelled:
+            return False
         if 'Fully Installed' in states:
-            self.on_steam_game_installed()
+            self._on_steam_game_installed()
             logger.debug('Steam game has finished installing')
             return False
         else:
             logger.debug('Steam game still installing')
             return True
 
-    def on_steam_game_installed(self, *args):
+    def _on_steam_game_installed(self, *args):
         """Fired whenever a Steam game has finished installing."""
+        self.abort_current_task = None
         if self.steam_data['is_game_files']:
             if self.steam_data['platform'] == 'windows':
                 runner_class = winesteam.winesteam

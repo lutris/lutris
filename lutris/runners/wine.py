@@ -5,7 +5,7 @@ import subprocess
 from textwrap import dedent
 
 from lutris import settings
-from lutris.util import display, system
+from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
@@ -114,6 +114,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 def winetricks(app, prefix=None, winetricks_env=None, silent=True,
                blocking=False):
     """Execute winetricks."""
+    path = (system.find_executable('winetricks')
+            or os.path.join(datapath.get(), 'bin/winetricks'))
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()
@@ -122,7 +124,7 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True,
     else:
         args = app
     wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
-             wine_path='winetricks', arch=arch, args=args, blocking=blocking)
+             wine_path=path, arch=arch, args=args, blocking=blocking)
 
 
 def winecfg(wine_path=None, prefix=None, blocking=True):

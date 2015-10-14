@@ -340,12 +340,12 @@ class winesteam(wine.wine):
         time.sleep(10)
         super(winesteam, self).stop()
 
-    def remove_game_data(self, **kwargs):
+    def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
             installed = self.install_dialog()
             if not installed:
                 return False
-        appid = self.game_config.get('appid')
+        appid = appid if appid else self.game_config.get('appid')
 
         env = self.get_env(full=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
