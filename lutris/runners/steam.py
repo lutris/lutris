@@ -196,12 +196,13 @@ class steam(Runner):
            and not self.original_steampid:
             shutdown()
 
-    def remove_game_data(self, **kwargs):
+    def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
             installed = self.install_dialog()
             if not installed:
                 return False
-        appid = self.game_config.get('appid')
+        appid = appid if appid else self.game_config.get('appid')
+
         logger.debug("Launching Wine Steam uninstall of game %s" % appid)
         command = [self.executable, 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self)

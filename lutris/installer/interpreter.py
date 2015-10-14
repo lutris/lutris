@@ -496,6 +496,9 @@ class ScriptInterpreter(Commands):
             AsyncCall(steam_runner.install_game, None, appid)
             self.steam_poll = GLib.timeout_add(2000,
                                                self._monitor_steam_install)
+            self.abort_current_task = (
+                lambda:steam_runner.remove_game_data(appid=appid)
+            )
             return 'STOP'
         elif is_game_files:
             self._append_steam_data_to_files(runner_class)
@@ -505,6 +508,8 @@ class ScriptInterpreter(Commands):
         appid = self.steam_data['appid']
         states = get_app_states(steamapps_path, appid)
         logger.debug(states)
+        if self.cancelled:
+            return False
         if 'Fully Installed' in states:
             self._on_steam_game_installed()
             logger.debug('Steam game has finished installing')
@@ -515,6 +520,7 @@ class ScriptInterpreter(Commands):
 
     def _on_steam_game_installed(self, *args):
         """Fired whenever a Steam game has finished installing."""
+        self.abort_current_task = None
         if self.steam_data['is_game_files']:
             if self.steam_data['platform'] == 'windows':
                 runner_class = winesteam.winesteam
