@@ -325,6 +325,7 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a directory."""
         label = Label(label_text)
         directory_chooser = FileChooserEntry(
+            title='Select folder',
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             default=reverse_expanduser(value)
         )

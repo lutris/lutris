@@ -265,13 +265,15 @@ class InstallerDialog(Gtk.Window):
                          default_path=None):
         """Display a file/folder chooser."""
         if action == 'file':
+            title = 'Select file'
             action = Gtk.FileChooserAction.OPEN
         elif action == 'folder':
+            title = 'Select folder'
             action = Gtk.FileChooserAction.SELECT_FOLDER
 
         if self.location_entry:
             self.location_entry.destroy()
-        self.location_entry = FileChooserEntry(action, default_path)
+        self.location_entry = FileChooserEntry(title, action, default_path)
         self.location_entry.show_all()
         if callback_on_changed:
             self.location_entry.entry.connect('changed', callback_on_changed)
