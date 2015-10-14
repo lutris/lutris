@@ -319,7 +319,7 @@ class winesteam(wine.wine):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
-        self.prepare_launch()
+        self.prelaunch()
 
         command = self.launch_args
         if appid:
@@ -349,6 +349,6 @@ class winesteam(wine.wine):
 
         env = self.get_env(full=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
-        self.prepare_launch()
+        self.prelaunch()
         thread = LutrisThread(command, runner=self, env=env)
         thread.start()
