@@ -83,7 +83,7 @@ setup(
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
-    packages=['lutris', 'lutris.gui', 'lutris.util', 'lutris.runners'],
+    packages=['lutris', 'lutris.gui', 'lutris.util', 'lutris.runners', 'lutris.installer'],
     scripts=['bin/lutris'],
     data_files=data_files,
     # FIXME: find a way to install dependencies
