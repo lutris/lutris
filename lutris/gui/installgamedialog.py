@@ -199,6 +199,8 @@ class InstallerDialog(Gtk.Window):
 
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
+        if not script.get('game_slug'):
+            script['game_slug'] = self.game_ref
         self.interpreter = interpreter.ScriptInterpreter(script, self)
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
