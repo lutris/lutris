@@ -327,7 +327,7 @@ class ConfigBox(VBox):
         directory_chooser = FileChooserEntry(
             title='Select folder',
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default=reverse_expanduser(value)
+            default_path=reverse_expanduser(value)
         )
         directory_chooser.entry.connect('changed', self.on_chooser_dir_set,
                                         option_name)
