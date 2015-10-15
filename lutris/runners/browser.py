@@ -38,4 +38,8 @@ class browser(Runner):
     def play(self):
         self.browser_exec = self.runner_config.get('browser', self.executable)
         url = self.game_config.get('main_file')
+        if not url:
+            return {'error': 'CUSTOM',
+                    'text': ("The web address is empty, \n"
+                             "verify the game's configuration."),}
         return {'command': [self.browser_exec, url]}
