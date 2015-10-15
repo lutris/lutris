@@ -152,7 +152,9 @@ class InstallerDialog(Gtk.Window):
 
         # Build list
         for index, script in enumerate(self.scripts):
-            description = script['description'].encode('utf-8')
+            description = script['description']
+            if description:
+                description = description.encode('utf-8')
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(
