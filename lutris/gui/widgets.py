@@ -85,19 +85,26 @@ class DownloadProgressBox(Gtk.VBox):
                 self.emit('cancel', {})
                 return
 
-        timer_id = GLib.timeout_add(100, self.progress)
+        timer_id = GLib.timeout_add(100, self._progress)
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
             self.downloader.start()
         return timer_id
 
-    def progress(self):
+    def cancel(self, _widget=None):
+        """Cancel the current download."""
+        if self.downloader:
+            self.downloader.cancel()
+        self.cancel_button.set_sensitive(False)
+        self.emit('cancel', {})
+
+    def _progress(self):
         """Show download progress."""
         progress = min(self.downloader.check_progress(), 1)
         if self.downloader.state in [self.downloader.CANCELLED,
                                      self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
-            self.set_text("Download interrupted")
+            self._set_text("Download interrupted")
             if self.downloader.state == self.downloader.CANCELLED:
                 self.emit('cancel', {})
             return False
@@ -111,29 +118,22 @@ class DownloadProgressBox(Gtk.VBox):
                 self.downloader.time_left
             )
         )
-        self.set_text(progress_text)
+        self._set_text(progress_text)
         if self.downloader.state == self.downloader.COMPLETED:
             self.cancel_button.set_sensitive(False)
             self.emit('complete', {})
             return False
         return True
 
-    def cancel(self, _widget=None):
-        """Cancel the current download."""
-        if self.downloader:
-            self.downloader.cancel()
-        self.cancel_button.set_sensitive(False)
-        self.emit('cancel', {})
-
-    def set_text(self, text):
+    def _set_text(self, text):
         markup = u"<span size='10000'>{}</span>".format(text)
         self.progress_label.set_markup(markup)
 
 
 class FileChooserEntry(Gtk.Box):
-    def __init__(self, title='Select file',
-                 action=Gtk.FileChooserAction.OPEN,
+    def __init__(self, title='Select file', action=Gtk.FileChooserAction.OPEN,
                  default_path=None):
+        """Widget with text entry and button to select file or folder."""
         super(FileChooserEntry, self).__init__()
 
         self.entry = Gtk.Entry()
@@ -146,7 +146,7 @@ class FileChooserEntry(Gtk.Box):
         completion.set_model(self.path_completion)
         completion.set_text_column(0)
         self.entry.set_completion(completion)
-        self.entry.connect("changed", self.entry_changed)
+        self.entry.connect("changed", self._entry_changed)
 
         self.file_chooser_dlg = Gtk.FileChooserDialog(
             title=title,
@@ -165,18 +165,21 @@ class FileChooserEntry(Gtk.Box):
 
         button = Gtk.Button()
         button.set_label("Browse...")
-        button.connect('clicked', self.open_filechooser, default_path)
+        button.connect('clicked', self._open_filechooser, default_path)
         self.add(button)
 
-    def open_filechooser(self, widget, default_path):
+    def get_text(self):
+        return self.entry.get_text()
+
+    def _open_filechooser(self, widget, default_path):
         if default_path:
             self.file_chooser_dlg.set_current_folder(
                 os.path.expanduser(default_path)
             )
-        self.file_chooser_dlg.connect('response', self.select_file)
+        self.file_chooser_dlg.connect('response', self._select_file)
         self.file_chooser_dlg.run()
 
-    def entry_changed(self, widget):
+    def _entry_changed(self, widget):
         self.path_completion.clear()
         current_path = widget.get_text()
         if not current_path:
@@ -200,16 +203,13 @@ class FileChooserEntry(Gtk.Box):
                 if index > 15:
                     break
 
-    def select_file(self, dialog, response):
+    def _select_file(self, dialog, response):
         if response == Gtk.ResponseType.OK:
             target_path = dialog.get_filename()
             if target_path:
                 self.file_chooser_dlg.set_current_folder(target_path)
                 self.entry.set_text(reverse_expanduser(target_path))
         dialog.hide()
-
-    def get_text(self):
-        return self.entry.get_text()
 
 
 class Label(Gtk.Label):

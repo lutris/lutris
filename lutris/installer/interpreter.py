@@ -497,7 +497,7 @@ class ScriptInterpreter(Commands):
             self.steam_poll = GLib.timeout_add(2000,
                                                self._monitor_steam_install)
             self.abort_current_task = (
-                lambda:steam_runner.remove_game_data(appid=appid)
+                lambda: steam_runner.remove_game_data(appid=appid)
             )
             return 'STOP'
         elif is_game_files:

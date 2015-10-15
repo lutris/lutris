@@ -113,10 +113,9 @@ class DownloadDialog(Gtk.Dialog):
         Gtk.Dialog.__init__(self, title or "Downloading file")
         self.set_size_request(485, 104)
         self.set_border_width(12)
-        params = {
-            'url': url,
-            'dest': dest,
-            'title': label or "Downloading %s" % url}
+        params = {'url': url,
+                  'dest': dest,
+                  'title': label or "Downloading %s" % url}
         self.download_box = DownloadProgressBox(params, downloader=downloader)
 
         self.download_box.connect('complete', self.download_complete)
