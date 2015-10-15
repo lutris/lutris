@@ -256,7 +256,6 @@ class AddGameDialog(Dialog, GameDialogCommon):
 
     def __init__(self, parent, game=None):
         super(AddGameDialog, self).__init__("Add a new game", parent=parent)
-        self.lutris_config = LutrisConfig(level='game')
         self.game = game
         self.saved = False
 
@@ -268,6 +267,9 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.runner_name = None
             self.slug = None
 
+        self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
+                                          game_slug=self.slug,
+                                          level='game')
         self.build_notebook()
         self.build_tabs('game')
         self.build_action_area("Add", self.on_save)
