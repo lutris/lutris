@@ -100,6 +100,10 @@ class ScriptInterpreter(Commands):
     def _check_dependency(self):
         # XXX Maybe handle this with Game instead of hitting directly the PGA?
         game = pga.get_game_by_slug(self.requires, field='installer_slug')
+        # Legacy support of installers using game slug as requirement
+        if not game:
+            game = pga.get_game_by_slug(self.requires)
+
         if not game or not game['directory']:
             raise ScriptingError(
                 "You need to install {} before".format(self.requires)
