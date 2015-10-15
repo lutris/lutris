@@ -319,7 +319,6 @@ class winesteam(wine.wine):
         appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
-        self.prelaunch()
 
         command = self.launch_args
         if appid:
