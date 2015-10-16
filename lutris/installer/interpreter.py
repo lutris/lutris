@@ -359,6 +359,7 @@ class ScriptInterpreter(Commands):
                           directory=self.target_path,
                           installed=1,
                           installer_slug=self.script.get('slug'),
+                          parent_slug=self.requires,
                           year=self.script.get('year'),
                           steamid=self.script.get('steamid'))
 

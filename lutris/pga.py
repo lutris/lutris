@@ -83,6 +83,8 @@ def migrate_games():
         {'name': 'id', 'type': 'INTEGER', 'indexed': True},
         {'name': 'name', 'type': 'TEXT'},
         {'name': 'slug', 'type': 'TEXT'},
+        {'name': 'installer_slug', 'type': 'TEXT'},
+        {'name': 'parent_slug', 'type': 'TEXT'},
         {'name': 'platform', 'type': 'TEXT'},
         {'name': 'runner', 'type': 'TEXT'},
         {'name': 'executable', 'type': 'TEXT'},
@@ -90,7 +92,6 @@ def migrate_games():
         {'name': 'updated', 'type': 'DATETIME'},
         {'name': 'lastplayed', 'type': 'INTEGER'},
         {'name': 'installed', 'type': 'INTEGER'},
-        {'name': 'installer_slug', 'type': 'TEXT'},
         {'name': 'year', 'type': 'INTEGER'},
         {'name': 'steamid', 'type': 'INTEGER'},
     ]
