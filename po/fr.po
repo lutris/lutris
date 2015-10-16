@@ -21,10 +21,10 @@ msgid "About Lutris"
 msgstr "À propos de Lutris"
 #: ../data/ui/AboutDialog.ui.h:2
 msgid "© 2010, 2012 Mathieu Comandon"
-msgstr ""
+msgstr "© 2010, 2012 Mathieu Comandon"
 #: ../data/ui/AboutDialog.ui.h:3
 msgid "Open Source Gaming Platform"
-msgstr ""
+msgstr "Plateforme de jeu open source"
 #: ../data/ui/AboutDialog.ui.h:4
 msgid "http://lutris.net"
 msgstr "http://lutris.net"
@@ -78,10 +78,10 @@ msgid "Connect"
 msgstr "Connecter"
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr ""
+msgstr "Installer et configurer les runners"
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
-msgstr ""
+msgstr "Gérer les runners"
 #: ../data/ui/LutrisWindow.ui.h:6
 msgid "Import"
 msgstr "Importer"
@@ -93,10 +93,10 @@ msgid "ScummVM"
 msgstr "ScummVM"
 #: ../data/ui/LutrisWindow.ui.h:10
 msgid "configure the default options"
-msgstr ""
+msgstr "Configurer les options par défaut"
 #: ../data/ui/LutrisWindow.ui.h:12
 msgid "Icons"
-msgstr ""
+msgstr "Icônes"
 #: ../data/ui/LutrisWindow.ui.h:13
 msgid "List"
 msgstr "Liste"
@@ -120,7 +120,7 @@ msgid "Remove game from library"
 msgstr "Supprimer le jeu de la bibliothèque"
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
-msgstr ""
+msgstr "Filtrer la liste des jeux"
 #: ../data/ui/AboutLutrisDialog.ui.h:1
 msgid ""
 "# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
@@ -138,7 +138,7 @@ msgid ""
 msgstr ""
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr ""
+msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com"
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
 msgstr "gtk-cancel"

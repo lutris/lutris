@@ -152,7 +152,9 @@ class InstallerDialog(Gtk.Window):
 
         # Build list
         for index, script in enumerate(self.scripts):
-            description = script['description'].encode('utf-8')
+            for item in ['description', 'notes']:
+                script[item] = (script.get(item) or '').encode('utf-8')
+            description = script['description']
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(
@@ -169,7 +171,7 @@ class InstallerDialog(Gtk.Window):
         self.notes_label.set_max_width_chars(60)
         self.notes_label.set_property('wrap', True)
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self.scripts[0]['notes'].encode('utf-8'))
+            "<i>{}</i>".format(self.scripts[0]['notes'])
         )
 
         self.installer_choice_box.pack_start(self.notes_label, True, True, 40)
@@ -197,6 +199,8 @@ class InstallerDialog(Gtk.Window):
 
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
+        if not script.get('game_slug'):
+            script['game_slug'] = self.game_ref
         self.interpreter = interpreter.ScriptInterpreter(script, self)
         game_name = self.interpreter.game_name.replace('&', '&amp;')
         self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
@@ -403,7 +407,7 @@ class InstallerDialog(Gtk.Window):
 
     def notify_install_success(self):
         if self.parent:
-            self.parent.view.emit('game-installed', self.interpreter.game_slug)
+            self.parent.view.emit('game-installed', self.game_ref)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)

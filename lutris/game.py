@@ -17,7 +17,9 @@ from lutris.gui import dialogs
 
 def show_error_message(message):
     """Display an error message based on the runner's output."""
-    if "RUNNER_NOT_INSTALLED" == message['error']:
+    if "CUSTOM" == message['error']:
+        dialogs.ErrorDialog(message['text'])
+    elif "RUNNER_NOT_INSTALLED" == message['error']:
         dialogs.ErrorDialog('Error the runner is not installed')
     elif "NO_BIOS" == message['error']:
         dialogs.ErrorDialog("A bios file is required to run this game")

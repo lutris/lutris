@@ -27,6 +27,7 @@ We currently support the following runners:
 * Mame
 * Mess
 * ScummVM
+* ResidualVM
 * Mednafen
 * FS-UAE
 * Vice
