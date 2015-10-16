@@ -200,6 +200,7 @@ class InstallerDialog(Gtk.Window):
 
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
+        # FIXME: auto-installers should provide game_slug
         if not script.get('game_slug'):
             script['game_slug'] = self.game_ref
         self.interpreter = interpreter.ScriptInterpreter(script, self)
@@ -408,7 +409,7 @@ class InstallerDialog(Gtk.Window):
 
     def notify_install_success(self):
         if self.parent:
-            self.parent.view.emit('game-installed', self.game_ref)
+            self.parent.view.emit('game-installed', self.interpreter.game_slug)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)
