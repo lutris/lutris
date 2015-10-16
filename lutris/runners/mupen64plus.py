@@ -22,9 +22,9 @@ class mupen64plus(Runner):
             'default': True
         },
         {
-            'option': 'nogui',
+            'option': 'hideosd',
             'type': 'bool',
-            'label': 'Hide GUI',
+            'label': 'Hide OSD',
             'default': True
         }
     ]
@@ -42,7 +42,7 @@ class mupen64plus(Runner):
 
     def play(self):
         arguments = [self.get_executable()]
-        if self.runner_config.get('nogui'):
+        if self.runner_config.get('hideosd'):
             arguments.append('--noosd')
         else:
             arguments.append('--osd')
