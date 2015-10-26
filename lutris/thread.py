@@ -159,7 +159,7 @@ class LutrisThread(threading.Thread):
             # Exclude other wrapper processes
             if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
                               'Steam.exe', 'steamwebhelper.',
-                              'steamerrorrepor'):
+                              'steamerrorrepor', 'lutris'):
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
