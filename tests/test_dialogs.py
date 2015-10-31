@@ -41,7 +41,8 @@ class TestGameDialog(TestCase):
         return self.get_viewport(1)
 
     def get_buttons(self):
-        return self.dlg.vbox.get_children()[1].get_children()[1]
+        notebook = self.dlg.vbox.get_children()[1]
+        return notebook.get_children()[0].get_children()[1]
 
     def test_dialog(self):
         self.assertEqual(self.dlg.notebook.get_current_page(), 0)
