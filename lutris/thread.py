@@ -167,13 +167,18 @@ class LutrisThread(threading.Thread):
                                              child.name))
             if child.state == 'Z':
                 terminated_children += 1
+
+        if self.runner and hasattr(self.runner, 'watch_game_process'):
+            if not self.runner.watch_game_process():
+                self.is_running = False
+                return False
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
         if num_watched_children == 0:
             self.cycles_without_children += 1
-        if(num_children == 0
-           or self.cycles_without_children >= self.max_cycles_without_children):
+        if num_children == 0 \
+           or self.cycles_without_children >= self.max_cycles_without_children:
             logger.debug("No children left in thread, exiting")
             self.is_running = False
             self.return_code = self.game_process.returncode

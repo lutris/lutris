@@ -6,8 +6,8 @@ from lutris.gui.dialogs import NoticeDialog
 from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import (get_path_from_appmanifest, read_config,
-                               get_default_acf, to_vdf)
+from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
+                               get_default_acf, read_config, to_vdf)
 
 
 def shutdown():
@@ -187,6 +187,7 @@ class steam(Runner):
         return True
 
     def play(self):
+        self.game_launch_time = time.localtime()
 
         # Get current steam pid to act as the root pid instead of lutris
         self.original_steampid = get_steam_pid()
@@ -195,6 +196,19 @@ class steam(Runner):
             'command': [self.executable, 'steam://rungameid/%s' % appid],
             'rootpid': self.original_steampid
         }
+
+    def watch_game_process(self):
+        appid = self.game_config.get('appid') or ''
+        if not appid or not hasattr(self, 'game_launch_time'):
+            return
+        state_log = get_app_state_log(self.steam_data_dir, appid,
+                                      self.game_launch_time)
+        if not state_log:
+            return True
+        state = state_log.pop()
+        if state == "Fully Installed,":
+            return False
+        return True
 
     def stop(self):
         if self.runner_config.get('quit_steam_on_exit') \

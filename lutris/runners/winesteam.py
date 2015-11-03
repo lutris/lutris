@@ -10,7 +10,8 @@ from lutris.runners import wine
 from lutris.thread import LutrisThread
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam import read_config, get_path_from_appmanifest
+from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
+                               read_config)
 from lutris.util.wineregistry import WineRegistry
 
 # Redefine wine installer tasks
@@ -343,6 +344,7 @@ class winesteam(wine.wine):
         return {'command': self.launch_args, 'env': self.get_env(full=False)}
 
     def play(self):
+        self.game_launch_time = time.localtime()
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
 
@@ -352,6 +354,18 @@ class winesteam(wine.wine):
         if args:
             command.append(args)
         return {'command': command, 'env': self.get_env(full=False)}
+
+    def watch_game_process(self):
+        if not self.appid or not hasattr(self, 'game_launch_time'):
+            return True
+        state_log = get_app_state_log(self.steam_data_dir, self.appid,
+                                      self.game_launch_time)
+        if not state_log:
+            return True
+        state = state_log.pop()
+        if state == "Fully Installed,":
+            return False
+        return True
 
     def shutdown(self):
         """Shutdown Steam in a clean way."""
