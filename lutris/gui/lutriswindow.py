@@ -318,12 +318,6 @@ class LutrisWindow(object):
         """Open the about dialog."""
         dialogs.AboutDialog()
 
-    def reset(self, *args):
-        """Reset the desktop to it's initial state."""
-        if self.running_game:
-            self.running_game.stop()
-            self.stop_button.set_sensitive(False)
-
     # Callbacks
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
@@ -442,6 +436,12 @@ class LutrisWindow(object):
         else:
             self.running_game = None
             InstallerDialog(game_slug, self)
+
+    def on_game_stop(self, *args):
+        """Stop running game."""
+        if self.running_game:
+            self.running_game.stop()
+            self.stop_button.set_sensitive(False)
 
     def on_install_clicked(self, _widget=None, game_ref=None):
         """Install a game"""

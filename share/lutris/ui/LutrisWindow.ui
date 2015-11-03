@@ -444,7 +444,7 @@
                 <property name="tooltip_text" translatable="yes">Stop game</property>
                 <property name="label" translatable="yes">Stop</property>
                 <property name="icon_name">media-playback-stop</property>
-                <signal name="clicked" handler="reset" swapped="no"/>
+                <signal name="clicked" handler="on_game_stop" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
