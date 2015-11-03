@@ -333,7 +333,7 @@
                         <property name="use_underline">True</property>
                         <property name="image">image5</property>
                         <property name="use_stock">False</property>
-                        <signal name="activate" handler="reset" swapped="no"/>
+                        <signal name="activate" handler="on_game_stop" swapped="no"/>
                       </object>
                     </child>
                     <child>
