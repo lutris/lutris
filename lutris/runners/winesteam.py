@@ -298,17 +298,20 @@ class winesteam(wine.wine):
         subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
+        def check_shutdown(is_running, times=10):
+            for x in range(1, times):
+                time.sleep(1)
+                if not is_running():
+                    return True
         from lutris.runners import steam
         if steam.is_running():
+            logger.info("Waiting for Steam shutdown...")
             steam.shutdown()
-            logger.info("Waiting for Steam to shutdown...")
-            time.sleep(2)
-            if steam.is_running():
-                logger.info("Steam does not shutdown, killing it...")
+            if not check_shutdown(steam.is_running):
+                logger.info("Steam does not shut down, killing it...")
                 steam.kill()
-                time.sleep(2)
-                if steam.is_running():
-                    logger.error("Failed to shutdown Steam for Windows :(")
+                if not check_shutdown(steam.is_running, 5):
+                    logger.error("Failed to shut down Steam :(")
                     return False
         return True
 
