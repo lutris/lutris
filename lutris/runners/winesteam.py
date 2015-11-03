@@ -117,6 +117,10 @@ class winesteam(wine.wine):
         )
 
     @property
+    def appid(self):
+        return self.game_config.get('appid') or ''
+
+    @property
     def prefix_path(self):
         _prefix = self.game_config.get('prefix') or self.get_default_prefix()
         return os.path.expanduser(_prefix)
@@ -132,12 +136,11 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
-        appid = self.game_config.get('appid')
         for apps_path in self.get_steamapps_dirs():
-            game_path = get_path_from_appmanifest(apps_path, appid)
+            game_path = get_path_from_appmanifest(apps_path, self.appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", appid)
+        logger.warning("Data path for SteamApp %s not found.", self.appid)
 
     @property
     def working_dir(self):
@@ -340,13 +343,12 @@ class winesteam(wine.wine):
         return {'command': self.launch_args, 'env': self.get_env(full=False)}
 
     def play(self):
-        appid = self.game_config.get('appid') or ''
         args = self.game_config.get('args') or ''
         logger.debug("Checking Steam installation")
 
         command = self.launch_args
-        if appid:
-            command.append('steam://rungameid/%s' % appid)
+        if self.appid:
+            command.append('steam://rungameid/%s' % self.appid)
         if args:
             command.append(args)
         return {'command': command, 'env': self.get_env(full=False)}
@@ -374,7 +376,7 @@ class winesteam(wine.wine):
             installed = self.install_dialog()
             if not installed:
                 return False
-        appid = appid if appid else self.game_config.get('appid')
+        appid = appid if appid else self.appid
 
         env = self.get_env(full=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
