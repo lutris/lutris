@@ -1,5 +1,5 @@
 import os
-from gi.repository import Gio
+from gi.repository import Gio, Gtk
 from lutris.game import Game
 from lutris.config import check_config
 # from lutris import settings
@@ -42,7 +42,14 @@ class TestGameDialog(TestCase):
 
     def get_buttons(self):
         notebook = self.dlg.vbox.get_children()[1]
-        return notebook.get_children()[0].get_children()[1]
+        # For some reason, there isn't a ButtonBox on Ubuntu 14.4, weird.
+        button_box = notebook.get_children()[0]
+        if button_box.__class__ == Gtk.CheckButton:
+            button_hbox = notebook.get_children()[1]
+        else:
+            button_hbox = button_box.get_children()[1]
+        self.assertEqual(button_hbox.__class__, Gtk.HBox)
+        return button_hbox
 
     def test_dialog(self):
         self.assertEqual(self.dlg.notebook.get_current_page(), 0)
