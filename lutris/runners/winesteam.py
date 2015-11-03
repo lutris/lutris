@@ -105,6 +105,16 @@ class winesteam(wine.wine):
                          "its own custom Wine prefix.")
             },
         )
+        self.runner_options.insert(
+            1,
+            {
+                'option': 'quit_steam_on_exit',
+                'label': "Stop Steam after game exits",
+                'type': 'bool',
+                'default': False,
+                'help': ("Shut down Steam after the game has quit.")
+            },
+        )
 
     @property
     def prefix_path(self):
@@ -345,13 +355,19 @@ class winesteam(wine.wine):
         """Shutdown Steam in a clean way."""
         pid = system.get_pid('Steam.exe$')
         if not pid:
-            return False
-        subprocess.Popen(self.launch_args + ['-shutdown'], env=self.get_env())
+            return
+        p = subprocess.Popen(self.launch_args + ['-shutdown'],
+                             env=self.get_env())
+        p.wait()
 
     def stop(self):
-        self.shutdown()
-        time.sleep(10)
-        super(winesteam, self).stop()
+        if self.runner_config.get('quit_steam_on_exit'):
+            self.shutdown()
+            for x in range(1, 10):
+                time.sleep(1)
+                if is_running():
+                    break
+            super(winesteam, self).stop()
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():

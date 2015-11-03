@@ -55,8 +55,8 @@ class steam(Runner):
             'label': "Stop Steam after game exits",
             'type': 'bool',
             'default': False,
-            'help': ("Quit Steam after the game has quit\n"
-                     "(only if it was started by Lutris)")
+            'help': ("Shut down Steam after the game has quit\n"
+                     "(only if Steam was started by Lutris)")
         }
     ]
     system_options_override = [
