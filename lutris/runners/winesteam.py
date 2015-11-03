@@ -303,6 +303,17 @@ class winesteam(wine.wine):
                 time.sleep(1)
                 if not is_running():
                     return True
+        # Stop Wine Steam to prevent Wine prefix/version problems
+        if is_running():
+            logger.info("Waiting for Steam to shutdown...")
+            self.shutdown()
+            if not check_shutdown(is_running):
+                logger.info("Wine Steam does not shut down, killing it...")
+                kill()
+                if not check_shutdown(is_running, 5):
+                    logger.error("Failed to shut down Wine Steam :(")
+                    return False
+        # Stop Linux Steam
         from lutris.runners import steam
         if steam.is_running():
             logger.info("Waiting for Steam shutdown...")
