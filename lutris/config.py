@@ -138,11 +138,6 @@ class LutrisConfig(object):
     def __init__(self, runner_slug=None, game_config_id=None, level=None):
         self.game_config_id = game_config_id
         self.runner_slug = runner_slug
-        if game_config_id:
-            if not runner_slug:
-                raise RuntimeError(
-                    "Game config provided without runner (%s)" % game_config_id
-                )
 
         # Cascaded config sections (for reading)
         self.game_config = {}

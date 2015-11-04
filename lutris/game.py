@@ -112,7 +112,8 @@ class Game(object):
             slug=self.slug,
             directory=self.directory,
             installed=self.is_installed,
-            configpath=self.config.game_config_id
+            configpath=self.config.game_config_id,
+            id=self.id
         )
 
     def prelaunch(self):

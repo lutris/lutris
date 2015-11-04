@@ -209,7 +209,7 @@ def add_or_update(name, runner, slug=None, **kwargs):
     """
     if not slug:
         slug = slugify(name)
-    if kwargs.get('id'):
+    if 'id' in kwargs:
         game = get_game_by_field(kwargs['id'], 'id')
     else:
         game = get_game_by_field(slug, 'slug')
