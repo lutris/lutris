@@ -3,7 +3,6 @@ from lutris.gui.dialogs import GtkBuilderDialog
 from lutris.game import Game
 from lutris.util.system import is_removeable
 from lutris.gui.dialogs import QuestionDialog
-from lutris.runners import InvalidRunner
 
 
 class UninstallGameDialog(GtkBuilderDialog):
@@ -23,8 +22,8 @@ class UninstallGameDialog(GtkBuilderDialog):
         replacement = replacement.replace('&', '&amp;')
         set_text(get_text().replace("{%s}" % name, replacement))
 
-    def initialize(self, slug=None, callback=None):
-        self.game = Game(slug)
+    def initialize(self, game_id=None, callback=None):
+        self.game = Game(game_id)
         self.callback = callback
         runner = self.game.runner
 

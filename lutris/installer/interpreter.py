@@ -46,6 +46,7 @@ class ScriptInterpreter(Commands):
         self.reversion_data = {}
         self.game_name = None
         self.game_slug = None
+        self.game_id = None
         self.game_files = {}
         self.game_disc = None
         self.cancelled = False
@@ -99,10 +100,10 @@ class ScriptInterpreter(Commands):
 
     def _check_dependency(self):
         # XXX Maybe handle this with Game instead of hitting directly the PGA?
-        game = pga.get_game_by_slug(self.requires, field='installer_slug')
+        game = pga.get_game_by_field(self.requires, field='installer_slug')
         # Legacy support of installers using game slug as requirement
         if not game:
-            game = pga.get_game_by_slug(self.requires)
+            game = pga.get_game_by_field(self.requires, 'slug')
 
         if not game or not game['directory']:
             raise ScriptingError(
@@ -339,8 +340,9 @@ class ScriptInterpreter(Commands):
         runner_name = self.script['runner']
 
         # Get existing config
+        configpath = "{}-{}".format(self.script['slug'])
         config_filename = os.path.join(settings.CONFIG_DIR,
-                                       "games/%s.yml" % self.game_slug)
+                                       "games/%s.yml" % configpath)
         if self.requires and os.path.exists(config_filename):
             # The installer is patching an existing game, update its config
             # XXX Maybe drop the self.requires condition and always update
@@ -353,15 +355,18 @@ class ScriptInterpreter(Commands):
                 'game': {},
             }
 
-        # DB update
-        pga.add_or_update(self.script['name'], runner_name,
-                          slug=self.game_slug,
-                          directory=self.target_path,
-                          installed=1,
-                          installer_slug=self.script.get('slug'),
-                          parent_slug=self.requires,
-                          year=self.script.get('year'),
-                          steamid=self.script.get('steamid'))
+        self.game_id = pga.add_game(
+            name=self.script['name'],
+            runner=runner_name,
+            slug=self.game_slug,
+            directory=self.target_path,
+            installed=1,
+            installer_slug=self.script['slug'],
+            parent_slug=self.requires,
+            year=self.script.get('year'),
+            steamid=self.script.get('steamid'),
+            configpath=configpath
+        )
 
         # Config update
         if 'system' in self.script:

@@ -1,6 +1,6 @@
 import unittest
 import os
-from sqlite3 import IntegrityError, OperationalError
+from sqlite3 import OperationalError
 from lutris import pga
 from lutris.util import sql
 
@@ -22,7 +22,7 @@ class DatabaseTester(unittest.TestCase):
 class TestPersonnalGameArchive(DatabaseTester):
     def setUp(self):
         super(TestPersonnalGameArchive, self).setUp()
-        pga.add_game(name="LutrisTest", runner="Linux")
+        self.game_id = pga.add_game(name="LutrisTest", runner="Linux")
 
     def test_add_game(self):
         game_list = pga.get_games()
@@ -30,13 +30,14 @@ class TestPersonnalGameArchive(DatabaseTester):
         self.assertTrue("LutrisTest" in game_names)
 
     def test_delete_game(self):
-        pga.delete_game("lutristest")
+        pga.delete_game(self.game_id)
         game_list = pga.get_games()
         self.assertEqual(len(game_list), 0)
-        pga.add_game(name="LutrisTest", runner="Linux")
+        self.game_id = pga.add_game(name="LutrisTest", runner="Linux")
 
     def test_get_game_list(self):
         game_list = pga.get_games()
+        self.assertEqual(game_list[0]['id'], self.game_id)
         self.assertEqual(game_list[0]['slug'], 'lutristest')
         self.assertEqual(game_list[0]['name'], 'LutrisTest')
         self.assertEqual(game_list[0]['runner'], 'Linux')
@@ -58,10 +59,10 @@ class TestPersonnalGameArchive(DatabaseTester):
 
     def test_game_with_same_slug_is_updated(self):
         pga.add_game(name="some game", runner="linux")
-        game = pga.get_game_by_slug("some-game")
+        game = pga.get_game_by_field("some-game", "slug")
         self.assertFalse(game['directory'])
         pga.add_or_update(name="some game", runner='linux', directory="/foo")
-        game = pga.get_game_by_slug("some-game")
+        game = pga.get_game_by_field("some-game", "slug")
         self.assertEqual(game['directory'], '/foo')
 
 
@@ -119,7 +120,7 @@ class TestMigration(DatabaseTester):
             'name': 'counter',
             'type': 'INTEGER'
         }
-        pga.add_field(self.tablename, field)
+        sql.add_field(TEST_PGA_PATH, self.tablename, field)
         schema = pga.get_schema(self.tablename)
         self.assertEqual(schema[2]['name'], 'counter')
         self.assertEqual(schema[2]['type'], 'INTEGER')
@@ -131,7 +132,7 @@ class TestMigration(DatabaseTester):
             'type': 'TEXT'
         }
         with self.assertRaises(OperationalError):
-            pga.add_field(self.tablename, field)
+            sql.add_field(TEST_PGA_PATH, self.tablename, field)
 
     def test_cant_create_empty_table(self):
         with self.assertRaises(OperationalError):

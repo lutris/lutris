@@ -200,8 +200,8 @@ if game_slug or installer:
 
     db_game = None
     if game_slug:
-        db_game = (pga.get_game_by_slug(game_slug)
-                   or pga.get_game_by_slug(game_slug, field='installer_slug'))
+        db_game = (pga.get_game_by_field(game_slug, 'slug')
+                   or pga.get_game_by_field(game_slug, 'installer_slug'))
 
     if db_game and db_game['installed'] and not options.reinstall:
         logger.info("Launching %s", db_game['name'])

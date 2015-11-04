@@ -20,30 +20,19 @@ def db_insert(db_path, table, fields):
     placeholders = ("?, " * len(fields))[:-2]
     field_values = _decode_utf8_values(fields.values())
     with db_cursor(db_path) as cursor:
-        cursor.execute(
-            "insert into {0}({1}) values ({2})".format(table,
-                                                       columns,
-                                                       placeholders),
-            field_values
-        )
-
-
-def db_insert_bulk(db_path, table, fields_bulk):
-    """Insert several rows. The dicts must have an identical set of keys.
-
-    :type fields_bulk: list of dicts
-    """
-    columns = fields_bulk[0].keys()
-    placeholders = ("?, " * len(columns))[:-2]
-    for i, fields in enumerate(fields_bulk):
-        fields_bulk[i] = _decode_utf8_values(fields.values())
-    with db_cursor(db_path) as cursor:
-        cursor.executemany(
-            "insert into {0}({1}) values ({2})".format(table,
-                                                       ", ".join(columns),
-                                                       placeholders),
-            fields_bulk
-        )
+        try:
+            cursor.execute(
+                "insert into {0}({1}) values ({2})".format(
+                    table, columns, placeholders
+                ),
+                field_values
+            )
+        except sqlite3.IntegrityError:
+            print columns
+            print field_values
+            raise
+        inserted_id = cursor.lastrowid
+    return inserted_id
 
 
 def db_update(db_path, table, updated_fields, row):
@@ -100,3 +89,11 @@ def _decode_utf8_values(values_list):
             values_list[i] = v.decode('UTF-8')
         i += 1
     return tuple(values_list)
+
+
+def add_field(db_path, tablename, field):
+    query = "ALTER TABLE %s ADD COLUMN %s %s" % (
+        tablename, field['name'], field['type']
+    )
+    with db_cursor(db_path) as cursor:
+        cursor.execute(query)

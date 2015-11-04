@@ -221,8 +221,10 @@ class steam(Runner):
             if not installed:
                 return False
         appid = appid if appid else self.game_config.get('appid')
-
-        logger.debug("Launching Wine Steam uninstall of game %s" % appid)
+        if appid is None:
+            raise RuntimeError('No appid given for uninstallation '
+                               '(game config=%s)' % self.game_config)
+        logger.debug("Launching Steam uninstall of game %s" % appid)
         command = [self.executable, 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self)
         thread.start()

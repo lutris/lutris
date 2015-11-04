@@ -21,12 +21,13 @@ BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 (
     COL_ID,
+    COL_SLUG,
     COL_NAME,
     COL_ICON,
     COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-) = range(6)
+) = range(7)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -101,7 +102,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
 
-        self.store = Gtk.ListStore(str, str, Pixbuf, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -117,8 +118,8 @@ class GameStore(GObject.Object):
         """Generator to fill the model in steps."""
         n = 0
         # self.freeze_child_notify()
-        for game_slug in games:
-            self.add_game(game_slug)
+        for game_id in games:
+            self.add_game(game_id)
 
             # Yield to GTK main loop once in a while
             n += 1
@@ -145,23 +146,32 @@ class GameStore(GObject.Object):
                 return False
         return True
 
-    def add_game(self, game_slug):
+    def add_game(self, game_id):
         """Add a game into the store."""
-        if not game_slug:
+        if not game_id:
             return
-        game_data = pga.get_game_by_slug(game_slug)
+        game_data = pga.get_game_by_field(game_id, 'id')
+        if not game_data or 'slug' not in game_data:
+            raise ValueError('Can\'t find game {} ({})'.format(
+                game_id, game_data
+            ))
         pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
                                      game_data['installed'])
         name = game_data['name'].replace('&', "&amp;")
-        self.store.append(
-            (game_data['slug'], name, pixbuf, str(game_data['year']),
-             game_data['runner'], game_data['installed'])
-        )
+        self.store.append((
+            game_data['id'],
+            game_data['slug'],
+            name,
+            pixbuf,
+            str(game_data['year']),
+            game_data['runner'],
+            game_data['installed']
+        ))
 
     def update_all_icons(self, icon_type):
         for row in self.store:
             row[COL_ICON] = get_pixbuf_for_game(
-                row[COL_ID], icon_type, is_installed=row[COL_INSTALLED]
+                row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
             )
 
     def set_icon_type(self, icon_type):
@@ -189,18 +199,18 @@ class GameView(object):
     def n_games(self):
         return len(self.game_store.store)
 
-    def get_row_by_slug(self, game_slug):
+    def get_row_by_id(self, game_id):
         game_row = None
         for model_row in self.game_store.store:
-            if model_row[COL_ID] == game_slug:
+            if model_row[COL_ID] == game_id:
                 game_row = model_row
         return game_row
 
-    def add_game(self, game_slug):
-        self.game_store.add_game(game_slug)
+    def add_game(self, game_id):
+        self.game_store.add_game(game_id)
 
     def remove_game(self, removed_id):
-        row = self.get_row_by_slug(removed_id)
+        row = self.get_row_by_id(removed_id)
         if row:
             self.remove_row(row.iter)
 
@@ -211,30 +221,33 @@ class GameView(object):
 
     def set_installed(self, game):
         """Update a game row to show as installed"""
-        row = self.get_row_by_slug(game.slug)
+        row = self.get_row_by_id(game.id)
         row[COL_RUNNER] = game.runner_name
-        self.update_image(game.slug, is_installed=True)
+        self.update_image(game.id, is_installed=True)
 
-    def set_uninstalled(self, game_slug):
+    def set_uninstalled(self, game_id):
         """Update a game row to show as uninstalled"""
-        row = self.get_row_by_slug(game_slug)
+        row = self.get_row_by_id(game_id)
+        if not row:
+            raise ValueError("Couldn't find row for id %s" % game_id)
         row[COL_RUNNER] = ''
-        self.update_image(game_slug, is_installed=False)
+        self.update_image(game_id, is_installed=False)
 
     def update_row(self, game):
         """Update game informations.
 
         :param dict game: Dict holding game details
         """
-        row = self.get_row_by_slug(game['slug'])
+        row = self.get_row_by_id(game['id'])
         if row:
             row[COL_YEAR] = str(game['year'])
-            self.update_image(game['slug'], row[COL_INSTALLED])
+            self.update_image(game['id'], row[COL_INSTALLED])
 
-    def update_image(self, game_slug, is_installed=False):
+    def update_image(self, game_id, is_installed=False):
         """Update game icon."""
-        row = self.get_row_by_slug(game_slug)
+        row = self.get_row_by_id(game_id)
         if row:
+            game_slug = row[COL_SLUG]
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)
@@ -259,7 +272,7 @@ class GameView(object):
             view.current_path = path
 
         if view.current_path:
-            game_row = self.get_row_by_slug(self.selected_game)
+            game_row = self.get_row_by_id(self.selected_game)
             self.contextual_menu.popup(event, game_row)
 
 
@@ -322,7 +335,7 @@ class GameListView(Gtk.TreeView, GameView):
         return column
 
     def get_selected_game(self):
-        """Return the currently selected game's slug."""
+        """Return the currently selected game's id."""
         selection = self.get_selection()
         if not selection:
             return
@@ -331,8 +344,8 @@ class GameListView(Gtk.TreeView, GameView):
             return
         return model.get_value(select_iter, COL_ID)
 
-    def set_selected_game(self, game_slug):
-        row = self.get_row_by_slug(game_slug)
+    def set_selected_game(self, game_id):
+        row = self.get_row_by_id(game_id)
         if row:
             self.set_cursor(row.path)
 
@@ -374,7 +387,7 @@ class GameGridView(Gtk.IconView, GameView):
         store.connect('icons-changed', self.on_icons_changed)
 
     def get_selected_game(self):
-        """Return the currently selected game's slug."""
+        """Return the currently selected game's id."""
         selection = self.get_selected_items()
         if not selection:
             return
@@ -382,8 +395,8 @@ class GameGridView(Gtk.IconView, GameView):
         store = self.get_model()
         return store.get(store.get_iter(self.current_path), COL_ID)[0]
 
-    def set_selected_game(self, game_slug):
-        row = self.get_row_by_slug(game_slug)
+    def set_selected_game(self, game_id):
+        row = self.get_row_by_id(game_id)
         if row:
             self.select_path(row.path)
 
@@ -419,7 +432,8 @@ class ContextualMenu(Gtk.Menu):
             self.append(menuitem)
 
     def popup(self, event, game_row):
-        game_slug = game_row[COL_ID]
+        game_id = game_row[COL_ID]
+        game_slug = game_row[COL_SLUG]
         runner_slug = game_row[COL_RUNNER]
 
         # Clear existing menu
@@ -431,9 +445,7 @@ class ContextualMenu(Gtk.Menu):
         # Runner specific items
         runner_entries = None
         if runner_slug:
-            game_config = LutrisConfig(runner_slug=runner_slug,
-                                       game_slug=game_slug)
-            runner = import_runner(runner_slug)(game_config)
+            runner = import_runner(runner_slug)()
             runner_entries = runner.context_menu_entries
         if runner_entries:
             self.append(Gtk.SeparatorMenuItem())
@@ -446,14 +458,22 @@ class ContextualMenu(Gtk.Menu):
             'add': is_installed,
             'play': not is_installed,
             'configure': not is_installed,
-            'desktop-shortcut': (not is_installed
-                                 or desktop_launcher_exists(game_slug)),
-            'menu-shortcut': (not is_installed
-                              or menu_launcher_exists(game_slug)),
-            'rm-desktop-shortcut': (not is_installed
-                                    or not desktop_launcher_exists(game_slug)),
-            'rm-menu-shortcut': (not is_installed
-                                 or not menu_launcher_exists(game_slug)),
+            'desktop-shortcut': (
+                not is_installed
+                or desktop_launcher_exists(game_slug, game_id)
+            ),
+            'menu-shortcut': (
+                not is_installed
+                or menu_launcher_exists(game_slug, game_id)
+            ),
+            'rm-desktop-shortcut': (
+                not is_installed
+                or not desktop_launcher_exists(game_slug, game_id)
+            ),
+            'rm-menu-shortcut': (
+                not is_installed
+                or not menu_launcher_exists(game_slug, game_id)
+            ),
             'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
         }
         for menuitem in self.get_children():

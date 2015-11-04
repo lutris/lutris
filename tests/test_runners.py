@@ -78,7 +78,8 @@ class ImportRunnerTest(DatabaseTester):
         with patch('lutris.config.read_yaml_from_file') as yaml_reader:
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
-            game_config = LutrisConfig(game_slug='rage', runner_slug='wine')
+            game_config = LutrisConfig(game_config_id='rage',
+                                       runner_slug='wine')
             wine = wine_runner(game_config)
             self.assertEqual(wine.system_config.get('resolution'), '1920x1080')
 
@@ -98,8 +99,9 @@ class ImportRunnerTest(DatabaseTester):
         with patch('lutris.config.read_yaml_from_file') as yaml_reader:
             yaml_reader.side_effect = fake_yaml_reader
             wine_runner = runners.import_runner('wine')
-            game_config = LutrisConfig(runner_slug='wine', game_slug='rage')
-            self.assertEqual(game_config.game_slug, 'rage')
+            game_config = LutrisConfig(runner_slug='wine',
+                                       game_config_id='rage')
+            self.assertEqual(game_config.game_config_id, 'rage')
             self.assertEqual(game_config.runner_slug, 'wine')
             wine = wine_runner(game_config)
             self.assertEqual(wine.system_config.get('resolution'), '1680x1050')

@@ -503,7 +503,7 @@ class RunnerBox(ConfigBox):
         runner = import_runner(self.lutris_config.runner_slug)()
         self.options = runner.runner_options
 
-        if lutris_config.game_slug:
+        if lutris_config.level == 'game':
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration."
@@ -522,7 +522,7 @@ class SystemBox(ConfigBox):
         else:
             self.options = sysoptions.system_options
 
-        if lutris_config.game_slug and runner_slug:
+        if lutris_config.game_config_id and runner_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration, which themselves supersede "

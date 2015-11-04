@@ -31,7 +31,7 @@ def show_error_message(message):
 
 def get_game_list():
     games = pga.get_games()
-    return [game['slug'] for game in games]
+    return [game['id'] for game in games]
 
 
 class Game(object):
@@ -42,8 +42,8 @@ class Game(object):
     STATE_STOPPED = 'stopped'
     STATE_RUNNING = 'running'
 
-    def __init__(self, slug):
-        self.slug = slug
+    def __init__(self, id=None):
+        self.id = id
         self.runner = None
         self.game_thread = None
         self.heartbeat = None
@@ -52,12 +52,14 @@ class Game(object):
         self.state = self.STATE_IDLE
         self.game_log = ''
 
-        game_data = pga.get_game_by_slug(slug)
+        game_data = pga.get_game_by_field(id, 'id')
+        self.slug = game_data.get('slug') or ''
         self.runner_name = game_data.get('runner') or ''
         self.directory = game_data.get('directory') or ''
         self.name = game_data.get('name') or ''
         self.is_installed = bool(game_data.get('installed')) or False
         self.year = game_data.get('year') or ''
+        self.game_config_id = game_data.get('configpath') or ''
 
         self.load_config()
         self.resolution_changed = False
@@ -79,7 +81,7 @@ class Game(object):
     def load_config(self):
         """Load the game's configuration."""
         self.config = LutrisConfig(runner_slug=self.runner_name,
-                                   game_slug=self.slug)
+                                   game_config_id=self.game_config_id)
         if not self.is_installed:
             return
         if not self.runner_name:
@@ -96,11 +98,11 @@ class Game(object):
         if from_disk:
             self.runner.remove_game_data(game_path=self.directory)
         if from_library:
-            pga.delete_game(self.slug)
+            pga.delete_game(self.id)
             self.config.remove()
         else:
-            pga.set_uninstalled(self.slug)
-        shortcuts.remove_launcher(self.slug, desktop=True, menu=True)
+            pga.set_uninstalled(self.id)
+        shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
 
     def save(self):
         self.config.save()

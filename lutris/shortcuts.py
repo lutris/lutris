@@ -11,7 +11,15 @@ from gi.repository import GLib
 from lutris.settings import CACHE_DIR
 
 
-def create_launcher(game_slug, game_name, desktop=False, menu=False):
+def get_xdg_basename(game_slug, game_id, legacy=False):
+    if legacy:
+        filename = "%s.desktop" % game_slug
+    else:
+        filename = "%s-%s.desktop" % (game_slug, game_id)
+    return filename
+
+
+def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     """Create a .desktop file."""
     desktop_dir = (
         GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
@@ -24,9 +32,9 @@ def create_launcher(game_slug, game_name, desktop=False, menu=False):
         Icon=%s
         Exec=lutris lutris:%s
         Categories=Game
-        """ % (game_name, 'lutris_' + game_slug, game_slug))
+        """ % (game_name, 'lutris_' + game_slug, game_id))
 
-    launcher_filename = "%s.desktop" % game_slug
+    launcher_filename = get_xdg_basename(game_slug, game_id, legacy=False)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
     tmp_launcher = open(tmp_launcher_path,  "w")
     tmp_launcher.write(launcher_content)
@@ -44,41 +52,58 @@ def create_launcher(game_slug, game_name, desktop=False, menu=False):
     os.remove(tmp_launcher_path)
 
 
-def desktop_launcher_exists(game_slug):
-    filename = "%s.desktop" % game_slug
-
+def get_launcher_path(game_slug, game_id):
+    """Return the path of a XDG game launcher.
+    When legacy is set, it will return the old path with only the slug,
+    otherwise it will return the path with slug + id
+    """
     desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
                                    stdout=subprocess.PIPE).communicate()[0]
     desktop_dir = desktop_dir.strip()
-    file_path = os.path.join(desktop_dir, filename)
-    if os.path.exists(file_path):
-        return True
-    return False
+
+    legacy_launcher_path = os.path.join(
+        desktop_dir, get_xdg_basename(game_slug, game_id, legacy=True)
+    )
+    # First check if legacy path exists, for backward compatibility
+    if os.path.exists(legacy_launcher_path):
+        return legacy_launcher_path
+    # Otherwise return new path, whether it exists or not
+    return os.path.join(
+        desktop_dir, get_xdg_basename(game_slug, game_id, legacy=False)
+    )
 
 
-def menu_launcher_exists(game_slug):
-    filename = "%s.desktop" % game_slug
-    menu_path = os.path.join(BaseDirectory.xdg_data_home, 'applications')
-    file_path = os.path.join(menu_path, filename)
-    if os.path.exists(file_path):
-        return True
-    return False
+def get_menu_launcher_path(game_slug, game_id):
+    """Return the path to a XDG menu launcher, prioritizing legacy paths if
+    they exist
+    """
+    menu_dir = os.path.join(BaseDirectory.xdg_data_home, 'applications')
+    menu_path = os.path.join(
+        menu_dir, get_xdg_basename(game_slug, game_id, legacy=True)
+    )
+    if os.path.exists(menu_path):
+        return menu_path
+    return os.path.join(
+        menu_dir, get_xdg_basename(game_slug, game_id, legacy=False)
+    )
 
 
-def remove_launcher(game_slug, desktop=False, menu=False):
+def desktop_launcher_exists(game_slug, game_id):
+    return os.path.exists(get_launcher_path(game_slug, game_id))
+
+
+def menu_launcher_exists(game_slug, game_id):
+    return os.path.exists(get_menu_launcher_path(game_slug, game_id))
+
+
+def remove_launcher(game_slug, game_id, desktop=False, menu=False):
     """Remove existing .desktop file."""
-    filename = "%s.desktop" % game_slug
-
     if desktop:
-        desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
-                                       stdout=subprocess.PIPE).communicate()[0]
-        desktop_dir = desktop_dir.strip()
-        file_path = os.path.join(desktop_dir, filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        launcher_path = get_launcher_path(game_slug, game_id)
+        if os.path.exists(launcher_path):
+            os.remove(launcher_path)
 
     if menu:
-        menu_path = os.path.join(BaseDirectory.xdg_data_home, 'applications')
-        file_path = os.path.join(menu_path, filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        menu_path = get_menu_launcher_path(game_slug, game_id)
+        if os.path.exists(menu_path):
+            os.remove(menu_path)

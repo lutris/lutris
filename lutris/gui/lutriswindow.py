@@ -258,16 +258,20 @@ class LutrisWindow(object):
 
     def update_existing_games(self, added, updated, installed, uninstalled,
                               first_run=False):
-        for game in updated.difference(added):
-            self.view.update_row(pga.get_game_by_slug(game))
+        print "ADDED", added
+        print "UPDATED", updated
+        print "INSTALLED", installed
+        print "UNINSTALLED", uninstalled
+        for game_id in updated.difference(added):
+            self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
-        for game in installed.difference(added):
-            if not self.view.get_row_by_slug(game):
-                self.view.add_game(game)
-            self.view.set_installed(Game(game))
+        for game_id in installed.difference(added):
+            if not self.view.get_row_by_id(game_id):
+                self.view.add_game(game_id)
+            self.view.set_installed(Game(game_id))
 
-        for game in uninstalled.difference(added):
-            self.view.set_uninstalled(game)
+        for game_id in uninstalled.difference(added):
+            self.view.set_uninstalled(game_id)
 
         self.sidebar_treeview.update()
 
@@ -283,7 +287,7 @@ class LutrisWindow(object):
 
     def sync_icons(self, stop_request=None):
         game_list = pga.get_games()
-        resources.fetch_icons([game_info['slug'] for game_info in game_list],
+        resources.fetch_icons([game_info['id'] for game_info in game_list],
                               callback=self.on_image_downloaded,
                               stop_request=stop_request)
 
@@ -413,7 +417,7 @@ class LutrisWindow(object):
         self.game_store.filter_text = widget.get_text()
         self.game_store.modelfilter.refilter()
 
-    def _get_current_game_slug(self):
+    def _get_current_game_id(self):
         """Return the slug of the current selected game while taking care of the
         double clic bug.
         """
@@ -423,10 +427,10 @@ class LutrisWindow(object):
         self.game_launch_time = time.time()
         return self.view.selected_game
 
-    def on_game_run(self, _widget=None, game_slug=None):
+    def on_game_run(self, _widget=None, game_id=None):
         """Launch a game, or install it if it is not"""
-        if not game_slug:
-            game_slug = self._get_current_game_slug()
+        if not game_id:
+            game_slug = self._get_current_game_id()
         if not game_slug:
             return
         display.set_cursor('wait', self.window.get_window())
@@ -446,7 +450,9 @@ class LutrisWindow(object):
     def on_install_clicked(self, _widget=None, game_ref=None):
         """Install a game"""
         if not game_ref:
-            game_ref = self._get_current_game_slug()
+            game_id = self._get_current_game_id()
+            game = pga.get_game_by_field(game_id, 'id')
+            game_ref = game.get('slug')
         if not game_ref:
             return
         display.set_cursor('wait', self.window.get_window())
@@ -471,15 +477,16 @@ class LutrisWindow(object):
         self.play_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
 
-    def on_game_installed(self, view, slug):
-        if not self.view.get_row_by_slug(slug):
-            self.add_game_to_view(slug)
-        view.set_installed(Game(slug))
+    def on_game_installed(self, view, game_id):
+        if not self.view.get_row_by_id(game_id):
+            self.add_game_to_view(game_id)
+        view.set_installed(Game(game_id))
         self.sidebar_treeview.update()
 
-    def on_image_downloaded(self, game_slug):
-        is_installed = Game(game_slug).is_installed
-        self.view.update_image(game_slug, is_installed)
+    def on_image_downloaded(self, game_id):
+        game = Game(game_id)
+        is_installed = game.is_installed
+        self.view.update_image(game_id, is_installed)
 
     def add_manually(self, *args):
         game = Game(self.view.selected_game)
@@ -518,18 +525,18 @@ class LutrisWindow(object):
 
     def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game
-        UninstallGameDialog(slug=selected_game,
+        UninstallGameDialog(game_id=selected_game,
                             callback=self.remove_game_from_view)
 
-    def remove_game_from_view(self, game_slug, from_library=False):
+    def remove_game_from_view(self, game_id, from_library=False):
         def do_remove_game():
-            self.view.remove_game(game_slug)
+            self.view.remove_game(game_id)
             self.switch_splash_screen()
 
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
-            self.view.update_image(game_slug, is_installed=False)
+            self.view.update_image(game_id, is_installed=False)
         self.sidebar_treeview.update()
 
     def on_browse_files(self, widget):

@@ -46,7 +46,9 @@ class Runner(object):
         self.config = config
         self.game_data = {}
         if config:
-            self.game_data = pga.get_game_by_slug(self.config.game_slug)
+            self.game_data = pga.get_game_by_field(
+                self.config.game_config_id, 'configpath'
+            )
 
     @property
     def description(self):

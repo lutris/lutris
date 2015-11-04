@@ -409,7 +409,7 @@ class InstallerDialog(Gtk.Window):
 
     def notify_install_success(self):
         if self.parent:
-            self.parent.view.emit('game-installed', self.interpreter.game_slug)
+            self.parent.view.emit('game-installed', self.interpreter.game_id)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)
@@ -428,9 +428,9 @@ class InstallerDialog(Gtk.Window):
         widget.set_sensitive(False)
         self.close(widget)
         if self.parent:
-            self.parent.on_game_run(game_slug=self.interpreter.game_slug)
+            self.parent.on_game_run(game_id=self.interpreter.game_id)
         else:
-            game = Game(self.interpreter.game_slug)
+            game = Game(self.interpreter.game_id)
             game.play()
 
     def close(self, _widget):
@@ -447,14 +447,16 @@ class InstallerDialog(Gtk.Window):
     def create_shortcuts(self, *args):
         """Create desktop and global menu shortcuts."""
         game_slug = self.interpreter.game_slug
+        game_id = self.interpreter.game_id
         game_name = self.interpreter.game_name
         create_desktop_shortcut = self.desktop_shortcut_box.get_active()
         create_menu_shortcut = self.menu_shortcut_box.get_active()
 
         if create_desktop_shortcut:
-            shortcuts.create_launcher(game_slug, game_name, desktop=True)
+            shortcuts.create_launcher(game_slug, game_id, game_name,
+                                      desktop=True)
         if create_menu_shortcut:
-            shortcuts.create_launcher(game_slug, game_name, menu=True)
+            shortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
         settings.write_setting('create_desktop_shortcut',
                                create_desktop_shortcut)

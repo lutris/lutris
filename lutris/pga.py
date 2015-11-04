@@ -2,7 +2,6 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
-import logging
 
 from lutris.util.strings import slugify
 from lutris.util.log import logger
@@ -10,7 +9,6 @@ from lutris.util import sql
 from lutris import settings
 
 PGA_DB = settings.PGA_DB
-LOGGER = logging.getLogger(__name__)
 
 
 def get_schema(tablename):
@@ -47,19 +45,11 @@ def field_to_string(
     return field_query
 
 
-def add_field(tablename, field):
-    query = "ALTER TABLE %s ADD COLUMN %s %s" % (
-        tablename, field['name'], field['type']
-    )
-    with sql.db_cursor(PGA_DB) as cursor:
-        cursor.execute(query)
-
-
 def create_table(name, schema):
     fields = ", ".join([field_to_string(**f) for f in schema])
     fields = "(%s)" % fields
     query = "CREATE TABLE IF NOT EXISTS %s %s" % (name, fields)
-    LOGGER.debug("[PGAQuery] %s", query)
+    logger.debug("[PGAQuery] %s", query)
     with sql.db_cursor(PGA_DB) as cursor:
         cursor.execute(query)
 
@@ -72,7 +62,7 @@ def migrate(table, schema):
         for field in schema:
             if field['name'] not in columns:
                 migrated_fields.append(field['name'])
-                add_field(table, field)
+                sql.add_field(PGA_DB, table, field)
     else:
         create_table(table, schema)
     return migrated_fields
@@ -94,6 +84,7 @@ def migrate_games():
         {'name': 'installed', 'type': 'INTEGER'},
         {'name': 'year', 'type': 'INTEGER'},
         {'name': 'steamid', 'type': 'INTEGER'},
+        {'name': 'configpath', 'type': 'TEXT'},
     ]
     return migrate('games', schema)
 
@@ -112,6 +103,8 @@ def syncdb():
     migrated = migrate_games()
     if 'installed' in migrated:
         set_installed_games()
+    if 'configpath' in migrated:
+        set_config_paths()
     migrate_sources()
 
     # Rename runners
@@ -124,7 +117,23 @@ def set_installed_games():
     for game in games:
         if game['directory'] and os.path.exists(game['directory']):
             sql.db_update(PGA_DB, 'games',
-                          {'installed': 1}, ('slug', game['slug']))
+                          {'installed': 1}, ('id', game['id']))
+
+
+def set_config_paths():
+    for game in get_games():
+        if game.get('configpath'):
+            continue
+        game_config_path = os.path.join(settings.CONFIG_DIR,
+                                        "games/%s.yml" % game['slug'])
+        if os.path.exists(game_config_path):
+            logger.debug('Setting configpath to %s', game['slug'])
+            sql.db_update(
+                PGA_DB,
+                'games',
+                {'configpath': game['slug']},
+                ('id', game['id'])
+            )
 
 
 def get_table_length(table='games'):
@@ -160,10 +169,11 @@ def get_games(name_filter=None, filter_installed=False):
     return game_list
 
 
-def get_game_by_slug(slug, field='slug'):
-    if field not in ('slug', 'installer_slug'):
-        raise ValueError("Invalid field name: %s", field)
-    game_result = sql.db_select(PGA_DB, "games", condition=(field, slug))
+def get_game_by_field(value, field='slug'):
+    """Query a game based on a database field"""
+    if field not in ('slug', 'installer_slug', 'id', 'configpath'):
+        raise ValueError("Can't query by field '%s'" % field)
+    game_result = sql.db_select(PGA_DB, "games", condition=(field, value))
     if game_result:
         return game_result[0]
     return {}
@@ -174,7 +184,8 @@ def add_game(name, **game_data):
     game_data['name'] = name
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
-    sql.db_insert(PGA_DB, "games", game_data)
+    inserted_id = sql.db_insert(PGA_DB, "games", game_data)
+    return inserted_id
 
 
 def add_games_bulk(games):
@@ -184,31 +195,42 @@ def add_games_bulk(games):
 
     :type games: list of dicts
     """
-    sql.db_insert_bulk(PGA_DB, "games", games)
+    inserted_ids = []
+    for game in games:
+        inserted_id = sql.db_insert(PGA_DB, "games", game)
+        inserted_ids.append(inserted_id)
+    return inserted_ids
 
 
 def add_or_update(name, runner, slug=None, **kwargs):
+    """
+    FIXME probably not the desired behavior since it disallows multiple games
+    with the same slug
+    """
     if not slug:
         slug = slugify(name)
-    game = get_game_by_slug(slug)
+    if kwargs.get('id'):
+        game = get_game_by_field(kwargs['id'], 'id')
+    else:
+        game = get_game_by_field(slug, 'slug')
     kwargs['name'] = name
     kwargs['runner'] = runner
     kwargs['slug'] = slug
     if game:
         game_id = game['id']
         sql.db_update(PGA_DB, "games", kwargs, ('id', game_id))
+        return game_id
     else:
-        add_game(**kwargs)
+        return add_game(**kwargs)
 
 
-def delete_game(slug):
+def delete_game(id):
     """Delete a game from the PGA."""
-    sql.db_delete(PGA_DB, "games", 'slug', slug)
+    sql.db_delete(PGA_DB, "games", 'id', id)
 
 
-def set_uninstalled(slug):
-    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''},
-                  ('slug', slug))
+def set_uninstalled(id):
+    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''}, ('id', id))
 
 
 def add_source(uri):

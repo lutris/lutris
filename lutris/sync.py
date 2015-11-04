@@ -63,23 +63,21 @@ class Sync(object):
         if not not_in_local:
             return set()
 
-        missing_slugs = set()
         missing = []
         for game in remote_library:
             slug = game['slug']
             if slug in not_in_local:
                 logger.debug("Adding to local library: %s", slug)
-                missing_slugs.add(slug)
-                missing.append(
-                    {'name': game['name'],
-                     'slug': slug,
-                     'year': game['year'],
-                     'updated': game['updated'],
-                     'steamid': game['steamid']}
-                )
-        pga.add_games_bulk(missing)
+                missing.append({
+                    'name': game['name'],
+                    'slug': slug,
+                    'year': game['year'],
+                    'updated': game['updated'],
+                    'steamid': game['steamid']
+                })
+        missing_ids = pga.add_games_bulk(missing)
         logger.debug("%d games added", len(missing))
-        return missing_slugs
+        return set(missing_ids)
 
     @staticmethod
     def sync_game_details(remote_library):
@@ -101,7 +99,7 @@ class Sync(object):
             slug = game['slug']
             sync = False
             sync_icons = True
-            local_game = pga.get_game_by_slug(slug)
+            local_game = pga.get_game_by_field(slug, 'slug')
             if not local_game:
                 continue
 
@@ -120,9 +118,12 @@ class Sync(object):
                 continue
 
             logger.debug("Syncing details for %s" % slug)
-            pga.add_or_update(
-                local_game['name'], local_game['runner'], slug,
-                year=game['year'], updated=game['updated'],
+            game_id = pga.add_or_update(
+                name=local_game['name'],
+                runner=local_game['runner'],
+                slug=slug,
+                year=game['year'],
+                updated=game['updated'],
                 steamid=game['steamid']
             )
 
@@ -130,14 +131,13 @@ class Sync(object):
             if sync_icons:
                 resources.download_icon(slug, 'banner', overwrite=True)
                 resources.download_icon(slug, 'icon', overwrite=True)
-                updated.add(slug)
+                updated.add(game_id)
 
         logger.debug("%d games updated", len(updated))
         return updated
 
     def sync_steam_local(self):
         """Sync Steam games in library with Steam and Wine Steam"""
-        # logger.debug("Syncing local steam games")
         steamrunner = steam()
         winesteamrunner = winesteam()
         installed = set()
@@ -159,13 +159,18 @@ class Sync(object):
                 if not installed_in_steam:  # (Linux Steam only)
                     continue
                 logger.debug("Setting %s as installed" % game_info['name'])
-                pga.add_or_update(game_info['name'], 'steam', slug,
-                                  installed=1)
-                game_config = config.LutrisConfig(runner_slug='steam',
-                                                  game_slug=game_info['slug'])
+                game_id = pga.add_or_update(
+                    name=game_info['name'],
+                    runner='steam',
+                    slug=slug,
+                    installed=1
+                )
+                game_config = config.LutrisConfig(
+                    runner_slug='steam', game_config_id=game_info['configpath']
+                )
                 game_config.raw_game_config.update({'appid': str(steamid)})
                 game_config.save()
-                installed.add(slug)
+                installed.add(game_id)
 
             # Set uninstalled
             elif not (installed_in_steam or installed_in_winesteam):
@@ -176,10 +181,13 @@ class Sync(object):
                 if runner == 'winesteam' and not winesteamrunner.is_installed():
                     continue
                 logger.debug("Setting %s as uninstalled" % game_info['name'])
-                pga.add_or_update(game_info['name'], '',
-                                  game_info['slug'],
-                                  installed=0)
-                uninstalled.add(slug)
+                game_id = pga.add_or_update(
+                    name=game_info['name'],
+                    runner='',
+                    slug=game_info['slug'],
+                    installed=0
+                )
+                uninstalled.add(game_id)
         return (installed, uninstalled)
 
     @staticmethod

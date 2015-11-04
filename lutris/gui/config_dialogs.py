@@ -198,7 +198,7 @@ class GameDialogCommon(object):
             # XXX DANGER ZONE
             game_slug = self.game.slug if self.game else None
             self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              game_slug=game_slug,
+                                              game_config_id=game_slug,
                                               level='game')
 
         self.rebuild_tabs()
@@ -229,11 +229,11 @@ class GameDialogCommon(object):
             self.slug = slugify(name)
 
         if not self.game:
-            self.game = Game(self.slug)
+            self.game = Game()
             self.game.config = self.lutris_config
 
-        if not self.lutris_config.game_slug:
-            self.lutris_config.game_slug = self.slug
+        if not self.lutris_config.game_config_id:
+            self.lutris_config.game_config_id = self.slug
 
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
@@ -268,7 +268,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.slug = None
 
         self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                          game_slug=self.slug,
+                                          game_config_id=self.slug,
                                           level='game')
         self.build_notebook()
         self.build_tabs('game')

@@ -68,6 +68,7 @@ def check_config(force_wipe=False):
     if force_wipe:
         os.remove(settings.PGA_DB)
     pga.syncdb()
+    pga.set_config_paths()
 
 
 def read_yaml_from_file(filename):
@@ -131,11 +132,14 @@ class LutrisConfig(object):
     `save()`.
 
     """
-    def __init__(self, runner_slug=None, game_slug=None, level=None):
-        self.game_slug = game_slug
+    def __init__(self, runner_slug=None, game_config_id=None, level=None):
+        self.game_config_id = game_config_id
         self.runner_slug = runner_slug
-        if game_slug and not runner_slug:
-            self.runner_slug = pga.get_game_by_slug(game_slug).get('runner')
+        if game_config_id:
+            if not runner_slug:
+                raise RuntimeError(
+                    "Game config provided without runner (%s)" % game_config_id
+                )
 
         # Cascaded config sections (for reading)
         self.game_config = {}
@@ -152,7 +156,7 @@ class LutrisConfig(object):
         # Set config level
         self.level = level
         if not level:
-            if game_slug:
+            if game_config_id:
                 self.level = 'game'
             elif runner_slug:
                 self.level = 'runner'
@@ -170,6 +174,11 @@ class LutrisConfig(object):
         self.update_cascaded_config()
         self.update_raw_config()
 
+    def __repr__(self):
+        return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
+            self.level, self.game_config_id, self.runner_slug
+        )
+
     @property
     def system_config_path(self):
         return os.path.join(settings.CONFIG_DIR, "system.yml")
@@ -183,10 +192,10 @@ class LutrisConfig(object):
 
     @property
     def game_config_path(self):
-        if not self.game_slug:
+        if not self.game_config_id:
             return
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" %
-                            self.game_slug)
+                            self.game_config_id)
 
     def update_cascaded_config(self):
         if self.system_level.get('system') is None:
@@ -238,13 +247,11 @@ class LutrisConfig(object):
 
     def remove(self, game=None):
         """Delete the configuration file from disk."""
-        if game is None:
-            game = self.game_slug
-        logging.debug("removing config for %s", game)
         if os.path.exists(self.game_config_path):
             os.remove(self.game_config_path)
+            logger.debug("Removed config %s", self.game_config_path)
         else:
-            logger.debug("No config file at %s" % self.game_config_path)
+            logger.debug("No config file at %s", self.game_config_path)
 
     def save(self):
         """Save configuration file according to its type"""
