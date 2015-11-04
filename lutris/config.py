@@ -18,7 +18,6 @@
 import os
 import sys
 import yaml
-import logging
 from os.path import join
 
 from gi.repository import Gio
@@ -26,6 +25,10 @@ from gi.repository import Gio
 from lutris import pga, settings, sysoptions
 from lutris.runners import import_runner
 from lutris.util.log import logger
+
+
+# Temporary config name for games that haven't been created yet
+TEMP_CONFIG = 'TEMP_CONFIG'
 
 
 def register_handler():
@@ -192,7 +195,7 @@ class LutrisConfig(object):
 
     @property
     def game_config_path(self):
-        if not self.game_config_id:
+        if not self.game_config_id or self.game_config_id == TEMP_CONFIG:
             return
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" %
                             self.game_config_id)

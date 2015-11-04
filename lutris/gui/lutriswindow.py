@@ -12,7 +12,6 @@ from lutris.sync import Sync
 from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
-from lutris.util.strings import slugify
 from lutris.util import datapath
 
 from lutris.gui import dialogs
@@ -258,10 +257,10 @@ class LutrisWindow(object):
 
     def update_existing_games(self, added, updated, installed, uninstalled,
                               first_run=False):
-        print "ADDED", added
-        print "UPDATED", updated
-        print "INSTALLED", installed
-        print "UNINSTALLED", uninstalled
+        # print "ADDED", added
+        # print "UPDATED", updated
+        # print "INSTALLED", installed
+        # print "UNINSTALLED", uninstalled
         for game_id in updated.difference(added):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
@@ -418,7 +417,7 @@ class LutrisWindow(object):
         self.game_store.modelfilter.refilter()
 
     def _get_current_game_id(self):
-        """Return the slug of the current selected game while taking care of the
+        """Return the id of the current selected game while taking care of the
         double clic bug.
         """
         # Wait two seconds to avoid running a game twice
@@ -430,14 +429,15 @@ class LutrisWindow(object):
     def on_game_run(self, _widget=None, game_id=None):
         """Launch a game, or install it if it is not"""
         if not game_id:
-            game_slug = self._get_current_game_id()
-        if not game_slug:
+            game_id = self._get_current_game_id()
+        if not game_id:
             return
         display.set_cursor('wait', self.window.get_window())
-        self.running_game = Game(game_slug)
+        self.running_game = Game(game_id)
         if self.running_game.is_installed:
             self.running_game.play()
         else:
+            game_slug = self.running_game.slug
             self.running_game = None
             InstallerDialog(game_slug, self)
 
@@ -511,14 +511,14 @@ class LutrisWindow(object):
         add_game_dialog = AddGameDialog(self.window)
         add_game_dialog.run()
         if add_game_dialog.saved:
-            self.add_game_to_view(add_game_dialog.slug)
+            self.add_game_to_view(add_game_dialog.game.id)
 
-    def add_game_to_view(self, slug):
-        if not slug:
+    def add_game_to_view(self, game_id):
+        if not game_id:
             raise ValueError("Missing game slug")
 
         def do_add_game():
-            self.view.add_game(slug)
+            self.view.add_game(game_id)
             self.switch_splash_screen()
             self.sidebar_treeview.update()
         GLib.idle_add(do_add_game)
@@ -552,13 +552,13 @@ class LutrisWindow(object):
     def edit_game_configuration(self, _button):
         """Edit game preferences."""
         def on_dialog_saved():
-            self.view.remove_game(game_slug)
-            self.view.add_game(dialog.slug)
-            self.view.set_selected_game(game_slug)
+            game_id = dialog.game.id
+            self.view.remove_game(game_id)
+            self.view.add_game(game_id)
+            self.view.set_selected_game(game_id)
             self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
-        game_slug = game.slug
         if game.is_installed:
             dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
 
@@ -590,23 +590,21 @@ class LutrisWindow(object):
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
-        game_slug = slugify(self.view.selected_game)
-        game_name = Game(game_slug).name
-        shortcuts.create_launcher(game_slug, game_name, menu=True)
+        game = Game(self.view.selected_game).name
+        shortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
 
     def create_desktop_shortcut(self, *args):
         """Create a desktop launcher for the selected game."""
-        game_slug = slugify(self.view.selected_game)
-        game_name = Game(game_slug).name
-        shortcuts.create_launcher(game_slug, game_name, desktop=True)
+        game = Game(self.view.selected_game)
+        shortcuts.create_launcher(game.slug, game.id, game.name, desktop=True)
 
     def remove_menu_shortcut(self, *args):
-        game_slug = slugify(self.view.selected_game)
-        shortcuts.remove_launcher(game_slug, menu=True)
+        game = Game(self.view.selected_game)
+        shortcuts.remove_launcher(game.slug, game.id, menu=True)
 
     def remove_desktop_shortcut(self, *args):
-        game_slug = slugify(self.view.selected_game)
-        shortcuts.remove_launcher(game_slug, desktop=True)
+        game = Game(self.view.selected_game)
+        shortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
     def toggle_sidebar(self):
         if self.sidebar_viewport.is_visible():

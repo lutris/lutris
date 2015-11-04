@@ -1,8 +1,9 @@
 """Configuration dialogs"""
+import time
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
-from lutris.config import LutrisConfig
+from lutris.config import LutrisConfig, TEMP_CONFIG
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
@@ -195,11 +196,11 @@ class GameDialogCommon(object):
             self.lutris_config = LutrisConfig()
         else:
             self.runner_name = widget.get_model()[runner_index][1]
-            # XXX DANGER ZONE
-            game_slug = self.game.slug if self.game else None
-            self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                              game_config_id=game_slug,
-                                              level='game')
+            self.lutris_config = LutrisConfig(
+                runner_slug=self.runner_name,
+                game_config_id=self.game_config_id,
+                level='game'
+            )
 
         self.rebuild_tabs()
         self.notebook.set_current_page(current_page)
@@ -230,10 +231,9 @@ class GameDialogCommon(object):
 
         if not self.game:
             self.game = Game()
-            self.game.config = self.lutris_config
 
-        if not self.lutris_config.game_config_id:
-            self.lutris_config.game_config_id = self.slug
+        if self.lutris_config.game_config_id == TEMP_CONFIG:
+            self.lutris_config.game_config_id = self.get_config_id()
 
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
@@ -267,14 +267,24 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.runner_name = None
             self.slug = None
 
+        self.game_config_id = self.get_config_id()
         self.lutris_config = LutrisConfig(runner_slug=self.runner_name,
-                                          game_config_id=self.slug,
+                                          game_config_id=self.game_config_id,
                                           level='game')
         self.build_notebook()
         self.build_tabs('game')
         self.build_action_area("Add", self.on_save)
         self.name_entry.grab_focus()
         self.show_all()
+
+    def get_config_id(self):
+        """For new games, create a special config type that won't be read
+        from disk.
+        """
+        if self.slug:
+            return "{}-{}".format(self.slug, int(time.time()))
+        else:
+            return TEMP_CONFIG
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):
@@ -285,6 +295,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         )
         self.game = game
         self.lutris_config = game.config
+        self.game_config_id = game.config.game_config_id
         self.slug = game.slug
         self.runner_name = game.runner_name
 

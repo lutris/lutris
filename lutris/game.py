@@ -106,12 +106,13 @@ class Game(object):
 
     def save(self):
         self.config.save()
-        pga.add_or_update(
+        self.id = pga.add_or_update(
             name=self.name,
             runner=self.runner_name,
             slug=self.slug,
             directory=self.directory,
-            installed=self.is_installed
+            installed=self.is_installed,
+            configpath=self.config.game_config_id
         )
 
     def prelaunch(self):
