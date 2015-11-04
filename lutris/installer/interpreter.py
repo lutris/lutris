@@ -1,6 +1,7 @@
 # pylint: disable=E1101, E0611
 """Install a game by following its install script."""
 import os
+import time
 import yaml
 import shutil
 import urllib2
@@ -46,7 +47,6 @@ class ScriptInterpreter(Commands):
         self.reversion_data = {}
         self.game_name = None
         self.game_slug = None
-        self.game_id = None
         self.game_files = {}
         self.game_disc = None
         self.cancelled = False
@@ -65,6 +65,14 @@ class ScriptInterpreter(Commands):
             self._check_dependency()
         else:
             self.target_path = self.default_target
+
+        # If the game is in the library and uninstalled, the first installation
+        # updates it
+        existing_game = pga.get_game_by_field(self.game_slug)
+        if existing_game and not existing_game['installed']:
+            self.game_id = existing_game['id']
+        else:
+            self.game_id = None
 
     @property
     def default_target(self):
@@ -339,23 +347,30 @@ class ScriptInterpreter(Commands):
         """Write the game configuration in the DB and config file."""
         runner_name = self.script['runner']
 
-        # Get existing config
-        configpath = "{}-{}".format(self.script['slug'])
+        configpath = "{}-{}".format(self.script['slug'], int(time.time()))
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % configpath)
-        if self.requires and os.path.exists(config_filename):
+        if self.requires:  # and os.path.exists(config_filename):
             # The installer is patching an existing game, update its config
             # XXX Maybe drop the self.requires condition and always update
             #     the existing config?
-            lutris_config = LutrisConfig(runner_slug=runner_name,
-                                         game_slug=self.game_slug)
+            # XXX Now it's not going to update configs ever again since we
+            # create a unique config_id so how do we deal with that?
+
+            # is that okay?
+            required_game = pga.get_game_by_field(self.requires,
+                                                  field='installer_slug')
+            lutris_config = LutrisConfig(
+                runner_slug=runner_name,
+                game_config_id=required_game['configpath']
+            )
             config = lutris_config.game_level
         else:
             config = {
                 'game': {},
             }
 
-        self.game_id = pga.add_game(
+        self.game_id = pga.add_or_update(
             name=self.script['name'],
             runner=runner_name,
             slug=self.game_slug,
@@ -365,7 +380,8 @@ class ScriptInterpreter(Commands):
             parent_slug=self.requires,
             year=self.script.get('year'),
             steamid=self.script.get('steamid'),
-            configpath=configpath
+            configpath=configpath,
+            id=self.game_id
         )
 
         # Config update

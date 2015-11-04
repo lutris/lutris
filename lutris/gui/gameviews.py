@@ -222,6 +222,8 @@ class GameView(object):
     def set_installed(self, game):
         """Update a game row to show as installed"""
         row = self.get_row_by_id(game.id)
+        if not row:
+            raise ValueError("Couldn't find row for id %s" % game)
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.id, is_installed=True)
 
