@@ -102,7 +102,7 @@ class fsuae(Runner):
         return floppy_drives + floppy_images
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'fs-uae/bin/fs-uae')
+        return os.path.join(settings.RUNNER_DIR, 'fs-uae/fs-uae')
 
     def get_params(self):
         params = []
