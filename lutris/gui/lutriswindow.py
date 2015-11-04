@@ -165,7 +165,7 @@ class LutrisWindow(object):
 
         # Timers
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
-                          GLib.timeout_add(5000, self.on_sync_timer)]
+                          GLib.timeout_add(30000, self.on_sync_timer)]
 
     def init_game_store(self):
         logger.debug("Getting game list")
