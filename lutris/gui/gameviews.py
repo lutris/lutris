@@ -202,7 +202,7 @@ class GameView(object):
     def get_row_by_id(self, game_id):
         game_row = None
         for model_row in self.game_store.store:
-            if model_row[COL_ID] == game_id:
+            if model_row[COL_ID] == int(game_id):
                 game_row = model_row
         return game_row
 
@@ -225,7 +225,7 @@ class GameView(object):
         """Update a game row to show as installed"""
         row = self.get_row_by_id(game.id)
         if not row:
-            raise ValueError("Couldn't find row for id %s" % game)
+            raise ValueError("Couldn't find row for id %s (%s)" % (game.id, game))
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.id, is_installed=True)
 
