@@ -101,9 +101,9 @@ class Game(object):
         if from_library:
             logger.debug("Removing game %s from library" % self.id)
             pga.delete_game(self.id)
-            self.config.remove()
         else:
             pga.set_uninstalled(self.id)
+        self.config.remove()
         shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
 
     def save(self):
