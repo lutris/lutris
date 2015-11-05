@@ -5,10 +5,10 @@ from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import pga, settings
-from lutris.config import LutrisConfig
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.runners import import_runner
 from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
+from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.util.cache import lru_cache
 
@@ -213,6 +213,8 @@ class GameView(object):
         row = self.get_row_by_id(removed_id)
         if row:
             self.remove_row(row.iter)
+        else:
+            logger.debug("Tried to remove %s but couln't find the row", removed_id)
 
     def remove_row(self, model_iter):
         """Remove a game from the view."""

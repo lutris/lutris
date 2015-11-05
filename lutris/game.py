@@ -96,8 +96,10 @@ class Game(object):
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk:
+            logger.debug("Removing game %s from disk" % self.id)
             self.runner.remove_game_data(game_path=self.directory)
         if from_library:
+            logger.debug("Removing game %s from library" % self.id)
             pga.delete_game(self.id)
             self.config.remove()
         else:

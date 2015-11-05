@@ -515,7 +515,7 @@ class LutrisWindow(object):
 
     def add_game_to_view(self, game_id):
         if not game_id:
-            raise ValueError("Missing game slug")
+            raise ValueError("Missing game id")
 
         def do_add_game():
             self.view.add_game(game_id)

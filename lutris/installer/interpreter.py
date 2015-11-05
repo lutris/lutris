@@ -68,7 +68,7 @@ class ScriptInterpreter(Commands):
 
         # If the game is in the library and uninstalled, the first installation
         # updates it
-        existing_game = pga.get_game_by_field(self.game_slug)
+        existing_game = pga.get_game_by_field(self.game_slug, 'slug')
         if existing_game and not existing_game['installed']:
             self.game_id = existing_game['id']
         else:
