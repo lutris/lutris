@@ -10,10 +10,7 @@ class fsuae(Runner):
     description = "Amiga emulator"
     executable = 'fs-uae'
     platform = "Amiga"
-    tarballs = {
-        'i386': "fs-uae-i386.tar.gz",
-        'x64': "fs-uae-x86_64.tar.gz",
-    }
+    tarballs = None
     game_options = [
         {
             'option': "main_file",

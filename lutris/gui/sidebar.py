@@ -132,5 +132,4 @@ class ContextualMenu(Gtk.Menu):
 
     def on_manage_versions(self, *args):
         dlg_title = "Manage %s versions" % self.runner.name
-        dialog = RunnerInstallDialog(dlg_title, self.parent_window,
-                                     self.runner.name)
+        RunnerInstallDialog(dlg_title, self.parent_window, self.runner.name)

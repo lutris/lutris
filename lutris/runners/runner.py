@@ -13,12 +13,25 @@ from lutris.util.cache import lru_cache
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.util.http import Request
 
 
 def get_arch():
+    """TODO Deprecate get_arch"""
     machine = platform.machine()
     if '64' in machine:
         return 'x64'
+    elif '86' in machine:
+        return 'i386'
+
+
+def get_arch_for_api():
+    """Return the architecture returning values compatible with the reponses
+    from the API
+    """
+    machine = platform.machine()
+    if '64' in machine:
+        return 'x86_64'
     elif '86' in machine:
         return 'i386'
 
@@ -27,10 +40,7 @@ class Runner(object):
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
-    tarballs = {
-        'i386': None,
-        'x64': None
-    }
+    tarballs = None
     platform = NotImplemented
     runnable_alone = False
     game_options = []
@@ -194,11 +204,40 @@ class Runner(object):
             return False
         return bool(system.find_executable(self.executable))
 
+    def get_runner_url(self):
+        runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)
+        request = Request(runner_api_url)
+        response = request.get()
+        response_content = response.json
+        if response_content:
+            versions = response_content.get('versions') or []
+            versions = [
+                version for version in versions
+                if version['architecture'] == get_arch_for_api()
+            ]
+            if len(versions) == 1:
+                return versions[0]['url']
+            elif len(versions) > 1:
+                default_version = [
+                    version for version in versions
+                    if version['default'] is True
+                ]
+                if default_version:
+                    return default_version[0]
+
     def install(self):
         """Install runner using package management systems."""
-        tarball = self.tarballs.get(self.arch)
+        if self.tarballs:
+            logger.debug('Port runner %s to use the REST API' % self.name)
+            tarball = self.tarballs.get(self.arch)
+            opts = {}
+        else:
+            tarball = self.get_runner_url()
+            opts = {
+                'source_url': ''
+            }
         if tarball:
-            is_extracted = self.download_and_extract(tarball)
+            is_extracted = self.download_and_extract(tarball, **opts)
             return is_extracted
         else:
             dialogs.ErrorDialog(
@@ -207,9 +246,15 @@ class Runner(object):
             return False
 
     def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
-        runner_archive = os.path.join(settings.CACHE_DIR, tarball)
         merge_single = opts.get('merge_single', False)
         source_url = opts.get('source_url', settings.RUNNERS_URL)
+        if source_url:
+            # Legacy system for runners using self.tarballs
+            tarball_filename = tarball
+        else:
+            # New system, tarball is an URL
+            tarball_filename = os.path.basename(tarball)
+        runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
         dialog.run()
         if not os.path.exists(runner_archive):
