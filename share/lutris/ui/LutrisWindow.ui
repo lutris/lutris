@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
@@ -617,84 +617,95 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="splash_box">
+          <object class="GtkAlignment" id="splash_alignment">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
+            <property name="top_padding">50</property>
+            <property name="bottom_padding">50</property>
+            <property name="left_padding">150</property>
+            <property name="right_padding">150</property>
             <child>
-              <object class="GtkLabel" id="title_label">
+              <object class="GtkBox" id="splash_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Welcome to Lutris</property>
-                <attributes>
-                  <attribute name="scale" value="2"/>
-                </attributes>
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
+                <property name="baseline_position">top</property>
+                <child>
+                  <object class="GtkLabel" id="title_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Welcome to Lutris</property>
+                    <attributes>
+                      <attribute name="scale" value="2"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
+                    <property name="lines">4</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLinkButton" id="add_game_link">
+                    <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="resize_mode">queue</property>
+                    <property name="relief">none</property>
+                    <signal name="activate-link" handler="add_game" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLinkButton" id="connect_link">
+                    <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="activate-link" handler="on_connect" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLinkButton" id="website_link">
+                    <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="uri">http://lutris.net/games/</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">15</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
-                <property name="lines">4</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLinkButton" id="add_game_link">
-                <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="resize_mode">queue</property>
-                <property name="relief">none</property>
-                <signal name="activate-link" handler="add_game" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLinkButton" id="connect_link">
-                <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">none</property>
-                <signal name="activate-link" handler="on_connect" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLinkButton" id="website_link">
-                <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">none</property>
-                <property name="uri">http://lutris.net/games/</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">4</property>
-              </packing>
             </child>
           </object>
           <packing>
@@ -761,11 +772,11 @@
                   <object class="GtkLabel" id="status_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
                     <property name="xpad">5</property>
                     <property name="ypad">5</property>
                     <property name="label" translatable="yes">Lutris</property>
                     <property name="lines">1</property>
+                    <property name="xalign">0</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -777,8 +788,8 @@
                   <object class="GtkLabel" id="connection_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
                     <property name="label" translatable="yes">label</property>
+                    <property name="xalign">1</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
