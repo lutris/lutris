@@ -51,6 +51,7 @@ class mame(Runner):
             os.chdir(rompath)
         return {'command': [self.get_executable(),
                             "-inipath", mameconfigdir,
+                            "-video", "opengl",
                             "-skip_gameinfo",
                             "-rompath", rompath,
                             rom] + options}
