@@ -1,9 +1,10 @@
 import os
 from gi.repository import Gtk, GObject, GLib
 from lutris.util.log import logger
-from lutris.gui.widgets import Dialog
 from lutris.util import system
 from lutris.util.extract import extract_archive
+from lutris.util import jobs
+from lutris.gui.widgets import Dialog
 from lutris import api
 from lutris import settings
 from lutris.downloader import Downloader
@@ -143,7 +144,6 @@ class RunnerInstallDialog(Dialog):
         architecture = row[1]
         src = self.get_dest_path(row)
         dst = self.get_runner_path(version, architecture)
-        from lutris.util import jobs
         jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
 
     def extract(self, src, dst, row):

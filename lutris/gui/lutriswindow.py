@@ -164,7 +164,7 @@ class LutrisWindow(object):
 
         # Timers
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
-                          GLib.timeout_add(30000, self.on_sync_timer)]
+                          GLib.timeout_add(10000, self.on_sync_timer)]
 
     def init_game_store(self):
         logger.debug("Getting game list")
@@ -257,10 +257,6 @@ class LutrisWindow(object):
 
     def update_existing_games(self, added, updated, installed, uninstalled,
                               first_run=False):
-        # print "ADDED", added
-        # print "UPDATED", updated
-        # print "INSTALLED", installed
-        # print "UNINSTALLED", uninstalled
         for game_id in updated.difference(added):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
@@ -285,8 +281,7 @@ class LutrisWindow(object):
         self.threads_stoppers.append(runtime.Updater.cancel)
 
     def sync_icons(self, stop_request=None):
-        game_list = pga.get_games()
-        resources.fetch_icons([game_info['id'] for game_info in game_list],
+        resources.fetch_icons([game for game in pga.get_games()],
                               callback=self.on_image_downloaded,
                               stop_request=stop_request)
 

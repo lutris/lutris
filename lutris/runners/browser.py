@@ -41,5 +41,5 @@ class browser(Runner):
         if not url:
             return {'error': 'CUSTOM',
                     'text': ("The web address is empty, \n"
-                             "verify the game's configuration."),}
+                             "verify the game's configuration."), }
         return {'command': [self.browser_exec, url]}
