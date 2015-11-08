@@ -117,6 +117,9 @@ class winesteam(wine.wine):
             },
         )
 
+    def __repr__(self):
+        return "Winesteam runner (%s)" % self.config
+
     @property
     def appid(self):
         return self.game_config.get('appid') or ''
