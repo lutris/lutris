@@ -1,28 +1,28 @@
-# -*- coding: utf-8 -*-
-""" Runner for Gamecube and Wii """
+import os
+from lutris import settings
 from lutris.runners.runner import Runner
-from lutris.gui.dialogs import NoticeDialog
 
 
 class dolphin(Runner):
-    description = ("Gamecube and Wii emulator\n"
-                   "\n"
-                   "Code repository: http://code.google.com/p/dolphin-emu/\n"
-                   "Download link : "
-                   "http://dolphin.jcf129.com/dolphin-2.0.i686.tar.bz2\n"
-                   "ppa : ppa:glennric/dolphin-emu")
+    description = "Gamecube and Wii emulator"
     human_name = "Dolphin"
-    package = "dolphin-emu"
     executable = "dolphin"
     platform = "Gamecube, Wii"
-    description = "Emulator for Nintendo Gamecube and Wii games"
-    game_options = []
+    game_options = [
+        {
+            "option": "main_file",
+            "type": "file",
+            "default_path": "game_path",
+            "label": "ISO file"
+        }
+    ]
     runner_options = []
 
-    def install(self):
-        """Run Gamecube or Wii game."""
-        NoticeDialog(
-            'Please activate the Dolphin PPA reposiories in order to '
-            'install Dolphin'
-        )
-        super(dolphin, self).install()
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'dolphin/dolphin-emu')
+
+    def play(self):
+        iso = self.game_config.get('main_file') or ''
+        if not os.path.exists(iso):
+            return {'error': 'FILE_NOT_FOUND', 'file': iso}
+        return {'command': [self.get_executable(), '-e', iso]}

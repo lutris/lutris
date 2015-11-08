@@ -1,5 +1,5 @@
 """Generic runner functions."""
-from lutris.util.log import logger
+#from lutris.util.log import logger
 
 __all__ = (
     # Native
@@ -13,7 +13,7 @@ __all__ = (
     # Atari
     "stella", "atari800", "hatari", "virtualjaguar",
     # Nintendo
-    "snes9x",  "mupen64plus",  # "dolphin",
+    "snes9x",  "mupen64plus", "dolphin",
     # Sony
     "pcsxr",
     # Sega
