@@ -130,9 +130,11 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True,
 def winecfg(wine_path=None, prefix=None, blocking=True):
     """Execute winecfg."""
     if not wine_path:
+        logger.debug("winecfg: Reverting to default wine")
         wine_path = wine().get_executable()
 
     winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
+    logger.debug("winecfg: %s", winecfg_path)
 
     env = []
     if prefix:

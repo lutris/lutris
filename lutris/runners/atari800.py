@@ -82,9 +82,6 @@ class atari800(Runner):
             "label": "Fullscreen resolution"
         }
     ]
-    tarballs = {
-        "x64": "atari800-3.1.0-x86_64.tar.gz",
-    }
 
     def install(self):
         success = super(atari800, self).install()
