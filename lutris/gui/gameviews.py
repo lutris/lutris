@@ -4,6 +4,7 @@ import os
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
+from lutris.game import Game
 from lutris import pga, settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.runners import import_runner
@@ -449,7 +450,8 @@ class ContextualMenu(Gtk.Menu):
         # Runner specific items
         runner_entries = None
         if runner_slug:
-            runner = import_runner(runner_slug)()
+            game = Game(game_id)
+            runner = import_runner(runner_slug)(game.config)
             runner_entries = runner.context_menu_entries
         if runner_entries:
             self.append(Gtk.SeparatorMenuItem())
