@@ -12,9 +12,9 @@ class vice(Runner):
         "option": "main_file",
         "type": "file",
         "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image.\n"
-                     "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
-                     "D80, D82, D1M, D2M, D4M, T46, P00 and CRT.")
+        'help': ("The game data, commonly called a ROM image.\n"
+                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
+                 "D80, D82, D1M, D2M, D4M, T46, P00 and CRT.")
     }]
 
     runner_options = [
@@ -51,10 +51,6 @@ class vice(Runner):
             "default": "c64"
         }
     ]
-
-    tarballs = {
-        "x64": "vice-2.4-x86_64.tar.gz"
-    }
 
     def get_executable(self, machine=None):
         if not machine:
