@@ -1,5 +1,5 @@
 """Generic runner functions."""
-#from lutris.util.log import logger
+# from lutris.util.log import logger
 
 __all__ = (
     # Native
@@ -17,7 +17,7 @@ __all__ = (
     # Sony
     "pcsxr",
     # Sega
-    "osmose", "gens", "nulldc",
+    "osmose", "dgen", "nulldc",
     # Misc legacy systems
     "openmsx", "frotz", "jzintv", "o2em",
 )

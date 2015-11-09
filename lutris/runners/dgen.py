@@ -4,17 +4,11 @@ from lutris import settings
 from lutris.runners.runner import Runner
 
 
-class gens(Runner):
-    human_name = "Gens"
+class dgen(Runner):
+    human_name = "DGen"
     description = "Sega Genesis emulator"
-    executable = 'gens'
     platform = 'Sega Genesis'
     description = 'Sega Genesis (aka Sega Mega Drive) emulator'
-    runnable_alone = True
-    tarballs = {
-        'i386': 'gens-2.16.7-i386.tar.gz',
-        'x64': 'gens-2.16.7-i386.tar.gz',
-    }
     game_options = [{
         'option': 'main_file',
         'type': 'file',
@@ -27,33 +21,19 @@ class gens(Runner):
             'type': 'bool',
             'label': 'Fullscreen',
             'default': True
-        },
-        {
-            'option': 'quickexit',
-            'type': 'bool',
-            'label': 'Exit emulator with Esc',
-            'default': True,
         }
     ]
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'gens/gens')
+        return os.path.join(settings.RUNNER_DIR, 'dgen/bin/dgen')
 
     def play(self):
         """Run the game."""
         arguments = [self.get_executable()]
         if self.runner_config.get('fullscreen', True):
-            arguments.append('--fs')
-        else:
-            arguments.append('--window')
-        if self.runner_config.get('quickexit', True):
-            arguments.append('--quickexit')
+            arguments.append('-f')
         rom = self.game_config.get('main_file') or ''
-        plugins_dir = os.path.join(os.path.expanduser('~'), '.gens/plugins')
-        if not os.path.exists(plugins_dir):
-            os.makedirs(plugins_dir)
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
-        arguments.append("--game")
         arguments.append(rom)
         return {"command": arguments}
