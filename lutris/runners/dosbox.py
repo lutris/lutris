@@ -107,10 +107,6 @@ class dosbox(Runner):
         }
     ]
 
-    tarballs = {
-        "x64": "dosbox-0.74-x86_64.tar.gz",
-    }
-
     @property
     def main_file(self):
         return self.game_config.get('main_file') or ''

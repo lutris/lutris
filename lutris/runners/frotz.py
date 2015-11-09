@@ -10,12 +10,7 @@ class frotz(Runner):
     human_name = "Frotz"
     description = "Z-code emulator for text adventure games such as Zork."
     package = "frotz"
-    executable = "frotz"
     platform = "Z-Code"
-
-    tarballs = {
-        'x64': 'frotz-2.44-x86_64.tar.gz',
-    }
 
     game_options = [
         {
