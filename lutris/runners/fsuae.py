@@ -10,7 +10,6 @@ class fsuae(Runner):
     description = "Amiga emulator"
     executable = 'fs-uae'
     platform = "Amiga"
-    tarballs = None
     game_options = [
         {
             'option': "main_file",

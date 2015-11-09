@@ -21,10 +21,6 @@ class stella(Runner):
     ]
     runner_options = []
 
-    tarballs = {
-        "x64": "stella-4.0-x86_64.tar.gz",
-    }
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "stella/bin/stella")
 
