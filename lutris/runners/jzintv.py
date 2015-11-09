@@ -11,11 +11,6 @@ class jzintv(Runner):
     executable = "jzintv"
     platform = "Intellivision"
 
-    tarballs = {
-        'i386': None,
-        'x64': 'jzintv-1.0-beta4-x86_64.tar.gz',
-    }
-
     game_options = [{
         'option': 'main_file',
         'type': 'file',

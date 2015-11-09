@@ -99,10 +99,6 @@ class hatari(Runner):
         }
     ]
 
-    tarballs = {
-        "x64": "hatari-1.8.0-x86_64.tar.gz",
-    }
-
     def install(self):
         success = super(hatari, self).install()
         if not success:
