@@ -37,20 +37,19 @@ We currently support the following runners:
 * Virtual Jaguar
 * Snes9x
 * Mupen64 Plus
+* Dolphin
 * PCSXR
 * Osmose
 * GenS
-* NullDC (using wine)
-* OpenMSX
+* Reicast
 * Frotz
 * Jzintv
 * O2em
 
 Runners that will be added in future versions of Lutris:
 
+* PPSSPP
 * PCSX2
-* Dolphin
-* Reicast (replacing NullDC)
 
 Installer scripts
 =================

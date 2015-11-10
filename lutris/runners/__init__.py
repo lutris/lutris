@@ -17,7 +17,7 @@ __all__ = (
     # Sony
     "pcsxr",
     # Sega
-    "osmose", "dgen", "nulldc",
+    "osmose", "dgen", "reicast",
     # Misc legacy systems
     "openmsx", "frotz", "jzintv", "o2em",
 )

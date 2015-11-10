@@ -50,7 +50,6 @@ class Runner(object):
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.depends = None
         self.arch = get_arch()
         self.logger = logger
         self.config = config
