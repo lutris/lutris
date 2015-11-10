@@ -43,10 +43,6 @@ class mednafen(Runner):
         }
     ]
 
-    tarballs = {
-        "x64": "mednafen-0.9.36.3-x86_64.tar.gz",
-    }
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'mednafen/bin/mednafen')
 

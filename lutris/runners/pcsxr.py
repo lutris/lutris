@@ -42,9 +42,6 @@ class pcsxr(Runner):
                      "allowing you to configure the emulator.")
         }
     ]
-    tarballs = {
-        'x64': 'pcsxr-x86_64-1.9.95.tar.gz',
-    }
 
     def get_executable(self):
         # Lutris provided emulator
