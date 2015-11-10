@@ -26,10 +26,6 @@ class mame(Runner):
         }
     ]
 
-    tarballs = {
-        "x64": "mame-0.154-x86_64.tar.gz",
-    }
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "mame/mame")
 

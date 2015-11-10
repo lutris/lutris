@@ -52,10 +52,6 @@ class mess(Runner):
         }
     ]
 
-    tarballs = {
-        "x64": "mess-0.154-x86_64.tar.gz",
-    }
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "mess/mess")
 
