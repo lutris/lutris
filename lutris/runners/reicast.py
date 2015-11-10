@@ -20,7 +20,7 @@ class reicast(Runner):
     runner_options = []
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'reicast/reicast')
+        return os.path.join(settings.RUNNER_DIR, 'reicast/reicast.elf')
 
     def play(self):
         iso = self.game_config.get('iso')
