@@ -133,7 +133,8 @@ class Runner(object):
         return self.platform
 
     def get_executable(self):
-        raise NotImplementedError("Runners must implement get_executable")
+        raise NotImplementedError("Runners must implement get_executable (%s)"
+                                  % self)
 
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
