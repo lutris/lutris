@@ -28,10 +28,6 @@ class mupen64plus(Runner):
             'default': True
         }
     ]
-    tarballs = {
-        'i386': 'mupen64plus-bundle-linux32-2.0.tar.gz',
-        'x64': 'mupen64plus-bundle-linux64-2.0-ubuntu.tar.gz',
-    }
 
     @property
     def working_dir(self):

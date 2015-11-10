@@ -52,11 +52,6 @@ class residualvm(Runner):
         }
     ]
 
-    tarballs = {
-        'i386': "residualvm-0.2.1-linux32.tar.gz",
-        'x64': "residualvm-0.2.1-linux64.tar.gz",
-    }
-
     @property
     def game_path(self):
         return self.game_config.get('path')

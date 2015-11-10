@@ -9,10 +9,6 @@ class o2em(Runner):
     description = "Magnavox Oyssey² Emulator"
     platform = "Magnavox Odyssey 2, Phillips Videopac+"
 
-    tarballs = {
-        'i386': None,
-        'x64': "o2em-1.18-x86_64.tar.gz",
-    }
     checksums = {
         'o2rom': "562d5ebf9e030a40d6fabfc2f33139fd",
         'c52': "f1071cdb0b6b10dde94d3bc8a6146387",

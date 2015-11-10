@@ -70,10 +70,6 @@ class scummvm(Runner):
         }
     ]
 
-    tarballs = {
-        'x64': "scummvm-1.7.0-x86_64.tar.gz",
-    }
-
     @property
     def game_path(self):
         return self.game_config.get('path')
