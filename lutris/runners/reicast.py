@@ -24,5 +24,7 @@ class reicast(Runner):
 
     def play(self):
         iso = self.game_config.get('iso')
-        command = [self.get_executable(), iso]
+        command = [
+            self.get_executable(), "-config", "config:image={}".format(iso)
+        ]
         return {'command': command}
