@@ -17,14 +17,24 @@ class reicast(Runner):
                  "Supported formats: ISO, CDI")
     }]
 
-    runner_options = []
+    runner_options = [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            'default': False,
+        }
+    ]
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'reicast/reicast.elf')
 
     def play(self):
         iso = self.game_config.get('iso')
+        fullscreen = '1' if self.runner_config.get('fullscreen') else '0'
         command = [
-            self.get_executable(), "-config", "config:image={}".format(iso)
+            self.get_executable(),
+            "-config", "config:image={}".format(iso),
+            "-config", "x11:fullscreen={}".format(fullscreen)
         ]
         return {'command': command}
