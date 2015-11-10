@@ -8,7 +8,6 @@ from lutris.util.display import get_current_resolution
 class fsuae(Runner):
     human_name = "FS-UAE"
     description = "Amiga emulator"
-    executable = 'fs-uae'
     platform = "Amiga"
     game_options = [
         {

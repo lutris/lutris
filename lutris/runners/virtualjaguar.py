@@ -6,7 +6,6 @@ from lutris.runners.runner import Runner
 class virtualjaguar(Runner):
     description = "Atari Jaguar emulator"
     human_name = "Virtual Jaguar"
-    executable = "virtualjaguar"
     platform = "Atari Jaguar"
     runnable_alone = True
 
@@ -29,11 +28,6 @@ class virtualjaguar(Runner):
             "default": "1"
         }
     ]
-
-    tarballs = {
-        'i386': None,
-        'x64': 'virtualjaguar-2.1.1-x64.tar.gz'
-    }
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'virtualjaguar/virtualjaguar')

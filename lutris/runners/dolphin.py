@@ -6,7 +6,6 @@ from lutris.runners.runner import Runner
 class dolphin(Runner):
     description = "Gamecube and Wii emulator"
     human_name = "Dolphin"
-    executable = "dolphin"
     platform = "Gamecube, Wii"
     game_options = [
         {

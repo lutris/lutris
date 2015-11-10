@@ -133,6 +133,9 @@ class Runner(object):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
 
+    def get_executable(self):
+        raise NotImplementedError("Runners must implement get_executable")
+
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
@@ -141,9 +144,7 @@ class Runner(object):
         """Return dict with command (exe & args list) and env vars (dict).
 
         Reimplement in derived runner if need be."""
-        exe = (self.get_executable()
-               if hasattr(self, 'get_executable')
-               else getattr(self, 'executable', ''))
+        exe = self.get_executable()
         return {'command': [exe], 'env': {}}
 
     def run(self, *args):
@@ -193,16 +194,9 @@ class Runner(object):
 
     def is_installed(self):
         """Return True if runner is installed else False."""
-        # Check 'get_executable' first
-        if hasattr(self, 'get_executable'):
-            executable = self.get_executable()
-            if executable and os.path.exists(executable):
-                return True
-
-        # Fallback to 'executable' attribute (ssytem-wide install)
-        if not getattr(self, 'executable', None):
-            return False
-        return bool(system.find_executable(self.executable))
+        executable = self.get_executable()
+        if executable and os.path.exists(executable):
+            return True
 
     def get_runner_url(self):
         runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)

@@ -9,7 +9,6 @@ class osmose(Runner):
     human_name = "Osmose"
     description = "Sega Master System Emulator"
     package = "osmose"
-    executable = "osmose"
     platform = "Sega Master System"
     game_options = [
         {

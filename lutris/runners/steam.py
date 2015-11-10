@@ -36,7 +36,6 @@ class steam(Runner):
     description = "Runs Steam for Linux games"
     human_name = "Steam"
     platform = "Steam for Linux"
-    executable = 'steam'
     runnable_alone = True
     game_options = [
         {
@@ -110,6 +109,9 @@ class steam(Runner):
             path = os.path.expanduser(candidate)
             if os.path.exists(path):
                 return path
+
+    def get_executable(self):
+        return 'steam'
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
@@ -193,7 +195,7 @@ class steam(Runner):
         self.original_steampid = get_steam_pid()
         appid = self.game_config.get('appid')
         return {
-            'command': [self.executable, 'steam://rungameid/%s' % appid],
+            'command': [self.get_executable(), 'steam://rungameid/%s' % appid],
             'rootpid': self.original_steampid
         }
 
@@ -225,6 +227,6 @@ class steam(Runner):
             raise RuntimeError('No appid given for uninstallation '
                                '(game config=%s)' % self.game_config)
         logger.debug("Launching Steam uninstall of game %s" % appid)
-        command = [self.executable, 'steam://uninstall/%s' % appid]
+        command = [self.get_executable(), 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self)
         thread.start()

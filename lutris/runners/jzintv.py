@@ -8,7 +8,6 @@ class jzintv(Runner):
     human_name = "jzIntv"
     description = "Intellivision Emulator"
     package = "jzintv"
-    executable = "jzintv"
     platform = "Intellivision"
 
     game_options = [{

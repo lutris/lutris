@@ -5,7 +5,6 @@ from lutris.runners.runner import Runner
 class browser(Runner):
     human_name = "Browser"
     description = "Runs browser games"
-    executable = "xdg-open"
     platform = "Web based games"
     description = "Runs games in the browser"
     game_options = [
@@ -32,14 +31,16 @@ class browser(Runner):
         }
     ]
 
+    def get_executable(self):
+        return self.runner_config.get('browser') or 'xdg-open'
+
     def is_installed(self):
         return True
 
     def play(self):
-        self.browser_exec = self.runner_config.get('browser', self.executable)
         url = self.game_config.get('main_file')
         if not url:
             return {'error': 'CUSTOM',
                     'text': ("The web address is empty, \n"
                              "verify the game's configuration."), }
-        return {'command': [self.browser_exec, url]}
+        return {'command': [self.get_executable(), url]}
