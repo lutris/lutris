@@ -3,7 +3,7 @@ from gi.repository import Gio, Gtk
 from lutris.game import Game
 from lutris.config import check_config
 # from lutris import settings
-# from lutris import pga
+from lutris import pga
 from lutris.gui import config_dialogs
 from lutris.gui.lutriswindow import LutrisWindow
 from unittest import TestCase
@@ -88,6 +88,7 @@ class TestGameDialog(TestCase):
         add_button = self.get_buttons().get_children()[1]
         add_button.clicked()
 
-        game = Game('test-game')
+        pga_game = pga.get_game_by_field('test-game', 'slug')
+        game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')
         game.remove(from_library=True)
