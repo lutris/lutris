@@ -111,7 +111,7 @@ class steam(Runner):
                 return path
 
     def get_executable(self):
-        return 'steam'
+        return system.find_executable('steam')
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
