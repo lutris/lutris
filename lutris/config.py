@@ -123,7 +123,7 @@ class LutrisConfig(object):
     Usage
     =====
     The config level will be auto set depending on what you pass to __init__:
-    - For game level, pass game slug and optionally runner_slug (better perfs)
+    - For game level, pass game_config_id and optionally runner_slug (better perfs)
     - For runner level, pass runner_slug
     - For system level, pass nothing
     If need be, you can pass the level manually.
