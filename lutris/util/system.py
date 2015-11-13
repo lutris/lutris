@@ -126,6 +126,8 @@ def merge_folders(source, destination):
 def remove_folder(path):
     if os.path.exists(path):
         logger.debug("Removing folder %s" % path)
+        if os.path.samefile(os.path.expanduser('~'), path):
+            raise RuntimeError("Lutris tried to erase home directory!")
         shutil.rmtree(path)
 
 
