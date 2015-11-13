@@ -273,7 +273,7 @@ class LutrisConfig(object):
         """Return a dict of options' default value."""
         options_dict = self.options_as_dict(options_type)
         defaults = {}
-        for option, params in options_dict.iteritems():
+        for option, params in options_dict.items():
             if 'default' in params:
                 defaults[option] = params['default']
         return defaults
