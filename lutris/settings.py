@@ -33,7 +33,7 @@ INSTALLER_URL = SITE_URL + 'games/install/%s/'
 ICON_URL = SITE_URL + 'games/icon/%s.png'
 BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
 RUNNERS_URL = SITE_URL + "files/runners/"
-RUNTIME_URL = "http://ovocean.com/partage/lutris/runtime/"
+RUNTIME_URL = "https://lutris.net/api/runtime"
 
 # Default config options
 KEEP_CACHED_ASSETS = False  # TODO: needs verification of failed DLed files

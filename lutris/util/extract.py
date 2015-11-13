@@ -58,6 +58,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
                 shutil.move(source_path, destination_path)
         shutil.rmtree(temp_path)
     logger.debug("Finished extracting %s", path)
+    return (path, to_directory)
 
 
 def decompress_gz(file_path, dest_path=None):

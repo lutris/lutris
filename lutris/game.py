@@ -126,10 +126,13 @@ class Game(object):
                 return False
 
         if self.runner.use_runtime():
-            if runtime.is_outdated() or runtime.is_updating():
-                result = dialogs.RuntimeUpdateDialog().run()
-                if not result == Gtk.ResponseType.OK:
-                    return False
+            if runtime.is_updating():
+                logger.error("Runtime currently updating")
+                return False
+                # FIXME this won't work with the new runtime code
+                # result = dialogs.RuntimeUpdateDialog().run()
+                # if not result == Gtk.ResponseType.OK:
+                #    return False
         return True
 
     def play(self):

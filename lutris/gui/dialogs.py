@@ -143,8 +143,8 @@ class DownloadDialog(Gtk.Dialog):
 class RuntimeUpdateDialog(DownloadDialog):
     """Dialog showing the progress of ongoing runtime update."""
     def __init__(self):
-        runtime.Updater().start()
-        self.downloader = runtime.Updater.downloader
+        runtime.update()
+        self.downloader = runtime.get_downloader()
 
         DownloadDialog.__init__(
             self,
@@ -158,7 +158,7 @@ class RuntimeUpdateDialog(DownloadDialog):
         GLib.timeout_add(200, self.check_extracted)
 
     def check_extracted(self):
-        if not runtime.is_updating():
+        if not runtime.get_updating_status():
             self.response(Gtk.ResponseType.OK)
             self.destroy()
             return False

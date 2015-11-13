@@ -277,8 +277,8 @@ class LutrisWindow(object):
             self.update_runtime()
 
     def update_runtime(self):
-        runtime.Updater().start(self.set_status)
-        self.threads_stoppers.append(runtime.Updater.cancel)
+        cancellables = runtime.update(self.set_status)
+        self.threads_stoppers += cancellables
 
     def sync_icons(self, stop_request=None):
         resources.fetch_icons([game for game in pga.get_games()],
