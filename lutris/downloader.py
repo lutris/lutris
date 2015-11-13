@@ -1,6 +1,6 @@
 import os
 import time
-import Queue
+import queue
 
 from lutris.util import http, jobs
 from lutris.util.log import logger
@@ -17,7 +17,7 @@ class Downloader():
      DOWNLOADING,
      CANCELLED,
      ERROR,
-     COMPLETED) = range(5)
+     COMPLETED) = list(range(5))
 
     def __init__(self, url, dest, overwrite=False):
         self.url = url
@@ -42,7 +42,7 @@ class Downloader():
         self.time_left_check_time = 0
 
         self.file_pointer = None
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
     def start(self):
         """Start download job."""

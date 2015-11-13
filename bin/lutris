@@ -90,17 +90,17 @@ if options.debug:
 
 if options.list_games:
     for game in pga.get_games():
-        print u"{:<40} | {:<40} | {:<15} | {:<64}".format(
+        print(u"{:<40} | {:<40} | {:<15} | {:<64}".format(
             game['name'][:40],
             game['slug'][:40],
             game['runner'],
             game['directory'] or '-'
-        ).encode('utf-8')
+        ).encode('utf-8'))
     exit()
 if options.list_steam:
     from lutris.runners import winesteam
     steam_runner = winesteam.winesteam()
-    print steam_runner.get_appid_list()
+    print(steam_runner.get_appid_list())
     exit()
 
 
@@ -177,7 +177,7 @@ if type(lutris) is dbus.Interface:
             pid = dbus_interface.GetConnectionUnixProcessID(lutris.bus_name)
 
             os.kill(pid, signal.SIGKILL)
-        except OSError, dbus.exceptions.DBusException:
+        except (OSError, dbus.exceptions.DBusException):
             logger.debug(e)
             exit()  # Give up :(
         else:

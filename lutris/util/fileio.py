@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 
 
 class EvilConfigParser(RawConfigParser):
@@ -7,7 +7,7 @@ class EvilConfigParser(RawConfigParser):
     def write(self, fp):
         for section in self._sections:
             fp.write("[%s]\n" % section)
-            for (key, value) in self._sections[section].items():
+            for (key, value) in list(self._sections[section].items()):
                 if key == "__name__":
                     continue
                 if (value is not None) or (self._optcre == self.OPTCRE):

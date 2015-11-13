@@ -1,7 +1,7 @@
 import os
 import json
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from lutris.util.log import logger
 
@@ -53,11 +53,11 @@ class Request(object):
 
     def get(self, data=None):
         try:
-            request = urllib2.urlopen(self.url, data, self.timeout)
-        except urllib2.HTTPError as e:
+            request = urllib.request.urlopen(self.url, data, self.timeout)
+        except urllib.error.HTTPError as e:
             if self.error_logging:
                 logger.error("Unavailable url (%s): %s", self.url, e)
-        except (socket.timeout, urllib2.URLError) as e:
+        except (socket.timeout, urllib.error.URLError) as e:
             if self.error_logging:
                 logger.error("Unable to connect to server (%s): %s",
                              self.url, e)

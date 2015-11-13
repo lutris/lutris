@@ -150,7 +150,8 @@ class RunnerInstallDialog(Dialog):
         extract_archive(src, dst)
         return src, row
 
-    def on_extracted(self, (src, row), error):
+    def on_extracted(self, xxx_todo_changeme, error):
+        (src, row) = xxx_todo_changeme
         os.remove(src)
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True

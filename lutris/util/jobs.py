@@ -27,7 +27,7 @@ class AsyncCall(threading.Thread):
 
         try:
             result = self.function(*args, **kwargs)
-        except Exception, err:
+        except Exception as err:
             logger.error("Error while completing task %s: %s",
                          self.function, err)
             error = err

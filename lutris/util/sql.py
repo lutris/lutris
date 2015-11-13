@@ -16,9 +16,9 @@ class db_cursor(object):
 
 
 def db_insert(db_path, table, fields):
-    columns = ", ".join(fields.keys())
+    columns = ", ".join(list(fields.keys()))
     placeholders = ("?, " * len(fields))[:-2]
-    field_values = _decode_utf8_values(fields.values())
+    field_values = _decode_utf8_values(list(fields.values()))
     with db_cursor(db_path) as cursor:
         try:
             cursor.execute(
@@ -28,8 +28,8 @@ def db_insert(db_path, table, fields):
                 field_values
             )
         except sqlite3.IntegrityError:
-            print columns
-            print field_values
+            print(columns)
+            print(field_values)
             raise
         inserted_id = cursor.lastrowid
     return inserted_id
@@ -39,8 +39,8 @@ def db_update(db_path, table, updated_fields, row):
     """Update `table` with the values given in the dict `values` on the
        condition given with the `row` tuple.
     """
-    columns = "=?, ".join(updated_fields.keys()) + "=?"
-    field_values = _decode_utf8_values(updated_fields.values())
+    columns = "=?, ".join(list(updated_fields.keys())) + "=?"
+    field_values = _decode_utf8_values(list(updated_fields.values()))
     condition_field = "{0}=?".format(row[0])
     condition_value = (row[1], )
     with db_cursor(db_path) as cursor:
@@ -82,11 +82,13 @@ def db_select(db_path, table, fields=None, condition=None):
 
 
 def _decode_utf8_values(values_list):
-    """Return a tuple of values with UTF-8 string values being decoded."""
+    """Return a tuple of values with UTF-8 string values being decoded.
+    XXX Might be obsolete in Python3 (Removed the decoding part)
+    """
     i = 0
     for v in values_list:
         if type(v) is str:
-            values_list[i] = v.decode('UTF-8')
+            values_list[i] = v
         i += 1
     return tuple(values_list)
 

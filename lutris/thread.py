@@ -42,7 +42,7 @@ class LutrisThread(threading.Thread):
         self.cwd = runner.working_dir if self.runner else cwd
 
         self.env_string = ''
-        for (k, v) in self.env.iteritems():
+        for (k, v) in self.env.items():
             self.env_string += '%s="%s" ' % (k, v)
 
         self.command_string = ' '.join(
@@ -95,7 +95,7 @@ class LutrisThread(threading.Thread):
                 exec sh # Keep term open
                 """ % (self.cwd, self.env_string, self.command_string)
             ))
-            os.chmod(file_path, 0744)
+            os.chmod(file_path, 0o744)
 
         term_command = [self.terminal, '-e', file_path]
         self.game_process = subprocess.Popen(term_command, bufsize=1,

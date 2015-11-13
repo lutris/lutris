@@ -95,12 +95,12 @@ if __name__ == "__main__":
     registry = WineRegistry(os.path.expanduser("~/.wine/user.reg"))
     for keyname in registry.keys:
         key = registry.keys[keyname]
-        print key
+        print(key)
         for name in key.values:
-            print key.show_key(name)
-        print
+            print((key.show_key(name)))
+        print()
 
     steam_key = "Software/Valve/Steam"
-    print "Querying registry for {}".format(steam_key)
+    print(("Querying registry for {}".format(steam_key)))
     q = registry.query(steam_key, "SteamExe")
-    print q
+    print(q)
