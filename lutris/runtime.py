@@ -9,6 +9,7 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 CURRENT_UPDATES = 0
+STATUS_UPDATER = None
 
 
 def is_updating():
@@ -23,18 +24,20 @@ def get_created_at(name):
 
 
 def update(status_updater=None):
+    global STATUS_UPDATER
     if is_updating():
         logger.debug("Runtime already updating")
         return
 
     if status_updater:
-        status_updater("Updating Runtime")
+        STATUS_UPDATER = status_updater
 
     return get_runtimes()
 
 
 def get_runtimes():
     global CURRENT_UPDATES
+    global STATUS_UPDATER
     request = http.Request(RUNTIME_URL)
     response = request.get()
     cancellables = []
@@ -46,6 +49,7 @@ def get_runtimes():
         created_at = time.strptime(created_at[:created_at.find('.')],
                                    "%Y-%m-%dT%H:%M:%S")
         if get_created_at(name) < created_at:
+            STATUS_UPDATER("Updating Runtime")
             logger.debug('Updating runtime %s', name)
             url = runtime['url']
             archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
@@ -83,6 +87,7 @@ def on_downloaded(path):
 
 def on_extracted(result, error):
     global CURRENT_UPDATES
+    global STATUS_UPDATER
     CURRENT_UPDATES -= 1
     if error:
         logger.debug("Runtime update failed")
@@ -90,6 +95,8 @@ def on_extracted(result, error):
     archive_path = result[0]
     os.unlink(archive_path)
 
+    if STATUS_UPDATER and CURRENT_UPDATES == 0:
+        STATUS_UPDATER("Runtime updated")
     logger.debug("Runtime updated")
 
 
