@@ -23,10 +23,13 @@ winetricks = wine.winetricks
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
+def get_steam_installer_dest():
+    return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
+
+
 def download_steam(downloader=None, callback=None, callback_data=None):
     """Downloads steam with `downloader` then calls `callback`"""
-    steam_installer_path = os.path.join(settings.TMP_PATH,
-                                        "SteamInstall.msi")
+    steam_installer_path = get_steam_installer_dest()
     if not downloader:
         dialog = DownloadDialog(STEAM_INSTALLER_URL, steam_installer_path)
         dialog.run()
@@ -218,7 +221,8 @@ class winesteam(wine.wine):
         prefix = self.get_or_create_default_prefix()
         if not self.get_steam_path():
             if not installer_path:
-                installer_path = download_steam()
+                installer_path = get_steam_installer_dest()
+                download_steam()
             self.msi_exec(installer_path, quiet=True, prefix=prefix,
                           wine_path=self.get_executable())
         return True

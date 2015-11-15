@@ -7,7 +7,7 @@ import shutil
 import urllib2
 import platform
 
-from gi.repository import GLib
+from gi.repository import GLib, Gdk, GObject
 
 from .errors import ScriptingError
 from .commands import Commands
@@ -241,25 +241,44 @@ class ScriptInterpreter(Commands):
         if parts[0] == '$WINESTEAM':
             self.parent.set_status('Getting Wine Steam game data')
             self.steam_data['platform'] = "windows"
-            # Check that wine is installed
-            wine_runner = wine.wine()
-            if not wine_runner.is_installed():
-                wine_runner.install()
-            # Getting data from Wine Steam
-            steam_runner = winesteam.winesteam()
-            if not steam_runner.is_installed():
-                winesteam.download_steam(
-                    downloader=self.parent.start_download,
-                    callback=self.parent.on_steam_downloaded
-                )
-            else:
-                self.install_steam_game(winesteam.winesteam,
-                                        is_game_files=True)
+            self.install_steam_game(winesteam.winesteam,
+                                    is_game_files=True)
         else:
             # Getting data from Linux Steam
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
+
+    def check_steam_install(self):
+        """Checks that the required version of Steam is installed.
+        Return a boolean indicating whether is it or not.
+        """
+        if self.steam_data['platform'] == 'windows':
+            # Check that wine is installed
+            wine_runner = wine.wine()
+            if not wine_runner.is_installed():
+                logger.debug('Wine is not installed')
+                Gdk.threads_init()
+                Gdk.threads_enter()
+                wine_runner.install()
+                Gdk.threads_leave()
+            # Getting data from Wine Steam
+            steam_runner = winesteam.winesteam()
+            if not steam_runner.is_installed():
+                logger.debug('Winesteam not installed')
+                winesteam.download_steam(
+                    downloader=self.parent.start_download,
+                    callback=self.on_steam_downloaded
+                )
+                return False
+            return True
+        else:
+            steam_runner = steam.steam()
+            if not steam_runner.is_installed():
+                raise ScriptingError(
+                    "Install Steam for Linux and start installer again"
+                )
+            return True
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -288,6 +307,8 @@ class ScriptInterpreter(Commands):
                 raise ScriptingError("Missing appid for steam game")
 
             commands = self.script.get('installer', [])
+            self.steam_data['platform'] = 'windows' \
+                if runner_name == 'winesteam' else 'linux'
             commands.insert(0, 'install_steam_game')
             self.script['installer'] = commands
         self._iter_commands()
@@ -502,6 +523,14 @@ class ScriptInterpreter(Commands):
         runner_class: class of the steam runner to use
         is_game_files: whether the game is used for the installer game files
         """
+
+        # Check if Steam is installed, saved the method's arguments so it can
+        # be called again once Steam is installed.
+        self.steam_data['callback_args'] = (runner_class, is_game_files)
+        is_installed = self.check_steam_install()
+        if not is_installed:
+            return 'STOP'
+
         if not runner_class:
             if self.script['runner'] == 'steam':
                 runner_class = steam.steam
@@ -566,9 +595,14 @@ class ScriptInterpreter(Commands):
             os.path.join(data_path, self.steam_data['steam_rel_path'])
         self.iter_game_files()
 
-    def complete_steam_install(self, dest):
+    def on_steam_downloaded(self, *args):
+        print args
+        logger.debug("Steam downloaded")
+        dest = winesteam.get_steam_installer_dest()
         winesteam_runner = winesteam.winesteam()
         AsyncCall(winesteam_runner.install, self.on_winesteam_installed, dest)
 
     def on_winesteam_installed(self, *args):
-        self.install_steam_game(winesteam.winesteam)
+        logger.debug("Winesteam installed")
+        callback_args = self.steam_data['callback_args']
+        self.install_steam_game(*callback_args)

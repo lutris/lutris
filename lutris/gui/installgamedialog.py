@@ -318,9 +318,6 @@ class InstallerDialog(Gtk.Window):
         self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
 
-    def on_steam_downloaded(self, widget, *args, **kwargs):
-        self.interpreter.complete_steam_install(widget.dest)
-
     # ----------------
     # "Commands" stage
     # ----------------
