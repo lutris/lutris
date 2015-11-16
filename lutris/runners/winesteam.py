@@ -143,6 +143,8 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
+        if not self.appid:
+            return
         for apps_path in self.get_steamapps_dirs():
             game_path = get_path_from_appmanifest(apps_path, self.appid)
             if game_path:
@@ -353,8 +355,6 @@ class winesteam(wine.wine):
     def play(self):
         self.game_launch_time = time.localtime()
         args = self.game_config.get('args') or ''
-        logger.debug("Checking Steam installation")
-
         command = self.launch_args
         if self.appid:
             command.append('steam://rungameid/%s' % self.appid)
