@@ -7,7 +7,7 @@ import shutil
 import urllib2
 import platform
 
-from gi.repository import GLib, Gdk, GObject
+from gi.repository import GLib, Gdk
 
 from .errors import ScriptingError
 from .commands import Commands
@@ -258,10 +258,11 @@ class ScriptInterpreter(Commands):
             wine_runner = wine.wine()
             if not wine_runner.is_installed():
                 logger.debug('Wine is not installed')
-                Gdk.threads_init()
-                Gdk.threads_enter()
-                wine_runner.install()
-                Gdk.threads_leave()
+                wine_runner.install(
+                    downloader=self.parent.start_download,
+                    callback=self.check_steam_install
+                )
+                return False
             # Getting data from Wine Steam
             steam_runner = winesteam.winesteam()
             if not steam_runner.is_installed():
@@ -531,25 +532,19 @@ class ScriptInterpreter(Commands):
         if not is_installed:
             return 'STOP'
 
-        if not runner_class:
-            if self.script['runner'] == 'steam':
-                runner_class = steam.steam
-            elif self.script['runner'] == 'winesteam':
-                runner_class = winesteam.winesteam
-            else:
-                raise ScriptingError('Missing Steam platform')
-
-        steam_runner = runner_class()
+        steam_runner = self._get_steam_runner(runner_class)
         self.steam_data['is_game_files'] = is_game_files
         self.steam_data['steamapps_path'] = (
             steam_runner.get_default_steamapps_path()
         )
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
-            logger.debug("Installing steam game %s" % appid)
+            logger.debug("Installing steam game %s in %s",
+                         appid, self.steam_data['steamapps_path'])
             AsyncCall(steam_runner.install_game, None, appid)
-            self.steam_poll = GLib.timeout_add(2000,
-                                               self._monitor_steam_install)
+            self.steam_poll = GLib.timeout_add(
+                2000, self._monitor_steam_game_install
+            )
             self.abort_current_task = (
                 lambda: steam_runner.remove_game_data(appid=appid)
             )
@@ -557,8 +552,24 @@ class ScriptInterpreter(Commands):
         elif is_game_files:
             self._append_steam_data_to_files(runner_class)
 
-    def _monitor_steam_install(self):
+    def _get_steam_runner(self, runner_class=None):
+        if not runner_class:
+            if self.script['runner'] == 'steam':
+                runner_class = steam.steam
+            elif self.script['runner'] == 'winesteam':
+                runner_class = winesteam.winesteam
+            else:
+                raise ScriptingError('Missing Steam platform')
+        return runner_class()
+
+    def _monitor_steam_game_install(self):
         steamapps_path = self.steam_data['steamapps_path']
+        if not steamapps_path:
+            steam_runner = self._get_steam_runner()
+            steamapps_path = (
+                steam_runner.get_default_steamapps_path()
+            )
+            self.steam_data['steamapps_path'] = steamapps_path
         appid = self.steam_data['appid']
         states = get_app_states(steamapps_path, appid)
         logger.debug(states)
@@ -596,7 +607,6 @@ class ScriptInterpreter(Commands):
         self.iter_game_files()
 
     def on_steam_downloaded(self, *args):
-        print args
         logger.debug("Steam downloaded")
         dest = winesteam.get_steam_installer_dest()
         winesteam_runner = winesteam.winesteam()

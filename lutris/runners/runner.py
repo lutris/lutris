@@ -242,6 +242,8 @@ class Runner(object):
     def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
         merge_single = opts.get('merge_single', False)
         source_url = opts.get('source_url', settings.RUNNERS_URL)
+        downloader = opts.get('downloader')
+        callback = opts.get('callback')
         if source_url:
             # Legacy system for runners using self.tarballs
             tarball_filename = tarball
@@ -249,14 +251,35 @@ class Runner(object):
             # New system, tarball is an URL
             tarball_filename = os.path.basename(tarball)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
-        dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
-        dialog.run()
-        if not os.path.exists(runner_archive):
-            logger.error("Can't find %s, aborting install", runner_archive)
+        url = source_url + tarball
+        if downloader:
+            extract_args = {
+                'archive': runner_archive,
+                'dest': dest,
+                'merge_single': merge_single,
+                'callback': callback
+            }
+            downloader(url, runner_archive, self.on_downloaded, extract_args)
+        else:
+            dialog = dialogs.DownloadDialog(url, runner_archive)
+            dialog.run()
+            return self.extract(archive=runner_archive, dest=dest,
+                                merge_single=merge_single)
+
+    def on_downloaded(self, widget, data, user_data):
+        """GObject callback received by downloader"""
+        self.extract(**user_data)
+
+    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
+        if not os.path.exists(archive):
+            logger.error("Can't find %s, aborting install", archive)
             return False
-        extract_archive(runner_archive, dest, merge_single=merge_single)
-        os.remove(runner_archive)
-        return True
+        extract_archive(archive, dest, merge_single=merge_single)
+        os.remove(archive)
+        if callback:
+            callback()
+        else:
+            return True
 
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)

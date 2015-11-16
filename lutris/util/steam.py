@@ -128,10 +128,12 @@ def get_path_from_appmanifest(steamapps_path, appid):
 
 def get_app_states(steamapps_path, appid):
     """Return the states of a Steam game."""
+    states = []
+    if not steamapps_path:
+        return states
     manifest_info = get_manifest_info(steamapps_path, appid)
     state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
     state_flags = bin(int(state_flags))[:1:-1]
-    states = []
     for index, flag in enumerate(state_flags):
         if flag == '1':
             states.append(APP_STATE_FLAGS[index + 1])

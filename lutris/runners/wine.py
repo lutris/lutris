@@ -10,7 +10,7 @@ from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.54-i386'
+DEFAULT_WINE = '1.7.55-i686'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -510,7 +510,7 @@ class wine(Runner):
 
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self, version=None):
+    def install(self, version=None, downloader=None, callback=None):
         if not version:
             version = self.wine_version
             if version in ['custom', 'system']:
@@ -519,7 +519,8 @@ class wine(Runner):
         tarball = "wine-{}.tar.gz".format(version)
         destination = os.path.join(WINE_DIR, version)
         logger.debug("Installing wine %s to %s", version, destination)
-        self.download_and_extract(tarball, destination, merge_single=True)
+        self.download_and_extract(tarball, destination, merge_single=True,
+                                  downloader=downloader, callback=callback)
 
     def is_installed(self):
         if self.wine_version == 'system':

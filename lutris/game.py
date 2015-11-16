@@ -4,7 +4,7 @@
 import os
 import time
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
