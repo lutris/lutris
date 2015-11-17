@@ -197,30 +197,43 @@ class Runner(object):
         if executable and os.path.exists(executable):
             return True
 
-    def get_runner_url(self):
+    def get_runner_url(self, version=None):
         runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)
         request = Request(runner_api_url)
         response = request.get()
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
-            versions = [
-                version for version in versions
-                if version['architecture'] == get_arch_for_api()
+            if version:
+                versions = [
+                    v for v in versions if v['version'] == version
+                ]
+            versions_for_arch = [
+                v for v in versions
+                if v['architecture'] == get_arch_for_api()
             ]
-            if len(versions) == 1:
-                return versions[0]['url']
-            elif len(versions) > 1:
+            if len(versions_for_arch) == 1:
+                return versions_for_arch[0]['url']
+            elif len(versions_for_arch) > 1:
                 default_version = [
-                    version for version in versions
-                    if version['default'] is True
+                    v for v in versions_for_arch
+                    if v['default'] is True
                 ]
                 if default_version:
-                    return default_version[0]
+                    return default_version[0]['url']
+            elif len(versions) == 1 and system.is_64bit:
+                return versions[0]['url']
+            elif len(versions) > 1 and system.is_64bit:
+                default_version = [
+                    v for v in versions
+                    if v['default'] is True
+                ]
+                if default_version:
+                    return default_version[0]['url']
 
-    def install(self):
+    def install(self, version=None):
         """Install runner using package management systems."""
-        runner_url = self.get_runner_url()
+        runner_url = self.get_runner_url(version)
         if runner_url:
             is_extracted = self.download_and_extract(runner_url)
             return is_extracted

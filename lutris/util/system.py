@@ -6,7 +6,6 @@ import string
 import subprocess
 import sys
 
-from lutris.util.cache import lru_cache
 from lutris.util.log import logger
 
 
