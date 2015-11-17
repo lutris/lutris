@@ -11,7 +11,6 @@ from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.55-i686'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -218,6 +217,12 @@ def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
 
 
+def get_default_version():
+    installed_versions = get_wine_versions()
+    if installed_versions:
+        return installed_versions[0]
+
+
 def support_legacy_version(version):
     """Since Lutris 0.3.7, wine version contains architecture and optional
     info. Call this to keep existing games compatible with previous
@@ -321,7 +326,7 @@ class wine(Runner):
                 'label': "Wine version",
                 'type': 'choice',
                 'choices': get_wine_version_choices,
-                'default': DEFAULT_WINE,
+                'default': get_default_version(),
                 'help': ("The version of Wine used to launch the game.\n"
                          "Using the last version is generally recommended, "
                          "but some games work better on older versions.")
@@ -486,8 +491,7 @@ class wine(Runner):
         """Return the Wine version to use."""
         runner_version = self.runner_config.get('version')
         runner_version = support_legacy_version(runner_version)
-
-        return runner_version or DEFAULT_WINE
+        return runner_version or get_default_version()
 
     def get_executable(self):
         """Return the path to the Wine executable."""
@@ -499,11 +503,11 @@ class wine(Runner):
             if system.find_executable('wine'):
                 return 'wine'
             # Fall back on bundled Wine
-            version = DEFAULT_WINE
+            version = get_default_version()
         elif version == 'custom':
             if os.path.exists(custom_path):
                 return custom_path
-            version = DEFAULT_WINE
+            version = get_default_version()
 
         return os.path.join(path, version, 'bin/wine')
 
