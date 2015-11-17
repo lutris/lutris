@@ -4,6 +4,7 @@ import subprocess
 
 from textwrap import dedent
 
+from lutris import runtime
 from lutris import settings
 from lutris.util import datapath, display, system
 from lutris.util.log import logger
@@ -99,8 +100,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         env.append('WINEPREFIX="%s" ' % prefix)
 
     if settings.RUNNER_DIR in wine_path:
-        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
-        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
+        runtime_path = ':'.join(runtime.get_paths())
+        env.append('LD_LIBRARY_PATH={}'.format(runtime_path))
 
     command = '{0} "{1}" {2} {3}'.format(
         " ".join(env), wine_path, executable, args
