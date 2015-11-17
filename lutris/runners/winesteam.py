@@ -265,7 +265,8 @@ class winesteam(wine.wine):
         # Main steamapps dir
         steam_data_dir = self.steam_data_dir
         if steam_data_dir:
-            main_dir = os.path.join(steam_data_dir, 'SteamApps')
+            main_dir = os.path.join(steam_data_dir, 'steamapps')
+            logger.debug("Main dir: %s", main_dir)
             main_dir = system.fix_path_case(main_dir)
             if main_dir:
                 dirs.append(main_dir)
@@ -274,12 +275,13 @@ class winesteam(wine.wine):
         if steam_config:
             i = 1
             while ('BaseInstallFolder_%s' % i) in steam_config:
-                path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
+                path = steam_config['BaseInstallFolder_%s' % i] + '/steamapps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
                 if linux_path:
                     dirs.append(linux_path)
                 i += 1
+        logger.debug("Found SteamApps: %s", dirs)
         return dirs
 
     def get_default_steamapps_path(self):
@@ -303,8 +305,7 @@ class winesteam(wine.wine):
 
     def get_default_prefix(self):
         """Return the default prefix' path."""
-        winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
-        return os.path.join(winesteam_dir, 'prefix')
+        return os.path.join(settings.RUNNER_DIR, 'winesteam/prefix')
 
     def get_or_create_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""
