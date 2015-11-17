@@ -570,7 +570,6 @@ class ScriptInterpreter(Commands):
                 steam_runner.get_default_steamapps_path()
             )
             self.steam_data['steamapps_path'] = steamapps_path
-            logger.debug('SteamApps now %s', steamapps_path)
         appid = self.steam_data['appid']
         states = get_app_states(steamapps_path, appid)
         logger.debug(states)

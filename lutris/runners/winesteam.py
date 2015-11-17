@@ -217,7 +217,6 @@ class winesteam(wine.wine):
                 return path
 
     def install(self, installer_path=None):
-        logger.debug("Installing steam from %s", installer_path)
         if not self.is_wine_installed():
             super(winesteam, self).install()
         prefix = self.get_or_create_default_prefix()
@@ -227,7 +226,6 @@ class winesteam(wine.wine):
                 download_steam()
             self.msi_exec(installer_path, quiet=True, prefix=prefix,
                           wine_path=self.get_executable())
-            logger.debug("Winesteam installed")
         return True
 
     def is_wine_installed(self):
@@ -266,7 +264,6 @@ class winesteam(wine.wine):
         steam_data_dir = self.steam_data_dir
         if steam_data_dir:
             main_dir = os.path.join(steam_data_dir, 'steamapps')
-            logger.debug("Main dir: %s", main_dir)
             main_dir = system.fix_path_case(main_dir)
             if main_dir:
                 dirs.append(main_dir)
@@ -281,7 +278,6 @@ class winesteam(wine.wine):
                 if linux_path:
                     dirs.append(linux_path)
                 i += 1
-        logger.debug("Found SteamApps: %s", dirs)
         return dirs
 
     def get_default_steamapps_path(self):

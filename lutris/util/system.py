@@ -156,7 +156,6 @@ def is_removeable(path, excludes=None):
     return True
 
 
-@lru_cache(maxsize=100)
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
     if os.path.exists(path):
