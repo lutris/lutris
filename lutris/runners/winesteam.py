@@ -319,6 +319,8 @@ class winesteam(wine.wine):
         subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
+        super(winesteam, self).prelaunch()
+
         def check_shutdown(is_running, times=10):
             for x in range(1, times):
                 time.sleep(1)
