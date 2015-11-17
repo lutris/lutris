@@ -615,4 +615,5 @@ class ScriptInterpreter(Commands):
     def on_winesteam_installed(self, *args):
         logger.debug("Winesteam installed")
         callback_args = self.steam_data['callback_args']
+        self.parent.add_spinner()
         self.install_steam_game(*callback_args)
