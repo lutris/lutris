@@ -40,7 +40,6 @@ class Runner(object):
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
-    tarballs = None
     platform = NotImplemented
     runnable_alone = False
     game_options = []
@@ -221,17 +220,9 @@ class Runner(object):
 
     def install(self):
         """Install runner using package management systems."""
-        if self.tarballs:
-            logger.debug('Port runner %s to use the REST API' % self.name)
-            tarball = self.tarballs.get(self.arch)
-            opts = {}
-        else:
-            tarball = self.get_runner_url()
-            opts = {
-                'source_url': ''
-            }
-        if tarball:
-            is_extracted = self.download_and_extract(tarball, **opts)
+        runner_url = self.get_runner_url()
+        if runner_url:
+            is_extracted = self.download_and_extract(runner_url)
             return is_extracted
         else:
             dialogs.ErrorDialog(
@@ -239,19 +230,12 @@ class Runner(object):
             )
             return False
 
-    def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
+    def download_and_extract(self, url, dest=settings.RUNNER_DIR, **opts):
         merge_single = opts.get('merge_single', False)
-        source_url = opts.get('source_url', settings.RUNNERS_URL)
         downloader = opts.get('downloader')
         callback = opts.get('callback')
-        if source_url:
-            # Legacy system for runners using self.tarballs
-            tarball_filename = tarball
-        else:
-            # New system, tarball is an URL
-            tarball_filename = os.path.basename(tarball)
+        tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
-        url = source_url + tarball
         if downloader:
             extract_args = {
                 'archive': runner_archive,
