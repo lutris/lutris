@@ -197,7 +197,7 @@ class Runner(object):
         if executable and os.path.exists(executable):
             return True
 
-    def get_runner_url(self, version=None):
+    def get_runner_info(self, version=None):
         runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)
         request = Request(runner_api_url)
         response = request.get()
@@ -213,42 +213,54 @@ class Runner(object):
                 if v['architecture'] == get_arch_for_api()
             ]
             if len(versions_for_arch) == 1:
-                return versions_for_arch[0]['url']
+                return versions_for_arch[0]
             elif len(versions_for_arch) > 1:
                 default_version = [
                     v for v in versions_for_arch
                     if v['default'] is True
                 ]
                 if default_version:
-                    return default_version[0]['url']
+                    return default_version[0]
             elif len(versions) == 1 and system.is_64bit:
-                return versions[0]['url']
+                return versions[0]
             elif len(versions) > 1 and system.is_64bit:
                 default_version = [
                     v for v in versions
                     if v['default'] is True
                 ]
                 if default_version:
-                    return default_version[0]['url']
+                    return default_version[0]
 
-    def install(self, version=None):
+    def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
-        runner_url = self.get_runner_url(version)
-        if runner_url:
-            is_extracted = self.download_and_extract(runner_url)
-            return is_extracted
-        else:
+        runner_info = self.get_runner_info(version)
+        if not runner_info:
             dialogs.ErrorDialog(
                 'This runner is not available for your platform'
             )
             return False
+        opts = {}
+        if downloader:
+            opts['downloader'] = downloader
+        if callback:
+            opts['callback'] = callback
+        if version:
+            dirname = '{}-{}'.format(version, runner_info['architecture'])
+            opts['merge_single'] = True
+            opts['dest'] = os.path.join(settings.RUNNER_DIR,
+                                        self.name, dirname)
+        url = runner_info['url']
+        is_extracted = self.download_and_extract(url, **opts)
+        return is_extracted
 
-    def download_and_extract(self, url, dest=settings.RUNNER_DIR, **opts):
+    def download_and_extract(self, url, dest=None, **opts):
         merge_single = opts.get('merge_single', False)
         downloader = opts.get('downloader')
         callback = opts.get('callback')
         tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
+        if not dest:
+            dest = settings.RUNNER_DIR
         if downloader:
             extract_args = {
                 'archive': runner_archive,

@@ -203,15 +203,11 @@ def set_drive_path(prefix, letter, path):
 
 
 def get_wine_versions():
-    """Return the list of Wine versions installed by lutris.
-
-    :returns: list of (version, architecture) tuples
-    """
+    """Return the list of Wine versions installed"""
     if not os.path.exists(WINE_DIR):
         return []
     dirs = sorted(os.listdir(WINE_DIR), reverse=True)
-    versions = [dirname for dirname in dirs if is_version_installed(dirname)]
-    return versions
+    return [dirname for dirname in dirs if is_version_installed(dirname)]
 
 
 def get_wine_version_exe(version):
@@ -510,18 +506,6 @@ class wine(Runner):
             version = DEFAULT_WINE
 
         return os.path.join(path, version, 'bin/wine')
-
-    def install(self, version=None, downloader=None, callback=None):
-        if not version:
-            version = self.wine_version
-            if version in ['custom', 'system']:
-                # Fall back on default bundled version
-                version = DEFAULT_WINE
-        tarball = "wine-{}.tar.gz".format(version)
-        destination = os.path.join(WINE_DIR, version)
-        logger.debug("Installing wine %s to %s", version, destination)
-        self.download_and_extract(tarball, destination, merge_single=True,
-                                  downloader=downloader, callback=callback)
 
     def is_installed(self):
         if self.wine_version == 'system':
