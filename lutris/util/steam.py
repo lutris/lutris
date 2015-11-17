@@ -142,6 +142,8 @@ def get_app_states(steamapps_path, appid):
 
 def _get_last_content_log(steam_data_dir):
     """Return the last block from content_log.txt"""
+    if not steam_data_dir:
+        return []
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:

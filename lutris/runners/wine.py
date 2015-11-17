@@ -498,6 +498,8 @@ class wine(Runner):
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
         version = self.wine_version
+        if not version:
+            return
 
         if version == 'system':
             if system.find_executable('wine'):
@@ -523,7 +525,11 @@ class wine(Runner):
                 return True
             else:
                 return False
-        return os.path.exists(self.get_executable())
+        executable = self.get_executable()
+        if executable:
+            return os.path.exists(executable)
+        else:
+            return False
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None):
