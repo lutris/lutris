@@ -244,6 +244,8 @@ class Runner(object):
             opts['downloader'] = downloader
         if callback:
             opts['callback'] = callback
+        if 'wine' in self.name:
+            version = runner_info['version']
         if version:
             dirname = '{}-{}'.format(version, runner_info['architecture'])
             opts['merge_single'] = True
