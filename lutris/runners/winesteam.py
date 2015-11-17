@@ -20,11 +20,11 @@ create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
 
-STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
+STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamSetup.exe"
 
 
 def get_steam_installer_dest():
-    return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
+    return os.path.join(settings.TMP_PATH, "SteamSetup.exe")
 
 
 def download_steam(downloader=None, callback=None, callback_data=None):
@@ -225,8 +225,8 @@ class winesteam(wine.wine):
             if not installer_path:
                 installer_path = get_steam_installer_dest()
                 download_steam()
-            self.msi_exec(installer_path, quiet=True, prefix=prefix,
-                          wine_path=self.get_executable())
+            wineexec(installer_path, args='/q', prefix=prefix,
+                     wine_path=self.get_executable())
             logger.debug("Winesteam installed")
         return True
 
