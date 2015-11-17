@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.thread import LutrisThread
+from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
@@ -40,7 +41,13 @@ def download_steam(downloader=None, callback=None, callback_data=None):
 
 
 def is_running():
-    return bool(system.get_pid('Steam.exe$'))
+    pid = system.get_pid('Steam.exe$')
+    if pid:
+        # If process is defunct, don't consider it as running
+        process = Process(pid)
+        return process.state != 'Z'
+    else:
+        return False
 
 
 def kill():
