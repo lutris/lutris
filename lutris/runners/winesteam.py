@@ -115,7 +115,7 @@ class winesteam(wine.wine):
                 'option': 'quit_steam_on_exit',
                 'label': "Stop Steam after game exits",
                 'type': 'bool',
-                'default': False,
+                'default': True,
                 'help': ("Shut down Steam after the game has quit.")
             },
         )
