@@ -276,6 +276,8 @@ class Game(object):
 
     def xboxdrv_stop(self):
         os.system("pkexec xboxdrvctl --shutdown")
+        if os.path.exists("/usr/share/lutris/bin/resetxpad"):
+            os.system("pkexec /usr/share/lutris/bin/resetxpad")
 
     def beat(self):
         """Watch the game's process(es)."""
