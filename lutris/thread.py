@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 import threading
 import subprocess
 
@@ -15,6 +16,7 @@ from lutris.util.process import Process
 from lutris.util.system import find_executable
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
+WARMUP_TIME = 5 * 60
 
 
 class LutrisThread(threading.Thread):
@@ -37,7 +39,9 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
-        self.max_cycles_without_children = 40
+        self.max_cycles_without_children = 15
+        self.startup_time = time.time()
+        self.monitoring_started = False
 
         self.cwd = runner.working_dir if self.runner else cwd
 
@@ -163,11 +167,15 @@ class LutrisThread(threading.Thread):
                               'SteamService.ex', 'steamerrorrepor', 'lutris'):
                 continue
             num_watched_children += 1
-            logger.debug("{}\t{}\t{}".format(child.pid,
-                                             child.state,
-                                             child.name))
+            logger.debug("{}\t{}\t{}\t({} total)".format(child.pid,
+                                                         child.state,
+                                                         child.name,
+                                                         num_children))
             if child.state == 'Z':
                 terminated_children += 1
+
+        if num_watched_children > 0 and not self.monitoring_started:
+            self.monitoring_started = True
 
         if self.runner and hasattr(self.runner, 'watch_game_process'):
             if not self.runner.watch_game_process():
@@ -177,7 +185,10 @@ class LutrisThread(threading.Thread):
             logger.debug("All children terminated")
             self.game_process.wait()
         if num_watched_children == 0:
-            self.cycles_without_children += 1
+            time_since_start = time.time() - self.startup_time
+            logger.debug("Time since start %d", time_since_start)
+            if self.monitoring_started or time_since_start > WARMUP_TIME:
+                self.cycles_without_children += 1
         if num_children == 0 \
            or self.cycles_without_children >= self.max_cycles_without_children:
             logger.debug("No children left in thread, exiting")
