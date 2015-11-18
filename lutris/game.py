@@ -290,6 +290,8 @@ class Game(object):
 
     def stop(self):
         self.game_thread.stop(killall=True)
+        if self.runner.system_config.get('xboxdrv'):
+            self.xboxdrv_thread.stop()
         self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
@@ -305,7 +307,8 @@ class Game(object):
         if self.runner.system_config.get('restore_gamma'):
             display.restore_gamma()
 
-        if self.runner.system_config.get('xboxdrv'):
+        if self.runner.system_config.get('xboxdrv') \
+           and self.xboxdrv_thread.is_running:
             self.xboxdrv_thread.stop()
 
         if self.game_thread:

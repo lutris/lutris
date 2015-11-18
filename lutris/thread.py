@@ -130,6 +130,7 @@ class LutrisThread(threading.Thread):
         if hasattr(self, 'stop_func'):
             logger.debug("Calling custom stop function %s", self.stop_func)
             self.stop_func()
+        self.is_running = False
         if not killall:
             return
         self.killall()
