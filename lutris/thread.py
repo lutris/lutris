@@ -167,10 +167,9 @@ class LutrisThread(threading.Thread):
                               'SteamService.ex', 'steamerrorrepor', 'lutris'):
                 continue
             num_watched_children += 1
-            logger.debug("{}\t{}\t{}\t({} total)".format(child.pid,
-                                                         child.state,
-                                                         child.name,
-                                                         num_children))
+            logger.debug("{}\t{}\t{}".format(child.pid,
+                                             child.state,
+                                             child.name))
             if child.state == 'Z':
                 terminated_children += 1
 
@@ -181,9 +180,6 @@ class LutrisThread(threading.Thread):
             if not self.runner.watch_game_process():
                 self.is_running = False
                 return False
-        if terminated_children and terminated_children == num_watched_children:
-            logger.debug("All children terminated")
-            self.game_process.wait()
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
             logger.debug("Time since start %d", time_since_start)
@@ -195,4 +191,7 @@ class LutrisThread(threading.Thread):
             self.is_running = False
             self.return_code = self.game_process.returncode
             return False
+        if terminated_children and terminated_children == num_watched_children:
+            logger.debug("All children terminated")
+            self.game_process.wait()
         return True
