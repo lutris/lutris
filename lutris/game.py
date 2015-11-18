@@ -269,7 +269,7 @@ class Game(object):
             "pkexec", "xboxdrv", "--daemon", "--detach-kernel-driver",
             "--dbus", "session", "--silent"
         ] + config.split()
-        logger.debug("xboxdrv command: %s", command)
+        logger.debug("[xboxdrv] %s", ' '.join(command))
         self.xboxdrv_thread = LutrisThread(command)
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
@@ -285,7 +285,7 @@ class Game(object):
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
-            logger.debug("Thread not running anymore or killswitch activated")
+            logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
         return True
@@ -300,7 +300,7 @@ class Game(object):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-        logger.debug("game has quit at %s" % quit_time)
+        logger.debug("%s stopped at %s", self.name, quit_time)
         self.state = self.STATE_STOPPED
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):

@@ -132,7 +132,6 @@ class LutrisThread(threading.Thread):
             logger.debug("Stopping thread %s", thread)
             thread.stop()
         if hasattr(self, 'stop_func'):
-            logger.debug("Calling custom stop function %s", self.stop_func)
             self.stop_func()
         self.is_running = False
         if not killall:
@@ -182,7 +181,6 @@ class LutrisThread(threading.Thread):
                 return False
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
-            logger.debug("Time since start %d", time_since_start)
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
         if num_children == 0 \
