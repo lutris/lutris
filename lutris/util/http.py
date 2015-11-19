@@ -41,7 +41,7 @@ def download_json(url, params=''):
 
 class Request(object):
     def __init__(self, url, error_logging=True, timeout=5, stop_request=None,
-                 thread_queue=None):
+                 thread_queue=None, headers={}):
         self.url = url
         self.error_logging = error_logging
         self.content = ''
@@ -50,10 +50,12 @@ class Request(object):
         self.thread_queue = thread_queue
         self.buffer_size = 32 * 1024  # Bytes
         self.downloaded_size = 0
+        self.headers = headers
 
     def get(self, data=None):
+        req = urllib2.Request(url=self.url, data=data, headers=self.headers)
         try:
-            request = urllib2.urlopen(self.url, data, self.timeout)
+            request = urllib2.urlopen(req, timeout=self.timeout)
         except urllib2.HTTPError as e:
             if self.error_logging:
                 logger.error("Unavailable url (%s): %s", self.url, e)
