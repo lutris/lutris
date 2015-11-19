@@ -362,12 +362,20 @@ class winesteam(wine.wine):
     def play(self):
         self.game_launch_time = time.localtime()
         args = self.game_config.get('args') or ''
+
+        launch_info = {}
+        launch_info['env'] = self.get_env(full=False)
+
+        if self.runner_config.get('xinput'):
+            launch_info['ld_preload'] = self.get_xinput_path()
+
         command = self.launch_args
         if self.appid:
             command.append('steam://rungameid/%s' % self.appid)
         if args:
             command.append(args)
-        return {'command': command, 'env': self.get_env(full=False)}
+        launch_info['command'] = command
+        return launch_info
 
     def watch_game_process(self):
         if not self.appid or not hasattr(self, 'game_launch_time'):

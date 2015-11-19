@@ -339,6 +339,14 @@ class wine(Runner):
                          'selected "Custom" as the Wine version.')
             },
             {
+                'option': 'xinput',
+                'label': 'Enable Xinput (experimental)',
+                'type': 'bool',
+                'default': False,
+                'help': ("Preloads a library that enables Joypads on games\n"
+                         "using XInput.")
+            },
+            {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
                 'type': 'bool',
@@ -587,6 +595,13 @@ class wine(Runner):
             exe = system.find_executable(exe)
         return system.get_pids_using_file(exe)
 
+    def get_xinput_path(self):
+        xinput_path = os.path.abspath(
+            os.path.join(datapath.get(), 'lib/koku-xinput-wine.so')
+        )
+        logger.debug('Preloading %s', xinput_path)
+        return xinput_path
+
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
@@ -594,17 +609,23 @@ class wine(Runner):
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
+        launch_info = {}
+        launch_info['env'] = self.get_env(full=False)
+
+        if self.runner_config.get('xinput'):
+            launch_info['ld_preload'] = self.get_xinput_path()
+
         command = [self.get_executable()]
         if game_exe.endswith(".msi"):
             command.append('msiexec')
             command.append('/i')
         command.append(game_exe)
 
-        env = self.get_env(full=False)
         if arguments:
             for arg in shlex.split(arguments):
                 command.append(arg)
-        return {'command': command, 'env': env}
+        launch_info['command'] = command
+        return launch_info
 
     def stop(self):
         """The kill command runs wineserver -k."""
