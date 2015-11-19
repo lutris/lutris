@@ -139,9 +139,9 @@ class LutrisService(dbus.service.Object):
     def install_game(self, game_ref):
         self.lutris_window.on_install_clicked(game_ref=game_ref)
 
-    @dbus.service.method(DBUS_INTERFACE, in_signature='s')
-    def run_game(self, game_slug):
-        self.lutris_window.on_game_run(game_slug=game_slug)
+    @dbus.service.method(DBUS_INTERFACE, in_signature='i')
+    def run_game(self, game_id):
+        self.lutris_window.on_game_run(game_id=game_id)
 
 # D-Bus init
 DBusGMainLoop(set_as_default=True)
@@ -206,9 +206,9 @@ if game_slug or installer:
     if db_game and db_game['installed'] and not options.reinstall:
         logger.info("Launching %s", db_game['name'])
         if lutris.is_running():
-            lutris.run_game(db_game['slug'])
+            lutris.run_game(db_game['id'])
         else:
-            lutris_game = Game(db_game['slug'])
+            lutris_game = Game(db_game['id'])
             lutris_game.play()
     else:
         logger.info("Installing %s", game_slug)
