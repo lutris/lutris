@@ -233,8 +233,8 @@ class ClientLoginDialog(GtkBuilderDialog):
     glade_file = 'dialog-lutris-login.ui'
     dialog_object = 'lutris-login'
     __gsignals__ = {
-        'complete': (GObject.SignalFlags.RUN_LAST, None,
-                     (GObject.TYPE_PYOBJECT,)),
+        'connected': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT,)),
         'cancel': (GObject.SignalFlags.RUN_LAST, None,
                    (GObject.TYPE_PYOBJECT,))
     }
