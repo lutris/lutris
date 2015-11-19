@@ -314,7 +314,7 @@ class LutrisWindow(object):
 
     def about(self, _widget, _data=None):
         """Open the about dialog."""
-        dialogs.AboutDialog()
+        dialogs.AboutDialog(parent=self.window)
 
     # Callbacks
     def on_clear_search(self, widget, icon_pos, event):
@@ -323,7 +323,7 @@ class LutrisWindow(object):
 
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
-        login_dialog = dialogs.ClientLoginDialog()
+        login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
 
     def on_connect_success(self, dialog, credentials):
@@ -405,7 +405,7 @@ class LutrisWindow(object):
         self.game_store.modelfilter.refilter()
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
-        dialogs.PgaSourceDialog()
+        dialogs.PgaSourceDialog(parent=self.window)
 
     def on_search_entry_changed(self, widget):
         self.game_store.filter_text = widget.get_text()

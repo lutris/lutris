@@ -10,7 +10,7 @@ from lutris.util import datapath
 
 class GtkBuilderDialog(GObject.Object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         super(GtkBuilderDialog, self).__init__()
         ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
@@ -21,6 +21,8 @@ class GtkBuilderDialog(GObject.Object):
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
         self.builder.connect_signals(self)
+        if parent:
+            self.dialog.set_transient_for(parent)
         self.dialog.show_all()
         self.initialize(**kwargs)
 
@@ -239,8 +241,8 @@ class ClientLoginDialog(GtkBuilderDialog):
                    (GObject.TYPE_PYOBJECT,))
     }
 
-    def __init__(self):
-        super(ClientLoginDialog, self).__init__()
+    def __init__(self, parent):
+        super(ClientLoginDialog, self).__init__(parent=parent)
 
         self.username_entry = self.builder.get_object('username_entry')
         self.password_entry = self.builder.get_object('password_entry')
