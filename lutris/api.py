@@ -27,7 +27,7 @@ def read_api_key():
 def connect(username, password):
     credentials = urllib.urlencode({'username': username,
                                     'password': password})
-    login_url = settings.SITE_URL + "user/auth/"
+    login_url = settings.SITE_URL + "api/accounts/token"
     try:
         request = urllib2.urlopen(login_url, credentials, 10)
     except (socket.timeout, urllib2.URLError) as ex:
