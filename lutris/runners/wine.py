@@ -583,6 +583,11 @@ class wine(Runner):
                     value = 'Desktop_res'
                 set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
+        overrides = self.runner_config.get('overrides') or {}
+        overrides_path = "%s\DllOverrides" % self.reg_prefix
+        for dll, value in overrides.iteritems():
+            set_regedit(overrides_path, dll, value,
+                        wine_path=self.get_executable(), prefix=prefix)
 
     def prelaunch(self):
         self.set_regedit_keys()
