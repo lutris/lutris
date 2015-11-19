@@ -150,6 +150,13 @@ def winecfg(wine_path=None, prefix=None, blocking=True):
         p.communicate()
 
 
+def joycpl(wine_path=None, prefix=None):
+    """Execute winetricks."""
+    arch = detect_prefix_arch(prefix) or 'win32'
+    wineexec('control', prefix=prefix,
+             wine_path=wine_path, arch=arch, args='joy.cpl', blocking=False)
+
+
 def detect_prefix_arch(directory=None):
     """Return the architecture of the prefix found in `directory`.
 
@@ -311,6 +318,7 @@ class wine(Runner):
             ('winecfg', "Wine configuration", self.run_winecfg),
             ('wine-regedit', "Wine registry", self.run_regedit),
             ('winetricks', 'Winetricks', self.run_winetricks),
+            ('joycpl', 'Joystick Control Panel', self.run_joycpl),
         ]
 
         def get_wine_version_choices():
@@ -558,6 +566,9 @@ class wine(Runner):
     def run_winetricks(self, *args):
         winetricks('', prefix=self.prefix_path,
                    winetricks_env=self.get_executable(), blocking=False)
+
+    def run_joycpl(self, *args):
+        joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
