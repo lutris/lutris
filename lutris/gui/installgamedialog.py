@@ -236,7 +236,7 @@ class InstallerDialog(Gtk.Window):
     def on_target_changed(self, text_entry):
         """Set the installation target for the game."""
         path = text_entry.get_text()
-        self.interpreter.target_path = path
+        self.interpreter.target_path = os.path.expanduser(path)
         self.show_non_empty_warning()
 
     def show_non_empty_warning(self):

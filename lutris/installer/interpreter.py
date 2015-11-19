@@ -7,7 +7,7 @@ import shutil
 import urllib2
 import platform
 
-from gi.repository import GLib, Gdk
+from gi.repository import GLib
 
 from .errors import ScriptingError
 from .commands import Commands
@@ -64,7 +64,7 @@ class ScriptInterpreter(Commands):
         if self.requires:
             self._check_dependency()
         else:
-            self.target_path = self.default_target
+            self.target_path = os.path.expanduser(self.default_target)
 
         # If the game is in the library and uninstalled, the first installation
         # updates it
