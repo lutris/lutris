@@ -65,7 +65,7 @@ class ScriptInterpreter(Commands):
         self.requires = self.script.get('requires')
         if self.requires:
             self._check_dependency()
-        else:
+        if self.creates_game_folder:
             self.target_path = self.get_default_target()
 
         # If the game is in the library and uninstalled, the first installation
@@ -310,7 +310,7 @@ class ScriptInterpreter(Commands):
 
     def _prepare_commands(self):
         """Run the pre-installation steps and launch install."""
-        if os.path.exists(self.target_path):
+        if self.target_path and os.path.exists(self.target_path):
             os.chdir(self.target_path)
 
         # Add steam installation to commands if it's a Steam game
@@ -435,29 +435,28 @@ class ScriptInterpreter(Commands):
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
             if launcher not in self.script:
                 continue
-            launcher_description = self.script[launcher]
+            launcher_value = self.script[launcher]
             if launcher == "exe64":
                 launcher = "exe"
-            if type(launcher_description) == list:
+            if type(launcher_value) == list:
                 game_files = []
-                for game_file in launcher_description:
+                for game_file in launcher_value:
                     if game_file in self.game_files:
                         game_files.append(self.game_files[game_file])
                     else:
                         game_files.append(game_file)
                 config['game'][launcher] = game_files
             else:
-                if launcher_description in self.game_files:
-                    launcher_description = (
-                        self.game_files[launcher_description]
+                if launcher_value in self.game_files:
+                    launcher_value = (
+                        self.game_files[launcher_value]
                     )
-                elif os.path.exists(os.path.join(self.target_path,
-                                                 launcher_description)):
-                    launcher_description = os.path.join(self.target_path,
-                                                        launcher_description)
-                else:
-                    launcher_description = launcher_description
-                config['game'][launcher] = launcher_description
+                elif self.target_path and os.path.exists(
+                    os.path.join(self.target_path, launcher_value)
+                ):
+                    launcher_value = os.path.join(self.target_path,
+                                                  launcher_value)
+                config['game'][launcher] = launcher_value
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         logger.debug(yaml_config)
