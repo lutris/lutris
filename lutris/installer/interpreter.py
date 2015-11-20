@@ -41,7 +41,6 @@ class ScriptInterpreter(Commands):
     def __init__(self, script, parent):
         self.error = None
         self.errors = []
-        self.files = []
         self.target_path = None
         self.parent = parent
         self.reversion_data = {}
@@ -60,6 +59,7 @@ class ScriptInterpreter(Commands):
             raise ScriptingError("Invalid script", (self.script, self.errors))
 
         self.files = self.script.get('files', [])
+        self.runner = self.script['runner']
         self.game_name = self.script['name']
         self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
@@ -79,7 +79,7 @@ class ScriptInterpreter(Commands):
     @property
     def default_target(self):
         """Default install dir."""
-        config = LutrisConfig(runner_slug=self.script['runner'])
+        config = LutrisConfig(runner_slug=self.runner)
         games_dir = config.system_config.get('game_path',
                                              os.path.expanduser('~'))
         return os.path.join(games_dir, self.game_slug)
@@ -93,6 +93,19 @@ class ScriptInterpreter(Commands):
     def should_create_target(self):
         return (not os.path.exists(self.target_path)
                 and 'nocreatedir' not in self.script)
+
+    @property
+    def creates_game_folder(self):
+        if self.requires:
+            # Game is an extension of an existing game, folder exists
+            return False
+        if self.files:
+            if self.runner in ('steam', 'winesteam'):
+                # Steam games installs in their steamapps directory
+                return False
+            else:
+                return True
+        return False
 
     # --------------------------
     # "Initial validation" stage
@@ -136,14 +149,14 @@ class ScriptInterpreter(Commands):
         if len(self.game_files) < len(self.files):
             logger.info(
                 "Downloading file %d of %d",
-                len(self.game_files) + 1, len(self.script["files"])
+                len(self.game_files) + 1, len(self.files)
             )
             file_index = len(self.game_files)
             try:
-                current_file = self.script["files"][file_index]
+                current_file = self.files[file_index]
             except KeyError:
                 raise ScriptingError("Error getting file %d in %s",
-                                     file_index, self.script['files'])
+                                     file_index, self.files)
             self._download_file(current_file)
         else:
             self.current_command = 0
@@ -298,10 +311,9 @@ class ScriptInterpreter(Commands):
         """Run the pre-installation steps and launch install."""
         if os.path.exists(self.target_path):
             os.chdir(self.target_path)
-        runner_name = self.script['runner']
 
         # Add steam installation to commands if it's a Steam game
-        if runner_name in ('steam', 'winesteam'):
+        if self.runner in ('steam', 'winesteam'):
             try:
                 self.steam_data['appid'] = self.script['game']['appid']
             except KeyError:
@@ -309,7 +321,7 @@ class ScriptInterpreter(Commands):
 
             commands = self.script.get('installer', [])
             self.steam_data['platform'] = 'windows' \
-                if runner_name == 'winesteam' else 'linux'
+                if self.runner == 'winesteam' else 'linux'
             commands.insert(0, 'install_steam_game')
             self.script['installer'] = commands
         self._iter_commands()
@@ -367,7 +379,6 @@ class ScriptInterpreter(Commands):
 
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
-        runner_name = self.script['runner']
 
         configpath = "{}-{}".format(self.script['slug'], int(time.time()))
         config_filename = os.path.join(settings.CONFIG_DIR,
@@ -383,7 +394,7 @@ class ScriptInterpreter(Commands):
             required_game = pga.get_game_by_field(self.requires,
                                                   field='installer_slug')
             lutris_config = LutrisConfig(
-                runner_slug=runner_name,
+                runner_slug=self.runner,
                 game_config_id=required_game['configpath']
             )
             config = lutris_config.game_level
@@ -394,7 +405,7 @@ class ScriptInterpreter(Commands):
 
         self.game_id = pga.add_or_update(
             name=self.script['name'],
-            runner=runner_name,
+            runner=self.runner,
             slug=self.game_slug,
             directory=self.target_path,
             installed=1,
@@ -409,9 +420,9 @@ class ScriptInterpreter(Commands):
         # Config update
         if 'system' in self.script:
             config['system'] = self._substitute_config(self.script['system'])
-        if runner_name in self.script:
-            config[runner_name] = self._substitute_config(
-                self.script[runner_name]
+        if self.runner in self.script:
+            config[self.runner] = self._substitute_config(
+                self.script[self.runner]
             )
         if 'game' in self.script:
             config['game'].update(self._substitute_config(self.script['game']))
@@ -554,9 +565,9 @@ class ScriptInterpreter(Commands):
 
     def _get_steam_runner(self, runner_class=None):
         if not runner_class:
-            if self.script['runner'] == 'steam':
+            if self.runner == 'steam':
                 runner_class = steam.steam
-            elif self.script['runner'] == 'winesteam':
+            elif self.runner == 'winesteam':
                 runner_class = winesteam.winesteam
             else:
                 raise ScriptingError('Missing Steam platform')
