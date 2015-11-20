@@ -472,6 +472,10 @@ class ScriptInterpreter(Commands):
             value = script_config[key]
             if isinstance(value, list):
                 config[key] = [self._substitute(i) for i in value]
+            elif isinstance(value, dict):
+                config[key] = dict(
+                    [(k, self._substitute(v)) for (k, v) in value.iteritems()]
+                )
             else:
                 config[key] = self._substitute(value)
         return config
