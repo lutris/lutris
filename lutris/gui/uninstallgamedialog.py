@@ -1,7 +1,8 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
+
 from lutris.gui.dialogs import GtkBuilderDialog
 from lutris.game import Game
-from lutris.util.system import is_removeable
+from lutris.util.system import is_removeable, reverse_expanduser
 from lutris.gui.dialogs import QuestionDialog
 
 
@@ -19,7 +20,6 @@ class UninstallGameDialog(GtkBuilderDialog):
         else:
             raise TypeError("Unsupported type %s" % type(widget))
 
-        replacement = replacement.replace('&', '&amp;')
         set_text(get_text().replace("{%s}" % name, replacement))
 
     def initialize(self, game_id=None, callback=None):
@@ -52,9 +52,13 @@ class UninstallGameDialog(GtkBuilderDialog):
                 if not is_removeable(game_path, excludes=[default_path]):
                     remove_contents_button.set_sensitive(False)
 
-            path = self.game.directory or 'disk'
+            path = self.game.directory or ''
+            path = reverse_expanduser(path)
             self.substitute_label(remove_contents_button, 'path', path)
-            remove_contents_button.get_children()[0].set_use_markup(True)
+            label = remove_contents_button.get_child()
+            label.set_use_markup(True)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         else:
             remove_contents_button.hide()
 
