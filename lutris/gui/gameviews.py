@@ -186,7 +186,7 @@ class GameView(object):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
     selected_game = None
     current_path = None
@@ -226,7 +226,7 @@ class GameView(object):
         """Update a game row to show as installed"""
         row = self.get_row_by_id(game.id)
         if not row:
-            raise ValueError("Couldn't find row for id %s (%s)" % (game.id, game))
+            raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.id, is_installed=True)
 

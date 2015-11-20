@@ -417,6 +417,7 @@ class ScriptInterpreter(Commands):
             configpath=configpath,
             id=self.game_id
         )
+        logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
 
         # Config update
         if 'system' in self.script:

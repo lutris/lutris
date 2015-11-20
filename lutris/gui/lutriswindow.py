@@ -474,8 +474,10 @@ class LutrisWindow(object):
         self.delete_button.set_sensitive(sensitive)
 
     def on_game_installed(self, view, game_id):
+        if type(game_id) != int:
+            raise ValueError("game_id must be an int")
         if not self.view.get_row_by_id(game_id):
-            logger.debug("Adding new installed game to view (%s)" % game_id)
+            logger.debug("Adding new installed game to view (%d)" % game_id)
             self.add_game_to_view(game_id)
         view.set_installed(Game(game_id))
         self.sidebar_treeview.update()
