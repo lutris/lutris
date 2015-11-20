@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <object class="GtkImage" id="image1">
@@ -25,7 +25,6 @@
     <property name="default_width">350</property>
     <property name="default_height">230</property>
     <property name="type_hint">dialog</property>
-    <property name="has_resize_grip">False</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">
         <property name="can_focus">False</property>
@@ -87,10 +86,10 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_bottom">15</property>
-                <property name="xalign">0</property>
                 <property name="label" translatable="yes">This action will mark {game} as uninstalled.</property>
                 <property name="use_markup">True</property>
                 <property name="wrap">True</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -108,7 +107,6 @@
                 <property name="receives_default">False</property>
                 <property name="margin_left">10</property>
                 <property name="xalign">0</property>
-                <property name="active">True</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
