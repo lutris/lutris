@@ -478,7 +478,7 @@ class LutrisWindow(object):
             raise ValueError("game_id must be an int")
         if not self.view.get_row_by_id(game_id):
             logger.debug("Adding new installed game to view (%d)" % game_id)
-            self.add_game_to_view(game_id)
+            self.add_game_to_view(game_id, async=False)
         view.set_installed(Game(game_id))
         self.sidebar_treeview.update()
 
@@ -512,7 +512,7 @@ class LutrisWindow(object):
         if add_game_dialog.saved:
             self.add_game_to_view(add_game_dialog.game.id)
 
-    def add_game_to_view(self, game_id):
+    def add_game_to_view(self, game_id, async=True):
         if not game_id:
             raise ValueError("Missing game id")
 
@@ -520,7 +520,10 @@ class LutrisWindow(object):
             self.view.add_game(game_id)
             self.switch_splash_screen()
             self.sidebar_treeview.update()
-        GLib.idle_add(do_add_game)
+        if async:
+            GLib.idle_add(do_add_game)
+        else:
+            do_add_game()
 
     def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game
