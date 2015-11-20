@@ -66,7 +66,7 @@ class ScriptInterpreter(Commands):
         if self.requires:
             self._check_dependency()
         else:
-            self.target_path = os.path.expanduser(self.default_target)
+            self.target_path = self.get_default_target()
 
         # If the game is in the library and uninstalled, the first installation
         # updates it
@@ -76,13 +76,12 @@ class ScriptInterpreter(Commands):
         else:
             self.game_id = None
 
-    @property
-    def default_target(self):
-        """Default install dir."""
+    def get_default_target(self):
+        """Return default installation dir"""
         config = LutrisConfig(runner_slug=self.runner)
         games_dir = config.system_config.get('game_path',
                                              os.path.expanduser('~'))
-        return os.path.join(games_dir, self.game_slug)
+        return os.path.expanduser(os.path.join(games_dir, self.game_slug))
 
     @property
     def download_cache_path(self):

@@ -216,7 +216,7 @@ class InstallerDialog(Gtk.Window):
         """Stage where we select the install directory."""
         if not self.interpreter.creates_game_folder:
             self.set_message("Select installation directory")
-            default_path = self.interpreter.default_target
+            default_path = self.interpreter.get_default_target()
             self.set_path_chooser(self.on_target_changed, 'folder',
                                   default_path)
             self.non_empty_label = Gtk.Label()
