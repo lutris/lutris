@@ -58,6 +58,8 @@ class ScriptInterpreter(Commands):
             return
         if not self.is_valid():
             raise ScriptingError("Invalid script", (self.script, self.errors))
+
+        self.files = self.script.get('files', [])
         self.game_name = self.script['name']
         self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
@@ -102,8 +104,6 @@ class ScriptInterpreter(Commands):
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
-
-        self.files = self.script.get('files', [])
         return not bool(self.errors)
 
     def _check_dependency(self):
