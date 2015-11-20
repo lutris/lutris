@@ -378,6 +378,22 @@ class ScriptInterpreter(Commands):
         self.parent.set_status("Installation finished !")
         self.parent.on_install_finished()
 
+    def _get_game_launcher(self):
+        """Return the key and value of the launcher"""
+        launcher_value = None
+        is_64bit = platform.machine() == "x86_64"
+        exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
+
+        for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
+            if launcher not in self.script:
+                continue
+            launcher_value = self.script[launcher]
+            if launcher == "exe64":
+                launcher = "exe"
+        if not launcher_value:
+            logger.error('No launcher provided in %s', self.script)
+        return (launcher, launcher_value)
+
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
 
@@ -429,34 +445,25 @@ class ScriptInterpreter(Commands):
         if 'game' in self.script:
             config['game'].update(self._substitute_config(self.script['game']))
 
-        is_64bit = platform.machine() == "x86_64"
-        exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
-
-        for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
-            if launcher not in self.script:
-                continue
-            launcher_value = self.script[launcher]
-            if launcher == "exe64":
-                launcher = "exe"
-            if type(launcher_value) == list:
-                game_files = []
-                for game_file in launcher_value:
-                    if game_file in self.game_files:
-                        game_files.append(self.game_files[game_file])
-                    else:
-                        game_files.append(game_file)
-                config['game'][launcher] = game_files
-            else:
-                if launcher_value in self.game_files:
-                    launcher_value = (
-                        self.game_files[launcher_value]
-                    )
-                elif self.target_path and os.path.exists(
-                    os.path.join(self.target_path, launcher_value)
-                ):
-                    launcher_value = os.path.join(self.target_path,
-                                                  launcher_value)
-                config['game'][launcher] = launcher_value
+        launcher, launcher_value = self._get_game_launcher()
+        if type(launcher_value) == list:
+            game_files = []
+            for game_file in launcher_value:
+                if game_file in self.game_files:
+                    game_files.append(self.game_files[game_file])
+                else:
+                    game_files.append(game_file)
+            config['game'][launcher] = game_files
+        else:
+            if launcher_value in self.game_files:
+                launcher_value = (
+                    self.game_files[launcher_value]
+                )
+            elif self.target_path and os.path.exists(
+                os.path.join(self.target_path, launcher_value)
+            ):
+                launcher_value = os.path.join(self.target_path, launcher_value)
+            config['game'][launcher] = launcher_value
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         logger.debug(yaml_config)
