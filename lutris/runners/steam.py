@@ -154,20 +154,21 @@ class steam(Runner):
             " or install Steam with the package provided by your distribution."
         NoticeDialog(message)
 
-    def install_game(self, appid):
+    def install_game(self, appid, preload=False):
         logger.debug("Installing steam game %s", appid)
-        acf_data = get_default_acf(appid, appid)
-        acf_content = to_vdf(acf_data)
-        steamapps_path = self.get_default_steamapps_path()
-        acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
-        with open(acf_path, "w") as acf_file:
-            acf_file.write(acf_content)
-        if is_running():
-            shutdown()
-            time.sleep(5)
-        else:
-            logger.debug("Steam not running")
-        subprocess.Popen(["steam", "steam://preload/%s" % appid])
+        if preload:
+            acf_data = get_default_acf(appid, appid)
+            acf_content = to_vdf(acf_data)
+            steamapps_path = self.get_default_steamapps_path()
+            acf_path = os.path.join(steamapps_path,
+                                    "appmanifest_%s.acf" % appid)
+            with open(acf_path, "w") as acf_file:
+                acf_file.write(acf_content)
+            if is_running():
+                shutdown()
+                time.sleep(5)
+        command = ["steam", "steam://install/%s" % (appid)]
+        subprocess.Popen(command)
 
     def prelaunch(self):
         def check_shutdown(is_running, times=10):

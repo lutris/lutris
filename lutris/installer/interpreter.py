@@ -538,10 +538,10 @@ class ScriptInterpreter(Commands):
         """Launch installation of a steam game.
 
         runner_class: class of the steam runner to use
-        is_game_files: whether the game is used for the installer game files
+        is_game_files: whether game data is added to game_files
         """
 
-        # Check if Steam is installed, saved the method's arguments so it can
+        # Check if Steam is installed, save the method's arguments so it can
         # be called again once Steam is installed.
         self.steam_data['callback_args'] = (runner_class, is_game_files)
         is_installed = self.check_steam_install()
