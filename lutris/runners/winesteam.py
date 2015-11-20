@@ -152,11 +152,7 @@ class winesteam(wine.wine):
     def game_path(self):
         if not self.appid:
             return
-        for apps_path in self.get_steamapps_dirs():
-            game_path = get_path_from_appmanifest(apps_path, self.appid)
-            if game_path:
-                return game_path
-        logger.warning("Data path for SteamApp %s not found.", self.appid)
+        return self.get_game_path_from_appid(self.appid)
 
     @property
     def working_dir(self):

@@ -90,20 +90,22 @@ class ScriptInterpreter(Commands):
 
     @property
     def should_create_target(self):
-        return (not os.path.exists(self.target_path)
-                and 'nocreatedir' not in self.script)
+        return (
+            not os.path.exists(self.target_path)
+            and 'nocreatedir' not in self.script
+            and self.creates_game_folder
+        )
 
     @property
     def creates_game_folder(self):
         if self.requires:
             # Game is an extension of an existing game, folder exists
             return False
+        if self.runner in ('steam', 'winesteam'):
+            # Steam games installs in their steamapps directory
+            return False
         if self.files:
-            if self.runner in ('steam', 'winesteam'):
-                # Steam games installs in their steamapps directory
-                return False
-            else:
-                return True
+            return True
         return False
 
     # --------------------------
@@ -561,6 +563,8 @@ class ScriptInterpreter(Commands):
             return 'STOP'
         elif is_game_files:
             self._append_steam_data_to_files(runner_class)
+        else:
+            self.target_path = self._get_steam_game_path()
 
     def _get_steam_runner(self, runner_class=None):
         if not runner_class:
@@ -603,12 +607,20 @@ class ScriptInterpreter(Commands):
                 runner_class = steam.steam
             self._append_steam_data_to_files(runner_class)
         else:
+            self.target_path = self._get_steam_game_path()
             self._iter_commands()
 
+    def _get_steam_game_path(self, runner_class=None):
+        if not runner_class:
+            steam_runner = self._get_steam_runner()
+        else:
+            steam_runner = runner_class()
+        return steam_runner.get_game_path_from_appid(
+            self.steam_data['appid']
+        )
+
     def _append_steam_data_to_files(self, runner_class):
-        steam_runner = runner_class()
-        data_path = steam_runner.get_game_path_from_appid(
-            self.steam_data['appid'])
+        data_path = self._get_steam_game_path(runner_class)
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
         logger.debug("got data path: %s" % data_path)
