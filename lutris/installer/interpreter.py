@@ -454,7 +454,7 @@ class ScriptInterpreter(Commands):
                 else:
                     game_files.append(game_file)
             config['game'][launcher] = game_files
-        else:
+        elif launcher_value:
             if launcher_value in self.game_files:
                 launcher_value = (
                     self.game_files[launcher_value]
