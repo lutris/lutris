@@ -16,7 +16,7 @@ from lutris import pga, settings
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.steam import get_app_states
+from lutris.util.steam import get_app_state_log
 
 from lutris.config import LutrisConfig
 from lutris.runners import wine, winesteam, steam
@@ -557,14 +557,12 @@ class ScriptInterpreter(Commands):
 
         steam_runner = self._get_steam_runner(runner_class)
         self.steam_data['is_game_files'] = is_game_files
-        self.steam_data['steamapps_path'] = (
-            steam_runner.get_default_steamapps_path()
-        )
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
-            logger.debug("Installing steam game %s in %s",
-                         appid, self.steam_data['steamapps_path'])
+            logger.debug("Installing steam game %s", appid)
             AsyncCall(steam_runner.install_game, None, appid)
+
+            self.install_start_time = time.localtime()
             self.steam_poll = GLib.timeout_add(
                 2000, self._monitor_steam_game_install
             )
@@ -588,19 +586,14 @@ class ScriptInterpreter(Commands):
         return runner_class()
 
     def _monitor_steam_game_install(self):
-        steamapps_path = self.steam_data['steamapps_path']
-        if not steamapps_path:
-            steam_runner = self._get_steam_runner()
-            steamapps_path = (
-                steam_runner.get_default_steamapps_path()
-            )
-            self.steam_data['steamapps_path'] = steamapps_path
-        appid = self.steam_data['appid']
-        states = get_app_states(steamapps_path, appid)
-        logger.debug(states)
         if self.cancelled:
             return False
-        if 'Fully Installed' in states:
+        appid = self.steam_data['appid']
+        steam_runner = self._get_steam_runner()
+        states = get_app_state_log(steam_runner.steam_data_dir, appid,
+                                   self.install_start_time)
+        logger.debug(states)
+        if states and states.pop().startswith('Fully Installed'):
             self._on_steam_game_installed()
             logger.debug('Steam game has finished installing')
             return False
