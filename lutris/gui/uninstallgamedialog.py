@@ -92,7 +92,8 @@ class UninstallGameDialog(GtkBuilderDialog):
                 widget.set_sensitive(True)
                 return
 
-        self.game.remove(remove_from_library, remove_contents)
+        remove_from_library = self.game.remove(remove_from_library,
+                                               remove_contents)
         self.callback(self.game.id, remove_from_library)
 
         self.on_close()
