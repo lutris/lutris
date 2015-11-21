@@ -102,7 +102,7 @@ class Game(object):
         # Do not keep multiple copies of the same game
         existing_games = pga.get_game_by_field(self.slug, 'slug', all=True)
         if len(existing_games) > 1:
-            remove_from_library = True
+            from_library = True
 
         if from_library:
             logger.debug("Removing game %s from library" % self.id)
@@ -111,7 +111,7 @@ class Game(object):
             pga.set_uninstalled(self.id)
         self.config.remove()
         shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
-        return remove_from_library
+        return from_library
 
     def save(self):
         self.config.save()
