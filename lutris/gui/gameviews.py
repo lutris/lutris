@@ -384,7 +384,7 @@ class GameGridView(Gtk.IconView, GameView):
                            else BANNER_SMALL_SIZE[0])
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
-        self.add_attribute(self.cell_renderer, 'text', COL_NAME)
+        self.add_attribute(self.cell_renderer, 'markup', COL_NAME)
 
         self.connect_signals()
         self.connect('item-activated', self.on_item_activated)
