@@ -70,6 +70,7 @@ class mess(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.game_config.get('device')
         command = [self.get_executable(),
+                   '-uimodekey', 'RCONTROL',
                    '-rompath', rompath, machine,
                    '-' + device, rom]
         return {'command': command}
