@@ -21,6 +21,7 @@ class mess(Runner):
             'choices': [
                 ("Amstrad CPC 464", 'cpc464'),
                 ("Amstrad CPC 6128", 'cpc6128'),
+                ("Amstrad GX4000", 'gx4000'),
                 ("Apple II", 'apple2'),
                 ("Commodore 64", 'c64'),
                 ("ZX Spectrum", 'spectrum'),
