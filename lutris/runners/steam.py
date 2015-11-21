@@ -72,6 +72,10 @@ class steam(Runner):
         self.original_steampid = None
 
     @property
+    def appid(self):
+        return self.game_config.get('appid') or ''
+
+    @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
         if not self.is_installed():
@@ -90,12 +94,11 @@ class steam(Runner):
 
     @property
     def game_path(self):
-        appid = self.game_config.get('appid')
         for apps_path in self.get_steamapps_dirs():
-            game_path = get_path_from_appmanifest(apps_path, appid)
+            game_path = get_path_from_appmanifest(apps_path, self.appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", appid)
+        logger.warning("Data path for SteamApp %s not found.", self.appid)
 
     @property
     def steam_data_dir(self):
@@ -195,17 +198,16 @@ class steam(Runner):
 
         # Get current steam pid to act as the root pid instead of lutris
         self.original_steampid = get_steam_pid()
-        appid = self.game_config.get('appid')
         return {
-            'command': [self.get_executable(), 'steam://rungameid/%s' % appid],
+            'command': [self.get_executable(),
+                        'steam://rungameid/%s' % self.appid],
             'rootpid': self.original_steampid
         }
 
     def watch_game_process(self):
-        appid = self.game_config.get('appid') or ''
-        if not appid or not hasattr(self, 'game_launch_time'):
+        if not self.appid or not hasattr(self, 'game_launch_time'):
             return
-        state_log = get_app_state_log(self.steam_data_dir, appid,
+        state_log = get_app_state_log(self.steam_data_dir, self.appid,
                                       self.game_launch_time)
         if not state_log:
             return True
@@ -224,7 +226,7 @@ class steam(Runner):
             installed = self.install_dialog()
             if not installed:
                 return False
-        appid = appid if appid else self.game_config.get('appid')
+        appid = appid if appid else self.appid
         if appid is None:
             raise RuntimeError('No appid given for uninstallation '
                                '(game config=%s)' % self.game_config)
