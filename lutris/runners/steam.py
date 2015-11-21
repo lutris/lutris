@@ -83,9 +83,10 @@ class steam(Runner):
     @property
     def steam_config(self):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
-        if not self.steam_data_dir:
+        steam_data_dir = self.steam_data_dir
+        if not steam_data_dir:
             return
-        return read_config(self.steam_data_dir)
+        return read_config(steam_data_dir)
 
     @property
     def game_path(self):

@@ -176,10 +176,10 @@ class winesteam(wine.wine):
     @property
     def steam_config(self):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
-        if not self.get_steam_path():
+        steam_data_dir = self.steam_data_dir
+        if not steam_data_dir:
             return
-        steam_path = os.path.dirname(self.get_steam_path())
-        return read_config(steam_path)
+        return read_config(steam_data_dir)
 
     @property
     def steam_data_dir(self):

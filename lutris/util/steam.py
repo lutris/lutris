@@ -82,8 +82,8 @@ def vdf_write(vdf_path, config):
         vdf_file.write(vdf_data)
 
 
-def read_config(path_prefix):
-    config_filename = os.path.join(path_prefix, 'config/config.vdf')
+def read_config(steam_data_dir):
+    config_filename = os.path.join(steam_data_dir, 'config/config.vdf')
     if not os.path.exists(config_filename):
         return
     with open(config_filename, "r") as steam_config_file:
