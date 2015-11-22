@@ -13,7 +13,7 @@ deb-source:
 	debuild -S
 
 deb:
-	gpb buildpackage
+	gbp buildpackage
 	mv ../lutris_0* build
 
 changelog-add:
