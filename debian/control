@@ -11,7 +11,7 @@ Vcs-Git: https://github.com/lutris/lutris
 Homepage: https://lutris.net
 
 Package: lutris
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends},
  ${python:Depends},
  python-yaml, python-dbus, gir1.2-gtk-3.0, xdg-user-dirs, libc6-i386 [amd64],
