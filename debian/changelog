@@ -1,3 +1,9 @@
+lutris (0.3.7) wily; urgency=medium
+
+  * TODO
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 21 Nov 2015 18:02:58 -0800
+
 lutris (0.3.6.3) utopic; urgency=medium
 
   * Added "Custom Steam location" option to winesteam runner
