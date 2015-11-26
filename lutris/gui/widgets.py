@@ -2,7 +2,7 @@
 """Misc widgets used in the GUI."""
 import os
 
-from gi.repository import Gtk, GObject, GdkPixbuf, GLib
+from gi.repository import Gtk, GObject, GdkPixbuf, GLib, Pango
 
 from lutris.downloader import Downloader
 from lutris.util import datapath
@@ -48,7 +48,9 @@ class DownloadProgressBox(Gtk.VBox):
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property('wrap', True)
         self.main_label.set_margin_bottom(10)
+        self.main_label.set_max_width_chars(70)
         self.main_label.set_selectable(True)
+        self.main_label.set_property('ellipsize', Pango.EllipsizeMode.MIDDLE)
         self.pack_start(self.main_label, True, True, 0)
 
         progress_box = Gtk.Box()
