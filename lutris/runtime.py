@@ -45,7 +45,8 @@ def get_runtimes():
     request = http.Request(RUNTIME_URL)
     response = request.get()
     cancellables = []
-    for runtime in response.json:
+    runtimes = response.json or []
+    for runtime in runtimes:
         name = runtime['name']
         if '64' in name and not system.is_64bit:
             continue
