@@ -4,7 +4,7 @@
 import os
 import time
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
 from lutris import pga, runtime, settings, shortcuts
 from lutris.runners import import_runner, InvalidRunner
@@ -135,11 +135,9 @@ class Game(object):
         if self.runner.use_runtime():
             if runtime.is_updating():
                 logger.error("Runtime currently updating")
-                return False
-                # FIXME this won't work with the new runtime code
-                # result = dialogs.RuntimeUpdateDialog().run()
-                # if not result == Gtk.ResponseType.OK:
-                #    return False
+                result = dialogs.RuntimeUpdateDialog().run()
+                if not result == Gtk.ResponseType.OK:
+                    return False
         return True
 
     def play(self):

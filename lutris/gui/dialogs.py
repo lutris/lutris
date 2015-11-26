@@ -142,25 +142,26 @@ class DownloadDialog(Gtk.Dialog):
             self.destroy()
 
 
-class RuntimeUpdateDialog(DownloadDialog):
+class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
     def __init__(self):
-        runtime.update()
-        self.downloader = runtime.get_downloader()
+        Gtk.Dialog.__init__(self, "Runtime updating")
+        self.set_size_request(360, 104)
+        self.set_border_width(12)
+        progress_box = Gtk.Box()
+        self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_margin_top(40)
+        self.progressbar.set_margin_bottom(40)
+        self.progressbar.set_margin_right(20)
+        self.progressbar.set_margin_left(20)
+        progress_box.pack_start(self.progressbar, True, True, 0)
+        self.get_content_area().add(progress_box)
+        GLib.timeout_add(200, self.on_runtime_check)
+        self.show_all()
 
-        DownloadDialog.__init__(
-            self,
-            title="Updating runtime",
-            label="Downloading Lutris Runtime",
-            downloader=self.downloader,
-        )
-
-    def download_complete(self, *args):
-        self.download_box.main_label.set_text("Extracting...")
-        GLib.timeout_add(200, self.check_extracted)
-
-    def check_extracted(self):
-        if not runtime.get_updating_status():
+    def on_runtime_check(self, *args, **kwargs):
+        self.progressbar.pulse()
+        if not runtime.is_updating():
             self.response(Gtk.ResponseType.OK)
             self.destroy()
             return False

@@ -156,7 +156,7 @@ class Runner(object):
                 return
 
         if self.use_runtime():
-            if runtime.is_outdated() or runtime.is_updating():
+            if runtime.is_updating():
                 result = dialogs.RuntimeUpdateDialog().run()
                 if not result == Gtk.ResponseType.OK:
                     return
