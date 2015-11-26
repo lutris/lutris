@@ -144,8 +144,8 @@ class DownloadDialog(Gtk.Dialog):
 
 class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
-    def __init__(self):
-        Gtk.Dialog.__init__(self, "Runtime updating")
+    def __init__(self, parent=None):
+        Gtk.Dialog.__init__(self, "Runtime updating", parent=parent)
         self.set_size_request(360, 104)
         self.set_border_width(12)
         progress_box = Gtk.Box()
