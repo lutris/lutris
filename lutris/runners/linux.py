@@ -97,7 +97,7 @@ class linux(Runner):
         """Run native game."""
         launch_info = {}
 
-        if not os.path.exists(self.game_exe):
+        if not self.game_exe or not os.path.exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         # Quit if the file is not executable
