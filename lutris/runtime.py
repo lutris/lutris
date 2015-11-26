@@ -8,11 +8,13 @@ from lutris.util import http, jobs, system
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
-CURRENT_UPDATES = 0
+CURRENT_UPDATES = None
 STATUS_UPDATER = None
 
 
-def is_updating():
+def is_updating(include_pending_updates=True):
+    if include_pending_updates and CURRENT_UPDATES is None:
+        return True
     return CURRENT_UPDATES > 0
 
 
@@ -25,9 +27,9 @@ def get_created_at(name):
 
 def update(status_updater=None):
     global STATUS_UPDATER
-    if is_updating():
+    if is_updating(False):
         logger.debug("Runtime already updating")
-        return
+        return []
 
     if status_updater:
         STATUS_UPDATER = status_updater
@@ -38,6 +40,8 @@ def update(status_updater=None):
 def get_runtimes():
     global CURRENT_UPDATES
     global STATUS_UPDATER
+    if CURRENT_UPDATES is None:
+        CURRENT_UPDATES = 0
     request = http.Request(RUNTIME_URL)
     response = request.get()
     cancellables = []
