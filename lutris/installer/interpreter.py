@@ -390,6 +390,7 @@ class ScriptInterpreter(Commands):
             launcher_value = self.script[launcher]
             if launcher == "exe64":
                 launcher = "exe"
+            break
         if not launcher_value:
             logger.error('No launcher provided in %s', self.script)
         return (launcher, launcher_value)
