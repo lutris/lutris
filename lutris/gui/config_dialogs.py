@@ -16,7 +16,7 @@ DIALOG_HEIGHT = 550
 
 
 class GameDialogCommon(object):
-    no_runner_label = "Select a runner from the list"
+    no_runner_label = "Select a runner in the Game Info tab"
 
     @staticmethod
     def get_runner_liststore():
