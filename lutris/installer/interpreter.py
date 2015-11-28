@@ -106,6 +106,9 @@ class ScriptInterpreter(Commands):
             return False
         if self.files:
             return True
+        if self.runner in ('linux', 'wine', 'dosbox'):
+            # Can use 'insert-disc' and have no files
+            return True
         return False
 
     # --------------------------
