@@ -253,6 +253,7 @@ class GameView(object):
         row = self.get_row_by_id(game_id)
         if row:
             game_slug = row[COL_SLUG]
+            get_pixbuf_for_game.cache_clear()
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)
