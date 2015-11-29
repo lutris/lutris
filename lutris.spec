@@ -1,7 +1,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           lutris
-Version:        0.3.7-rc1
+Version:        0.3.7
 Release:        3%{?dist}
 Summary:        Install and play any video game easily
 
@@ -13,21 +13,21 @@ BuildArch:      noarch
 
 %if 0%{?fedora_version}
 
-BuildRequires:  python-devel
+BuildRequires:  python-devel, pygobject3
 
 Requires:       pygobject3, PyYAML
 
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 
-BuildRequires:  python-devel
+BuildRequires:  python-devel, pygobject3
 
 Requires:       pygobject3, PyYAML
 
 %endif
 %if 0%{?suse_version}
 
-BuildRequires:  python-devel
+BuildRequires:  python-devel, python-gobject
 
 Requires:		python-gobject, python-gtk, python-PyYAML
 
@@ -95,8 +95,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 
 %changelog
-* Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7-rc1
-- Bump to version 0.3.7-rc1
+* Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7
+- Bump to version 0.3.7
 
 * Thu Oct 30 2014 Mathieu Comandon <strycore@gmail.com> - 0.3.6-1
 - Bump to version 0.3.6
