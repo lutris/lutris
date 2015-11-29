@@ -479,8 +479,12 @@ class LutrisWindow(object):
         if not self.view.get_row_by_id(game_id):
             logger.debug("Adding new installed game to view (%d)" % game_id)
             self.add_game_to_view(game_id, async=False)
+
         view.set_installed(Game(game_id))
         self.sidebar_treeview.update()
+        game_data = pga.get_game_by_field(game_id, field='id')
+        GLib.idle_add(resources.fetch_icons,
+                      [game_data], self.on_image_downloaded)
 
     def on_image_downloaded(self, game_id):
         game = Game(game_id)
