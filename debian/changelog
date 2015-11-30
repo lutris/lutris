@@ -1,6 +1,16 @@
 lutris (0.3.7) wily; urgency=medium
 
-  * TODO
+  * Use lutris.net's API to download runtime and runners
+  * Add a sidebar to filter games by runners
+  * Add a log window to view output of played last game
+  * Allow to manage wine versions
+  * Add support for Dolphin
+  * Add support for reicast
+  * Add support for ResidualVM
+  * Manage and monitor game threads
+  * Add experimental support for Xinput in Wine games
+  * Fully automate Steam for Windows installation
+  * Monitor installation for Steam games
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 21 Nov 2015 18:02:58 -0800
 
