@@ -232,5 +232,5 @@ class steam(Runner):
                                '(game config=%s)' % self.game_config)
         logger.debug("Launching Steam uninstall of game %s" % appid)
         command = [self.get_executable(), 'steam://uninstall/%s' % appid]
-        thread = LutrisThread(command, runner=self)
+        thread = LutrisThread(command, runner=self, watch=False)
         thread.start()

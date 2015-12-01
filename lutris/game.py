@@ -305,7 +305,7 @@ class Game(object):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-        logger.debug("%s stopped at %s", self.name, quit_time)
+        logger.debug("%s stopped at %s", self.name, quit_time.decode("utf-8"))
         self.state = self.STATE_STOPPED
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
