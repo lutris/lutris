@@ -186,7 +186,9 @@ class winesteam(wine.wine):
         """Return dir where Steam files lie"""
         steam_path = self.get_steam_path()
         if steam_path:
-            return os.path.dirname(steam_path)
+            steam_dir = os.path.dirname(steam_path)
+            if os.path.isdir(steam_dir):
+                return steam_dir
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
@@ -268,7 +270,7 @@ class winesteam(wine.wine):
         if steam_data_dir:
             main_dir = os.path.join(steam_data_dir, 'steamapps')
             main_dir = system.fix_path_case(main_dir)
-            if main_dir:
+            if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
         # Custom dirs
         steam_config = self.steam_config
@@ -278,7 +280,7 @@ class winesteam(wine.wine):
                 path = steam_config['BaseInstallFolder_%s' % i] + '/steamapps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
-                if linux_path:
+                if linux_path and os.path.isdir(linux_path):
                     dirs.append(linux_path)
                 i += 1
         return dirs
