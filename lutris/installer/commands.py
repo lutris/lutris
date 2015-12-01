@@ -70,7 +70,7 @@ class Commands(object):
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
         thread = LutrisThread(command, env=runtime.get_env(), term=terminal,
-                              cwd=self.target_path)
+                              cwd=self.target_path, watch=False)
         self.abort_current_task = thread.killall
         thread.run()
         self.abort_current_task = None
