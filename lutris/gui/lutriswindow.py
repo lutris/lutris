@@ -64,14 +64,10 @@ class LutrisWindow(object):
         self.window_size = (width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
-        filter_installed_setting = settings.read_setting(
-            'filter_installed'
-        ) or 'false'
-        filter_installed = filter_installed_setting == 'true'
-        show_installed_games_menuitem = self.builder.get_object(
-            'filter_installed'
-        )
-        show_installed_games_menuitem.set_active(filter_installed)
+        filter_installed = \
+            settings.read_setting('filter_installed') == 'true'
+        self.sidebar_visible = \
+            settings.read_setting('sidebar_visible') in ['true', None]
 
         # Load view
         logger.debug("Loading view")
@@ -82,10 +78,16 @@ class LutrisWindow(object):
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
         # View menu
+        installed_games_only_menuitem =\
+            self.builder.get_object('filter_installed')
+        installed_games_only_menuitem.set_active(filter_installed)
         self.grid_view_menuitem = self.builder.get_object("gridview_menuitem")
         self.grid_view_menuitem.set_active(view_type == 'grid')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
         self.list_view_menuitem.set_active(view_type == 'list')
+        sidebar_menuitem = self.builder.get_object('sidebar_menuitem')
+        sidebar_menuitem.set_active(self.sidebar_visible)
+
         # View buttons
         self.grid_view_btn = self.builder.get_object('switch_grid_view_btn')
         self.grid_view_btn.set_active(view_type == 'grid')
@@ -145,6 +147,8 @@ class LutrisWindow(object):
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
+        if not self.sidebar_visible:
+            self.sidebar_viewport.hide()
         self.builder.connect_signals(self)
         self.connect_signals()
 
@@ -187,7 +191,6 @@ class LutrisWindow(object):
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.on_resize)
-        self.window.connect("key-press-event", self.on_keypress)
 
     def get_view_type(self):
         view_type = settings.read_setting('view_type')
@@ -215,7 +218,8 @@ class LutrisWindow(object):
         else:
             self.splash_box.hide()
             self.games_scrollwindow.show()
-            self.sidebar_viewport.show()
+            if self.sidebar_visible:
+                self.sidebar_viewport.show()
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
@@ -454,10 +458,6 @@ class LutrisWindow(object):
         display.set_cursor('wait', self.window.get_window())
         InstallerDialog(game_ref, self)
 
-    def on_keypress(self, widget, event):
-        if event.keyval == Gdk.KEY_F9:
-            self.toggle_sidebar()
-
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -612,11 +612,14 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         shortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
-    def toggle_sidebar(self):
-        if self.sidebar_viewport.is_visible():
+    def toggle_sidebar(self, _widget=None):
+        if self.sidebar_visible:
             self.sidebar_viewport.hide()
+            settings.write_setting('sidebar_visible', 'false')
         else:
             self.sidebar_viewport.show()
+            settings.write_setting('sidebar_visible', 'true')
+        self.sidebar_visible = not self.sidebar_visible
 
     def on_sidebar_changed(self, widget):
         self.view.game_store.filter_runner = widget.get_selected_runner()
