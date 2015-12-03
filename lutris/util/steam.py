@@ -2,6 +2,7 @@ import os
 import time
 from lutris.util.log import logger
 from collections import OrderedDict
+from lutris.util.system import fix_path_case
 
 
 APP_STATE_FLAGS = [
@@ -121,8 +122,9 @@ def get_path_from_appmanifest(steamapps_path, appid):
     if not config:
         return
     installdir = config.get('AppState', {}).get('installdir')
-    install_path = os.path.join(steamapps_path, "common", installdir)
-    if installdir and os.path.exists(install_path):
+    install_path = fix_path_case(os.path.join(steamapps_path, "common",
+                                              installdir))
+    if install_path and os.path.exists(install_path):
         return install_path
 
 
