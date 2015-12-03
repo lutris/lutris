@@ -255,6 +255,8 @@ class ScriptInterpreter(Commands):
             "Getting Steam data for appid %s" % self.steam_data['appid']
         )
 
+        self.parent.clean_widgets()
+        self.parent.add_spinner()
         if parts[0] == '$WINESTEAM':
             self.parent.set_status('Getting Wine Steam game data')
             self.steam_data['platform'] = "windows"
