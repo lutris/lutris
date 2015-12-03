@@ -191,6 +191,18 @@ class steam(Runner):
                 if not check_shutdown(winesteam.is_running, 5):
                     logger.error("Failed to shut down Wine Steam :(")
                     return False
+
+        primusrun = self.system_config.get('primusrun')
+        if primusrun and system.find_executable('primusrun'):
+            if is_running():
+                logger.info("Waiting for Steam shutdown...")
+                shutdown()
+                if not check_shutdown(is_running):
+                    logger.info("Steam does not shut down, killing it...")
+                    kill()
+                    if not check_shutdown(is_running, 5):
+                        logger.error("Failed to shut down Steam :(")
+                        return False
         return True
 
     def play(self):
