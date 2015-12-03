@@ -315,7 +315,7 @@ class winesteam(wine.wine):
             self.create_prefix(default_prefix)
         return default_prefix
 
-    def install_game(self, appid):
+    def install_game(self, appid, generate_acf=False):
         command = self.launch_args + ["steam://install/%s" % appid]
         subprocess.Popen(command, env=self.get_env())
 

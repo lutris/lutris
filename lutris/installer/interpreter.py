@@ -566,7 +566,7 @@ class ScriptInterpreter(Commands):
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
-            AsyncCall(steam_runner.install_game, None, appid)
+            AsyncCall(steam_runner.install_game, None, appid, is_game_files)
 
             self.install_start_time = time.localtime()
             self.steam_poll = GLib.timeout_add(

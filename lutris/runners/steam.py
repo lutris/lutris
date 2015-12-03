@@ -158,9 +158,9 @@ class steam(Runner):
             " or install Steam with the package provided by your distribution."
         NoticeDialog(message)
 
-    def install_game(self, appid, preload=False):
+    def install_game(self, appid, generate_acf=False):
         logger.debug("Installing steam game %s", appid)
-        if preload:
+        if generate_acf:
             acf_data = get_default_acf(appid, appid)
             acf_content = to_vdf(acf_data)
             steamapps_path = self.get_default_steamapps_path()
