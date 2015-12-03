@@ -580,13 +580,16 @@ class ScriptInterpreter(Commands):
             self.target_path = self._get_steam_game_path()
 
     def _get_steam_runner(self, runner_class=None):
-        if not runner_class:
+        if runner_class is None:
             if self.runner == 'steam':
                 runner_class = steam.steam
             elif self.runner == 'winesteam':
                 runner_class = winesteam.winesteam
-            else:
-                raise ScriptingError('Missing Steam platform')
+            elif self.steam_data['is_game_files']:
+                if self.steam_data['platform'] == 'windows':
+                    runner_class = winesteam.winesteam
+                else:
+                    runner_class = steam.steam
         return runner_class()
 
     def _monitor_steam_game_install(self):
