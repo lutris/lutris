@@ -180,18 +180,7 @@ class steam(Runner):
                 time.sleep(1)
                 if not is_running():
                     return True
-        from lutris.runners import winesteam
-        if winesteam.is_running():
-            logger.info("Waiting for Steam to shutdown...")
-            winesteam.winesteam.shutdown()
-            if not check_shutdown(winesteam.is_running):
-                logger.info("Wine Steam does not shut down, killing it...")
-                winesteam.kill()
-                time.sleep(2)
-                if not check_shutdown(winesteam.is_running, 5):
-                    logger.error("Failed to shut down Wine Steam :(")
-                    return False
-
+        # If using primusrun, shutdown existing Steam first
         primusrun = self.system_config.get('primusrun')
         if primusrun and system.find_executable('primusrun'):
             if is_running():
