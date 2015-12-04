@@ -744,7 +744,8 @@
                 <child>
                   <object class="GtkImage" id="js1image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -755,7 +756,8 @@
                 <child>
                   <object class="GtkImage" id="js0image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -766,7 +768,8 @@
                 <child>
                   <object class="GtkImage" id="js3image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -777,7 +780,8 @@
                 <child>
                   <object class="GtkImage" id="js2image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
