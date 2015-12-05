@@ -4,7 +4,8 @@ Priority: optional
 Build-Depends: cdbs (>= 0.4.43),
  debhelper (>= 6),
  python,
- python-support (>= 0.6.4)
+ python-support (>= 0.6.4),
+ gir1.2-gtk-3.0
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
