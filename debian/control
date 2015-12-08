@@ -1,10 +1,14 @@
 Source: lutris
 Section: games
 Priority: optional
-Build-Depends: cdbs (>= 0.4.43),
- debhelper (>= 6),
+Build-Depends: cdbs,
+ debhelper,
  python,
- python-support (>= 0.6.4)
+ python-support,
+ gir1.2-gtk-3.0,
+ gir1.2-glib-2.0,
+ python-gi,
+ libgirepository1.0-dev
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris

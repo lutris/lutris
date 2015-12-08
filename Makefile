@@ -10,7 +10,7 @@ test:
 	nosetests
 
 deb-source:
-	debuild -S
+	gbp buildpackage -S
 
 deb:
 	gbp buildpackage
