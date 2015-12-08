@@ -596,7 +596,7 @@ class LutrisWindow(object):
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
-        game = Game(self.view.selected_game).name
+        game = Game(self.view.selected_game)
         shortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
 
     def create_desktop_shortcut(self, *args):
