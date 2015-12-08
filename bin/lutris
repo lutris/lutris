@@ -208,6 +208,7 @@ if game_slug or installer:
         if lutris.is_running():
             lutris.run_game(db_game['id'])
         else:
+            runtime.update()
             lutris_game = Game(db_game['id'])
             lutris_game.play()
     else:
@@ -215,6 +216,7 @@ if game_slug or installer:
         if lutris.is_running():
             lutris.install_game(installer or game_slug)
         else:
+            runtime.update()
             InstallerDialog(installer or game_slug)
             GObject.threads_init()
             Gtk.main()

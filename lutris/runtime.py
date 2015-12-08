@@ -54,7 +54,8 @@ def get_runtimes():
         created_at = time.strptime(created_at[:created_at.find('.')],
                                    "%Y-%m-%dT%H:%M:%S")
         if get_created_at(name) < created_at:
-            STATUS_UPDATER("Updating Runtime")
+            if STATUS_UPDATER:
+                STATUS_UPDATER("Updating Runtime")
             logger.debug('Updating runtime %s', name)
             url = runtime['url']
             archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
