@@ -25,7 +25,7 @@ import signal
 import time
 
 # pylint: disable=E0611
-from gi.repository import Gdk, Gtk, GObject
+from gi.repository import Gdk, Gtk, GObject, GLib
 
 from dbus.mainloop.glib import DBusGMainLoop
 from os.path import realpath, dirname, normpath
@@ -48,11 +48,11 @@ except ImportError:
     else:
         sys.exit()
 
-from lutris.util.log import logger
-from lutris.gui.installgamedialog import InstallerDialog
+from lutris import pga, runtime
 from lutris.config import check_config  # , register_handler
+from lutris.util.log import logger
 from lutris.game import Game
-from lutris import pga
+from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.lutriswindow import LutrisWindow
 from lutris.settings import VERSION
 
@@ -210,7 +210,9 @@ if game_slug or installer:
         else:
             runtime.update()
             lutris_game = Game(db_game['id'])
+            lutris_game.exit_main_loop = True
             lutris_game.play()
+            GLib.MainLoop().run()
     else:
         logger.info("Installing %s", game_slug)
         if lutris.is_running():

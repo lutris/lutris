@@ -51,6 +51,7 @@ class Game(object):
         self.killswitch = None
         self.state = self.STATE_IDLE
         self.game_log = ''
+        self.exit_main_loop = False
 
         game_data = pga.get_game_by_field(id, 'id')
         self.slug = game_data.get('slug') or ''
@@ -321,6 +322,9 @@ class Game(object):
         if self.game_thread:
             self.game_thread.stop()
         self.process_return_codes()
+
+        if self.exit_main_loop:
+            exit()
 
     def process_return_codes(self):
         """Do things depending on how the game quitted."""
