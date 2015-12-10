@@ -582,7 +582,7 @@ class ScriptInterpreter(Commands):
             self.target_path = self._get_steam_game_path()
 
     def _get_steam_runner(self, runner_class=None):
-        if runner_class is None:
+        if not runner_class:
             if self.runner == 'steam':
                 runner_class = steam.steam
             elif self.runner == 'winesteam':
