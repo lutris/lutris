@@ -11,9 +11,12 @@ test:
 
 deb-source:
 	gbp buildpackage -S
+	mkdir -p build
+	mv ../lutris_0* build
 
 deb:
 	gbp buildpackage
+	mkdir -p build
 	mv ../lutris_0* build
 
 changelog-add:
@@ -32,5 +35,4 @@ clean:
 build-all: deb
 
 upload:
-	scp build/lutris_${VERSION}_all.deb lutris.net:/srv/releases/
 	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
