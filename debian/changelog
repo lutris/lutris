@@ -1,13 +1,13 @@
 lutris (0.3.7) wily; urgency=medium
 
   * Global:
-    - Now works in single window mode
+    - Open a single instance of the program
     - Improved performance and responsiveness of the UI
     - New sidebar to filter games by runner
     - New log window to view output of last launched game
     - Much improved runtime (cross-distro support for games and emulators)
     - Initial support for the installation of multiple versions of the same game
-    - Cancelling a game installation will reverse it
+    - Cancelling a game installation will clean up downloaded and installed files
     - Showing wait cursor when loading a game
     - Improved config dialogs usability & reliability
     - Improved monitoring of running game process
