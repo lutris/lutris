@@ -219,10 +219,15 @@ class Commands(object):
         if os.path.exists(dst):
             raise ScriptingError("Rename error, destination already exists: %s"
                                  % src)
-        dst = dst.rstrip('/')
-        if not os.path.exists(os.path.dirname(dst)):
-            os.makedirs(os.path.dirname(dst))
-        os.rename(src, dst)
+        dst_dir = os.path.dirname(dst)
+
+        # Pre-move on dest filesystem to avoid error with
+        # os.rename through different filesystems
+        temp_dir = os.path.join(dst_dir, "lutris_rename_temp")
+        os.makedirs(temp_dir)
+        self._killable_process(shutil.move, src, temp_dir)
+        src = os.path.join(temp_dir, os.path.basename(src))
+        os.renames(src, dst)
 
     def _get_move_paths(self, params):
         """Process raw 'src' and 'dst' data."""
@@ -234,7 +239,7 @@ class Commands(object):
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
-        return (src, dst)
+        return (src.rstrip('/'), dst.rstrip('/'))
 
     def substitute_vars(self, data):
         """Subsitute variable names found in given file."""
