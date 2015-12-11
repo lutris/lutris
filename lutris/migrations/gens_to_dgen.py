@@ -1,2 +1,5 @@
+from lutris import pga
+
+
 def migrate():
-    print "gens migration"
+    pga.sql.db_update(pga.PGA_DB, 'games', {'runner': 'gens'}, ('runner', 'dgen'))
