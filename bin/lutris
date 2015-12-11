@@ -36,6 +36,7 @@ if LAUNCH_PATH != "/usr/bin":
     sys.path.insert(0, SOURCE_PATH)
 
 from lutris.gui import dialogs
+from lutris.migrations import migrate
 
 try:
     import yaml as _yaml  # noqa
@@ -184,6 +185,7 @@ if type(lutris) is dbus.Interface:
             time.sleep(1)  # Wait for bus name to be available again
             lutris = LutrisService(bus, '/', DBUS_INTERFACE)
 
+migrate()
 
 game_slug = ""
 for arg in args:
