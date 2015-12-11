@@ -299,7 +299,7 @@ class wine(Runner):
         "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix,
-        "Desktop_res": r"%s\Explorer\Desktops" % reg_prefix,
+        "WineDesktop": r"%s\Explorer\Desktops" % reg_prefix,
     }
 
     core_processes = (
@@ -364,7 +364,7 @@ class wine(Runner):
                          "This corresponds to Wine's Virtual Desktop option.")
             },
             {
-                'option': 'Desktop_res',
+                'option': 'WineDesktop',
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
                 'choices': display.get_resolutions,
@@ -580,7 +580,7 @@ class wine(Runner):
                                     prefix=prefix)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
-                    value = 'Desktop_res'
+                    value = 'WineDesktop'
                 set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
         overrides = self.runner_config.get('overrides') or {}
