@@ -31,15 +31,14 @@ Requires:       python-gobject, python-gtk, python-PyYAML
 
 
 %description
-Install and play any video game easily
- Lutris is a gaming platform for GNU/Linux. Its goal is to make
- gaming on Linux as easy as possible by taking care of installing
- and setting up the game for the user. The only thing you have to
- do is play the game. It aims to support every game that is playable
- on Linux.
+Lutris is a gaming platform for GNU/Linux. Its goal is to make
+gaming on Linux as easy as possible by taking care of installing
+and setting up the game for the user. The only thing you have to
+do is play the game. It aims to support every game that is playable
+on Linux.
 
 %prep
-%setup -n %{name} -q
+%setup -q -n %{name}
 
 
 %build
