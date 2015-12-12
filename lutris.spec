@@ -2,7 +2,7 @@
 
 Name:           lutris
 Version:        0.3.7
-Release:        3%{?dist}
+Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPLv3+
@@ -11,35 +11,23 @@ Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
 
 BuildArch:      noarch
 
+# Common build dependencies
+BuildRequires:  desktop-file-utils
+BuildRequires:  python-devel
+
 %if 0%{?fedora_version}
-
-BuildRequires:  python-devel, pygobject3
-
+BuildRequires:  pygobject3
 Requires:       pygobject3, PyYAML
-
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
-
-BuildRequires:  python-devel, pygobject3
-
+BuildRequires:  pygobject3
 Requires:       pygobject3, PyYAML
-
 %endif
 %if 0%{?suse_version}
-
-BuildRequires:  python-devel, python-gobject
-
-Requires:		python-gobject, python-gtk, python-PyYAML
-
-#!BuildIgnore: rpmlint-mini
-
+BuildRequires:  python-gobject
+BuildRequires:  update-desktop-files
+Requires:       python-gobject, python-gtk, python-PyYAML
 %endif
-
-%if 0%{?suse_version}
-BuildRequires: update-desktop-files
-%endif
-# Common build dependencies
-BuildRequires:	desktop-file-utils
 
 
 %description
@@ -59,22 +47,19 @@ Install and play any video game easily
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
 
 #desktop icon
-#rm %{buildroot}%{_datadir}/applications/%{name}.desktop
 %if 0%{?suse_version}
 %suse_update_desktop_file -r -i %{name} Network FileTransfer
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-desktop-file-install --dir=${RPM_BUILD_ROOT}%{_datadir}/applications %{name}.desktop
+desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications %{name}.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
 %files
-%defattr(-,root,root)
 %dir %{_datadir}/glib-2.0
 %dir %{_datadir}/glib-2.0/schemas
 %dir %{_datadir}/icons
@@ -95,7 +80,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 
 %changelog
-* Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7
+* Sat Dec 12 2015 Rémi Verschelde <akien@mageia.org> - 0.3.7-2
+- Spec file cleanup
+
+* Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7-1
 - Bump to version 0.3.7
 
 * Thu Oct 30 2014 Mathieu Comandon <strycore@gmail.com> - 0.3.6-1
@@ -116,4 +104,3 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 * Tue Jun 03 2014 Travis Nickles <nickles.travis@gmail.com> - 0.3.4-1
 - Initial version of the package
-
