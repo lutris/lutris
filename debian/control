@@ -8,7 +8,8 @@ Build-Depends: cdbs,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
  python-gi,
- libgirepository1.0-dev
+ libgirepository1.0-dev,
+ libsdl2-2.0-0:i386
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
