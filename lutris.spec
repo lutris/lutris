@@ -59,20 +59,27 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
 %files
-%{_bindir}/%{name}
-%{_datadir}/%{name}/
+%dir %{_datadir}/glib-2.0
+%dir %{_datadir}/glib-2.0/schemas
+%dir %{_datadir}/icons
+%dir %{_datadir}/icons/hicolor
+%dir %{_datadir}/icons/hicolor/scalable
+%dir %{_datadir}/icons/hicolor/scalable/apps
+%dir %{_datadir}/polkit-1
+%dir %{_datadir}/polkit-1/actions
+%{_bindir}/lutris
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/glib-2.0/schemas/apps.%{name}.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+%{_datadir}/lutris/
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/polkit-1/actions/*
 %{python_sitelib}/%{name}-%{version}-py2.7.egg-info
-%{python_sitelib}/%{name}/
+%{python_sitelib}/lutris/
 
 
 %changelog
 * Sat Dec 12 2015 Rémi Verschelde <akien@mageia.org> - 0.3.7-2
-- Remove ownership of system directories
 - Spec file cleanup
 
 * Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7-1
