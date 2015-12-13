@@ -50,7 +50,7 @@ on Linux.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{name} Network FileTransfer
+%suse_update_desktop_file -r -i %{name} Game Network
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
