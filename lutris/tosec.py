@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #    tosec.py A Python module to use TOSEC data files as a SQLite database.
 #    Copyright (C) 2013 Adrien Plazas
 #

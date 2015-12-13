@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding:Utf-8 -*-
 """Module that actually runs the games."""
 import os
