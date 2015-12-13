@@ -26,6 +26,9 @@ Requires:       pygobject3, PyYAML
 %if 0%{?suse_version}
 BuildRequires:  python-gobject
 BuildRequires:  update-desktop-files
+# Needed to workaround "directories not owned by a package" issue
+BuildRequires:  hicolor-icon-theme
+BuildRequires:  polkit
 Requires:       python-gobject, python-gtk, python-PyYAML
 %endif
 
@@ -59,27 +62,20 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
 %files
-%dir %{_datadir}/glib-2.0
-%dir %{_datadir}/glib-2.0/schemas
-%dir %{_datadir}/icons
-%dir %{_datadir}/icons/hicolor
-%dir %{_datadir}/icons/hicolor/scalable
-%dir %{_datadir}/icons/hicolor/scalable/apps
-%dir %{_datadir}/polkit-1
-%dir %{_datadir}/polkit-1/actions
-%{_bindir}/lutris
+%{_bindir}/%{name}
+%{_datadir}/%{name}/
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/glib-2.0/schemas/apps.%{name}.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
-%{_datadir}/lutris/
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/polkit-1/actions/*
 %{python_sitelib}/%{name}-%{version}-py2.7.egg-info
-%{python_sitelib}/lutris/
+%{python_sitelib}/%{name}/
 
 
 %changelog
 * Sat Dec 12 2015 Rémi Verschelde <akien@mageia.org> - 0.3.7-2
+- Remove ownership of system directories
 - Spec file cleanup
 
 * Fri Nov 27 2015 Mathieu Comandon <strycore@gmail.com> - 0.3.7-1
