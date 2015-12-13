@@ -26,6 +26,9 @@ Requires:       pygobject3, PyYAML
 %if 0%{?suse_version}
 BuildRequires:  python-gobject
 BuildRequires:  update-desktop-files
+# Needed to workaround "directories not owned by a package" issue
+BuildRequires:  hicolor-icon-theme
+BuildRequires:  polkit
 Requires:       python-gobject, python-gtk, python-PyYAML
 %endif
 
