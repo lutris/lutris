@@ -48,23 +48,6 @@ def update_data_path(prefix, oldvalue=None):
     return oldvalue
 
 
-def update_desktop_file(datadir):
-    try:
-        fin = file('lutris.desktop.in', 'r')
-        fout = file(fin.name + '.new', 'w')
-
-        for line in fin:
-            if 'Icon=' in line:
-                line = "Icon=%s\n" % (datadir + 'media/lutris.svg')
-            fout.write(line)
-        fout.flush()
-        fout.close()
-        fin.close()
-        os.rename(fout.name, fin.name)
-    except (OSError, IOError):
-        print ("ERROR: Can't find lutris.desktop.in")
-        sys.exit(1)
-
 data_files = []
 
 for directory, _, filenames in os.walk(u'share'):
@@ -83,7 +66,8 @@ setup(
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
-    packages=['lutris', 'lutris.gui', 'lutris.util', 'lutris.runners', 'lutris.installer', 'lutris.migrations'],
+    packages=['lutris', 'lutris.gui', 'lutris.util', 'lutris.runners',
+              'lutris.installer', 'lutris.migrations'],
     scripts=['bin/lutris'],
     data_files=data_files,
     # FIXME: find a way to install dependencies
