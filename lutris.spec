@@ -5,7 +5,7 @@ Version:        0.3.7
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
-License:        GPLv3+
+License:        GPL-3.0+
 URL:            http://lutris.net
 Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
 
