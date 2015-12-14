@@ -71,6 +71,19 @@ desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications share/applica
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
+%if 0%{?suse_version} >= 1140
+%post
+%icon_theme_cache_post
+%desktop_database_post
+%endif
+
+
+%if 0%{?suse_version} >= 1140
+%postun
+%icon_theme_cache_postun
+%desktop_database_postun
+%endif
+
 %files
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
