@@ -162,7 +162,7 @@ class LutrisThread(threading.Thread):
             num_children += 1
             # Exclude other wrapper processes
             if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
-                              'Steam.exe', 'steamwebhelper.', 'PnkBstrA.exe',
+                              'Steam.exe', 'steamwebhelper.', 'PnkBstrA.exe', 'steamer',
                               'SteamService.ex', 'steamerrorrepor', 'lutris'):
                 continue
             num_watched_children += 1
