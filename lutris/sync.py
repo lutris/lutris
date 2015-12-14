@@ -166,7 +166,8 @@ class Sync(object):
                     installed=1
                 )
                 game_config = config.LutrisConfig(
-                    runner_slug='steam', game_config_id=game_info['configpath']
+                    runner_slug='steam',
+                    game_config_id=game_info['configpath'] or slug,
                 )
                 game_config.raw_game_config.update({'appid': str(steamid)})
                 game_config.save()
