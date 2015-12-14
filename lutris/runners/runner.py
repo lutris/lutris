@@ -17,15 +17,6 @@ from lutris.util.http import Request
 
 
 def get_arch():
-    """TODO Deprecate get_arch"""
-    machine = platform.machine()
-    if '64' in machine:
-        return 'x64'
-    elif '86' in machine:
-        return 'i386'
-
-
-def get_arch_for_api():
     """Return the architecture returning values compatible with the reponses
     from the API
     """
@@ -210,7 +201,7 @@ class Runner(object):
                 ]
             versions_for_arch = [
                 v for v in versions
-                if v['architecture'] == get_arch_for_api()
+                if v['architecture'] == get_arch()
             ]
             if len(versions_for_arch) == 1:
                 return versions_for_arch[0]

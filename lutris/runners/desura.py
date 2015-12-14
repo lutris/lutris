@@ -93,7 +93,7 @@ class desura(Runner):
 
     def install(self):
         self.logger.debug("Installing desura")
-        if self.arch == "x64":
+        if self.arch == "x86_64":
             tarball = "desura-x86_64.tar.gz"
         else:
             tarball = "desura-i686.tar.gz"
