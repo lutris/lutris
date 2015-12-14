@@ -6,6 +6,7 @@ Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
+Group:          Amusements/Games/Other
 URL:            http://lutris.net
 Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
 
@@ -16,7 +17,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python-devel
 
 %if 0%{?fedora_version}
-BuildRequires:  pygobject3
+BuildRequires:  pygobject3, python3-gobject
 Requires:       pygobject3, PyYAML
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
@@ -31,6 +32,11 @@ BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 Requires:       python-gobject, python-gtk, python-PyYAML
 %endif
+%if 0%{?fedora_version} || 0%{?suse_version}
+BuildRequires: fdupes
+%endif
+
+#!BuildIgnore: rpmlint-mini
 
 
 %description
@@ -49,7 +55,11 @@ on Linux.
 
 
 %install
+rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
+%if 0%{?fedora_version} || 0%{?suse_version}
+%fdupes $RPM_BUILD_ROOT%{python_sitelib}
+%endif
 
 #desktop icon
 %if 0%{?suse_version}
@@ -57,8 +67,21 @@ on Linux.
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications %{name}.desktop
+desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications share/applications/%{name}.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+%endif
+
+%if 0%{?suse_version} >= 1140
+%post
+%icon_theme_cache_post
+%desktop_database_post
+%endif
+
+
+%if 0%{?suse_version} >= 1140
+%postun
+%icon_theme_cache_postun
+%desktop_database_postun
 %endif
 
 %files
