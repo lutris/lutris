@@ -179,7 +179,14 @@ class Runner(object):
             'title': "Required runner unavailable"
         })
         if Gtk.ResponseType.YES == dialog.result:
-            return self.install()
+            if hasattr(self, 'get_version'):
+                version = self.get_version(use_default=False)
+            else:
+                version = None
+            if version:
+                return self.install(version=version)
+            else:
+                return self.install()
         return False
 
     def is_installed(self):
@@ -195,13 +202,16 @@ class Runner(object):
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
+            arch = get_arch()
             if version:
+                if version.endswith('-i386') or version.endswith('-x86_64'):
+                    version, arch = version.rsplit('-', 1)
                 versions = [
                     v for v in versions if v['version'] == version
                 ]
             versions_for_arch = [
                 v for v in versions
-                if v['architecture'] == get_arch()
+                if v['architecture'] == arch
             ]
             if len(versions_for_arch) == 1:
                 return versions_for_arch[0]

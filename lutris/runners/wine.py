@@ -502,18 +502,21 @@ class wine(Runner):
             arch = detect_prefix_arch(self.prefix_path) or 'win32'
         return arch
 
-    @property
-    def wine_version(self):
-        """Return the Wine version to use."""
+    def get_version(self, use_default=True):
+        """Return the Wine version to use. use_default can be set to false to
+        force the instalation of a specific wine version"""
         runner_version = self.runner_config.get('version')
         runner_version = support_legacy_version(runner_version)
-        return runner_version or get_default_version()
+        if runner_version:
+            return runner_version
+        if use_default:
+            return get_default_version()
 
     def get_executable(self):
         """Return the path to the Wine executable."""
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
-        version = self.wine_version
+        version = self.get_version()
         if not version:
             return
 
@@ -530,12 +533,13 @@ class wine(Runner):
         return os.path.join(path, version, 'bin/wine')
 
     def is_installed(self):
-        if self.wine_version == 'system':
+        version = self.get_version()
+        if version == 'system':
             if system.find_executable('wine'):
                 return True
             else:
                 return False
-        elif self.wine_version == 'custom':
+        elif version == 'custom':
             custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
