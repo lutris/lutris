@@ -9,7 +9,7 @@ from os.path import join
 from gi.repository import Gio
 
 from lutris import pga, settings, sysoptions
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 
 
@@ -280,9 +280,13 @@ class LutrisConfig(object):
                 return
             attribute_name = options_type + '_options'
 
-            runner = import_runner(self.runner_slug)
-            if not getattr(runner, attribute_name):
-                runner = runner()
+            try:
+                runner = import_runner(self.runner_slug)
+            except InvalidRunner:
+                options = {}
+            else:
+                if not getattr(runner, attribute_name):
+                    runner = runner()
 
-            options = getattr(runner, attribute_name)
+                options = getattr(runner, attribute_name)
         return dict((opt['option'], opt) for opt in options)
