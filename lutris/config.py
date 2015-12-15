@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import yaml
 from os.path import join
 
@@ -57,6 +58,10 @@ def check_config(force_wipe=False):
         os.remove(settings.PGA_DB)
     pga.syncdb()
     pga.set_config_paths()
+
+
+def make_game_config_id(game_slug):
+    return "{}-{}".format(game_slug, int(time.time()))
 
 
 def read_yaml_from_file(filename):

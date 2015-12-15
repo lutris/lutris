@@ -1,9 +1,8 @@
 """Configuration dialogs"""
-import time
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
-from lutris.config import LutrisConfig, TEMP_CONFIG
+from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
@@ -281,10 +280,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         """For new games, create a special config type that won't be read
         from disk.
         """
-        if self.slug:
-            return "{}-{}".format(self.slug, int(time.time()))
-        else:
-            return TEMP_CONFIG
+        return make_game_config_id(self.slug) if self.slug else TEMP_CONFIG
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):

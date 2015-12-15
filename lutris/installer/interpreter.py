@@ -18,7 +18,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
 
-from lutris.config import LutrisConfig
+from lutris.config import LutrisConfig, make_game_config_id
 from lutris.runners import wine, winesteam, steam
 
 
@@ -403,7 +403,7 @@ class ScriptInterpreter(Commands):
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
 
-        configpath = "{}-{}".format(self.script['slug'], int(time.time()))
+        configpath = make_game_config_id(self.script['slug'])
         config_filename = os.path.join(settings.CONFIG_DIR,
                                        "games/%s.yml" % configpath)
         if self.requires:  # and os.path.exists(config_filename):

@@ -327,7 +327,7 @@ class winesteam(wine.wine):
         super(winesteam, self).prelaunch()
 
         def check_shutdown(is_running, times=10):
-            for x in range(1, times):
+            for x in range(1, times+1):
                 time.sleep(1)
                 if not is_running():
                     return True
