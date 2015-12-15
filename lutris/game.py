@@ -92,10 +92,11 @@ class Game(object):
         except InvalidRunner:
             logger.error("Unable to import runner %s for %s",
                          self.runner_name, self.slug)
-        self.runner = runner_class(self.config)
+        else:
+            self.runner = runner_class(self.config)
 
     def remove(self, from_library=False, from_disk=False):
-        if from_disk:
+        if from_disk and self.runner:
             logger.debug("Removing game %s from disk" % self.id)
             self.runner.remove_game_data(game_path=self.directory)
 

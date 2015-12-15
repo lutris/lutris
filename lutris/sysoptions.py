@@ -157,7 +157,10 @@ system_options = [
 def with_runner_overrides(runner_slug):
     """Return system options updated with overrides from given runner."""
     options = system_options
-    runner = runners.import_runner(runner_slug)
+    try:
+        runner = runners.import_runner(runner_slug)
+    except runners.InvalidRunner:
+        return options
     if not getattr(runner, 'system_options_override'):
         runner = runner()
     if runner.system_options_override:
