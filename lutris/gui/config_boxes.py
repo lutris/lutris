@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
 from lutris.gui.widgets import VBox, Label, FileChooserEntry
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
 
@@ -488,8 +488,17 @@ class GameBox(ConfigBox):
         ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
         if game.runner_name:
-            runner = game.runner or import_runner(game.runner_name)()
-            self.options = runner.game_options
+            if not game.runner:
+                try:
+                    runner = import_runner(game.runner_name)()
+                except InvalidRunner:
+                    runner = None
+            else:
+                runner = game.runner
+            if runner:
+                self.options = runner.game_options
+            else:
+                self.options = []
         else:
             logger.warning("No runner in game supplied to GameBox")
             self.options = []
@@ -500,8 +509,14 @@ class RunnerBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config
-        runner = import_runner(self.lutris_config.runner_slug)()
-        self.options = runner.runner_options
+        try:
+            runner = import_runner(self.lutris_config.runner_slug)()
+        except InvalidRunner:
+            runner = None
+        if runner:
+            self.options = runner.runner_options
+        else:
+            self.options = []
 
         if lutris_config.level == 'game':
             self.generate_top_info_box(

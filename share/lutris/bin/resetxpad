@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rmmod xpad
+sleep 2
+modprobe xpad

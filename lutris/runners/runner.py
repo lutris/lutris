@@ -17,15 +17,6 @@ from lutris.util.http import Request
 
 
 def get_arch():
-    """TODO Deprecate get_arch"""
-    machine = platform.machine()
-    if '64' in machine:
-        return 'x64'
-    elif '86' in machine:
-        return 'i386'
-
-
-def get_arch_for_api():
     """Return the architecture returning values compatible with the reponses
     from the API
     """
@@ -40,7 +31,6 @@ class Runner(object):
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
-    tarballs = None
     platform = NotImplemented
     runnable_alone = False
     game_options = []
@@ -157,7 +147,7 @@ class Runner(object):
                 return
 
         if self.use_runtime():
-            if runtime.is_outdated() or runtime.is_updating():
+            if runtime.is_updating():
                 result = dialogs.RuntimeUpdateDialog().run()
                 if not result == Gtk.ResponseType.OK:
                     return
@@ -189,7 +179,14 @@ class Runner(object):
             'title': "Required runner unavailable"
         })
         if Gtk.ResponseType.YES == dialog.result:
-            return self.install()
+            if hasattr(self, 'get_version'):
+                version = self.get_version(use_default=False)
+            else:
+                version = None
+            if version:
+                return self.install(version=version)
+            else:
+                return self.install()
         return False
 
     def is_installed(self):
@@ -198,65 +195,103 @@ class Runner(object):
         if executable and os.path.exists(executable):
             return True
 
-    def get_runner_url(self):
+    def get_runner_info(self, version=None):
         runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)
         request = Request(runner_api_url)
         response = request.get()
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
-            versions = [
-                version for version in versions
-                if version['architecture'] == get_arch_for_api()
+            arch = get_arch()
+            if version:
+                if version.endswith('-i386') or version.endswith('-x86_64'):
+                    version, arch = version.rsplit('-', 1)
+                versions = [
+                    v for v in versions if v['version'] == version
+                ]
+            versions_for_arch = [
+                v for v in versions
+                if v['architecture'] == arch
             ]
-            if len(versions) == 1:
-                return versions[0]['url']
-            elif len(versions) > 1:
+            if len(versions_for_arch) == 1:
+                return versions_for_arch[0]
+            elif len(versions_for_arch) > 1:
                 default_version = [
-                    version for version in versions
-                    if version['default'] is True
+                    v for v in versions_for_arch
+                    if v['default'] is True
+                ]
+                if default_version:
+                    return default_version[0]
+            elif len(versions) == 1 and system.is_64bit:
+                return versions[0]
+            elif len(versions) > 1 and system.is_64bit:
+                default_version = [
+                    v for v in versions
+                    if v['default'] is True
                 ]
                 if default_version:
                     return default_version[0]
 
-    def install(self):
+    def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
-        if self.tarballs:
-            logger.debug('Port runner %s to use the REST API' % self.name)
-            tarball = self.tarballs.get(self.arch)
-            opts = {}
-        else:
-            tarball = self.get_runner_url()
-            opts = {
-                'source_url': ''
-            }
-        if tarball:
-            is_extracted = self.download_and_extract(tarball, **opts)
-            return is_extracted
-        else:
+        runner_info = self.get_runner_info(version)
+        if not runner_info:
             dialogs.ErrorDialog(
                 'This runner is not available for your platform'
             )
             return False
+        opts = {}
+        if downloader:
+            opts['downloader'] = downloader
+        if callback:
+            opts['callback'] = callback
+        if 'wine' in self.name:
+            version = runner_info['version']
+        if version:
+            dirname = '{}-{}'.format(version, runner_info['architecture'])
+            opts['merge_single'] = True
+            opts['dest'] = os.path.join(settings.RUNNER_DIR,
+                                        self.name, dirname)
+        url = runner_info['url']
+        is_extracted = self.download_and_extract(url, **opts)
+        return is_extracted
 
-    def download_and_extract(self, tarball, dest=settings.RUNNER_DIR, **opts):
+    def download_and_extract(self, url, dest=None, **opts):
         merge_single = opts.get('merge_single', False)
-        source_url = opts.get('source_url', settings.RUNNERS_URL)
-        if source_url:
-            # Legacy system for runners using self.tarballs
-            tarball_filename = tarball
-        else:
-            # New system, tarball is an URL
-            tarball_filename = os.path.basename(tarball)
+        downloader = opts.get('downloader')
+        callback = opts.get('callback')
+        tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
-        dialog = dialogs.DownloadDialog(source_url + tarball, runner_archive)
-        dialog.run()
-        if not os.path.exists(runner_archive):
-            logger.error("Can't find %s, aborting install", runner_archive)
+        if not dest:
+            dest = settings.RUNNER_DIR
+        if downloader:
+            extract_args = {
+                'archive': runner_archive,
+                'dest': dest,
+                'merge_single': merge_single,
+                'callback': callback
+            }
+            downloader(url, runner_archive, self.on_downloaded, extract_args)
+        else:
+            dialog = dialogs.DownloadDialog(url, runner_archive)
+            dialog.run()
+            return self.extract(archive=runner_archive, dest=dest,
+                                merge_single=merge_single)
+
+    def on_downloaded(self, widget, data, user_data):
+        """GObject callback received by downloader"""
+        self.extract(**user_data)
+
+    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
+        if not os.path.exists(archive):
+            logger.error("Can't find %s, aborting install", archive)
             return False
-        extract_archive(runner_archive, dest, merge_single=merge_single)
-        os.remove(runner_archive)
-        return True
+        extract_archive(archive, dest, merge_single=merge_single)
+        os.remove(archive)
+        if callback:
+            callback()
+        else:
+            return True
 
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)

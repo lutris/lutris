@@ -1,6 +1,6 @@
 import os
 import time
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
 import webbrowser
 import yaml
 
@@ -158,9 +158,7 @@ class InstallerDialog(Gtk.Window):
             description = script['description']
             runner = script['runner']
             version = script['version']
-            label = "{} ({})".format(
-                description if description else version, runner
-            )
+            label = "{} ({})".format(version, runner)
             btn = Gtk.RadioButton.new_with_label_from_widget(radio_group,
                                                              label)
             btn.connect('toggled', self.on_installer_toggled, index)
@@ -168,14 +166,24 @@ class InstallerDialog(Gtk.Window):
             if not radio_group:
                 radio_group = btn
 
-        self.notes_label = Gtk.Label()
-        self.notes_label.set_max_width_chars(60)
-        self.notes_label.set_property('wrap', True)
-        self.notes_label.set_markup(
+        def _create_label(padding, text):
+            label = Gtk.Label()
+            label.set_max_width_chars(60)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            label.set_alignment(0, .5)
+            label.set_margin_left(50)
+            label.set_margin_right(50)
+            label.set_markup(text)
+            self.installer_choice_box.pack_start(label, True, True, padding)
+            return label
+
+        self.description_label = _create_label(10,
+            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+        )
+        self.notes_label = _create_label(5,
             "<i>{}</i>".format(self.scripts[0]['notes'])
         )
-
-        self.installer_choice_box.pack_start(self.notes_label, True, True, 40)
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
         self.installer_choice_box.show_all()
@@ -187,6 +195,10 @@ class InstallerDialog(Gtk.Window):
         )
 
     def on_installer_toggled(self, btn, script_index):
+        description = self.scripts[script_index]['description']
+        self.description_label.set_markup(
+            "<i><b>{}</b></i>".format(self.scripts[script_index]['description'])
+        )
         self.notes_label.set_markup(
             "<i>{}</i>".format(self.scripts[script_index]['notes'])
         )
@@ -214,9 +226,9 @@ class InstallerDialog(Gtk.Window):
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
-        if not self.interpreter.requires and self.interpreter.files:
+        if self.interpreter.creates_game_folder:
             self.set_message("Select installation directory")
-            default_path = self.interpreter.default_target
+            default_path = self.interpreter.get_default_target()
             self.set_path_chooser(self.on_target_changed, 'folder',
                                   default_path)
             self.non_empty_label = Gtk.Label()
@@ -236,7 +248,7 @@ class InstallerDialog(Gtk.Window):
     def on_target_changed(self, text_entry):
         """Set the installation target for the game."""
         path = text_entry.get_text()
-        self.interpreter.target_path = path
+        self.interpreter.target_path = os.path.expanduser(path)
         self.show_non_empty_warning()
 
     def show_non_empty_warning(self):
@@ -317,9 +329,6 @@ class InstallerDialog(Gtk.Window):
         """Action called on a completed download."""
         self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
-
-    def on_steam_downloaded(self, widget, *args, **kwargs):
-        self.interpreter.complete_steam_install(widget.dest)
 
     # ----------------
     # "Commands" stage

@@ -54,14 +54,18 @@ def get_library():
     logger.debug("Fetching game library")
     credentials = read_api_key()
     if not credentials:
-        return {}
+        return []
     username = credentials["username"]
-    api_key = credentials["token"]
-    url = settings.SITE_URL + "api/v1/library/%s/" % username
-    params = urllib.parse.urlencode({'api_key': api_key, 'username': username,
-                                     'format': 'json'})
-    response = http.download_json(url, params)
-    return response['games'] if response else []
+    token = credentials["token"]
+    url = settings.SITE_URL + "api/games/library/%s" % username
+    headers = {'Authorization': 'Token ' + token}
+    request = http.Request(url, headers=headers)
+    response = request.get()
+    response_data = response.json
+    if response_data:
+        return response_data['games']
+    else:
+        return []
 
 
 # TODO: use it when switched API to DRF
@@ -76,6 +80,6 @@ def get_games(slugs):
 
 
 def get_runners(runner_name):
-    api_url = "https://lutris.net/api/runners/" + runner_name
+    api_url = settings.SITE_URL + "api/runners/" + runner_name
     response = http.Request(api_url).get()
     return response.json

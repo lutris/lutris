@@ -1,3 +1,34 @@
+lutris (0.3.7) wily; urgency=medium
+
+  * Global:
+    - Open a single instance of the program
+    - Improved performance and responsiveness of the UI
+    - New sidebar to filter games by runner
+    - New log window to view output of last launched game
+    - Much improved runtime (cross-distro support for games and emulators)
+    - Initial support for the installation of multiple versions of the same game
+    - Cancelling a game installation will clean up downloaded and installed files
+    - Showing wait cursor when loading a game
+    - Improved config dialogs usability & reliability
+    - Improved monitoring of running game process
+    - Tons of bug fixes and minor improvements
+
+  * Runner specific:
+    - New runner: Dolphin (Wii and GameCube)
+    - New runner: Reicast (Dreamcast)
+    - New runner: ResidualVM (some 3D adventure games)
+    - Gens is replaced by DGen for Sega Genesis games
+    - Fully automate Steam for Windows installation
+    - Installing Steam games now does start the installation in Steam
+    - New option to shut down Steam when quitting a Steam game
+    - Added ability to manage wine versions
+    - Added Winetricks and other config tools for Wine games (in the context menu)
+    - Winetricks now bundled, used as fallback if not installed on the system
+    - New experimental support for Xinput in Wine games
+    - Monitor installation for Steam games
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 21 Nov 2015 18:02:58 -0800
+
 lutris (0.3.6.3) utopic; urgency=medium
 
   * Added "Custom Steam location" option to winesteam runner

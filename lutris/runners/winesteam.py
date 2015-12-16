@@ -8,6 +8,7 @@ from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.thread import LutrisThread
+from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
@@ -23,10 +24,13 @@ winetricks = wine.winetricks
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
+def get_steam_installer_dest():
+    return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
+
+
 def download_steam(downloader=None, callback=None, callback_data=None):
     """Downloads steam with `downloader` then calls `callback`"""
-    steam_installer_path = os.path.join(settings.TMP_PATH,
-                                        "SteamInstall.msi")
+    steam_installer_path = get_steam_installer_dest()
     if not downloader:
         dialog = DownloadDialog(STEAM_INSTALLER_URL, steam_installer_path)
         dialog.run()
@@ -37,7 +41,13 @@ def download_steam(downloader=None, callback=None, callback_data=None):
 
 
 def is_running():
-    return bool(system.get_pid('Steam.exe$'))
+    pid = system.get_pid('Steam.exe$')
+    if pid:
+        # If process is defunct, don't consider it as running
+        process = Process(pid)
+        return process.state != 'Z'
+    else:
+        return False
 
 
 def kill():
@@ -112,7 +122,7 @@ class winesteam(wine.wine):
                 'option': 'quit_steam_on_exit',
                 'label': "Stop Steam after game exits",
                 'type': 'bool',
-                'default': False,
+                'default': True,
                 'help': ("Shut down Steam after the game has quit.")
             },
         )
@@ -140,11 +150,9 @@ class winesteam(wine.wine):
 
     @property
     def game_path(self):
-        for apps_path in self.get_steamapps_dirs():
-            game_path = get_path_from_appmanifest(apps_path, self.appid)
-            if game_path:
-                return game_path
-        logger.warning("Data path for SteamApp %s not found.", self.appid)
+        if not self.appid:
+            return
+        return self.get_game_path_from_appid(self.appid)
 
     @property
     def working_dir(self):
@@ -168,17 +176,19 @@ class winesteam(wine.wine):
     @property
     def steam_config(self):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
-        if not self.get_steam_path():
+        steam_data_dir = self.steam_data_dir
+        if not steam_data_dir:
             return
-        steam_path = os.path.dirname(self.get_steam_path())
-        return read_config(steam_path)
+        return read_config(steam_data_dir)
 
     @property
     def steam_data_dir(self):
         """Return dir where Steam files lie"""
         steam_path = self.get_steam_path()
         if steam_path:
-            return os.path.dirname(steam_path)
+            steam_dir = os.path.dirname(steam_path)
+            if os.path.isdir(steam_dir):
+                return steam_dir
 
     def get_steam_path(self, prefix=None):
         """Return Steam exe's path"""
@@ -212,13 +222,13 @@ class winesteam(wine.wine):
                 return path
 
     def install(self, installer_path=None):
-        logger.debug("Installing steam from %s", installer_path)
         if not self.is_wine_installed():
             super(winesteam, self).install()
         prefix = self.get_or_create_default_prefix()
         if not self.get_steam_path():
             if not installer_path:
-                installer_path = download_steam()
+                installer_path = get_steam_installer_dest()
+                download_steam()
             self.msi_exec(installer_path, quiet=True, prefix=prefix,
                           wine_path=self.get_executable())
         return True
@@ -258,19 +268,19 @@ class winesteam(wine.wine):
         # Main steamapps dir
         steam_data_dir = self.steam_data_dir
         if steam_data_dir:
-            main_dir = os.path.join(steam_data_dir, 'SteamApps')
+            main_dir = os.path.join(steam_data_dir, 'steamapps')
             main_dir = system.fix_path_case(main_dir)
-            if main_dir:
+            if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
         # Custom dirs
         steam_config = self.steam_config
         if steam_config:
             i = 1
             while ('BaseInstallFolder_%s' % i) in steam_config:
-                path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
+                path = steam_config['BaseInstallFolder_%s' % i] + '/steamapps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
-                if linux_path:
+                if linux_path and os.path.isdir(linux_path):
                     dirs.append(linux_path)
                 i += 1
         return dirs
@@ -296,8 +306,7 @@ class winesteam(wine.wine):
 
     def get_default_prefix(self):
         """Return the default prefix' path."""
-        winesteam_dir = os.path.join(settings.RUNNER_DIR, 'winesteam')
-        return os.path.join(winesteam_dir, 'prefix')
+        return os.path.join(settings.RUNNER_DIR, 'winesteam/prefix')
 
     def get_or_create_default_prefix(self):
         """Return the default prefix' path. Create it if it doesn't exist"""
@@ -306,7 +315,7 @@ class winesteam(wine.wine):
             self.create_prefix(default_prefix)
         return default_prefix
 
-    def install_game(self, appid):
+    def install_game(self, appid, generate_acf=False):
         command = self.launch_args + ["steam://install/%s" % appid]
         subprocess.Popen(command, env=self.get_env())
 
@@ -315,12 +324,14 @@ class winesteam(wine.wine):
         subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
+        super(winesteam, self).prelaunch()
+
         def check_shutdown(is_running, times=10):
-            for x in range(1, times):
+            for x in range(1, times+1):
                 time.sleep(1)
                 if not is_running():
                     return True
-        # Stop Wine Steam to prevent Wine prefix/version problems
+        # Stop existing winesteam to prevent Wine prefix/version problems
         if is_running():
             logger.info("Waiting for Steam to shutdown...")
             self.shutdown()
@@ -330,17 +341,6 @@ class winesteam(wine.wine):
                 if not check_shutdown(is_running, 5):
                     logger.error("Failed to shut down Wine Steam :(")
                     return False
-        # Stop Linux Steam
-        from lutris.runners import steam
-        if steam.is_running():
-            logger.info("Waiting for Steam shutdown...")
-            steam.shutdown()
-            if not check_shutdown(steam.is_running):
-                logger.info("Steam does not shut down, killing it...")
-                steam.kill()
-                if not check_shutdown(steam.is_running, 5):
-                    logger.error("Failed to shut down Steam :(")
-                    return False
         return True
 
     def get_run_data(self):
@@ -349,14 +349,20 @@ class winesteam(wine.wine):
     def play(self):
         self.game_launch_time = time.localtime()
         args = self.game_config.get('args') or ''
-        logger.debug("Checking Steam installation")
+
+        launch_info = {}
+        launch_info['env'] = self.get_env(full=False)
+
+        if self.runner_config.get('xinput'):
+            launch_info['ld_preload'] = self.get_xinput_path()
 
         command = self.launch_args
         if self.appid:
             command.append('steam://rungameid/%s' % self.appid)
         if args:
             command.append(args)
-        return {'command': command, 'env': self.get_env(full=False)}
+        launch_info['command'] = command
+        return launch_info
 
     def watch_game_process(self):
         if not self.appid or not hasattr(self, 'game_launch_time'):
@@ -398,5 +404,5 @@ class winesteam(wine.wine):
         env = self.get_env(full=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
         self.prelaunch()
-        thread = LutrisThread(command, runner=self, env=env)
+        thread = LutrisThread(command, runner=self, env=env, watch=False)
         thread.start()

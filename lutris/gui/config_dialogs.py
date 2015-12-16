@@ -1,9 +1,8 @@
 """Configuration dialogs"""
-import time
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
-from lutris.config import LutrisConfig, TEMP_CONFIG
+from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
@@ -16,7 +15,7 @@ DIALOG_HEIGHT = 550
 
 
 class GameDialogCommon(object):
-    no_runner_label = "Select a runner from the list"
+    no_runner_label = "Select a runner in the Game Info tab"
 
     @staticmethod
     def get_runner_liststore():
@@ -100,7 +99,10 @@ class GameDialogCommon(object):
     def build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            self.game.runner = runners.import_runner(self.runner_name)
+            try:
+                self.game.runner = runners.import_runner(self.runner_name)
+            except runners.InvalidRunner:
+                pass
             self.game_box = GameBox(self.lutris_config, self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
@@ -281,10 +283,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         """For new games, create a special config type that won't be read
         from disk.
         """
-        if self.slug:
-            return "{}-{}".format(self.slug, int(time.time()))
-        else:
-            return TEMP_CONFIG
+        return make_game_config_id(self.slug) if self.slug else TEMP_CONFIG
 
 
 class EditGameConfigDialog(Dialog, GameDialogCommon):

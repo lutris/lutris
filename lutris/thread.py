@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 import threading
 import subprocess
 
@@ -15,6 +16,7 @@ from lutris.util.process import Process
 from lutris.util.system import find_executable
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
+WARMUP_TIME = 5 * 60
 
 
 class LutrisThread(threading.Thread):
@@ -37,7 +39,9 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
-        self.max_cycles_without_children = 40
+        self.max_cycles_without_children = 15
+        self.startup_time = time.time()
+        self.monitoring_started = False
 
         self.cwd = runner.working_dir if self.runner else cwd
 
@@ -128,8 +132,8 @@ class LutrisThread(threading.Thread):
             logger.debug("Stopping thread %s", thread)
             thread.stop()
         if hasattr(self, 'stop_func'):
-            logger.debug("Calling custom stop function %s", self.stop_func)
             self.stop_func()
+        self.is_running = False
         if not killall:
             return
         self.killall()
@@ -158,8 +162,8 @@ class LutrisThread(threading.Thread):
             num_children += 1
             # Exclude other wrapper processes
             if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
-                              'Steam.exe', 'steamwebhelper.',
-                              'steamerrorrepor', 'lutris'):
+                              'Steam.exe', 'steamwebhelper.', 'PnkBstrA.exe', 'steamer',
+                              'SteamService.ex', 'steamerrorrepor', 'lutris'):
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
@@ -168,19 +172,24 @@ class LutrisThread(threading.Thread):
             if child.state == 'Z':
                 terminated_children += 1
 
+        if num_watched_children > 0 and not self.monitoring_started:
+            self.monitoring_started = True
+
         if self.runner and hasattr(self.runner, 'watch_game_process'):
             if not self.runner.watch_game_process():
                 self.is_running = False
                 return False
-        if terminated_children and terminated_children == num_watched_children:
-            logger.debug("All children terminated")
-            self.game_process.wait()
         if num_watched_children == 0:
-            self.cycles_without_children += 1
+            time_since_start = time.time() - self.startup_time
+            if self.monitoring_started or time_since_start > WARMUP_TIME:
+                self.cycles_without_children += 1
         if num_children == 0 \
            or self.cycles_without_children >= self.max_cycles_without_children:
             logger.debug("No children left in thread, exiting")
             self.is_running = False
             self.return_code = self.game_process.returncode
             return False
+        if terminated_children and terminated_children == num_watched_children:
+            logger.debug("All children terminated")
+            self.game_process.wait()
         return True

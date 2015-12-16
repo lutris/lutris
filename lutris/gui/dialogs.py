@@ -10,7 +10,7 @@ from lutris.util import datapath
 
 class GtkBuilderDialog(GObject.Object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         super(GtkBuilderDialog, self).__init__()
         ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
@@ -21,6 +21,8 @@ class GtkBuilderDialog(GObject.Object):
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
         self.builder.connect_signals(self)
+        if parent:
+            self.dialog.set_transient_for(parent)
         self.dialog.show_all()
         self.initialize(**kwargs)
 
@@ -140,25 +142,26 @@ class DownloadDialog(Gtk.Dialog):
             self.destroy()
 
 
-class RuntimeUpdateDialog(DownloadDialog):
+class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
-    def __init__(self):
-        runtime.update()
-        self.downloader = runtime.get_downloader()
+    def __init__(self, parent=None):
+        Gtk.Dialog.__init__(self, "Runtime updating", parent=parent)
+        self.set_size_request(360, 104)
+        self.set_border_width(12)
+        progress_box = Gtk.Box()
+        self.progressbar = Gtk.ProgressBar()
+        self.progressbar.set_margin_top(40)
+        self.progressbar.set_margin_bottom(40)
+        self.progressbar.set_margin_right(20)
+        self.progressbar.set_margin_left(20)
+        progress_box.pack_start(self.progressbar, True, True, 0)
+        self.get_content_area().add(progress_box)
+        GLib.timeout_add(200, self.on_runtime_check)
+        self.show_all()
 
-        DownloadDialog.__init__(
-            self,
-            title="Updating runtime",
-            label="Downloading Lutris Runtime",
-            downloader=self.downloader,
-        )
-
-    def download_complete(self, *args):
-        self.download_box.main_label.set_text("Extracting...")
-        GLib.timeout_add(200, self.check_extracted)
-
-    def check_extracted(self):
-        if not runtime.get_updating_status():
+    def on_runtime_check(self, *args, **kwargs):
+        self.progressbar.pulse()
+        if not runtime.is_updating():
             self.response(Gtk.ResponseType.OK)
             self.destroy()
             return False
@@ -233,14 +236,14 @@ class ClientLoginDialog(GtkBuilderDialog):
     glade_file = 'dialog-lutris-login.ui'
     dialog_object = 'lutris-login'
     __gsignals__ = {
-        'complete': (GObject.SignalFlags.RUN_LAST, None,
-                     (GObject.TYPE_PYOBJECT,)),
+        'connected': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT,)),
         'cancel': (GObject.SignalFlags.RUN_LAST, None,
                    (GObject.TYPE_PYOBJECT,))
     }
 
-    def __init__(self):
-        super(ClientLoginDialog, self).__init__()
+    def __init__(self, parent):
+        super(ClientLoginDialog, self).__init__(parent=parent)
 
         self.username_entry = self.builder.get_object('username_entry')
         self.password_entry = self.builder.get_object('password_entry')

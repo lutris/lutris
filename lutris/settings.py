@@ -5,7 +5,7 @@ from gi.repository import GLib
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
-VERSION = "0.3.6.3"
+VERSION = "0.3.7"
 COPYRIGHT = "(c) 2010-2015 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>",
            "Pascal Reinhard (Xodetaetl) <dev@xod.me"]
@@ -32,7 +32,6 @@ SITE_URL = sio.read_setting("website") or "https://lutris.net/"
 INSTALLER_URL = SITE_URL + 'games/install/%s/'
 ICON_URL = SITE_URL + 'games/icon/%s.png'
 BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
-RUNNERS_URL = SITE_URL + "files/runners/"
 RUNTIME_URL = "https://lutris.net/api/runtime"
 
 # Default config options

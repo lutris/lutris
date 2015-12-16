@@ -57,7 +57,7 @@ class residualvm(Runner):
         return self.game_config.get('path')
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'ResidualVM/ResidualVM')
+        return os.path.join(settings.RUNNER_DIR, 'residualvm/residualvm')
 
     def get_residualvm_data_dir(self):
         root_dir = os.path.dirname(self.get_executable())

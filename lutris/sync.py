@@ -159,14 +159,18 @@ class Sync(object):
                 if not installed_in_steam:  # (Linux Steam only)
                     continue
                 logger.debug("Setting %s as installed" % game_info['name'])
+                config_id = (game_info['configpath']
+                             or config.make_game_config_id(slug))
                 game_id = pga.add_or_update(
                     name=game_info['name'],
                     runner='steam',
                     slug=slug,
-                    installed=1
+                    installed=1,
+                    configpath=config_id,
                 )
                 game_config = config.LutrisConfig(
-                    runner_slug='steam', game_config_id=game_info['configpath']
+                    runner_slug='steam',
+                    game_config_id=config_id,
                 )
                 game_config.raw_game_config.update({'appid': str(steamid)})
                 game_config.save()

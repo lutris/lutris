@@ -2,6 +2,7 @@ import os
 import time
 from lutris.util.log import logger
 from collections import OrderedDict
+from lutris.util.system import fix_path_case
 
 
 APP_STATE_FLAGS = [
@@ -82,8 +83,8 @@ def vdf_write(vdf_path, config):
         vdf_file.write(vdf_data)
 
 
-def read_config(path_prefix):
-    config_filename = os.path.join(path_prefix, 'config/config.vdf')
+def read_config(steam_data_dir):
+    config_filename = os.path.join(steam_data_dir, 'config/config.vdf')
     if not os.path.exists(config_filename):
         return
     with open(config_filename, "r") as steam_config_file:
@@ -121,17 +122,20 @@ def get_path_from_appmanifest(steamapps_path, appid):
     if not config:
         return
     installdir = config.get('AppState', {}).get('installdir')
-    install_path = os.path.join(steamapps_path, "common", installdir)
-    if installdir and os.path.exists(install_path):
+    install_path = fix_path_case(os.path.join(steamapps_path, "common",
+                                              installdir))
+    if install_path and os.path.exists(install_path):
         return install_path
 
 
 def get_app_states(steamapps_path, appid):
     """Return the states of a Steam game."""
+    states = []
+    if not steamapps_path:
+        return states
     manifest_info = get_manifest_info(steamapps_path, appid)
     state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
     state_flags = bin(int(state_flags))[:1:-1]
-    states = []
     for index, flag in enumerate(state_flags):
         if flag == '1':
             states.append(APP_STATE_FLAGS[index + 1])
@@ -140,6 +144,8 @@ def get_app_states(steamapps_path, appid):
 
 def _get_last_content_log(steam_data_dir):
     """Return the last block from content_log.txt"""
+    if not steam_data_dir:
+        return []
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:

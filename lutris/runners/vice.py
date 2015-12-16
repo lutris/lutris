@@ -83,15 +83,30 @@ class vice(Runner):
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
         return os.path.join(root_dir, 'lib64/vice', paths[machine])
 
+    def get_option_prefix(self, machine):
+        prefixes = {
+            'c64': 'VICII',
+            'c128': 'VICII',
+            'vic20': 'VIC',
+            'pet': 'Crtc',
+            'plus4': 'TED',
+            'cmbii': 'Crtc'
+        }
+        return prefixes[machine]
+
     def play(self):
         machine = self.runner_config.get("machine")
         params = [self.get_executable(machine),
                   "-chdir", self.get_roms_path(machine)]
+        option_prefix = self.get_option_prefix(machine)
         if self.runner_config.get("fullscreen"):
-            params.append("-fullscreen")
+            params.append('-{}full'.format(option_prefix))
         if self.runner_config.get("double"):
-            params.append("-VICIIdsize")
+            params.append("-{}dsize".format(option_prefix))
         if self.runner_config.get("joy"):
-            params += ["-joydev2", "4", "-joydev1", "5"]
-        params.append(self.game_config.get('main_file'))
+            params += ["-joydev1", "5"]
+        rom = self.game_config.get('main_file')
+        if rom.endswith('.crt'):
+            params.append('-cartgeneric')
+        params.append(rom)
         return {'command': params}

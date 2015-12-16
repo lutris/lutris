@@ -1,4 +1,4 @@
-VERSION="0.3.6.3"
+VERSION="0.3.7"
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -10,10 +10,13 @@ test:
 	nosetests
 
 deb-source:
-	debuild -S
+	gbp buildpackage -S
+	mkdir -p build
+	mv ../lutris_0* build
 
 deb:
-	git-buildpackage
+	gbp buildpackage
+	mkdir -p build
 	mv ../lutris_0* build
 
 changelog-add:
@@ -32,5 +35,4 @@ clean:
 build-all: deb
 
 upload:
-	scp build/lutris_${VERSION}_all.deb lutris.net:/srv/releases/
 	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/

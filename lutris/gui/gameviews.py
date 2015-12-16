@@ -7,7 +7,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris.game import Game
 from lutris import pga, settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util.log import logger
 from lutris.util import datapath
@@ -186,7 +186,7 @@ class GameView(object):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
     selected_game = None
     current_path = None
@@ -226,7 +226,7 @@ class GameView(object):
         """Update a game row to show as installed"""
         row = self.get_row_by_id(game.id)
         if not row:
-            raise ValueError("Couldn't find row for id %s (%s)" % (game.id, game))
+            raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.id, is_installed=True)
 
@@ -253,6 +253,7 @@ class GameView(object):
         row = self.get_row_by_id(game_id)
         if row:
             game_slug = row[COL_SLUG]
+            get_pixbuf_for_game.cache_clear()
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)
@@ -384,7 +385,7 @@ class GameGridView(Gtk.IconView, GameView):
                            else BANNER_SMALL_SIZE[0])
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
-        self.add_attribute(self.cell_renderer, 'text', COL_NAME)
+        self.add_attribute(self.cell_renderer, 'markup', COL_NAME)
 
         self.connect_signals()
         self.connect('item-activated', self.on_item_activated)
@@ -451,8 +452,12 @@ class ContextualMenu(Gtk.Menu):
         runner_entries = None
         if runner_slug:
             game = Game(game_id)
-            runner = import_runner(runner_slug)(game.config)
-            runner_entries = runner.context_menu_entries
+            try:
+                runner = import_runner(runner_slug)(game.config)
+            except InvalidRunner:
+                runner_entries = None
+            else:
+                runner_entries = runner.context_menu_entries
         if runner_entries:
             self.append(Gtk.SeparatorMenuItem())
             self.add_menuitems(runner_entries)

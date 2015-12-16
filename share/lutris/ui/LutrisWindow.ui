@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.16.1 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
@@ -209,6 +209,22 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
+                      <object class="GtkCheckMenuItem" id="filter_installed">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">I_nstalled games only</property>
+                        <property name="use_underline">True</property>
+                        <signal name="toggled" handler="on_show_installed_games_toggled" swapped="no"/>
+                        <accelerator key="h" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separatormenuitem3">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkRadioMenuItem" id="gridview_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -292,12 +308,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckMenuItem" id="filter_installed">
+                      <object class="GtkCheckMenuItem" id="sidebar_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">I_nstalled games only</property>
+                        <property name="label" translatable="yes">_Side panel</property>
                         <property name="use_underline">True</property>
-                        <signal name="toggled" handler="on_show_installed_games_toggled" swapped="no"/>
+                        <property name="active">True</property>
+                        <signal name="toggled" handler="toggle_sidebar" swapped="no"/>
+                        <accelerator key="F9" signal="activate"/>
                       </object>
                     </child>
                   </object>
@@ -726,7 +744,8 @@
                 <child>
                   <object class="GtkImage" id="js1image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -737,7 +756,8 @@
                 <child>
                   <object class="GtkImage" id="js0image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -748,7 +768,8 @@
                 <child>
                   <object class="GtkImage" id="js3image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -759,7 +780,8 @@
                 <child>
                   <object class="GtkImage" id="js2image">
                     <property name="can_focus">False</property>
-                    <property name="icon_name">input-gaming</property>
+                    <property name="xpad">2</property>
+                    <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -771,11 +793,11 @@
                   <object class="GtkLabel" id="status_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
                     <property name="xpad">5</property>
                     <property name="ypad">5</property>
                     <property name="label" translatable="yes">Lutris</property>
                     <property name="lines">1</property>
-                    <property name="xalign">0</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -787,8 +809,8 @@
                   <object class="GtkLabel" id="connection_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
                     <property name="xalign">1</property>
+                    <property name="label" translatable="yes">label</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>

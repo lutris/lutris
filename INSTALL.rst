@@ -58,12 +58,12 @@ You can now fetch the lutris sources either from a local drive or
 remotely::
 
     cd ~/rpmbuild/SOURCES
-    curl -O  https://lutris.net/releases/lutris_0.3.6.tar.gz 
+    curl -O  https://lutris.net/releases/lutris_0.3.7.tar.gz
 
 Extract the specs file from the archive::
 
     cd ../SPECS/
-    tar xvzf ../SOURCES/lutris_0.3.6.tar.gz lutris/lutris.spec
+    tar xvzf ../SOURCES/lutris_0.3.7.tar.gz lutris/lutris.spec
     mv lutris/lutris.spec .
     rmdir lutris
 

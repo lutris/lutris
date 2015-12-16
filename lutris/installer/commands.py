@@ -70,7 +70,7 @@ class Commands(object):
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
         thread = LutrisThread(command, env=runtime.get_env(), term=terminal,
-                              cwd=self.target_path)
+                              cwd=self.target_path, watch=False)
         self.abort_current_task = thread.killall
         thread.run()
         self.abort_current_task = None
@@ -179,7 +179,7 @@ class Commands(object):
         self._killable_process(system.merge_folders, src, dst)
 
     def move(self, params):
-        """Move a file or directory."""
+        """Move a file or directory into a destination folder."""
         self._check_required_params(['src', 'dst'], params, 'move')
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s" % (src, dst))
@@ -207,8 +207,30 @@ class Commands(object):
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
 
+    def rename(self, params):
+        """Rename file or folder."""
+        self._check_required_params(['src', 'dst'], params, 'rename')
+        src, dst = self._get_move_paths(params)
+        if not os.path.exists(src):
+            raise ScriptingError("Rename error, source path does not exist: %s"
+                                 % src)
+        if os.path.isdir(dst):
+            os.rmdir(dst)  # Remove if empty
+        if os.path.exists(dst):
+            raise ScriptingError("Rename error, destination already exists: %s"
+                                 % src)
+        dst_dir = os.path.dirname(dst)
+
+        # Pre-move on dest filesystem to avoid error with
+        # os.rename through different filesystems
+        temp_dir = os.path.join(dst_dir, "lutris_rename_temp")
+        os.makedirs(temp_dir)
+        self._killable_process(shutil.move, src, temp_dir)
+        src = os.path.join(temp_dir, os.path.basename(src))
+        os.renames(src, dst)
+
     def _get_move_paths(self, params):
-        """Convert raw data passed to 'move'."""
+        """Process raw 'src' and 'dst' data."""
         src_ref = params['src']
         src = (self.game_files.get(src_ref) or self._substitute(src_ref))
         if not src:
@@ -217,13 +239,11 @@ class Commands(object):
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
-        return (src, dst)
-
-    def _get_file(self, fileid):
-        return self.game_files.get(fileid)
+        return (src.rstrip('/'), dst.rstrip('/'))
 
     def substitute_vars(self, data):
-        self._check_required_params('file', data, 'execute')
+        """Subsitute variable names found in given file."""
+        self._check_required_params('file', data, 'substitute_vars')
         filename = self._substitute(data['file'])
         logger.debug('Substituting variables for file %s', filename)
         tmp_filename = filename + '.tmp'
@@ -315,6 +335,9 @@ class Commands(object):
 
         with open(config_file, 'wb') as f:
             parser.write(f)
+
+    def _get_file(self, fileid):
+        return self.game_files.get(fileid)
 
     def _killable_process(self, func, *args, **kwargs):
         """Run function `func` in a separate, killable process."""

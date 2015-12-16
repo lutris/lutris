@@ -1,7 +1,8 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, Pango
+
 from lutris.gui.dialogs import GtkBuilderDialog
 from lutris.game import Game
-from lutris.util.system import is_removeable
+from lutris.util.system import is_removeable, reverse_expanduser
 from lutris.gui.dialogs import QuestionDialog
 
 
@@ -19,7 +20,6 @@ class UninstallGameDialog(GtkBuilderDialog):
         else:
             raise TypeError("Unsupported type %s" % type(widget))
 
-        replacement = replacement.replace('&', '&amp;')
         set_text(get_text().replace("{%s}" % name, replacement))
 
     def initialize(self, game_id=None, callback=None):
@@ -38,23 +38,27 @@ class UninstallGameDialog(GtkBuilderDialog):
             'remove_contents_button'
         )
         if self.game.is_installed:
+            path = self.game.directory or ''
             if hasattr(runner, 'own_game_remove_method'):
                 remove_contents_button.set_label(runner.own_game_remove_method)
+                remove_contents_button.set_active(True)
             else:
                 try:
                     default_path = runner.default_path
                 except AttributeError:
                     default_path = "/"
-                try:
-                    game_path = runner.game_path
-                except AttributeError:
-                    game_path = '/'
-                if not is_removeable(game_path, excludes=[default_path]):
+                if is_removeable(path, excludes=[default_path]):
+                    remove_contents_button.set_active(True)
+                else:
                     remove_contents_button.set_sensitive(False)
+                    path = 'No game folder'
 
-            path = self.game.directory or 'disk'
+            path = reverse_expanduser(path)
             self.substitute_label(remove_contents_button, 'path', path)
-            remove_contents_button.get_children()[0].set_use_markup(True)
+            label = remove_contents_button.get_child()
+            label.set_use_markup(True)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         else:
             remove_contents_button.hide()
 
@@ -88,7 +92,8 @@ class UninstallGameDialog(GtkBuilderDialog):
                 widget.set_sensitive(True)
                 return
 
-        self.game.remove(remove_from_library, remove_contents)
+        remove_from_library = self.game.remove(remove_from_library,
+                                               remove_contents)
         self.callback(self.game.id, remove_from_library)
 
         self.on_close()

@@ -93,13 +93,12 @@ class desura(Runner):
 
     def install(self):
         self.logger.debug("Installing desura")
-        if self.arch == "x64":
+        if self.arch == "x86_64":
             tarball = "desura-x86_64.tar.gz"
         else:
             tarball = "desura-i686.tar.gz"
-        self.download_and_extract(tarball,
-                                  settings.RUNNER_DIR,
-                                  source_url="http://www.desura.com/")
+        url = "http://www.desura.com/" + tarball
+        self.download_and_extract(url)
         if not self.is_installed():
             return False
         subprocess.Popen([self.get_executable()], cwd=os.path.expanduser('~'))

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding:Utf-8 -*-
 """Module that actually runs the games."""
 import os
@@ -51,6 +50,7 @@ class Game(object):
         self.killswitch = None
         self.state = self.STATE_IDLE
         self.game_log = ''
+        self.exit_main_loop = False
 
         game_data = pga.get_game_by_field(id, 'id')
         self.slug = game_data.get('slug') or ''
@@ -92,12 +92,19 @@ class Game(object):
         except InvalidRunner:
             logger.error("Unable to import runner %s for %s",
                          self.runner_name, self.slug)
-        self.runner = runner_class(self.config)
+        else:
+            self.runner = runner_class(self.config)
 
     def remove(self, from_library=False, from_disk=False):
-        if from_disk:
+        if from_disk and self.runner:
             logger.debug("Removing game %s from disk" % self.id)
             self.runner.remove_game_data(game_path=self.directory)
+
+        # Do not keep multiple copies of the same game
+        existing_games = pga.get_game_by_field(self.slug, 'slug', all=True)
+        if len(existing_games) > 1:
+            from_library = True
+
         if from_library:
             logger.debug("Removing game %s from library" % self.id)
             pga.delete_game(self.id)
@@ -105,6 +112,7 @@ class Game(object):
             pga.set_uninstalled(self.id)
         self.config.remove()
         shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        return from_library
 
     def save(self):
         self.config.save()
@@ -128,11 +136,9 @@ class Game(object):
         if self.runner.use_runtime():
             if runtime.is_updating():
                 logger.error("Runtime currently updating")
-                return False
-                # FIXME this won't work with the new runtime code
-                # result = dialogs.RuntimeUpdateDialog().run()
-                # if not result == Gtk.ResponseType.OK:
-                #    return False
+                result = dialogs.RuntimeUpdateDialog().run()
+                if not result == Gtk.ResponseType.OK:
+                    return False
         return True
 
     def play(self):
@@ -269,13 +275,15 @@ class Game(object):
             "pkexec", "xboxdrv", "--daemon", "--detach-kernel-driver",
             "--dbus", "session", "--silent"
         ] + config.split()
-        logger.debug("xboxdrv command: %s", command)
+        logger.debug("[xboxdrv] %s", ' '.join(command))
         self.xboxdrv_thread = LutrisThread(command)
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
     def xboxdrv_stop(self):
         os.system("pkexec xboxdrvctl --shutdown")
+        if os.path.exists("/usr/share/lutris/bin/resetxpad"):
+            os.system("pkexec /usr/share/lutris/bin/resetxpad")
 
     def beat(self):
         """Watch the game's process(es)."""
@@ -283,20 +291,22 @@ class Game(object):
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
-            logger.debug("Thread not running anymore or killswitch activated")
+            logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
         return True
 
     def stop(self):
-        self.game_thread.stop(killall=True)
         self.state = self.STATE_STOPPED
+        if self.runner.system_config.get('xboxdrv'):
+            self.xboxdrv_thread.stop()
+        jobs.AsyncCall(self.game_thread.stop, None, killall=True)
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-        logger.debug("game has quit at %s" % quit_time)
+        logger.debug("%s stopped at %s", self.name, quit_time.decode("utf-8"))
         self.state = self.STATE_STOPPED
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
@@ -305,12 +315,16 @@ class Game(object):
         if self.runner.system_config.get('restore_gamma'):
             display.restore_gamma()
 
-        if self.runner.system_config.get('xboxdrv'):
+        if self.runner.system_config.get('xboxdrv') \
+           and self.xboxdrv_thread.is_running:
             self.xboxdrv_thread.stop()
 
         if self.game_thread:
             self.game_thread.stop()
         self.process_return_codes()
+
+        if self.exit_main_loop:
+            exit()
 
     def process_return_codes(self):
         """Do things depending on how the game quitted."""

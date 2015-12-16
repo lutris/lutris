@@ -4,13 +4,13 @@ import subprocess
 
 from textwrap import dedent
 
+from lutris import runtime
 from lutris import settings
 from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-DEFAULT_WINE = '1.7.54-i686'
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
@@ -99,8 +99,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         env.append('WINEPREFIX="%s" ' % prefix)
 
     if settings.RUNNER_DIR in wine_path:
-        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
-        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
+        runtime_path = ':'.join(runtime.get_paths())
+        env.append('LD_LIBRARY_PATH={}'.format(runtime_path))
 
     command = '{0} "{1}" {2} {3}'.format(
         " ".join(env), wine_path, executable, args
@@ -148,6 +148,13 @@ def winecfg(wine_path=None, prefix=None, blocking=True):
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
     if blocking:
         p.communicate()
+
+
+def joycpl(wine_path=None, prefix=None):
+    """Execute winetricks."""
+    arch = detect_prefix_arch(prefix) or 'win32'
+    wineexec('control', prefix=prefix,
+             wine_path=wine_path, arch=arch, args='joy.cpl', blocking=False)
 
 
 def detect_prefix_arch(directory=None):
@@ -202,15 +209,11 @@ def set_drive_path(prefix, letter, path):
 
 
 def get_wine_versions():
-    """Return the list of Wine versions installed by lutris.
-
-    :returns: list of (version, architecture) tuples
-    """
+    """Return the list of Wine versions installed"""
     if not os.path.exists(WINE_DIR):
         return []
     dirs = sorted(os.listdir(WINE_DIR), reverse=True)
-    versions = [dirname for dirname in dirs if is_version_installed(dirname)]
-    return versions
+    return [dirname for dirname in dirs if is_version_installed(dirname)]
 
 
 def get_wine_version_exe(version):
@@ -219,6 +222,12 @@ def get_wine_version_exe(version):
 
 def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
+
+
+def get_default_version():
+    installed_versions = get_wine_versions()
+    if installed_versions:
+        return installed_versions[0]
 
 
 def support_legacy_version(version):
@@ -290,7 +299,7 @@ class wine(Runner):
         "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix,
-        "Desktop_res": r"%s\Explorer\Desktops" % reg_prefix,
+        "WineDesktop": r"%s\Explorer\Desktops" % reg_prefix,
     }
 
     core_processes = (
@@ -309,6 +318,7 @@ class wine(Runner):
             ('winecfg', "Wine configuration", self.run_winecfg),
             ('wine-regedit', "Wine registry", self.run_regedit),
             ('winetricks', 'Winetricks', self.run_winetricks),
+            ('joycpl', 'Joystick Control Panel', self.run_joycpl),
         ]
 
         def get_wine_version_choices():
@@ -324,7 +334,7 @@ class wine(Runner):
                 'label': "Wine version",
                 'type': 'choice',
                 'choices': get_wine_version_choices,
-                'default': DEFAULT_WINE,
+                'default': get_default_version(),
                 'help': ("The version of Wine used to launch the game.\n"
                          "Using the last version is generally recommended, "
                          "but some games work better on older versions.")
@@ -337,6 +347,14 @@ class wine(Runner):
                          'selected "Custom" as the Wine version.')
             },
             {
+                'option': 'xinput',
+                'label': 'Enable Xinput (experimental)',
+                'type': 'bool',
+                'default': False,
+                'help': ("Preloads a library that enables Joypads on games\n"
+                         "using XInput.")
+            },
+            {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
                 'type': 'bool',
@@ -346,7 +364,7 @@ class wine(Runner):
                          "This corresponds to Wine's Virtual Desktop option.")
             },
             {
-                'option': 'Desktop_res',
+                'option': 'WineDesktop',
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
                 'choices': display.get_resolutions,
@@ -484,55 +502,54 @@ class wine(Runner):
             arch = detect_prefix_arch(self.prefix_path) or 'win32'
         return arch
 
-    @property
-    def wine_version(self):
-        """Return the Wine version to use."""
+    def get_version(self, use_default=True):
+        """Return the Wine version to use. use_default can be set to false to
+        force the instalation of a specific wine version"""
         runner_version = self.runner_config.get('version')
         runner_version = support_legacy_version(runner_version)
-
-        return runner_version or DEFAULT_WINE
+        if runner_version:
+            return runner_version
+        if use_default:
+            return get_default_version()
 
     def get_executable(self):
         """Return the path to the Wine executable."""
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
-        version = self.wine_version
+        version = self.get_version()
+        if not version:
+            return
 
         if version == 'system':
             if system.find_executable('wine'):
                 return 'wine'
             # Fall back on bundled Wine
-            version = DEFAULT_WINE
+            version = get_default_version()
         elif version == 'custom':
             if os.path.exists(custom_path):
                 return custom_path
-            version = DEFAULT_WINE
+            version = get_default_version()
 
         return os.path.join(path, version, 'bin/wine')
 
-    def install(self, version=None):
-        if not version:
-            version = self.wine_version
-            if version in ['custom', 'system']:
-                # Fall back on default bundled version
-                version = DEFAULT_WINE
-        tarball = "wine-{}.tar.gz".format(version)
-        destination = os.path.join(WINE_DIR, version)
-        self.download_and_extract(tarball, destination, merge_single=True)
-
     def is_installed(self):
-        if self.wine_version == 'system':
+        version = self.get_version()
+        if version == 'system':
             if system.find_executable('wine'):
                 return True
             else:
                 return False
-        elif self.wine_version == 'custom':
+        elif version == 'custom':
             custom_path = self.runner_config.get('custom_wine_path', '')
             if os.path.exists(custom_path):
                 return True
             else:
                 return False
-        return os.path.exists(self.get_executable())
+        executable = self.get_executable()
+        if executable:
+            return os.path.exists(executable)
+        else:
+            return False
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None):
@@ -554,6 +571,9 @@ class wine(Runner):
         winetricks('', prefix=self.prefix_path,
                    winetricks_env=self.get_executable(), blocking=False)
 
+    def run_joycpl(self, *args):
+        joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
+
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
@@ -564,9 +584,14 @@ class wine(Runner):
                                     prefix=prefix)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
-                    value = 'Desktop_res'
+                    value = 'WineDesktop'
                 set_regedit(path, key, value,
                             wine_path=self.get_executable(), prefix=prefix)
+        overrides = self.runner_config.get('overrides') or {}
+        overrides_path = "%s\DllOverrides" % self.reg_prefix
+        for dll, value in overrides.iteritems():
+            set_regedit(overrides_path, dll, value,
+                        wine_path=self.get_executable(), prefix=prefix)
 
     def prelaunch(self):
         self.set_regedit_keys()
@@ -590,6 +615,13 @@ class wine(Runner):
             exe = system.find_executable(exe)
         return system.get_pids_using_file(exe)
 
+    def get_xinput_path(self):
+        xinput_path = os.path.abspath(
+            os.path.join(datapath.get(), 'lib/koku-xinput-wine.so')
+        )
+        logger.debug('Preloading %s', xinput_path)
+        return xinput_path
+
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
@@ -597,17 +629,23 @@ class wine(Runner):
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
+        launch_info = {}
+        launch_info['env'] = self.get_env(full=False)
+
+        if self.runner_config.get('xinput'):
+            launch_info['ld_preload'] = self.get_xinput_path()
+
         command = [self.get_executable()]
         if game_exe.endswith(".msi"):
             command.append('msiexec')
             command.append('/i')
         command.append(game_exe)
 
-        env = self.get_env(full=False)
         if arguments:
             for arg in shlex.split(arguments):
                 command.append(arg)
-        return {'command': command, 'env': env}
+        launch_info['command'] = command
+        return launch_info
 
     def stop(self):
         """The kill command runs wineserver -k."""

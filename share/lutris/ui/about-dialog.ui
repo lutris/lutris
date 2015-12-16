@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -13,7 +14,6 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="program_name">Lutris</property>
-    <property name="version"></property>
     <property name="copyright" translatable="yes">© 2010, 2015 Mathieu Comandon</property>
     <property name="comments" translatable="yes">Open Source Gaming Platform</property>
     <property name="website">http://lutris.net</property>
@@ -39,5 +39,20 @@ Xodetaetl &lt;dev@xod.me&gt;</property>
     <property name="license_type">gpl-3-0</property>
     <signal name="close" handler="on_close" swapped="no"/>
     <signal name="response" handler="on_close" swapped="no"/>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="aboutdialog-vbox1">
+        <property name="can_focus">False</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="aboutdialog-action_area1">
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>

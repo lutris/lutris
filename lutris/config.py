@@ -1,29 +1,15 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 """Handle the game, runner and global system configurations."""
 
 import os
 import sys
+import time
 import yaml
 from os.path import join
 
 from gi.repository import Gio
 
 from lutris import pga, settings, sysoptions
-from lutris.runners import import_runner
+from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 
 
@@ -72,6 +58,10 @@ def check_config(force_wipe=False):
         os.remove(settings.PGA_DB)
     pga.syncdb()
     pga.set_config_paths()
+
+
+def make_game_config_id(game_slug):
+    return "{}-{}".format(game_slug, int(time.time()))
 
 
 def read_yaml_from_file(filename):
@@ -123,7 +113,7 @@ class LutrisConfig(object):
     Usage
     =====
     The config level will be auto set depending on what you pass to __init__:
-    - For game level, pass game slug and optionally runner_slug (better perfs)
+    - For game level, pass game_config_id and optionally runner_slug (better perfs)
     - For runner level, pass runner_slug
     - For system level, pass nothing
     If need be, you can pass the level manually.
@@ -290,9 +280,13 @@ class LutrisConfig(object):
                 return
             attribute_name = options_type + '_options'
 
-            runner = import_runner(self.runner_slug)
-            if not getattr(runner, attribute_name):
-                runner = runner()
+            try:
+                runner = import_runner(self.runner_slug)
+            except InvalidRunner:
+                options = {}
+            else:
+                if not getattr(runner, attribute_name):
+                    runner = runner()
 
-            options = getattr(runner, attribute_name)
+                options = getattr(runner, attribute_name)
         return dict((opt['option'], opt) for opt in options)
