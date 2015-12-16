@@ -1,7 +1,8 @@
 import os
 import json
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.parse
+import urllib.error
 import socket
 
 from lutris import settings
@@ -26,8 +27,8 @@ def read_api_key():
 
 def connect(username, password):
     credentials = urllib.parse.urlencode({'username': username,
-                                    'password': password})
-    login_url = settings.SITE_URL + "user/auth/"
+                                          'password': password})
+    login_url = settings.SITE_URL + "api/accounts/token"
     try:
         request = urllib.request.urlopen(login_url, credentials, 10)
     except (socket.timeout, urllib.error.URLError) as ex:
@@ -58,7 +59,7 @@ def get_library():
     api_key = credentials["token"]
     url = settings.SITE_URL + "api/v1/library/%s/" % username
     params = urllib.parse.urlencode({'api_key': api_key, 'username': username,
-                               'format': 'json'})
+                                     'format': 'json'})
     response = http.download_json(url, params)
     return response['games'] if response else []
 

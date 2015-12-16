@@ -1,7 +1,13 @@
 import os
 import json
 import socket
+<<<<<<< HEAD
 import urllib.request, urllib.error, urllib.parse
+=======
+import urllib.request
+import urllib.error
+import urllib.parse
+>>>>>>> eb27a01... Merge next into python3
 
 from lutris.util.log import logger
 
@@ -52,8 +58,14 @@ class Request(object):
         self.downloaded_size = 0
 
     def get(self, data=None):
+<<<<<<< HEAD
         try:
             request = urllib.request.urlopen(self.url, data, self.timeout)
+=======
+        req = urllib.Request(url=self.url, data=data, headers=self.headers)
+        try:
+            request = urllib.request.urlopen(req, self.timeout)
+>>>>>>> eb27a01... Merge next into python3
         except urllib.error.HTTPError as e:
             if self.error_logging:
                 logger.error("Unavailable url (%s): %s", self.url, e)
