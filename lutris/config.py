@@ -69,7 +69,7 @@ def read_yaml_from_file(filename):
     if not filename or not os.path.exists(filename):
         return {}
     try:
-        content = file(filename, 'r').read()
+        content = open(filename, 'r').read()
         yaml_content = yaml.load(content) or {}
     except (yaml.scanner.ScannerError, yaml.parser.ParserError):
         logger.error("error parsing file %s", filename)
