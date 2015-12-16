@@ -130,6 +130,7 @@ class LutrisWindow(object):
             ('rm-desktop-shortcut', "Delete desktop shortcut", self.remove_desktop_shortcut),
             ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
             ('rm-menu-shortcut', "Delete application menu shortcut", self.remove_menu_shortcut),
+            ('install_more', "Install (add) another version", self.on_install_clicked),
             ('remove', "Remove", self.on_remove_game),
         ]
         self.menu = ContextualMenu(main_entries)
