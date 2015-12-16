@@ -34,11 +34,11 @@ setup(
     and setting up the game for the user. The only thing you have to do is play
     the game. It aims to support every game that is playable on Linux.""",
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GPLv3',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Programming Language :: Python',
         'Operating System :: Linux',
-        'Topic :: Games'
+        'Topic :: Games/Entertainment'
     ],
 )
