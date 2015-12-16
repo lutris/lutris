@@ -1,52 +1,7 @@
 #!/usr/bin/python
-# -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License version 3 as
-#  published by the Free Software Foundation.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 import os
-import sys
-
 from distutils.core import setup
-
 from lutris.settings import VERSION
-
-
-def update_data_path(prefix, oldvalue=None):
-    try:
-        fin = file('lutris/lutrisconfig.py', 'r')
-        fout = file(fin.name + '.new', 'w')
-
-        for line in fin:
-            fields = line.split(' = ')  # Separate variable from value
-            if fields[0] == '__lutris_data_directory__':
-                # update to prefix, store oldvalue
-                if not oldvalue:
-                    oldvalue = fields[1]
-                    line = "%s = '%s'\n" % (fields[0], prefix)
-                else:  # restore oldvalue
-                    line = "%s = %s" % (fields[0], oldvalue)
-            fout.write(line)
-
-        fout.flush()
-        fout.close()
-        fin.close()
-        os.rename(fout.name, fin.name)
-    except (OSError, IOError):
-        print ("ERROR: Can't find lutris/lutrisconfig.py")
-        sys.exit(1)
-    return oldvalue
-
 
 data_files = []
 
