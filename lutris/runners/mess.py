@@ -16,7 +16,7 @@ class mess(Runner):
         },
         {
             'option': 'machine',
-            'type': 'choice',
+            'type': 'choice_with_entry',
             'label': "Machine",
             'choices': [
                 ("Amstrad CPC 464", 'cpc464'),
@@ -31,14 +31,15 @@ class mess(Runner):
         },
         {
             'option': 'device',
-            'type': 'choice',
+            'type': 'choice_with_entry',
             'label': "Storage type",
             'choices': [
-                ("Floppy disk", 'flop1'),
+                ("Floppy disk", 'flop'),
                 ("Cassette (tape)", 'cass'),
                 ("Cartridge", 'cart'),
                 ("Snapshot", 'snapshot'),
                 ("Quickload", 'quickload'),
+                ("CDROM", 'cdrm'),
             ]
         }
     ]
@@ -66,11 +67,14 @@ class mess(Runner):
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if rom and not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.game_config.get('device')
         command = [self.get_executable(),
                    '-uimodekey', 'RCONTROL',
-                   '-rompath', rompath, machine,
-                   '-' + device, rom]
+                   '-rompath', rompath, machine]
+        if device:
+            command.append('-' + device)
+        if rom:
+            command.append(rom)
         return {'command': command}
