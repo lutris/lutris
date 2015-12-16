@@ -249,7 +249,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         self.password_entry = self.builder.get_object('password_entry')
 
         cancel_button = self.builder.get_object('cancel_button')
-        cancel_button.connect('clicked', self.on_cancel)
+        cancel_button.connect('clicked', self.on_close)
         connect_button = self.builder.get_object('connect_button')
         connect_button.connect('clicked', self.on_connect)
 
@@ -270,9 +270,6 @@ class ClientLoginDialog(GtkBuilderDialog):
         else:
             self.username_entry.grab_focus()
 
-    def on_cancel(self, widget):
-        self.dialog.destroy()
-
     def on_connect(self, widget):
         username, password = self.get_credentials()
         token = api.connect(username, password)
@@ -281,6 +278,15 @@ class ClientLoginDialog(GtkBuilderDialog):
         else:
             self.emit('connected', username)
         self.dialog.destroy()
+
+
+class ClientUpdateDialog(GtkBuilderDialog):
+    glade_file = 'dialog-client-update.ui'
+    dialog_object = "client_update_dialog"
+
+    def on_open_downloads_clicked(self, _widget):
+        import subprocess
+        subprocess.call(['xdg-open', 'https://lutris.net'])
 
 
 class NoInstallerDialog(Gtk.MessageDialog):
