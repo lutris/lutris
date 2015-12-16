@@ -21,7 +21,7 @@ def get_vidmodes():
     xrandr_output = subprocess.Popen("xrandr",
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE).communicate()[0]
-    return list([line for line in xrandr_output.split("\n")])
+    return list([line for line in str(xrandr_output).split("\n")])
 
 
 def get_outputs():
