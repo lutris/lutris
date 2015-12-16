@@ -1,13 +1,9 @@
 import os
 import json
 import socket
-<<<<<<< HEAD
-import urllib.request, urllib.error, urllib.parse
-=======
 import urllib.request
 import urllib.error
 import urllib.parse
->>>>>>> eb27a01... Merge next into python3
 
 from lutris.util.log import logger
 
