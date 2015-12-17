@@ -477,7 +477,9 @@ class ConfigBox(VBox):
     def set_style_property(self, property_, value, wrapper):
         """Add custom style."""
         style_provider = Gtk.CssProvider()
-        style_provider.load_from_data("GtkHBox {%s: %s;}" % (property_, value))
+        style_provider.load_from_data(
+            "GtkHBox {{{}: {};}}".format(property_, value).encode()
+        )
         style_context = wrapper.get_style_context()
         style_context.add_provider(style_provider,
                                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
