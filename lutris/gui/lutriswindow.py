@@ -192,6 +192,24 @@ class LutrisWindow(object):
         self.view.connect("game-selected", self.game_selection_changed)
         self.window.connect("configure-event", self.on_resize)
 
+    def check_update(self):
+        """Verify availability of client update."""
+        pass
+
+        def on_version_received(version, error):
+            if not version:
+                return
+            latest_version = settings.read_setting('latest_version')
+            if version > (latest_version or settings.VERSION):
+                dialogs.ClientUpdateDialog()
+                # Store latest version seen to avoid showing
+                # the dialog more than once.
+                settings.write_setting('latest_version', version)
+
+        import http  # Move me
+        AsyncCall(http.download_content, on_version_received,
+                           'https://lutris.net/version')
+
     def get_view_type(self):
         view_type = settings.read_setting('view_type')
         if view_type in ['grid', 'list']:
@@ -320,7 +338,10 @@ class LutrisWindow(object):
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self.window)
 
+    # ---------
     # Callbacks
+    # ---------
+
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             widget.set_text('')
