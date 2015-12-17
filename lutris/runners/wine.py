@@ -14,7 +14,7 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 
 
 def set_regedit(path, key, value='', type_='REG_SZ',
-                wine_path=None, prefix=None):
+                wine_path=None, prefix=None, arch='win32'):
     """Add keys to the windows registry.
 
     Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
@@ -38,23 +38,23 @@ def set_regedit(path, key, value='', type_='REG_SZ',
         "%s"=%s
         """ % (path, key, formatted_value[type_])))
     reg_file.close()
-    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix)
+    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None):
+def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix)
+    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix, arch=arch)
 
 
-def delete_registry_key(key, wine_path=None, prefix=None):
+def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
     wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
-             prefix=prefix)
+             prefix=prefix, arch=arch)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new Wine prefix."""
-    logger.debug("Creating a Wine prefix in %s", prefix)
+    logger.debug("Creating a %s prefix in %s", arch, prefix)
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
     wineboot_path = os.path.join(wine_dir, 'wineboot')
@@ -127,7 +127,7 @@ def winetricks(app, prefix=None, winetricks_env=None, silent=True,
              wine_path=path, arch=arch, args=args, blocking=blocking)
 
 
-def winecfg(wine_path=None, prefix=None, blocking=True):
+def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -139,6 +139,7 @@ def winecfg(wine_path=None, prefix=None, blocking=True):
     env = []
     if prefix:
         env.append('WINEPREFIX="%s" ' % prefix)
+    env.append('WINEARCH="%s" ' % arch)
 
     if settings.RUNNER_DIR in wine_path:
         runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
@@ -499,6 +500,7 @@ class wine(Runner):
         Get it from the config or detect it from the prefix"""
         arch = self.game_config.get('arch') or 'auto'
         if arch not in ('win32', 'win64'):
+            logger.debug('Arch not provided, auto-detecting')
             arch = detect_prefix_arch(self.prefix_path) or 'win32'
         return arch
 
@@ -561,7 +563,7 @@ class wine(Runner):
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                blocking=False)
+                arch=self.wine_arch, blocking=False)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(),
@@ -581,17 +583,19 @@ class wine(Runner):
             value = self.runner_config.get(key) or 'auto'
             if not value or value == 'auto':
                 delete_registry_key(path, wine_path=self.get_executable(),
-                                    prefix=prefix)
+                                    prefix=prefix, arch=self.wine_arch)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
                     value = 'WineDesktop'
                 set_regedit(path, key, value,
-                            wine_path=self.get_executable(), prefix=prefix)
+                            wine_path=self.get_executable(), prefix=prefix,
+                            arch=self.wine_arch)
         overrides = self.runner_config.get('overrides') or {}
         overrides_path = "%s\DllOverrides" % self.reg_prefix
         for dll, value in overrides.iteritems():
             set_regedit(overrides_path, dll, value,
-                        wine_path=self.get_executable(), prefix=prefix)
+                        wine_path=self.get_executable(),
+                        prefix=prefix, arch=self.wine_arch)
 
     def prelaunch(self):
         self.set_regedit_keys()
