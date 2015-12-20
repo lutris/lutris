@@ -184,7 +184,8 @@ class Sync(object):
                     continue
                 if runner == 'winesteam' and not winesteamrunner.is_installed():
                     continue
-                logger.debug("Setting %s as uninstalled" % game_info['name'])
+                logger.debug("Setting %(name)s (%(steamid)s) as uninstalled", game_info)
+
                 game_id = pga.add_or_update(
                     name=game_info['name'],
                     runner='',

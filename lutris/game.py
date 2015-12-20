@@ -60,6 +60,7 @@ class Game(object):
         self.is_installed = bool(game_data.get('installed')) or False
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
+        self.steamid = game_data.get('steamid') or ''
 
         self.load_config()
         self.resolution_changed = False
@@ -123,6 +124,7 @@ class Game(object):
             directory=self.directory,
             installed=self.is_installed,
             configpath=self.config.game_config_id,
+            steamid=self.steamid,
             id=self.id
         )
 

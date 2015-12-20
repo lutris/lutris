@@ -245,6 +245,8 @@ class GameDialogCommon(object):
         self.game.config = self.lutris_config
         self.game.directory = runner.game_path
         self.game.is_installed = True
+        if self.runner_name in ('steam', 'winesteam'):
+            self.game.steamid = self.lutris_config.game_config['appid']
         self.game.save()
         self.destroy()
         logger.debug("Saved %s", name)
