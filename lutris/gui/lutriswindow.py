@@ -159,6 +159,8 @@ class LutrisWindow(object):
 
         self.init_game_store()
 
+        self.update_runtime()
+
         # Connect account and/or sync
         credentials = api.read_api_key()
         if credentials:
@@ -297,7 +299,6 @@ class LutrisWindow(object):
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
             self.threads_stoppers.append(icons_sync.stop_request.set)
             self.set_status("Library synced")
-            self.update_runtime()
 
     def update_runtime(self):
         cancellables = runtime.update(self.set_status)
