@@ -133,7 +133,7 @@ class InstallerDialog(Gtk.Window):
         if dlg.result == dlg.MANUAL_CONF:
             game_data = pga.get_game_by_field(self.game_ref, 'slug')
             game = Game(game_data['id'])
-            game_dialog = AddGameDialog(
+            AddGameDialog(
                 self.parent.window, game,
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
@@ -156,7 +156,6 @@ class InstallerDialog(Gtk.Window):
         for index, script in enumerate(self.scripts):
             for item in ['description', 'notes']:
                 script[item] = (script.get(item) or '').encode('utf-8')
-            description = script['description']
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(version, runner)
@@ -179,11 +178,11 @@ class InstallerDialog(Gtk.Window):
             self.installer_choice_box.pack_start(label, True, True, padding)
             return label
 
-        self.description_label = _create_label(10,
-            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+        self.description_label = _create_label(
+            10, "<i><b>{}</b></i>".format(self.scripts[0]['description'])
         )
-        self.notes_label = _create_label(5,
-            "<i>{}</i>".format(self.scripts[0]['notes'])
+        self.notes_label = _create_label(
+            5, "<i>{}</i>".format(self.scripts[0]['notes'])
         )
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
@@ -198,7 +197,7 @@ class InstallerDialog(Gtk.Window):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(self.scripts[script_index]['description'])
+            "<i><b>{}</b></i>".format(description)
         )
         self.notes_label.set_markup(
             "<i>{}</i>".format(self.scripts[script_index]['notes'])
