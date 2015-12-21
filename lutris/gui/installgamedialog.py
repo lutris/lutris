@@ -4,7 +4,7 @@ from gi.repository import Gtk, Pango
 import webbrowser
 import yaml
 
-from lutris import settings, shortcuts
+from lutris import pga, settings, shortcuts
 from lutris.installer import interpreter
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
@@ -131,11 +131,12 @@ class InstallerDialog(Gtk.Window):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game = Game(self.game_ref)
-            game_dialog = AddGameDialog(self, game)
-            game_dialog.run()
-            if game_dialog.saved:
-                self.notify_install_success()
+            game_data = pga.get_game_by_field(self.game_ref, 'slug')
+            game = Game(game_data['id'])
+            game_dialog = AddGameDialog(
+                self.parent.window, game,
+                callback=lambda: self.notify_install_success(game_data['id'])
+            )
         elif dlg.result == dlg.NEW_INSTALLER:
             installer_url = settings.SITE_URL + "games/%s/" % self.game_ref
             webbrowser.open(installer_url)
@@ -416,9 +417,10 @@ class InstallerDialog(Gtk.Window):
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect('focus-in-event', self.on_window_focus)
 
-    def notify_install_success(self):
+    def notify_install_success(self, game_id=None):
+        game_id = game_id or self.interpreter.game_id
         if self.parent:
-            self.parent.view.emit('game-installed', self.interpreter.game_id)
+            self.parent.view.emit('game-installed', game_id)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)
