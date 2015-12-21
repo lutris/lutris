@@ -15,7 +15,7 @@ TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
         dlg = config_dialogs.GameDialogCommon()
-        list_store = dlg.get_runner_liststore()
+        list_store = dlg._get_runner_liststore()
         self.assertTrue(
             list_store[1][0].startswith(runners.get_installed()[0].name)
         )
