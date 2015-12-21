@@ -4,9 +4,10 @@ from gi.repository import Gtk, Pango
 from lutris import runners, settings
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
+from lutris import gui
+from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
-from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -39,21 +40,21 @@ class GameDialogCommon(object):
 
     def get_runner_dropdown(self):
         runner_liststore = self.get_runner_liststore()
-        self.runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
-        self.runner_dropdown.set_id_column(1)
+        runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
+        runner_dropdown.set_id_column(1)
         runner_index = 0
         if self.game:
             for runner in runner_liststore:
                 if self.runner_name == str(runner[1]):
                     break
                 runner_index += 1
-        self.runner_dropdown.set_active(runner_index)
-        self.runner_dropdown.connect("changed", self.on_runner_changed)
+        runner_dropdown.set_active(runner_index)
+        runner_dropdown.connect("changed", self.on_runner_changed)
         cell = Gtk.CellRendererText()
         cell.props.ellipsize = Pango.EllipsizeMode.END
-        self.runner_dropdown.pack_start(cell, True)
-        self.runner_dropdown.add_attribute(cell, 'text', 0)
-        return self.runner_dropdown
+        runner_dropdown.pack_start(cell, True)
+        runner_dropdown.add_attribute(cell, 'text', 0)
+        return runner_dropdown
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -72,12 +73,15 @@ class GameDialogCommon(object):
 
     def build_info_tab(self):
         info_box = VBox()
+
+        # Game name
         self.name_entry = Gtk.Entry()
         if self.game:
             self.name_entry.set_text(self.game.name)
         name_box = self.build_entry_box(self.name_entry, "Name")
         info_box.pack_start(name_box, False, False, 5)
 
+        # Game slug
         if self.game:
             self.slug_entry = Gtk.Entry()
             self.slug_entry.set_text(self.game.slug)
@@ -85,16 +89,35 @@ class GameDialogCommon(object):
             slug_box = self.build_entry_box(self.slug_entry, "Identifier")
             info_box.pack_start(slug_box, False, False, 5)
 
-        runner_box = Gtk.HBox()
-        label = Gtk.Label("Runner")
-        label.set_alignment(0.5, 0.5)
-        runner_dropdown = self.get_runner_dropdown()
-        runner_box.pack_start(label, False, False, 20)
-        runner_box.pack_start(runner_dropdown, False, False, 20)
-        info_box.pack_start(runner_box, False, False, 5)
+        # Runner
+        self.runner_box = self.get_runner_box()
+        info_box.pack_start(self.runner_box, False, False, 5)
 
         info_sw = self.build_scrolled_window(info_box)
         self.add_notebook_tab(info_sw, "Game info")
+
+    def get_runner_box(self):
+        runner_box = Gtk.HBox()
+        label = Gtk.Label("Runner")
+        label.set_alignment(0.5, 0.5)
+        self.runner_dropdown = self.get_runner_dropdown()
+        install_runners_btn = Gtk.Button(label="Install runners")
+        install_runners_btn.connect('clicked', self.on_install_runners_clicked)
+        install_runners_btn.set_margin_right(20)
+
+        runner_box.pack_start(label, False, False, 20)
+        runner_box.pack_start(self.runner_dropdown, False, False, 20)
+        runner_box.pack_start(install_runners_btn, False, False, 0)
+        return runner_box
+
+    def on_install_runners_clicked(self, _button):
+        runners_dialog = gui.runnersdialog.RunnersDialog()
+        runners_dialog.connect("runner-installed", self.update_runner_dropdown)
+
+    def update_runner_dropdown(self, _widget):
+        active_id = self.runner_dropdown.get_active_id()
+        self.runner_dropdown.set_model(self.get_runner_liststore())
+        self.runner_dropdown.set_active_id(active_id)
 
     def build_game_tab(self):
         if self.game and self.runner_name:
@@ -257,8 +280,7 @@ class GameDialogCommon(object):
 
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
-
-    def __init__(self, parent, game=None):
+    def __init__(self, parent, game=None, callback=None):
         super(AddGameDialog, self).__init__("Add a new game", parent=parent)
         self.game = game
         self.saved = False
@@ -277,7 +299,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
                                           level='game')
         self.build_notebook()
         self.build_tabs('game')
-        self.build_action_area("Add", self.on_save)
+        self.build_action_area("Add", self.on_save, callback)
         self.name_entry.grab_focus()
         self.show_all()
 

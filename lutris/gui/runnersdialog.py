@@ -11,6 +11,9 @@ from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 
 class RunnersDialog(Gtk.Window):
     """Dialog to manage the runners."""
+    __gsignals__ = {
+        "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(self):
         GObject.GObject.__init__(self)
@@ -140,6 +143,7 @@ class RunnersDialog(Gtk.Window):
         """Install a runner."""
         runner.install()
         if runner.is_installed():
+            self.emit('runner-installed')
             widget.hide()
             runner_label.set_sensitive(True)
 
@@ -154,6 +158,7 @@ class RunnersDialog(Gtk.Window):
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():
             runner_label.set_sensitive(True)
+            self.emit('runner-installed')
         else:
             runner_label.set_sensitive(False)
 
