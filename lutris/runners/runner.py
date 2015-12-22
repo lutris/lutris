@@ -2,6 +2,7 @@
 """Generic runner."""
 import os
 import platform
+import shutil
 
 from gi.repository import Gtk
 
@@ -29,7 +30,6 @@ def get_arch():
 
 class Runner(object):
     """Generic runner (base class for other runners)."""
-
     multiple_versions = False
     platform = NotImplemented
     runnable_alone = False
@@ -282,7 +282,8 @@ class Runner(object):
         """GObject callback received by downloader"""
         self.extract(**user_data)
 
-    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
+    def extract(self, archive=None, dest=None, merge_single=None,
+                callback=None):
         if not os.path.exists(archive):
             logger.error("Can't find %s, aborting install", archive)
             return False
@@ -295,3 +296,8 @@ class Runner(object):
 
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)
+
+    def uninstall(self):
+        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        if os.path.isdir(runner_path):
+            shutil.rmtree(runner_path)
