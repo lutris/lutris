@@ -146,7 +146,7 @@ class ScriptInterpreter(Commands):
             if not os.path.exists(self.download_cache_path):
                 os.mkdir(self.download_cache_path)
 
-            if self.should_create_target:
+            if self.target_path and self.should_create_target:
                 os.makedirs(self.target_path)
                 self.reversion_data['created_main_dir'] = True
 
