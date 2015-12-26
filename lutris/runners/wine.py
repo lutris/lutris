@@ -13,8 +13,8 @@ from lutris.runners.runner import Runner
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 
 
-def set_regedit(path, key, value='', type_='REG_SZ',
-                wine_path=None, prefix=None, arch='win32'):
+def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
+                prefix=None, arch='win32'):
     """Add keys to the windows registry.
 
     Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
@@ -36,7 +36,7 @@ def set_regedit(path, key, value='', type_='REG_SZ',
         REGEDIT4
         [%s]
         "%s"=%s
-        """ % (path, key, formatted_value[type_])))
+        """ % (path, key, formatted_value[type])))
     reg_file.close()
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
