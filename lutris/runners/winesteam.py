@@ -17,12 +17,9 @@ from lutris.util.wineregistry import WineRegistry
 
 # Redefine wine installer tasks
 set_regedit = wine.set_regedit
-set_regedit_file = wine.set_regedit_file
-delete_registry_key = wine.delete_registry_key
 create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
-winecfg = wine.winecfg
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
