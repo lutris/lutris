@@ -97,6 +97,7 @@ if options.list_games:
         games = []
         for game in pga.get_games():
             games.append({
+                'id': game['id'],
                 'slug': game['slug'],
                 'name': game['name'],
                 'runner': game['runner'],
@@ -105,7 +106,8 @@ if options.list_games:
         print json.dumps(games).encode('utf-8')
     else:
         for game in pga.get_games():
-            print u"{:<40} | {:<40} | {:<15} | {:<64}".format(
+            print u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+                game['id'],
                 game['name'][:40],
                 game['slug'][:40],
                 game['runner'],
