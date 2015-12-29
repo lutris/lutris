@@ -12,5 +12,5 @@ def migrate():
                        'gens', 'hatari', 'jzintv', 'mame', 'mednafen', 'mess',
                        'mupen64plus', 'nulldc', 'o2em', 'osmose', 'pcsxr',
                        'reicast', 'ResidualVM', 'residualvm', 'scummvm',
-                       'snes9x', 'stella', 'vice', 'virtualjaguar']:
+                       'snes9x', 'stella', 'vice', 'virtualjaguar', 'zdoom']:
             shutil.rmtree(path)

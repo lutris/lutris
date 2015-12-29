@@ -19,7 +19,7 @@ __all__ = (
     # Sega
     "osmose", "dgen", "reicast",
     # Misc legacy systems
-    "frotz", "jzintv", "o2em",
+    "frotz", "jzintv", "o2em", "zdoom"
 )
 
 
