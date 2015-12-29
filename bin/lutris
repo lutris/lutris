@@ -103,7 +103,7 @@ if options.list_games:
                 'runner': game['runner'],
                 'directory': game['directory'] or '-'
             })
-        print json.dumps(games).encode('utf-8')
+        print json.dumps(games, indent=2).encode('utf-8')
     else:
         for game in pga.get_games():
             print u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
