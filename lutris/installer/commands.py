@@ -3,7 +3,7 @@ import os
 import shutil
 import shlex
 
-from gi.repository import Gdk
+from gi.repository import Gdk, GLib
 
 from .errors import ScriptingError
 
@@ -90,7 +90,7 @@ class Commands(object):
             dest_path = self.target_path
         msg = "Extracting %s" % os.path.basename(filename)
         logger.debug(msg)
-        self.parent.set_status(msg)
+        GLib.idle_add(self.parent.set_status, msg)
         merge_single = 'nomerge' not in data
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
@@ -106,8 +106,8 @@ class Commands(object):
         has_entry = data.get('entry')
         options = data['options']
         preselect = self._substitute(data.get('preselect', ''))
-        self.parent.input_menu(alias, options, preselect, has_entry,
-                               self._on_input_menu_validated)
+        GLib.idle_add(self.parent.input_menu, alias, options, preselect,
+                      has_entry, self._on_input_menu_validated)
         return 'STOP'
 
     def _on_input_menu_validated(self, widget, *args):
@@ -117,7 +117,7 @@ class Commands(object):
         if choosen_option:
             self.user_inputs.append({'alias': alias,
                                      'value': choosen_option})
-            self.parent.continue_button.hide()
+            GLib.idle_add(self.parent.continue_button.hide)
             self._iter_commands()
 
     def insert_disc(self, data):
@@ -132,8 +132,8 @@ class Commands(object):
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
-        self.parent.wait_for_user_action(message, self._find_matching_disc,
-                                         requires)
+        GLib.idle_add(self.parent.wait_for_user_action, message,
+                      self._find_matching_disc, requires)
         return 'STOP'
 
     def _find_matching_disc(self, widget, requires):
@@ -263,7 +263,7 @@ class Commands(object):
         passed to the runner task.
         """
         self._check_required_params('name', data, 'task')
-        self.parent.cancel_button.set_sensitive(False)
+        GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         task_name = data.pop('name')
         if '.' in task_name:
             # Run a task from a different runner
@@ -274,7 +274,7 @@ class Commands(object):
         try:
             runner_class = import_runner(runner_name)
         except InvalidRunner:
-            self.parent.cancel_button.set_sensitive(True)
+            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
             raise ScriptingError('Invalid runner provided %s', runner_name)
 
         runner = runner_class()
@@ -308,7 +308,7 @@ class Commands(object):
             data[key] = self._substitute(data[key])
         task = import_task(runner_name, task_name)
         task(**data)
-        self.parent.cancel_button.set_sensitive(True)
+        GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
 
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],
