@@ -161,9 +161,11 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             # Exclude other wrapper processes
-            if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
-                              'Steam.exe', 'steamwebhelper.', 'PnkBstrA.exe', 'steamer',
-                              'SteamService.ex', 'steamerrorrepor', 'lutris'):
+            if child.name in ('bash', 'control', 'lutris', 'PnkBstrA.exe',
+                              'regedit', 'sh', 'steam', 'Steam.exe', 'steamer',
+                              'steamerrorrepor', 'SteamService.ex',
+                              'steamwebhelper', 'steamwebhelper.', 'tee', 'tr',
+                              'winecfg.exe', 'winetricks', 'zenity', ):
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
