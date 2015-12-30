@@ -163,6 +163,10 @@ def eject_disc(wine_path, prefix):
     wineexec('eject', prefix=prefix, wine_path=wine_path, args='-a')
 
 
+def eject_disc(wine_path, prefix):
+    wineexec('eject', prefix=prefix, wine_path=wine_path, args='-a')
+
+
 def detect_prefix_arch(directory=None):
     """Return the architecture of the prefix found in `directory`.
 
