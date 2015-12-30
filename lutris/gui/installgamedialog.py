@@ -73,20 +73,11 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
+        self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
         self.play_button = self.add_button("_Launch game", self.launch_game)
         self.close_button = self.add_button("_Close", self.close)
-
-        self.continue_button = Gtk.Button.new_with_mnemonic("_Continue")
-        self.continue_button.set_margin_left(20)
-        self.continue_handler = None
-        self.action_buttons.add(self.continue_button)
-
-        self.play_button = Gtk.Button.new_with_mnemonic("_Launch game")
-        self.play_button.set_margin_left(20)
-        self.play_button.connect('clicked', self.launch_game)
-        self.action_buttons.add(self.play_button)
 
         self.continue_handler = None
 
@@ -129,6 +120,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
+        self.eject_button.hide()
 
         self.choose_installer()
 
@@ -353,6 +345,9 @@ class InstallerDialog(Gtk.Window):
         button.grab_focus()
         button.show()
 
+    def on_eject_clicked(self, widget, data=None):
+        self.interpreter.eject_wine_disc()
+
     def input_menu(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
         time.sleep(0.3)
@@ -410,6 +405,7 @@ class InstallerDialog(Gtk.Window):
         self.connect('destroy', self.create_shortcuts)
 
         # Buttons
+        self.eject_button.hide()
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
