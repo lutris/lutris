@@ -217,11 +217,12 @@ class Game(object):
         env = {}
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
+        system_env = system_config.get('env') or {}
+        env.update(system_env)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
-
         ld_library_path = []
         if self.runner.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
