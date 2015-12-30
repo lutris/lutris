@@ -159,6 +159,10 @@ def joycpl(wine_path=None, prefix=None, blocking=True):
              wine_path=wine_path, arch=arch, args='joy.cpl', blocking=blocking)
 
 
+def eject_disc(wine_path, prefix):
+    wineexec('eject', prefix=prefix, wine_path=wine_path, args='-a')
+
+
 def detect_prefix_arch(directory=None):
     """Return the architecture of the prefix found in `directory`.
 
@@ -219,6 +223,10 @@ def get_wine_versions():
 
 
 def get_wine_version_exe(version):
+    if not version:
+        version = get_default_version()
+    if not version:
+        raise RuntimeError("Wine is not installed")
     return os.path.join(WINE_DIR, '{}/bin/wine'.format(version))
 
 

@@ -19,6 +19,10 @@ from lutris.thread import LutrisThread
 class Commands(object):
     """The directives for the `installer:` part of the install script."""
 
+    def _get_wine_version(self):
+        if self.script.get('wine'):
+            return wine.support_legacy_version(self.script['wine'].get('version'))
+
     def _check_required_params(self, params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""
         if type(params) is str:
@@ -132,6 +136,8 @@ class Commands(object):
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
+        if self.runner == 'wine':
+            GLib.idle_add(self.parent.eject_button.show)
         GLib.idle_add(self.parent.wait_for_user_action, message,
                       self._find_matching_disc, requires)
         return 'STOP'
@@ -280,15 +286,11 @@ class Commands(object):
         runner = runner_class()
 
         # Check/install Wine runner at version specified in the script
+        # TODO : move this, the runner should be installed before the install
+        # starts
         wine_version = None
-        if runner_name == 'wine' and self.script.get('wine'):
-            wine_version = self.script.get('wine').get('version')
-
-            # Old lutris versions used a version + arch tuple, we now include
-            # everything in the version.
-            # Before that change every wine runner was for i386
-            if '-' not in wine_version:
-                wine_version += '-i386'
+        if runner_name == 'wine':
+            wine_version = self._get_wine_version()
 
         if wine_version and task_name == 'wineexec':
             if not wine.is_version_installed(wine_version):

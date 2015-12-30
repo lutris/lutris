@@ -652,3 +652,8 @@ class ScriptInterpreter(Commands):
         callback_args = self.steam_data['callback_args']
         self.parent.add_spinner()
         self.install_steam_game(*callback_args)
+
+    def eject_wine_disc(self):
+        prefix = self.target_path
+        wine_path = wine.get_wine_version_exe(self._get_wine_version())
+        wine.eject_disc(wine_path, prefix)
