@@ -72,4 +72,4 @@ You can now build the RPM::
     rpmbuild -ba lutris.spec
 
 The resulting package will be available at
-~/rpmbuild/RPMS/noarch/lutris-0.3.6-3.fc20.noarch.rpm
+~/rpmbuild/RPMS/noarch/lutris-0.3.7-3.fc20.noarch.rpm

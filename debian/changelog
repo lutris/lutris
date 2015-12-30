@@ -1,3 +1,15 @@
+lutris (0.3.7.1) wily; urgency=medium
+
+  * Improved command line option to list games
+  * Force update of runners
+  * Add support of 64bit wine
+  * Improve MESS runner
+  * Fix Vice runner for non Commodore 64 machines
+  * Fix RPM packaging
+  * Various bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 29 Dec 2015 18:47:05 -0800
+
 lutris (0.3.7) wily; urgency=medium
 
   * Global:
