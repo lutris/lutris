@@ -73,10 +73,10 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
-        self.install_button = Gtk.Button.new_with_mnemonic("_Install")
-        self.install_button.set_margin_left(20)
-        self.install_button.connect('clicked', self.on_install_clicked)
-        self.action_buttons.add(self.install_button)
+        self.install_button = self.add_button("_Install", self.on_install_clicked)
+        self.continue_button = self.add_button("_Continue")
+        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.close_button = self.add_button("_Close", self.close)
 
         self.continue_button = Gtk.Button.new_with_mnemonic("_Continue")
         self.continue_button.set_margin_left(20)
@@ -88,12 +88,17 @@ class InstallerDialog(Gtk.Window):
         self.play_button.connect('clicked', self.launch_game)
         self.action_buttons.add(self.play_button)
 
-        self.close_button = Gtk.Button.new_with_mnemonic("_Close")
-        self.close_button.set_margin_left(20)
-        self.close_button.connect('clicked', self.close)
-        self.action_buttons.add(self.close_button)
+        self.continue_handler = None
 
         self.get_scripts()
+
+    def add_button(self, label, handler=None):
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_margin_left(20)
+        if handler:
+            button.connect('clicked', handler)
+        self.action_buttons.add(button)
+        return button
 
     # ---------------------------
     # "Get installer" stage
