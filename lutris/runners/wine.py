@@ -152,11 +152,11 @@ def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True):
         p.communicate()
 
 
-def joycpl(wine_path=None, prefix=None):
+def joycpl(wine_path=None, prefix=None, blocking=True):
     """Execute winetricks."""
     arch = detect_prefix_arch(prefix) or 'win32'
     wineexec('control', prefix=prefix,
-             wine_path=wine_path, arch=arch, args='joy.cpl', blocking=False)
+             wine_path=wine_path, arch=arch, args='joy.cpl', blocking=blocking)
 
 
 def detect_prefix_arch(directory=None):
@@ -575,7 +575,8 @@ class wine(Runner):
                    winetricks_env=self.get_executable(), blocking=False)
 
     def run_joycpl(self, *args):
-        joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
+        joycpl(prefix=self.prefix_path, wine_path=self.get_executable(),
+               blocking=False)
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
