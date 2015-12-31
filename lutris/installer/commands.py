@@ -313,8 +313,21 @@ class Commands(object):
             data['prefix'] = self.target_path
 
         task = import_task(runner_name, task_name)
-        task(**data)
+        thread = task(**data)
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
+        if isinstance(thread, LutrisThread):
+            # Monitor thread and continue when task has executed
+            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+            return 'STOP'
+
+    def _monitor_task(self, thread):
+        logger.debug("Monitoring %s", thread)
+        if not thread.is_running:
+            logger.debug("Thread QUIT")
+            self._iter_commands()
+            self.heartbeat = None
+            return False
+        return True
 
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],

@@ -24,7 +24,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd='/tmp'):
+                 watch=True, cwd=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -43,7 +43,12 @@ class LutrisThread(threading.Thread):
         self.startup_time = time.time()
         self.monitoring_started = False
 
-        self.cwd = runner.working_dir if self.runner else cwd
+        if cwd:
+            self.cwd = cwd
+        elif self.runner:
+            self.cwd = runner.working_dir
+        else:
+            self.cwd = '/tmp'
 
         self.env_string = ''
         for (k, v) in self.env.iteritems():
