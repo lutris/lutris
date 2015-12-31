@@ -308,6 +308,10 @@ class Commands(object):
 
         for key in data:
             data[key] = self._substitute(data[key])
+
+        if runner_name in ['wine', 'winesteam'] and 'prefix' not in data:
+            data['prefix'] = self.target_path
+
         task = import_task(runner_name, task_name)
         task(**data)
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
