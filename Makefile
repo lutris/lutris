@@ -9,12 +9,12 @@ test:
 	rm tests/fixtures/pga.db -f
 	nosetests
 
-deb-source:
+deb-source: clean
 	gbp buildpackage -S
 	mkdir -p build
 	mv ../lutris_0* build
 
-deb:
+deb: clean
 	gbp buildpackage
 	mkdir -p build
 	mv ../lutris_0* build
