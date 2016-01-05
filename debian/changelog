@@ -1,3 +1,14 @@
+lutris (0.3.7.2) wily; urgency=medium
+
+  * Add button to eject CD-ROMs during installation of Wine games
+  * Prevent MAME and MESS to save config files in home directory
+  * Monitor installation tasks so installers can respawn processes
+  * Randomize extractions folder names to prevent a bug occuring when
+    extracting several archives concurrently
+  * Allow loading environment variables from system config
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 05 Jan 2016 08:41:23 -0800
+
 lutris (0.3.7.1) wily; urgency=medium
 
   * Improved command line option to list games
