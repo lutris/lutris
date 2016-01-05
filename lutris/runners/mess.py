@@ -57,6 +57,10 @@ class mess(Runner):
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "mess/mess")
 
+    @property
+    def working_dir(self):
+        return os.path.join(os.path.expanduser("~"), ".mame")
+
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
