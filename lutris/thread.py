@@ -109,7 +109,6 @@ class LutrisThread(threading.Thread):
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT,
                                              cwd=self.cwd)
-        os.chdir(os.path.expanduser('~'))
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
