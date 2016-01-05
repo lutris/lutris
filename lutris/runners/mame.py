@@ -29,24 +29,28 @@ class mame(Runner):
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "mame/mame")
 
+    @property
+    def config_dir(self):
+        return os.path.join(os.path.expanduser("~"), ".mame")
+
+    def prelaunch(self):
+        if not os.path.exists(os.path.join(self.config_dir, "mame.ini")):
+            try:
+                os.makedirs(self.config_dir)
+            except OSError:
+                pass
+            subprocess.Popen([self.get_executable(), "-createconfig"],
+                             stdout=subprocess.PIPE)
+        return True
+
     def play(self):
         options = []
         rompath = os.path.dirname(self.game_config.get('main_file'))
         rom = os.path.basename(self.game_config.get('main_file'))
-        mameconfigdir = os.path.join(os.path.expanduser("~"), ".mame")
         if not self.runner_config.get('fullscreen'):
             options.append("-window")
-        if not os.path.exists(os.path.join(mameconfigdir, "mame.ini")):
-            try:
-                os.makedirs(mameconfigdir)
-            except OSError:
-                pass
-            os.chdir(mameconfigdir)
-            subprocess.Popen([self.get_executable(), "-createconfig"],
-                             stdout=subprocess.PIPE)
-            os.chdir(rompath)
         return {'command': [self.get_executable(),
-                            "-inipath", mameconfigdir,
+                            "-inipath", self.config_dir,
                             "-video", "opengl",
                             "-skip_gameinfo",
                             "-rompath", rompath,
