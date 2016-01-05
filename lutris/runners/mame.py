@@ -33,6 +33,10 @@ class mame(Runner):
     def config_dir(self):
         return os.path.join(os.path.expanduser("~"), ".mame")
 
+    @property
+    def working_dir(self):
+        return self.config_dir
+
     def prelaunch(self):
         if not os.path.exists(os.path.join(self.config_dir, "mame.ini")):
             try:
