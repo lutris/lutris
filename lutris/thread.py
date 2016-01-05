@@ -79,8 +79,6 @@ class LutrisThread(threading.Thread):
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT,
                                                  cwd=self.cwd, env=env)
-        os.chdir(os.path.expanduser('~'))
-
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
             if self.debug_output:
