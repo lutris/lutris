@@ -15,7 +15,7 @@ __all__ = (
     # Nintendo
     "snes9x",  "mupen64plus", "dolphin",
     # Sony
-    "pcsxr",
+    "pcsxr", "ppsspp",
     # Sega
     "osmose", "dgen", "reicast",
     # Misc legacy systems

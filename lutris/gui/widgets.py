@@ -4,6 +4,7 @@ import os
 
 from gi.repository import Gtk, GObject, GdkPixbuf, GLib, Pango
 
+from lutris.util.log import logger
 from lutris.downloader import Downloader
 from lutris.util import datapath
 from lutris.util.system import reverse_expanduser
@@ -14,6 +15,9 @@ PADDING = 5
 def get_runner_icon(runner_name, format='image', size=None):
     icon_path = os.path.join(datapath.get(), 'media/runner_icons',
                              runner_name + '.png')
+    if not os.path.exists(icon_path):
+        logger.error("Unable to find icon '%s'", icon_path)
+        return
     if format == 'image':
         icon = Gtk.Image()
         icon.set_from_file(icon_path)
