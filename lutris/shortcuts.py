@@ -8,6 +8,8 @@ from textwrap import dedent
 from xdg import BaseDirectory
 from gi.repository import GLib
 
+from lutris.util import system
+from lutris.util.log import logger
 from lutris.settings import CACHE_DIR
 
 
@@ -57,7 +59,11 @@ def get_launcher_path(game_slug, game_id):
     When legacy is set, it will return the old path with only the slug,
     otherwise it will return the path with slug + id
     """
-    desktop_dir = subprocess.Popen(['xdg-user-dir', 'DESKTOP'],
+    xdg_executable = 'xdg-user-dir'
+    if not system.find_executable(xdg_executable):
+        logger.error("%s not found", xdg_executable)
+        return
+    desktop_dir = subprocess.Popen([xdg_executable, 'DESKTOP'],
                                    stdout=subprocess.PIPE).communicate()[0]
     desktop_dir = desktop_dir.strip()
 
@@ -65,7 +71,7 @@ def get_launcher_path(game_slug, game_id):
         desktop_dir, get_xdg_basename(game_slug, game_id, legacy=True)
     )
     # First check if legacy path exists, for backward compatibility
-    if os.path.exists(legacy_launcher_path):
+    if system.path_exists(legacy_launcher_path):
         return legacy_launcher_path
     # Otherwise return new path, whether it exists or not
     return os.path.join(
@@ -81,7 +87,7 @@ def get_menu_launcher_path(game_slug, game_id):
     menu_path = os.path.join(
         menu_dir, get_xdg_basename(game_slug, game_id, legacy=True)
     )
-    if os.path.exists(menu_path):
+    if system.path_exists(menu_path):
         return menu_path
     return os.path.join(
         menu_dir, get_xdg_basename(game_slug, game_id, legacy=False)
@@ -89,21 +95,21 @@ def get_menu_launcher_path(game_slug, game_id):
 
 
 def desktop_launcher_exists(game_slug, game_id):
-    return os.path.exists(get_launcher_path(game_slug, game_id))
+    return system.path_exists(get_launcher_path(game_slug, game_id))
 
 
 def menu_launcher_exists(game_slug, game_id):
-    return os.path.exists(get_menu_launcher_path(game_slug, game_id))
+    return system.path_exists(get_menu_launcher_path(game_slug, game_id))
 
 
 def remove_launcher(game_slug, game_id, desktop=False, menu=False):
     """Remove existing .desktop file."""
     if desktop:
         launcher_path = get_launcher_path(game_slug, game_id)
-        if os.path.exists(launcher_path):
+        if system.path_exists(launcher_path):
             os.remove(launcher_path)
 
     if menu:
         menu_path = get_menu_launcher_path(game_slug, game_id)
-        if os.path.exists(menu_path):
+        if system.path_exists(menu_path):
             os.remove(menu_path)

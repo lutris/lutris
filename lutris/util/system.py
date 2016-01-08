@@ -223,3 +223,9 @@ def reverse_expanduser(path):
         path = path[len(user_path):].strip('/')
         return '~/' + path
     return path
+
+
+def path_exists(path):
+    if not path:
+        return False
+    return os.path.exists(path)
