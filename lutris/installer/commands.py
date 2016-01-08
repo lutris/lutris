@@ -331,7 +331,7 @@ class Commands(object):
 
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],
-                                    params, 'move')
+                                    params, 'write_config')
         """Write a key-value pair into an INI type config file."""
         # Get file
         config_file = self._get_file(params['file'])
