@@ -7,10 +7,50 @@ class zdoom(Runner):
     human_name = "ZDoom"
     platform = "PC"
     game_options = [
-        # TODO: Add options from http://zdoom.org/wiki/Command_line_parameters .
+        {
+            'option': 'main_file',
+            'type': 'file',
+            'label': 'WAD file',
+            'help': ("The game data, commonly called a WAD file.")
+        }
     ]
     runner_options = [
-        # TODO: Add options from http://zdoom.org/wiki/Command_line_parameters .
+        {
+            "option": "2",
+            "label": "Pixel Doubling",
+            "type": "bool",
+            'default': False
+        },
+        {
+            "option": "4",
+            "label": "Pixel Quadrupling",
+            "type": "bool",
+            'default': False
+        },
+        {
+            "option": "nostartup",
+            "label": "Disable Startup Screens",
+            "type": "bool",
+            'default': False
+        },
+        {
+            "option": "nosound",
+            "label": "Disable Both Music and Sound Effects",
+            "type": "bool",
+            'default': False,
+        },
+        {
+            "option": "nosfx",
+            "label": "Disable Sound Effects",
+            "type": "bool",
+            'default': False
+        },
+        {
+            "option": "nomusic",
+            "label": "Disable Music",
+            "type": "bool",
+            'default': False
+        }
     ]
 
     def get_executable(self):
@@ -18,15 +58,8 @@ class zdoom(Runner):
 
     @property
     def working_dir(self):
-        option = self.game_config.get('working_dir')
-        if option:
-            return option
-        if self.game_path:
-            return self.game_path
-        if self.game_exe:
-            return os.path.dirname(self.game_exe)
-        else:
-            return super(wine, self).working_dir
+        return os.path.dirname(self.main_file) \
+            or super(zdoom, self).working_dir
 
     def play(self):
         command = [
@@ -40,5 +73,16 @@ class zdoom(Runner):
             width, height = resolution.split('x')
             command.append("-width %s" % width)
             command.append("-height %s" % height)
+
+        # Append any boolean options.
+        boolOptions = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
+        for option in boolOptions:
+            if self.runner_config.get(option):
+                command.append('-%s' % option)
+
+        # Append the wad file to load, if provided.
+        wad = self.game_config.get('main_file')
+        if wad:
+            command.append('-iwad %s' % wad)
 
         return {'command': command}
