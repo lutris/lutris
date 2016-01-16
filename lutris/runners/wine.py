@@ -620,7 +620,9 @@ class wine(Runner):
         if not exe.startswith('/'):
             exe = system.find_executable(exe)
         if self.wine_arch == 'win64':
-            exe += '64'
+            wine64 = system.find_executable(exe + '64')
+            if wine64:
+                exe = wine64
         return system.get_pids_using_file(exe)
 
     def get_xinput_path(self):
