@@ -75,10 +75,7 @@ class LutrisThread(threading.Thread):
             self.terminal = False
             env = os.environ.copy()
             env.update(self.env)
-            self.game_process = subprocess.Popen(self.command, bufsize=1,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.STDOUT,
-                                                 cwd=self.cwd, env=env)
+            self.game_process = self.execute_process(self.command, env)
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
             if self.debug_output:
@@ -104,11 +101,12 @@ class LutrisThread(threading.Thread):
             ))
             os.chmod(file_path, 0744)
 
-        term_command = [self.terminal, '-e', file_path]
-        self.game_process = subprocess.Popen(term_command, bufsize=1,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT,
-                                             cwd=self.cwd)
+        self.game_process = self.execute_process([self.terminal, '-e', file_path])
+
+    def execute_process(self, command, env=None):
+        return subprocess.Popen(command, bufsize=1,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                cwd=self.cwd, env=env)
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
