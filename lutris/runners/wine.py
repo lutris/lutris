@@ -45,12 +45,13 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix, arch=arch)
+    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix, arch=arch,
+             blocking=True)
 
 
 def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
     wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
-             prefix=prefix, arch=arch)
+             prefix=prefix, arch=arch, blocking=True)
 
 
 def create_prefix(prefix, wine_dir=None, arch='win32'):
@@ -72,7 +73,7 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_env=''):
+             working_dir=None, winetricks_env='', blocking=False):
     """Execute a Wine command."""
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
@@ -106,9 +107,12 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     command = [wine_path, executable] + args.split()
-    thread = LutrisThread(command, runner=wine(), env=env, watch=True, cwd=working_dir)
-    thread.start()
-    return thread
+    if blocking:
+        return system.execute(command, env=env, cwd=working_dir)
+    else:
+        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir)
+        thread.start()
+        return thread
 
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=True):
