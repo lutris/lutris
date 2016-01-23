@@ -18,7 +18,7 @@ BuildRequires:  python-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  pygobject3, python3-gobject
-Requires:       pygobject3, PyYAML
+Requires:       pygobject3, PyYAML, python-xdg
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  pygobject3
@@ -30,7 +30,7 @@ BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
-Requires:       python-gobject, python-gtk, python-PyYAML
+Requires:       python-gobject, python-gtk, python-PyYAML, python-xdg
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes
