@@ -147,7 +147,7 @@ class ScriptInterpreter(Commands):
             if not os.path.exists(self.download_cache_path):
                 os.mkdir(self.download_cache_path)
 
-            if self.should_create_target:
+            if self.target_path and self.should_create_target:
                 os.makedirs(self.target_path)
                 self.reversion_data['created_main_dir'] = True
 
@@ -653,3 +653,8 @@ class ScriptInterpreter(Commands):
         callback_args = self.steam_data['callback_args']
         self.parent.add_spinner()
         self.install_steam_game(*callback_args)
+
+    def eject_wine_disc(self):
+        prefix = self.target_path
+        wine_path = wine.get_wine_version_exe(self._get_wine_version())
+        wine.eject_disc(wine_path, prefix)

@@ -23,6 +23,7 @@ import logging
 import optparse
 import signal
 import time
+import json
 
 # pylint: disable=E0611
 from gi.repository import Gdk, Gtk, GObject, GLib
@@ -70,16 +71,20 @@ logger.setLevel(logging.ERROR)
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
-parser.add_option("-v", "--verbose", action="store_true",
-                  dest="verbose", help="Verbose output")
-parser.add_option("-d", "--debug", action="store_true",
-                  dest="debug", help="Show debug messages")
+parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                  help="Verbose output")
+parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                  help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
                   help="Install a game from a yml file")
-parser.add_option("-l", "--list-games", action="store_true",
-                  help="List all games in database")
+parser.add_option("-l", "--list-games", action="store_true", dest="list_games",
+                  help="List games in database")
+parser.add_option("-o", "--installed", action="store_true", dest="list_installed",
+                  help="Only list installed games")
 parser.add_option("-s", "--list-steam", action="store_true",
                   help="List Steam (Windows) games")
+parser.add_option("-j", "--json", action="store_true", dest="json",
+                  help="Display the list of games in JSON format")
 parser.add_option("--reinstall", action="store_true", help="Reinstall game")
 (options, args) = parser.parse_args()
 
@@ -90,13 +95,29 @@ if options.debug:
     logger.setLevel(logging.DEBUG)
 
 if options.list_games:
-    for game in pga.get_games():
-        print(u"{:<40} | {:<40} | {:<15} | {:<64}".format(
-            game['name'][:40],
-            game['slug'][:40],
-            game['runner'],
-            game['directory'] or '-'
-        ).encode('utf-8'))
+    game_list = pga.get_games()
+    if options.list_installed:
+        game_list = [game for game in game_list if game['installed']]
+    if options.json:
+        games = []
+        for game in game_list:
+            games.append({
+                'id': game['id'],
+                'slug': game['slug'],
+                'name': game['name'],
+                'runner': game['runner'],
+                'directory': game['directory'] or '-'
+            })
+        print json.dumps(games, indent=2).encode('utf-8')
+    else:
+        for game in game_list:
+            print u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+                game['id'],
+                game['name'][:40],
+                game['slug'][:40],
+                game['runner'],
+                game['directory'] or '-'
+            ).encode('utf-8')
     exit()
 if options.list_steam:
     from lutris.runners import winesteam

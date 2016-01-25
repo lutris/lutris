@@ -467,6 +467,8 @@ class ContextualMenu(Gtk.Menu):
         is_installed = game_row[COL_INSTALLED]
         hiding_condition = {
             'add': is_installed,
+            'install': is_installed,
+            'install_more': not is_installed,
             'play': not is_installed,
             'configure': not is_installed,
             'desktop-shortcut': (

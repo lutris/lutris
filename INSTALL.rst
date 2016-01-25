@@ -17,9 +17,16 @@ Installation
 
 Lutris uses Python's distutils framework for installation. In order to
 install Lutris, you will need root access. To install Lutris, perform
-the following command as root:
+the following command as root::
 
       $ python setup.py install
+
+Warning: there is no way to cleanly uninstall programs installed with setup.py
+other than manuall deleting the created files. Prefer installing Lutris
+through distribution packages or run it directly from the source directory:: 
+
+    cd /path/to/lutris/source
+    ./bin/lutris
 
 Run Lutris
 -----------
@@ -72,4 +79,4 @@ You can now build the RPM::
     rpmbuild -ba lutris.spec
 
 The resulting package will be available at
-~/rpmbuild/RPMS/noarch/lutris-0.3.6-3.fc20.noarch.rpm
+~/rpmbuild/RPMS/noarch/lutris-0.3.7-3.fc20.noarch.rpm

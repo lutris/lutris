@@ -60,6 +60,7 @@ class Game(object):
         self.is_installed = bool(game_data.get('installed')) or False
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
+        self.steamid = game_data.get('steamid') or ''
 
         self.load_config()
         self.resolution_changed = False
@@ -123,6 +124,7 @@ class Game(object):
             directory=self.directory,
             installed=self.is_installed,
             configpath=self.config.game_config_id,
+            steamid=self.steamid,
             id=self.id
         )
 
@@ -215,11 +217,12 @@ class Game(object):
         env = {}
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
+        system_env = system_config.get('env') or {}
+        env.update(system_env)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
-
         ld_library_path = []
         if self.runner.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
@@ -308,6 +311,9 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time.decode("utf-8"))
         self.state = self.STATE_STOPPED
+
+        os.chdir(os.path.expanduser('~'))
+
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)

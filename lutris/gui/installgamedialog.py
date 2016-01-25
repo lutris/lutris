@@ -4,7 +4,7 @@ from gi.repository import Gtk, Pango
 import webbrowser
 import yaml
 
-from lutris import settings, shortcuts
+from lutris import pga, settings, shortcuts
 from lutris.installer import interpreter
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
@@ -73,27 +73,23 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
-        self.install_button = Gtk.Button.new_with_mnemonic("_Install")
-        self.install_button.set_margin_left(20)
-        self.install_button.connect('clicked', self.on_install_clicked)
-        self.action_buttons.add(self.install_button)
+        self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
+        self.install_button = self.add_button("_Install", self.on_install_clicked)
+        self.continue_button = self.add_button("_Continue")
+        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.close_button = self.add_button("_Close", self.close)
 
-        self.continue_button = Gtk.Button.new_with_mnemonic("_Continue")
-        self.continue_button.set_margin_left(20)
         self.continue_handler = None
-        self.action_buttons.add(self.continue_button)
-
-        self.play_button = Gtk.Button.new_with_mnemonic("_Launch game")
-        self.play_button.set_margin_left(20)
-        self.play_button.connect('clicked', self.launch_game)
-        self.action_buttons.add(self.play_button)
-
-        self.close_button = Gtk.Button.new_with_mnemonic("_Close")
-        self.close_button.set_margin_left(20)
-        self.close_button.connect('clicked', self.close)
-        self.action_buttons.add(self.close_button)
 
         self.get_scripts()
+
+    def add_button(self, label, handler=None):
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_margin_left(20)
+        if handler:
+            button.connect('clicked', handler)
+        self.action_buttons.add(button)
+        return button
 
     # ---------------------------
     # "Get installer" stage
@@ -124,6 +120,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
+        self.eject_button.hide()
 
         self.choose_installer()
 
@@ -131,11 +128,12 @@ class InstallerDialog(Gtk.Window):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game = Game(self.game_ref)
-            game_dialog = AddGameDialog(self, game)
-            game_dialog.run()
-            if game_dialog.saved:
-                self.notify_install_success()
+            game_data = pga.get_game_by_field(self.game_ref, 'slug')
+            game = Game(game_data['id'])
+            AddGameDialog(
+                self.parent.window, game,
+                callback=lambda: self.notify_install_success(game_data['id'])
+            )
         elif dlg.result == dlg.NEW_INSTALLER:
             installer_url = settings.SITE_URL + "games/%s/" % self.game_ref
             webbrowser.open(installer_url)
@@ -155,7 +153,6 @@ class InstallerDialog(Gtk.Window):
         for index, script in enumerate(self.scripts):
             for item in ['description', 'notes']:
                 script[item] = (script.get(item) or '').encode('utf-8')
-            description = script['description']
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(version, runner)
@@ -178,11 +175,11 @@ class InstallerDialog(Gtk.Window):
             self.installer_choice_box.pack_start(label, True, True, padding)
             return label
 
-        self.description_label = _create_label(10,
-            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+        self.description_label = _create_label(
+            10, "<i><b>{}</b></i>".format(self.scripts[0]['description'])
         )
-        self.notes_label = _create_label(5,
-            "<i>{}</i>".format(self.scripts[0]['notes'])
+        self.notes_label = _create_label(
+            5, "<i>{}</i>".format(self.scripts[0]['notes'])
         )
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
@@ -197,7 +194,7 @@ class InstallerDialog(Gtk.Window):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(self.scripts[script_index]['description'])
+            "<i><b>{}</b></i>".format(description)
         )
         self.notes_label.set_markup(
             "<i>{}</i>".format(self.scripts[script_index]['notes'])
@@ -348,6 +345,9 @@ class InstallerDialog(Gtk.Window):
         button.grab_focus()
         button.show()
 
+    def on_eject_clicked(self, widget, data=None):
+        self.interpreter.eject_wine_disc()
+
     def input_menu(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
         time.sleep(0.3)
@@ -405,6 +405,7 @@ class InstallerDialog(Gtk.Window):
         self.connect('destroy', self.create_shortcuts)
 
         # Buttons
+        self.eject_button.hide()
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
@@ -416,9 +417,10 @@ class InstallerDialog(Gtk.Window):
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect('focus-in-event', self.on_window_focus)
 
-    def notify_install_success(self):
+    def notify_install_success(self, game_id=None):
+        game_id = game_id or self.interpreter.game_id
         if self.parent:
-            self.parent.view.emit('game-installed', self.interpreter.game_id)
+            self.parent.view.emit('game-installed', game_id)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)

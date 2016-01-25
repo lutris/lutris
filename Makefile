@@ -1,4 +1,4 @@
-VERSION="0.3.7"
+VERSION="0.3.7.2"
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -9,12 +9,12 @@ test:
 	rm tests/fixtures/pga.db -f
 	nosetests3
 
-deb-source:
+deb-source: clean
 	gbp buildpackage -S
 	mkdir -p build
 	mv ../lutris_0* build
 
-deb:
+deb: clean
 	gbp buildpackage
 	mkdir -p build
 	mv ../lutris_0* build

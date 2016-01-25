@@ -1,10 +1,10 @@
 Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
 Upstream-Name: lutris
 Upstream-Maintainer: Mathieu Comandon <strycore@gmail.com>
-Upstream-Source: https://launchpad.net/lutris
+Upstream-Source: https://github.com/lutris
 
 Files: *
-Copyright: (C) 2009, 2010 Mathieu Comandon <strycore@gmail.com>
+Copyright: (C) 2009, 2015 Mathieu Comandon <strycore@gmail.com>
 License: GPL-3
  The full text of the GPL is distributed in
  /usr/share/common-licenses/GPL-3 on Debian systems.

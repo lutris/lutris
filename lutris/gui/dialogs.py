@@ -301,6 +301,6 @@ class NoInstallerDialog(Gtk.MessageDialog):
         self.format_secondary_text("No installer is available for this game")
         self.add_buttons("Configure manually", self.MANUAL_CONF,
                          "Write installer", self.NEW_INSTALLER,
-                         "Exit", self.EXIT)
+                         "Close", self.EXIT)
         self.result = self.run()
         self.destroy()

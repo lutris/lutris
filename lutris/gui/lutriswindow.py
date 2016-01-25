@@ -130,6 +130,7 @@ class LutrisWindow(object):
             ('rm-desktop-shortcut', "Delete desktop shortcut", self.remove_desktop_shortcut),
             ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
             ('rm-menu-shortcut', "Delete application menu shortcut", self.remove_menu_shortcut),
+            ('install_more', "Install (add) another version", self.on_install_clicked),
             ('remove', "Remove", self.on_remove_game),
         ]
         self.menu = ContextualMenu(main_entries)
@@ -157,6 +158,8 @@ class LutrisWindow(object):
         pga_menuitem.hide()
 
         self.init_game_store()
+
+        self.update_runtime()
 
         # Connect account and/or sync
         credentials = api.read_api_key()
@@ -208,7 +211,7 @@ class LutrisWindow(object):
 
         import http  # Move me
         AsyncCall(http.download_content, on_version_received,
-                           'https://lutris.net/version')
+                  'https://lutris.net/version')
 
     def get_view_type(self):
         view_type = settings.read_setting('view_type')
@@ -296,7 +299,6 @@ class LutrisWindow(object):
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
             self.threads_stoppers.append(icons_sync.stop_request.set)
             self.set_status("Library synced")
-            self.update_runtime()
 
     def update_runtime(self):
         cancellables = runtime.update(self.set_status)
@@ -513,12 +515,12 @@ class LutrisWindow(object):
         self.view.update_image(game_id, is_installed)
 
     def add_manually(self, *args):
-        game = Game(self.view.selected_game)
-        add_game_dialog = AddGameDialog(self.window, game)
-        add_game_dialog.run()
-        if add_game_dialog.saved:
+        def on_game_added(game):
             self.view.set_installed(game)
             self.sidebar_treeview.update()
+
+        game = Game(self.view.selected_game)
+        AddGameDialog(self.window, game, callback=lambda: on_game_added(game))
 
     def on_view_game_log_activate(self, widget):
         if not self.running_game:
@@ -532,10 +534,10 @@ class LutrisWindow(object):
 
     def add_game(self, _widget, _data=None):
         """Add a new game."""
-        add_game_dialog = AddGameDialog(self.window)
-        add_game_dialog.run()
-        if add_game_dialog.saved:
-            self.add_game_to_view(add_game_dialog.game.id)
+        dialog = AddGameDialog(
+            self.window,
+            callback=lambda: self.add_game_to_view(dialog.game.id)
+        )
 
     def add_game_to_view(self, game_id, async=True):
         if not game_id:

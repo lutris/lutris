@@ -1,4 +1,5 @@
 import os
+import uuid
 import shutil
 import tarfile
 import zipfile
@@ -26,7 +27,8 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
             % path)
-    temp_path = temp_dir = os.path.join(to_directory, "temp_lutris_extract")
+    temp_name = ".extract-" + str(uuid.uuid4())[:8]
+    temp_path = temp_dir = os.path.join(to_directory, temp_name)
     handler = opener(path, mode)
     handler.extractall(temp_path)
     handler.close()

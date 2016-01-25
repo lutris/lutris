@@ -79,6 +79,9 @@ def change_resolution(resolution):
     Takes a string for single monitors or a list of displays as returned
     by get_outputs().
     """
+    if not resolution:
+        logger.warning("No resolution provided")
+        return
     if isinstance(resolution, basestring):
         logger.debug("Switching resolution to %s", resolution)
 

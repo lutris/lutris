@@ -306,7 +306,7 @@ Currently, the following tasks are implemented:
             prefix: $GAMEDIR
             path: HKEY_CURRENT_USER\Software\Valve\Steam
             key: SuppressAutoRun
-            value: 00000000
+            value: '00000000'
             type: REG_DWORD
 
 * wine / winesteam: ``set_regedit_file`` Apply a regedit file to the

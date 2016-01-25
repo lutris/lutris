@@ -1,7 +1,7 @@
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 2
+MIGRATION_VERSION = 3
 
 MIGRATIONS = []
 
@@ -12,6 +12,10 @@ MIGRATIONS.append([
 MIGRATIONS.append([
     'gens_to_dgen',
     'fix_missing_steam_appids',
+])
+
+MIGRATIONS.append([
+    'update_runners',
 ])
 
 
