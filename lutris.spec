@@ -18,7 +18,7 @@ BuildRequires:  python-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  pygobject3, python3-gobject
-Requires:       pygobject3, PyYAML, python-xdg
+Requires:       pygobject3, PyYAML, pyxdg
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  pygobject3
