@@ -224,9 +224,9 @@ class winesteam(wine.wine):
             if path:
                 return path
 
-    def install(self, installer_path=None):
+    def install(self, installer_path=None, version=None):
         if not self.is_wine_installed():
-            super(winesteam, self).install()
+            wine.wine().install(version=version)
         prefix = self.get_or_create_default_prefix()
         if not self.get_steam_path():
             if not installer_path:
