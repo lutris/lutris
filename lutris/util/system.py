@@ -14,8 +14,9 @@ is_64bit = sys.maxsize > 2**32
 
 def execute(command, shell=False, env=None, cwd=None):
     """Execute a system command and return its results."""
-    # logger.debug("Executing %s", ' '.join(command))
-    # logger.debug("ENV: %s", env)
+    if env:
+        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
+    logger.debug("Executing %s", ' '.join(command))
     try:
         stdout, stderr = subprocess.Popen(command,
                                           shell=shell,
