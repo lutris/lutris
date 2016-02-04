@@ -20,7 +20,7 @@ class CommandsMixin(object):
     """The directives for the `installer:` part of the install script."""
 
     def __init__(self):
-        raise RuntimeError("Don't instanciante this class, it's a mixin!!!!!!!!!!!!!!!!")
+        raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
 
     def _get_wine_version(self):
         if self.script.get('wine'):
@@ -272,7 +272,8 @@ class CommandsMixin(object):
         passed to the runner task.
         """
         self._check_required_params('name', data, 'task')
-        GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
+        if self.parent:
+            GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         task_name = data.pop('name')
         if '.' in task_name:
             # Run a task from a different runner
@@ -285,7 +286,6 @@ class CommandsMixin(object):
         except InvalidRunner:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
             raise ScriptingError('Invalid runner provided %s', runner_name)
-
         runner = runner_class()
 
         # Check/install Wine runner at version specified in the script

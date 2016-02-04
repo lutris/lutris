@@ -353,6 +353,7 @@ class ScriptInterpreter(CommandsMixin):
                 status_text = None
             if status_text:
                 self.parent.set_status(status_text)
+            logger.debug('Installer command: %s', command)
             AsyncCall(method, self._iter_commands, params)
         else:
             self._finish_install()
