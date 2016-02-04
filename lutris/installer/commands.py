@@ -16,8 +16,11 @@ from lutris.runners import wine, import_task, import_runner, InvalidRunner
 from lutris.thread import LutrisThread
 
 
-class Commands(object):
+class CommandsMixin(object):
     """The directives for the `installer:` part of the install script."""
+
+    def __init__(self):
+        raise RuntimeError("Don't instanciante this class, it's a mixin!!!!!!!!!!!!!!!!")
 
     def _get_wine_version(self):
         if self.script.get('wine'):

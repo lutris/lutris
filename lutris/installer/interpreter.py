@@ -10,7 +10,7 @@ import platform
 from gi.repository import GLib
 
 from .errors import ScriptingError
-from .commands import Commands
+from .commands import CommandsMixin
 
 from lutris import pga, settings
 from lutris.util import system
@@ -36,7 +36,7 @@ def fetch_script(game_ref):
     return yaml.safe_load(script_contents)
 
 
-class ScriptInterpreter(Commands):
+class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
     def __init__(self, script, parent):
         self.error = None
