@@ -13,14 +13,14 @@ from lutris.util.log import logger
 is_64bit = sys.maxsize > 2**32
 
 
-def execute(command, shell=False, env=None, cwd=None):
+def execute(command, env=None, cwd=None):
     """Execute a system command and return its results."""
     if env:
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
     logger.debug("Executing %s", ' '.join(command))
     try:
         stdout, stderr = subprocess.Popen(command,
-                                          shell=shell,
+                                          shell=False,
                                           stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE,
                                           env=env, cwd=cwd).communicate()
