@@ -27,6 +27,8 @@ def execute(command, env=None, cwd=None):
     except OSError as ex:
         logger.error('Could not run command %s: %s', command, ex)
         return
+    if stderr:
+        logger.error(stderr)
     return stdout.strip()
 
 
