@@ -109,7 +109,10 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if settings.RUNNER_DIR in wine_path:
         env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
-    command = [wine_path, executable] + args.split()
+    command = [wine_path]
+    if executable:
+        command.append(executable)
+    command += args.split()
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
