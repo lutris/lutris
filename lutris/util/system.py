@@ -13,7 +13,7 @@ from lutris.util.log import logger
 is_64bit = sys.maxsize > 2**32
 
 
-def execute(command, env=None, cwd=None):
+def execute(command, env=None, cwd=None, log_errors=False):
     """Execute a system command and return its results."""
     if env:
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
@@ -27,7 +27,7 @@ def execute(command, env=None, cwd=None):
     except OSError as ex:
         logger.error('Could not run command %s: %s', command, ex)
         return
-    if stderr:
+    if stderr and log_errors:
         logger.error(stderr)
     return stdout.strip()
 
