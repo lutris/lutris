@@ -62,13 +62,15 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
         wine_dir = os.path.dirname(wine().get_executable())
     wineboot_path = os.path.join(wine_dir, 'wineboot')
 
-    env = ['WINEARCH=%s' % arch]
-    if prefix:
-        env.append('WINEPREFIX="%s" ' % prefix)
+    env = {
+        'WINEARCH': arch,
+        'WINEPREFIX': prefix
+    }
+    system.execute([wineboot_path], env=env)
+    if not os.path.exists(os.path.join(prefix, 'system.reg')):
+        raise RuntimeError('Prefix creation failed')
+    logger.info('%s Prefix created in %s', arch, prefix)
 
-    command = " ".join(env) + wineboot_path
-    subprocess.Popen(command, cwd=None, shell=True,
-                     stdout=subprocess.PIPE).communicate()
     if prefix:
         disable_desktop_integration(prefix)
 
