@@ -39,17 +39,6 @@ if LAUNCH_PATH != "/usr/bin":
 from lutris.gui import dialogs
 from lutris.migrations import migrate
 
-try:
-    import yaml as _yaml  # noqa
-except ImportError:
-    q = dialogs.QuestionDialog({'title': "Dependency not available",
-                                'question': "PythonYAML is not installed,\n"
-                                            "do you want to install it now?"})
-    if q.result == Gtk.ResponseType.YES:
-        os.system('software-center python-yaml')
-    else:
-        sys.exit()
-
 from lutris import pga, runtime
 from lutris.config import check_config  # , register_handler
 from lutris.util.log import logger
