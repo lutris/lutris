@@ -239,6 +239,9 @@ def is_version_installed(version):
 
 def get_default_version():
     installed_versions = get_wine_versions()
+    wine32_versions = [version for version in installed_versions if '64' not in version]
+    if wine32_versions:
+        return wine32_versions[0]
     if installed_versions:
         return installed_versions[0]
 
