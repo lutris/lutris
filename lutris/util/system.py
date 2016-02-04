@@ -5,6 +5,7 @@ import shutil
 import string
 import subprocess
 import sys
+import traceback
 
 from lutris.util.log import logger
 
@@ -233,3 +234,7 @@ def path_exists(path):
     if not path:
         return False
     return os.path.exists(path)
+
+
+def stacktrace():
+    traceback.print_stack()
