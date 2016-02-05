@@ -49,6 +49,7 @@ class LutrisThread(threading.Thread):
             self.cwd = runner.working_dir
         else:
             self.cwd = '/tmp'
+        self.cwd = os.path.expanduser(self.cwd)
 
         self.env_string = ''
         for (k, v) in self.env.iteritems():
