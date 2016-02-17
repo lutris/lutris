@@ -46,12 +46,12 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix, arch=arch,
-             blocking=True)
+    wineexec('regedit', args="/S " + filename, wine_path=wine_path, prefix=prefix,
+             arch=arch, blocking=True)
 
 
 def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
-    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
+    wineexec('regedit', args='/S /D "%s"' % key, wine_path=wine_path,
              prefix=prefix, arch=arch, blocking=True)
 
 
