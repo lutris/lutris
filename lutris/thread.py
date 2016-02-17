@@ -46,7 +46,7 @@ class LutrisThread(threading.Thread):
         if cwd:
             self.cwd = cwd
         elif self.runner:
-            self.cwd = runner.working_dir
+            self.cwd = os.path.expanduser(runner.working_dir)
         else:
             self.cwd = '/tmp'
         self.cwd = os.path.expanduser(self.cwd)
