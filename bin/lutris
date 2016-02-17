@@ -173,7 +173,10 @@ if game_slug or installer:
             lutris_game = Game(db_game['id'])
             lutris_game.exit_main_loop = True
             lutris_game.play()
-            GLib.MainLoop().run()
+            try:
+                GLib.MainLoop().run()
+            except KeyboardInterrupt:
+                lutris_game.stop()
     else:
         logger.info("Installing %s", game_slug)
         if lutris.is_running():

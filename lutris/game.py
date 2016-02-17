@@ -303,7 +303,8 @@ class Game(object):
         self.state = self.STATE_STOPPED
         if self.runner.system_config.get('xboxdrv'):
             self.xboxdrv_thread.stop()
-        jobs.AsyncCall(self.game_thread.stop, None, killall=True)
+        if self.game_thread:
+            jobs.AsyncCall(self.game_thread.stop, None, killall=True)
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
