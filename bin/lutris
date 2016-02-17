@@ -50,14 +50,6 @@ from lutris.settings import VERSION
 
 DBUS_INTERFACE = 'org.lutris.main'
 
-# Set the logging level to show debug messages.
-console = logging.StreamHandler()
-fmt = '%(levelname)-8s %(asctime)s [%(module)s]:%(message)s'
-formatter = logging.Formatter(fmt)
-console.setFormatter(formatter)
-logger.addHandler(console)
-logger.setLevel(logging.ERROR)
-
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
