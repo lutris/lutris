@@ -15,7 +15,9 @@ is_64bit = sys.maxsize > 2**32
 
 def execute(command, env=None, cwd=None, log_errors=False):
     """Execute a system command and return its results."""
+    existing_env = os.environ.copy()
     if env:
+        existing_env.update(env)
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
     logger.debug("Executing %s", ' '.join(command))
     try:
@@ -23,7 +25,7 @@ def execute(command, env=None, cwd=None, log_errors=False):
                                           shell=False,
                                           stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE,
-                                          env=env, cwd=cwd).communicate()
+                                          env=existing_env, cwd=cwd).communicate()
     except OSError as ex:
         logger.error('Could not run command %s: %s', command, ex)
         return
