@@ -24,6 +24,10 @@ import time
 import json
 
 # pylint: disable=E0611
+import gi
+gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
+
 from gi.repository import Gdk, Gtk, GObject, GLib
 
 from os.path import realpath, dirname, normpath
