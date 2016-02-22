@@ -20,11 +20,18 @@ def execute(command, env=None, cwd=None, log_errors=False):
         existing_env.update(env)
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
     logger.debug("Executing %s", ' '.join(command))
+
+    # Piping stderr can cause slowness in the programs, use carefully
+    # (especially when using regedit with wine)
+    if log_errors:
+        stderr_config = subprocess.PIPE
+    else:
+        stderr_config = None
     try:
         stdout, stderr = subprocess.Popen(command,
                                           shell=False,
                                           stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE,
+                                          stderr=stderr_config,
                                           env=existing_env, cwd=cwd).communicate()
     except OSError as ex:
         logger.error('Could not run command %s: %s', command, ex)
