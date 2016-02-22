@@ -28,7 +28,7 @@ class LutrisService(dbus.service.Object):
         else:
             logger.info("Welcome to Lutris")
             self.running = True
-            self.lutris_window = LutrisWindow()
+            self.lutris_window = LutrisWindow(service=self)
             GObject.threads_init()
             Gtk.main()
             self.running = False

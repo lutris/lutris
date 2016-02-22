@@ -38,7 +38,7 @@ def load_view(view, store):
 
 class LutrisWindow(object):
     """Handler class for main window signals."""
-    def __init__(self):
+    def __init__(self, service=None):
 
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
@@ -46,6 +46,7 @@ class LutrisWindow(object):
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
+        self.service = service
         self.running_game = None
         self.threads_stoppers = []
 
@@ -411,6 +412,12 @@ class LutrisWindow(object):
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
+
+        if self.running_game:
+            self.running_game.stop()
+
+        if self.service:
+            self.service.stop()
 
         # Save settings
         width, height = self.window_size
