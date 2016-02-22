@@ -1,5 +1,4 @@
 import dbus
-from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import Gtk, GObject
 from lutris.gui.lutriswindow import LutrisWindow
 from lutris.util.log import logger
@@ -9,10 +8,14 @@ DBUS_INTERFACE = 'net.lutris.main'
 
 class LutrisService(dbus.service.Object):
     """Main D-Bus Lutris service."""
-    def __init__(self, bus, path, name):
-        dbus.service.Object.__init__(self, bus, path, name)
+    def __init__(self, bus_name, object_path, name):
+        dbus.service.Object.__init__(self, bus_name, object_path, name)
         self.running = False
         self.lutris_window = None
+
+    def stop(self):
+        """ stop the dbus controller and remove from the bus """
+        self.remove_from_connection()
 
     @dbus.service.method(DBUS_INTERFACE, out_signature='b')
     def is_running(self):
@@ -40,9 +43,7 @@ class LutrisService(dbus.service.Object):
 
 
 def get_bus():
-    DBusGMainLoop(set_as_default=True)
-    bus = dbus.SessionBus()
-    return bus
+    return dbus.SessionBus()
 
 
 def get_service(bus):

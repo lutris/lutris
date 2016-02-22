@@ -28,6 +28,9 @@ import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
 
+from dbus.mainloop.glib import DBusGMainLoop
+DBusGMainLoop(set_as_default=True)
+
 from gi.repository import Gdk, Gtk, GObject, GLib
 
 from os.path import realpath, dirname, normpath
@@ -47,7 +50,6 @@ from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.settings import VERSION
 from lutris.util import service
-
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
@@ -115,7 +117,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # D-Bus init
 
-bus = service.get_bus()
+bus = dbus.SessionBus()
 lutris = service.get_service(bus)
 
 # Make sure the existing process is not frozen
