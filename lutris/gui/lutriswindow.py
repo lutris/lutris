@@ -270,12 +270,15 @@ class LutrisWindow(object):
     def sync_library(self):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
-            added, updated, installed, uninstalled = result
-            self.switch_splash_screen()
-            self.game_store.fill_store(added)
+            if result:
+                added, updated, installed, uninstalled = result
+                self.switch_splash_screen()
+                self.game_store.fill_store(added)
 
-            GLib.idle_add(self.update_existing_games,
-                          added, updated, installed, uninstalled, True)
+                GLib.idle_add(self.update_existing_games,
+                              added, updated, installed, uninstalled, True)
+            else:
+                logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
         AsyncCall(Sync().sync_all, update_gui)
