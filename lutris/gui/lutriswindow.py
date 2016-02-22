@@ -393,7 +393,10 @@ class LutrisWindow(object):
            or self.running_game.state == Game.STATE_STOPPED):
 
             def update_gui(result, error):
-                self.update_existing_games(set(), set(), *result)
+                if result:
+                    self.update_existing_games(set(), set(), *result)
+                else:
+                    logger.error('No results while syncing local Steam database')
             AsyncCall(Sync().sync_local, update_gui)
         return True
 
