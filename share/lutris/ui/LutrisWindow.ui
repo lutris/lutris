@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.16.1 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
@@ -699,11 +699,18 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkViewport" id="sidebar_viewport">
+              <object class="GtkScrolledWindow" id="scrolledwindow1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="shadow_type">in</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkViewport" id="sidebar_viewport">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
                 </child>
               </object>
               <packing>
@@ -793,11 +800,11 @@
                   <object class="GtkLabel" id="status_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
                     <property name="xpad">5</property>
                     <property name="ypad">5</property>
                     <property name="label" translatable="yes">Lutris</property>
                     <property name="lines">1</property>
+                    <property name="xalign">0</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -809,8 +816,8 @@
                   <object class="GtkLabel" id="connection_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
                     <property name="label" translatable="yes">label</property>
+                    <property name="xalign">1</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
