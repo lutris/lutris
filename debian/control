@@ -1,15 +1,18 @@
 Source: lutris
 Section: games
 Priority: optional
-Build-Depends: cdbs,
- debhelper,
+Build-Depends: debhelper,
+ libsdl2-2.0-0:i386,
+ libstdc++6:i386,
+ libgcc1:i386,
+ libc6:i386,
  python,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
  python-gi,
- libgirepository1.0-dev,
-Maintainer: Mathieu Comandon <strider@strycore.com>
+ libgirepository1.0-dev
+Maintainer: Michael DeGuzis <mdeguzis@gmail.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
 Homepage: https://lutris.net
@@ -19,7 +22,12 @@ Package: lutris
 Architecture: any
 Depends: ${misc:Depends},
  ${python:Depends},
- python-yaml, python-dbus, gir1.2-gtk-3.0, xdg-user-dirs, libc6-i386 [amd64],
+ python-yaml,
+ python-dbus,
+ gir1.2-gtk-3.0,
+ xdg-user-dirs,
+ python-xdg,
+ libc6-i386 [amd64],
  lib32gcc1 [amd64]
 Description: Install and play any video game easily
  Lutris is a gaming platform for GNU/Linux. Its goal is to make
