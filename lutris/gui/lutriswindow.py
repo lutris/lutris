@@ -38,7 +38,7 @@ def load_view(view, store):
 
 class LutrisWindow(object):
     """Handler class for main window signals."""
-    def __init__(self):
+    def __init__(self, service=None):
 
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
@@ -46,6 +46,7 @@ class LutrisWindow(object):
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
+        self.service = service
         self.running_game = None
         self.threads_stoppers = []
 
@@ -270,12 +271,15 @@ class LutrisWindow(object):
     def sync_library(self):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
-            added, updated, installed, uninstalled = result
-            self.switch_splash_screen()
-            self.game_store.fill_store(added)
+            if result:
+                added, updated, installed, uninstalled = result
+                self.switch_splash_screen()
+                self.game_store.fill_store(added)
 
-            GLib.idle_add(self.update_existing_games,
-                          added, updated, installed, uninstalled, True)
+                GLib.idle_add(self.update_existing_games,
+                              added, updated, installed, uninstalled, True)
+            else:
+                logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
         AsyncCall(Sync().sync_all, update_gui)
@@ -393,7 +397,10 @@ class LutrisWindow(object):
            or self.running_game.state == Game.STATE_STOPPED):
 
             def update_gui(result, error):
-                self.update_existing_games(set(), set(), *result)
+                if result:
+                    self.update_existing_games(set(), set(), *result)
+                else:
+                    logger.error('No results while syncing local Steam database')
             AsyncCall(Sync().sync_local, update_gui)
         return True
 
@@ -405,6 +412,12 @@ class LutrisWindow(object):
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
+
+        if self.running_game:
+            self.running_game.stop()
+
+        if self.service:
+            self.service.stop()
 
         # Save settings
         width, height = self.window_size

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 from distutils.core import setup
 from lutris.settings import VERSION

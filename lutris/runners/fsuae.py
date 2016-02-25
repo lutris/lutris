@@ -59,6 +59,12 @@ class fsuae(Runner):
                      "software.")
         },
         {
+            'option': 'kickstart_ext_file',
+            'label': 'Extended Kickstart location',
+            'type': 'file',
+            'help': 'Location of extended Kickstart used for CD32'
+        },
+        {
             "option": "gfx_fullscreen_amiga",
             "label": "Fullscreen (F12 + s to switch)",
             "type": "bool",
@@ -105,6 +111,9 @@ class fsuae(Runner):
         kickstart_file = self.runner_config.get('kickstart_file')
         if kickstart_file:
             params.append("--kickstart_file=%s" % kickstart_file)
+        kickstart_ext_file = self.runner_config.get('kickstart_ext_file')
+        if kickstart_ext_file:
+            params.append('--kickstart_ext_file=%s' % kickstart_ext_file)
         if model:
             params.append('--amiga_model=%s' % model)
         if self.runner_config.get('gfx_fullscreen_amiga'):

@@ -1,4 +1,5 @@
 import os
+import time
 import shlex
 import subprocess
 
@@ -45,12 +46,12 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args=filename, wine_path=wine_path, prefix=prefix, arch=arch,
-             blocking=True)
+    wineexec('regedit', args="/S " + filename, wine_path=wine_path, prefix=prefix,
+             arch=arch, blocking=True)
 
 
 def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
-    wineexec('regedit', args='/D "%s"' % key, wine_path=wine_path,
+    wineexec('regedit', args='/S /D "%s"' % key, wine_path=wine_path,
              prefix=prefix, arch=arch, blocking=True)
 
 
@@ -61,13 +62,15 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
         wine_dir = os.path.dirname(wine().get_executable())
     wineboot_path = os.path.join(wine_dir, 'wineboot')
 
-    env = ['WINEARCH=%s' % arch]
-    if prefix:
-        env.append('WINEPREFIX="%s" ' % prefix)
+    env = {
+        'WINEARCH': arch,
+        'WINEPREFIX': prefix
+    }
+    system.execute([wineboot_path], env=env)
+    if not os.path.exists(os.path.join(prefix, 'system.reg')):
+        logger.error('No system.reg found after prefix creation. Prefix might not be valid')
+    logger.info('%s Prefix created in %s', arch, prefix)
 
-    command = " ".join(env) + wineboot_path
-    subprocess.Popen(command, cwd=None, shell=True,
-                     stdout=subprocess.PIPE).communicate()
     if prefix:
         disable_desktop_integration(prefix)
 
@@ -106,7 +109,10 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if settings.RUNNER_DIR in wine_path:
         env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
-    command = [wine_path, executable] + args.split()
+    command = [wine_path]
+    if executable:
+        command.append(executable)
+    command += args.split()
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
@@ -236,6 +242,9 @@ def is_version_installed(version):
 
 def get_default_version():
     installed_versions = get_wine_versions()
+    wine32_versions = [version for version in installed_versions if '64' not in version]
+    if wine32_versions:
+        return wine32_versions[0]
     if installed_versions:
         return installed_versions[0]
 

@@ -49,6 +49,7 @@ class LutrisThread(threading.Thread):
             self.cwd = runner.working_dir
         else:
             self.cwd = '/tmp'
+        self.cwd = os.path.expanduser(self.cwd)
 
         self.env_string = ''
         for (k, v) in self.env.items():
@@ -165,7 +166,7 @@ class LutrisThread(threading.Thread):
                 'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'regedit',
                 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
                 'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
-                'tr', 'winecfg.exe', 'winetricks', 'zenity',
+                'tr', 'winecfg.exe', 'zenity',
             )
             if child.name in excluded:
                 continue

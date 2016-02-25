@@ -23,3 +23,11 @@ loghandler.setFormatter(logformatter)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(loghandler)
+
+# Set the logging level to show debug messages.
+console = logging.StreamHandler()
+fmt = '%(levelname)-8s %(asctime)s [%(module)s]:%(message)s'
+formatter = logging.Formatter(fmt)
+console.setFormatter(formatter)
+logger.addHandler(console)
+logger.setLevel(logging.ERROR)

@@ -1,3 +1,13 @@
+lutris (0.3.7.3) xenial; urgency=medium
+
+  * Add PCSX2 runner
+  * Add PPSSPP runner
+  * Extended kickstart support for Amiga CD32
+  * UI improvements
+  * Regedit fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 21 Feb 2016 21:13:39 -0800
+
 lutris (0.3.7.2) wily; urgency=medium
 
   * Add button to eject CD-ROMs during installation of Wine games
