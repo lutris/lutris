@@ -15,7 +15,9 @@ STATUS_UPDATER = None
 def is_updating(include_pending_updates=True):
     if include_pending_updates and CURRENT_UPDATES is None:
         return True
-    return CURRENT_UPDATES > 0
+    if CURRENT_UPDATES:
+        return CURRENT_UPDATES > 0
+    return False
 
 
 def get_created_at(name):

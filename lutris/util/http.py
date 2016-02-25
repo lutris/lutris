@@ -55,9 +55,9 @@ class Request(object):
         self.headers = headers
 
     def get(self, data=None):
-        req = urllib.Request(url=self.url, data=data, headers=self.headers)
+        req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
-            request = urllib.request.urlopen(req, self.timeout)
+            request = urllib.request.urlopen(req, timeout=self.timeout)
         except urllib.error.HTTPError as e:
             if self.error_logging:
                 logger.error("Unavailable url (%s): %s", self.url, e)
@@ -88,7 +88,7 @@ class Request(object):
                 if not chunk:
                     break
             request.close()
-            self.content = ''.join(chunks)
+            self.content = b''.join(chunks).decode('utf-8')
         return self
 
     def post(self, data):
