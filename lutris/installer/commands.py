@@ -22,7 +22,7 @@ class CommandsMixin(object):
     def __init__(self):
         raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
 
-    def _get_wine_version(self):
+    def _get_runner_version(self):
         if self.script.get('wine'):
             return wine.support_legacy_version(self.script['wine'].get('version'))
 
@@ -284,29 +284,16 @@ class CommandsMixin(object):
         if self.parent:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
-        runner_class = import_runner(runner_name)
-        runner = runner_class()
 
         # Check/install Wine runner at version specified in the script
         # TODO : move this, the runner should be installed before the install
         # starts
         wine_version = None
         if runner_name == 'wine':
-            wine_version = self._get_wine_version()
+            wine_version = self._get_runner_version()
 
         if wine_version and task_name == 'wineexec':
-            if not wine.is_version_installed(wine_version):
-                Gdk.threads_init()
-                Gdk.threads_enter()
-                runner.install(wine_version)
-                Gdk.threads_leave()
             data['wine_path'] = wine.get_wine_version_exe(wine_version)
-        # Check/install other runner
-        elif not runner.is_installed():
-            Gdk.threads_init()
-            Gdk.threads_enter()
-            runner.install()
-            Gdk.threads_leave()
 
         for key in data:
             data[key] = self._substitute(data[key])

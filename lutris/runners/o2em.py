@@ -75,7 +75,7 @@ class o2em(Runner):
     ]
 
     def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed():
+        def on_runner_installed(*args):
             if not os.path.exists(self.bios_path):
                 os.makedirs(self.bios_path)
             if callback:

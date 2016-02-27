@@ -216,7 +216,7 @@ class winesteam(wine.wine):
     def install(self, version=None, downloader=None, callback=None):
         installer_path = get_steam_installer_dest()
 
-        def on_steam_downloaded():
+        def on_steam_downloaded(*args):
             prefix = self.get_or_create_default_prefix()
             self.msi_exec(installer_path, quiet=True, prefix=prefix,
                           wine_path=self.get_executable())

@@ -56,7 +56,7 @@ class pcsxr(Runner):
                 return executable
 
     def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed():
+        def on_runner_installed(*args):
             bios_path = system.create_folder('~/.pcsxr/bios')
             dlg = QuestionDialog({
                 'question': ("Do you want to select a Playstation BIOS file?\n\n"

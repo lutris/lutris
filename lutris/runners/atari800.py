@@ -83,7 +83,7 @@ class atari800(Runner):
     ]
 
     def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed():
+        def on_runner_installed(*args):
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, 'atari800-bioses.zip')
             dlg = DownloadDialog(self.bios_url, bios_archive)

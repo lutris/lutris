@@ -310,7 +310,7 @@ class ScriptInterpreter(CommandsMixin):
         logger.debug('Installing {}'.format(runner.name))
         try:
             runner.install(
-                version=None,  # FIXME set to the correct wine version if any
+                version=self._get_runner_version(),
                 downloader=self.parent.start_download,
                 callback=self.install_runners
             )
@@ -671,5 +671,5 @@ class ScriptInterpreter(CommandsMixin):
 
     def eject_wine_disc(self):
         prefix = self.target_path
-        wine_path = wine.get_wine_version_exe(self._get_wine_version())
+        wine_path = wine.get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, prefix)
