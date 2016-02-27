@@ -285,9 +285,8 @@ class Runner(object):
         else:
             dialog = dialogs.DownloadDialog(url, runner_archive)
             dialog.run()
-            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single)
-            if callback:
-                callback()
+            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single,
+                         callback=callback)
 
     def on_downloaded(self, widget, data, user_data):
         """GObject callback received by downloader"""
