@@ -4,6 +4,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class hatari(Runner):
@@ -99,31 +100,26 @@ class hatari(Runner):
         }
     ]
 
-    def install(self):
-        success = super(hatari, self).install()
-        if not success:
-            return False
-        config_path = os.path.expanduser('~/.hatari')
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
-        bios_path = os.path.expanduser('~/.hatari/bios')
-        if not os.path.exists(bios_path):
-            os.makedirs(bios_path)
-        dlg = QuestionDialog({
-            'question': "Do you want to select an Atari ST BIOS file?",
-            'title': "Use BIOS file?",
-        })
-        if dlg.result == dlg.YES:
-            bios_dlg = FileDialog("Select a BIOS file")
-            bios_filename = bios_dlg.filename
-            if not bios_filename:
-                return
-            shutil.copy(bios_filename, bios_path)
-            bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
-            config = LutrisConfig(runner_slug='hatari')
-            config.raw_runner_config.update({'bios_file': bios_path})
-            config.save()
-        return True
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed():
+            bios_path = system.create_folder('~/.hatari/bios')
+            dlg = QuestionDialog({
+                'question': "Do you want to select an Atari ST BIOS file?",
+                'title': "Use BIOS file?",
+            })
+            if dlg.result == dlg.YES:
+                bios_dlg = FileDialog("Select a BIOS file")
+                bios_filename = bios_dlg.filename
+                if not bios_filename:
+                    return
+                shutil.copy(bios_filename, bios_path)
+                bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
+                config = LutrisConfig(runner_slug='hatari')
+                config.raw_runner_config.update({'bios_file': bios_path})
+                config.save()
+            if callback:
+                callback()
+        super(hatari, self).install()
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'hatari/bin/hatari')
