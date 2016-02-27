@@ -119,7 +119,9 @@ class hatari(Runner):
                 config.save()
             if callback:
                 callback()
-        super(hatari, self).install()
+        super(hatari, self).install(version=version,
+                                    downloader=downloader,
+                                    callback=on_runner_installed)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'hatari/bin/hatari')
