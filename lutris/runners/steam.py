@@ -1,8 +1,8 @@
 import os
 import time
 import subprocess
+from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.gui.dialogs import NoticeDialog
 from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util import system
@@ -152,11 +152,12 @@ class steam(Runner):
             return steamapps_paths[0]
 
     def install(self):
-        message = "Steam for Linux installation is not handled by Lutris.\n" \
+        raise NonInstallableRunnerError(
+            "Steam for Linux installation is not handled by Lutris.\n" \
             "Please go to " \
             "<a href='http://steampowered.com'>http://steampowered.com</a>" \
             " or install Steam with the package provided by your distribution."
-        NoticeDialog(message)
+        )
 
     def install_game(self, appid, generate_acf=False):
         logger.debug("Installing steam game %s", appid)
