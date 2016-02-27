@@ -82,24 +82,24 @@ class atari800(Runner):
         }
     ]
 
-    def install(self):
-        success = super(atari800, self).install()
-        if not success:
-            return False
-        config_path = os.path.expanduser("~/.atari800")
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
-        bios_archive = os.path.join(config_path, 'atari800-bioses.zip')
-        dlg = DownloadDialog(self.bios_url, bios_archive)
-        dlg.run()
-        if not os.path.exists(bios_archive):
-            ErrorDialog("Could not download Atari800 BIOS archive")
-            return
-        extract.extract_archive(bios_archive, config_path)
-        os.remove(bios_archive)
-        config = LutrisConfig(runner_slug='atari800')
-        config.raw_runner_config.update({'bios_path': config_path})
-        config.save()
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed():
+            config_path = system.create_folder("~/.atari800")
+            bios_archive = os.path.join(config_path, 'atari800-bioses.zip')
+            dlg = DownloadDialog(self.bios_url, bios_archive)
+            dlg.run()
+            if not os.path.exists(bios_archive):
+                ErrorDialog("Could not download Atari800 BIOS archive")
+                return
+            extract.extract_archive(bios_archive, config_path)
+            os.remove(bios_archive)
+            config = LutrisConfig(runner_slug='atari800')
+            config.raw_runner_config.update({'bios_path': config_path})
+            config.save()
+            if callback:
+                callback()
+
+        super(atari800, self).install(version, downloader, on_runner_installed)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'atari800/bin/atari800')
