@@ -68,7 +68,8 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
     }
     system.execute([wineboot_path], env=env)
     if not os.path.exists(os.path.join(prefix, 'system.reg')):
-        logger.error('No system.reg found after prefix creation. Prefix might not be valid')
+        logger.error('No system.reg found after prefix creation. '
+                     'Prefix might not be valid')
     logger.info('%s Prefix created in %s', arch, prefix)
 
     if prefix:

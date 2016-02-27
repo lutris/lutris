@@ -146,6 +146,13 @@ def remove_folder(path):
         shutil.rmtree(path)
 
 
+def create_folder(path):
+    path = os.path.expanduser(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+
 def is_removeable(path, excludes=None):
     """Check if a folder is safe to remove (not system or home, ...)"""
     if not path:

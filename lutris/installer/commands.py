@@ -12,7 +12,7 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
-from lutris.runners import wine, import_task, import_runner, InvalidRunner
+from lutris.runners import wine, import_task, import_runner
 from lutris.thread import LutrisThread
 
 
@@ -265,6 +265,15 @@ class CommandsMixin(object):
                     dest_file.write(line)
         os.rename(tmp_filename, filename)
 
+    def _get_task_runner_and_name(self, task_name):
+        if '.' in task_name:
+            # Run a task from a different runner
+            # than the one for this installer
+            runner_name, task_name = task_name.split('.')
+        else:
+            runner_name = self.script["runner"]
+        return runner_name, task_name
+
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -274,18 +283,8 @@ class CommandsMixin(object):
         self._check_required_params('name', data, 'task')
         if self.parent:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
-        task_name = data.pop('name')
-        if '.' in task_name:
-            # Run a task from a different runner
-            # than the one for this installer
-            runner_name, task_name = task_name.split('.')
-        else:
-            runner_name = self.script["runner"]
-        try:
-            runner_class = import_runner(runner_name)
-        except InvalidRunner:
-            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError('Invalid runner provided %s', runner_name)
+        runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
+        runner_class = import_runner(runner_name)
         runner = runner_class()
 
         # Check/install Wine runner at version specified in the script

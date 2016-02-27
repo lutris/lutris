@@ -15,6 +15,7 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
+from lutris.runners import RunnerInstallationError
 
 
 def get_arch():
@@ -37,6 +38,7 @@ class Runner(object):
     runner_options = []
     system_options_override = []
     context_menu_entries = []
+    depends_on = None
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -202,7 +204,7 @@ class Runner(object):
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
-            arch = get_arch()
+            arch = 'i386'
             if version:
                 if version.endswith('-i386') or version.endswith('-x86_64'):
                     version, arch = version.rsplit('-', 1)
@@ -234,10 +236,16 @@ class Runner(object):
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
+        logger.debug("Installing %s (version=%s, downloader=%s, callback=%s)",
+                     self.name, version, downloader, callback)
         runner_info = self.get_runner_info(version)
         if not runner_info:
+            raise RunnerInstallationError(
+                '{} is not available for the {} architecture'.format(
+                    self.name, self.arch
+                )
+            )
             dialogs.ErrorDialog(
-                'This runner is not available for your platform'
             )
             return False
         opts = {}
@@ -253,8 +261,7 @@ class Runner(object):
             opts['dest'] = os.path.join(settings.RUNNER_DIR,
                                         self.name, dirname)
         url = runner_info['url']
-        is_extracted = self.download_and_extract(url, **opts)
-        return is_extracted
+        self.download_and_extract(url, **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         merge_single = opts.get('merge_single', False)
@@ -271,12 +278,12 @@ class Runner(object):
                 'merge_single': merge_single,
                 'callback': callback
             }
+            print "LAUNCHING DOWNLOADER"
             downloader(url, runner_archive, self.on_downloaded, extract_args)
         else:
             dialog = dialogs.DownloadDialog(url, runner_archive)
             dialog.run()
-            return self.extract(archive=runner_archive, dest=dest,
-                                merge_single=merge_single)
+            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single)
 
     def on_downloaded(self, widget, data, user_data):
         """GObject callback received by downloader"""
@@ -285,14 +292,12 @@ class Runner(object):
     def extract(self, archive=None, dest=None, merge_single=None,
                 callback=None):
         if not os.path.exists(archive):
-            logger.error("Can't find %s, aborting install", archive)
-            return False
+            # TODO Check install methods to catch RunnerInstallationError
+            raise RunnerInstallationError("Failed to extract {}", archive)
         extract_archive(archive, dest, merge_single=merge_single)
         os.remove(archive)
         if callback:
             callback()
-        else:
-            return True
 
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)

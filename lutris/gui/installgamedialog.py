@@ -265,7 +265,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
         button.hide()
-        self.interpreter.iter_game_files()
+        self.interpreter.check_runner_install()
 
     def ask_user_for_file(self, message):
         self.clean_widgets()
@@ -315,8 +315,8 @@ class InstallerDialog(Gtk.Window):
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
         self.download_progress.cancel_button.hide()
-        callback_function = callback or self.on_download_complete
-        self.download_progress.connect('complete', callback_function, data)
+        callback = callback or self.on_download_complete
+        self.download_progress.connect('complete', callback, data)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
