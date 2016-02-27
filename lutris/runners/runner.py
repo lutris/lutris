@@ -204,7 +204,10 @@ class Runner(object):
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
-            arch = 'i386'
+            if self.name == 'wine':
+                arch = 'i386'
+            else:
+                arch = self.arch
             if version:
                 if version.endswith('-i386') or version.endswith('-x86_64'):
                     version, arch = version.rsplit('-', 1)
