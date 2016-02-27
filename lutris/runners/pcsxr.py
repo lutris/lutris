@@ -4,7 +4,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris.runners.runner import Runner
-from lutris.util.system import find_executable
+from lutris.util import system
 
 
 class pcsxr(Runner):
@@ -51,42 +51,35 @@ class pcsxr(Runner):
         # System wide available emulator
         candidates = ('pcsx', 'pcsxr')
         for candidate in candidates:
-            executable = find_executable(candidate)
+            executable = system.find_executable(candidate)
             if executable:
                 return executable
 
-    def install(self):
-        success = super(pcsxr, self).install()
-        if not success:
-            return False
-        config_path = os.path.expanduser('~/.pcsxr')
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
-
-        # Bios
-        bios_path = os.path.expanduser('~/.pcsxr/bios')
-        if not os.path.exists(bios_path):
-            os.makedirs(bios_path)
-        dlg = QuestionDialog({
-            'question': ("Do you want to select a Playstation BIOS file?\n\n"
-                         "The BIOS is the core code running the machine.\n"
-                         "PCSX-Reloaded includes an emulated BIOS, but it is "
-                         "still incomplete. \n"
-                         "Using an original BIOS avoids some bugs and reduced "
-                         "compatibility \n"
-                         "with some games."),
-            'title': "Use BIOS file?",
-        })
-        if dlg.result == dlg.YES:
-            bios_dlg = FileDialog("Select a BIOS file")
-            bios_src = bios_dlg.filename
-            shutil.copy(bios_src, bios_path)
-            # Save bios in config
-            bios_path = os.path.join(bios_path, os.path.basename(bios_src))
-            config = LutrisConfig(runner_slug='pcsxr')
-            config.raw_runner_config.update({'bios': bios_path})
-            config.save()
-        return True
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed():
+            bios_path = system.create_folder('~/.pcsxr/bios')
+            dlg = QuestionDialog({
+                'question': ("Do you want to select a Playstation BIOS file?\n\n"
+                             "The BIOS is the core code running the machine.\n"
+                             "PCSX-Reloaded includes an emulated BIOS, but it is "
+                             "still incomplete. \n"
+                             "Using an original BIOS avoids some bugs and reduced "
+                             "compatibility \n"
+                             "with some games."),
+                'title': "Use BIOS file?",
+            })
+            if dlg.result == dlg.YES:
+                bios_dlg = FileDialog("Select a BIOS file")
+                bios_src = bios_dlg.filename
+                shutil.copy(bios_src, bios_path)
+                # Save bios in config
+                bios_path = os.path.join(bios_path, os.path.basename(bios_src))
+                config = LutrisConfig(runner_slug='pcsxr')
+                config.raw_runner_config.update({'bios': bios_path})
+                config.save()
+            if callback:
+                callback()
+        super(pcsxr, self).install(version, downloader, on_runner_installed)
 
     def play(self):
         """Run Playstation game."""
