@@ -400,7 +400,7 @@ class ScriptInterpreter(CommandsMixin):
         method."""
         command_name, command_params = self._get_command_name_and_params(command_data)
         if not hasattr(self, command_name):
-            raise ScriptingError("The command %s does not exists"
+            raise ScriptingError('The command "%s" does not exist.'
                                  % command_name)
         return getattr(self, command_name), command_params
 
