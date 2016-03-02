@@ -1,5 +1,4 @@
 import os
-import time
 import shlex
 import subprocess
 
@@ -640,11 +639,10 @@ class wine(Runner):
         return system.get_pids_using_file(exe)
 
     def get_xinput_path(self):
-        xinput_path = os.path.abspath(
-            os.path.join(datapath.get(), 'lib/koku-xinput-wine.so')
-        )
-        logger.debug('Preloading %s', xinput_path)
-        return xinput_path
+        xinput_path = os.path.join(settings.RUNTIME_DIR,
+                                   'lib32/koku-xinput-wine/koku-xinput-wine.so')
+        if os.path.exists(xinput_path):
+            return xinput_path
 
     def play(self):
         game_exe = self.game_exe
@@ -657,7 +655,12 @@ class wine(Runner):
         launch_info['env'] = self.get_env(full=False)
 
         if self.runner_config.get('xinput'):
-            launch_info['ld_preload'] = self.get_xinput_path()
+            xinput_path = self.get_xinput_path()
+            if xinput_path:
+                logger.debug('Preloading %s', xinput_path)
+                launch_info['ld_preload'] = self.get_xinput_path()
+            else:
+                logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
 
         command = [self.get_executable()]
         if game_exe.endswith(".msi"):
