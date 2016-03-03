@@ -52,14 +52,17 @@ class CommandsMixin(object):
     def execute(self, data):
         """Run an executable file."""
         args = []
+        terminal = None
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             args_string = data.get('args', '')
             for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
+            terminal = data.get('terminal')
         else:
             file_ref = data
+
         # Determine whether 'file' value is a file id or a path
         exec_path = self._get_file(file_ref) or self._substitute(file_ref)
         if not exec_path:
@@ -70,7 +73,6 @@ class CommandsMixin(object):
                                  exec_path)
         self.chmodx(exec_path)
 
-        terminal = data.get('terminal')
         if terminal:
             terminal = system.get_default_terminal()
 
