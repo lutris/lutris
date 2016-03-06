@@ -150,6 +150,25 @@ system_options = [
         'condition': system.find_executable('xboxdrv'),
         'help': ("Command line options for xboxdrv, a driver for XBOX 360"
                  "controllers. Requires the xboxdrv package installed.")
+    },
+    {
+        'option': 'xephyr',
+        'type': 'choice',
+        'label': "Use Xephyr",
+        'type': 'choice',
+        'choices': (
+            ('Off', 'off'),
+            ('8BPP (256 colors)', '8bpp'),
+            ('16BPP (65536 colors)', '16bpp')
+        ),
+        'default': 'off',
+        'advanced': True,
+        'help': "Run program in Xephyr to support 8BPP and 16BPP color modes",
+    },
+    {
+        'option': 'xephyr_resolution',
+        'type': 'string',
+        'label': 'Xephyr resolution'
     }
 ]
 
