@@ -1,3 +1,12 @@
+lutris (0.3.7.4) xenial; urgency=medium
+
+  * Add support for Xephyr
+  * Detect Wine versions installed from WineHQ
+  * Update koku-xinput-wine to work with the build provided in the runtime
+  * Always install the required runner when a game is installed
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 06 Mar 2016 14:37:09 -0800
+
 lutris (0.3.7.3) xenial; urgency=medium
 
   * Add PCSX2 runner
