@@ -12,6 +12,11 @@ from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+WINE_PATHS = {
+    'winehq-devel': '/opt/wine-devel/bin/wine',
+    'winehq-staging': '/opt/wine-staging/bin/wine',
+    'system': 'wine',
+}
 
 
 def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
@@ -249,6 +254,18 @@ def get_default_version():
         return installed_versions[0]
 
 
+def get_system_wine_version(wine_path="wine"):
+    """Return the version of Wine installed on the system."""
+    try:
+        version = subprocess.check_output([wine_path, "--version"]).strip()
+    except OSError:
+        return
+    else:
+        if version.startswith('wine-'):
+            version = version[5:]
+        return version
+
+
 def support_legacy_version(version):
     """Since Lutris 0.3.7, wine version contains architecture and optional
     info. Call this to keep existing games compatible with previous
@@ -341,11 +358,22 @@ class wine(Runner):
         ]
 
         def get_wine_version_choices():
-            return (
-                [('System (%s)' % self.system_wine_version, 'system')] +
-                [('Custom (select executable below)', 'custom')] +
-                [(version, version) for version in get_wine_versions()]
+            versions = []
+            labels = {
+                'winehq-devel': 'WineHQ devel (%s)',
+                'winehq-staging': 'WineHQ staging (%s)',
+                'system': 'System (%s)',
+            }
+            for build in sorted(WINE_PATHS.keys()):
+                version = get_system_wine_version(WINE_PATHS[build])
+                if version:
+                    versions.append((labels[build] % version, build))
+
+            versions.append(
+                ('Custom (select executable below)', 'custom')
             )
+            versions += [(v, v) for v in get_wine_versions()]
+            return versions
 
         self.runner_options = [
             {
@@ -502,18 +530,6 @@ class wine(Runner):
             return super(wine, self).working_dir
 
     @property
-    def system_wine_version(self):
-        """Return the version of Wine installed on the system."""
-        try:
-            version = subprocess.check_output(["wine", "--version"]).strip()
-        except OSError:
-            return "not installed"
-        else:
-            if version.startswith('wine-'):
-                version = version[5:]
-            return version
-
-    @property
     def wine_arch(self):
         """Return the wine architecture.
 
@@ -541,9 +557,9 @@ class wine(Runner):
         if not version:
             return
 
-        if version == 'system':
-            if system.find_executable('wine'):
-                return 'wine'
+        if version in WINE_PATHS.keys():
+            if system.find_executable(WINE_PATHS[version]):
+                return WINE_PATHS[version]
             # Fall back on bundled Wine
             version = get_default_version()
         elif version == 'custom':
@@ -554,18 +570,6 @@ class wine(Runner):
         return os.path.join(path, version, 'bin/wine')
 
     def is_installed(self):
-        version = self.get_version()
-        if version == 'system':
-            if system.find_executable('wine'):
-                return True
-            else:
-                return False
-        elif version == 'custom':
-            custom_path = self.runner_config.get('custom_wine_path', '')
-            if os.path.exists(custom_path):
-                return True
-            else:
-                return False
         executable = self.get_executable()
         if executable:
             return os.path.exists(executable)
