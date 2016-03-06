@@ -505,11 +505,13 @@ class wine(Runner):
     def system_wine_version(self):
         """Return the version of Wine installed on the system."""
         try:
-            version = subprocess.check_output(["wine", "--version"])
+            version = subprocess.check_output(["wine", "--version"]).strip()
         except OSError:
             return "not installed"
         else:
-            return version.strip('wine-\n')
+            if version.startswith('wine-'):
+                version = version[5:]
+            return version
 
     @property
     def wine_arch(self):
