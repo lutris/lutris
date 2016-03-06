@@ -35,4 +35,4 @@ clean:
 build-all: deb
 
 upload:
-	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/
