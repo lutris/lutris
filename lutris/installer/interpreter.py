@@ -520,6 +520,8 @@ class ScriptInterpreter(CommandsMixin):
                 config[key] = dict(
                     [(k, self._substitute(v)) for (k, v) in value.iteritems()]
                 )
+            elif isinstance(value, bool):
+                config[key] = value
             else:
                 config[key] = self._substitute(value)
         return config
