@@ -586,7 +586,7 @@ class wine(Runner):
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                arch=self.wine_arch)
+                arch=self.wine_arch, blocking=False)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path)
