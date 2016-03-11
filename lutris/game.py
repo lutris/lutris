@@ -217,6 +217,10 @@ class Game(object):
             time.sleep(3)
             env['DISPLAY'] = ':2'
 
+        pulse_latency = system_config.get('pulse_latency')
+        if pulse_latency:
+            env['PULSE_LATENCY_MSEC'] = '60'
+
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
