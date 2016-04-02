@@ -558,8 +558,9 @@ class wine(Runner):
             return
 
         if version in WINE_PATHS.keys():
-            if system.find_executable(WINE_PATHS[version]):
-                return WINE_PATHS[version]
+            abs_path = system.find_executable(WINE_PATHS[version])
+            if abs_path:
+                return abs_path
             # Fall back on bundled Wine
             version = get_default_version()
         elif version == 'custom':
