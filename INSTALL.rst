@@ -21,9 +21,10 @@ the following command as root::
 
       $ python setup.py install
 
-Warning: there is no way to cleanly uninstall programs installed with setup.py
-other than manuall deleting the created files. Prefer installing Lutris
-through distribution packages or run it directly from the source directory:: 
+**Warning:** there is no way to cleanly uninstall programs installed with
+setup.py other than manuall deleting the created files. Prefer installing
+Lutris through distribution packages or run it directly from the source
+directory:: 
 
     cd /path/to/lutris/source
     ./bin/lutris

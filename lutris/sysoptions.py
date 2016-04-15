@@ -134,6 +134,17 @@ system_options = [
         'help': "Restart PulseAudio before launching the game."
     },
     {
+        'option': 'pulse_latency',
+        'type': 'bool',
+        'label': 'Reduce PulseAudio latency',
+        'default': False,
+        'advanced': True,
+        'condition': system.find_executable('pulseaudio'),
+        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
+                 'audio quality on some games')
+
+    },
+    {
         'option': 'killswitch',
         'type': 'string',
         'label': 'Killswitch file',

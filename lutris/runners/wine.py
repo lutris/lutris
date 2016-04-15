@@ -50,7 +50,7 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args="/S " + filename, wine_path=wine_path, prefix=prefix,
+    wineexec('regedit', args="/S '%s'" % (filename), wine_path=wine_path, prefix=prefix,
              arch=arch, blocking=True)
 
 
@@ -117,7 +117,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     command = [wine_path]
     if executable:
         command.append(executable)
-    command += args.split()
+    command += shlex.split(args)
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
@@ -558,8 +558,9 @@ class wine(Runner):
             return
 
         if version in WINE_PATHS.keys():
-            if system.find_executable(WINE_PATHS[version]):
-                return WINE_PATHS[version]
+            abs_path = system.find_executable(WINE_PATHS[version])
+            if abs_path:
+                return abs_path
             # Fall back on bundled Wine
             version = get_default_version()
         elif version == 'custom':
@@ -586,7 +587,7 @@ class wine(Runner):
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                arch=self.wine_arch)
+                arch=self.wine_arch, blocking=False)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path)
