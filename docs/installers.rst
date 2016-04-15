@@ -206,7 +206,8 @@ Execute files with the ``execute`` directive. Use the ``file`` parameter to
 reference a ``file id`` or a path, ``args`` to add command arguments,
 ``terminal`` (set to "true") to execute in a new terminal window.
 The command is executed within the Lutris Runtime (resolving most shared
-library dependencies).
+library dependencies). The file is made executable if necessary, no need to run
+chmodx before.
 
 Example:
 

@@ -71,7 +71,8 @@ class CommandsMixin(object):
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
-        self.chmodx(exec_path)
+        if not os.access(exec_path, os.X_OK):
+            self.chmodx(exec_path)
 
         if terminal:
             terminal = system.get_default_terminal()
