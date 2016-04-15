@@ -53,6 +53,7 @@ class CommandsMixin(object):
         """Run an executable file."""
         args = []
         terminal = None
+        working_dir = None
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
@@ -60,6 +61,7 @@ class CommandsMixin(object):
             for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
             terminal = data.get('terminal')
+            working_dir = data.get('working_dir')
         else:
             file_ref = data
 
@@ -76,6 +78,9 @@ class CommandsMixin(object):
 
         if terminal:
             terminal = system.get_default_terminal()
+
+        if not working_dir or not os.path.exists(working_dir):
+            working_dir = self.target_path
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
