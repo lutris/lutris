@@ -598,9 +598,24 @@ class wine(Runner):
     def run_joycpl(self, *args):
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
 
+    def set_wine_desktop(self, enable_desktop=False):
+        path = self.reg_keys['Desktop']
+
+        if enable_desktop:
+            set_regedit(path, 'Desktop', 'WineDesktop',
+                        wine_path=self.get_executable(),
+                        prefix=self.prefix_path,
+                        arch=self.wine_arch)
+        else:
+            delete_registry_key(path,
+                                wine_path=self.get_executable(),
+                                prefix=self.prefix_path,
+                                arch=self.wine_arch)
+
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
+        enable_wine_desktop = False
         for key, path in self.reg_keys.iteritems():
             value = self.runner_config.get(key) or 'auto'
             if not value or value == 'auto':
@@ -608,10 +623,12 @@ class wine(Runner):
                                     prefix=prefix, arch=self.wine_arch)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
-                    value = 'WineDesktop'
-                set_regedit(path, key, value,
-                            wine_path=self.get_executable(), prefix=prefix,
-                            arch=self.wine_arch)
+                    enable_wine_desktop = True
+                else:
+                    set_regedit(path, key, value,
+                                wine_path=self.get_executable(), prefix=prefix,
+                                arch=self.wine_arch)
+        self.set_wine_desktop(enable_wine_desktop)
         overrides = self.runner_config.get('overrides') or {}
         overrides_path = "%s\DllOverrides" % self.reg_prefix
         for dll, value in overrides.iteritems():
