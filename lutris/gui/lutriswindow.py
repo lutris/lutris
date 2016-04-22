@@ -391,10 +391,11 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
+        register_url = "https://lutris.net/user/register"
         try:
-            subprocess.check_call(["xdg-open", "https://lutris.net/user/register"])
-        except CalledProcessError:
-            Gtk.show_uri(None, "https://lutris.net/user/register", Gdk.CURRENT_TIME)
+            subprocess.check_call(["xdg-open", register_url])
+        except subprocess.CalledProcessError:
+            Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
