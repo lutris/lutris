@@ -83,6 +83,7 @@ class LutrisWindow(object):
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
+        self.connect_link = self.builder.get_object('connect_link')
         # View menu
         installed_games_only_menuitem =\
             self.builder.get_object('filter_installed')
@@ -361,6 +362,7 @@ class LutrisWindow(object):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
+        self.connect_link.hide()
 
     def on_connect_success(self, dialog, credentials):
         if isinstance(credentials, str):
@@ -373,6 +375,7 @@ class LutrisWindow(object):
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
+        self.connect_link.show()
 
     def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
