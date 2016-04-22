@@ -70,6 +70,10 @@ class LutrisWindow(object):
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
 
+        # Set GTK to prefer dark theme
+        gtksettings = Gtk.Settings.get_default()
+        gtksettings.set_property("gtk-application-prefer-dark-theme", True)
+
         # Load view
         logger.debug("Loading view")
         self.game_store = GameStore([], self.icon_type, filter_installed)
