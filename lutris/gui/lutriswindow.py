@@ -2,6 +2,7 @@
 # pylint: disable=E0611
 import os
 import time
+import subprocess
 
 from gi.repository import Gtk, Gdk, GLib
 
@@ -69,6 +70,10 @@ class LutrisWindow(object):
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+
+        # Set GTK to prefer dark theme
+        gtksettings = Gtk.Settings.get_default()
+        gtksettings.set_property("gtk-application-prefer-dark-theme", True)
 
         # Load view
         logger.debug("Loading view")
@@ -386,7 +391,11 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        Gtk.show_uri(None, "http://lutris.net/user/register", Gdk.CURRENT_TIME)
+        register_url = "https://lutris.net/user/register"
+        try:
+            subprocess.check_call(["xdg-open", register_url])
+        except subprocess.CalledProcessError:
+            Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
