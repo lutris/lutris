@@ -139,8 +139,8 @@ class LutrisWindow(object):
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        sidebar_paned = self.builder.get_object('sidebar_paned')
-        sidebar_paned.set_position(150)
+        self.sidebar_paned = self.builder.get_object('sidebar_paned')
+        self.sidebar_paned.set_position(150)
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
@@ -154,6 +154,8 @@ class LutrisWindow(object):
             self.sidebar_viewport.hide()
         self.builder.connect_signals(self)
         self.connect_signals()
+
+        self.statusbar = self.builder.get_object("statusbar")
 
         # XXX Hide PGA config menu item until it actually gets implemented
         pga_menuitem = self.builder.get_object('pga_menuitem')
@@ -654,10 +656,18 @@ class LutrisWindow(object):
 
     def toggle_sidebar(self, _widget=None):
         if self.sidebar_visible:
-            self.sidebar_viewport.hide()
+            self.sidebar_paned.remove(self.games_scrollwindow)
+            self.main_box.remove(self.sidebar_paned)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.games_scrollwindow, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'false')
         else:
-            self.sidebar_viewport.show()
+            self.main_box.remove(self.games_scrollwindow)
+            self.sidebar_paned.add2(self.games_scrollwindow)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.sidebar_paned, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'true')
         self.sidebar_visible = not self.sidebar_visible
 
