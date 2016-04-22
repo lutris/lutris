@@ -2,6 +2,7 @@
 # pylint: disable=E0611
 import os
 import time
+import subprocess
 
 from gi.repository import Gtk, Gdk, GLib
 
@@ -390,7 +391,10 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        Gtk.show_uri(None, "http://lutris.net/user/register", Gdk.CURRENT_TIME)
+        try:
+            subprocess.check_call(["xdg-open", "https://lutris.net/user/register"])
+        except CalledProcessError:
+            Gtk.show_uri(None, "https://lutris.net/user/register", Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
