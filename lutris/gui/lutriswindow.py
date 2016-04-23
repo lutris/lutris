@@ -64,6 +64,8 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
+        window = self.builder.get_object('window')
+        window.resize(width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
         filter_installed = \
