@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="app-menu">
+    <section>
+      <item>
+	<attribute name="action">app.runners</attribute>
+        <attribute name="label" translatable="yes">_Runners</attribute>
+      </item>
+      <item>
+	<attribute name="action">app.pga</attribute>
+        <attribute name="label" translatable="yes">_Archives</attribute>
+      </item>
+      <item>
+	<attribute name="action">app.preferences</attribute>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">app.about</attribute>
+        <attribute name="label" translatable="yes">_About</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.quit</attribute>
+        <attribute name="label" translatable="yes">_Quit</attribute>
+        <attribute name="accel">&lt;Primary&gt;q</attribute>
+    </item>
+    </section>
+  </menu>
+</interface>
+

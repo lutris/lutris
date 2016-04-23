@@ -4,7 +4,7 @@ import os
 import time
 import subprocess
 
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gio,Gdk, GLib
 
 from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
@@ -16,7 +16,6 @@ from lutris.util.jobs import AsyncCall
 from lutris.util import datapath
 
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarTreeView
 from lutris.gui.logwindow import LogWindow
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
@@ -39,13 +38,15 @@ def load_view(view, store):
 
 class LutrisWindow(object):
     """Handler class for main window signals."""
-    def __init__(self, service=None):
+    def __init__(self, application, service=None):
 
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
         )
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
+
+        self.application = application
 
         self.service = service
         self.running_game = None
@@ -61,11 +62,10 @@ class LutrisWindow(object):
         self.builder.add_from_file(ui_filename)
 
         # Load settings
-        width = int(settings.read_setting('width') or 800)
+        width = int(settings.read_setting('width') or 805)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
         window = self.builder.get_object('window')
-        window.resize(width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
         filter_installed = \
@@ -86,47 +86,19 @@ class LutrisWindow(object):
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
         self.connect_link = self.builder.get_object('connect_link')
-        # View menu
-        installed_games_only_menuitem =\
-            self.builder.get_object('filter_installed')
-        installed_games_only_menuitem.set_active(filter_installed)
-        self.grid_view_menuitem = self.builder.get_object("gridview_menuitem")
-        self.grid_view_menuitem.set_active(view_type == 'grid')
-        self.list_view_menuitem = self.builder.get_object("listview_menuitem")
-        self.list_view_menuitem.set_active(view_type == 'list')
-        sidebar_menuitem = self.builder.get_object('sidebar_menuitem')
-        sidebar_menuitem.set_active(self.sidebar_visible)
 
-        # View buttons
-        self.grid_view_btn = self.builder.get_object('switch_grid_view_btn')
-        self.grid_view_btn.set_active(view_type == 'grid')
-        self.list_view_btn = self.builder.get_object('switch_list_view_btn')
-        self.list_view_btn.set_active(view_type == 'list')
-        # Icon type menu
-        self.banner_small_menuitem = \
-            self.builder.get_object('banner_small_menuitem')
-        self.banner_small_menuitem.set_active(self.icon_type == 'banner_small')
-        self.banner_menuitem = self.builder.get_object('banner_menuitem')
-        self.banner_menuitem.set_active(self.icon_type == 'banner')
-        self.icon_menuitem = self.builder.get_object('icon_menuitem')
-        self.icon_menuitem.set_active(self.icon_type == 'icon')
-
-        self.search_entry = self.builder.get_object('search_entry')
-        self.search_entry.connect('icon-press', self.on_clear_search)
+        # Stack
+        self.stack = self.builder.get_object('stack')
 
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
         # Status bar
         self.status_label = self.builder.get_object('status_label')
-        self.joystick_icons = []
-        # Buttons
-        self.stop_button = self.builder.get_object('stop_button')
-        self.stop_button.set_sensitive(False)
-        self.delete_button = self.builder.get_object('delete_button')
-        self.delete_button.set_sensitive(False)
-        self.play_button = self.builder.get_object('play_button')
-        self.play_button.set_sensitive(False)
+
+        # Search
+        self.search_entry = self.builder.get_object('search_entry')
+        self.search_revealer = self.builder.get_object('search_revealer')
 
         # Contextual menu
         main_entries = [
@@ -145,17 +117,10 @@ class LutrisWindow(object):
         self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
 
-        # Sidebar
-        self.sidebar_paned = self.builder.get_object('sidebar_paned')
-        self.sidebar_paned.set_position(150)
-        self.sidebar_treeview = SidebarTreeView()
-        self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
-        self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
-        self.sidebar_viewport.add(self.sidebar_treeview)
-
         # Window initialization
         self.window = self.builder.get_object("window")
-        self.window.resize_to_geometry(width, height)
+        self.window.set_application(application)
+        self.window.resize(width, height)
         self.window.show_all()
         if not self.sidebar_visible:
             self.sidebar_viewport.hide()
@@ -164,9 +129,51 @@ class LutrisWindow(object):
 
         self.statusbar = self.builder.get_object("statusbar")
 
-        # XXX Hide PGA config menu item until it actually gets implemented
-        pga_menuitem = self.builder.get_object('pga_menuitem')
-        pga_menuitem.hide()
+        # Popovers
+        builder = Gtk.Builder.new_from_file(os.path.join(datapath.get(), 'ui', 'account-menu-popover.ui'))
+        builder.connect_signals(self)
+        popover = builder.get_object('account_menu_widget')
+        account_btn = self.builder.get_object('account_menu_btn')
+        account_btn.set_popover(popover)
+        self.connection_label = builder.get_object('connection_label')
+        self.disconnect_btn = builder.get_object('disconnect_btn')
+        self.sync_btn = builder.get_object('sync_btn')
+        self.register_btn = builder.get_object('register_btn')
+        self.connect_btn = builder.get_object('connect_btn')
+
+        builder = Gtk.Builder.new_from_file(os.path.join(datapath.get(), 'ui', 'view-menu-popover.ui'))
+        popover = builder.get_object('view_menu_widget')
+        view_menu_btn = self.builder.get_object('view_menu_btn')
+        view_menu_btn.set_popover(popover)
+        filter_box = builder.get_object('filter_box')
+        filter_box.show_all()
+
+        self.zoom_level = builder.get_object('zoom_level_scale')
+        #self.zoom_level.connect('value_changed', self.on_zoom_changed)
+
+        # Actions
+        action = Gio.SimpleAction.new_stateful(
+                'search', None, GLib.Variant.new_boolean(False))
+        action.connect('change-state', self.on_search_action)
+        self.window.add_action(action)
+        application.add_accelerator('<Primary>f', 'win.search', None)
+
+        '''action = Gio.SimpleAction.new_stateful(
+                'show-installed-only', None,
+                GLib.Variant.new_boolean(self.filter_installed))
+        action.connect('change-state', self.on_show_installed_only_changed)
+        self.window.add_action(action)
+
+        variant = GLib.Variant.new_string(view_type)
+        action = Gio.SimpleAction.new_stateful(
+                'view-mode', variant.get_type(), variant)
+        action.connect('change-state', self.on_runner_filter_changed)
+        self.window.add_action(action)'''
+
+        self.stop_action = Gio.SimpleAction.new('stop-current-game', None)
+        self.stop_action.connect('activate', self.on_stop_game_action)
+        self.stop_action.set_enabled(False)
+        self.window.add_action(self.stop_action)
 
         self.init_game_store()
 
@@ -244,14 +251,9 @@ class LutrisWindow(object):
 
     def switch_splash_screen(self):
         if not pga.get_table_length():
-            self.splash_box.show()
-            self.games_scrollwindow.hide()
-            self.sidebar_viewport.hide()
+            self.stack.set_visible_child(self.splash_box)
         else:
-            self.splash_box.hide()
-            self.games_scrollwindow.show()
-            if self.sidebar_visible:
-                self.sidebar_viewport.show()
+            self.stack.set_visible_child(self.main_box)
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
@@ -350,10 +352,6 @@ class LutrisWindow(object):
                 self.joystick_icons[index].set_visible(False)
         return True
 
-    def about(self, _widget, _data=None):
-        """Open the about dialog."""
-        dialogs.AboutDialog(parent=self.window)
-
     # ---------
     # Callbacks
     # ---------
@@ -366,7 +364,6 @@ class LutrisWindow(object):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
-        self.connect_link.hide()
 
     def on_connect_success(self, dialog, credentials):
         if isinstance(credentials, str):
@@ -379,7 +376,6 @@ class LutrisWindow(object):
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
-        self.connect_link.show()
 
     def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
@@ -387,15 +383,12 @@ class LutrisWindow(object):
         connection_label = self.builder.get_object('connection_label')
 
         if is_connected:
-            disconnect_menuitem.show()
-            connect_menuitem.hide()
             connection_status = "Connected as %s" % username
+            self.connect_link.hide()
         else:
-            disconnect_menuitem.hide()
-            connect_menuitem.show()
             connection_status = "Not connected"
+            self.connect_link.show()
         logger.info(connection_status)
-        connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
         register_url = "https://lutris.net/user/register"
@@ -459,6 +452,25 @@ class LutrisWindow(object):
         )
         self.game_store.filter_installed = filter_installed
         self.game_store.modelfilter.refilter()
+
+    def on_stop_game_action(self, action, param):
+        if self.running_game:
+            self.running_game.stop()
+            self.stop_action.set_enabled(False)
+
+    def on_search_action(self, action, value):
+        action.set_state(value)
+        if value.get_boolean():
+            self.search_revealer.set_reveal_child(True)
+            self.search_entry.grab_focus()
+        else:
+            self.search_revealer.set_reveal_child(False)
+            self.view.grab_focus
+
+    def on_view_mode_changed(self, action, value):
+        action.set_state(value)
+        view_type = value.get_string()
+        self.switch_view(view_type)
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog(parent=self.window)
@@ -551,7 +563,7 @@ class LutrisWindow(object):
         game = Game(self.view.selected_game)
         AddGameDialog(self.window, game, callback=lambda: on_game_added(game))
 
-    def on_view_game_log_activate(self, widget):
+    def on_view_game_log_activate(self, action, param):
         if not self.running_game:
             dialogs.ErrorDialog('No game log available')
             return
@@ -620,32 +632,6 @@ class LutrisWindow(object):
         if game.is_installed:
             dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
 
-    def on_viewmenu_toggled(self, menuitem):
-        view_type = 'grid' if menuitem.get_active() else 'list'
-        if view_type == self.current_view_type:
-            return
-        self.switch_view(view_type)
-        self.grid_view_btn.set_active(view_type == 'grid')
-        self.list_view_btn.set_active(view_type == 'list')
-
-    def on_viewbtn_toggled(self, widget):
-        view_type = 'grid' if widget.get_active() else 'list'
-        if view_type == self.current_view_type:
-            return
-        self.switch_view(view_type)
-        self.grid_view_menuitem.set_active(view_type == 'grid')
-        self.list_view_menuitem.set_active(view_type == 'list')
-
-    def on_icon_type_activate(self, menuitem):
-        icon_type = menuitem.get_name()
-        if icon_type == self.game_store.icon_type or not menuitem.get_active():
-            return
-        if self.current_view_type == 'grid':
-            settings.write_setting('icon_type_gridview', icon_type)
-        elif self.current_view_type == 'list':
-            settings.write_setting('icon_type_listview', icon_type)
-        self.game_store.set_icon_type(icon_type)
-
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
         game = Game(self.view.selected_game)
@@ -663,24 +649,3 @@ class LutrisWindow(object):
     def remove_desktop_shortcut(self, *args):
         game = Game(self.view.selected_game)
         shortcuts.remove_launcher(game.slug, game.id, desktop=True)
-
-    def toggle_sidebar(self, _widget=None):
-        if self.sidebar_visible:
-            self.sidebar_paned.remove(self.games_scrollwindow)
-            self.main_box.remove(self.sidebar_paned)
-            self.main_box.remove(self.statusbar)
-            self.main_box.pack_start(self.games_scrollwindow, True, True, 0)
-            self.main_box.pack_start(self.statusbar, False, False, 0)
-            settings.write_setting('sidebar_visible', 'false')
-        else:
-            self.main_box.remove(self.games_scrollwindow)
-            self.sidebar_paned.add2(self.games_scrollwindow)
-            self.main_box.remove(self.statusbar)
-            self.main_box.pack_start(self.sidebar_paned, True, True, 0)
-            self.main_box.pack_start(self.statusbar, False, False, 0)
-            settings.write_setting('sidebar_visible', 'true')
-        self.sidebar_visible = not self.sidebar_visible
-
-    def on_sidebar_changed(self, widget):
-        self.view.game_store.filter_runner = widget.get_selected_runner()
-        self.game_store.modelfilter.refilter()
