@@ -637,9 +637,9 @@ class ScriptInterpreter(CommandsMixin):
             logger.debug(states)
         self.prev_states = states
 
-        if states and states.pop().startswith('Fully Installed'):
-            self._on_steam_game_installed()
+        if states and states[-1].startswith('Fully Installed'):
             logger.debug('Steam game has finished installing')
+            self._on_steam_game_installed()
             return False
         else:
             return True
