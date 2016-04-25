@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
@@ -79,10 +79,9 @@
     <property name="icon_name">view-list-symbolic</property>
   </object>
   <object class="GtkWindow" id="window">
-    <property name="width_request">640</property>
-    <property name="height_request">300</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
+    <property name="window_position">center</property>
     <property name="icon">../media/lutris.svg</property>
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>

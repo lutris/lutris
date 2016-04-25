@@ -58,6 +58,7 @@ class ScriptInterpreter(CommandsMixin):
         self.steam_data = {}
         self.script = script
         self.runners_to_install = []
+        self.prev_states = []  # Previous states for the Steam installer
         if not self.script:
             return
         if not self.is_valid():
@@ -631,13 +632,16 @@ class ScriptInterpreter(CommandsMixin):
         steam_runner = self._get_steam_runner()
         states = get_app_state_log(steam_runner.steam_data_dir, appid,
                                    self.install_start_time)
-        logger.debug(states)
-        if states and states.pop().startswith('Fully Installed'):
-            self._on_steam_game_installed()
+        if states != self.prev_states:
+            logger.debug("Steam installation status:")
+            logger.debug(states)
+        self.prev_states = states
+
+        if states and states[-1].startswith('Fully Installed'):
             logger.debug('Steam game has finished installing')
+            self._on_steam_game_installed()
             return False
         else:
-            logger.debug('Steam game still installing')
             return True
 
     def _on_steam_game_installed(self, *args):
