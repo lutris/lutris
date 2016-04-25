@@ -12,29 +12,37 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+'''
 import dbus
 import dbus.service
+'''
 import os
 import sys
+'''
 import logging
 import optparse
+'''
 import signal
+'''
 import time
 import json
+'''
 
 # pylint: disable=E0611
-import gi
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
 
+import gi
+# gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
+'''
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 from gi.repository import Gdk, Gtk, GObject, GLib
+'''
+from gi.repository import Gtk
 
 from os.path import realpath, dirname, normpath
-
+'''
 LAUNCH_PATH = dirname(realpath(__file__))
 if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
@@ -50,7 +58,9 @@ from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.settings import VERSION
 from lutris.util import service
-
+'''
+from lutris.gui.application import Application
+'''
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -112,9 +122,12 @@ check_config(force_wipe=False)
 
 installer = False
 game = None
+'''
 
+app = Application()
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+'''
 # D-Bus init
 
 bus = dbus.SessionBus()
@@ -197,3 +210,6 @@ if game_slug or installer:
 lutris.run(int(time.time()))
 if lutris.is_running():
     Gdk.notify_startup_complete()
+'''
+
+app.run(sys.argv)
