@@ -104,15 +104,15 @@ class steam(Runner):
     def steam_data_dir(self):
         """Return dir where Steam files lie."""
         candidates = (
-            "~/.local/share/Steam/",
-            "~/.local/share/steam/",
-            "~/.steam/",
-            "~/.Steam/",
+            "~/.local/share/steam/SteamApps",
+            "~/.steam/steam/SteamApps",
+            "~/.steam/SteamApps",
         )
         for candidate in candidates:
             path = os.path.expanduser(candidate)
-            if os.path.isdir(path):
-                return path
+            path = system.fix_path_case(path)
+            if path:
+                return path.rstrip('sSteamAp')
 
     def get_executable(self):
         return system.find_executable('steam')
@@ -153,9 +153,9 @@ class steam(Runner):
 
     def install(self):
         raise NonInstallableRunnerError(
-            "Steam for Linux installation is not handled by Lutris.\n" \
-            "Please go to " \
-            "<a href='http://steampowered.com'>http://steampowered.com</a>" \
+            "Steam for Linux installation is not handled by Lutris.\n"
+            "Please go to "
+            "<a href='http://steampowered.com'>http://steampowered.com</a>"
             " or install Steam with the package provided by your distribution."
         )
 
