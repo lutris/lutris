@@ -90,7 +90,7 @@ class ScriptInterpreter(CommandsMixin):
         return os.path.expanduser(os.path.join(games_dir, self.game_slug))
 
     @property
-    def download_cache_path(self):
+    def cache_path(self):
         return os.path.join(settings.CACHE_DIR,
                             "installer/%s" % self.game_slug)
 
@@ -149,8 +149,8 @@ class ScriptInterpreter(CommandsMixin):
     def iter_game_files(self):
         if self.files:
             # Create cache dir if needed
-            if not os.path.exists(self.download_cache_path):
-                os.mkdir(self.download_cache_path)
+            if not os.path.exists(self.cache_path):
+                os.mkdir(self.cache_path)
 
             if self.target_path and self.should_create_target:
                 os.makedirs(self.target_path)
@@ -204,7 +204,7 @@ class ScriptInterpreter(CommandsMixin):
             file_uri = pga_uri
 
         # Setup destination path
-        dest_file = os.path.join(self.download_cache_path, filename)
+        dest_file = os.path.join(self.cache_path, filename)
 
         if file_uri.startswith("N/A"):
             # Ask the user where the file is located
@@ -344,6 +344,9 @@ class ScriptInterpreter(CommandsMixin):
         """Run the pre-installation steps and launch install."""
         if self.target_path and os.path.exists(self.target_path):
             os.chdir(self.target_path)
+
+        if not os.path.exists(self.cache_path):
+            os.mkdir(self.cache_path)
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ('steam', 'winesteam'):
@@ -533,8 +536,8 @@ class ScriptInterpreter(CommandsMixin):
 
     def cleanup(self):
         os.chdir(os.path.expanduser('~'))
-        if os.path.exists(self.download_cache_path):
-            shutil.rmtree(self.download_cache_path)
+        if os.path.exists(self.cache_path):
+            shutil.rmtree(self.cache_path)
 
     # --------------
     # Revert install
@@ -559,7 +562,7 @@ class ScriptInterpreter(CommandsMixin):
         """Replace path aliases with real paths."""
         replacements = {
             "GAMEDIR": self.target_path,
-            "CACHE": settings.CACHE_DIR,
+            "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "DISC": self.game_disc,
             "USER": os.getenv('USER'),
