@@ -153,7 +153,15 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return [self.get_executable(), self.get_steam_path(), '-no-dwrite']
+        args = [self.get_executable(), self.get_steam_path()]
+
+        # Fix invisible text in Steam
+        args.append('-no-dwrite')
+
+        # Try to fix Steam's browser. Never worked but it's supposed to...
+        args.append('-no-cef-sandox')
+
+        return args
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
