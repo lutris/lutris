@@ -176,7 +176,6 @@
                         <property name="tooltip_text" translatable="yes">configure the default options</property>
                         <property name="use_underline">True</property>
                         <property name="image">image1</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_preferences_activate" swapped="no"/>
                       </object>
                     </child>
@@ -187,7 +186,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image3</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_destroy" swapped="no"/>
                       </object>
                     </child>
@@ -336,7 +334,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image4</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_game_run" swapped="no"/>
                       </object>
                     </child>
@@ -347,7 +344,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image5</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_game_stop" swapped="no"/>
                       </object>
                     </child>
@@ -364,7 +360,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image6</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="add_game" swapped="no"/>
                       </object>
                     </child>
@@ -375,7 +370,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image7</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_remove_game" swapped="no"/>
                       </object>
                     </child>
@@ -392,7 +386,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image2</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_view_game_log_activate" swapped="no"/>
                       </object>
                     </child>
@@ -417,7 +410,6 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="image">image8</property>
-                        <property name="use_stock">False</property>
                         <signal name="activate" handler="about" swapped="no"/>
                       </object>
                     </child>
