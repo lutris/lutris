@@ -597,10 +597,6 @@
           <object class="GtkAlignment" id="splash_alignment">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="top_padding">50</property>
-            <property name="bottom_padding">50</property>
-            <property name="left_padding">150</property>
-            <property name="right_padding">150</property>
             <child>
               <object class="GtkBox" id="splash_box">
                 <property name="visible">True</property>
