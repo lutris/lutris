@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.18.3 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
   <!-- interface-local-resource-path ../media -->
@@ -112,21 +112,21 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="preferences_menuitem">
-                        <property name="label" translatable="yes">_Preferences</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip_markup" translatable="yes">configure the default options</property>
                         <property name="tooltip_text" translatable="yes">configure the default options</property>
+                        <property name="label" translatable="yes">_Preferences</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_preferences_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="quit_menuitem">
-                        <property name="label">_Quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label">_Quit</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_destroy" swapped="no"/>
                       </object>
@@ -271,18 +271,18 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkMenuItem" id="playgame_menuitem">
-                        <property name="label" translatable="yes">_Play</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">_Play</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_game_run" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="stopgame_menuitem">
-                        <property name="label">_Stop</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label">_Stop</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_game_stop" swapped="no"/>
                       </object>
@@ -295,18 +295,18 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="addgame_menuitem">
-                        <property name="label">_Add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label">_Add</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="add_game" swapped="no"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="removegame_menuitem">
-                        <property name="label">_Remove</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label">_Remove</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_remove_game" swapped="no"/>
                       </object>
@@ -319,9 +319,9 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="view_game_log">
-                        <property name="label" translatable="yes">View last game's _log</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">View last game's _log</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_view_game_log_activate" swapped="no"/>
                       </object>
@@ -342,9 +342,9 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkMenuItem" id="imagemenuitem10">
-                        <property name="label">_About</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="label">_About</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="about" swapped="no"/>
                       </object>
@@ -519,95 +519,90 @@
           </packing>
         </child>
         <child>
-          <object class="GtkAlignment" id="splash_alignment">
+          <object class="GtkBox" id="splash_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">10</property>
+            <property name="baseline_position">top</property>
             <child>
-              <object class="GtkBox" id="splash_box">
+              <object class="GtkLabel" id="title_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">10</property>
-                <property name="baseline_position">top</property>
-                <child>
-                  <object class="GtkLabel" id="title_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Welcome to Lutris</property>
-                    <attributes>
-                      <attribute name="scale" value="2"/>
-                    </attributes>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
-                    <property name="lines">4</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLinkButton" id="add_game_link">
-                    <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="relief">none</property>
-                    <signal name="activate-link" handler="add_game" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLinkButton" id="connect_link">
-                    <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="relief">none</property>
-                    <signal name="activate-link" handler="on_connect" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLinkButton" id="website_link">
-                    <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="relief">none</property>
-                    <property name="uri">http://lutris.net/games/</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
+                <property name="label" translatable="yes">Welcome to Lutris</property>
+                <attributes>
+                  <attribute name="scale" value="2"/>
+                </attributes>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
+                <property name="lines">4</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="add_game_link">
+                <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <signal name="activate-link" handler="add_game" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="connect_link">
+                <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <signal name="activate-link" handler="on_connect" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLinkButton" id="website_link">
+                <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">none</property>
+                <property name="uri">http://lutris.net/games/</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">4</property>
+              </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="padding">40</property>
             <property name="position">2</property>
           </packing>
         </child>
