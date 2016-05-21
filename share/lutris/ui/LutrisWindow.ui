@@ -546,7 +546,6 @@
                         <property name="receives_default">False</property>
                         <property name="tooltip_text" translatable="yes">Grid view</property>
                         <property name="image">view_grid_symbolic</property>
-                        <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
                         <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
@@ -564,7 +563,6 @@
                         <property name="receives_default">False</property>
                         <property name="tooltip_text" translatable="yes">List view</property>
                         <property name="image">view_list_symbolic</property>
-                        <property name="xalign">0</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
                         <property name="group">switch_grid_view_btn</property>
@@ -638,7 +636,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="resize_mode">queue</property>
                     <property name="relief">none</property>
                     <signal name="activate-link" handler="add_game" swapped="no"/>
                   </object>
@@ -791,7 +788,6 @@
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes">Lutris</property>
                     <property name="lines">1</property>
-                    <property name="xalign">0</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -804,7 +800,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes">label</property>
-                    <property name="xalign">1</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>

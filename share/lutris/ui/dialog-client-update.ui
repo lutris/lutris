@@ -40,7 +40,6 @@
                 <property name="has_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
-                <property name="yalign">0.56000000238418579</property>
                 <signal name="clicked" handler="on_open_downloads_clicked" swapped="no"/>
               </object>
               <packing>
