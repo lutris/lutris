@@ -67,14 +67,12 @@
   <object class="GtkImage" id="view_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-grid-symbolic</property>
   </object>
   <object class="GtkImage" id="view_list_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="xpad">4</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">view-list-symbolic</property>
   </object>
@@ -750,7 +748,6 @@
                 <child>
                   <object class="GtkImage" id="js1image">
                     <property name="can_focus">False</property>
-                    <property name="xpad">2</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
@@ -762,7 +759,6 @@
                 <child>
                   <object class="GtkImage" id="js0image">
                     <property name="can_focus">False</property>
-                    <property name="xpad">2</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
@@ -774,7 +770,6 @@
                 <child>
                   <object class="GtkImage" id="js3image">
                     <property name="can_focus">False</property>
-                    <property name="xpad">2</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
@@ -786,7 +781,6 @@
                 <child>
                   <object class="GtkImage" id="js2image">
                     <property name="can_focus">False</property>
-                    <property name="xpad">2</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
@@ -799,8 +793,6 @@
                   <object class="GtkLabel" id="status_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xpad">5</property>
-                    <property name="ypad">5</property>
                     <property name="label" translatable="yes">Lutris</property>
                     <property name="lines">1</property>
                     <property name="xalign">0</property>

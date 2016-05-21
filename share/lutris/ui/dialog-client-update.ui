@@ -61,8 +61,6 @@
           <object class="GtkLabel" id="label1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xpad">40</property>
-            <property name="ypad">30</property>
             <property name="label" translatable="yes">A new version of Lutris is available!</property>
           </object>
           <packing>
