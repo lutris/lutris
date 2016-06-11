@@ -4,7 +4,7 @@ import os
 import time
 import subprocess
 
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
@@ -37,10 +37,14 @@ def load_view(view, store):
     return view
 
 
-class LutrisWindow(object):
+class LutrisWindow(Gtk.Application):
     """Handler class for main window signals."""
     def __init__(self, service=None):
 
+        Gtk.Application.__init__(
+            self, application_id="net.lutris.main",
+            flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE
+        )
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
         )
