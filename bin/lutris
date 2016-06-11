@@ -124,7 +124,7 @@ if type(lutris) is dbus.Interface:
     try:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
-        logger.debug(e)
+        logger.error(e)
 
         # FIXME This whole thing below is utterly broken and I've never seen
         # the expected behavior happen. Now, if only I knew how to reproduce
@@ -138,8 +138,10 @@ if type(lutris) is dbus.Interface:
             pid = dbus_interface.GetConnectionUnixProcessID(lutris.bus_name)
 
             os.kill(pid, signal.SIGKILL)
-        except OSError, dbus.exceptions.DBusException:
-            logger.debug(e)
+        except (OSError, dbus.exceptions.DBusException) as ex:
+            logger.error("Lutris was non responsive, we tried, we failed and failed "
+                         "some more. Please now try to restart Lutris")
+            logger.error(ex)
             exit()  # Give up :(
         else:
             time.sleep(1)  # Wait for bus name to be available again
