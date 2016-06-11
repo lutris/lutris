@@ -85,6 +85,7 @@ def migrate_games():
         {'name': 'year', 'type': 'INTEGER'},
         {'name': 'steamid', 'type': 'INTEGER'},
         {'name': 'configpath', 'type': 'TEXT'},
+        {'name': 'assets_dir', 'type': 'TEXT'},
     ]
     return migrate('games', schema)
 

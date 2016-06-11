@@ -63,6 +63,11 @@ class Game(object):
         self.steamid = game_data.get('steamid') or ''
 
         self.load_config()
+
+        self.assets_dir = os.path.dirname(self.config.game_config['main_file']) \
+                          if 'main_file' in self.config.game_config \
+                          else self.directory
+
         self.resolution_changed = False
         self.original_outputs = None
 
@@ -125,7 +130,8 @@ class Game(object):
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            assets_dir=self.assets_dir,
         )
 
     def prelaunch(self):

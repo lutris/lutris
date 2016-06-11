@@ -1,4 +1,6 @@
 """Configuration dialogs"""
+import os
+
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
@@ -269,6 +271,15 @@ class GameDialogCommon(object):
         self.game.config = self.lutris_config
         self.game.directory = runner.game_path
         self.game.is_installed = True
+
+        if 'main_file' in self.lutris_config.game_config:
+            self.game.assets_dir = os.path.dirname(self.lutris_config.game_config['main_file'])
+        elif 'iso'in self.lutris_config.game_config:
+            self.game.assets_dir = os.path.dirname(self.lutris_config.game_config['iso'])
+        else:
+            self.game.assets_dir = self.game.directory
+
+
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
         self.game.save()

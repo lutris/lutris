@@ -1,5 +1,6 @@
 # -*- coding:Utf-8 -*-
 import os
+import glob
 
 from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -17,9 +18,20 @@ DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
                                         'media/unavailable.png')
-BANNER_SIZE = (184, 69)
-BANNER_SMALL_SIZE = (120, 45)
-ICON_SIZE = (32, 32)
+
+BANNER_SIZE = {'banner_large':   (460, 215),  #(460, 215), # steam banners size
+               'banner_normal': (230,108),
+               'banner_small':  (185, 86),    # lutris default width
+               'banner_tiny':   (121, 56),    # lutris small width
+
+               'widebanner_small': (184, 69), # lutris default size (legacy)
+               'widebanner_tiny':  (120, 45)  # lutris small size (legacy)
+              }
+
+ICON_SIZE = {'icon': (32, 32),
+             'icon_large': (64, 64),
+            }
+
 (
     COL_ID,
     COL_SLUG,
@@ -28,7 +40,8 @@ ICON_SIZE = (32, 32)
     COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-) = range(7)
+    COL_ASSETS
+) = range(8)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -63,23 +76,34 @@ def get_overlay(size):
 
 
 @lru_cache(maxsize=1500)
-def get_pixbuf_for_game(game_slug, icon_type, is_installed):
-    if icon_type in ("banner", "banner_small"):
-        size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
+def get_pixbuf_for_game(game_slug, icon_type, is_installed, assets_dir=None):
+
+    if icon_type in BANNER_SIZE.keys():
+        size = BANNER_SIZE[icon_type]
         default_icon = DEFAULT_BANNER
-        icon_path = os.path.join(settings.BANNER_PATH,
-                                 "%s.jpg" % game_slug)
-    elif icon_type == "icon":
-        size = ICON_SIZE
+
+        if assets_dir and glob.glob(os.path.join(assets_dir, "banner.*")):
+            icon_path = glob.glob(os.path.join(assets_dir, "banner.*"))[0]
+        else:
+            icon_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
+
+    elif icon_type in ICON_SIZE.keys():
+        size = ICON_SIZE[icon_type]
         default_icon = DEFAULT_ICON
-        icon_path = os.path.join(settings.ICON_PATH,
-                                 "lutris_%s.png" % game_slug)
+
+        if assets_dir and glob.glob(os.path.join(assets_dir, "icon.*")):
+            icon_path = glob.glob(os.path.join(assets_dir, "icon.*"))[0]
+        else:
+            icon_path = os.path.join(settings.ICON_PATH,
+                                     "lutris_%s.png" % game_slug)
 
     if not os.path.exists(icon_path):
         pixbuf = get_default_icon(default_icon, size)
+        pixbuf = pixbuf.scale_simple(size[0], size[1], GdkPixbuf.InterpType.BILINEAR)
     else:
         try:
             pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
+            pixbuf = pixbuf.scale_simple(size[0], size[1], GdkPixbuf.InterpType.BILINEAR)
         except GLib.GError:
             pixbuf = get_default_icon(default_icon, size)
     if not is_installed:
@@ -103,7 +127,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -157,7 +181,7 @@ class GameStore(GObject.Object):
                 game_id, game_data
             ))
         pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
-                                     game_data['installed'])
+                                     game_data['installed'], game_data['assets_dir'])
         name = game_data['name'].replace('&', "&amp;")
         self.store.append((
             game_data['id'],
@@ -166,19 +190,22 @@ class GameStore(GObject.Object):
             pixbuf,
             str(game_data['year']),
             game_data['runner'],
-            game_data['installed']
+            game_data['installed'],
+            game_data['assets_dir']
         ))
+
 
     def update_all_icons(self, icon_type):
         for row in self.store:
             row[COL_ICON] = get_pixbuf_for_game(
-                row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
+                row[COL_SLUG], icon_type, row[COL_INSTALLED], row[COL_ASSETS]
             )
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
             self.icon_type = icon_type
             self.update_all_icons(icon_type)
+            get_pixbuf_for_game.cache_clear()
             self.emit('icons-changed', icon_type)
 
 
@@ -228,7 +255,7 @@ class GameView(object):
         if not row:
             raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
         row[COL_RUNNER] = game.runner_name
-        self.update_image(game.id, is_installed=True)
+        self.update_image(game.id, is_installed=True, game_directory = game.assets_dir)
 
     def set_uninstalled(self, game_id):
         """Update a game row to show as uninstalled"""
@@ -236,7 +263,7 @@ class GameView(object):
         if not row:
             raise ValueError("Couldn't find row for id %s" % game_id)
         row[COL_RUNNER] = ''
-        self.update_image(game_id, is_installed=False)
+        self.update_image(game_id, is_installed=False, game_directory = game['assets_dir'])
 
     def update_row(self, game):
         """Update game informations.
@@ -246,9 +273,9 @@ class GameView(object):
         row = self.get_row_by_id(game['id'])
         if row:
             row[COL_YEAR] = str(game['year'])
-            self.update_image(game['id'], row[COL_INSTALLED])
+            self.update_image(game['id'], row[COL_INSTALLED], game['assets_dir'])
 
-    def update_image(self, game_id, is_installed=False):
+    def update_image(self, game_id, is_installed=False, game_directory=None):
         """Update game icon."""
         row = self.get_row_by_id(game_id)
         if row:
@@ -256,7 +283,7 @@ class GameView(object):
             get_pixbuf_for_game.cache_clear()
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
-                                              is_installed)
+                                              is_installed, game_directory)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
             if type(self) is GameGridView:
@@ -325,6 +352,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.connect_signals()
         self.connect('row-activated', self.on_row_activated)
         self.connect('cursor-changed', self.on_cursor_changed)
+        store.connect('icons-changed', self.on_icons_changed)
 
     def set_text_cell(self):
         text_cell = Gtk.CellRendererText()
@@ -369,6 +397,18 @@ class GameListView(Gtk.TreeView, GameView):
             settings.write_setting(col_name + '_column_width',
                                    col.get_fixed_width(), 'list view')
 
+    def on_icons_changed(self, store, icon_type):
+
+        # NOTE: this is the only workaround so that the pixbuf column
+        # gets downsized if the image is changed to a smaller image.
+
+        if self.get_column(0) is not None:
+            self.remove_column(self.get_column(0))
+            image_cell = Gtk.CellRendererPixbuf()
+            column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+            column.set_reorderable(True)
+            self.insert_column(column, 0)
+
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
@@ -378,12 +418,12 @@ class GameGridView(Gtk.IconView, GameView):
         self.model = self.game_store.modelfilter
         super(GameGridView, self).__init__(model=self.model)
 
+        self.cell_width = BANNER_SIZE[store.icon_type][0]
+        self.cell_renderer = GridViewCellRendererText(self.cell_width)
+        self.cell_renderer.props.width = self.cell_width
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner"
-                           else BANNER_SMALL_SIZE[0])
-        self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
         self.add_attribute(self.cell_renderer, 'markup', COL_NAME)
 
@@ -415,10 +455,11 @@ class GameGridView(Gtk.IconView, GameView):
         self.emit("game-selected")
 
     def on_icons_changed(self, store, icon_type):
-        width = (BANNER_SIZE[0] if icon_type == "banner"
-                 else BANNER_SMALL_SIZE[0])
-        self.set_item_width(width)
-        self.cell_renderer.props.width = width
+        self.cell_width = (BANNER_SIZE[icon_type] \
+                    if icon_type in BANNER_SIZE.keys() \
+                    else ICON_SIZE[icon_type])[0]
+        self.set_item_width(self.cell_width)
+        self.cell_renderer.props.width = self.cell_width
         self.queue_draw()
 
 

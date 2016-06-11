@@ -71,7 +71,7 @@ setup(
     scripts=['bin/lutris'],
     data_files=data_files,
     # FIXME: find a way to install dependencies
-    # install_requires=['PyYAML', 'PyGObject'],
+    #install_requires=['PyYAML', 'PyGObject', 'dbus-python', 'pyxdg'],
     url='https://lutris.net',
     description='Install and play any video game on Linux',
     long_description="""Lutris is a gaming platform for GNU/Linux. It's goal is

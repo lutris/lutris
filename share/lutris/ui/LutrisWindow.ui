@@ -254,34 +254,98 @@
                       <object class="GtkMenuItem" id="icon_type_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Icon style</property>
+                        <property name="label" translatable="yes">_Game art style</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
                           <object class="GtkMenu" id="menu1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkRadioMenuItem" id="banner_small_menuitem">
-                                <property name="name">banner_small</property>
+                              <object class="GtkRadioMenuItem" id="banner_tiny_menuitem">
+                                <property name="name">banner_tiny</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Small banner</property>
+                                <property name="label" translatable="yes">Banner (tiny)</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
                                 <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
                               </object>
                             </child>
                             <child>
-                              <object class="GtkRadioMenuItem" id="banner_menuitem">
-                                <property name="name">banner</property>
+                              <object class="GtkRadioMenuItem" id="banner_small_menuitem">
+                                <property name="name">banner_small</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Banner</property>
+                                <property name="label" translatable="yes">Banner (small)</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
+                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkRadioMenuItem" id="banner_normal_menuitem">
+                                <property name="name">banner_normal</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Banner (normal)</property>
                                 <property name="use_underline">True</property>
                                 <property name="active">True</property>
                                 <property name="draw_as_radio">True</property>
-                                <property name="group">banner_small_menuitem</property>
+                                <property name="group">banner_normal_menuitem</property>
                                 <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkRadioMenuItem" id="banner_large_menuitem">
+                                <property name="name">banner_large</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Banner (large)</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
+                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSeparatorMenuItem" id="separatormenuitem5">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkRadioMenuItem" id="widebanner_tiny_menuitem">
+                                <property name="name">widebanner_tiny</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Wide Banner (tiny)</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
+                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkRadioMenuItem" id="widebanner_small_menuitem">
+                                <property name="name">widebanner_small</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Wide Banner (small)</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
+                                <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
+                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSeparatorMenuItem" id="separatormenuitem4">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                               </object>
                             </child>
                             <child>
@@ -289,10 +353,22 @@
                                 <property name="name">icon</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Icon</property>
+                                <property name="label" translatable="yes">Icon (normal)</property>
                                 <property name="use_underline">True</property>
                                 <property name="draw_as_radio">True</property>
-                                <property name="group">banner_small_menuitem</property>
+                                <property name="group">banner_normal_menuitem</property>
+                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkRadioMenuItem" id="icon_large_menuitem">
+                                <property name="name">icon_large</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Icon (large)</property>
+                                <property name="use_underline">True</property>
+                                <property name="draw_as_radio">True</property>
+                                <property name="group">banner_normal_menuitem</property>
                                 <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
                               </object>
                             </child>

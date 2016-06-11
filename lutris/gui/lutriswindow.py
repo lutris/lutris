@@ -25,7 +25,7 @@ from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
 from lutris.gui.gameviews import (
-    GameListView, GameGridView, ContextualMenu, GameStore
+    GameListView, GameGridView, ContextualMenu, GameStore, BANNER_SIZE
 )
 
 
@@ -103,13 +103,27 @@ class LutrisWindow(object):
         self.list_view_btn = self.builder.get_object('switch_list_view_btn')
         self.list_view_btn.set_active(view_type == 'list')
         # Icon type menu
+        self.banner_tiny_menuitem = \
+            self.builder.get_object('banner_tiny_menuitem')
+        self.banner_tiny_menuitem.set_active(self.icon_type == 'banner_tiny')
         self.banner_small_menuitem = \
             self.builder.get_object('banner_small_menuitem')
         self.banner_small_menuitem.set_active(self.icon_type == 'banner_small')
-        self.banner_menuitem = self.builder.get_object('banner_menuitem')
-        self.banner_menuitem.set_active(self.icon_type == 'banner')
+        self.banner_normal_menuitem = self.builder.get_object('banner_normal_menuitem')
+        self.banner_normal_menuitem.set_active(self.icon_type == 'banner_normal')
+        self.banner_large_menuitem = \
+            self.builder.get_object('banner_large_menuitem')
+        self.banner_large_menuitem.set_active(self.icon_type == 'banner_large')
+        self.widebanner_small_menuitem = \
+            self.builder.get_object('widebanner_small_menuitem')
+        self.widebanner_small_menuitem.set_active(self.icon_type == 'widebanner_small')
+        self.widebanner_tiny_menuitem = \
+            self.builder.get_object('widebanner_tiny_menuitem')
+        self.banner_small_menuitem.set_active(self.icon_type == 'widebanner_tiny')
         self.icon_menuitem = self.builder.get_object('icon_menuitem')
         self.icon_menuitem.set_active(self.icon_type == 'icon')
+        self.icon_menuitem = self.builder.get_object('icon_large_menuitem')
+        self.icon_menuitem.set_active(self.icon_type == 'icon_large')
 
         self.search_entry = self.builder.get_object('search_entry')
         self.search_entry.connect('icon-press', self.on_clear_search)
@@ -238,7 +252,7 @@ class LutrisWindow(object):
         else:
             icon_type = settings.read_setting('icon_type_gridview')
             default = settings.ICON_TYPE_GRIDVIEW
-        if icon_type not in ("banner_small", "banner", "icon"):
+        if icon_type not in BANNER_SIZE.keys():
             icon_type = default
         return icon_type
 
@@ -270,12 +284,8 @@ class LutrisWindow(object):
 
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
         # in the group send the activate signal...
-        if icon_type == 'banner_small':
-            self.banner_small_menuitem.set_active(True)
-        if icon_type == 'icon':
-            self.icon_menuitem.set_active(True)
-        if icon_type == 'banner':
-            self.banner_menuitem.set_active(True)
+        getattr(self, icon_type + "_menuitem").set_active(True) #Activate only the right entry
+
         settings.write_setting('view_type', view_type)
 
     def sync_library(self):
