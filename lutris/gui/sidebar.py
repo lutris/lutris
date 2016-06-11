@@ -1,7 +1,6 @@
 from gi.repository import Gtk, GdkPixbuf
 
 import lutris.runners
-from lutris import pga
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.widgets import get_runner_icon

@@ -3,7 +3,7 @@ import os
 import shutil
 import shlex
 
-from gi.repository import Gdk, GLib
+from gi.repository import GLib
 
 from .errors import ScriptingError
 
@@ -12,7 +12,7 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
-from lutris.runners import wine, import_task, import_runner
+from lutris.runners import wine, import_task
 from lutris.thread import LutrisThread
 
 
