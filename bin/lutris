@@ -40,7 +40,6 @@ if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
-from lutris.gui import dialogs
 from lutris.migrations import migrate
 
 from lutris import pga, runtime
@@ -126,6 +125,11 @@ if type(lutris) is dbus.Interface:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
         logger.debug(e)
+
+        # FIXME This whole thing below is utterly broken and I've never seen
+        # the expected behavior happen. Now, if only I knew how to reproduce
+        # this state, maybe I might be able to write a fix but I still have no
+        # idea what's causing this non-responsive DBus thing.
         try:
             # Get existing process' PID
             dbus_proxy = bus.get_object('org.freedesktop.DBus',
