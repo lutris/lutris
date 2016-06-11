@@ -126,14 +126,6 @@ if type(lutris) is dbus.Interface:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
         logger.debug(e)
-        q = dialogs.QuestionDialog(
-            {'title': "Error",
-             'question': ("Lutris is already running \n"
-                          "but seems unresponsive,\n"
-                          "do you want to restart it?")}
-        )
-        if q.result == Gtk.ResponseType.NO:
-            exit()
         try:
             # Get existing process' PID
             dbus_proxy = bus.get_object('org.freedesktop.DBus',
