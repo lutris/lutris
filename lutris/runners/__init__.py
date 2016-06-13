@@ -27,6 +27,14 @@ class InvalidRunner(Exception):
     pass
 
 
+class RunnerInstallationError(Exception):
+    pass
+
+
+class NonInstallableRunnerError(Exception):
+    pass
+
+
 def get_runner_module(runner_name):
     if runner_name not in __all__:
         raise InvalidRunner("Invalid runner name '%s'", runner_name)

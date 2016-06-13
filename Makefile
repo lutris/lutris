@@ -1,4 +1,4 @@
-VERSION="0.3.7.3"
+VERSION="0.3.7.5"
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -35,4 +35,4 @@ clean:
 build-all: deb
 
 upload:
-	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/

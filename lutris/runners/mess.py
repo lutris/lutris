@@ -35,6 +35,8 @@ class mess(Runner):
             'label': "Storage type",
             'choices': [
                 ("Floppy disk", 'flop'),
+                ("Floppy drive 1", 'flop1'),
+                ("Floppy drive 2", 'flop2'),
                 ("Cassette (tape)", 'cass'),
                 ("Cartridge", 'cart'),
                 ("Snapshot", 'snapshot'),

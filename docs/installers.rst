@@ -193,7 +193,7 @@ Example:
 Making a file executable
 ------------------------
 
-Marking the file as executable is done with the ``chmodx`` command. It is often
+Marking the file as executable is done with the ``chmodx`` directive. It is often
 needed for games that ship in a zip file, which does not retain file
 permissions.
 
@@ -204,9 +204,11 @@ Executing a file
 
 Execute files with the ``execute`` directive. Use the ``file`` parameter to
 reference a ``file id`` or a path, ``args`` to add command arguments,
-``terminal`` (set to "true") to execute in a new terminal window.
+``terminal`` (set to "true") to execute in a new terminal window, ``working_dir``
+to set the directory to execute the command in (defaults to the install path).
 The command is executed within the Lutris Runtime (resolving most shared
-library dependencies).
+library dependencies). The file is made executable if necessary, no need to run
+chmodx before.
 
 Example:
 

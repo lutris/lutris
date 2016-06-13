@@ -1,14 +1,14 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           lutris
-Version:        0.3.7.3
+Version:        0.3.7.5
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
 URL:            http://lutris.net
-Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
+Source0:        http://lutris.net/releases/lutris_%{version}.tar.xz
 
 BuildArch:      noarch
 

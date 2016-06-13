@@ -1,7 +1,6 @@
 from gi.repository import Gtk, GdkPixbuf
 
 import lutris.runners
-from lutris import pga
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.widgets import get_runner_icon
@@ -47,7 +46,8 @@ class SidebarTreeView(Gtk.TreeView):
         self.connect('button-press-event', self.popup_contextual_menu)
 
         self.runners = sorted(lutris.runners.__all__)
-        self.used_runners = pga.get_used_runners()
+        self.installed_runners = [runner.name for runner in
+                                  lutris.runners.get_installed()]
         self.load_all_runners()
         self.update()
         self.expand_all()
@@ -73,10 +73,10 @@ class SidebarTreeView(Gtk.TreeView):
     def filter_rule(self, model, iter, data):
         if model[iter][0] == 'runners':
             return True
-        return model[iter][0] in self.used_runners
+        return model[iter][0] in self.installed_runners
 
     def update(self):
-        self.used_runners = pga.get_used_runners()
+        self.used_runners = lutris.runners.get_installed()
         self.model_filter.refilter()
         self.expand_all()
 
