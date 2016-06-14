@@ -311,16 +311,6 @@ class LutrisWindow(Gtk.Application):
         for game_id in uninstalled.difference(added):
             self.view.set_uninstalled(game_id)
 
-        # See: https://github.com/lutris/lutris/issues/295
-        # This is disabled because it polls for the install state for every
-        # runner every 5 seconds. Runner installations and removals should
-        # notify the application of changes and make it act accordingly.
-        # The "Are we there yet?" pattern shouldn't be used outside the Process
-        # Monitor!
-        # Note: The code above regarding installed and uninstalled games has
-        # the exact same problem but should be solved with issue #212.
-        # self.sidebar_treeview.update()
-
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
             self.threads_stoppers.append(icons_sync.stop_request.set)

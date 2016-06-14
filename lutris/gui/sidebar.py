@@ -1,8 +1,9 @@
-from gi.repository import Gtk, GdkPixbuf
+from gi.repository import Gtk, GdkPixbuf, GObject
 
-import lutris.runners
+from lutris import runners
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
+from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.widgets import get_runner_icon
 
 SLUG = 0
@@ -44,10 +45,10 @@ class SidebarTreeView(Gtk.TreeView):
         self.set_fixed_height_mode(True)
 
         self.connect('button-press-event', self.popup_contextual_menu)
+        GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
-        self.runners = sorted(lutris.runners.__all__)
-        self.installed_runners = [runner.name for runner in
-                                  lutris.runners.get_installed()]
+        self.runners = sorted(runners.__all__)
+        self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.load_all_runners()
         self.update()
         self.expand_all()
@@ -56,7 +57,7 @@ class SidebarTreeView(Gtk.TreeView):
         """Append runners to the model."""
         runner_node = self.model.append(None, ['runners', None, "Runners"])
         for slug in self.runners:
-            name = lutris.runners.import_runner(slug).human_name
+            name = runners.import_runner(slug).human_name
             icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
             self.model.append(runner_node, [slug, icon, name])
 
@@ -75,10 +76,11 @@ class SidebarTreeView(Gtk.TreeView):
             return True
         return model[iter][0] in self.installed_runners
 
-    def update(self):
-        self.used_runners = lutris.runners.get_installed()
+    def update(self, *args):
+        self.used_runners = runners.get_installed()
         self.model_filter.refilter()
         self.expand_all()
+        return True
 
     def popup_contextual_menu(self, view, event):
         if event.button != 3:
@@ -107,7 +109,7 @@ class ContextualMenu(Gtk.Menu):
             self.append(menuitem)
 
     def popup(self, event, runner_slug, parent_window):
-        self.runner = lutris.runners.import_runner(runner_slug)()
+        self.runner = runners.import_runner(runner_slug)()
         self.parent_window = parent_window
 
         # Clear existing menu
