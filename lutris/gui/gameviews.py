@@ -40,8 +40,9 @@ ICON_SIZE = {'icon': (32, 32),
     COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-    COL_ASSETS
-) = range(8)
+    COL_BANNER_PATH,
+    COL_ICON_PATH
+) = range(9)
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -76,14 +77,17 @@ def get_overlay(size):
 
 
 @lru_cache(maxsize=1500)
-def get_pixbuf_for_game(game_slug, icon_type, is_installed, assets_dir=None):
+def get_pixbuf_for_game(game_slug, icon_type, is_installed, art_path=None):
+
+    print(art_path)
+    print(icon_type)
 
     if icon_type in BANNER_SIZE.keys():
         size = BANNER_SIZE[icon_type]
         default_icon = DEFAULT_BANNER
 
-        if assets_dir and glob.glob(os.path.join(assets_dir, "banner.*")):
-            icon_path = glob.glob(os.path.join(assets_dir, "banner.*"))[0]
+        if art_path is not None:
+            icon_path = art_path
         else:
             icon_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
 
@@ -91,11 +95,13 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed, assets_dir=None):
         size = ICON_SIZE[icon_type]
         default_icon = DEFAULT_ICON
 
-        if assets_dir and glob.glob(os.path.join(assets_dir, "icon.*")):
-            icon_path = glob.glob(os.path.join(assets_dir, "icon.*"))[0]
+        if art_path:
+            icon_path = art_path
         else:
             icon_path = os.path.join(settings.ICON_PATH,
                                      "lutris_%s.png" % game_slug)
+
+    print(icon_path)
 
     if not os.path.exists(icon_path):
         pixbuf = get_default_icon(default_icon, size)
@@ -111,6 +117,7 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed, assets_dir=None):
         pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
         return transparent_pixbuf
+
     return pixbuf
 
 
@@ -127,7 +134,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool, str)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool, str, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -180,8 +187,12 @@ class GameStore(GObject.Object):
             raise ValueError('Can\'t find game {} ({})'.format(
                 game_id, game_data
             ))
+        art_path = game_data['banner'] \
+                    if self.icon_type in BANNER_SIZE.keys() \
+                    else game_data['icon']
+
         pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
-                                     game_data['installed'], game_data['assets_dir'])
+                                     game_data['installed'], art_path)
         name = game_data['name'].replace('&', "&amp;")
         self.store.append((
             game_data['id'],
@@ -191,14 +202,18 @@ class GameStore(GObject.Object):
             str(game_data['year']),
             game_data['runner'],
             game_data['installed'],
-            game_data['assets_dir']
+            game_data['banner'],
+            game_data['icon']
         ))
 
 
     def update_all_icons(self, icon_type):
         for row in self.store:
+            art_path = row[COL_BANNER_PATH] \
+                        if icon_type in BANNER_SIZE.keys() \
+                        else row[COL_ICON_PATH]
             row[COL_ICON] = get_pixbuf_for_game(
-                row[COL_SLUG], icon_type, row[COL_INSTALLED], row[COL_ASSETS]
+                row[COL_SLUG], icon_type, row[COL_INSTALLED], art_path
             )
 
     def set_icon_type(self, icon_type):
@@ -280,10 +295,14 @@ class GameView(object):
         row = self.get_row_by_id(game_id)
         if row:
             game_slug = row[COL_SLUG]
+            art_path = row[COL_BANNER_PATH] \
+                        if self.game_store.icon_type in BANNER_SIZE.keys() \
+                        else row[COL_ICON_PATH]
+
             get_pixbuf_for_game.cache_clear()
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
-                                              is_installed, game_directory)
+                                              is_installed, art_path)
             row[COL_ICON] = game_pixpuf
             row[COL_INSTALLED] = is_installed
             if type(self) is GameGridView:

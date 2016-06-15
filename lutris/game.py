@@ -61,12 +61,12 @@ class Game(object):
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
+        self.banner = game_data.get('banner') or None
+        self.icon = game_data.get('icon') or None
 
         self.load_config()
 
-        self.assets_dir = os.path.dirname(self.config.game_config['main_file']) \
-                          if 'main_file' in self.config.game_config \
-                          else self.directory
+        
 
         self.resolution_changed = False
         self.original_outputs = None
@@ -131,7 +131,8 @@ class Game(object):
             configpath=self.config.game_config_id,
             steamid=self.steamid,
             id=self.id,
-            assets_dir=self.assets_dir,
+            banner=self.banner,
+            icon=self.icon,
         )
 
     def prelaunch(self):
