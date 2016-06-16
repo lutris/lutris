@@ -627,8 +627,11 @@ class LutrisWindow(object):
             self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
+
         if game.is_installed:
             dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
+
+
 
     def on_viewmenu_toggled(self, menuitem):
         view_type = 'grid' if menuitem.get_active() else 'list'

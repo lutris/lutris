@@ -115,28 +115,60 @@ class GameDialogCommon(object):
         self.art_box.attach(self.banner_frame, 0,0,16,1)        
 
         # Banner folder button: selects which folder to display
-        banner_folder_btn = Gtk.FileChooserButton()     
-        banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
-        banner_folder_btn.set_margin_right(20)
-        banner_folder_btn.connect('current-folder-changed', self.on_banner_folder_changed)
-        banner_folder_btn.set_current_folder(self.banner_folder) # Runs _fill_banerstore
-        self.art_box.attach(banner_folder_btn, 2, 1, 12, 1)
+        self.banner_folder_btn = Gtk.FileChooserButton()     
+        self.banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
+        self.banner_folder_btn.set_margin_right(20)
+        
+        #self.banner_folder_btn.connect('update-preview', self.on_banner_folder_changed)
+        #self.banner_folder_btn.connect('current-folder-changed', self.on_banner_folder_changed)
+        self.banner_folder_btn.connect('selection-changed', self.on_banner_folder_changed)
+        #self.banner_folder_btn.connect('file-set', self.on_banner_folder_changed)
+
+        self.banner_default_btn = Gtk.Button(label="Default")
+        self.banner_default_btn.set_margin_left(20)
+        self.banner_default_btn.connect('clicked', self.on_banner_default_clicked)
+        self.art_box.attach(self.banner_default_btn, 12, 1, 4, 1)
+        
+        if self.banner_folder is not None:
+            self.banner_folder_btn.set_filename(self.banner_folder) # Runs _fill_banerstore automatically
+        else:
+            self.banner_folder_btn.set_filename(os.path.join(settings.BANNER_PATH, self.game.slug))
+        self.art_box.attach(self.banner_folder_btn, 2, 1, 11, 1)
 
         # Update tab
         self.art_sw = self.build_scrolled_window(self.art_box)
         self.art_sw.set_border_width(20)
         self._add_notebook_tab(self.art_sw, "Artwork")
 
+    def on_banner_default_clicked(self,*args):
+        self.banner_folder_btn.set_filename(
+            os.path.join(settings.BANNER_PATH, self.game.slug)
+            )
+
+        self.game.banner = None
+
+    
+            
     def _fill_bannerstore(self):
         for row in self.bannerstore:
             self.bannerstore.remove(row.iter)
-        for filename in glob.glob(os.path.join(self.banner_folder, "*.*g")): #this matches every png & jpg
+
+        #this matches every png & jpg & makes sure default.*g is the first banner displayed
+        try:
+            file_list = glob.glob(os.path.join(self.banner_folder, "*.*g"))
+            file_list.remove(glob.glob(os.path.join(self.banner_folder, "default.*g"))[0])
+            file_list = glob.glob(os.path.join(self.banner_folder, "default.*g")) + file_list
+        except IndexError:
+            file_list = glob.glob(os.path.join(self.banner_folder, "*.*g"))
+
+        for filename in file_list: 
             pixbuf = Pixbuf.new_from_file_at_size(filename, IMAGE_WIDTH, IMAGE_HEIGHT)
             self.bannerstore.append([pixbuf, filename])
     
     def on_banner_folder_changed(self, folder_button):
-        self.banner_folder = folder_button.get_current_folder()
-        self._fill_bannerstore()
+        self.banner_folder = folder_button.get_filename()
+        if self.banner_folder is not None:
+            self._fill_bannerstore()
 
     def on_banner_selected(self, bannerview):
         try:
@@ -354,15 +386,7 @@ class GameDialogCommon(object):
         self.game.directory = runner.game_path
         self.game.is_installed = True
         self.game.banner = self.banner_path if self.banner_path else None
-
-        """
-        if 'main_file' in self.lutris_config.game_config:
-            self.game.assets_dir = os.path.dirname(self.lutris_config.game_config['main_file'])
-        elif 'iso'in self.lutris_config.game_config:
-            self.game.assets_dir = os.path.dirname(self.lutris_config.game_config['iso'])
-        else:
-            self.game.assets_dir = self.game.directory
-        """
+        self.game.icon = self.icon_path if self.icon_path else None
 
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
@@ -379,13 +403,20 @@ class AddGameDialog(Dialog, GameDialogCommon):
     def __init__(self, parent, game=None, callback=None):
         super(AddGameDialog, self).__init__("Add a new game", parent=parent)
         self.game = game
-        self.banner_path = None
         self.saved = False
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-        if game:
+        if game is not None:
             self.runner_name = game.runner_name
             self.slug = game.slug
+            self.banner_path = self.game.banner
+            self.banner_folder = os.path.dirname(self.banner_path) \
+                                    if self.banner_path is not None \
+                                    else None
+            self.icon_path = self.game.icon
+            self.icon_folder = os.path.dirname(self.icon_path) \
+                                    if self.icon_path is not None \
+                                    else None
         else:
             self.runner_name = None
             self.slug = None
@@ -399,6 +430,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_action_area("Add", self.on_save, callback)
         self.name_entry.grab_focus()
         self.show_all()
+
 
     def get_config_id(self):
         """For new games, create a special config type that won't be read
@@ -416,15 +448,14 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         self.game = game
 
         # Banner path is the actual path to the banner
-        self.banner_path = game.banner \
-                             if game.banner \
-                             else None
-
-        # Banner_folder is the folder being displayed in artwork tab
-        self.banner_folder = os.path.dirname(game.banner) \
-                               if game.banner \
-                               else os.path.join(settings.BANNER_PATH, self.game.slug)
-
+        self.banner_path = self.game.banner
+        self.banner_folder = os.path.dirname(self.banner_path) \
+                                if self.banner_path is not None \
+                                else None
+        self.icon_path = self.game.icon
+        self.icon_folder = os.path.dirname(self.icon_path) \
+                                if self.icon_path is not None \
+                                else None
 
         self.lutris_config = game.config
         self.game_config_id = game.config.game_config_id

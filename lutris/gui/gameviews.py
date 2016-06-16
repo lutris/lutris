@@ -79,17 +79,25 @@ def get_overlay(size):
 @lru_cache(maxsize=1500)
 def get_pixbuf_for_game(game_slug, icon_type, is_installed, art_path=None):
 
-    print(art_path)
-    print(icon_type)
+
 
     if icon_type in BANNER_SIZE.keys():
+
+        # the default banner for that game
+        game_default_banner = glob.glob(os.path.join(settings.BANNER_PATH, os.path.join(game_slug, "default.*g")))
+
+
         size = BANNER_SIZE[icon_type]
+
+        # the real default banner
         default_icon = DEFAULT_BANNER
 
         if art_path is not None:
             icon_path = art_path
+        elif game_default_banner:
+            icon_path = game_default_banner[0]
         else:
-            icon_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
+            icon_path = os.path.join(settings.BANNER_PATH, "{}.jpg".format(game_slug))
 
     elif icon_type in ICON_SIZE.keys():
         size = ICON_SIZE[icon_type]
@@ -100,8 +108,6 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed, art_path=None):
         else:
             icon_path = os.path.join(settings.ICON_PATH,
                                      "lutris_%s.png" % game_slug)
-
-    print(icon_path)
 
     if not os.path.exists(icon_path):
         pixbuf = get_default_icon(default_icon, size)
