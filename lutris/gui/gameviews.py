@@ -80,7 +80,6 @@ def get_overlay(size):
 def get_pixbuf_for_game(game_slug, icon_type, is_installed, art_path=None):
 
 
-
     if icon_type in BANNER_SIZE.keys():
 
         # the default banner for that game

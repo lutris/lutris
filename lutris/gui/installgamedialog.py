@@ -516,3 +516,4 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.pack_start(spinner, True, False, 10)
         spinner.show()
         spinner.start()
+

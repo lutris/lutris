@@ -45,10 +45,7 @@ class GameDialogCommon(object):
         if config_level == 'game':
             self._build_info_tab()
             self._build_game_tab()
-            
-            #if self.game is not None:
             self._build_art_tab()
-
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
 
@@ -78,9 +75,6 @@ class GameDialogCommon(object):
         self._add_notebook_tab(info_sw, "Game info")
 
     def _build_art_tab(self):
-
-
-
         
         # Art box: main container of the notebook page
         self.art_box = Gtk.Grid(column_homogeneous=True)
@@ -124,11 +118,8 @@ class GameDialogCommon(object):
             self.banner_folder_btn = Gtk.FileChooserButton()     
             self.banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
             self.banner_folder_btn.set_margin_right(20)
-            
-            #self.banner_folder_btn.connect('update-preview', self.on_banner_folder_changed)
-            #self.banner_folder_btn.connect('current-folder-changed', self.on_banner_folder_changed)
             self.banner_folder_btn.connect('selection-changed', self.on_banner_folder_changed)
-            #self.banner_folder_btn.connect('file-set', self.on_banner_folder_changed)
+            
 
             self.banner_default_btn = Gtk.Button(label="Default")
             self.banner_default_btn.set_margin_left(20)
@@ -141,14 +132,27 @@ class GameDialogCommon(object):
                 self.banner_folder_btn.set_filename(os.path.join(settings.BANNER_PATH, self.game.slug))
             self.art_box.attach(self.banner_folder_btn, 2, 1, 11, 1)
 
+            self.scrape_steam_banners_button = Gtk.Button(label="Download")
+            self.scrape_steam_banners_button.connect('clicked', self.populate_banner_folder)
+            self.art_box.attach(self.scrape_steam_banners_button, 10, 2, 5, 1)
+
+            self.scrape_steam_banners_label = Gtk.Label("Artworks from Steam Banners imageboard")
+            self.scrape_steam_banners_label.set_alignment(xalign=0, yalign=0.5) 
+            self.scrape_steam_banners_label.set_margin_left(10)
+            self.art_box.attach(self.scrape_steam_banners_label,0,2,10,1)
+
+
+
         else:
             self.scrape_steam_banners_box = Gtk.CheckButton("Download additional artworks"
-                                                "from Steam Banners imageboard")
-            
+                                                    " from Steam Banners imageboard")
+            self.scrape_steam_banners_box.set_margin_top(20)
+
+            self.art_box.attach(self.scrape_steam_banners_box, 0,3,16,1)
             if not settings.read_setting('scrape_steam_banners') == 'False':
                 self.scrape_steam_banners_box.set_active(True)
 
-            self.art_box.attach(self.scrape_steam_banners_box, 0,0,1,1)
+
 
         # Update tab
         self.art_sw = self.build_scrolled_window(self.art_box)
@@ -159,8 +163,8 @@ class GameDialogCommon(object):
         self.banner_folder_btn.set_filename(
             os.path.join(settings.BANNER_PATH, self.game.slug)
             )
-
         self.game.banner = None
+        self._fill_bannerstore()
 
     
             
@@ -404,20 +408,13 @@ class GameDialogCommon(object):
         self.game.banner = self.banner_path if self.banner_path else None
         self.game.icon = self.icon_path if self.icon_path else None
 
-
-        steam_scrape = self.scrape_steam_banners_box.get_active()
-        if steam_scrape:
-            
-            scraper = SteamBanScraper()
-            
-            if scraper.search(self.slug.replace('-', '_')) == 0:
-                scraper.search(self.slug.replace('-', ' '))
-            
-            scraper.download(os.path.join(settings.BANNER_PATH, self.slug))
-
-        settings.write_setting('scrape_steam_banners', steam_scrape)
-
-
+        try:
+            steam_scrape = self.scrape_steam_banners_box.get_active()
+            if steam_scrape:
+                self.populate_banner_folder()
+            settings.write_setting('scrape_steam_banners', steam_scrape)
+        except AttributeError:
+            pass
 
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
@@ -427,6 +424,30 @@ class GameDialogCommon(object):
         self.saved = True
         if callback:
             callback()
+
+    def populate_banner_folder(self, *args, **kwargs):
+        scraper = SteamBanScraper()
+        game_slug = self.slug if 'game_slug' not in kwargs else kwargs['game_slug']
+        
+        scraper.searchExtended(game_slug, False, separator='-')
+        print(scraper.bannerPages)
+
+        default_ban_folder = os.path.join(settings.BANNER_PATH, self.slug)
+            
+        if not os.path.exists(default_ban_folder):
+            os.mkdir(default_ban_folder)
+
+        if len(os.listdir(default_ban_folder)) < len(scraper.bannerPages):
+            scraper.download(default_ban_folder)
+
+        if self.banner_folder is None or self.banner_folder == default_ban_folder:
+            self.banner_folder = default_ban_folder
+            print(self.banner_folder)
+            self._fill_bannerstore()
+            #self.on_banner_default_clicked()
+        
+        return len(scraper.bannerPages)
+
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
