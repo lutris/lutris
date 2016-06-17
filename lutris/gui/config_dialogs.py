@@ -15,6 +15,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.util.steamban import SteamBanScraper
 
 DIALOG_WIDTH = 610
 DIALOG_HEIGHT = 550
@@ -45,8 +46,8 @@ class GameDialogCommon(object):
             self._build_info_tab()
             self._build_game_tab()
             
-            if self.game is not None:
-                self._build_art_tab()
+            #if self.game is not None:
+            self._build_art_tab()
 
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
@@ -77,63 +78,77 @@ class GameDialogCommon(object):
         self._add_notebook_tab(info_sw, "Game info")
 
     def _build_art_tab(self):
+
+
+
+        
         # Art box: main container of the notebook page
         self.art_box = Gtk.Grid(column_homogeneous=True)
         self.art_box.set_hexpand(True)
         self.art_box.set_halign(Gtk.Align.FILL)
 
-        # Label
-        label = Gtk.Label("Banner")
-        label.set_alignment(0, 0.5)
-        label.set_margin_left(10)
-        self.art_box.attach(label, 0, 1, 4, 1)
+        if self.game is not None:
+            # Label
+            label = Gtk.Label("Banner")
+            label.set_alignment(0, 0.5)
+            label.set_margin_left(10)
+            self.art_box.attach(label, 0, 1, 4, 1)
 
-        # Iconview of the banners
-        self.bannerstore = Gtk.ListStore(Pixbuf, str)
-        self.bannerview = Gtk.IconView()
-        self.bannerview.set_item_orientation(Gtk.Orientation.VERTICAL)
-        self.bannerview.set_model(self.bannerstore)
-        self.bannerview.set_pixbuf_column(0)
-        self.bannerview.set_hexpand(True)
-        self.bannerview.set_halign(Gtk.Align.FILL)
-        self.bannerview.set_pixbuf_column(0)
-        self.bannerview.connect('selection-changed', self.on_banner_selected)
+            # Iconview of the banners
+            self.bannerstore = Gtk.ListStore(Pixbuf, str)
+            self.bannerview = Gtk.IconView()
+            self.bannerview.set_item_orientation(Gtk.Orientation.VERTICAL)
+            self.bannerview.set_model(self.bannerstore)
+            self.bannerview.set_pixbuf_column(0)
+            self.bannerview.set_hexpand(True)
+            self.bannerview.set_halign(Gtk.Align.FILL)
+            self.bannerview.set_pixbuf_column(0)
+            self.bannerview.connect('selection-changed', self.on_banner_selected)
 
-        # Banner ScrolledWindow : a scrollable window around iconview
-        self.banner_sw = Gtk.ScrolledWindow.new()
-        self.banner_sw.set_hexpand(True)
-        self.banner_sw.set_halign(Gtk.Align.FILL)
-        self.banner_sw.set_size_request(DIALOG_WIDTH - 70, DIALOG_HEIGHT/3)
-        self.banner_sw.add(self.bannerview) 
+            # Banner ScrolledWindow : a scrollable window around iconview
+            self.banner_sw = Gtk.ScrolledWindow.new()
+            self.banner_sw.set_hexpand(True)
+            self.banner_sw.set_halign(Gtk.Align.FILL)
+            self.banner_sw.set_size_request(DIALOG_WIDTH - 70, DIALOG_HEIGHT/3)
+            self.banner_sw.add(self.bannerview) 
 
-        # Banner_frame: a frame around banner scrollwindow
-        self.banner_frame = Gtk.Frame()
-        self.banner_frame.set_hexpand(True)
-        self.banner_frame.set_halign(Gtk.Align.FILL)
-        self.banner_frame.add(self.banner_sw)
-        self.banner_frame.set_margin_bottom(10)
-        self.art_box.attach(self.banner_frame, 0,0,16,1)        
+            # Banner_frame: a frame around banner scrollwindow
+            self.banner_frame = Gtk.Frame()
+            self.banner_frame.set_hexpand(True)
+            self.banner_frame.set_halign(Gtk.Align.FILL)
+            self.banner_frame.add(self.banner_sw)
+            self.banner_frame.set_margin_bottom(10)
+            self.art_box.attach(self.banner_frame, 0,0,16,1)        
 
-        # Banner folder button: selects which folder to display
-        self.banner_folder_btn = Gtk.FileChooserButton()     
-        self.banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
-        self.banner_folder_btn.set_margin_right(20)
-        
-        #self.banner_folder_btn.connect('update-preview', self.on_banner_folder_changed)
-        #self.banner_folder_btn.connect('current-folder-changed', self.on_banner_folder_changed)
-        self.banner_folder_btn.connect('selection-changed', self.on_banner_folder_changed)
-        #self.banner_folder_btn.connect('file-set', self.on_banner_folder_changed)
+            # Banner folder button: selects which folder to display
+            self.banner_folder_btn = Gtk.FileChooserButton()     
+            self.banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
+            self.banner_folder_btn.set_margin_right(20)
+            
+            #self.banner_folder_btn.connect('update-preview', self.on_banner_folder_changed)
+            #self.banner_folder_btn.connect('current-folder-changed', self.on_banner_folder_changed)
+            self.banner_folder_btn.connect('selection-changed', self.on_banner_folder_changed)
+            #self.banner_folder_btn.connect('file-set', self.on_banner_folder_changed)
 
-        self.banner_default_btn = Gtk.Button(label="Default")
-        self.banner_default_btn.set_margin_left(20)
-        self.banner_default_btn.connect('clicked', self.on_banner_default_clicked)
-        self.art_box.attach(self.banner_default_btn, 12, 1, 4, 1)
-        
-        if self.banner_folder is not None:
-            self.banner_folder_btn.set_filename(self.banner_folder) # Runs _fill_banerstore automatically
+            self.banner_default_btn = Gtk.Button(label="Default")
+            self.banner_default_btn.set_margin_left(20)
+            self.banner_default_btn.connect('clicked', self.on_banner_default_clicked)
+            self.art_box.attach(self.banner_default_btn, 12, 1, 4, 1)
+            
+            if self.banner_folder is not None:
+                self.banner_folder_btn.set_filename(self.banner_folder) # Runs _fill_banerstore automatically
+            else:
+                self.banner_folder_btn.set_filename(os.path.join(settings.BANNER_PATH, self.game.slug))
+            self.art_box.attach(self.banner_folder_btn, 2, 1, 11, 1)
+
         else:
-            self.banner_folder_btn.set_filename(os.path.join(settings.BANNER_PATH, self.game.slug))
-        self.art_box.attach(self.banner_folder_btn, 2, 1, 11, 1)
+            self.scrape_steam_banners_box = Gtk.CheckButton("Download additional artworks"
+                                                "from Steam Banners imageboard")
+            
+            if not settings.read_setting('scrape_steam_banners') == 'False':
+                self.scrape_steam_banners_box.set_active(True)
+
+            self.art_box.attach(self.scrape_steam_banners_box, 0,0,1,1)
 
         # Update tab
         self.art_sw = self.build_scrolled_window(self.art_box)
@@ -343,6 +358,7 @@ class GameDialogCommon(object):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self._build_game_tab()
+        self._build_art_tab()
         self._build_runner_tab('game')
         self._build_system_tab('game')
         self.show_all()
@@ -388,6 +404,21 @@ class GameDialogCommon(object):
         self.game.banner = self.banner_path if self.banner_path else None
         self.game.icon = self.icon_path if self.icon_path else None
 
+
+        steam_scrape = self.scrape_steam_banners_box.get_active()
+        if steam_scrape:
+            
+            scraper = SteamBanScraper()
+            
+            if scraper.search(self.slug.replace('-', '_')) == 0:
+                scraper.search(self.slug.replace('-', ' '))
+            
+            scraper.download(os.path.join(settings.BANNER_PATH, self.slug))
+
+        settings.write_setting('scrape_steam_banners', steam_scrape)
+
+
+
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
         self.game.save()
@@ -418,6 +449,8 @@ class AddGameDialog(Dialog, GameDialogCommon):
                                     if self.icon_path is not None \
                                     else None
         else:
+            self.banner_path = None
+            self.icon_path = None
             self.runner_name = None
             self.slug = None
 

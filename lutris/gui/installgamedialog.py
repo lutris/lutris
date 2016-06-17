@@ -134,6 +134,8 @@ class InstallerDialog(Gtk.Window):
                 self.parent.window, game,
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
+            self.populate_banner_folder(game.slug)
+
         elif dlg.result == dlg.NEW_INSTALLER:
             installer_url = settings.SITE_URL + "games/%s/" % self.game_ref
             webbrowser.open(installer_url)
@@ -393,6 +395,7 @@ class InstallerDialog(Gtk.Window):
         self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut")
         self.menu_shortcut_box = Gtk.CheckButton("Create application menu "
                                                  "shortcut")
+        
         self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
         self.widget_box.pack_start(self.menu_shortcut_box, False, False, 5)
         self.widget_box.show_all()
@@ -472,6 +475,7 @@ class InstallerDialog(Gtk.Window):
         settings.write_setting('create_desktop_shortcut',
                                create_desktop_shortcut)
         settings.write_setting('create_menu_shortcut', create_menu_shortcut)
+
 
     # --------------
     # Cancel install
