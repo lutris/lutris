@@ -13,7 +13,7 @@ __all__ = (
     # Atari
     "stella", "atari800", "hatari", "virtualjaguar",
     # Nintendo
-    "snes9x",  "mupen64plus", "dolphin",
+    "snes9x",  "mupen64plus", "dolphin", "desmume",
     # Sony
     "pcsxr", "ppsspp", "pcsx2",
     # Sega
