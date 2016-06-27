@@ -388,7 +388,7 @@ class winesteam(wine.wine):
     def shutdown(self):
         """Shutdown Steam in a clean way."""
         wineserver = self.get_executable() + 'server'
-        subprocess.Popen(wineserver + ['-k'], env=self.get_env())
+        subprocess.Popen([wineserver, '-k'], env=self.get_env())
 
     def stop(self):
         if self.runner_config.get('quit_steam_on_exit'):
