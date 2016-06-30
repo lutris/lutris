@@ -43,6 +43,43 @@ class mednafen(Runner):
             "type": "bool",
             "label": "Fullscreen",
             "default": False,
+        },
+        {
+            "option": "stretch",
+            "type": "choice",
+            "label": "Aspect ratio",
+            "choices": (
+                ("Disabled", "0"),
+                ("Stretched", "full"),
+                ("Preserve aspect ratio", "aspect"),
+                ("Integer scale", "aspect_int"),
+                ("Multiple of 2 scale", "aspect_mult2"),
+            ),
+            "default": "0"
+        },
+        {
+            "option": "scaler",
+            "type": "choice",
+            "label": "Video scaler",
+            "choices": (
+                ("none", "none"),
+                ("hq2x", "hq2x"),
+                ("hq3x", "hq3x"),
+                ("hq4x", "hq4x"),
+                ("scale2x", "scale2x"),
+                ("scale3x", "scale3x"),
+                ("scale4x", "scale4x"),
+                ("2xsai", "2xsai"),
+                ("super2xsai", "super2xsai"),
+                ("supereagle", "supereagle"),
+                ("nn2x", "nn2x"),
+                ("nn3x", "nn3x"),
+                ("nn4x", "nn4x"),
+                ("nny2x", "nny2x"),
+                ("nny3x", "nny3x"),
+                ("nny4x", "nny4x"),
+            ),
+            "default": "hq4x",
         }
     ]
 
@@ -191,10 +228,15 @@ class mednafen(Runner):
         rom = self.game_config.get('main_file') or ''
         machine = self.game_config.get('machine') or ''
 
-        if self.runner_config.get("fs"):
+        fullscreen = self.runner_config.get("fs") or "0"
+        if fullscreen is True:
             fullscreen = "1"
-        else:
+        elif fullscreen is False:
             fullscreen = "0"
+
+        stretch = self.runner_config.get('stretch') or "0"
+        scaler = self.runner_config.get('scaler') or "hq4x"
+
         resolution = get_current_resolution()
         (resolutionx, resolutiony) = resolution.split("x")
         xres = str(resolutionx)
@@ -202,8 +244,8 @@ class mednafen(Runner):
         options = ["-fs", fullscreen,
                    "-" + machine + ".xres", xres,
                    "-" + machine + ".yres", yres,
-                   "-" + machine + ".stretch", "1",
-                   "-" + machine + ".special", "hq4x",
+                   "-" + machine + ".stretch", stretch,
+                   "-" + machine + ".special", scaler,
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
         if len(joy_ids) > 0:
