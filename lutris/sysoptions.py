@@ -115,6 +115,14 @@ system_options = [
                  "execution command.")
     },
     {
+        'option': 'single_cpu',
+        'type': 'bool',
+        'label': 'Restrict to single core',
+        'advanced': True,
+        'default': False,
+        'help': "Restrict the game to a single CPU core."
+    },
+    {
         'option': 'disable_runtime',
         'type': 'bool',
         'label': 'Disable Lutris Runtime',
