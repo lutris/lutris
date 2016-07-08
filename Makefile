@@ -1,4 +1,4 @@
-VERSION="0.3.7"
+VERSION="0.3.7.5"
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -9,12 +9,12 @@ test:
 	rm tests/fixtures/pga.db -f
 	nosetests
 
-deb-source:
+deb-source: clean
 	gbp buildpackage -S
 	mkdir -p build
 	mv ../lutris_0* build
 
-deb:
+deb: clean
 	gbp buildpackage
 	mkdir -p build
 	mv ../lutris_0* build
@@ -35,4 +35,4 @@ clean:
 build-all: deb
 
 upload:
-	scp build/lutris_${VERSION}.tar.gz lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/

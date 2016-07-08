@@ -24,7 +24,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd='/tmp'):
+                 watch=True, cwd=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -43,7 +43,13 @@ class LutrisThread(threading.Thread):
         self.startup_time = time.time()
         self.monitoring_started = False
 
-        self.cwd = runner.working_dir if self.runner else cwd
+        if cwd:
+            self.cwd = cwd
+        elif self.runner:
+            self.cwd = runner.working_dir
+        else:
+            self.cwd = '/tmp'
+        self.cwd = os.path.expanduser(self.cwd)
 
         self.env_string = ''
         for (k, v) in self.env.iteritems():
@@ -70,12 +76,7 @@ class LutrisThread(threading.Thread):
             self.terminal = False
             env = os.environ.copy()
             env.update(self.env)
-            self.game_process = subprocess.Popen(self.command, bufsize=1,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.STDOUT,
-                                                 cwd=self.cwd, env=env)
-        os.chdir(os.path.expanduser('~'))
-
+            self.game_process = self.execute_process(self.command, env)
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
             if self.debug_output:
@@ -101,12 +102,12 @@ class LutrisThread(threading.Thread):
             ))
             os.chmod(file_path, 0744)
 
-        term_command = [self.terminal, '-e', file_path]
-        self.game_process = subprocess.Popen(term_command, bufsize=1,
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT,
-                                             cwd=self.cwd)
-        os.chdir(os.path.expanduser('~'))
+        self.game_process = self.execute_process([self.terminal, '-e', file_path])
+
+    def execute_process(self, command, env=None):
+        return subprocess.Popen(command, bufsize=1,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                cwd=self.cwd, env=env)
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
@@ -161,9 +162,13 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             # Exclude other wrapper processes
-            if child.name in ('steamwebhelper', 'steam', 'sh', 'tee', 'bash',
-                              'Steam.exe', 'steamwebhelper.', 'PnkBstrA.exe', 'steamer',
-                              'SteamService.ex', 'steamerrorrepor', 'lutris'):
+            excluded = (
+                'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'regedit',
+                'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
+                'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
+                'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe'
+            )
+            if child.name in excluded:
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,

@@ -14,10 +14,13 @@ class mednafen(Runner):
                 "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
                 "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan")
     package = "mednafen"
-    machine_choices = (("NES", "nes"),
-                       ("PC Engine", "pce"),
-                       ('Game Boy', 'gb'),
-                       ('Game Boy Advance', 'gba'))
+    machine_choices = (
+        ("NES", "nes"),
+        ("PC Engine", "pce"),
+        ('Game Boy', 'gb'),
+        ('Game Boy Advance', 'gba'),
+        ('Playstation', 'psx')
+    )
     game_options = [
         {
             "option": "main_file",

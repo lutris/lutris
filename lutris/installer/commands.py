@@ -3,7 +3,7 @@ import os
 import shutil
 import shlex
 
-from gi.repository import Gdk
+from gi.repository import Gdk, GLib
 
 from .errors import ScriptingError
 
@@ -12,12 +12,19 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
-from lutris.runners import wine, import_task, import_runner, InvalidRunner
+from lutris.runners import wine, import_task, import_runner
 from lutris.thread import LutrisThread
 
 
-class Commands(object):
+class CommandsMixin(object):
     """The directives for the `installer:` part of the install script."""
+
+    def __init__(self):
+        raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
+
+    def _get_runner_version(self):
+        if self.script.get('wine'):
+            return wine.support_legacy_version(self.script['wine'].get('version'))
 
     def _check_required_params(self, params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""
@@ -45,14 +52,19 @@ class Commands(object):
     def execute(self, data):
         """Run an executable file."""
         args = []
+        terminal = None
+        working_dir = None
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             args_string = data.get('args', '')
             for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
+            terminal = data.get('terminal')
+            working_dir = data.get('working_dir')
         else:
             file_ref = data
+
         # Determine whether 'file' value is a file id or a path
         exec_path = self._get_file(file_ref) or self._substitute(file_ref)
         if not exec_path:
@@ -61,11 +73,14 @@ class Commands(object):
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
-        self.chmodx(exec_path)
+        if not os.access(exec_path, os.X_OK):
+            self.chmodx(exec_path)
 
-        terminal = data.get('terminal')
         if terminal:
             terminal = system.get_default_terminal()
+
+        if not working_dir or not os.path.exists(working_dir):
+            working_dir = self.target_path
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
@@ -90,7 +105,7 @@ class Commands(object):
             dest_path = self.target_path
         msg = "Extracting %s" % os.path.basename(filename)
         logger.debug(msg)
-        self.parent.set_status(msg)
+        GLib.idle_add(self.parent.set_status, msg)
         merge_single = 'nomerge' not in data
         extractor = data.get('format')
         logger.debug("extracting file %s to %s", filename, dest_path)
@@ -106,8 +121,8 @@ class Commands(object):
         has_entry = data.get('entry')
         options = data['options']
         preselect = self._substitute(data.get('preselect', ''))
-        self.parent.input_menu(alias, options, preselect, has_entry,
-                               self._on_input_menu_validated)
+        GLib.idle_add(self.parent.input_menu, alias, options, preselect,
+                      has_entry, self._on_input_menu_validated)
         return 'STOP'
 
     def _on_input_menu_validated(self, widget, *args):
@@ -117,7 +132,7 @@ class Commands(object):
         if choosen_option:
             self.user_inputs.append({'alias': alias,
                                      'value': choosen_option})
-            self.parent.continue_button.hide()
+            GLib.idle_add(self.parent.continue_button.hide)
             self._iter_commands()
 
     def insert_disc(self, data):
@@ -132,8 +147,10 @@ class Commands(object):
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
-        self.parent.wait_for_user_action(message, self._find_matching_disc,
-                                         requires)
+        if self.runner == 'wine':
+            GLib.idle_add(self.parent.eject_button.show)
+        GLib.idle_add(self.parent.wait_for_user_action, message,
+                      self._find_matching_disc, requires)
         return 'STOP'
 
     def _find_matching_disc(self, widget, requires):
@@ -256,6 +273,15 @@ class Commands(object):
                     dest_file.write(line)
         os.rename(tmp_filename, filename)
 
+    def _get_task_runner_and_name(self, task_name):
+        if '.' in task_name:
+            # Run a task from a different runner
+            # than the one for this installer
+            runner_name, task_name = task_name.split('.')
+        else:
+            runner_name = self.script["runner"]
+        return runner_name, task_name
+
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -263,56 +289,46 @@ class Commands(object):
         passed to the runner task.
         """
         self._check_required_params('name', data, 'task')
-        self.parent.cancel_button.set_sensitive(False)
-        task_name = data.pop('name')
-        if '.' in task_name:
-            # Run a task from a different runner
-            # than the one for this installer
-            runner_name, task_name = task_name.split('.')
-        else:
-            runner_name = self.script["runner"]
-        try:
-            runner_class = import_runner(runner_name)
-        except InvalidRunner:
-            self.parent.cancel_button.set_sensitive(True)
-            raise ScriptingError('Invalid runner provided %s', runner_name)
-
-        runner = runner_class()
+        if self.parent:
+            GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
+        runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
 
         # Check/install Wine runner at version specified in the script
+        # TODO : move this, the runner should be installed before the install
+        # starts
         wine_version = None
-        if runner_name == 'wine' and self.script.get('wine'):
-            wine_version = self.script.get('wine').get('version')
-
-            # Old lutris versions used a version + arch tuple, we now include
-            # everything in the version.
-            # Before that change every wine runner was for i386
-            if '-' not in wine_version:
-                wine_version += '-i386'
+        if runner_name == 'wine':
+            wine_version = self._get_runner_version()
 
         if wine_version and task_name == 'wineexec':
-            if not wine.is_version_installed(wine_version):
-                Gdk.threads_init()
-                Gdk.threads_enter()
-                runner.install(wine_version)
-                Gdk.threads_leave()
             data['wine_path'] = wine.get_wine_version_exe(wine_version)
-        # Check/install other runner
-        elif not runner.is_installed():
-            Gdk.threads_init()
-            Gdk.threads_enter()
-            runner.install()
-            Gdk.threads_leave()
 
         for key in data:
             data[key] = self._substitute(data[key])
+
+        if runner_name in ['wine', 'winesteam'] and 'prefix' not in data:
+            data['prefix'] = self.target_path
+
         task = import_task(runner_name, task_name)
-        task(**data)
-        self.parent.cancel_button.set_sensitive(True)
+        thread = task(**data)
+        GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
+        if isinstance(thread, LutrisThread):
+            # Monitor thread and continue when task has executed
+            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+            return 'STOP'
+
+    def _monitor_task(self, thread):
+        logger.debug("Monitoring %s", thread)
+        if not thread.is_running:
+            logger.debug("Thread QUIT")
+            self._iter_commands()
+            self.heartbeat = None
+            return False
+        return True
 
     def write_config(self, params):
         self._check_required_params(['file', 'section', 'key', 'value'],
-                                    params, 'move')
+                                    params, 'write_config')
         """Write a key-value pair into an INI type config file."""
         # Get file
         config_file = self._get_file(params['file'])

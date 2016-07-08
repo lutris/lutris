@@ -21,16 +21,26 @@ class RunnerInstallDialog(Dialog):
         super(RunnerInstallDialog, self).__init__(
             title, parent, 0, ('_OK', Gtk.ResponseType.OK)
         )
+        width, height = (340, 380)
+        self.dialog_size = (width, height)
+        self.set_default_size(width, height)
+
         self.runner = runner
         self.runner_info = api.get_runners(self.runner)
         label = Gtk.Label("%s version management" % self.runner_info['name'])
         self.vbox.add(label)
         self.runner_store = self.get_store()
+        scrolled_window = Gtk.ScrolledWindow()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
         self.connect('response', self.on_response)
 
-        self.vbox.add(self.treeview)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                   Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
+        scrolled_window.add_with_viewport(self.treeview)
+
+        self.vbox.pack_start(scrolled_window, True, True, 14)
         self.show_all()
 
     def get_treeview(self, model):

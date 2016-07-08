@@ -15,7 +15,7 @@ __all__ = (
     # Nintendo
     "snes9x",  "mupen64plus", "dolphin",
     # Sony
-    "pcsxr",
+    "pcsxr", "ppsspp", "pcsx2",
     # Sega
     "osmose", "dgen", "reicast",
     # Misc legacy systems
@@ -24,6 +24,14 @@ __all__ = (
 
 
 class InvalidRunner(Exception):
+    pass
+
+
+class RunnerInstallationError(Exception):
+    pass
+
+
+class NonInstallableRunnerError(Exception):
     pass
 
 

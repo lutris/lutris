@@ -5,6 +5,7 @@ import shutil
 import string
 import subprocess
 import sys
+import traceback
 
 from lutris.util.log import logger
 
@@ -12,16 +13,31 @@ from lutris.util.log import logger
 is_64bit = sys.maxsize > 2**32
 
 
-def execute(command, shell=False):
+def execute(command, env=None, cwd=None, log_errors=False):
     """Execute a system command and return its results."""
+    existing_env = os.environ.copy()
+    if env:
+        existing_env.update(env)
+        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
+    logger.debug("Executing %s", ' '.join(command))
+
+    # Piping stderr can cause slowness in the programs, use carefully
+    # (especially when using regedit with wine)
+    if log_errors:
+        stderr_config = subprocess.PIPE
+    else:
+        stderr_config = None
     try:
         stdout, stderr = subprocess.Popen(command,
-                                          shell=shell,
+                                          shell=False,
                                           stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE).communicate()
+                                          stderr=stderr_config,
+                                          env=existing_env, cwd=cwd).communicate()
     except OSError as ex:
         logger.error('Could not run command %s: %s', command, ex)
         return
+    if stderr and log_errors:
+        logger.error(stderr)
     return stdout.strip()
 
 
@@ -130,6 +146,13 @@ def remove_folder(path):
         shutil.rmtree(path)
 
 
+def create_folder(path):
+    path = os.path.expanduser(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+
 def is_removeable(path, excludes=None):
     """Check if a folder is safe to remove (not system or home, ...)"""
     if not path:
@@ -223,3 +246,13 @@ def reverse_expanduser(path):
         path = path[len(user_path):].strip('/')
         return '~/' + path
     return path
+
+
+def path_exists(path):
+    if not path:
+        return False
+    return os.path.exists(path)
+
+
+def stacktrace():
+    traceback.print_stack()

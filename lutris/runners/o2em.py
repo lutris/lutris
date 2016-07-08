@@ -8,6 +8,7 @@ class o2em(Runner):
     human_name = "O2EM"
     description = "Magnavox Oyssey² Emulator"
     platform = "Magnavox Odyssey 2, Phillips Videopac+"
+    bios_path = os.path.expanduser("~/.o2em/bios")
 
     checksums = {
         'o2rom': "562d5ebf9e030a40d6fabfc2f33139fd",
@@ -73,18 +74,19 @@ class o2em(Runner):
         }
     ]
 
-    def install(self):
-        super(o2em, self).install()
-        bios_path = os.path.expanduser("~/.o2em/bios")
-        if not os.path.exists(bios_path):
-            os.makedirs(bios_path)
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed(*args):
+            if not os.path.exists(self.bios_path):
+                os.makedirs(self.bios_path)
+            if callback:
+                callback()
+        super(o2em, self).install(version, downloader, on_runner_installed)
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'o2em/o2em')
 
     def play(self):
-        bios_path = os.path.join(os.path.expanduser("~"), ".o2em/bios/")
-        arguments = ["-biosdir=%s" % bios_path]
+        arguments = ["-biosdir=%s" % self.bios_path]
 
         if self.runner_config.get("fullscreen"):
             arguments.append("-fullscreen")

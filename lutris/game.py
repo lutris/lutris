@@ -166,6 +166,9 @@ class Game(object):
         system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
         gameplay_info = self.runner.play()
+
+        env = {}
+
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
@@ -199,6 +202,25 @@ class Game(object):
         if primusrun and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
 
+        xephyr = system_config.get('xephyr') or 'off'
+        if xephyr != 'off':
+            if xephyr == '8bpp':
+                xephyr_depth = '8'
+            else:
+                xephyr_depth = '16'
+            xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
+            xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
+                              xephyr_resolution + 'x' + xephyr_depth, '-glamor',
+                              '-reset', '-terminate', '-fullscreen']
+            xephyr_thread = LutrisThread(xephyr_command)
+            xephyr_thread.start()
+            time.sleep(3)
+            env['DISPLAY'] = ':2'
+
+        pulse_latency = system_config.get('pulse_latency')
+        if pulse_latency:
+            env['PULSE_LATENCY_MSEC'] = '60'
+
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
@@ -214,14 +236,14 @@ class Game(object):
                 self.state = self.STATE_STOPPED
                 return
         # Env vars
-        env = {}
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
+        system_env = system_config.get('env') or {}
+        env.update(system_env)
 
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
-
         ld_library_path = []
         if self.runner.use_runtime():
             env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
@@ -302,7 +324,8 @@ class Game(object):
         self.state = self.STATE_STOPPED
         if self.runner.system_config.get('xboxdrv'):
             self.xboxdrv_thread.stop()
-        jobs.AsyncCall(self.game_thread.stop, None, killall=True)
+        if self.game_thread:
+            jobs.AsyncCall(self.game_thread.stop, None, killall=True)
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
@@ -310,6 +333,9 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time.decode("utf-8"))
         self.state = self.STATE_STOPPED
+
+        os.chdir(os.path.expanduser('~'))
+
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)

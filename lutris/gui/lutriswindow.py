@@ -2,6 +2,7 @@
 # pylint: disable=E0611
 import os
 import time
+import subprocess
 
 from gi.repository import Gtk, Gdk, GLib
 
@@ -38,7 +39,7 @@ def load_view(view, store):
 
 class LutrisWindow(object):
     """Handler class for main window signals."""
-    def __init__(self):
+    def __init__(self, service=None):
 
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
@@ -46,6 +47,7 @@ class LutrisWindow(object):
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
+        self.service = service
         self.running_game = None
         self.threads_stoppers = []
 
@@ -62,12 +64,18 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
+        window = self.builder.get_object('window')
+        window.resize(width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
         filter_installed = \
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+
+        # Set GTK to prefer dark theme
+        gtksettings = Gtk.Settings.get_default()
+        gtksettings.set_property("gtk-application-prefer-dark-theme", True)
 
         # Load view
         logger.debug("Loading view")
@@ -77,6 +85,7 @@ class LutrisWindow(object):
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
+        self.connect_link = self.builder.get_object('connect_link')
         # View menu
         installed_games_only_menuitem =\
             self.builder.get_object('filter_installed')
@@ -137,8 +146,8 @@ class LutrisWindow(object):
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        sidebar_paned = self.builder.get_object('sidebar_paned')
-        sidebar_paned.set_position(150)
+        self.sidebar_paned = self.builder.get_object('sidebar_paned')
+        self.sidebar_paned.set_position(150)
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
@@ -152,6 +161,8 @@ class LutrisWindow(object):
             self.sidebar_viewport.hide()
         self.builder.connect_signals(self)
         self.connect_signals()
+
+        self.statusbar = self.builder.get_object("statusbar")
 
         # XXX Hide PGA config menu item until it actually gets implemented
         pga_menuitem = self.builder.get_object('pga_menuitem')
@@ -270,12 +281,15 @@ class LutrisWindow(object):
     def sync_library(self):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
-            added, updated, installed, uninstalled = result
-            self.switch_splash_screen()
-            self.game_store.fill_store(added)
+            if result:
+                added, updated, installed, uninstalled = result
+                self.switch_splash_screen()
+                self.game_store.fill_store(added)
 
-            GLib.idle_add(self.update_existing_games,
-                          added, updated, installed, uninstalled, True)
+                GLib.idle_add(self.update_existing_games,
+                              added, updated, installed, uninstalled, True)
+            else:
+                logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
         AsyncCall(Sync().sync_all, update_gui)
@@ -352,6 +366,7 @@ class LutrisWindow(object):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
+        self.connect_link.hide()
 
     def on_connect_success(self, dialog, credentials):
         if isinstance(credentials, str):
@@ -364,6 +379,7 @@ class LutrisWindow(object):
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
+        self.connect_link.show()
 
     def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
@@ -382,7 +398,11 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        Gtk.show_uri(None, "http://lutris.net/user/register", Gdk.CURRENT_TIME)
+        register_url = "https://lutris.net/user/register"
+        try:
+            subprocess.check_call(["xdg-open", register_url])
+        except subprocess.CalledProcessError:
+            Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
@@ -393,7 +413,10 @@ class LutrisWindow(object):
            or self.running_game.state == Game.STATE_STOPPED):
 
             def update_gui(result, error):
-                self.update_existing_games(set(), set(), *result)
+                if result:
+                    self.update_existing_games(set(), set(), *result)
+                else:
+                    logger.error('No results while syncing local Steam database')
             AsyncCall(Sync().sync_local, update_gui)
         return True
 
@@ -405,6 +428,12 @@ class LutrisWindow(object):
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
+
+        if self.running_game:
+            self.running_game.stop()
+
+        if self.service:
+            self.service.stop()
 
         # Save settings
         width, height = self.window_size
@@ -637,10 +666,18 @@ class LutrisWindow(object):
 
     def toggle_sidebar(self, _widget=None):
         if self.sidebar_visible:
-            self.sidebar_viewport.hide()
+            self.sidebar_paned.remove(self.games_scrollwindow)
+            self.main_box.remove(self.sidebar_paned)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.games_scrollwindow, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'false')
         else:
-            self.sidebar_viewport.show()
+            self.main_box.remove(self.games_scrollwindow)
+            self.sidebar_paned.add2(self.games_scrollwindow)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.sidebar_paned, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'true')
         self.sidebar_visible = not self.sidebar_visible
 

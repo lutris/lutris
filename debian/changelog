@@ -1,3 +1,52 @@
+lutris (0.3.7.5) xenial; urgency=medium
+
+  * Fix a bug where booleans in scripts would be converted to strings
+  * Update Debian package source format
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 07 Mar 2016 09:57:29 -0800
+
+lutris (0.3.7.4) xenial; urgency=medium
+
+  * Add support for Xephyr
+  * Detect Wine versions installed from WineHQ
+  * Update koku-xinput-wine to work with the build provided in the runtime
+  * Always install the required runner when a game is installed
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 06 Mar 2016 14:37:09 -0800
+
+lutris (0.3.7.3) xenial; urgency=medium
+
+  * Add PCSX2 runner
+  * Add PPSSPP runner
+  * Extended kickstart support for Amiga CD32
+  * UI improvements
+  * Regedit fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 21 Feb 2016 21:13:39 -0800
+
+lutris (0.3.7.2) wily; urgency=medium
+
+  * Add button to eject CD-ROMs during installation of Wine games
+  * Prevent MAME and MESS to save config files in home directory
+  * Monitor installation tasks so installers can respawn processes
+  * Randomize extractions folder names to prevent a bug occuring when
+    extracting several archives concurrently
+  * Allow loading environment variables from system config
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 05 Jan 2016 08:41:23 -0800
+
+lutris (0.3.7.1) wily; urgency=medium
+
+  * Improved command line option to list games
+  * Force update of runners
+  * Add support of 64bit wine
+  * Improve MESS runner
+  * Fix Vice runner for non Commodore 64 machines
+  * Fix RPM packaging
+  * Various bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 29 Dec 2015 18:47:05 -0800
+
 lutris (0.3.7) wily; urgency=medium
 
   * Global:

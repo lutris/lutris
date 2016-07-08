@@ -17,27 +17,18 @@ from lutris.util.wineregistry import WineRegistry
 
 # Redefine wine installer tasks
 set_regedit = wine.set_regedit
+set_regedit_file = wine.set_regedit_file
+delete_registry_key = wine.delete_registry_key
 create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
+winecfg = wine.winecfg
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
 def get_steam_installer_dest():
     return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
-
-
-def download_steam(downloader=None, callback=None, callback_data=None):
-    """Downloads steam with `downloader` then calls `callback`"""
-    steam_installer_path = get_steam_installer_dest()
-    if not downloader:
-        dialog = DownloadDialog(STEAM_INSTALLER_URL, steam_installer_path)
-        dialog.run()
-    else:
-        downloader(STEAM_INSTALLER_URL,
-                   steam_installer_path, callback, callback_data)
-    return steam_installer_path
 
 
 def is_running():
@@ -61,6 +52,7 @@ class winesteam(wine.wine):
     human_name = "Wine Steam"
     platform = "Steam for Windows"
     runnable_alone = True
+    depends_on = wine.wine
     game_options = [
         {
             'option': 'appid',
@@ -161,7 +153,15 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return [self.get_executable(), self.get_steam_path(), '-no-dwrite']
+        args = [self.get_executable(), self.get_steam_path()]
+
+        # Fix invisible text in Steam
+        args.append('-no-dwrite')
+
+        # Try to fix Steam's browser. Never worked but it's supposed to...
+        args.append('-no-cef-sandox')
+
+        return args
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
@@ -221,17 +221,26 @@ class winesteam(wine.wine):
             if path:
                 return path
 
-    def install(self, installer_path=None):
-        if not self.is_wine_installed():
-            super(winesteam, self).install()
-        prefix = self.get_or_create_default_prefix()
-        if not self.get_steam_path():
-            if not installer_path:
-                installer_path = get_steam_installer_dest()
-                download_steam()
+    def install(self, version=None, downloader=None, callback=None):
+        installer_path = get_steam_installer_dest()
+
+        def on_steam_downloaded(*args):
+            prefix = self.get_or_create_default_prefix()
             self.msi_exec(installer_path, quiet=True, prefix=prefix,
                           wine_path=self.get_executable())
-        return True
+            if callback:
+                callback()
+
+        if not self.is_wine_installed():
+            # FIXME find another way to do that (already fixed from the install game
+            # dialog)
+            wine.wine().install(version=version, downloader=downloader)
+        if downloader:
+            downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
+        else:
+            dialog = DownloadDialog(STEAM_INSTALLER_URL, installer_path)
+            dialog.run()
+            on_steam_downloaded()
 
     def is_wine_installed(self):
         return super(winesteam, self).is_installed()

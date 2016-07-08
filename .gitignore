@@ -12,6 +12,7 @@ build
 tags
 .ropeproject
 *.pyc
+*.pyo
 PYSMELLTAGS
 lutris.e4p
 .coverage

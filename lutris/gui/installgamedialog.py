@@ -73,27 +73,23 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
-        self.install_button = Gtk.Button.new_with_mnemonic("_Install")
-        self.install_button.set_margin_left(20)
-        self.install_button.connect('clicked', self.on_install_clicked)
-        self.action_buttons.add(self.install_button)
+        self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
+        self.install_button = self.add_button("_Install", self.on_install_clicked)
+        self.continue_button = self.add_button("_Continue")
+        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.close_button = self.add_button("_Close", self.close)
 
-        self.continue_button = Gtk.Button.new_with_mnemonic("_Continue")
-        self.continue_button.set_margin_left(20)
         self.continue_handler = None
-        self.action_buttons.add(self.continue_button)
-
-        self.play_button = Gtk.Button.new_with_mnemonic("_Launch game")
-        self.play_button.set_margin_left(20)
-        self.play_button.connect('clicked', self.launch_game)
-        self.action_buttons.add(self.play_button)
-
-        self.close_button = Gtk.Button.new_with_mnemonic("_Close")
-        self.close_button.set_margin_left(20)
-        self.close_button.connect('clicked', self.close)
-        self.action_buttons.add(self.close_button)
 
         self.get_scripts()
+
+    def add_button(self, label, handler=None):
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_margin_left(20)
+        if handler:
+            button.connect('clicked', handler)
+        self.action_buttons.add(button)
+        return button
 
     # ---------------------------
     # "Get installer" stage
@@ -124,6 +120,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
+        self.eject_button.hide()
 
         self.choose_installer()
 
@@ -268,7 +265,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
         button.hide()
-        self.interpreter.iter_game_files()
+        self.interpreter.check_runner_install()
 
     def ask_user_for_file(self, message):
         self.clean_widgets()
@@ -318,8 +315,8 @@ class InstallerDialog(Gtk.Window):
             {'url': file_uri, 'dest': dest_file}, cancelable=True
         )
         self.download_progress.cancel_button.hide()
-        callback_function = callback or self.on_download_complete
-        self.download_progress.connect('complete', callback_function, data)
+        callback = callback or self.on_download_complete
+        self.download_progress.connect('complete', callback, data)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
@@ -347,6 +344,9 @@ class InstallerDialog(Gtk.Window):
         self.widget_box.add(button)
         button.grab_focus()
         button.show()
+
+    def on_eject_clicked(self, widget, data=None):
+        self.interpreter.eject_wine_disc()
 
     def input_menu(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
@@ -405,6 +405,7 @@ class InstallerDialog(Gtk.Window):
         self.connect('destroy', self.create_shortcuts)
 
         # Buttons
+        self.eject_button.hide()
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()

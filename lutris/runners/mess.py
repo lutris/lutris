@@ -35,6 +35,8 @@ class mess(Runner):
             'label': "Storage type",
             'choices': [
                 ("Floppy disk", 'flop'),
+                ("Floppy drive 1", 'flop1'),
+                ("Floppy drive 2", 'flop2'),
                 ("Cassette (tape)", 'cass'),
                 ("Cartridge", 'cart'),
                 ("Snapshot", 'snapshot'),
@@ -56,6 +58,10 @@ class mess(Runner):
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, "mess/mess")
+
+    @property
+    def working_dir(self):
+        return os.path.join(os.path.expanduser("~"), ".mame")
 
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
