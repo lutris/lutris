@@ -3,7 +3,7 @@ import os
 import shutil
 import shlex
 
-from gi.repository import Gdk, GLib
+from gi.repository import GLib
 
 from .errors import ScriptingError
 
@@ -12,7 +12,7 @@ from lutris.util import extract, devices, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
-from lutris.runners import wine, import_task, import_runner
+from lutris.runners import wine, import_task
 from lutris.thread import LutrisThread
 
 
@@ -327,9 +327,9 @@ class CommandsMixin(object):
         return True
 
     def write_config(self, params):
+        """Write a key-value pair into an INI type config file."""
         self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'write_config')
-        """Write a key-value pair into an INI type config file."""
         # Get file
         config_file = self._get_file(params['file'])
         if not config_file:
@@ -345,9 +345,11 @@ class CommandsMixin(object):
         parser.optionxform = str  # Preserve text case
         parser.read(config_file)
 
+        value = self._substitute(params['value'])
+
         if not parser.has_section(params['section']):
             parser.add_section(params['section'])
-        parser.set(params['section'], params['key'], params['value'])
+        parser.set(params['section'], params['key'], value)
 
         with open(config_file, 'wb') as f:
             parser.write(f)

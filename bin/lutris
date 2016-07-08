@@ -40,7 +40,6 @@ if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
-from lutris.gui import dialogs
 from lutris.migrations import migrate
 
 from lutris import pga, runtime
@@ -125,15 +124,12 @@ if type(lutris) is dbus.Interface:
     try:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
-        logger.debug(e)
-        q = dialogs.QuestionDialog(
-            {'title': "Error",
-             'question': ("Lutris is already running \n"
-                          "but seems unresponsive,\n"
-                          "do you want to restart it?")}
-        )
-        if q.result == Gtk.ResponseType.NO:
-            exit()
+        logger.error(e)
+
+        # FIXME This whole thing below is utterly broken and I've never seen
+        # the expected behavior happen. Now, if only I knew how to reproduce
+        # this state, maybe I might be able to write a fix but I still have no
+        # idea what's causing this non-responsive DBus thing.
         try:
             # Get existing process' PID
             dbus_proxy = bus.get_object('org.freedesktop.DBus',
@@ -142,8 +138,10 @@ if type(lutris) is dbus.Interface:
             pid = dbus_interface.GetConnectionUnixProcessID(lutris.bus_name)
 
             os.kill(pid, signal.SIGKILL)
-        except OSError, dbus.exceptions.DBusException:
-            logger.debug(e)
+        except (OSError, dbus.exceptions.DBusException) as ex:
+            logger.error("Lutris was non responsive, we tried, we failed and failed "
+                         "some more. Please now try to restart Lutris")
+            logger.error(ex)
             exit()  # Give up :(
         else:
             time.sleep(1)  # Wait for bus name to be available again

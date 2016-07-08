@@ -40,7 +40,6 @@
                 <property name="has_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
-                <property name="yalign">0.56000000238418579</property>
                 <signal name="clicked" handler="on_open_downloads_clicked" swapped="no"/>
               </object>
               <packing>
@@ -61,8 +60,6 @@
           <object class="GtkLabel" id="label1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="xpad">40</property>
-            <property name="ypad">30</property>
             <property name="label" translatable="yes">A new version of Lutris is available!</property>
           </object>
           <packing>

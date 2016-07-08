@@ -88,7 +88,7 @@ class atari800(Runner):
             bios_archive = os.path.join(config_path, 'atari800-bioses.zip')
             dlg = DownloadDialog(self.bios_url, bios_archive)
             dlg.run()
-            if not os.path.exists(bios_archive):
+            if not system.path_exists(bios_archive):
                 ErrorDialog("Could not download Atari800 BIOS archive")
                 return
             extract.extract_archive(bios_archive, config_path)
@@ -134,7 +134,7 @@ class atari800(Runner):
             arguments.append("-%s" % self.runner_config["machine"])
 
         bios_path = self.runner_config.get("bios_path")
-        if not os.path.exists(bios_path):
+        if not system.path_exists(bios_path):
             return {'error': 'NO_BIOS'}
         good_bios = self.find_good_bioses(bios_path)
         for bios in good_bios.keys():
@@ -142,7 +142,7 @@ class atari800(Runner):
             arguments.append(os.path.join(bios_path, good_bios[bios]))
 
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append(rom)
 

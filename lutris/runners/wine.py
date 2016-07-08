@@ -1,5 +1,6 @@
 import os
 import shlex
+import shutil
 import subprocess
 
 from textwrap import dedent
@@ -62,6 +63,12 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
 def create_prefix(prefix, wine_dir=None, arch='win32'):
     """Create a new Wine prefix."""
     logger.debug("Creating a %s prefix in %s", arch, prefix)
+
+    # Avoid issue of 64bit Wine refusing to create win32 prefix
+    # over an existing empty folder.
+    if os.path.isdir(prefix) and not os.listdir(prefix):
+        os.rmdir(prefix)
+
     if not wine_dir:
         wine_dir = os.path.dirname(wine().get_executable())
     wineboot_path = os.path.join(wine_dir, 'wineboot')
@@ -128,8 +135,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
 def winetricks(app, prefix=None, winetricks_env=None, silent=True):
     """Execute winetricks."""
-    path = (system.find_executable('winetricks')
-            or os.path.join(datapath.get(), 'bin/winetricks'))
+    path = os.path.join(datapath.get(), 'bin/winetricks')
     arch = detect_prefix_arch(prefix) or 'win32'
     if not winetricks_env:
         winetricks_env = wine().get_executable()

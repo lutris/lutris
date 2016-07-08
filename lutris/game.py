@@ -225,6 +225,13 @@ class Game(object):
         if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
 
+        single_cpu = system_config.get('single_cpu') or False
+        if single_cpu:
+            logger.info('The game will run on a single CPU core')
+            launch_arguments.insert(0, '0')
+            launch_arguments.insert(0, '-c')
+            launch_arguments.insert(0, 'taskset')
+
         terminal = system_config.get('terminal')
         if terminal:
             terminal = system_config.get("terminal_app",
