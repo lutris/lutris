@@ -2,6 +2,8 @@ import os
 from lutris import settings
 from lutris.runners.runner import Runner
 
+# ZDoom Runner
+# http://zdoom.org/wiki/Command_line_parameters
 class zdoom(Runner):
     description = "ZDoom DOOM Game Engine"
     human_name = "ZDoom"
@@ -50,6 +52,20 @@ class zdoom(Runner):
             "label": "Disable Music",
             "type": "bool",
             'default': False
+        },
+        {
+            "option": "skill",
+            "label": "Skill",
+            "type": "choice",
+            "default": '',
+            "choices": {
+                ("None", ''),
+                ("Please Don't Kill Me (0)", '0'),
+                ("Will This Hurt? (1)", '1'),
+                ("Bring On The Pain (2)", '2'),
+                ("Extreme Carnage (3)", '3'),
+                ("Insanity! (4)", '4'),
+            }
         }
     ]
 
@@ -79,6 +95,11 @@ class zdoom(Runner):
         for option in boolOptions:
             if self.runner_config.get(option):
                 command.append('-%s' % option)
+
+        # Append the skill level.
+        skill = self.game_config.get('skill')
+        if skill:
+            command.append('-skill %s' % skill)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
