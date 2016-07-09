@@ -47,6 +47,7 @@ We currently support the following runners:
 * Frotz
 * Jzintv
 * O2em
+* ZDoom
 
 
 Installer scripts
@@ -160,4 +161,3 @@ You can always reach us on:
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
 * Email: contact@lutris.net
-
