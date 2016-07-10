@@ -20,6 +20,12 @@ class zdoom(Runner):
             'type': 'file',
             'label': 'PWAD file',
             'help': ("Used to load one or more PWAD files which generally contain user-created levels.")
+        },
+        {
+            'option': 'warp',
+            'type': 'string',
+            'label': 'Warp to map',
+            'help': ("Starts the game on the given map.")
         }
     ]
     runner_options = [
@@ -106,6 +112,11 @@ class zdoom(Runner):
         skill = self.game_config.get('skill')
         if skill:
             command.append('-skill %s' % skill)
+
+        # Append the warp map.
+        warp = self.game_config.get('warp')
+        if warp:
+            command.append('-warp %s' % warp)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
