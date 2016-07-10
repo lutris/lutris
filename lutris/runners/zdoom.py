@@ -85,7 +85,12 @@ class zdoom(Runner):
         return os.path.join(settings.RUNNER_DIR, 'zdoom')
 
     @property
+    def main_file(self):
+        return self.game_config.get('main_file') or ''
+
+    @property
     def working_dir(self):
+        """Return the working directory to use when running the game."""
         return os.path.dirname(self.main_file) \
             or super(zdoom, self).working_dir
 
@@ -109,23 +114,27 @@ class zdoom(Runner):
                 command.append('-%s' % option)
 
         # Append the skill level.
-        skill = self.game_config.get('skill')
+        skill = self.runner_config.get('skill')
         if skill:
-            command.append('-skill %s' % skill)
+            command.append('-skill')
+            command.append(skill)
 
         # Append the warp map.
         warp = self.game_config.get('warp')
         if warp:
-            command.append('-warp %s' % warp)
+            command.append('-warp')
+            command.append(warp)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
         if wad:
-            command.append('-iwad %s' % wad)
+            command.append('-iwad')
+            command.append(wad)
 
         # Append the pwad files to load, if provided.
         pwad = self.game_config.get('file')
         if pwad:
-            command.append('-file %s' % pwad)
+            command.append('-file')
+            command.append(pwad)
 
         return {'command': command}
