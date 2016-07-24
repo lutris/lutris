@@ -133,9 +133,9 @@ class mednafen(Runner):
 
         nes_controls = [
             "-nes.input.port1.gamepad.a",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-nes.input.port1.gamepad.b",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-nes.input.port1.gamepad.b",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-nes.input.port1.gamepad.start",
             "joystick {} {}".format(joy_ids[0], BTN_START),
             "-nes.input.port1.gamepad.select",
@@ -152,9 +152,9 @@ class mednafen(Runner):
 
         gba_controls = [
             "-gba.input.builtin.gamepad.a",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-gba.input.builtin.gamepad.b",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-gba.input.builtin.gamepad.b",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-gba.input.builtin.gamepad.shoulder_r",
             "joystick {} {}".format(joy_ids[0], BTN_R),
             "-gba.input.builtin.gamepad.shoulder_l",
@@ -194,9 +194,9 @@ class mednafen(Runner):
 
         pce_controls = [
             "-pce.input.port1.gamepad.i",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-pce.input.port1.gamepad.ii",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-pce.input.port1.gamepad.ii",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-pce.input.port1.gamepad.run",
             "joystick {} {}".format(joy_ids[0], BTN_START),
             "-pce.input.port1.gamepad.select",
