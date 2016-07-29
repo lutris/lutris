@@ -14,6 +14,18 @@ class zdoom(Runner):
             'type': 'file',
             'label': 'WAD file',
             'help': ("The game data, commonly called a WAD file.")
+        },
+        {
+            'option': 'file',
+            'type': 'string',
+            'label': 'PWAD file',
+            'help': ("Used to load one or more PWAD files which generally contain user-created levels.")
+        },
+        {
+            'option': 'warp',
+            'type': 'string',
+            'label': 'Warp to map',
+            'help': ("Starts the game on the given map.")
         }
     ]
     runner_options = [
@@ -60,22 +72,22 @@ class zdoom(Runner):
             "default": '',
             "choices": {
                 ("None", ''),
-                ("Please Don't Kill Me (0)", '0'),
-                ("Will This Hurt? (1)", '1'),
-                ("Bring On The Pain (2)", '2'),
-                ("Extreme Carnage (3)", '3'),
-                ("Insanity! (4)", '4'),
+                ("I'm Too Young To Die (0)", '0'),
+                ("Hey, Not Too Rough (1)", '1'),
+                ("Hurt Me Plenty (2)", '2'),
+                ("Ultra-Violence (3)", '3'),
+                ("Nightmare! (4)", '4'),
             }
         }
     ]
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'zdoom/zdoom')
+        return os.path.join(settings.RUNNER_DIR, 'zdoom')
 
     @property
     def working_dir(self):
-        return os.path.dirname(self.main_file) \
-            or super(zdoom, self).working_dir
+        # Run in the installed game's directory.
+        return self.game_path
 
     def play(self):
         command = [
@@ -94,16 +106,29 @@ class zdoom(Runner):
         boolOptions = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
         for option in boolOptions:
             if self.runner_config.get(option):
-                command.append('-%s' % option)
+                command.append("-%s" % option)
 
         # Append the skill level.
-        skill = self.game_config.get('skill')
+        skill = self.runner_config.get('skill')
         if skill:
-            command.append('-skill %s' % skill)
+            command.append("-skill %s" % skill)
+
+        # Append the warp map.
+        warp = self.game_config.get('warp')
+        if warp:
+            command.append("-warp %s" % warp)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
         if wad:
-            command.append('-iwad %s' % wad)
+            command.append("-iwad %s" % wad)
+
+        # Append the pwad files to load, if provided.
+        pwad = self.game_config.get('file')
+        if pwad:
+            command.append("-file %s" % pwad)
+
+        # TODO: Find out why the paths are not found correctly. Something wrong with working_dir?
+        print(command)
 
         return {'command': command}
