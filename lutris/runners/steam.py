@@ -84,8 +84,7 @@ class steam(Runner):
                 return False
         return self.game_path
 
-    @property
-    def steam_config(self):
+    def get_steam_config(self):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
@@ -135,7 +134,7 @@ class steam(Runner):
             if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
         # Custom dirs
-        steam_config = self.steam_config
+        steam_config = self.get_steam_config()
         if steam_config:
             i = 1
             while ('BaseInstallFolder_%s' % i) in steam_config:

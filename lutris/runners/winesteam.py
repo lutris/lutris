@@ -173,8 +173,7 @@ class winesteam(wine.wine):
         parts = value.split("\"")
         return parts[1].strip('\\')
 
-    @property
-    def steam_config(self):
+    def get_steam_config(self):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
@@ -258,7 +257,7 @@ class winesteam(wine.wine):
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        config = self.steam_config
+        config = self.get_steam_config()
         if config:
             apps = config['apps']
             return apps.keys()
@@ -282,7 +281,7 @@ class winesteam(wine.wine):
             if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
         # Custom dirs
-        steam_config = self.steam_config
+        steam_config = self.get_steam_config()
         if steam_config:
             i = 1
             while ('BaseInstallFolder_%s' % i) in steam_config:
