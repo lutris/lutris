@@ -97,4 +97,8 @@ class reicast(Runner):
             "-config", "config:image={}".format(iso),
             "-config", "x11:fullscreen={}".format(fullscreen)
         ]
+        for index in range(1, 5):
+            config_string = 'device_id_%d' % index
+            joy_id = self.runner_config.get(config_string) or '-1'
+            command.append('input:evdev_{}={}'.format(config_string, joy_id))
         return {'command': command}
