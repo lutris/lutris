@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
 import os
+import shutil
+from ConfigParser import ConfigParser
 from collections import Counter
 from lutris import settings
 from lutris.runners.runner import Runner
-from lutris.util import joypad
+from lutris.util import joypad, system
+from lutris.gui.dialogs import NoticeDialog
 
 
 class reicast(Runner):
@@ -62,6 +65,18 @@ class reicast(Runner):
             }
         ]
 
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed(*args):
+            mapping_path = system.create_folder('~/.reicast/mappings')
+            mapping_source = os.path.join(settings.RUNNER_DIR, 'reicast/mappings')
+            for mapping_file in os.listdir(mapping_source):
+                shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
+
+            system.create_folder('~/.reicast/data')
+            NoticeDialog("You have to copy valid BIOS files to ~/.reicast/data "
+                         "before playing")
+        super(reicast, self).install(version, downloader, on_runner_installed)
+
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""
         if self._joypads:
@@ -89,16 +104,41 @@ class reicast(Runner):
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'reicast/reicast.elf')
 
+    def write_config(self, config):
+        parser = ConfigParser()
+
+        config_path = os.path.expanduser('~/.reicast/emu.cfg')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as config_file:
+                parser.read(config_file)
+
+        for section in config:
+            if not parser.has_section(section):
+                parser.add_section(section)
+            for (key, value) in config[section].iteritems():
+                parser.set(section, key, value)
+
+        with open(config_path, 'w') as config_file:
+            parser.write(config_file)
+
     def play(self):
-        iso = self.game_config.get('iso')
         fullscreen = '1' if self.runner_config.get('fullscreen') else '0'
-        command = [
-            self.get_executable(),
-            "-config", "config:image={}".format(iso),
-            "-config", "x11:fullscreen={}".format(fullscreen)
-        ]
+        reicast_config = {
+            'x11': {
+                'fullscreen': fullscreen
+            },
+            'input': {}
+        }
+        reicast_config['input'] = {}
         for index in range(1, 5):
             config_string = 'device_id_%d' % index
             joy_id = self.runner_config.get(config_string) or '-1'
-            command.append('input:evdev_{}={}'.format(config_string, joy_id))
+            reicast_config['input']['evdev_{}'.format(config_string)] = joy_id
+        self.write_config(reicast_config)
+
+        iso = self.game_config.get('iso')
+        command = [
+            self.get_executable(),
+            "-config", "config:image={}".format(iso),
+        ]
         return {'command': command}
