@@ -257,9 +257,9 @@ class winesteam(wine.wine):
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        config = self.get_steam_config()
-        if config:
-            apps = config['apps']
+        steam_config = self.get_steam_config()
+        if steam_config:
+            apps = steam_config['apps']
             return apps.keys()
 
     def get_game_path_from_appid(self, appid):
