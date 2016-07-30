@@ -82,6 +82,7 @@ class InstallerDialog(Gtk.Window):
         self.continue_handler = None
 
         self.get_scripts()
+        self.present()
 
     def add_button(self, label, handler=None):
         button = Gtk.Button.new_with_mnemonic(label)
