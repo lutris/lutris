@@ -342,6 +342,7 @@ class wine(Runner):
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix,
         "WineDesktop": r"%s\Explorer\Desktops" % reg_prefix,
+        "ShowCrashDialog": r"%s\WineDbg" % reg_prefix
     }
 
     core_processes = (
@@ -500,6 +501,12 @@ class wine(Runner):
                          "Linux distributions.")
             },
             {
+                'option': 'ShowCrashDialog',
+                'label': 'Show crash dialogs',
+                'type': 'bool',
+                'default': False
+            },
+            {
                 'option': 'show_debug',
                 'label': 'Output debugging info',
                 'type': 'choice',
@@ -624,14 +631,22 @@ class wine(Runner):
         enable_wine_desktop = False
         for key, path in self.reg_keys.iteritems():
             value = self.runner_config.get(key) or 'auto'
-            if not value or value == 'auto':
+            if not value or value == 'auto' and key != 'ShowCrashDialog':
                 delete_registry_key(path, wine_path=self.get_executable(),
                                     prefix=prefix, arch=self.wine_arch)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
                     enable_wine_desktop = True
                 else:
-                    set_regedit(path, key, value,
+                    if key == 'ShowCrashDialog':
+                        if value is True:
+                            value = '00000001'
+                        else:
+                            value = '00000000'
+                        type = 'REG_DWORD'
+                    else:
+                        type = 'REG_SZ'
+                    set_regedit(path, key, value, type=type,
                                 wine_path=self.get_executable(), prefix=prefix,
                                 arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
