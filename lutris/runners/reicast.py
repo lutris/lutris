@@ -127,13 +127,21 @@ class reicast(Runner):
             'x11': {
                 'fullscreen': fullscreen
             },
-            'input': {}
+            'input': {},
+            'players': {
+                'nb': '1'
+            }
         }
+        players = 1
         reicast_config['input'] = {}
         for index in range(1, 5):
             config_string = 'device_id_%d' % index
             joy_id = self.runner_config.get(config_string) or '-1'
             reicast_config['input']['evdev_{}'.format(config_string)] = joy_id
+            if index > 1 and joy_id != '-1':
+                players += 1
+        reicast_config['players']['nb'] = players
+
         self.write_config(reicast_config)
 
         iso = self.game_config.get('iso')
