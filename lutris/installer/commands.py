@@ -8,7 +8,7 @@ from gi.repository import GLib
 from .errors import ScriptingError
 
 from lutris import runtime
-from lutris.util import extract, devices, system
+from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
@@ -154,7 +154,7 @@ class CommandsMixin(object):
         return 'STOP'
 
     def _find_matching_disc(self, widget, requires):
-        drives = devices.get_mounted_discs()
+        drives = disks.get_mounted_discs()
         for drive in drives:
             mount_point = drive.get_root().get_path()
             required_abspath = os.path.join(mount_point, requires)
