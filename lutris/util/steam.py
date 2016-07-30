@@ -1,5 +1,7 @@
 import os
 import time
+import threading
+import pyinotify
 from lutris.util.log import logger
 from collections import OrderedDict
 from lutris.util.system import fix_path_case
@@ -197,3 +199,39 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
         if line[0].endswith("state changed"):
             state_log.append(line[1][:-2])
     return state_log
+
+
+class SteamWatchHandler(pyinotify.ProcessEvent):
+    def process_IN_MODIFY(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        logger.info('MODIFY %s', path)
+
+    def process_IN_CREATE(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        logger.info('CREATE %s', path)
+
+    def process_IN_DELETE(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        logger.info('DELETE %s', path)
+
+
+class SteamWatcher(threading.Thread):
+    def __init__(self, steamapps_paths):
+        self.steamapps_paths = steamapps_paths
+        super(SteamWatcher, self).__init__()
+        self.start()
+
+    def run(self):
+        watch_manager = pyinotify.WatchManager()
+        event_handler = SteamWatchHandler()
+        mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
+        notifier = pyinotify.Notifier(watch_manager, event_handler)
+        for steamapp_path in self.steamapps_paths:
+            watch_manager.add_watch(steamapp_path, mask, rec=True)
+        notifier.loop()
