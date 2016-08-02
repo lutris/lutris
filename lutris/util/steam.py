@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import threading
 import pyinotify
@@ -199,6 +200,12 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
         if line[0].endswith("state changed"):
             state_log.append(line[1][:-2])
     return state_log
+
+
+def get_appmanifests(steamapps_path):
+    """Return the list for all appmanifest files in a Steam library folder"""
+    return [f for f in os.listdir(steamapps_path)
+            if re.match(r'^appmanifest_\d+.acf$', f)]
 
 
 def get_steamapps_paths(flat=False):

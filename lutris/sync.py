@@ -205,16 +205,12 @@ class Sync(object):
         if not runner.is_installed():
             return []
         installed = []
-        dirs = runner.get_steamapps_dirs()
-        for dirname in dirs:
-            appmanifests = [f for f in os.listdir(dirname)
-                            if re.match(r'^appmanifest_\d+.acf$', f)]
-            for filename in appmanifests:
+        steamapps_paths = runner.get_steamapps_dirs()
+        for steamapps_path in steamapps_paths:
+            for filename in steam.get_appmanifests(steamapps_path):
                 basename, ext = os.path.splitext(filename)
                 steamid = int(basename[12:])
-                appmanifest_path = os.path.join(
-                    dirname, "appmanifest_%s.acf" % str(steamid)
-                )
+                appmanifest_path = os.path.join(steamapps_path, filename)
                 with open(appmanifest_path, "r") as appmanifest_file:
                     appmanifest = vdf_parse(appmanifest_file, {})
                 appstate = appmanifest.get('AppState') or {}
