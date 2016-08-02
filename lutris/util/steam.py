@@ -268,3 +268,24 @@ class SteamWatcher(threading.Thread):
             logger.info('Watching Steam folder %s', steamapp_path)
             watch_manager.add_watch(steamapp_path, mask, rec=True)
         notifier.loop()
+
+
+class AppManifest:
+    def __init__(self, appmanifest_path):
+        filename = os.path.basename(appmanifest_path)
+        self.steamid = re.findall(r'(\d+)', filename)[0]
+        with open(appmanifest_path, "r") as appmanifest_file:
+            self.appmanifest_data = vdf_parse(appmanifest_file, {})
+
+    @property
+    def app_state(self):
+        return self.appmanifest_data.get('AppState') or {}
+
+    @property
+    def name(self):
+        return self.app_state.get('name')
+
+    @property
+    def is_installed(self):
+        last_owner = self.appstate.get('LastOwner') or '0'
+        return last_owner != '0'
