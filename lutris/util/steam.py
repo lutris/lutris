@@ -101,36 +101,26 @@ def read_config(steam_data_dir):
         return config
 
 
-def get_manifest_info(steamapps_path, appid):
-    """Given the steam apps path and appid, return the corresponding
-    appmanifest info."""
+def get_appmanifest_from_appid(steamapps_path, appid):
+    """Given the steam apps path and appid, return the corresponding appmanifest"""
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
     if not os.path.exists(steamapps_path):
         raise IOError("steamapps_path must be a valid directory")
     if not appid:
         raise ValueError("Missing mandatory appid")
-    appmanifest_path = os.path.join(steamapps_path,
-                                    "appmanifest_%s.acf" % appid)
+    appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        return {}
-    with open(appmanifest_path, "r") as appmanifest_file:
-        config = vdf_parse(appmanifest_file, {})
-    return config
+        return
+    return AppManifest(appmanifest_path)
 
 
 def get_path_from_appmanifest(steamapps_path, appid):
     """Return the path where a Steam game is installed."""
-    config = get_manifest_info(steamapps_path, appid)
-    if not config:
+    appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
+    if not appmanifest:
         return
-    installdir = config.get('AppState', {}).get('installdir')
-    install_path = fix_path_case(os.path.join(steamapps_path, "common",
-                                              installdir))
-    if install_path and os.path.exists(install_path):
-        return install_path
-
-
+    return appmanifest.get_install_path()
 
 
 def _get_last_content_log(steam_data_dir):
@@ -260,7 +250,7 @@ class SteamWatcher(threading.Thread):
 
 class AppManifest:
     def __init__(self, appmanifest_path):
-        filename = os.path.basename(appmanifest_path)
+        self.steamapps_path, filename = os.path.split(appmanifest_path)
         self.steamid = re.findall(r'(\d+)', filename)[0]
         with open(appmanifest_path, "r") as appmanifest_file:
             self.appmanifest_data = vdf_parse(appmanifest_file, {})
@@ -272,6 +262,10 @@ class AppManifest:
     @property
     def name(self):
         return self.app_state.get('name')
+
+    @property
+    def installdir(self):
+        return self.app_state.get('installdir')
 
     @property
     def is_installed(self):
@@ -288,3 +282,9 @@ class AppManifest:
             if flag == '1':
                 states.append(APP_STATE_FLAGS[index + 1])
         return states
+
+    def get_install_path(self):
+        install_path = fix_path_case(os.path.join(self.steamapps_path, "common",
+                                                  self.installdir))
+        if install_path:
+            return install_path
