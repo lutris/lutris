@@ -131,18 +131,6 @@ def get_path_from_appmanifest(steamapps_path, appid):
         return install_path
 
 
-def get_app_states(steamapps_path, appid):
-    """Return the states of a Steam game."""
-    states = []
-    if not steamapps_path:
-        return states
-    manifest_info = get_manifest_info(steamapps_path, appid)
-    state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
-    state_flags = bin(int(state_flags))[:1:-1]
-    for index, flag in enumerate(state_flags):
-        if flag == '1':
-            states.append(APP_STATE_FLAGS[index + 1])
-    return states
 
 
 def _get_last_content_log(steam_data_dir):
@@ -289,3 +277,14 @@ class AppManifest:
     def is_installed(self):
         last_owner = self.appstate.get('LastOwner') or '0'
         return last_owner != '0'
+
+    @property
+    def states(self):
+        """Return the states of a Steam game."""
+        states = []
+        state_flags = self.app_state.get('StateFlags', 0)
+        state_flags = bin(int(state_flags))[:1:-1]
+        for index, flag in enumerate(state_flags):
+            if flag == '1':
+                states.append(APP_STATE_FLAGS[index + 1])
+        return states
