@@ -137,7 +137,11 @@ class Sync(object):
         return updated
 
     def sync_steam_local(self):
-        """Sync Steam games in library with Steam and Wine Steam"""
+        """Sync Steam games in library with Steam and Wine Steam
+
+        FIXME: This is the guilty method that causes grief to everyone, most of it should
+        probably disappear
+        """
         steamrunner = steam()
         winesteamrunner = winesteam()
         installed = set()

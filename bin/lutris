@@ -49,6 +49,7 @@ from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.settings import VERSION
 from lutris.util import service
+from lutris.util.steam import get_steamapps_paths
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
@@ -111,13 +112,11 @@ if options.list_steam:
         print appid
     exit()
 if options.list_steam_folders:
-    from lutris.runners import winesteam, steam
-    winesteam_runner = winesteam.winesteam()
-    steam_runner = steam.steam()
-    for folder in steam_runner.get_steamapps_dirs():
-        print folder
-    for folder in winesteam_runner.get_steamapps_dirs():
-        print folder
+    steamapps_paths = get_steamapps_paths()
+    for path in steamapps_paths['linux']:
+        print path
+    for path in steamapps_paths['windows']:
+        print path
     exit()
 
 

@@ -14,6 +14,7 @@ from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import datapath
+from lutris.util.steam import SteamWatcher, get_steamapps_paths
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -187,6 +188,8 @@ class LutrisWindow(Gtk.Application):
         # Timers
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
                           GLib.timeout_add(10000, self.on_sync_timer)]
+        steamapps_paths = get_steamapps_paths(flat=True)
+        self.steam_watcher = SteamWatcher(steamapps_paths)
 
     def init_game_store(self):
         logger.debug("Getting game list")
@@ -212,7 +215,6 @@ class LutrisWindow(Gtk.Application):
 
     def check_update(self):
         """Verify availability of client update."""
-        pass
 
         def on_version_received(version, error):
             if not version:
@@ -423,6 +425,7 @@ class LutrisWindow(Gtk.Application):
         return True
 
     def on_resize(self, widget, *args):
+        """WTF is this doing?"""
         self.window_size = widget.get_size()
 
     def on_destroy(self, *args):

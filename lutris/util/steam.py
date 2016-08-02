@@ -201,6 +201,30 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
     return state_log
 
 
+def get_steamapps_paths(flat=False):
+    from lutris.runners import winesteam, steam
+    if flat:
+        steamapps_paths = []
+    else:
+        steamapps_paths = {
+            'linux': [],
+            'windows': []
+        }
+    winesteam_runner = winesteam.winesteam()
+    steam_runner = steam.steam()
+    for folder in steam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['linux'].append(folder)
+    for folder in winesteam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['windows'].append(folder)
+    return steamapps_paths
+
+
 class SteamWatchHandler(pyinotify.ProcessEvent):
     def process_IN_MODIFY(self, event):
         path = event.pathname
@@ -232,6 +256,8 @@ class SteamWatcher(threading.Thread):
         event_handler = SteamWatchHandler()
         mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
         notifier = pyinotify.Notifier(watch_manager, event_handler)
+        logger.info(self.steamapps_paths)
         for steamapp_path in self.steamapps_paths:
+            logger.info('Watching Steam folder %s', steamapp_path)
             watch_manager.add_watch(steamapp_path, mask, rec=True)
         notifier.loop()
