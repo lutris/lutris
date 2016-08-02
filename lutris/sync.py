@@ -209,6 +209,6 @@ class Sync(object):
             for filename in steam.get_appmanifests(steamapps_path):
                 appmanifest_path = os.path.join(steamapps_path, filename)
                 appmanifest = steam.AppManifest(appmanifest_path)
-                if appmanifest.is_installed:
+                if appmanifest.is_installed():
                     installed.append(appmanifest.steamid)
         return installed

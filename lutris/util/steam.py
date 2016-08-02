@@ -268,11 +268,6 @@ class AppManifest:
         return self.app_state.get('installdir')
 
     @property
-    def is_installed(self):
-        last_owner = self.appstate.get('LastOwner') or '0'
-        return last_owner != '0'
-
-    @property
     def states(self):
         """Return the states of a Steam game."""
         states = []
@@ -283,7 +278,13 @@ class AppManifest:
                 states.append(APP_STATE_FLAGS[index + 1])
         return states
 
+    def is_installed(self):
+        last_owner = self.appstate.get('LastOwner') or '0'
+        return last_owner != '0'
+
     def get_install_path(self):
+        if not self.installdir:
+            return
         install_path = fix_path_case(os.path.join(self.steamapps_path, "common",
                                                   self.installdir))
         if install_path:
