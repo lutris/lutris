@@ -321,7 +321,7 @@ class SteamWatcher(threading.Thread):
         logger.info(self.steamapps_paths)
         for steamapp_path in self.steamapps_paths:
             logger.info('Watching Steam folder %s', steamapp_path)
-            watch_manager.add_watch(steamapp_path, mask, rec=True)
+            watch_manager.add_watch(steamapp_path, mask, rec=False)
         notifier.loop()
 
 
