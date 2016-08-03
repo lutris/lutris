@@ -150,32 +150,22 @@ class Sync(object):
         installed_winesteamapps = self.get_installed_steamapps(winesteamrunner)
 
         for game_info in self.library:
-            slug = game_info['slug']
             runner = game_info['runner']
-            steamid = game_info['steamid']
+            steamid = str(game_info['steamid'])
             installed_in_steam = steamid in installed_steamapps
             installed_in_winesteam = steamid in installed_winesteamapps
 
             # Set installed
             if not game_info['installed']:
-                if not installed_in_steam:  # (Linux Steam only)
+                if installed_in_steam:
+                    runner_name = 'steam'
+                elif installed_in_winesteam:
+                    runner_name = 'winesteam'
+                    if not game_info['configpath']:
+                        continue
+                else:
                     continue
-                logger.debug("Setting %s as installed" % game_info['name'])
-                config_id = (game_info['configpath']
-                             or config.make_game_config_id(slug))
-                game_id = pga.add_or_update(
-                    name=game_info['name'],
-                    runner='steam',
-                    slug=slug,
-                    installed=1,
-                    configpath=config_id,
-                )
-                game_config = config.LutrisConfig(
-                    runner_slug='steam',
-                    game_config_id=config_id,
-                )
-                game_config.raw_game_config.update({'appid': str(steamid)})
-                game_config.save()
+                game_id = steam.mark_as_installed(steamid, runner_name, game_info)
                 installed.add(game_id)
 
             # Set uninstalled
@@ -187,13 +177,7 @@ class Sync(object):
                 if runner == 'winesteam' and not winesteamrunner.is_installed():
                     continue
                 logger.debug("Setting %(name)s (%(steamid)s) as uninstalled", game_info)
-
-                game_id = pga.add_or_update(
-                    name=game_info['name'],
-                    runner='',
-                    slug=game_info['slug'],
-                    installed=0
-                )
+                game_id = steam.mark_as_uninstalled(game_info)
                 uninstalled.add(game_id)
         return (installed, uninstalled)
 

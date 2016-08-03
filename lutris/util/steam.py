@@ -3,9 +3,11 @@ import re
 import time
 import threading
 import pyinotify
-from lutris.util.log import logger
 from collections import OrderedDict
+from lutris import pga
+from lutris.util.log import logger
 from lutris.util.system import fix_path_case
+from lutris.config import make_game_config_id, LutrisConfig
 
 
 APP_STATE_FLAGS = [
@@ -208,6 +210,37 @@ def get_steamapps_paths(flat=False):
         else:
             steamapps_paths['windows'].append(folder)
     return steamapps_paths
+
+
+def mark_as_installed(steamid, runner_name, game_info):
+    for key in ['name', 'slug']:
+        assert game_info[key]
+    logger.debug("Setting %s as installed" % game_info['name'])
+    config_id = (game_info['config_path'] or make_game_config_id(game_info['slug']))
+    game_id = pga.add_or_update(
+        name=game_info['name'],
+        runner=runner_name,
+        slug=game_info['slug'],
+        installed=1,
+        configpath=config_id,
+    )
+    game_config = LutrisConfig(
+        runner_slug=runner_name,
+        game_config_id=config_id,
+    )
+    game_config.raw_game_config.update({'appid': steamid})
+    game_config.save()
+    return game_id
+
+
+def mark_as_uninstalled(game_info):
+    assert 'id' in game_info
+    game_id = pga.add_or_update(
+        id=game_info['id'],
+        runner='',
+        installed=0
+    )
+    return game_id
 
 
 class SteamWatchHandler(pyinotify.ProcessEvent):
