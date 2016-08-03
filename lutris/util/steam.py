@@ -7,6 +7,7 @@ from collections import OrderedDict
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.system import fix_path_case
+from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
 
@@ -216,8 +217,9 @@ def mark_as_installed(steamid, runner_name, game_info):
     for key in ['name', 'slug']:
         assert game_info[key]
     logger.debug("Setting %s as installed" % game_info['name'])
-    config_id = (game_info['config_path'] or make_game_config_id(game_info['slug']))
+    config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
+        steamid=steamid,
         name=game_info['name'],
         runner=runner_name,
         slug=game_info['slug'],
@@ -236,12 +238,43 @@ def mark_as_installed(steamid, runner_name, game_info):
 
 def mark_as_uninstalled(game_info):
     assert 'id' in game_info
+    assert 'name' in game_info
+    logger.debug('Setting %s as uninstalled' % game_info['name'])
     game_id = pga.add_or_update(
         id=game_info['id'],
         runner='',
         installed=0
     )
     return game_id
+
+
+def sync_with_lutris():
+    steamapps_paths = get_steamapps_paths()
+    steam_games_in_lutris = pga.get_steam_games()
+    steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
+    seen_ids = set()
+    for platform in steamapps_paths:
+        for steamapps_path in steamapps_paths[platform]:
+            appmanifests = get_appmanifests(steamapps_path)
+            for appmanifest_file in appmanifests:
+                steamid = re.findall(r'(\d+)', appmanifest_file)[0]
+                seen_ids.add(steamid)
+                if steamid not in steamids_in_lutris and platform == 'linux':
+                    appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
+                    appmanifest = AppManifest(appmanifest_path)
+                    if appmanifest.is_installed():
+                        game_info = {
+                            'name': appmanifest.name,
+                            'slug': appmanifest.slug,
+                        }
+                        mark_as_installed(steamid, 'steam', game_info)
+    unavailable_ids = steamids_in_lutris.difference(seen_ids)
+    for steamid in unavailable_ids:
+        for game in steam_games_in_lutris:
+            if str(game['steamid']) == steamid \
+               and game['installed'] \
+               and game['runner'] in ('steam', 'winesteam'):
+                mark_as_uninstalled(game)
 
 
 class SteamWatchHandler(pyinotify.ProcessEvent):
@@ -306,6 +339,10 @@ class AppManifest:
     @property
     def name(self):
         return self.app_state.get('name')
+
+    @property
+    def slug(self):
+        return slugify(self.name)
 
     @property
     def installdir(self):

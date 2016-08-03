@@ -14,7 +14,7 @@ from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import datapath
-from lutris.util.steam import SteamWatcher, get_steamapps_paths
+from lutris.util.steam import SteamWatcher, get_steamapps_paths, sync_with_lutris
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -174,6 +174,8 @@ class LutrisWindow(Gtk.Application):
         pga_menuitem.hide()
 
         self.init_game_store()
+
+        sync_with_lutris()
 
         self.update_runtime()
 
