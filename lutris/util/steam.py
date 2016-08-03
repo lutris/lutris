@@ -329,8 +329,9 @@ class AppManifest:
     def __init__(self, appmanifest_path):
         self.steamapps_path, filename = os.path.split(appmanifest_path)
         self.steamid = re.findall(r'(\d+)', filename)[0]
-        with open(appmanifest_path, "r") as appmanifest_file:
-            self.appmanifest_data = vdf_parse(appmanifest_file, {})
+        if os.path.exists(appmanifest_path):
+            with open(appmanifest_path, "r") as appmanifest_file:
+                self.appmanifest_data = vdf_parse(appmanifest_file, {})
 
     @property
     def app_state(self):
@@ -369,3 +370,20 @@ class AppManifest:
                                                   self.installdir))
         if install_path:
             return install_path
+
+    def get_platform(self):
+        steamapps_paths = get_steamapps_paths()
+        if self.steamapps_path in steamapps_paths['linux']:
+            return 'linux'
+        elif self.steamapps_path in steamapps_paths['windows']:
+            return 'windows'
+        else:
+            raise ValueError("Can't find %s in %s"
+                             % (self.steamapps_path, steamapps_paths))
+
+    def get_runner_name(self):
+        platform = self.get_platform()
+        if platform == 'linux':
+            return 'steam'
+        else:
+            return 'winesteam'
