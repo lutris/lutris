@@ -210,11 +210,11 @@ def add_or_update(name, runner, slug=None, **kwargs):
     FIXME probably not the desired behavior since it disallows multiple games
     with the same slug
     """
-    if not slug:
-        slug = slugify(name)
     if 'id' in kwargs:
         game = get_game_by_field(kwargs['id'], 'id')
     else:
+        if not slug:
+            slug = slugify(name)
         game = get_game_by_field(slug, 'slug')
     kwargs['name'] = name
     kwargs['runner'] = runner
