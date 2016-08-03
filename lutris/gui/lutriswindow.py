@@ -189,7 +189,12 @@ class LutrisWindow(Gtk.Application):
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
                           GLib.timeout_add(10000, self.on_sync_timer)]
         steamapps_paths = get_steamapps_paths(flat=True)
-        self.steam_watcher = SteamWatcher(steamapps_paths)
+        self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
+
+    def on_steam_game_changed(self, operation, path):
+        print "woot woot i'm a callback"
+        print operation
+        print path
 
     def init_game_store(self):
         logger.debug("Getting game list")

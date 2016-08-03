@@ -211,34 +211,44 @@ def get_steamapps_paths(flat=False):
 
 
 class SteamWatchHandler(pyinotify.ProcessEvent):
+    def __init__(self, callback=None):
+        self.callback = callback
+
     def process_IN_MODIFY(self, event):
         path = event.pathname
         if not path.endswith('.acf'):
             return
         logger.info('MODIFY %s', path)
+        if self.callback:
+            self.callback('modify', path)
 
     def process_IN_CREATE(self, event):
         path = event.pathname
         if not path.endswith('.acf'):
             return
         logger.info('CREATE %s', path)
+        if self.callback:
+            self.callback('create', path)
 
     def process_IN_DELETE(self, event):
         path = event.pathname
         if not path.endswith('.acf'):
             return
         logger.info('DELETE %s', path)
+        if self.callback:
+            self.callback('delete', path)
 
 
 class SteamWatcher(threading.Thread):
-    def __init__(self, steamapps_paths):
+    def __init__(self, steamapps_paths, callback=None):
         self.steamapps_paths = steamapps_paths
+        self.callback = callback
         super(SteamWatcher, self).__init__()
         self.start()
 
     def run(self):
         watch_manager = pyinotify.WatchManager()
-        event_handler = SteamWatchHandler()
+        event_handler = SteamWatchHandler(self.callback)
         mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
         notifier = pyinotify.Notifier(watch_manager, event_handler)
         logger.info(self.steamapps_paths)
@@ -279,8 +289,7 @@ class AppManifest:
         return states
 
     def is_installed(self):
-        last_owner = self.appstate.get('LastOwner') or '0'
-        return last_owner != '0'
+        return 'Fully Installed' in self.states
 
     def get_install_path(self):
         if not self.installdir:

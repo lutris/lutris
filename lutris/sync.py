@@ -1,13 +1,12 @@
 """Synchronization of the game library with server and local data."""
 import os
-import re
 
 from lutris import api, config, pga
 from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
+from lutris.util.steam import get_appmanifests, AppManifest
 from lutris.util import resources
 from lutris.util.log import logger
-from lutris.util.steam import vdf_parse
 
 
 class Sync(object):
@@ -206,9 +205,9 @@ class Sync(object):
         installed = []
         steamapps_paths = runner.get_steamapps_dirs()
         for steamapps_path in steamapps_paths:
-            for filename in steam.get_appmanifests(steamapps_path):
+            for filename in get_appmanifests(steamapps_path):
                 appmanifest_path = os.path.join(steamapps_path, filename)
-                appmanifest = steam.AppManifest(appmanifest_path)
+                appmanifest = AppManifest(appmanifest_path)
                 if appmanifest.is_installed():
                     installed.append(appmanifest.steamid)
         return installed
