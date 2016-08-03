@@ -224,6 +224,7 @@ def mark_as_installed(steamid, runner_name, game_info):
         installed=1,
         configpath=config_id,
     )
+
     game_config = LutrisConfig(
         runner_slug=runner_name,
         game_config_id=config_id,

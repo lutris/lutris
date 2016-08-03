@@ -145,28 +145,24 @@ def get_table_length(table='games'):
 
 def get_games(name_filter=None, filter_installed=False):
     """Get the list of every game in database."""
-    with sql.db_cursor(PGA_DB) as cursor:
-        query = "select * from games"
-        params = ()
-        filters = []
-        if name_filter:
-            params = (name_filter, )
-            filters.append("name LIKE ?")
-        if filter_installed:
-            filters.append("installed = 1")
-        if filters:
-            query += " WHERE " + " AND ".join([f for f in filters])
-        query += " ORDER BY slug"
-        rows = cursor.execute(query, params)
-        results = rows.fetchall()
-        column_names = [column[0] for column in cursor.description]
-    game_list = []
-    for row in results:
-        game_info = {}
-        for index, column in enumerate(column_names):
-            game_info[column] = row[index]
-        game_list.append(game_info)
-    return game_list
+    query = "select * from games"
+    params = ()
+    filters = []
+    if name_filter:
+        params = (name_filter, )
+        filters.append("name LIKE ?")
+    if filter_installed:
+        filters.append("installed = 1")
+    if filters:
+        query += " WHERE " + " AND ".join([f for f in filters])
+    query += " ORDER BY slug"
+    return sql.db_query(PGA_DB, query, params)
+
+
+def get_steam_games():
+    """Return the games with a SteamID"""
+    query = "select * from games where steamid is not null and steamid != ''"
+    return sql.db_query(PGA_DB, query)
 
 
 def get_game_by_field(value, field='slug', all=False):
