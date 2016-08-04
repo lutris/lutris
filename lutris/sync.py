@@ -1,10 +1,5 @@
 """Synchronization of the game library with server and local data."""
-import os
-
 from lutris import api, pga
-from lutris.runners.steam import steam
-from lutris.runners.winesteam import winesteam
-from lutris.util.steam import get_appmanifests, AppManifest, mark_as_installed, mark_as_uninstalled
 from lutris.util import resources
 from lutris.util.log import logger
 
