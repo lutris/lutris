@@ -1,3 +1,18 @@
+lutris (0.3.8) xenial; urgency=medium
+
+  * Add option to use the dark GTK theme variant
+  * Add Desmume runner
+  * Add option to limit games to a single CPU core
+  * Fix button mappings on mednafen  
+  * Improve Reicast installation
+  * Add controller support to Reicast
+  * Disable Wine crash dialogs by default
+  * Sync steam games without depending on the remote library
+  * Use inotify to detect changes in Steam folders
+  * Allow to browse for mounted CD images during installation
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Aug 2016 00:13:38 -0700
+
 lutris (0.3.7.5) xenial; urgency=medium
 
   * Fix a bug where booleans in scripts would be converted to strings
