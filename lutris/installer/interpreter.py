@@ -19,7 +19,11 @@ from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
 
 from lutris.config import LutrisConfig, make_game_config_id
-from lutris.runners import wine, winesteam, steam
+
+from lutris.runners import (
+    wine, winesteam, steam, import_runner,
+    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError
+)
 
 
 def fetch_script(game_ref):
@@ -54,6 +58,8 @@ class ScriptInterpreter(CommandsMixin):
         self.user_inputs = []
         self.steam_data = {}
         self.script = script
+        self.runners_to_install = []
+        self.prev_states = []  # Previous states for the Steam installer
         if not self.script:
             return
         if not self.is_valid():
@@ -85,7 +91,7 @@ class ScriptInterpreter(CommandsMixin):
         return os.path.expanduser(os.path.join(games_dir, self.game_slug))
 
     @property
-    def download_cache_path(self):
+    def cache_path(self):
         return os.path.join(settings.CACHE_DIR,
                             "installer/%s" % self.game_slug)
 
@@ -144,8 +150,8 @@ class ScriptInterpreter(CommandsMixin):
     def iter_game_files(self):
         if self.files:
             # Create cache dir if needed
-            if not os.path.exists(self.download_cache_path):
-                os.mkdir(self.download_cache_path)
+            if not os.path.exists(self.cache_path):
+                os.mkdir(self.cache_path)
 
             if self.target_path and self.should_create_target:
                 os.makedirs(self.target_path)
@@ -199,7 +205,7 @@ class ScriptInterpreter(CommandsMixin):
             file_uri = pga_uri
 
         # Setup destination path
-        dest_file = os.path.join(self.download_cache_path, filename)
+        dest_file = os.path.join(self.cache_path, filename)
 
         if file_uri.startswith("N/A"):
             # Ask the user where the file is located
@@ -269,37 +275,58 @@ class ScriptInterpreter(CommandsMixin):
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
 
-    def check_steam_install(self):
-        """Checks that the required version of Steam is installed.
-        Return a boolean indicating whether is it or not.
+    def check_runner_install(self):
+        """Check if the runner is installed before starting the installation
+        Install the required runner(s) if necessary. This should handle runner
+        dependencies (wine for winesteam) or runners used for installer tasks.
         """
-        if self.steam_data['platform'] == 'windows':
-            # Check that wine is installed
-            wine_runner = wine.wine()
-            if not wine_runner.is_installed():
-                logger.debug('Wine is not installed')
-                wine_runner.install(
-                    downloader=self.parent.start_download,
-                    callback=self.check_steam_install
+        required_runners = []
+        runner = self.get_runner_class(self.runner)
+        if runner.depends_on is not None:
+            required_runners.append(runner.depends_on())
+        required_runners.append(runner())
+
+        for command in self.script.get('installer', []):
+            command_name, command_params = self._get_command_name_and_params(command)
+            if command_name == 'task':
+                runner_name, _task_name = self._get_task_runner_and_name(
+                    command_params['name']
                 )
-                return False
-            # Getting data from Wine Steam
-            steam_runner = winesteam.winesteam()
-            if not steam_runner.is_installed():
-                logger.debug('Winesteam not installed')
-                winesteam.download_steam(
-                    downloader=self.parent.start_download,
-                    callback=self.on_steam_downloaded
-                )
-                return False
-            return True
+                runner_names = [r.name for r in required_runners]
+                if runner_name not in runner_names:
+                    required_runners.append(self.get_runner_class(runner_name)())
+
+        for runner in required_runners:
+            if not runner.is_installed():
+                self.runners_to_install.append(runner)
+        self.install_runners()
+
+    def install_runners(self):
+        if not self.runners_to_install:
+            self.iter_game_files()
         else:
-            steam_runner = steam.steam()
-            if not steam_runner.is_installed():
-                raise ScriptingError(
-                    "Install Steam for Linux and start installer again"
-                )
-            return True
+            runner = self.runners_to_install.pop(0)
+            self.install_runner(runner)
+
+    def install_runner(self, runner):
+        logger.debug('Installing {}'.format(runner.name))
+        try:
+            runner.install(
+                version=self._get_runner_version(),
+                downloader=self.parent.start_download,
+                callback=self.install_runners
+            )
+        except (NonInstallableRunnerError, RunnerInstallationError) as ex:
+            logger.error(ex.message)
+            raise ScriptingError(ex.message)
+
+    def get_runner_class(self, runner_name):
+        try:
+            runner = import_runner(runner_name)
+        except InvalidRunner:
+            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
+            raise ScriptingError('Invalid runner provided %s', runner_name)
+        return runner
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
@@ -318,6 +345,9 @@ class ScriptInterpreter(CommandsMixin):
         """Run the pre-installation steps and launch install."""
         if self.target_path and os.path.exists(self.target_path):
             os.chdir(self.target_path)
+
+        if not os.path.exists(self.cache_path):
+            os.mkdir(self.cache_path)
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ('steam', 'winesteam'):
@@ -359,9 +389,7 @@ class ScriptInterpreter(CommandsMixin):
         else:
             self._finish_install()
 
-    def _map_command(self, command_data):
-        """Map a directive from the `installer` section to an internal
-        method."""
+    def _get_command_name_and_params(self, command_data):
         if isinstance(command_data, dict):
             command_name = list(command_data.keys())[0]
             command_params = command_data[command_name]
@@ -370,8 +398,14 @@ class ScriptInterpreter(CommandsMixin):
             command_params = {}
         command_name = command_name.replace("-", "_")
         command_name = command_name.strip("_")
+        return command_name, command_params
+
+    def _map_command(self, command_data):
+        """Map a directive from the `installer` section to an internal
+        method."""
+        command_name, command_params = self._get_command_name_and_params(command_data)
         if not hasattr(self, command_name):
-            raise ScriptingError("The command %s does not exists"
+            raise ScriptingError('The command "%s" does not exist.'
                                  % command_name)
         return getattr(self, command_name), command_params
 
@@ -491,6 +525,8 @@ class ScriptInterpreter(CommandsMixin):
                 config[key] = dict(
                     [(k, self._substitute(v)) for (k, v) in value.iteritems()]
                 )
+            elif isinstance(value, bool):
+                config[key] = value
             else:
                 config[key] = self._substitute(value)
         return config
@@ -501,8 +537,8 @@ class ScriptInterpreter(CommandsMixin):
 
     def cleanup(self):
         os.chdir(os.path.expanduser('~'))
-        if os.path.exists(self.download_cache_path):
-            shutil.rmtree(self.download_cache_path)
+        if os.path.exists(self.cache_path):
+            shutil.rmtree(self.cache_path)
 
     # --------------
     # Revert install
@@ -527,7 +563,7 @@ class ScriptInterpreter(CommandsMixin):
         """Replace path aliases with real paths."""
         replacements = {
             "GAMEDIR": self.target_path,
-            "CACHE": settings.CACHE_DIR,
+            "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "DISC": self.game_disc,
             "USER": os.getenv('USER'),
@@ -559,9 +595,6 @@ class ScriptInterpreter(CommandsMixin):
         # Check if Steam is installed, save the method's arguments so it can
         # be called again once Steam is installed.
         self.steam_data['callback_args'] = (runner_class, is_game_files)
-        is_installed = self.check_steam_install()
-        if not is_installed:
-            return 'STOP'
 
         steam_runner = self._get_steam_runner(runner_class)
         self.steam_data['is_game_files'] = is_game_files
@@ -603,13 +636,16 @@ class ScriptInterpreter(CommandsMixin):
         steam_runner = self._get_steam_runner()
         states = get_app_state_log(steam_runner.steam_data_dir, appid,
                                    self.install_start_time)
-        logger.debug(states)
-        if states and states.pop().startswith('Fully Installed'):
-            self._on_steam_game_installed()
+        if states != self.prev_states:
+            logger.debug("Steam installation status:")
+            logger.debug(states)
+        self.prev_states = states
+
+        if states and states[-1].startswith('Fully Installed'):
             logger.debug('Steam game has finished installing')
+            self._on_steam_game_installed()
             return False
         else:
-            logger.debug('Steam game still installing')
             return True
 
     def _on_steam_game_installed(self, *args):
@@ -643,19 +679,7 @@ class ScriptInterpreter(CommandsMixin):
             os.path.join(data_path, self.steam_data['steam_rel_path'])
         self.iter_game_files()
 
-    def on_steam_downloaded(self, *args):
-        logger.debug("Steam downloaded")
-        dest = winesteam.get_steam_installer_dest()
-        winesteam_runner = winesteam.winesteam()
-        AsyncCall(winesteam_runner.install, self.on_winesteam_installed, dest)
-
-    def on_winesteam_installed(self, *args):
-        logger.debug("Winesteam installed")
-        callback_args = self.steam_data['callback_args']
-        self.parent.add_spinner()
-        self.install_steam_game(*callback_args)
-
     def eject_wine_disc(self):
         prefix = self.target_path
-        wine_path = wine.get_wine_version_exe(self._get_wine_version())
+        wine_path = wine.get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, prefix)

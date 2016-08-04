@@ -3,16 +3,16 @@ import os
 import shutil
 import shlex
 
-from gi.repository import Gdk, GLib
+from gi.repository import GLib
 
 from .errors import ScriptingError
 
 from lutris import runtime
-from lutris.util import extract, devices, system
+from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 
-from lutris.runners import wine, import_task, import_runner, InvalidRunner
+from lutris.runners import wine, import_task
 from lutris.thread import LutrisThread
 
 
@@ -22,7 +22,7 @@ class CommandsMixin(object):
     def __init__(self):
         raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
 
-    def _get_wine_version(self):
+    def _get_runner_version(self):
         if self.script.get('wine'):
             return wine.support_legacy_version(self.script['wine'].get('version'))
 
@@ -52,14 +52,19 @@ class CommandsMixin(object):
     def execute(self, data):
         """Run an executable file."""
         args = []
+        terminal = None
+        working_dir = None
         if isinstance(data, dict):
             self._check_required_params('file', data, 'execute')
             file_ref = data['file']
             args_string = data.get('args', '')
             for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
+            terminal = data.get('terminal')
+            working_dir = data.get('working_dir')
         else:
             file_ref = data
+
         # Determine whether 'file' value is a file id or a path
         exec_path = self._get_file(file_ref) or self._substitute(file_ref)
         if not exec_path:
@@ -68,11 +73,14 @@ class CommandsMixin(object):
         if not os.path.exists(exec_path):
             raise ScriptingError("Unable to find required executable",
                                  exec_path)
-        self.chmodx(exec_path)
+        if not os.access(exec_path, os.X_OK):
+            self.chmodx(exec_path)
 
-        terminal = data.get('terminal')
         if terminal:
             terminal = system.get_default_terminal()
+
+        if not working_dir or not os.path.exists(working_dir):
+            working_dir = self.target_path
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
@@ -132,7 +140,8 @@ class CommandsMixin(object):
         requires = data.get('requires')
         message = data.get(
             'message',
-            "Insert game disc or mount disk image and click OK."
+            "Insert or mount game disc and click Autodetect or\n"
+            "use Browse if the disc is mounted on a non standard location."
         )
         message += (
             "\n\nLutris is looking for a mounted disk drive or image \n"
@@ -141,19 +150,21 @@ class CommandsMixin(object):
         )
         if self.runner == 'wine':
             GLib.idle_add(self.parent.eject_button.show)
-        GLib.idle_add(self.parent.wait_for_user_action, message,
+        GLib.idle_add(self.parent.ask_for_disc, message,
                       self._find_matching_disc, requires)
         return 'STOP'
 
-    def _find_matching_disc(self, widget, requires):
-        drives = devices.get_mounted_discs()
+    def _find_matching_disc(self, widget, requires, extra_path=None):
+        if extra_path:
+            drives = [extra_path]
+        else:
+            drives = disks.get_mounted_discs()
         for drive in drives:
-            mount_point = drive.get_root().get_path()
-            required_abspath = os.path.join(mount_point, requires)
+            required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
             if required_abspath:
-                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
-                self.game_disc = mount_point
+                logger.debug("Found %s on cdrom %s" % (requires, drive))
+                self.game_disc = drive
                 self._iter_commands()
                 break
 
@@ -265,6 +276,15 @@ class CommandsMixin(object):
                     dest_file.write(line)
         os.rename(tmp_filename, filename)
 
+    def _get_task_runner_and_name(self, task_name):
+        if '.' in task_name:
+            # Run a task from a different runner
+            # than the one for this installer
+            runner_name, task_name = task_name.split('.')
+        else:
+            runner_name = self.script["runner"]
+        return runner_name, task_name
+
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -274,40 +294,17 @@ class CommandsMixin(object):
         self._check_required_params('name', data, 'task')
         if self.parent:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
-        task_name = data.pop('name')
-        if '.' in task_name:
-            # Run a task from a different runner
-            # than the one for this installer
-            runner_name, task_name = task_name.split('.')
-        else:
-            runner_name = self.script["runner"]
-        try:
-            runner_class = import_runner(runner_name)
-        except InvalidRunner:
-            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError('Invalid runner provided %s', runner_name)
-        runner = runner_class()
+        runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
 
         # Check/install Wine runner at version specified in the script
         # TODO : move this, the runner should be installed before the install
         # starts
         wine_version = None
         if runner_name == 'wine':
-            wine_version = self._get_wine_version()
+            wine_version = self._get_runner_version()
 
         if wine_version and task_name == 'wineexec':
-            if not wine.is_version_installed(wine_version):
-                Gdk.threads_init()
-                Gdk.threads_enter()
-                runner.install(wine_version)
-                Gdk.threads_leave()
             data['wine_path'] = wine.get_wine_version_exe(wine_version)
-        # Check/install other runner
-        elif not runner.is_installed():
-            Gdk.threads_init()
-            Gdk.threads_enter()
-            runner.install()
-            Gdk.threads_leave()
 
         for key in data:
             data[key] = self._substitute(data[key])
@@ -333,9 +330,9 @@ class CommandsMixin(object):
         return True
 
     def write_config(self, params):
+        """Write a key-value pair into an INI type config file."""
         self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'write_config')
-        """Write a key-value pair into an INI type config file."""
         # Get file
         config_file = self._get_file(params['file'])
         if not config_file:
@@ -351,9 +348,11 @@ class CommandsMixin(object):
         parser.optionxform = str  # Preserve text case
         parser.read(config_file)
 
+        value = self._substitute(params['value'])
+
         if not parser.has_section(params['section']):
             parser.add_section(params['section'])
-        parser.set(params['section'], params['key'], params['value'])
+        parser.set(params['section'], params['key'], value)
 
         with open(config_file, 'wb') as f:
             parser.write(f)

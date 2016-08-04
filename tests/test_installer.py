@@ -48,4 +48,4 @@ class TestScriptInterpreter(TestCase):
                 {'_substitute': 'foo'}
             )
         self.assertEqual(ex.exception.message,
-                         "The command substitute does not exists")
+                         "The command \"substitute\" does not exist.")

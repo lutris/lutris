@@ -17,7 +17,7 @@ class AsyncCall(threading.Thread):
                                         kwargs=kwargs)
         self.function = function
         self.on_done = on_done if on_done else lambda r, e: None
-        self.daemon = kwargs.pop('daemon', False)
+        self.daemon = kwargs.pop('daemon', True)
 
         self.start()
 

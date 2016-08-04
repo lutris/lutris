@@ -2,8 +2,9 @@
 # pylint: disable=E0611
 import os
 import time
+import subprocess
 
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, runtime, settings, shortcuts
 from lutris.game import Game, get_game_list
@@ -13,6 +14,7 @@ from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import datapath
+from lutris.util import steam
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -36,10 +38,14 @@ def load_view(view, store):
     return view
 
 
-class LutrisWindow(object):
+class LutrisWindow(Gtk.Application):
     """Handler class for main window signals."""
     def __init__(self, service=None):
 
+        Gtk.Application.__init__(
+            self, application_id="net.lutris.main",
+            flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE
+        )
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'LutrisWindow.ui'
         )
@@ -63,12 +69,20 @@ class LutrisWindow(object):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
+        window = self.builder.get_object('window')
+        window.resize(width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
         filter_installed = \
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+
+        # Set theme to dark if set in the settings
+        dark_theme_menuitem = self.builder.get_object('dark_theme_menuitem')
+        use_dark_theme = settings.read_setting('dark_theme') == 'true'
+        dark_theme_menuitem.set_active(use_dark_theme)
+        self.set_dark_theme(use_dark_theme)
 
         # Load view
         logger.debug("Loading view")
@@ -78,6 +92,7 @@ class LutrisWindow(object):
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
+        self.connect_link = self.builder.get_object('connect_link')
         # View menu
         installed_games_only_menuitem =\
             self.builder.get_object('filter_installed')
@@ -138,8 +153,8 @@ class LutrisWindow(object):
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        sidebar_paned = self.builder.get_object('sidebar_paned')
-        sidebar_paned.set_position(150)
+        self.sidebar_paned = self.builder.get_object('sidebar_paned')
+        self.sidebar_paned.set_position(150)
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
@@ -154,9 +169,15 @@ class LutrisWindow(object):
         self.builder.connect_signals(self)
         self.connect_signals()
 
+        self.statusbar = self.builder.get_object("statusbar")
+
         # XXX Hide PGA config menu item until it actually gets implemented
         pga_menuitem = self.builder.get_object('pga_menuitem')
         pga_menuitem.hide()
+
+        # Sync local lutris library with current Steam games before setting up
+        # view
+        steam.sync_with_lutris()
 
         self.init_game_store()
 
@@ -171,8 +192,43 @@ class LutrisWindow(object):
             self.sync_library()
 
         # Timers
-        self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
-                          GLib.timeout_add(10000, self.on_sync_timer)]
+        self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
+        steamapps_paths = steam.get_steamapps_paths(flat=True)
+        self.steam_watcher = steam.SteamWatcher(steamapps_paths,
+                                                self.on_steam_game_changed)
+
+    def on_steam_game_changed(self, operation, path):
+        appmanifest = steam.AppManifest(path)
+        runner_name = appmanifest.get_runner_name()
+        games = pga.get_game_by_field(appmanifest.steamid, field='steamid', all=True)
+        if operation == 'DELETE':
+            for game in games:
+                if game['runner'] == runner_name:
+                    steam.mark_as_uninstalled(game)
+                    self.remove_game_from_view(game['id'])
+                    break
+        elif operation in ('MODIFY', 'CREATE'):
+            if not appmanifest.is_installed():
+                return
+            if runner_name == 'windows':
+                return
+            game_info = None
+            for game in games:
+                if game['installed'] == 0:
+                    game_info = game
+            if not game_info:
+                game_info = {
+                    'name': appmanifest.name,
+                    'slug': appmanifest.slug,
+                }
+            game_id = steam.mark_as_installed(appmanifest.steamid,
+                                              runner_name,
+                                              game_info)
+            self.add_game_to_view(game_id)
+
+    def set_dark_theme(self, is_dark):
+        gtksettings = Gtk.Settings.get_default()
+        gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def init_game_store(self):
         logger.debug("Getting game list")
@@ -198,7 +254,6 @@ class LutrisWindow(object):
 
     def check_update(self):
         """Verify availability of client update."""
-        pass
 
         def on_version_received(version, error):
             if not version:
@@ -272,32 +327,21 @@ class LutrisWindow(object):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                added, updated, installed, uninstalled = result
+                added, updated = result  # , installed, uninstalled = result
                 self.switch_splash_screen()
                 self.game_store.fill_store(added)
 
-                GLib.idle_add(self.update_existing_games,
-                              added, updated, installed, uninstalled, True)
+                GLib.idle_add(self.update_existing_games, added, updated, True)
             else:
                 logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
         AsyncCall(Sync().sync_all, update_gui)
 
-    def update_existing_games(self, added, updated, installed, uninstalled,
-                              first_run=False):
+    def update_existing_games(self, added, updated, first_run=False):
+        # , installed, uninstalled, first_run=False):
         for game_id in updated.difference(added):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
-
-        for game_id in installed.difference(added):
-            if not self.view.get_row_by_id(game_id):
-                self.view.add_game(game_id)
-            self.view.set_installed(Game(game_id))
-
-        for game_id in uninstalled.difference(added):
-            self.view.set_uninstalled(game_id)
-
-        self.sidebar_treeview.update()
 
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
@@ -348,6 +392,13 @@ class LutrisWindow(object):
     # Callbacks
     # ---------
 
+    def on_dark_theme_toggled(self, widget):
+        use_dark_theme = widget.get_active()
+        setting_value = 'true' if use_dark_theme else 'false'
+        logger.debug("Dark theme now %s", setting_value)
+        settings.write_setting('dark_theme', setting_value)
+        self.set_dark_theme(use_dark_theme)
+
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             widget.set_text('')
@@ -356,6 +407,7 @@ class LutrisWindow(object):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
+        self.connect_link.hide()
 
     def on_connect_success(self, dialog, credentials):
         if isinstance(credentials, str):
@@ -368,6 +420,7 @@ class LutrisWindow(object):
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
+        self.connect_link.show()
 
     def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
@@ -386,37 +439,34 @@ class LutrisWindow(object):
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
-        Gtk.show_uri(None, "http://lutris.net/user/register", Gdk.CURRENT_TIME)
+        register_url = "https://lutris.net/user/register"
+        try:
+            subprocess.check_call(["xdg-open", register_url])
+        except subprocess.CalledProcessError:
+            Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, *args):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
 
-    def on_sync_timer(self):
-        if (not self.running_game
-           or self.running_game.state == Game.STATE_STOPPED):
-
-            def update_gui(result, error):
-                if result:
-                    self.update_existing_games(set(), set(), *result)
-                else:
-                    logger.error('No results while syncing local Steam database')
-            AsyncCall(Sync().sync_local, update_gui)
-        return True
-
     def on_resize(self, widget, *args):
+        """WTF is this doing?"""
         self.window_size = widget.get_size()
 
     def on_destroy(self, *args):
         """Signal for window close."""
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
+            logger.debug("Stopping %s", stopper)
             stopper()
+        self.steam_watcher.stop()
 
         if self.running_game:
+            logger.info("%s is still running, stopping it", self.running_game.name)
             self.running_game.stop()
 
         if self.service:
+            logger.debug('Stopping service')
             self.service.stop()
 
         # Save settings
@@ -650,10 +700,18 @@ class LutrisWindow(object):
 
     def toggle_sidebar(self, _widget=None):
         if self.sidebar_visible:
-            self.sidebar_viewport.hide()
+            self.sidebar_paned.remove(self.games_scrollwindow)
+            self.main_box.remove(self.sidebar_paned)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.games_scrollwindow, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'false')
         else:
-            self.sidebar_viewport.show()
+            self.main_box.remove(self.games_scrollwindow)
+            self.sidebar_paned.add2(self.games_scrollwindow)
+            self.main_box.remove(self.statusbar)
+            self.main_box.pack_start(self.sidebar_paned, True, True, 0)
+            self.main_box.pack_start(self.statusbar, False, False, 0)
             settings.write_setting('sidebar_visible', 'true')
         self.sidebar_visible = not self.sidebar_visible
 

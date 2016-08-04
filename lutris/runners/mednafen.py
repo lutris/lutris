@@ -14,10 +14,13 @@ class mednafen(Runner):
                 "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
                 "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan")
     package = "mednafen"
-    machine_choices = (("NES", "nes"),
-                       ("PC Engine", "pce"),
-                       ('Game Boy', 'gb'),
-                       ('Game Boy Advance', 'gba'))
+    machine_choices = (
+        ("NES", "nes"),
+        ("PC Engine", "pce"),
+        ('Game Boy', 'gb'),
+        ('Game Boy Advance', 'gba'),
+        ('Playstation', 'psx')
+    )
     game_options = [
         {
             "option": "main_file",
@@ -40,6 +43,43 @@ class mednafen(Runner):
             "type": "bool",
             "label": "Fullscreen",
             "default": False,
+        },
+        {
+            "option": "stretch",
+            "type": "choice",
+            "label": "Aspect ratio",
+            "choices": (
+                ("Disabled", "0"),
+                ("Stretched", "full"),
+                ("Preserve aspect ratio", "aspect"),
+                ("Integer scale", "aspect_int"),
+                ("Multiple of 2 scale", "aspect_mult2"),
+            ),
+            "default": "0"
+        },
+        {
+            "option": "scaler",
+            "type": "choice",
+            "label": "Video scaler",
+            "choices": (
+                ("none", "none"),
+                ("hq2x", "hq2x"),
+                ("hq3x", "hq3x"),
+                ("hq4x", "hq4x"),
+                ("scale2x", "scale2x"),
+                ("scale3x", "scale3x"),
+                ("scale4x", "scale4x"),
+                ("2xsai", "2xsai"),
+                ("super2xsai", "super2xsai"),
+                ("supereagle", "supereagle"),
+                ("nn2x", "nn2x"),
+                ("nn3x", "nn3x"),
+                ("nn4x", "nn4x"),
+                ("nny2x", "nny2x"),
+                ("nny3x", "nny3x"),
+                ("nny4x", "nny4x"),
+            ),
+            "default": "hq4x",
         }
     ]
 
@@ -93,9 +133,9 @@ class mednafen(Runner):
 
         nes_controls = [
             "-nes.input.port1.gamepad.a",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-nes.input.port1.gamepad.b",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-nes.input.port1.gamepad.b",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-nes.input.port1.gamepad.start",
             "joystick {} {}".format(joy_ids[0], BTN_START),
             "-nes.input.port1.gamepad.select",
@@ -112,9 +152,9 @@ class mednafen(Runner):
 
         gba_controls = [
             "-gba.input.builtin.gamepad.a",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-gba.input.builtin.gamepad.b",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-gba.input.builtin.gamepad.b",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-gba.input.builtin.gamepad.shoulder_r",
             "joystick {} {}".format(joy_ids[0], BTN_R),
             "-gba.input.builtin.gamepad.shoulder_l",
@@ -154,9 +194,9 @@ class mednafen(Runner):
 
         pce_controls = [
             "-pce.input.port1.gamepad.i",
-            "joystick {} {}".format(joy_ids[0], BTN_A),
-            "-pce.input.port1.gamepad.ii",
             "joystick {} {}".format(joy_ids[0], BTN_B),
+            "-pce.input.port1.gamepad.ii",
+            "joystick {} {}".format(joy_ids[0], BTN_A),
             "-pce.input.port1.gamepad.run",
             "joystick {} {}".format(joy_ids[0], BTN_START),
             "-pce.input.port1.gamepad.select",
@@ -188,10 +228,15 @@ class mednafen(Runner):
         rom = self.game_config.get('main_file') or ''
         machine = self.game_config.get('machine') or ''
 
-        if self.runner_config.get("fs"):
+        fullscreen = self.runner_config.get("fs") or "0"
+        if fullscreen is True:
             fullscreen = "1"
-        else:
+        elif fullscreen is False:
             fullscreen = "0"
+
+        stretch = self.runner_config.get('stretch') or "0"
+        scaler = self.runner_config.get('scaler') or "hq4x"
+
         resolution = get_current_resolution()
         (resolutionx, resolutiony) = resolution.split("x")
         xres = str(resolutionx)
@@ -199,8 +244,8 @@ class mednafen(Runner):
         options = ["-fs", fullscreen,
                    "-" + machine + ".xres", xres,
                    "-" + machine + ".yres", yres,
-                   "-" + machine + ".stretch", "1",
-                   "-" + machine + ".special", "hq4x",
+                   "-" + machine + ".stretch", stretch,
+                   "-" + machine + ".special", scaler,
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
         if len(joy_ids) > 0:

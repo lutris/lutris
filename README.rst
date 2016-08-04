@@ -39,17 +39,16 @@ We currently support the following runners:
 * Mupen64 Plus
 * Dolphin
 * PCSXR
+* PPSSPP
+* PCSX2
 * Osmose
 * GenS
 * Reicast
 * Frotz
 * Jzintv
 * O2em
+* ZDoom
 
-Runners that will be added in future versions of Lutris:
-
-* PPSSPP
-* PCSX2
 
 Installer scripts
 =================
@@ -162,4 +161,3 @@ You can always reach us on:
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
 * Email: contact@lutris.net
-

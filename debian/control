@@ -20,9 +20,12 @@ Depends: ${misc:Depends},
  ${python:Depends},
  python-yaml,
  python-dbus,
+ python-gi,
+ python-pyinotify,
  gir1.2-gtk-3.0,
  xdg-user-dirs,
  python-xdg,
+ psmisc,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
 Description: Install and play any video game easily

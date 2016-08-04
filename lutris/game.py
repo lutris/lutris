@@ -166,6 +166,9 @@ class Game(object):
         system_config = self.runner.system_config
         self.original_outputs = display.get_outputs()
         gameplay_info = self.runner.play()
+
+        env = {}
+
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             show_error_message(gameplay_info)
@@ -199,9 +202,35 @@ class Game(object):
         if primusrun and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
 
+        xephyr = system_config.get('xephyr') or 'off'
+        if xephyr != 'off':
+            if xephyr == '8bpp':
+                xephyr_depth = '8'
+            else:
+                xephyr_depth = '16'
+            xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
+            xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
+                              xephyr_resolution + 'x' + xephyr_depth, '-glamor',
+                              '-reset', '-terminate', '-fullscreen']
+            xephyr_thread = LutrisThread(xephyr_command)
+            xephyr_thread.start()
+            time.sleep(3)
+            env['DISPLAY'] = ':2'
+
+        pulse_latency = system_config.get('pulse_latency')
+        if pulse_latency:
+            env['PULSE_LATENCY_MSEC'] = '60'
+
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command.strip():
             launch_arguments.insert(0, prefix_command)
+
+        single_cpu = system_config.get('single_cpu') or False
+        if single_cpu:
+            logger.info('The game will run on a single CPU core')
+            launch_arguments.insert(0, '0')
+            launch_arguments.insert(0, '-c')
+            launch_arguments.insert(0, 'taskset')
 
         terminal = system_config.get('terminal')
         if terminal:
@@ -214,7 +243,6 @@ class Game(object):
                 self.state = self.STATE_STOPPED
                 return
         # Env vars
-        env = {}
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
         system_env = system_config.get('env') or {}
@@ -290,6 +318,11 @@ class Game(object):
 
     def beat(self):
         """Watch the game's process(es)."""
+        if self.game_thread.error:
+            dialogs.ErrorDialog("<b>Error lauching the game:</b>\n"
+                                + self.game_thread.error)
+            self.on_game_quit()
+            return False
         self.game_log = self.game_thread.stdout
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)

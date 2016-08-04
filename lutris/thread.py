@@ -42,6 +42,8 @@ class LutrisThread(threading.Thread):
         self.max_cycles_without_children = 15
         self.startup_time = time.time()
         self.monitoring_started = False
+        self.daemon = True
+        self.error = None
 
         if cwd:
             self.cwd = cwd
@@ -77,6 +79,8 @@ class LutrisThread(threading.Thread):
             env = os.environ.copy()
             env.update(self.env)
             self.game_process = self.execute_process(self.command, env)
+        if not self.game_process:
+            return
         for line in iter(self.game_process.stdout.readline, ''):
             self.stdout += line
             if self.debug_output:
@@ -105,9 +109,12 @@ class LutrisThread(threading.Thread):
         self.game_process = self.execute_process([self.terminal, '-e', file_path])
 
     def execute_process(self, command, env=None):
-        return subprocess.Popen(command, bufsize=1,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                cwd=self.cwd, env=env)
+        try:
+            return subprocess.Popen(command, bufsize=1,
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    cwd=self.cwd, env=env)
+        except OSError as ex:
+            self.error = ex.strerror
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
@@ -147,6 +154,9 @@ class LutrisThread(threading.Thread):
 
     def watch_children(self):
         """Poke at the running process(es)."""
+        if not self.game_process:
+            logger.error('No game process available')
+            return False
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0
@@ -166,7 +176,7 @@ class LutrisThread(threading.Thread):
                 'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'regedit',
                 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
                 'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
-                'tr', 'winecfg.exe', 'zenity',
+                'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe'
             )
             if child.name in excluded:
                 continue

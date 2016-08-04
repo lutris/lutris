@@ -145,33 +145,29 @@ def get_table_length(table='games'):
 
 def get_games(name_filter=None, filter_installed=False):
     """Get the list of every game in database."""
-    with sql.db_cursor(PGA_DB) as cursor:
-        query = "select * from games"
-        params = ()
-        filters = []
-        if name_filter:
-            params = (name_filter, )
-            filters.append("name LIKE ?")
-        if filter_installed:
-            filters.append("installed = 1")
-        if filters:
-            query += " WHERE " + " AND ".join([f for f in filters])
-        query += " ORDER BY slug"
-        rows = cursor.execute(query, params)
-        results = rows.fetchall()
-        column_names = [column[0] for column in cursor.description]
-    game_list = []
-    for row in results:
-        game_info = {}
-        for index, column in enumerate(column_names):
-            game_info[column] = row[index]
-        game_list.append(game_info)
-    return game_list
+    query = "select * from games"
+    params = ()
+    filters = []
+    if name_filter:
+        params = (name_filter, )
+        filters.append("name LIKE ?")
+    if filter_installed:
+        filters.append("installed = 1")
+    if filters:
+        query += " WHERE " + " AND ".join([f for f in filters])
+    query += " ORDER BY slug"
+    return sql.db_query(PGA_DB, query, params)
+
+
+def get_steam_games():
+    """Return the games with a SteamID"""
+    query = "select * from games where steamid is not null and steamid != ''"
+    return sql.db_query(PGA_DB, query)
 
 
 def get_game_by_field(value, field='slug', all=False):
     """Query a game based on a database field"""
-    if field not in ('slug', 'installer_slug', 'id', 'configpath'):
+    if field not in ('slug', 'installer_slug', 'id', 'configpath', 'steamid'):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(PGA_DB, "games", condition=(field, value))
     if game_result:
@@ -205,26 +201,27 @@ def add_games_bulk(games):
     return inserted_ids
 
 
-def add_or_update(name, runner, slug=None, **kwargs):
+def add_or_update(**params):
     """
     FIXME probably not the desired behavior since it disallows multiple games
     with the same slug
     """
-    if not slug:
-        slug = slugify(name)
-    if 'id' in kwargs:
-        game = get_game_by_field(kwargs['id'], 'id')
+    slug = params.get('slug')
+    name = params.get('name')
+    id = params.get('id')
+    assert any([slug, name, id])
+    if 'id' in params:
+        game = get_game_by_field(params['id'], 'id')
     else:
+        if not slug:
+            slug = slugify(name)
         game = get_game_by_field(slug, 'slug')
-    kwargs['name'] = name
-    kwargs['runner'] = runner
-    kwargs['slug'] = slug
     if game:
         game_id = game['id']
-        sql.db_update(PGA_DB, "games", kwargs, ('id', game_id))
+        sql.db_update(PGA_DB, "games", params, ('id', game_id))
         return game_id
     else:
-        return add_game(**kwargs)
+        return add_game(**params)
 
 
 def delete_game(id):

@@ -1,14 +1,14 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           lutris
-Version:        0.3.7.3
+Version:        0.3.8
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
 URL:            http://lutris.net
-Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
+Source0:        http://lutris.net/releases/lutris_%{version}.tar.xz
 
 BuildArch:      noarch
 
@@ -18,11 +18,11 @@ BuildRequires:  python-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  pygobject3, python3-gobject
-Requires:       pygobject3, PyYAML, pyxdg
+Requires:       pygobject3, PyYAML, pyxdg, dbus-python
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  pygobject3
-Requires:       pygobject3, PyYAML
+Requires:       pygobject3, PyYAML, pyxdg, dbus-python
 %endif
 %if 0%{?suse_version}
 BuildRequires:  python-gobject
@@ -30,7 +30,7 @@ BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
-Requires:       python-gobject, python-gtk, python-PyYAML, python-xdg
+Requires:       python-gobject, python-gtk, python-PyYAML, python-xdg, dbus-1-python
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes

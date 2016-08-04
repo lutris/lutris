@@ -31,18 +31,6 @@ def get_steam_installer_dest():
     return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
 
 
-def download_steam(downloader=None, callback=None, callback_data=None):
-    """Downloads steam with `downloader` then calls `callback`"""
-    steam_installer_path = get_steam_installer_dest()
-    if not downloader:
-        dialog = DownloadDialog(STEAM_INSTALLER_URL, steam_installer_path)
-        dialog.run()
-    else:
-        downloader(STEAM_INSTALLER_URL,
-                   steam_installer_path, callback, callback_data)
-    return steam_installer_path
-
-
 def is_running():
     pid = system.get_pid('Steam.exe$')
     if pid:
@@ -64,6 +52,7 @@ class winesteam(wine.wine):
     human_name = "Wine Steam"
     platform = "Steam for Windows"
     runnable_alone = True
+    depends_on = wine.wine
     game_options = [
         {
             'option': 'appid',
@@ -164,7 +153,15 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        return [self.get_executable(), self.get_steam_path(), '-no-dwrite']
+        args = [self.get_executable(), self.get_steam_path()]
+
+        # Fix invisible text in Steam
+        args.append('-no-dwrite')
+
+        # Try to fix Steam's browser. Never worked but it's supposed to...
+        args.append('-no-cef-sandox')
+
+        return args
 
     def get_open_command(self, registry):
         """Return Steam's Open command, useful for locating steam when it has
@@ -176,8 +173,7 @@ class winesteam(wine.wine):
         parts = value.split("\"")
         return parts[1].strip('\\')
 
-    @property
-    def steam_config(self):
+    def get_steam_config(self):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
@@ -224,17 +220,30 @@ class winesteam(wine.wine):
             if path:
                 return path
 
-    def install(self, installer_path=None, version=None):
+    def install(self, version=None, downloader=None, callback=None):
+        installer_path = get_steam_installer_dest()
+
+        def on_steam_downloaded(*args):
+            prefix = self.get_or_create_default_prefix()
+            self.msi_exec(installer_path,
+                          quiet=True,
+                          prefix=prefix,
+                          wine_path=self.get_executable(),
+                          working_dir="/tmp",
+                          blocking=True)
+            if callback:
+                callback()
+
         if not self.is_wine_installed():
-            wine.wine().install(version=version)
-        prefix = self.get_or_create_default_prefix()
-        if not self.get_steam_path():
-            if not installer_path:
-                installer_path = get_steam_installer_dest()
-                download_steam()
-            self.msi_exec(installer_path, quiet=True, prefix=prefix,
-                          wine_path=self.get_executable())
-        return True
+            # FIXME find another way to do that (already fixed from the install game
+            # dialog)
+            wine.wine().install(version=version, downloader=downloader)
+        if downloader:
+            downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
+        else:
+            dialog = DownloadDialog(STEAM_INSTALLER_URL, installer_path)
+            dialog.run()
+            on_steam_downloaded()
 
     def is_wine_installed(self):
         return super(winesteam, self).is_installed()
@@ -252,9 +261,9 @@ class winesteam(wine.wine):
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
-        config = self.steam_config
-        if config:
-            apps = config['apps']
+        steam_config = self.get_steam_config()
+        if steam_config:
+            apps = steam_config['apps']
             return apps.keys()
 
     def get_game_path_from_appid(self, appid):
@@ -276,7 +285,7 @@ class winesteam(wine.wine):
             if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
         # Custom dirs
-        steam_config = self.steam_config
+        steam_config = self.get_steam_config()
         if steam_config:
             i = 1
             while ('BaseInstallFolder_%s' % i) in steam_config:
@@ -319,10 +328,14 @@ class winesteam(wine.wine):
         return default_prefix
 
     def install_game(self, appid, generate_acf=False):
+        if not appid:
+            raise ValueError("Missing appid in winesteam.install_game")
         command = self.launch_args + ["steam://install/%s" % appid]
         subprocess.Popen(command, env=self.get_env())
 
     def validate_game(self, appid):
+        if not appid:
+            raise ValueError("Missing appid in winesteam.validate_game")
         command = self.launch_args + ["steam://validate/%s" % appid]
         subprocess.Popen(command, env=self.get_env())
 
@@ -381,12 +394,8 @@ class winesteam(wine.wine):
 
     def shutdown(self):
         """Shutdown Steam in a clean way."""
-        pid = system.get_pid('Steam.exe$')
-        if not pid:
-            return
-        p = subprocess.Popen(self.launch_args + ['-shutdown'],
-                             env=self.get_env())
-        p.wait()
+        wineserver = self.get_executable() + 'server'
+        subprocess.Popen([wineserver, '-k'], env=self.get_env())
 
     def stop(self):
         if self.runner_config.get('quit_steam_on_exit'):
