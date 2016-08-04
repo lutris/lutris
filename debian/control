@@ -2,7 +2,7 @@ Source: lutris
 Section: games
 Priority: optional
 Build-Depends: debhelper,
- python,
+ python3,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
@@ -12,19 +12,19 @@ Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
 Homepage: https://lutris.net
-X-Python-Version: >= 2.7
+X-Python-Version: >= 3.4
 
 Package: lutris
 Architecture: any
 Depends: ${misc:Depends},
  ${python:Depends},
- python-yaml,
- python-dbus,
- python-gi,
- python-pyinotify,
+ python3-yaml,
+ python3-dbus,
+ python3-gi,
+ python3-pyinotify,
+ python3-xdg,
  gir1.2-gtk-3.0,
  xdg-user-dirs,
- python-xdg,
  psmisc,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]

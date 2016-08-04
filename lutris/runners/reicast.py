@@ -2,7 +2,7 @@
 import re
 import os
 import shutil
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from collections import Counter
 from lutris import settings
 from lutris.runners.runner import Runner

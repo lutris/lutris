@@ -109,7 +109,7 @@ if options.list_steam:
     from lutris.runners import winesteam
     steam_runner = winesteam.winesteam()
     for appid in steam_runner.get_appid_list():
-        print appid
+        print(appid)
     exit()
 if options.list_steam_folders:
     steamapps_paths = get_steamapps_paths()
