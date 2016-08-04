@@ -8,7 +8,7 @@ from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
 
 
-class GtkBuilderDialog(GObject.Object):
+class GtkBuilderDialog():
 
     def __init__(self, parent=None, **kwargs):
         super(GtkBuilderDialog, self).__init__()
