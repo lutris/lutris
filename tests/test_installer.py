@@ -37,7 +37,7 @@ class TestScriptInterpreter(TestCase):
     def test_get_command_returns_a_method(self):
         interpreter = MockInterpreter({}, None)
         command, params = interpreter._map_command({'move': 'whatever'})
-        self.assertIn("bound method MockInterpreter.move", str(command))
+        self.assertIn("bound method CommandsMixin.move", str(command))
         self.assertEqual(params, "whatever")
 
     def test_get_command_doesnt_return_private_methods(self):
