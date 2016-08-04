@@ -1,3 +1,5 @@
+import sys
+import traceback
 import threading
 from gi.repository import GLib
 
@@ -31,6 +33,7 @@ class AsyncCall(threading.Thread):
             logger.error("Error while completing task %s: %s",
                          self.function, err)
             error = err
-            # raise  # Uncomment this to inspect errors
+            ex_type, ex_value, tb = sys.exc_info()
+            traceback.print_tb(tb)
 
         GLib.idle_add(lambda: self.on_done(result, error))
