@@ -1,18 +1,29 @@
 """Configuration dialogs"""
-from gi.repository import Gtk, Pango
+import os
+import glob
+
+from gi.repository import Gtk, Pango, GObject, GdkPixbuf
+from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
 from lutris import gui
+from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.util.steamban import SteamBanScraper
 
-DIALOG_WIDTH = 550
+DIALOG_WIDTH = 610
 DIALOG_HEIGHT = 550
+
+#Padding values:            v{Window  v{Notebook v{Bannersw    v{2 banners/row
+IMAGE_WIDTH = (DIALOG_WIDTH - 20      - 40       - 50)         / 2
+
+IMAGE_HEIGHT = IMAGE_WIDTH * 108 / 230 
 
 
 class GameDialogCommon(object):
@@ -34,6 +45,7 @@ class GameDialogCommon(object):
         if config_level == 'game':
             self._build_info_tab()
             self._build_game_tab()
+            self._build_art_tab()
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
 
@@ -42,13 +54,13 @@ class GameDialogCommon(object):
 
         # Game name
         self.name_entry = Gtk.Entry()
-        if self.game:
+        if self.game is not None:
             self.name_entry.set_text(self.game.name)
-        name_box = self._build_entry_box(self.name_entry, "Name")
+        name_box = self._build_entry_box(self.name_entry, "Name     ")
         info_box.pack_start(name_box, False, False, 5)
 
         # Game slug
-        if self.game:
+        if self.game is not None:
             self.slug_entry = Gtk.Entry()
             self.slug_entry.set_text(self.game.slug)
             self.slug_entry.set_sensitive(False)
@@ -62,6 +74,127 @@ class GameDialogCommon(object):
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
+    def _build_art_tab(self):
+        
+        # Art box: main container of the notebook page
+        self.art_box = Gtk.Grid(column_homogeneous=True)
+        self.art_box.set_hexpand(True)
+        self.art_box.set_halign(Gtk.Align.FILL)
+
+        if self.game is not None:
+            # Label
+            label = Gtk.Label("Banner")
+            label.set_alignment(0, 0.5)
+            label.set_margin_left(10)
+            self.art_box.attach(label, 0, 1, 4, 1)
+
+            # Iconview of the banners
+            self.bannerstore = Gtk.ListStore(Pixbuf, str)
+            self.bannerview = Gtk.IconView()
+            self.bannerview.set_item_orientation(Gtk.Orientation.VERTICAL)
+            self.bannerview.set_model(self.bannerstore)
+            self.bannerview.set_pixbuf_column(0)
+            self.bannerview.set_hexpand(True)
+            self.bannerview.set_halign(Gtk.Align.FILL)
+            self.bannerview.set_pixbuf_column(0)
+            self.bannerview.connect('selection-changed', self.on_banner_selected)
+
+            # Banner ScrolledWindow : a scrollable window around iconview
+            self.banner_sw = Gtk.ScrolledWindow.new()
+            self.banner_sw.set_hexpand(True)
+            self.banner_sw.set_halign(Gtk.Align.FILL)
+            self.banner_sw.set_size_request(DIALOG_WIDTH - 70, DIALOG_HEIGHT/3)
+            self.banner_sw.add(self.bannerview) 
+
+            # Banner_frame: a frame around banner scrollwindow
+            self.banner_frame = Gtk.Frame()
+            self.banner_frame.set_hexpand(True)
+            self.banner_frame.set_halign(Gtk.Align.FILL)
+            self.banner_frame.add(self.banner_sw)
+            self.banner_frame.set_margin_bottom(10)
+            self.art_box.attach(self.banner_frame, 0,0,16,1)        
+
+            # Banner folder button: selects which folder to display
+            self.banner_folder_btn = Gtk.FileChooserButton()     
+            self.banner_folder_btn.set_action(Gtk.FileChooserAction(2)) #Equivalent to SELECT_FOLDER
+            self.banner_folder_btn.set_margin_right(20)
+            self.banner_folder_btn.connect('selection-changed', self.on_banner_folder_changed)
+            
+
+            self.banner_default_btn = Gtk.Button(label="Default")
+            self.banner_default_btn.set_margin_left(20)
+            self.banner_default_btn.connect('clicked', self.on_banner_default_clicked)
+            self.art_box.attach(self.banner_default_btn, 12, 1, 4, 1)
+            
+            if self.banner_folder is not None:
+                self.banner_folder_btn.set_filename(self.banner_folder) # Runs _fill_banerstore automatically
+            else:
+                self.banner_folder_btn.set_filename(os.path.join(settings.BANNER_PATH, self.game.slug))
+            self.art_box.attach(self.banner_folder_btn, 2, 1, 11, 1)
+
+            self.scrape_steam_banners_button = Gtk.Button(label="Download")
+            self.scrape_steam_banners_button.connect('clicked', self.populate_banner_folder)
+            self.art_box.attach(self.scrape_steam_banners_button, 10, 2, 5, 1)
+
+            self.scrape_steam_banners_label = Gtk.Label("Artworks from Steam Banners imageboard")
+            self.scrape_steam_banners_label.set_alignment(xalign=0, yalign=0.5) 
+            self.scrape_steam_banners_label.set_margin_left(10)
+            self.art_box.attach(self.scrape_steam_banners_label,0,2,10,1)
+
+
+
+        else:
+            self.scrape_steam_banners_box = Gtk.CheckButton("Download additional artworks"
+                                                    " from Steam Banners imageboard")
+            self.scrape_steam_banners_box.set_margin_top(20)
+
+            self.art_box.attach(self.scrape_steam_banners_box, 0,3,16,1)
+            if not settings.read_setting('scrape_steam_banners') == 'False':
+                self.scrape_steam_banners_box.set_active(True)
+
+
+
+        # Update tab
+        self.art_sw = self.build_scrolled_window(self.art_box)
+        self.art_sw.set_border_width(20)
+        self._add_notebook_tab(self.art_sw, "Artwork")
+
+    def on_banner_default_clicked(self,*args):
+        self.banner_folder_btn.set_filename(
+            os.path.join(settings.BANNER_PATH, self.game.slug)
+            )
+        self.game.banner = None
+        self._fill_bannerstore()
+
+    
+            
+    def _fill_bannerstore(self):
+        for row in self.bannerstore:
+            self.bannerstore.remove(row.iter)
+
+        #this matches every png & jpg & makes sure default.*g is the first banner displayed
+        try:
+            file_list = glob.glob(os.path.join(self.banner_folder, "*.*g"))
+            file_list.remove(glob.glob(os.path.join(self.banner_folder, "default.*g"))[0])
+            file_list = glob.glob(os.path.join(self.banner_folder, "default.*g")) + file_list
+        except IndexError:
+            file_list = glob.glob(os.path.join(self.banner_folder, "*.*g"))
+
+        for filename in file_list: 
+            pixbuf = Pixbuf.new_from_file_at_size(filename, IMAGE_WIDTH, IMAGE_HEIGHT)
+            self.bannerstore.append([pixbuf, filename])
+    
+    def on_banner_folder_changed(self, folder_button):
+        self.banner_folder = folder_button.get_filename()
+        if self.banner_folder is not None:
+            self._fill_bannerstore()
+
+    def on_banner_selected(self, bannerview):
+        try:
+            self.banner_path = self.bannerstore[ bannerview.get_selected_items()[0] ][1]
+        except IndexError:
+            pass
+        
     def _build_entry_box(self, entry, label_text=None):
         box = Gtk.HBox()
         if label_text:
@@ -70,9 +203,11 @@ class GameDialogCommon(object):
         box.pack_start(entry, True, True, 20)
         return box
 
+    
+
     def _get_runner_box(self):
         runner_box = Gtk.HBox()
-        label = Gtk.Label("Runner")
+        label = Gtk.Label("Runner   ")
         label.set_alignment(0.5, 0.5)
         self.runner_dropdown = self._get_runner_dropdown()
         install_runners_btn = Gtk.Button(label="Install runners")
@@ -89,7 +224,7 @@ class GameDialogCommon(object):
         runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
         runner_dropdown.set_id_column(1)
         runner_index = 0
-        if self.game:
+        if self.game is not None:
             for runner in runner_liststore:
                 if self.runner_name == str(runner[1]):
                     break
@@ -194,7 +329,7 @@ class GameDialogCommon(object):
         widgets = self.system_box.get_children()
         if self.runner_name:
             widgets += self.runner_box.get_children()
-        if self.game:
+        if self.game is not None:
             widgets += self.game_box.get_children()
 
         for widget in widgets:
@@ -227,6 +362,7 @@ class GameDialogCommon(object):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self._build_game_tab()
+        self._build_art_tab()
         self._build_runner_tab('game')
         self._build_system_tab('game')
         self.show_all()
@@ -269,6 +405,17 @@ class GameDialogCommon(object):
         self.game.config = self.lutris_config
         self.game.directory = runner.game_path
         self.game.is_installed = True
+        self.game.banner = self.banner_path if self.banner_path else None
+        self.game.icon = self.icon_path if self.icon_path else None
+
+        try:
+            steam_scrape = self.scrape_steam_banners_box.get_active()
+            if steam_scrape:
+                self.populate_banner_folder()
+            settings.write_setting('scrape_steam_banners', steam_scrape)
+        except AttributeError:
+            pass
+
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
         self.game.save()
@@ -277,6 +424,30 @@ class GameDialogCommon(object):
         self.saved = True
         if callback:
             callback()
+
+    def populate_banner_folder(self, *args, **kwargs):
+        scraper = SteamBanScraper()
+        game_slug = self.slug if 'game_slug' not in kwargs else kwargs['game_slug']
+        
+        scraper.searchExtended(game_slug, False, separator='-')
+        print(scraper.bannerPages)
+
+        default_ban_folder = os.path.join(settings.BANNER_PATH, self.slug)
+            
+        if not os.path.exists(default_ban_folder):
+            os.mkdir(default_ban_folder)
+
+        if len(os.listdir(default_ban_folder)) < len(scraper.bannerPages):
+            scraper.download(default_ban_folder)
+
+        if self.banner_folder is None or self.banner_folder == default_ban_folder:
+            self.banner_folder = default_ban_folder
+            print(self.banner_folder)
+            self._fill_bannerstore()
+            #self.on_banner_default_clicked()
+        
+        return len(scraper.bannerPages)
+
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
@@ -287,10 +458,20 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.saved = False
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-        if game:
+        if game is not None:
             self.runner_name = game.runner_name
             self.slug = game.slug
+            self.banner_path = self.game.banner
+            self.banner_folder = os.path.dirname(self.banner_path) \
+                                    if self.banner_path is not None \
+                                    else None
+            self.icon_path = self.game.icon
+            self.icon_folder = os.path.dirname(self.icon_path) \
+                                    if self.icon_path is not None \
+                                    else None
         else:
+            self.banner_path = None
+            self.icon_path = None
             self.runner_name = None
             self.slug = None
 
@@ -303,6 +484,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_action_area("Add", self.on_save, callback)
         self.name_entry.grab_focus()
         self.show_all()
+
 
     def get_config_id(self):
         """For new games, create a special config type that won't be read
@@ -318,6 +500,17 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
             "Configure %s" % game.name, parent
         )
         self.game = game
+
+        # Banner path is the actual path to the banner
+        self.banner_path = self.game.banner
+        self.banner_folder = os.path.dirname(self.banner_path) \
+                                if self.banner_path is not None \
+                                else None
+        self.icon_path = self.game.icon
+        self.icon_folder = os.path.dirname(self.icon_path) \
+                                if self.icon_path is not None \
+                                else None
+
         self.lutris_config = game.config
         self.game_config_id = game.config.game_config_id
         self.slug = game.slug
@@ -374,3 +567,6 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
     def on_save(self, widget):
         self.lutris_config.save()
         self.destroy()
+
+
+

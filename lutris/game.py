@@ -61,8 +61,13 @@ class Game(object):
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
+        self.banner = game_data.get('banner') or None
+        self.icon = game_data.get('icon') or None
 
         self.load_config()
+
+        
+
         self.resolution_changed = False
         self.original_outputs = None
 
@@ -125,7 +130,9 @@ class Game(object):
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            banner=self.banner,
+            icon=self.icon,
         )
 
     def prelaunch(self):

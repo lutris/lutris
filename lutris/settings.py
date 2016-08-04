@@ -37,7 +37,7 @@ RUNTIME_URL = "https://lutris.net/api/runtime"
 # Default config options
 KEEP_CACHED_ASSETS = False  # TODO: needs verification of failed DLed files
 GAME_VIEW = 'grid'
-ICON_TYPE_GRIDVIEW = 'banner'
+ICON_TYPE_GRIDVIEW = 'widebanner_small'
 ICON_TYPE_LISTVIEW = 'icon'
 
 read_setting = sio.read_setting
