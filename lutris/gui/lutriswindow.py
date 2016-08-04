@@ -444,12 +444,15 @@ class LutrisWindow(Gtk.Application):
         """Signal for window close."""
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
+            logger.debug("Stopping %s", stopper)
             stopper()
 
         if self.running_game:
+            logger.info("%s is still running, stopping it", self.running_game.name)
             self.running_game.stop()
 
         if self.service:
+            logger.debug('Stopping service')
             self.service.stop()
 
         # Save settings
