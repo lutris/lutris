@@ -239,6 +239,15 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkCheckMenuItem" id="dark_theme_menuitem">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Use _dark theme</property>
+                        <property name="use_underline">True</property>
+                        <signal name="toggled" handler="on_dark_theme_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -473,6 +482,7 @@
                         <property name="receives_default">False</property>
                         <property name="tooltip_text" translatable="yes">Grid view</property>
                         <property name="image">view_grid_symbolic</property>
+                        <property name="xalign">0.5</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
                         <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
@@ -490,6 +500,7 @@
                         <property name="receives_default">False</property>
                         <property name="tooltip_text" translatable="yes">List view</property>
                         <property name="image">view_list_symbolic</property>
+                        <property name="xalign">0.5</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
                         <property name="group">switch_grid_view_btn</property>
