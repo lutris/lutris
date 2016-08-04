@@ -285,7 +285,6 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
         path = event.pathname
         if not path.endswith('.acf'):
             return
-        logger.info('MODIFY %s', path)
         if self.callback:
             self.callback('MODIFY', path)
 
@@ -293,7 +292,6 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
         path = event.pathname
         if not path.endswith('.acf'):
             return
-        logger.info('CREATE %s', path)
         if self.callback:
             self.callback('CREATE', path)
 
@@ -301,7 +299,6 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
         path = event.pathname
         if not path.endswith('.acf'):
             return
-        logger.info('DELETE %s', path)
         if self.callback:
             self.callback('DELETE', path)
 
