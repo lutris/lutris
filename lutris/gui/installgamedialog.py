@@ -332,7 +332,7 @@ class InstallerDialog(Gtk.Window):
     # "Commands" stage
     # ----------------
 
-    def wait_for_user_action(self, message, callback, data=None):
+    def ask_for_disc(self, message, callback, data=None):
         """Ask the user to do something."""
         time.sleep(0.3)
         self.clean_widgets()

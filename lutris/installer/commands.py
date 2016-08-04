@@ -149,7 +149,7 @@ class CommandsMixin(object):
         )
         if self.runner == 'wine':
             GLib.idle_add(self.parent.eject_button.show)
-        GLib.idle_add(self.parent.wait_for_user_action, message,
+        GLib.idle_add(self.parent.ask_for_disc, message,
                       self._find_matching_disc, requires)
         return 'STOP'
 
