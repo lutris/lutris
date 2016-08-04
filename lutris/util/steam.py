@@ -2,7 +2,10 @@ import os
 import re
 import time
 import threading
-import pyinotify
+try:
+    import pyinotify
+except ImportError:
+    pyinotify = None
 from collections import OrderedDict
 from lutris import pga
 from lutris.util.log import logger
@@ -298,10 +301,14 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
 
 class SteamWatcher(threading.Thread):
     def __init__(self, steamapps_paths, callback=None):
-        self.steamapps_paths = steamapps_paths
-        self.callback = callback
-        super(SteamWatcher, self).__init__()
-        self.start()
+        if not pyinotify:
+            logger.error("pyinotify is not installed, "
+                         "Lutris won't keep track of steam games")
+        else:
+            self.steamapps_paths = steamapps_paths
+            self.callback = callback
+            super(SteamWatcher, self).__init__()
+            self.start()
 
     def run(self):
         watch_manager = pyinotify.WatchManager()
