@@ -200,9 +200,13 @@ class GameView(object):
     def n_games(self):
         return len(self.game_store.store)
 
-    def get_row_by_id(self, game_id):
+    def get_row_by_id(self, game_id, filtered=False):
         game_row = None
-        for model_row in self.game_store.store:
+        if filtered:
+            store = self.game_store.modelfilter
+        else:
+            store = self.game_store.store
+        for model_row in store:
             if model_row[COL_ID] == int(game_id):
                 game_row = model_row
         return game_row
@@ -351,7 +355,7 @@ class GameListView(Gtk.TreeView, GameView):
         return model.get_value(select_iter, COL_ID)
 
     def set_selected_game(self, game_id):
-        row = self.get_row_by_id(game_id)
+        row = self.get_row_by_id(game_id, filtered=True)
         if row:
             self.set_cursor(row.path)
 
@@ -402,7 +406,7 @@ class GameGridView(Gtk.IconView, GameView):
         return store.get(store.get_iter(self.current_path), COL_ID)[0]
 
     def set_selected_game(self, game_id):
-        row = self.get_row_by_id(game_id)
+        row = self.get_row_by_id(game_id, filtered=True)
         if row:
             self.select_path(row.path)
 

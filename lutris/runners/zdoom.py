@@ -1,10 +1,11 @@
 import os
 from lutris import settings
+from lutris.util import display
 from lutris.runners.runner import Runner
 
-# ZDoom Runner
-# http://zdoom.org/wiki/Command_line_parameters
+
 class zdoom(Runner):
+    # http://zdoom.org/wiki/Command_line_parameters
     description = "ZDoom DOOM Game Engine"
     human_name = "ZDoom"
     platform = "PC"
@@ -19,7 +20,8 @@ class zdoom(Runner):
             'option': 'file',
             'type': 'string',
             'label': 'PWAD file',
-            'help': ("Used to load one or more PWAD files which generally contain user-created levels.")
+            'help': ("Used to load one or more PWAD files which generally contain "
+                     "user-created levels.")
         },
         {
             'option': 'warp',
@@ -90,45 +92,46 @@ class zdoom(Runner):
         return self.game_path
 
     def play(self):
-        command = [
-            self.get_executable()
-        ]
+        command = [self.get_executable()]
 
         resolution = self.runner_config.get("resolution")
         if resolution:
             if resolution == 'desktop':
                 resolution = display.get_current_resolution()
             width, height = resolution.split('x')
-            command.append("-width %s" % width)
-            command.append("-height %s" % height)
+            command.append("-width")
+            command.append(width)
+            command.append("-height")
+            command.append(height)
 
         # Append any boolean options.
-        boolOptions = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
-        for option in boolOptions:
+        bool_options = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
+        for option in bool_options:
             if self.runner_config.get(option):
                 command.append("-%s" % option)
 
         # Append the skill level.
         skill = self.runner_config.get('skill')
         if skill:
-            command.append("-skill %s" % skill)
+            command.append("-skill")
+            command.append(skill)
 
         # Append the warp map.
         warp = self.game_config.get('warp')
         if warp:
-            command.append("-warp %s" % warp)
+            command.append("-warp")
+            command.append(warp)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
         if wad:
-            command.append("-iwad %s" % wad)
+            command.append("-iwad")
+            command.append(wad)
 
         # Append the pwad files to load, if provided.
         pwad = self.game_config.get('file')
         if pwad:
-            command.append("-file %s" % pwad)
-
-        # TODO: Find out why the paths are not found correctly. Something wrong with working_dir?
-        print(command)
+            command.append("-file")
+            command.append(pwad)
 
         return {'command': command}

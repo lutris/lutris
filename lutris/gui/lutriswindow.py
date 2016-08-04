@@ -643,6 +643,8 @@ class LutrisWindow(Gtk.Application):
 
     def edit_game_configuration(self, _button):
         """Edit game preferences."""
+        game = Game(self.view.selected_game)
+
         def on_dialog_saved():
             game_id = dialog.game.id
             self.view.remove_game(game_id)
@@ -650,7 +652,6 @@ class LutrisWindow(Gtk.Application):
             self.view.set_selected_game(game_id)
             self.sidebar_treeview.update()
 
-        game = Game(self.view.selected_game)
         if game.is_installed:
             dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
 

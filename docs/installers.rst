@@ -285,6 +285,10 @@ Currently, the following tasks are implemented:
 *   wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
     ``prefix`` is an optional WINEPREFIX path.
 
+    By default Winetricks will run in silent mode but that can cause issues
+    with some components such as XNA. In such cases, you can provide the
+    option ``silent: false``
+
     Example:
 
     ::
