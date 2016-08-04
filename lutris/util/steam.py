@@ -219,7 +219,7 @@ def mark_as_installed(steamid, runner_name, game_info):
     logger.info("Setting %s as installed" % game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
-        steamid=steamid,
+        steamid=int(steamid),
         name=game_info['name'],
         runner=runner_name,
         slug=game_info['slug'],
