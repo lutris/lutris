@@ -280,7 +280,11 @@ def sync_with_lutris():
                             game_info = game
                             break
                     if game_info:
-                        mark_as_installed(steamid, 'steam', game_info)
+                        appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
+                        appmanifest = AppManifest(appmanifest_path)
+                        if appmanifest.is_installed():
+                            runner_name = appmanifest.get_runner_name()
+                            mark_as_installed(steamid, runner_name, game_info)
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:
         for game in steam_games_in_lutris:
