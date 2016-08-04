@@ -446,6 +446,7 @@ class LutrisWindow(Gtk.Application):
         for stopper in self.threads_stoppers:
             logger.debug("Stopping %s", stopper)
             stopper()
+        self.steam_watcher.stop()
 
         if self.running_game:
             logger.info("%s is still running, stopping it", self.running_game.name)

@@ -315,6 +315,7 @@ class SteamWatchHandler(ProcessEvent):
 
 class SteamWatcher(threading.Thread):
     def __init__(self, steamapps_paths, callback=None):
+        self.notifier = None
         if not pyinotify:
             logger.error("pyinotify is not installed, "
                          "Lutris won't keep track of steam games")
@@ -322,17 +323,23 @@ class SteamWatcher(threading.Thread):
             self.steamapps_paths = steamapps_paths
             self.callback = callback
             super(SteamWatcher, self).__init__()
+            self.daemon = True
             self.start()
 
     def run(self):
         watch_manager = pyinotify.WatchManager()
         event_handler = SteamWatchHandler(self.callback)
         mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
-        notifier = pyinotify.Notifier(watch_manager, event_handler)
+        self.notifier = pyinotify.Notifier(watch_manager, event_handler)
         for steamapp_path in self.steamapps_paths:
             logger.info('Watching Steam folder %s', steamapp_path)
             watch_manager.add_watch(steamapp_path, mask, rec=False)
-        notifier.loop()
+        self.notifier.loop()
+
+    def stop(self):
+        if self.notifier:
+            self.notifier.stop()
+            print self.notifier
 
 
 class AppManifest:
