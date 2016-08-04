@@ -287,7 +287,7 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
             return
         logger.info('MODIFY %s', path)
         if self.callback:
-            self.callback('modify', path)
+            self.callback('MODIFY', path)
 
     def process_IN_CREATE(self, event):
         path = event.pathname
@@ -295,7 +295,7 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
             return
         logger.info('CREATE %s', path)
         if self.callback:
-            self.callback('create', path)
+            self.callback('CREATE', path)
 
     def process_IN_DELETE(self, event):
         path = event.pathname
@@ -303,7 +303,7 @@ class SteamWatchHandler(pyinotify.ProcessEvent):
             return
         logger.info('DELETE %s', path)
         if self.callback:
-            self.callback('delete', path)
+            self.callback('DELETE', path)
 
 
 class SteamWatcher(threading.Thread):

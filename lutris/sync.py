@@ -4,7 +4,7 @@ import os
 from lutris import api, pga
 from lutris.runners.steam import steam
 from lutris.runners.winesteam import winesteam
-from lutris.util.steam import get_appmanifests, AppManifest
+from lutris.util.steam import get_appmanifests, AppManifest, mark_as_installed, mark_as_uninstalled
 from lutris.util import resources
 from lutris.util.log import logger
 
@@ -15,8 +15,7 @@ class Sync(object):
 
     def sync_all(self):
         added, updated = self.sync_from_remote()
-        installed, uninstalled = self.sync_local()
-        return added, updated, installed, uninstalled
+        return added, updated
 
     def sync_local(self):
         """Synchronize games state with local third parties."""
@@ -133,65 +132,3 @@ class Sync(object):
 
         logger.debug("%d games updated", len(updated))
         return updated
-
-    def sync_steam_local(self):
-        """Sync Steam games in library with Steam and Wine Steam
-
-        FIXME: This is the guilty method that causes grief to everyone, most of it should
-        probably disappear
-        """
-        steamrunner = steam()
-        winesteamrunner = winesteam()
-        installed = set()
-        uninstalled = set()
-
-        # Get installed steamapps
-        installed_steamapps = self.get_installed_steamapps(steamrunner)
-        installed_winesteamapps = self.get_installed_steamapps(winesteamrunner)
-
-        for game_info in self.library:
-            runner = game_info['runner']
-            steamid = str(game_info['steamid'])
-            installed_in_steam = steamid in installed_steamapps
-            installed_in_winesteam = steamid in installed_winesteamapps
-
-            # Set installed
-            if not game_info['installed']:
-                if installed_in_steam:
-                    runner_name = 'steam'
-                elif installed_in_winesteam:
-                    runner_name = 'winesteam'
-                    if not game_info['configpath']:
-                        continue
-                else:
-                    continue
-                game_id = steam.mark_as_installed(steamid, runner_name, game_info)
-                installed.add(game_id)
-
-            # Set uninstalled
-            elif not (installed_in_steam or installed_in_winesteam):
-                if runner not in ['steam', 'winesteam']:
-                    continue
-                if runner == 'steam' and not steamrunner.is_installed():
-                    continue
-                if runner == 'winesteam' and not winesteamrunner.is_installed():
-                    continue
-                logger.debug("Setting %(name)s (%(steamid)s) as uninstalled", game_info)
-                game_id = steam.mark_as_uninstalled(game_info)
-                uninstalled.add(game_id)
-        return (installed, uninstalled)
-
-    @staticmethod
-    def get_installed_steamapps(runner):
-        """Return a list of appIDs of the installed Steam games."""
-        if not runner.is_installed():
-            return []
-        installed = []
-        steamapps_paths = runner.get_steamapps_dirs()
-        for steamapps_path in steamapps_paths:
-            for filename in get_appmanifests(steamapps_path):
-                appmanifest_path = os.path.join(steamapps_path, filename)
-                appmanifest = AppManifest(appmanifest_path)
-                if appmanifest.is_installed():
-                    installed.append(appmanifest.steamid)
-        return installed
