@@ -4,8 +4,10 @@ import time
 import threading
 try:
     import pyinotify
+    from pyinotify import ProcessEvent
 except ImportError:
     pyinotify = None
+    ProcessEvent = object
 from collections import OrderedDict
 from lutris import pga
 from lutris.util.log import logger
@@ -280,7 +282,7 @@ def sync_with_lutris():
                 mark_as_uninstalled(game)
 
 
-class SteamWatchHandler(pyinotify.ProcessEvent):
+class SteamWatchHandler(ProcessEvent):
     def __init__(self, callback):
         self.callback = callback
 
