@@ -591,12 +591,12 @@ class wine(Runner):
             return False
 
     @classmethod
-    def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None):
+    def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None, working_dir=None, blocking=False):
         msi_args = "/i %s" % msi_file
         if quiet:
             msi_args += " /q"
         return wineexec("msiexec", args=msi_args, prefix=prefix,
-                        wine_path=wine_path)
+                        wine_path=wine_path, working_dir=working_dir, blocking=blocking)
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
