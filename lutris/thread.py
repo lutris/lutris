@@ -148,6 +148,9 @@ class LutrisThread(threading.Thread):
 
     def watch_children(self):
         """Poke at the running process(es)."""
+        if not self.game_process:
+            logger.error('No game process available')
+            return False
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0
