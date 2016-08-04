@@ -99,8 +99,10 @@ class zdoom(Runner):
             if resolution == 'desktop':
                 resolution = display.get_current_resolution()
             width, height = resolution.split('x')
-            command.append("-width %s" % width)
-            command.append("-height %s" % height)
+            command.append("-width")
+            command.append(width)
+            command.append("-height")
+            command.append(height)
 
         # Append any boolean options.
         bool_options = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
