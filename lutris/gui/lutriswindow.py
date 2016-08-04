@@ -198,7 +198,13 @@ class LutrisWindow(Gtk.Application):
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
         if operation == 'DELETE':
-            print "Uninstalling", appmanifest.steamid
+            runner_name = appmanifest.get_runner_name()
+            games = pga.get_game_by_field(appmanifest.steamid, field='steamid', all=True)
+            for game in games:
+                if game['runner'] == runner_name:
+                    steam.mark_as_uninstalled(game)
+                    self.remove_game_from_view(game['id'])
+                    break
         elif operation in ('MODIFY', 'CREATE'):
             print appmanifest.is_installed()
 

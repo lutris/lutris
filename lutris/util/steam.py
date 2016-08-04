@@ -216,7 +216,7 @@ def get_steamapps_paths(flat=False):
 def mark_as_installed(steamid, runner_name, game_info):
     for key in ['name', 'slug']:
         assert game_info[key]
-    logger.debug("Setting %s as installed" % game_info['name'])
+    logger.info("Setting %s as installed" % game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
         steamid=steamid,
@@ -239,7 +239,7 @@ def mark_as_installed(steamid, runner_name, game_info):
 def mark_as_uninstalled(game_info):
     assert 'id' in game_info
     assert 'name' in game_info
-    logger.debug('Setting %s as uninstalled' % game_info['name'])
+    logger.info('Setting %s as uninstalled' % game_info['name'])
     game_id = pga.add_or_update(
         id=game_info['id'],
         runner='',
