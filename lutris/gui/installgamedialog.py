@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import time
 from gi.repository import Gtk, Pango
@@ -8,7 +9,7 @@ from lutris import pga, settings, shortcuts
 from lutris.installer import interpreter
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.util import display, jobs
 from lutris.util.log import logger
@@ -332,19 +333,43 @@ class InstallerDialog(Gtk.Window):
     # "Commands" stage
     # ----------------
 
-    def ask_for_disc(self, message, callback, data=None):
-        """Ask the user to do something."""
+    def ask_for_disc(self, message, callback, requires):
+        """Ask the user to do insert a CD-ROM."""
         time.sleep(0.3)
         self.clean_widgets()
         label = Gtk.Label(label=message)
         label.set_use_markup(True)
         self.widget_box.add(label)
         label.show()
-        button = Gtk.Button(label='Ok')
-        button.connect('clicked', callback, data)
-        self.widget_box.add(button)
-        button.grab_focus()
-        button.show()
+
+        buttons_box = Gtk.Box()
+        buttons_box.show()
+        buttons_box.set_margin_top(40)
+        buttons_box.set_margin_bottom(40)
+        self.widget_box.add(buttons_box)
+
+        autodetect_button = Gtk.Button(label='Autodetect')
+        autodetect_button.connect('clicked', callback, requires)
+        autodetect_button.grab_focus()
+        autodetect_button.show()
+        buttons_box.pack_start(autodetect_button, True, True, 40)
+
+        browse_button = Gtk.Button(label='Browse…')
+        callback_data = {
+            'callback': callback,
+            'requires': requires
+        }
+        browse_button.connect('clicked', self.on_browse_clicked, callback_data)
+        browse_button.show()
+        buttons_box.pack_start(browse_button, True, True, 40)
+
+    def on_browse_clicked(self, widget, callback_data):
+        dialog = DirectoryDialog("Select the folder where the disc is mounted",
+                                 parent=self)
+        folder = dialog.folder
+        callback = callback_data['callback']
+        requires = callback_data['requires']
+        callback(widget, requires, folder)
 
     def on_eject_clicked(self, widget, data=None):
         self.interpreter.eject_wine_disc()

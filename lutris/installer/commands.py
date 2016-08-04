@@ -140,7 +140,8 @@ class CommandsMixin(object):
         requires = data.get('requires')
         message = data.get(
             'message',
-            "Insert game disc or mount disk image and click OK."
+            "Insert or mount game disc and click Autodetect or\n"
+            "use Browse if the disc is mounted on a non standard location."
         )
         message += (
             "\n\nLutris is looking for a mounted disk drive or image \n"
@@ -153,15 +154,17 @@ class CommandsMixin(object):
                       self._find_matching_disc, requires)
         return 'STOP'
 
-    def _find_matching_disc(self, widget, requires):
-        drives = disks.get_mounted_discs()
+    def _find_matching_disc(self, widget, requires, extra_path=None):
+        if extra_path:
+            drives = [extra_path]
+        else:
+            drives = disks.get_mounted_discs()
         for drive in drives:
-            mount_point = drive.get_root().get_path()
-            required_abspath = os.path.join(mount_point, requires)
+            required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
             if required_abspath:
-                logger.debug("Found %s on cdrom %s" % (requires, mount_point))
-                self.game_disc = mount_point
+                logger.debug("Found %s on cdrom %s" % (requires, drive))
+                self.game_disc = drive
                 self._iter_commands()
                 break
 

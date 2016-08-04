@@ -10,14 +10,14 @@ def get_mounted_discs():
     vm = Gio.VolumeMonitor.get()
     drives = []
 
-    for m in vm.get_mounts():
-        if m.get_volume():
-            device = m.get_volume().get_identifier('unix-device')
+    for mount in vm.get_mounts():
+        if mount.get_volume():
+            device = mount.get_volume().get_identifier('unix-device')
             if not device:
-                logger.debug("No device for mount %s", m.get_name())
+                logger.debug("No device for mount %s", mount.get_name())
                 continue
 
             # Device is a disk drive or ISO image
             if '/dev/sr' in device or '/dev/loop' in device:
-                drives.append(m)
+                drives.append(mount.get_root().get_path())
     return drives
