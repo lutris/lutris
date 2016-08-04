@@ -78,9 +78,11 @@ class LutrisWindow(Gtk.Application):
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
 
-        # Set GTK to prefer dark theme
-        gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property("gtk-application-prefer-dark-theme", True)
+        # Set theme to dark if set in the settings
+        dark_theme_menuitem = self.builder.get_object('dark_theme_menuitem')
+        use_dark_theme = settings.read_setting('dark_theme') == 'true'
+        dark_theme_menuitem.set_active(use_dark_theme)
+        self.set_dark_theme(use_dark_theme)
 
         # Load view
         logger.debug("Loading view")
@@ -223,6 +225,10 @@ class LutrisWindow(Gtk.Application):
                                               runner_name,
                                               game_info)
             self.add_game_to_view(game_id)
+
+    def set_dark_theme(self, is_dark):
+        gtksettings = Gtk.Settings.get_default()
+        gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def init_game_store(self):
         logger.debug("Getting game list")
@@ -385,6 +391,13 @@ class LutrisWindow(Gtk.Application):
     # ---------
     # Callbacks
     # ---------
+
+    def on_dark_theme_toggled(self, widget):
+        use_dark_theme = widget.get_active()
+        setting_value = 'true' if use_dark_theme else 'false'
+        logger.debug("Dark theme now %s", setting_value)
+        settings.write_setting('dark_theme', setting_value)
+        self.set_dark_theme(use_dark_theme)
 
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
