@@ -278,29 +278,22 @@ def sync_with_lutris():
 
 
 class SteamWatchHandler(pyinotify.ProcessEvent):
-    def __init__(self, callback=None):
+    def __init__(self, callback):
         self.callback = callback
 
     def process_IN_MODIFY(self, event):
-        path = event.pathname
-        if not path.endswith('.acf'):
-            return
-        if self.callback:
-            self.callback('MODIFY', path)
+        self.process_event('MODIFY', event.pathname)
 
     def process_IN_CREATE(self, event):
-        path = event.pathname
-        if not path.endswith('.acf'):
-            return
-        if self.callback:
-            self.callback('CREATE', path)
+        self.process_event('CREATE', event.pathname)
 
     def process_IN_DELETE(self, event):
-        path = event.pathname
+        self.process_event('DELETE', event.pathname)
+
+    def process_event(self, event_type, path):
         if not path.endswith('.acf'):
             return
-        if self.callback:
-            self.callback('DELETE', path)
+        self.callback(event_type, path)
 
 
 class SteamWatcher(threading.Thread):
