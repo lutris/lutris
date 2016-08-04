@@ -12,11 +12,6 @@ class Sync(object):
         added, updated = self.sync_from_remote()
         return added, updated
 
-    def sync_local(self):
-        """Synchronize games state with local third parties."""
-        installed, uninstalled = self.sync_steam_local()
-        return installed, uninstalled
-
     def sync_from_remote(self):
         """Synchronize from remote to local library.
 
