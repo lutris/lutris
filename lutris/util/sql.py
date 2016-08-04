@@ -81,6 +81,20 @@ def db_select(db_path, table, fields=None, condition=None):
     return results
 
 
+def db_query(db_path, query, params=()):
+    with db_cursor(db_path) as cursor:
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+    results = []
+    for row in rows:
+        row_data = {}
+        for index, column in enumerate(column_names):
+            row_data[column] = row[index]
+        results.append(row_data)
+    return results
+
+
 def _decode_utf8_values(values_list):
     """Return a tuple of values with UTF-8 string values being decoded."""
     i = 0

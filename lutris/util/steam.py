@@ -1,8 +1,14 @@
 import os
+import re
 import time
-from lutris.util.log import logger
+import threading
+import pyinotify
 from collections import OrderedDict
+from lutris import pga
+from lutris.util.log import logger
 from lutris.util.system import fix_path_case
+from lutris.util.strings import slugify
+from lutris.config import make_game_config_id, LutrisConfig
 
 
 APP_STATE_FLAGS = [
@@ -98,48 +104,26 @@ def read_config(steam_data_dir):
         return config
 
 
-def get_manifest_info(steamapps_path, appid):
-    """Given the steam apps path and appid, return the corresponding
-    appmanifest info."""
+def get_appmanifest_from_appid(steamapps_path, appid):
+    """Given the steam apps path and appid, return the corresponding appmanifest"""
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
     if not os.path.exists(steamapps_path):
         raise IOError("steamapps_path must be a valid directory")
     if not appid:
         raise ValueError("Missing mandatory appid")
-    appmanifest_path = os.path.join(steamapps_path,
-                                    "appmanifest_%s.acf" % appid)
+    appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        return {}
-    with open(appmanifest_path, "r") as appmanifest_file:
-        config = vdf_parse(appmanifest_file, {})
-    return config
+        return
+    return AppManifest(appmanifest_path)
 
 
 def get_path_from_appmanifest(steamapps_path, appid):
     """Return the path where a Steam game is installed."""
-    config = get_manifest_info(steamapps_path, appid)
-    if not config:
+    appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
+    if not appmanifest:
         return
-    installdir = config.get('AppState', {}).get('installdir')
-    install_path = fix_path_case(os.path.join(steamapps_path, "common",
-                                              installdir))
-    if install_path and os.path.exists(install_path):
-        return install_path
-
-
-def get_app_states(steamapps_path, appid):
-    """Return the states of a Steam game."""
-    states = []
-    if not steamapps_path:
-        return states
-    manifest_info = get_manifest_info(steamapps_path, appid)
-    state_flags = manifest_info.get('AppState', {}).get('StateFlags', 0)
-    state_flags = bin(int(state_flags))[:1:-1]
-    for index, flag in enumerate(state_flags):
-        if flag == '1':
-            states.append(APP_STATE_FLAGS[index + 1])
-    return states
+    return appmanifest.get_install_path()
 
 
 def _get_last_content_log(steam_data_dir):
@@ -197,3 +181,206 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
         if line[0].endswith("state changed"):
             state_log.append(line[1][:-2])
     return state_log
+
+
+def get_appmanifests(steamapps_path):
+    """Return the list for all appmanifest files in a Steam library folder"""
+    return [f for f in os.listdir(steamapps_path)
+            if re.match(r'^appmanifest_\d+.acf$', f)]
+
+
+def get_steamapps_paths(flat=False):
+    from lutris.runners import winesteam, steam
+    if flat:
+        steamapps_paths = []
+    else:
+        steamapps_paths = {
+            'linux': [],
+            'windows': []
+        }
+    winesteam_runner = winesteam.winesteam()
+    steam_runner = steam.steam()
+    for folder in steam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['linux'].append(folder)
+    for folder in winesteam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['windows'].append(folder)
+    return steamapps_paths
+
+
+def mark_as_installed(steamid, runner_name, game_info):
+    for key in ['name', 'slug']:
+        assert game_info[key]
+    logger.info("Setting %s as installed" % game_info['name'])
+    config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
+    game_id = pga.add_or_update(
+        steamid=int(steamid),
+        name=game_info['name'],
+        runner=runner_name,
+        slug=game_info['slug'],
+        installed=1,
+        configpath=config_id,
+    )
+
+    game_config = LutrisConfig(
+        runner_slug=runner_name,
+        game_config_id=config_id,
+    )
+    game_config.raw_game_config.update({'appid': steamid})
+    game_config.save()
+    return game_id
+
+
+def mark_as_uninstalled(game_info):
+    assert 'id' in game_info
+    assert 'name' in game_info
+    logger.info('Setting %s as uninstalled' % game_info['name'])
+    game_id = pga.add_or_update(
+        id=game_info['id'],
+        runner='',
+        installed=0
+    )
+    return game_id
+
+
+def sync_with_lutris():
+    steamapps_paths = get_steamapps_paths()
+    steam_games_in_lutris = pga.get_steam_games()
+    steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
+    seen_ids = set()
+    for platform in steamapps_paths:
+        for steamapps_path in steamapps_paths[platform]:
+            appmanifests = get_appmanifests(steamapps_path)
+            for appmanifest_file in appmanifests:
+                steamid = re.findall(r'(\d+)', appmanifest_file)[0]
+                seen_ids.add(steamid)
+                if steamid not in steamids_in_lutris and platform == 'linux':
+                    appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
+                    appmanifest = AppManifest(appmanifest_path)
+                    if appmanifest.is_installed():
+                        game_info = {
+                            'name': appmanifest.name,
+                            'slug': appmanifest.slug,
+                        }
+                        mark_as_installed(steamid, 'steam', game_info)
+    unavailable_ids = steamids_in_lutris.difference(seen_ids)
+    for steamid in unavailable_ids:
+        for game in steam_games_in_lutris:
+            if str(game['steamid']) == steamid \
+               and game['installed'] \
+               and game['runner'] in ('steam', 'winesteam'):
+                mark_as_uninstalled(game)
+
+
+class SteamWatchHandler(pyinotify.ProcessEvent):
+    def __init__(self, callback=None):
+        self.callback = callback
+
+    def process_IN_MODIFY(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        if self.callback:
+            self.callback('MODIFY', path)
+
+    def process_IN_CREATE(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        if self.callback:
+            self.callback('CREATE', path)
+
+    def process_IN_DELETE(self, event):
+        path = event.pathname
+        if not path.endswith('.acf'):
+            return
+        if self.callback:
+            self.callback('DELETE', path)
+
+
+class SteamWatcher(threading.Thread):
+    def __init__(self, steamapps_paths, callback=None):
+        self.steamapps_paths = steamapps_paths
+        self.callback = callback
+        super(SteamWatcher, self).__init__()
+        self.start()
+
+    def run(self):
+        watch_manager = pyinotify.WatchManager()
+        event_handler = SteamWatchHandler(self.callback)
+        mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
+        notifier = pyinotify.Notifier(watch_manager, event_handler)
+        logger.info(self.steamapps_paths)
+        for steamapp_path in self.steamapps_paths:
+            logger.info('Watching Steam folder %s', steamapp_path)
+            watch_manager.add_watch(steamapp_path, mask, rec=False)
+        notifier.loop()
+
+
+class AppManifest:
+    def __init__(self, appmanifest_path):
+        self.steamapps_path, filename = os.path.split(appmanifest_path)
+        self.steamid = re.findall(r'(\d+)', filename)[0]
+        if os.path.exists(appmanifest_path):
+            with open(appmanifest_path, "r") as appmanifest_file:
+                self.appmanifest_data = vdf_parse(appmanifest_file, {})
+
+    @property
+    def app_state(self):
+        return self.appmanifest_data.get('AppState') or {}
+
+    @property
+    def name(self):
+        return self.app_state.get('name')
+
+    @property
+    def slug(self):
+        return slugify(self.name)
+
+    @property
+    def installdir(self):
+        return self.app_state.get('installdir')
+
+    @property
+    def states(self):
+        """Return the states of a Steam game."""
+        states = []
+        state_flags = self.app_state.get('StateFlags', 0)
+        state_flags = bin(int(state_flags))[:1:-1]
+        for index, flag in enumerate(state_flags):
+            if flag == '1':
+                states.append(APP_STATE_FLAGS[index + 1])
+        return states
+
+    def is_installed(self):
+        return 'Fully Installed' in self.states
+
+    def get_install_path(self):
+        if not self.installdir:
+            return
+        install_path = fix_path_case(os.path.join(self.steamapps_path, "common",
+                                                  self.installdir))
+        if install_path:
+            return install_path
+
+    def get_platform(self):
+        steamapps_paths = get_steamapps_paths()
+        if self.steamapps_path in steamapps_paths['linux']:
+            return 'linux'
+        elif self.steamapps_path in steamapps_paths['windows']:
+            return 'windows'
+        else:
+            raise ValueError("Can't find %s in %s"
+                             % (self.steamapps_path, steamapps_paths))
+
+    def get_runner_name(self):
+        platform = self.get_platform()
+        if platform == 'linux':
+            return 'steam'
+        else:
+            return 'winesteam'

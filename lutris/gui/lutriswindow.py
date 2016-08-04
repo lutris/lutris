@@ -14,6 +14,7 @@ from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import datapath
+from lutris.util import steam
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -172,6 +173,10 @@ class LutrisWindow(Gtk.Application):
         pga_menuitem = self.builder.get_object('pga_menuitem')
         pga_menuitem.hide()
 
+        # Sync local lutris library with current Steam games before setting up
+        # view
+        steam.sync_with_lutris()
+
         self.init_game_store()
 
         self.update_runtime()
@@ -185,8 +190,39 @@ class LutrisWindow(Gtk.Application):
             self.sync_library()
 
         # Timers
-        self.timer_ids = [GLib.timeout_add(300, self.refresh_status),
-                          GLib.timeout_add(10000, self.on_sync_timer)]
+        self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
+        steamapps_paths = steam.get_steamapps_paths(flat=True)
+        self.steam_watcher = steam.SteamWatcher(steamapps_paths,
+                                                self.on_steam_game_changed)
+
+    def on_steam_game_changed(self, operation, path):
+        appmanifest = steam.AppManifest(path)
+        runner_name = appmanifest.get_runner_name()
+        games = pga.get_game_by_field(appmanifest.steamid, field='steamid', all=True)
+        if operation == 'DELETE':
+            for game in games:
+                if game['runner'] == runner_name:
+                    steam.mark_as_uninstalled(game)
+                    self.remove_game_from_view(game['id'])
+                    break
+        elif operation in ('MODIFY', 'CREATE'):
+            if not appmanifest.is_installed():
+                return
+            if runner_name == 'windows':
+                return
+            game_info = None
+            for game in games:
+                if game['installed'] == 0:
+                    game_info = game
+            if not game_info:
+                game_info = {
+                    'name': appmanifest.name,
+                    'slug': appmanifest.slug,
+                }
+            game_id = steam.mark_as_installed(appmanifest.steamid,
+                                              runner_name,
+                                              game_info)
+            self.add_game_to_view(game_id)
 
     def init_game_store(self):
         logger.debug("Getting game list")
@@ -212,7 +248,6 @@ class LutrisWindow(Gtk.Application):
 
     def check_update(self):
         """Verify availability of client update."""
-        pass
 
         def on_version_received(version, error):
             if not version:
@@ -286,30 +321,21 @@ class LutrisWindow(Gtk.Application):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                added, updated, installed, uninstalled = result
+                added, updated = result  # , installed, uninstalled = result
                 self.switch_splash_screen()
                 self.game_store.fill_store(added)
 
-                GLib.idle_add(self.update_existing_games,
-                              added, updated, installed, uninstalled, True)
+                GLib.idle_add(self.update_existing_games, added, updated, True)
             else:
                 logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
         AsyncCall(Sync().sync_all, update_gui)
 
-    def update_existing_games(self, added, updated, installed, uninstalled,
-                              first_run=False):
+    def update_existing_games(self, added, updated, first_run=False):
+        # , installed, uninstalled, first_run=False):
         for game_id in updated.difference(added):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
-
-        for game_id in installed.difference(added):
-            if not self.view.get_row_by_id(game_id):
-                self.view.add_game(game_id)
-            self.view.set_installed(Game(game_id))
-
-        for game_id in uninstalled.difference(added):
-            self.view.set_uninstalled(game_id)
 
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
@@ -410,19 +436,8 @@ class LutrisWindow(Gtk.Application):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
 
-    def on_sync_timer(self):
-        if (not self.running_game
-           or self.running_game.state == Game.STATE_STOPPED):
-
-            def update_gui(result, error):
-                if result:
-                    self.update_existing_games(set(), set(), *result)
-                else:
-                    logger.error('No results while syncing local Steam database')
-            AsyncCall(Sync().sync_local, update_gui)
-        return True
-
     def on_resize(self, widget, *args):
+        """WTF is this doing?"""
         self.window_size = widget.get_size()
 
     def on_destroy(self, *args):
