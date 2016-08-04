@@ -42,6 +42,7 @@ class LutrisThread(threading.Thread):
         self.max_cycles_without_children = 15
         self.startup_time = time.time()
         self.monitoring_started = False
+        self.daemon = True
 
         if cwd:
             self.cwd = cwd
