@@ -18,7 +18,7 @@ def execute(command, env=None, cwd=None, log_errors=False):
     existing_env = os.environ.copy()
     if env:
         existing_env.update(env)
-        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
+        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
     logger.debug("Executing %s", ' '.join(command))
 
     # Piping stderr can cause slowness in the programs, use carefully

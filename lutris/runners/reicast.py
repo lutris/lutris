@@ -115,7 +115,7 @@ class reicast(Runner):
         for section in config:
             if not parser.has_section(section):
                 parser.add_section(section)
-            for (key, value) in config[section].iteritems():
+            for (key, value) in config[section].items():
                 parser.set(section, key, value)
 
         with open(config_path, 'w') as config_file:

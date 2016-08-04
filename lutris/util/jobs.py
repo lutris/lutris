@@ -34,6 +34,7 @@ class AsyncCall(threading.Thread):
                          self.function, err)
             error = err
             ex_type, ex_value, tb = sys.exc_info()
+            print(ex_type, ex_value)
             traceback.print_tb(tb)
 
         GLib.idle_add(lambda: self.on_done(result, error))

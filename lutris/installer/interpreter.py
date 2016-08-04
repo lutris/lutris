@@ -523,7 +523,7 @@ class ScriptInterpreter(CommandsMixin):
                 config[key] = [self._substitute(i) for i in value]
             elif isinstance(value, dict):
                 config[key] = dict(
-                    [(k, self._substitute(v)) for (k, v) in value.iteritems()]
+                    [(k, self._substitute(v)) for (k, v) in value.items()]
                 )
             elif isinstance(value, bool):
                 config[key] = value
