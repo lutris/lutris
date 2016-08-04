@@ -264,6 +264,7 @@ def sync_with_lutris():
             for appmanifest_file in appmanifests:
                 steamid = re.findall(r'(\d+)', appmanifest_file)[0]
                 seen_ids.add(steamid)
+                game_info = None
                 if steamid not in steamids_in_lutris and platform == 'linux':
                     appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
                     appmanifest = AppManifest(appmanifest_path)
@@ -272,6 +273,13 @@ def sync_with_lutris():
                             'name': appmanifest.name,
                             'slug': appmanifest.slug,
                         }
+                        mark_as_installed(steamid, 'steam', game_info)
+                else:
+                    for game in steam_games_in_lutris:
+                        if str(game['steamid']) == steamid and not game['installed']:
+                            game_info = game
+                            break
+                    if game_info:
                         mark_as_installed(steamid, 'steam', game_info)
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:
