@@ -262,7 +262,7 @@ def get_default_version():
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     try:
-        version = subprocess.check_output([wine_path, "--version"]).strip()
+        version = subprocess.check_output([wine_path, "--version"]).decode().strip()
     except OSError:
         return
     else:
