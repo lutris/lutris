@@ -108,7 +108,7 @@ class Downloader():
 
     def write_queue(self):
         """Append download queue to destination file."""
-        buffered_chunk = ''
+        buffered_chunk = b''
         while self.queue.qsize():
             chunk, received_bytes, total_bytes = self.queue.get()
             buffered_chunk += chunk
