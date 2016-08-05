@@ -23,6 +23,7 @@ Depends: ${misc:Depends},
  python3-gi,
  python3-pyinotify,
  python3-xdg,
+ python3-evdev
  gir1.2-gtk-3.0,
  xdg-user-dirs,
  psmisc,
