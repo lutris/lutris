@@ -43,7 +43,7 @@ def execute(command, env=None, cwd=None, log_errors=False):
             stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.strip()
+    return stdout.decode().strip()
 
 
 def get_md5_hash(filename):
