@@ -82,6 +82,9 @@ class LutrisThread(threading.Thread):
         if not self.game_process:
             return
         for line in iter(self.game_process.stdout.readline, ''):
+            line = line.decode()
+            if not line:
+                continue
             self.stdout += line
             if self.debug_output:
                 sys.stdout.write(line)
