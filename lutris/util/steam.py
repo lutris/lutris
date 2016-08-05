@@ -339,7 +339,6 @@ class SteamWatcher(threading.Thread):
     def stop(self):
         if self.notifier:
             self.notifier.stop()
-            print self.notifier
 
 
 class AppManifest:

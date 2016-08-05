@@ -2,7 +2,7 @@
 import re
 import os
 import shutil
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from collections import Counter
 from lutris import settings
 from lutris.runners.runner import Runner
@@ -115,8 +115,8 @@ class reicast(Runner):
         for section in config:
             if not parser.has_section(section):
                 parser.add_section(section)
-            for (key, value) in config[section].iteritems():
-                parser.set(section, key, value)
+            for (key, value) in config[section].items():
+                parser.set(section, key, str(value))
 
         with open(config_path, 'w') as config_file:
             parser.write(config_file)

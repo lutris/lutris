@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python3
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -92,16 +92,16 @@ if options.list_games:
                 'runner': game['runner'],
                 'directory': game['directory'] or '-'
             })
-        print json.dumps(games, indent=2).encode('utf-8')
+        print(json.dumps(games, indent=2).encode('utf-8'))
     else:
         for game in game_list:
-            print u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+            print(u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
                 game['id'],
                 game['name'][:40],
                 game['slug'][:40],
                 game['runner'],
                 game['directory'] or '-'
-            ).encode('utf-8')
+            ).encode('utf-8'))
     exit()
 if options.list_steam:
     # FIXME: this returns a list of appids
@@ -109,14 +109,14 @@ if options.list_steam:
     from lutris.runners import winesteam
     steam_runner = winesteam.winesteam()
     for appid in steam_runner.get_appid_list():
-        print appid
+        print(appid)
     exit()
 if options.list_steam_folders:
     steamapps_paths = get_steamapps_paths()
     for path in steamapps_paths['linux']:
-        print path
+        print(path)
     for path in steamapps_paths['windows']:
-        print path
+        print(path)
     exit()
 
 

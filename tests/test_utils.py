@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from unittest import TestCase
 from lutris.util import system
 from lutris.util import steam
@@ -34,16 +35,16 @@ class TestFileUtils(TestCase):
 
 class TestSteamUtils(TestCase):
     def test_dict_to_vdf(self):
-        dict_data = {
-            'AppState': {
-                'appID': '13240',
-                'StateFlags': '4',
-                'UserConfig': {
-                    "name": "Unreal Tournament",
-                    "gameid": "13240"
-                }
-            }
-        }
+        appstate = OrderedDict()
+        userconfig = OrderedDict()
+        userconfig['gameid'] = "13240"
+        userconfig['name'] = "Unreal Tournament"
+        appstate['UserConfig'] = userconfig
+        appstate['StateFlags'] = '4'
+        appstate['appID'] = '13240'
+        dict_data = OrderedDict()
+        dict_data['AppState'] = appstate
+
         expected_vdf = """"AppState"
 {
 \t"UserConfig"

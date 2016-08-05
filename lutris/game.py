@@ -343,7 +343,7 @@ class Game(object):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
-        logger.debug("%s stopped at %s", self.name, quit_time.decode("utf-8"))
+        logger.debug("%s stopped at %s", self.name, quit_time)
         self.state = self.STATE_STOPPED
 
         os.chdir(os.path.expanduser('~'))

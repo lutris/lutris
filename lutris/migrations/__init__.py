@@ -1,3 +1,4 @@
+import importlib
 from lutris import settings
 from lutris.util.log import logger
 
@@ -20,8 +21,7 @@ MIGRATIONS.append([
 
 
 def get_migration_module(migration_name):
-    return __import__('lutris.migrations.%s' % migration_name,
-                      globals(), locals(), [migration_name], -1)
+    return importlib.import_module('lutris.migrations.%s' % migration_name)
 
 
 def migrate():

@@ -15,9 +15,9 @@ from lutris.settings import CACHE_DIR
 
 def get_xdg_basename(game_slug, game_id, legacy=False):
     if legacy:
-        filename = "%s.desktop" % game_slug
+        filename = "{}.desktop".format(game_slug)
     else:
-        filename = "%s-%s.desktop" % (game_slug, game_id)
+        filename = "{}-{}.desktop".format(game_slug, game_id)
     return filename
 
 
@@ -34,7 +34,8 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
         Icon=%s
         Exec=lutris lutris:%s
         Categories=Game
-        """ % (game_name, 'lutris_' + game_slug, game_id))
+        """.format(game_name, 'lutris_{}'.format(game_slug), game_id)
+    )
 
     launcher_filename = get_xdg_basename(game_slug, game_id, legacy=False)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
@@ -65,7 +66,7 @@ def get_launcher_path(game_slug, game_id):
         return
     desktop_dir = subprocess.Popen([xdg_executable, 'DESKTOP'],
                                    stdout=subprocess.PIPE).communicate()[0]
-    desktop_dir = desktop_dir.strip()
+    desktop_dir = str(desktop_dir).strip()
 
     legacy_launcher_path = os.path.join(
         desktop_dir, get_xdg_basename(game_slug, game_id, legacy=True)

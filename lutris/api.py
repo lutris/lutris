@@ -1,7 +1,8 @@
 import os
 import json
-import urllib
-import urllib2
+import urllib.request
+import urllib.parse
+import urllib.error
 import socket
 
 from lutris import settings
@@ -25,12 +26,12 @@ def read_api_key():
 
 
 def connect(username, password):
-    credentials = urllib.urlencode({'username': username,
-                                    'password': password})
+    credentials = urllib.parse.urlencode({'username': username,
+                                          'password': password})
     login_url = settings.SITE_URL + "api/accounts/token"
     try:
-        request = urllib2.urlopen(login_url, credentials, 10)
-    except (socket.timeout, urllib2.URLError) as ex:
+        request = urllib.request.urlopen(login_url, credentials, 10)
+    except (socket.timeout, urllib.error.URLError) as ex:
         logger.error("Unable to connect to server (%s): %s", login_url, ex)
         return False
     response = json.loads(request.read())

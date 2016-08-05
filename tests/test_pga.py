@@ -53,7 +53,7 @@ class TestPersonnalGameArchive(DatabaseTester):
         pga.add_game(name="installed_game", runner="Linux", installed=1)
         pga.add_game(name="bang", runner="Linux", installed=0)
         game_list = pga.get_games(filter_installed=True)
-        print game_list
+        print(game_list)
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'installed_game')
 

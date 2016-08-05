@@ -1,6 +1,5 @@
 import os
 import shlex
-import shutil
 import subprocess
 
 from textwrap import dedent
@@ -263,7 +262,7 @@ def get_default_version():
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     try:
-        version = subprocess.check_output([wine_path, "--version"]).strip()
+        version = subprocess.check_output([wine_path, "--version"]).decode().strip()
     except OSError:
         return
     else:
@@ -629,7 +628,7 @@ class wine(Runner):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
         enable_wine_desktop = False
-        for key, path in self.reg_keys.iteritems():
+        for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or 'auto'
             if not value or value == 'auto' and key != 'ShowCrashDialog':
                 delete_registry_key(path, wine_path=self.get_executable(),
@@ -652,7 +651,7 @@ class wine(Runner):
         self.set_wine_desktop(enable_wine_desktop)
         overrides = self.runner_config.get('overrides') or {}
         overrides_path = "%s\DllOverrides" % self.reg_prefix
-        for dll, value in overrides.iteritems():
+        for dll, value in overrides.items():
             set_regedit(overrides_path, dll, value,
                         wine_path=self.get_executable(),
                         prefix=prefix, arch=self.wine_arch)
