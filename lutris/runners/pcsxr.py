@@ -84,6 +84,8 @@ class pcsxr(Runner):
     def play(self):
         """Run Playstation game."""
         iso = self.game_config.get('iso')
+        if not os.path.exists(iso):
+            return {'error': 'FILE_NOT_FOUND', 'file': iso}
         command = [self.get_executable()]
         # Options
         if self.runner_config.get('nogui') \
