@@ -110,10 +110,12 @@ if options.list_steam_games:
             appmanifest_files = get_appmanifests(path)
             for appmanifest_file in appmanifest_files:
                 appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                print("  {:8} | {:<60} | {:10}".format(
+                print("  {:8} | {:<60} | {:10} | {}".format(
                     appmanifest.steamid,
                     appmanifest.name or '-',
-                    platform
+                    platform,
+                    ", ".join(appmanifest.states)
+
                 ))
     exit()
 if options.list_steam_folders:
