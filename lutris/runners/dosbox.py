@@ -3,13 +3,18 @@ import os
 import subprocess
 from lutris import settings
 from lutris.util.log import logger
+from lutris.util.system import create_folder
 from lutris.runners.runner import Runner
 
 
 def dosexec(config_file=None, executable=None, args=None, exit=True,
             working_dir=None):
     """Execute Dosbox with given config_file."""
-    logger.debug("Running dosbox with config %s" % config_file)
+    if config_file:
+        run_with = "config {}".format(config_file)
+    elif executable:
+        run_with = "executable {}".format(executable)
+    logger.debug("Running dosbox with {}".format(run_with))
     dbx = dosbox()
     command = '"{}"'.format(dbx.get_executable())
     if config_file:
