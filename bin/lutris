@@ -120,10 +120,9 @@ if options.list_steam_games:
     exit()
 if options.list_steam_folders:
     steamapps_paths = get_steamapps_paths()
-    for path in steamapps_paths['linux']:
-        print(path)
-    for path in steamapps_paths['windows']:
-        print(path)
+    for platform in ('linux', 'windows'):
+        for path in steamapps_paths[platform]:
+            print(path)
     exit()
 
 
