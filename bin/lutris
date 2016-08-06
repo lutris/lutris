@@ -49,7 +49,7 @@ from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.settings import VERSION
 from lutris.util import service
-from lutris.util.steam import get_steamapps_paths
+from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
@@ -63,8 +63,8 @@ parser.add_option("-l", "--list-games", action="store_true", dest="list_games",
                   help="List games in database")
 parser.add_option("-o", "--installed", action="store_true", dest="list_installed",
                   help="Only list installed games")
-parser.add_option("--list-steam", action="store_true",
-                  help="List Steam (Windows) games")
+parser.add_option("--list-steam-games", action="store_true",
+                  help="List available Steam games")
 parser.add_option("--list-steam-folders", action="store_true",
                   help="List all known Steam library folders")
 parser.add_option("-j", "--json", action="store_true", dest="json",
@@ -95,7 +95,7 @@ if options.list_games:
         print(json.dumps(games, indent=2).encode('utf-8'))
     else:
         for game in game_list:
-            print(u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+            print("{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
                 game['id'],
                 game['name'][:40],
                 game['slug'][:40],
@@ -103,13 +103,18 @@ if options.list_games:
                 game['directory'] or '-'
             ).encode('utf-8'))
     exit()
-if options.list_steam:
-    # FIXME: this returns a list of appids
-    # FIXME: this only works for Wine Steam games
-    from lutris.runners import winesteam
-    steam_runner = winesteam.winesteam()
-    for appid in steam_runner.get_appid_list():
-        print(appid)
+if options.list_steam_games:
+    steamapps_paths = get_steamapps_paths()
+    for platform in ('linux', 'windows'):
+        for path in steamapps_paths[platform]:
+            appmanifest_files = get_appmanifests(path)
+            for appmanifest_file in appmanifest_files:
+                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
+                print("  {:8} | {:<60} | {:10}".format(
+                    appmanifest.steamid,
+                    appmanifest.name or '-',
+                    platform
+                ))
     exit()
 if options.list_steam_folders:
     steamapps_paths = get_steamapps_paths()
