@@ -67,7 +67,7 @@ class Request(object):
                              self.url, e)
         else:
             try:
-                total_size = request.info().getheader('Content-Length').strip()
+                total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
                 total_size = 0
