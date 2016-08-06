@@ -234,10 +234,6 @@ class winesteam(wine.wine):
             if callback:
                 callback()
 
-        if not self.is_wine_installed():
-            # FIXME find another way to do that (already fixed from the install game
-            # dialog)
-            wine.wine().install(version=version, downloader=downloader)
         if downloader:
             downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
         else:
