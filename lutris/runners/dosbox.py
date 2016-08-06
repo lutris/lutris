@@ -3,7 +3,7 @@ import os
 import subprocess
 from lutris import settings
 from lutris.util.log import logger
-from lutris.util.system import create_folder
+from lutris.util import system
 from lutris.runners.runner import Runner
 
 
@@ -16,22 +16,23 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
         run_with = "executable {}".format(executable)
     logger.debug("Running dosbox with {}".format(run_with))
     dbx = dosbox()
-    command = '"{}"'.format(dbx.get_executable())
+    command = [dbx.get_executable()]
     if config_file:
-        command += ' -conf "{}"'.format(config_file)
+        command += ['-conf', config_file]
         if not working_dir:
             working_dir = os.path.dirname(config_file)
     if executable:
-        command += ' "{}"'.format(executable)
+        if not os.path.exists(executable):
+            raise OSError("Can't find file {}".format(executable))
+        command.append(executable)
         if not working_dir:
             working_dir = os.path.dirname(executable)
-    working_dir = create_folder(working_dir)
+    working_dir = system.create_folder(working_dir)
     if args:
-        command += ' ' + args
+        command += args.split()
     if exit:
-        command += " -exit"
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                     cwd=working_dir).communicate()
+        command.append('-exit')
+    system.execute(command, cwd=working_dir)
 
 
 class dosbox(Runner):
