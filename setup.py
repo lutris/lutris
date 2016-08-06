@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import os
-from distutils.core import setup
+from setuptools import setup
 from lutris.settings import VERSION
 
 data_files = []
@@ -25,8 +25,14 @@ setup(
               'lutris.installer', 'lutris.migrations'],
     scripts=['bin/lutris'],
     data_files=data_files,
-    # FIXME: find a way to install dependencies
-    # install_requires=['PyYAML', 'PyGObject'],
+    install_requires=[
+        'PyYAML',
+        'PyGObject',
+        'dbus-python',
+        'pyxdg',
+        'pyinotify',
+        'evdev'
+    ],
     url='https://lutris.net',
     description='Install and play any video game on Linux',
     long_description="""Lutris is a gaming platform for GNU/Linux. It's goal is
