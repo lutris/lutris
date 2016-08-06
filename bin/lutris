@@ -144,11 +144,6 @@ if type(lutris) is dbus.Interface:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
         logger.error(e)
-
-        # FIXME This whole thing below is utterly broken and I've never seen
-        # the expected behavior happen. Now, if only I knew how to reproduce
-        # this state, maybe I might be able to write a fix but I still have no
-        # idea what's causing this non-responsive DBus thing.
         try:
             # Get existing process' PID
             dbus_proxy = bus.get_object('org.freedesktop.DBus',
@@ -161,7 +156,7 @@ if type(lutris) is dbus.Interface:
             logger.error("Lutris was non responsive, we tried, we failed and failed "
                          "some more. Please now try to restart Lutris")
             logger.error(ex)
-            exit()  # Give up :(
+            exit()
         else:
             time.sleep(1)  # Wait for bus name to be available again
             lutris = service.LutrisService(bus, '/', service.DBUS_INTERFACE)
