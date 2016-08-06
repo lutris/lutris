@@ -25,6 +25,7 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
         command += ' "{}"'.format(executable)
         if not working_dir:
             working_dir = os.path.dirname(executable)
+    working_dir = create_folder(working_dir)
     if args:
         command += ' ' + args
     if exit:
