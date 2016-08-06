@@ -15,7 +15,7 @@ def get_xdg_games():
         if app.get_name().lower() in IGNORED_ENTRIES:
             continue
         categories = app.get_categories()
-        if not categories or not 'Game' in categories:
+        if not categories or 'Game' not in categories:
             continue
 
         exe_and_args = app.get_string('Exec').split(' ', 2)
@@ -28,7 +28,3 @@ def get_xdg_games():
                                    shell=True).communicate()[0].strip('\n')
         xdg_games.append((app.get_display_name(), exe, args))
     return xdg_games
-
-if __name__ == '__main__':
-
-    print get_xdg_games()

@@ -77,11 +77,11 @@ class TOSEC:
                           )''')
 
     def __enter__(self):
-        print 'enter'
+        print('enter')
         return self
 
     def __exit__(self, type, value, traceback):
-        print 'exit'
+        print('exit')
         self.db.close()
 
     def __del__(self):
@@ -98,7 +98,7 @@ class TOSEC:
 
         # If the info don't have a version, it is not valid and the file
         # shouldn't be added
-        if not 'version' in info:
+        if 'version' not in info:
             return False
 
         new_version = info["version"]
