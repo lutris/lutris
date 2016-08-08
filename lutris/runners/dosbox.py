@@ -36,6 +36,16 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
     system.execute(command, cwd=working_dir)
 
 
+def makeconfig(path, drives, commands):
+    system.create_folder(os.path.dirname(path))
+    with open(path, 'w') as config_file:
+        config_file.write('[autoexec]\n')
+        for drive in drives:
+            config_file.write("mount {} \"{}\"\n".format(drive, drives[drive]))
+        for command in commands:
+            config_file.write("{}\n".format(command))
+
+
 class dosbox(Runner):
     human_name = "DOSBox"
     description = "MS-Dos emulator"
