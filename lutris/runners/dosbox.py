@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import subprocess
 from lutris import settings
 from lutris.util.log import logger
 from lutris.util import system
@@ -12,22 +11,24 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
     """Execute Dosbox with given config_file."""
     if config_file:
         run_with = "config {}".format(config_file)
-    elif executable:
-        run_with = "executable {}".format(executable)
-    logger.debug("Running dosbox with {}".format(run_with))
-    dbx = dosbox()
-    command = [dbx.get_executable()]
-    if config_file:
-        command += ['-conf', config_file]
         if not working_dir:
             working_dir = os.path.dirname(config_file)
+    elif executable:
+        run_with = "executable {}".format(executable)
+        if not working_dir:
+            working_dir = os.path.dirname(executable)
+    else:
+        raise ValueError("Neither a config file or an executable were provided")
+    logger.debug("Running dosbox with {}".format(run_with))
+    working_dir = system.create_folder(working_dir)
+    dosbox_runner = dosbox()
+    command = [dosbox_runner.get_executable()]
+    if config_file:
+        command += ['-conf', config_file]
     if executable:
         if not os.path.exists(executable):
             raise OSError("Can't find file {}".format(executable))
-        command.append(executable)
-        if not working_dir:
-            working_dir = os.path.dirname(executable)
-    working_dir = system.create_folder(working_dir)
+        command += [executable]
     if args:
         command += args.split()
     if exit:
