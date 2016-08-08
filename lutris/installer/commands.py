@@ -307,7 +307,16 @@ class CommandsMixin(object):
             data['wine_path'] = wine.get_wine_version_exe(wine_version)
 
         for key in data:
-            data[key] = self._substitute(data[key])
+            value = data[key]
+            if type(value) is dict:
+                for inner_key in value:
+                    value[inner_key] = self._substitute(value[inner_key])
+            elif type(value) is list:
+                for index, elem in enumerate(value):
+                    value[index] = self._substitute(elem)
+            else:
+                value = self._substitute(data[key])
+            data[key] = value
 
         if runner_name in ['wine', 'winesteam'] and 'prefix' not in data:
             data['prefix'] = self.target_path
