@@ -69,7 +69,10 @@ def vdf_parse(steam_config_file, config):
             steam_config_file.readline()  # skip '{'
             config[key] = vdf_parse(steam_config_file, {})
         else:
-            config[line_elements[1]] = line_elements[3]
+            try:
+                config[line_elements[1]] = line_elements[3]
+            except KeyError:
+                logger.error("Malformed config file: %s", line)
     return config
 
 
