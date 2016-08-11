@@ -132,6 +132,8 @@ class zdoom(Runner):
         pwad = self.game_config.get('file')
         if pwad:
             command.append("-file")
-            command.append(pwad)
+            # Add each file to the end of the commands array. This is split
+            # by a space in order to avoid a space appearing in the command.
+            command.extend(pwad.split())
 
         return {'command': command}
