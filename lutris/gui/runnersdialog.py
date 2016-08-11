@@ -141,6 +141,9 @@ class RunnersDialog(Gtk.Window):
 
     def on_install_clicked(self, widget, runner, runner_label):
         """Install a runner."""
+        if runner.depends_on is not None:
+            dependency = runner.depends_on()
+            dependency.install()
         runner.install()
         if runner.is_installed():
             self.emit('runner-installed')

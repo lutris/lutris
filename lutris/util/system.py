@@ -18,7 +18,7 @@ def execute(command, env=None, cwd=None, log_errors=False):
     existing_env = os.environ.copy()
     if env:
         existing_env.update(env)
-        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.iteritems()))
+        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
     logger.debug("Executing %s", ' '.join(command))
 
     # Piping stderr can cause slowness in the programs, use carefully
@@ -43,7 +43,7 @@ def execute(command, env=None, cwd=None, log_errors=False):
             stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.strip()
+    return stdout.decode().strip()
 
 
 def get_md5_hash(filename):
@@ -54,7 +54,7 @@ def get_md5_hash(filename):
             for chunk in iter(lambda: f.read(8192), b''):
                 md5.update(chunk)
     except IOError:
-        print "Error reading %s" % filename
+        print("Error reading %s" % filename)
         return False
     return md5.hexdigest()
 
@@ -103,7 +103,7 @@ def get_command_line(pid):
 
 
 def python_identifier(string):
-    if not isinstance(string, basestring):
+    if not isinstance(string, str):
         logger.error("python_identifier requires a string, got %s", string)
         return
 
@@ -115,9 +115,9 @@ def python_identifier(string):
 
 def substitute(fileid, files):
     fileid = python_identifier(str(fileid))
-    files = dict((k.replace('-', '_'), v) for k, v in files.items())
+    files = dict((k.replace('-', '_'), v) for k, v in list(files.items()))
     template = string.Template(fileid)
-    if fileid in files.keys():
+    if fileid in list(files.keys()):
         return files[fileid]
     return template.safe_substitute(files)
 

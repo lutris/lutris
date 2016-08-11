@@ -17,14 +17,14 @@ oss_list = [
 
 def get_resolution_choices():
     resolutions = display.get_resolutions()
-    resolution_choices = zip(resolutions, resolutions)
+    resolution_choices = list(zip(resolutions, resolutions))
     resolution_choices.insert(0, ("Keep current", 'off'))
     return resolution_choices
 
 
 def get_output_choices():
     outputs = display.get_output_names()
-    output_choices = zip(outputs, outputs)
+    output_choices = list(zip(outputs, outputs))
     output_choices.insert(0, ("Off", 'off'))
     return output_choices
 
@@ -210,5 +210,5 @@ def with_runner_overrides(runner_slug):
                 opts_dict[key].update(option)
             else:
                 opts_dict[key] = option
-        options = [opt for opt in opts_dict.values()]
+        options = [opt for opt in list(opts_dict.values())]
     return options

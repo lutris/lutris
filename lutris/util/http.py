@@ -1,7 +1,9 @@
 import os
 import json
 import socket
-import urllib2
+import urllib.request
+import urllib.error
+import urllib.parse
 
 from lutris.util.log import logger
 
@@ -53,19 +55,19 @@ class Request(object):
         self.headers = headers
 
     def get(self, data=None):
-        req = urllib2.Request(url=self.url, data=data, headers=self.headers)
+        req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
-            request = urllib2.urlopen(req, timeout=self.timeout)
-        except urllib2.HTTPError as e:
+            request = urllib.request.urlopen(req, timeout=self.timeout)
+        except urllib.error.HTTPError as e:
             if self.error_logging:
                 logger.error("Unavailable url (%s): %s", self.url, e)
-        except (socket.timeout, urllib2.URLError) as e:
+        except (socket.timeout, urllib.error.URLError) as e:
             if self.error_logging:
                 logger.error("Unable to connect to server (%s): %s",
                              self.url, e)
         else:
             try:
-                total_size = request.info().getheader('Content-Length').strip()
+                total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
                 total_size = 0
@@ -86,7 +88,7 @@ class Request(object):
                 if not chunk:
                     break
             request.close()
-            self.content = ''.join(chunks)
+            self.content = b''.join(chunks).decode('utf-8')
         return self
 
     def post(self, data):

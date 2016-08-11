@@ -354,8 +354,15 @@ class AppManifest:
         return self.appmanifest_data.get('AppState') or {}
 
     @property
+    def user_config(self):
+        return self.app_state.get('UserConfig') or {}
+
+    @property
     def name(self):
-        return self.app_state.get('name')
+        _name = self.app_state.get('name')
+        if not _name:
+            _name = self.user_config.get('name')
+        return _name
 
     @property
     def slug(self):

@@ -1,21 +1,21 @@
 import os
-import ConfigParser
+import configparser
 
 
 class SettingsIO(object):
     """ConfigParser abstraction."""
     def __init__(self, config_file):
         self.config_file = config_file
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         if os.path.exists(self.config_file):
             self.config.read([self.config_file])
 
     def read_setting(self, key, section='lutris'):
         try:
             value = self.config.get(section, key)
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             value = None
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             value = None
         return value
 
@@ -24,5 +24,5 @@ class SettingsIO(object):
             self.config.add_section(section)
         self.config.set(section, key, str(value))
 
-        with open(self.config_file, 'wb') as config_file:
+        with open(self.config_file, 'w') as config_file:
             self.config.write(config_file)

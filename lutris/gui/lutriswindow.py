@@ -327,7 +327,7 @@ class LutrisWindow(Gtk.Application):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                added, updated = result  # , installed, uninstalled = result
+                added, updated = result
                 self.switch_splash_screen()
                 self.game_store.fill_store(added)
 
@@ -339,7 +339,6 @@ class LutrisWindow(Gtk.Application):
         AsyncCall(Sync().sync_all, update_gui)
 
     def update_existing_games(self, added, updated, first_run=False):
-        # , installed, uninstalled, first_run=False):
         for game_id in updated.difference(added):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 

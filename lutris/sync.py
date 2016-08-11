@@ -95,7 +95,7 @@ class Sync(object):
                 sync = True
             # Sync new DB fields
             else:
-                for key, value in local_game.iteritems():
+                for key, value in local_game.items():
                     if value or key not in game:
                         continue
                     if game[key]:

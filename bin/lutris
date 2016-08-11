@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python3
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -49,7 +49,7 @@ from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.settings import VERSION
 from lutris.util import service
-from lutris.util.steam import get_steamapps_paths
+from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
@@ -63,8 +63,8 @@ parser.add_option("-l", "--list-games", action="store_true", dest="list_games",
                   help="List games in database")
 parser.add_option("-o", "--installed", action="store_true", dest="list_installed",
                   help="Only list installed games")
-parser.add_option("--list-steam", action="store_true",
-                  help="List Steam (Windows) games")
+parser.add_option("--list-steam-games", action="store_true",
+                  help="List available Steam games")
 parser.add_option("--list-steam-folders", action="store_true",
                   help="List all known Steam library folders")
 parser.add_option("-j", "--json", action="store_true", dest="json",
@@ -92,31 +92,37 @@ if options.list_games:
                 'runner': game['runner'],
                 'directory': game['directory'] or '-'
             })
-        print json.dumps(games, indent=2).encode('utf-8')
+        print(json.dumps(games, indent=2).encode('utf-8'))
     else:
         for game in game_list:
-            print u"{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+            print("{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
                 game['id'],
                 game['name'][:40],
                 game['slug'][:40],
                 game['runner'],
                 game['directory'] or '-'
-            ).encode('utf-8')
+            ).encode('utf-8'))
     exit()
-if options.list_steam:
-    # FIXME: this returns a list of appids
-    # FIXME: this only works for Wine Steam games
-    from lutris.runners import winesteam
-    steam_runner = winesteam.winesteam()
-    for appid in steam_runner.get_appid_list():
-        print appid
+if options.list_steam_games:
+    steamapps_paths = get_steamapps_paths()
+    for platform in ('linux', 'windows'):
+        for path in steamapps_paths[platform]:
+            appmanifest_files = get_appmanifests(path)
+            for appmanifest_file in appmanifest_files:
+                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
+                print("  {:8} | {:<60} | {:10} | {}".format(
+                    appmanifest.steamid,
+                    appmanifest.name or '-',
+                    platform,
+                    ", ".join(appmanifest.states)
+
+                ))
     exit()
 if options.list_steam_folders:
     steamapps_paths = get_steamapps_paths()
-    for path in steamapps_paths['linux']:
-        print path
-    for path in steamapps_paths['windows']:
-        print path
+    for platform in ('linux', 'windows'):
+        for path in steamapps_paths[platform]:
+            print(path)
     exit()
 
 
@@ -138,11 +144,6 @@ if type(lutris) is dbus.Interface:
         lutris.is_running()
     except dbus.exceptions.DBusException as e:
         logger.error(e)
-
-        # FIXME This whole thing below is utterly broken and I've never seen
-        # the expected behavior happen. Now, if only I knew how to reproduce
-        # this state, maybe I might be able to write a fix but I still have no
-        # idea what's causing this non-responsive DBus thing.
         try:
             # Get existing process' PID
             dbus_proxy = bus.get_object('org.freedesktop.DBus',
@@ -155,7 +156,7 @@ if type(lutris) is dbus.Interface:
             logger.error("Lutris was non responsive, we tried, we failed and failed "
                          "some more. Please now try to restart Lutris")
             logger.error(ex)
-            exit()  # Give up :(
+            exit()
         else:
             time.sleep(1)  # Wait for bus name to be available again
             lutris = service.LutrisService(bus, '/', service.DBUS_INTERFACE)

@@ -51,6 +51,9 @@ class Runner(object):
                 self.config.game_config_id, 'configpath'
             )
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     @property
     def description(self):
         """Return the class' docstring as the description."""

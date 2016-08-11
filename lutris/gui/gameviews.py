@@ -28,7 +28,7 @@ ICON_SIZE = (32, 32)
     COL_YEAR,
     COL_RUNNER,
     COL_INSTALLED,
-) = range(7)
+) = list(range(7))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -113,7 +113,7 @@ class GameStore(GObject.Object):
     def fill_store(self, games):
         """Fill the model asynchronously and in steps."""
         loader = self._fill_store_generator(games)
-        GLib.idle_add(loader.next)
+        GLib.idle_add(loader.__next__)
 
     def _fill_store_generator(self, games, step=100):
         """Generator to fill the model in steps."""

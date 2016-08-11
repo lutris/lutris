@@ -4,7 +4,7 @@ import os
 import time
 import yaml
 import shutil
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import platform
 
 from gi.repository import GLib
@@ -28,9 +28,10 @@ from lutris.runners import (
 
 def fetch_script(game_ref):
     """Download install script(s) for matching game_ref."""
-    request = urllib2.Request(url=settings.INSTALLER_URL % game_ref)
+    # TODO use http.Request
+    request = urllib.request.Request(url=settings.INSTALLER_URL % game_ref)
     try:
-        request = urllib2.urlopen(request)
+        request = urllib.request.urlopen(request)
         script_contents = request.read()
     except IOError:
         return
@@ -183,7 +184,7 @@ class ScriptInterpreter(CommandsMixin):
                      of local file.
         """
         # Setup file_id, file_uri and local filename
-        file_id = game_file.keys()[0]
+        file_id = list(game_file.keys())[0]
         if isinstance(game_file[file_id], dict):
             filename = game_file[file_id]['filename']
             file_uri = game_file[file_id]['url']
@@ -390,7 +391,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def _get_command_name_and_params(self, command_data):
         if isinstance(command_data, dict):
-            command_name = command_data.keys()[0]
+            command_name = list(command_data.keys())[0]
             command_params = command_data[command_name]
         else:
             command_name = command_data
@@ -515,14 +516,14 @@ class ScriptInterpreter(CommandsMixin):
         """Substitute values such as $GAMEDIR in a config dict."""
         config = {}
         for key in script_config:
-            if not isinstance(key, basestring):
+            if not isinstance(key, str):
                 raise ScriptingError("Game config key must be a string", key)
             value = script_config[key]
             if isinstance(value, list):
                 config[key] = [self._substitute(i) for i in value]
             elif isinstance(value, dict):
                 config[key] = dict(
-                    [(k, self._substitute(v)) for (k, v) in value.iteritems()]
+                    [(k, self._substitute(v)) for (k, v) in value.items()]
                 )
             elif isinstance(value, bool):
                 config[key] = value
