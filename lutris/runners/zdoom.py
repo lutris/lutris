@@ -50,24 +50,6 @@ class zdoom(Runner):
             'default': False
         },
         {
-            "option": "nosound",
-            "label": "Disable Both Music and Sound Effects",
-            "type": "bool",
-            'default': False,
-        },
-        {
-            "option": "nosfx",
-            "label": "Disable Sound Effects",
-            "type": "bool",
-            'default': False
-        },
-        {
-            "option": "nomusic",
-            "label": "Disable Music",
-            "type": "bool",
-            'default': False
-        },
-        {
             "option": "skill",
             "label": "Skill",
             "type": "choice",
