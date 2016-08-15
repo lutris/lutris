@@ -84,7 +84,7 @@ class zdoom(Runner):
     ]
 
     def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'zdoom')
+        return os.path.join(settings.RUNNER_DIR, 'zdoom/zdoom')
 
     @property
     def working_dir(self):
