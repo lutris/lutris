@@ -17,9 +17,9 @@ class zdoom(Runner):
             'help': ("The game data, commonly called a WAD file.")
         },
         {
-            'option': 'file',
-            'type': 'string',
-            'label': 'PWAD file',
+            'option': 'files',
+            'type': 'multiple',
+            'label': 'PWAD files',
             'help': ("Used to load one or more PWAD files which generally contain "
                      "user-created levels.")
         },
@@ -129,11 +129,9 @@ class zdoom(Runner):
             command.append(wad)
 
         # Append the pwad files to load, if provided.
-        pwad = self.game_config.get('file')
-        if pwad:
+        pwads = self.game_config.get('files') or []
+        for pwad in pwads:
             command.append("-file")
-            # Add each file to the end of the commands array. This is split
-            # by a space in order to avoid a space appearing in the command.
-            command.extend(pwad.split())
+            command.append(pwad)
 
         return {'command': command}
