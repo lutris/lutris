@@ -87,7 +87,7 @@ class zdoom(Runner):
             command.append(height)
 
         # Append any boolean options.
-        bool_options = ['nomusic', 'nosfx', 'nosound', '2', '4', 'nostartup']
+        bool_options = ['2', '4', 'nostartup']
         for option in bool_options:
             if self.runner_config.get(option):
                 command.append("-%s" % option)
