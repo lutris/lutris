@@ -14,7 +14,6 @@ class desura(Runner):
     human_name = "Desura"
     description = "Runs Desura games (or mods, or tools)"
     platform = "Desura"
-    package = "desura"
     runnable_alone = True
     game_options = [
         {

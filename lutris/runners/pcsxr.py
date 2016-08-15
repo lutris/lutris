@@ -10,7 +10,6 @@ from lutris.util import system
 class pcsxr(Runner):
     human_name = "PCSX-Reloaded"
     description = "PlayStation emulator"
-    package = "pcsxr"
     platform = "Playstation"
     runnable_alone = True
     game_options = [

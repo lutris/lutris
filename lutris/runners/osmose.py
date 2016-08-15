@@ -8,7 +8,6 @@ from lutris.runners.runner import Runner
 class osmose(Runner):
     human_name = "Osmose"
     description = "Sega Master System Emulator"
-    package = "osmose"
     platform = "Sega Master System"
     game_options = [
         {
