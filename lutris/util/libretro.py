@@ -2,6 +2,12 @@ import os
 
 
 class RetroConfig:
+    value_map = {
+        'true': True,
+        'false': False,
+        '': None
+    }
+
     def __init__(self, config_path):
         if not config_path:
             raise ValueError("Config path is mandatory")
@@ -24,21 +30,15 @@ class RetroConfig:
                 config_file.write("{} = \"{}\"\n".format(key, value))
 
     def serialize_value(self, value):
-        if value is False:
-            value = 'false'
-        elif value is True:
-            value = 'true'
-        elif value is None:
-            value = ''
+        for k, v in self.value_map.items():
+            if value is v:
+                return k
         return value
 
     def deserialize_value(self, value):
-        if value == 'true':
-            value = True
-        elif value == 'false':
-            value = False
-        elif value == '':
-            value = None
+        for k, v in self.value_map.items():
+            if value == k:
+                return v
         return value
 
     def __getitem__(self, key):
