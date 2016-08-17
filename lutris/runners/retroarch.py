@@ -1,4 +1,12 @@
+import os
 from lutris.runners.runner import Runner
+from lutris import settings
+
+
+def get_cores():
+    return [
+        ('libretro-snes.so', 'SNES'),
+    ]
 
 
 class retroarch(Runner):
@@ -16,7 +24,7 @@ class retroarch(Runner):
             'option': 'core',
             'type': 'choice',
             'label': 'Core',
-            'choices': (),
+            'choices': get_cores(),
         }
     ]
 
@@ -28,3 +36,6 @@ class retroarch(Runner):
             'default': True
         }
     ]
+
+    def get_executable(self):
+        return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch')
