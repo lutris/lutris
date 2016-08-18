@@ -175,6 +175,10 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
 
+        sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or 'off'
+        if sdl_video_fullscreen != 'off':
+            env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen
+
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
             display.turn_off_except(restrict_to_display)

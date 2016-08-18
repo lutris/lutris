@@ -21,13 +21,17 @@ def get_vidmodes():
     xrandr_output = subprocess.Popen("xrandr",
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE).communicate()[0]
-    return list([line for line in str(xrandr_output).split("\n")])
+    return list([line for line in xrandr_output.decode().split("\n")])
 
 
 def get_outputs():
     """Return list of tuples containing output name and geometry."""
-    outputs = list()
-    for line in get_vidmodes():
+    outputs = []
+    vid_modes = get_vidmodes()
+    if not vid_modes:
+        logger.error("xrandr didn't return anything")
+        return []
+    for line in vid_modes:
         parts = line.split()
         if len(parts) < 2:
             continue
@@ -82,7 +86,7 @@ def change_resolution(resolution):
     if not resolution:
         logger.warning("No resolution provided")
         return
-    if isinstance(resolution, basestring):
+    if isinstance(resolution, str):
         logger.debug("Switching resolution to %s", resolution)
 
         if resolution not in get_resolutions():

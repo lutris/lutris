@@ -5,6 +5,7 @@ from collections import OrderedDict
 from lutris import runners
 from lutris.util import display, system
 
+DISPLAYS = None
 
 oss_list = [
     ("None (don't use OSS)", "none"),
@@ -15,6 +16,13 @@ oss_list = [
 ]
 
 
+def get_displays():
+    global DISPLAYS
+    if not DISPLAYS:
+        DISPLAYS = display.get_output_names()
+    return DISPLAYS
+
+
 def get_resolution_choices():
     resolutions = display.get_resolutions()
     resolution_choices = list(zip(resolutions, resolutions))
@@ -23,10 +31,23 @@ def get_resolution_choices():
 
 
 def get_output_choices():
-    outputs = display.get_output_names()
-    output_choices = list(zip(outputs, outputs))
+    displays = get_displays()
+    output_choices = list(zip(displays, displays))
     output_choices.insert(0, ("Off", 'off'))
     return output_choices
+
+
+def get_output_list():
+    choices = [
+        ('Off', 'off'),
+    ]
+    displays = get_displays()
+    for index, output in enumerate(displays):
+        # Display name can't be used because they might not be in the right order
+        # Using DISPLAYS to get the number of connected monitors
+        choices.append(("Monitor {}".format(index + 1), str(index)))
+    return choices
+
 
 system_options = [
     {
@@ -68,9 +89,18 @@ system_options = [
                  "performance.")
     },
     {
+        'option': 'sdl_video_fullscreen',
+        'type': 'choice',
+        'label': 'Fullscreen SDL games to display',
+        'choices': get_output_list,
+        'default': 'off',
+        'help': ("Hint SDL games to use a specific monitor when going fullscreen by "
+                 "setting the SDL_VIDEO_FULLSCREEN environment variable")
+    },
+    {
         'option': 'display',
         'type': 'choice',
-        'label': 'Restrict to display',
+        'label': 'Turn off monitors except',
         'choices': get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
