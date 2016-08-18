@@ -20,7 +20,7 @@ def download_asset(url, dest, overwrite=False, stop_request=None):
     content = download_content(url, log_errors=False,
                                stop_request=stop_request)
     if content:
-        with open(dest, 'w') as dest_file:
+        with open(dest, 'wb') as dest_file:
             dest_file.write(content)
         return True
     else:
@@ -88,7 +88,7 @@ class Request(object):
                 if not chunk:
                     break
             request.close()
-            self.content = b''.join(chunks).decode('utf-8')
+            self.content = b''.join(chunks)
         return self
 
     def post(self, data):
@@ -97,4 +97,9 @@ class Request(object):
     @property
     def json(self):
         if self.content:
-            return json.loads(self.content)
+            return json.loads(self.text)
+
+    @property
+    def text(self):
+        if self.content:
+            return self.content.decode()
