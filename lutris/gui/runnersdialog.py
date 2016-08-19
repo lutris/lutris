@@ -29,7 +29,7 @@ class RunnersDialog(Gtk.Window):
 
         # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         self.vbox.pack_start(scrolled_window, True, True, 0)
