@@ -31,3 +31,18 @@ def lookup_string_in_text(string, text):
     for line in output_lines:
         if string in line:
             return line
+
+
+def version_sort(versions, reverse=False):
+    def version_key(version):
+        version_match = re.search(r'(\d[\d\.]+\d)', version)
+        if not version_match:
+            return
+        version_number = version_match.groups()[0]
+        prefix = version[0:version_match.span()[0]]
+        suffix = version[version_match.span()[1]:]
+        version = [int(p) for p in version_number.split('.')]
+        version.append(prefix)
+        version.append(suffix)
+        return version
+    return sorted(versions, key=version_key, reverse=reverse)
