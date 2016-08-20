@@ -164,6 +164,8 @@ class steam(Runner):
             acf_data = get_default_acf(appid, appid)
             acf_content = to_vdf(acf_data)
             steamapps_path = self.get_default_steamapps_path()
+            if not steamapps_path:
+                raise RuntimeError('Could not find Steam path, is Steam installed?')
             acf_path = os.path.join(steamapps_path,
                                     "appmanifest_%s.acf" % appid)
             with open(acf_path, "w") as acf_file:
