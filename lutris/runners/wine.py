@@ -8,6 +8,7 @@ from lutris import runtime
 from lutris import settings
 from lutris.util import datapath, display, system
 from lutris.util.log import logger
+from lutris.util.strings import version_sort
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 
@@ -234,7 +235,7 @@ def get_wine_versions():
     """Return the list of Wine versions installed"""
     if not os.path.exists(WINE_DIR):
         return []
-    dirs = sorted(os.listdir(WINE_DIR), reverse=True)
+    dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
     return [dirname for dirname in dirs if is_version_installed(dirname)]
 
 
