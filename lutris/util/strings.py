@@ -42,6 +42,7 @@ def version_sort(versions, reverse=False):
         prefix = version[0:version_match.span()[0]]
         suffix = version[version_match.span()[1]:]
         version = [int(p) for p in version_number.split('.')]
+        version = version + [0] * (10 - len(version))
         version.append(prefix)
         version.append(suffix)
         return version
