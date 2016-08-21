@@ -433,7 +433,7 @@ class ScriptInterpreter(CommandsMixin):
                 launcher = "exe"
             break
         if not launcher_value:
-            logger.error('No launcher provided in %s', self.script)
+            launcher = None
         return (launcher, launcher_value)
 
     def _write_config(self):
