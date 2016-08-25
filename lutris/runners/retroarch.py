@@ -39,3 +39,24 @@ class retroarch(Runner):
 
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch')
+
+    def play(self):
+        command = [self.get_executable()]
+
+        # Fullscreen
+        fullscreen = self.runner_config.get('fullscreen')
+        if fullscreen:
+            command.append('--fullscreen')
+
+        # Core
+        core = self.game_config.get('core')
+        if core:
+            command.append('-L')
+            command.append(core)
+
+        # Main file
+        file = self.game_config.get('main_file')
+        if file:
+            command.append(file)
+
+        return {'command': command}
