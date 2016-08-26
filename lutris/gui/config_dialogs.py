@@ -1,4 +1,3 @@
-import os
 import shutil
 from gi.repository import Gtk, Pango
 
@@ -11,6 +10,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.util import datapath
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
@@ -296,13 +296,8 @@ class GameDialogCommon(object):
             callback()
 
     def on_custom_banner_select(self, widget):
-        """Copies the selected banner to datadir/banners/custom/slug.jpg"""
-        filename = widget.get_filename()
-        custom_banner_folder_path = os.path.join(settings.BANNER_PATH, "custom")
-        if not os.path.exists(custom_banner_folder_path):
-            os.makedirs(custom_banner_folder_path)
-        shutil.copyfile(filename, os.path.join(custom_banner_folder_path,
-                                               self.game.slug + ".jpg"))
+        shutil.copyfile(widget.get_filename(),
+                        datapath.get_custom_banner_path(self.game.slug))
 
 
 class AddGameDialog(Dialog, GameDialogCommon):

@@ -29,7 +29,7 @@ def get_banner_path(slug):
 
 def get_custom_banner_path(slug):
     # TODO Remove
-    return os.path.join(settings.BANNER_PATH, "custom/%s.jpg" % slug)
+    return os.path.join(settings.BANNER_PATH, "%s-custom.jpg" % slug)
 
 
 def get_icon_path(slug):
