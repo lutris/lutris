@@ -1,4 +1,5 @@
-"""Configuration dialogs"""
+import os
+import shutil
 from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
@@ -59,6 +60,9 @@ class GameDialogCommon(object):
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 5)
 
+        self.banner_box = self._get_banner_box()
+        info_box.pack_start(self.banner_box, False, False, 5)
+
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
@@ -72,17 +76,30 @@ class GameDialogCommon(object):
 
     def _get_runner_box(self):
         runner_box = Gtk.HBox()
-        label = Gtk.Label("Runner")
-        label.set_alignment(0.5, 0.5)
+        runner_label = Gtk.Label("Runner")
+        runner_label.set_alignment(0.5, 0.5)
         self.runner_dropdown = self._get_runner_dropdown()
         install_runners_btn = Gtk.Button(label="Install runners")
         install_runners_btn.connect('clicked', self.on_install_runners_clicked)
         install_runners_btn.set_margin_right(20)
 
-        runner_box.pack_start(label, False, False, 20)
+        runner_box.pack_start(runner_label, False, False, 20)
         runner_box.pack_start(self.runner_dropdown, False, False, 20)
         runner_box.pack_start(install_runners_btn, False, False, 0)
         return runner_box
+
+    def _get_banner_box(self):
+        banner_box = Gtk.HBox()
+        banner_label = Gtk.Label("Custom Banner")
+        banner_label.set_alignment(0.5, 0.5)
+        banner_file_chooser = Gtk.FileChooserButton("Choose a custom banner")
+        banner_file_chooser.set_size_request(200, 30)
+        banner_file_chooser.set_action(Gtk.FileChooserAction.OPEN)
+        banner_file_chooser.connect("file-set", self.on_custom_banner_select)
+        banner_file_chooser.set_valign(Gtk.Align.CENTER)
+        banner_box.pack_start(banner_label, False, False, 20)
+        banner_box.pack_start(banner_file_chooser, True, True, 20)
+        return banner_box
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -277,6 +294,15 @@ class GameDialogCommon(object):
         self.saved = True
         if callback:
             callback()
+
+    def on_custom_banner_select(self, widget):
+        """Copies the selected banner to datadir/banners/custom/slug.jpg"""
+        filename = widget.get_filename()
+        custom_banner_folder_path = os.path.join(settings.BANNER_PATH, "custom")
+        if not os.path.exists(custom_banner_folder_path):
+            os.makedirs(custom_banner_folder_path)
+        shutil.copyfile(filename, os.path.join(custom_banner_folder_path,
+                                               self.game.slug + ".jpg"))
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
