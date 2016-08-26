@@ -68,16 +68,20 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed):
         size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
         default_icon = DEFAULT_BANNER
         # XXX
-        icon_path = os.path.join(settings.BANNER_PATH,"custom/%s.jpg" % game_slug) \
-                    if os.path.isfile(os.path.join(settings.BANNER_PATH,"custom/%s.jpg" % game_slug)) \
-                    else os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
+        custom_banner = datapath.get_custom_banner_path(game_slug)
+        if os.path.isfile(custom_banner):
+            icon_path = custom_banner
+        else:
+            icon_path = datapath.get_banner_path(game_slug)
     elif icon_type == "icon":
         size = ICON_SIZE
         default_icon = DEFAULT_ICON
         # XXX
-        icon_path = os.path.join(settings.ICON_PATH, "lutris_%s_custom.png" % game_slug) \
-                    if os.path.isfile(os.path.join(settings.ICON_PATH, "lutris_%s_custom.png" % game_slug)) \
-                    else os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
+        custom_icon = datapath.get_custom_icon_path(game_slug)
+        if os.path.isfile(custom_icon):
+            icon_path = custom_icon
+        else:
+            icon_path = datapath.get_icon_path(game_slug)
 
     if not os.path.exists(icon_path):
         pixbuf = get_default_icon(default_icon, size)
