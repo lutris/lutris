@@ -85,6 +85,8 @@ def migrate_games():
         {'name': 'year', 'type': 'INTEGER'},
         {'name': 'steamid', 'type': 'INTEGER'},
         {'name': 'configpath', 'type': 'TEXT'},
+        {'name': 'has_custom_banner', 'type': 'INTEGER'},
+        {'name': 'has_custom_icon', 'type': 'INTEGER'},
     ]
     return migrate('games', schema)
 
