@@ -42,38 +42,43 @@ class GameDialogCommon(object):
     def _build_info_tab(self):
         info_box = VBox()
 
-        # Game name
-        self.name_entry = Gtk.Entry()
+        info_box.pack_start(self._get_name_box(), False, False, 5)  # Game name
+
         if self.game:
-            self.name_entry.set_text(self.game.name)
-        name_box = self._build_entry_box(self.name_entry, "Name")
-        info_box.pack_start(name_box, False, False, 5)
+            info_box.pack_start(self._get_slug_box(), False, False, 5)  # Game id
+            info_box.pack_start(self._get_banner_box(), False, False, 5)  # Banner
 
-        # Game slug
-        if self.game:
-            self.slug_entry = Gtk.Entry()
-            self.slug_entry.set_text(self.game.slug)
-            self.slug_entry.set_sensitive(False)
-            slug_box = self._build_entry_box(self.slug_entry, "Identifier")
-            info_box.pack_start(slug_box, False, False, 5)
-
-            self.banner_box = self._get_banner_box()
-            info_box.pack_start(self.banner_box, False, False, 5)
-
-        # Runner
         self.runner_box = self._get_runner_box()
-        info_box.pack_start(self.runner_box, False, False, 5)
+        info_box.pack_start(self.runner_box, False, False, 5)  # Runner
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
-    def _build_entry_box(self, entry, label_text=None):
+    def _build_name_box(self):
         box = Gtk.HBox()
-        if label_text:
-            label = Gtk.Label(label=label_text)
-            box.pack_start(label, False, False, 20)
-        box.pack_start(entry, False, False, 20)
+
+        label = Gtk.Label(label="Name")
+        box.pack_start(label, False, False, 20)
+
+        self.name_entry = Gtk.Entry()
+        if self.game:
+            self.name_entry.set_text(self.game.name)
+        box.pack_start(self.name_entry, False, False, 20)
+
         return box
+
+    def _get_slug_box(self):
+        box = Gtk.HBox()
+
+        label = Gtk.Label(label="Identifier")
+        box.pack_start(label, False, False, 20)
+
+        self.slug_entry = Gtk.Entry()
+        self.slug_entry.set_text(self.game.slug)
+        self.slug_entry.set_sensitive(False)
+        box.pack_start(self.slug_entry, False, False, 20)
+
+        return self._build_entry_box(self.slug_entry, "Identifier")
 
     def _get_runner_box(self):
         runner_box = Gtk.HBox()
