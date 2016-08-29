@@ -1,25 +1,15 @@
-# -*- coding:Utf-8 -*-
-import os
-
-from gi.repository import Gtk, GObject, Pango, GdkPixbuf, GLib
+# -*- coding: utf-8 -*-
+from gi.repository import Gtk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.game import Game
 from lutris import pga, settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
+from lutris.gui.widgets import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
 from lutris.runners import import_runner, InvalidRunner
 from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util.log import logger
-from lutris.util import datapath
-from lutris.util.cache import lru_cache
 
-DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
-DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
-UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
-                                        'media/unavailable.png')
-BANNER_SIZE = (184, 69)
-BANNER_SMALL_SIZE = (120, 45)
-ICON_SIZE = (32, 32)
 (
     COL_ID,
     COL_SLUG,
@@ -42,60 +32,6 @@ def sort_func(store, a_iter, b_iter, _user_data):
         return -1
     else:
         return 0
-
-
-@lru_cache(maxsize=6)
-def get_default_icon(icon, size):
-    x, y = size
-    return Pixbuf.new_from_file_at_size(icon, x, y)
-
-
-@lru_cache(maxsize=3)
-def get_overlay(size):
-    x, y = size
-    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-        UNAVAILABLE_GAME_OVERLAY, x, y
-    )
-    transparent_pixbuf = transparent_pixbuf.scale_simple(
-        x, y, GdkPixbuf.InterpType.NEAREST
-    )
-    return transparent_pixbuf
-
-
-@lru_cache(maxsize=1500)
-def get_pixbuf_for_game(game_slug, icon_type, is_installed):
-    if icon_type in ("banner", "banner_small"):
-        size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
-        default_icon = DEFAULT_BANNER
-        # XXX
-        custom_banner = datapath.get_custom_banner_path(game_slug)
-        if os.path.isfile(custom_banner):
-            icon_path = custom_banner
-        else:
-            icon_path = datapath.get_banner_path(game_slug)
-    elif icon_type == "icon":
-        size = ICON_SIZE
-        default_icon = DEFAULT_ICON
-        # XXX
-        custom_icon = datapath.get_custom_icon_path(game_slug)
-        if os.path.isfile(custom_icon):
-            icon_path = custom_icon
-        else:
-            icon_path = datapath.get_icon_path(game_slug)
-
-    if not os.path.exists(icon_path):
-        pixbuf = get_default_icon(default_icon, size)
-    else:
-        try:
-            pixbuf = Pixbuf.new_from_file_at_size(icon_path, size[0], size[1])
-        except GLib.GError:
-            pixbuf = get_default_icon(default_icon, size)
-    if not is_installed:
-        transparent_pixbuf = get_overlay(size).copy()
-        pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
-                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
-        return transparent_pixbuf
-    return pixbuf
 
 
 class GameStore(GObject.Object):
@@ -265,7 +201,7 @@ class GameView(object):
         row = self.get_row_by_id(game_id)
         if row:
             game_slug = row[COL_SLUG]
-            get_pixbuf_for_game.cache_clear()
+            # get_pixbuf_for_game.cache_clear()
             game_pixpuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)

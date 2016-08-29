@@ -11,6 +11,7 @@ from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util import datapath
+from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
@@ -56,12 +57,12 @@ class GameDialogCommon(object):
             slug_box = self._build_entry_box(self.slug_entry, "Identifier")
             info_box.pack_start(slug_box, False, False, 5)
 
+            self.banner_box = self._get_banner_box()
+            info_box.pack_start(self.banner_box, False, False, 5)
+
         # Runner
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 5)
-
-        self.banner_box = self._get_banner_box()
-        info_box.pack_start(self.banner_box, False, False, 5)
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
@@ -71,7 +72,7 @@ class GameDialogCommon(object):
         if label_text:
             label = Gtk.Label(label=label_text)
             box.pack_start(label, False, False, 20)
-        box.pack_start(entry, True, True, 20)
+        box.pack_start(entry, False, False, 20)
         return box
 
     def _get_runner_box(self):
@@ -90,16 +91,21 @@ class GameDialogCommon(object):
 
     def _get_banner_box(self):
         banner_box = Gtk.HBox()
-        banner_label = Gtk.Label("Custom Banner")
+        banner_label = Gtk.Label("Banner")
         banner_label.set_alignment(0.5, 0.5)
-        banner_file_chooser = Gtk.FileChooserButton("Choose a custom banner")
-        banner_file_chooser.set_size_request(200, 30)
-        banner_file_chooser.set_action(Gtk.FileChooserAction.OPEN)
-        banner_file_chooser.connect("file-set", self.on_custom_banner_select)
-        banner_file_chooser.set_valign(Gtk.Align.CENTER)
+        banner_button = Gtk.Button()
+        self._set_banner_image(banner_button)
+        banner_button.connect('clicked', self.on_custom_banner_select)
+
         banner_box.pack_start(banner_label, False, False, 20)
-        banner_box.pack_start(banner_file_chooser, True, True, 20)
+        banner_box.pack_start(banner_button, False, False, 20)
         return banner_box
+
+    def _set_banner_image(self, widget):
+        image = Gtk.Image()
+        game_slug = self.game.slug if self.game else ''
+        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, 'banner'))
+        widget.set_image(image)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -296,8 +302,26 @@ class GameDialogCommon(object):
             callback()
 
     def on_custom_banner_select(self, widget):
-        shutil.copyfile(widget.get_filename(),
-                        datapath.get_custom_banner_path(self.game.slug))
+        dialog = Gtk.FileChooserDialog("Please choose a custom image", self,
+                                       Gtk.FileChooserAction.OPEN,
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+
+        image_filter = Gtk.FileFilter()
+        image_filter.set_name("Images")
+        image_filter.add_pixbuf_formats()
+        dialog.add_filter(image_filter)
+
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            banner_path = dialog.get_filename()
+            dest_path = datapath.get_banner_path(self.game.slug)
+            pixbuf = get_pixbuf(banner_path, None, BANNER_SIZE)
+            pixbuf.savev(dest_path, 'jpeg', [], [])
+            self._set_banner_image(widget)
+            self.game.has_custom_banner = True
+
+        dialog.destroy()
 
 
 class AddGameDialog(Dialog, GameDialogCommon):

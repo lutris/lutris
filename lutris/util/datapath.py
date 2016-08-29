@@ -1,6 +1,6 @@
 import os
 import sys
-from lutris.util import settings
+from lutris import settings
 
 
 def get():

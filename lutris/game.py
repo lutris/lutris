@@ -61,6 +61,8 @@ class Game(object):
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
+        self.has_custom_banner = bool(game_data.get('has_custom_banner')) or False
+        self.has_custom_icon = bool(game_data.get('has_custom_banner')) or False
 
         self.load_config()
         self.resolution_changed = False
