@@ -84,24 +84,25 @@ class Sync(object):
 
         for game in remote_library:
             slug = game['slug']
-            sync = False
+            synced = False
             sync_icons = True
             local_game = pga.get_game_by_field(slug, 'slug')
             if not local_game:
                 continue
 
             # Sync updated
-            if game['updated'] > local_game['updated']:
-                sync = True
+            if local_game['updated'] and game['updated'] > local_game['updated']:
+                synced = True
             # Sync new DB fields
             else:
+                # XXX I have absolutely no idea what the code below does.
                 for key, value in local_game.items():
                     if value or key not in game:
                         continue
                     if game[key]:
-                        sync = True
+                        synced = True
                         sync_icons = False
-            if not sync:
+            if not synced:
                 continue
 
             logger.debug("Syncing details for %s" % slug)
