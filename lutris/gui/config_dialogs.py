@@ -1,5 +1,4 @@
-import shutil
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
@@ -54,7 +53,7 @@ class GameDialogCommon(object):
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
-    def _build_name_box(self):
+    def _get_name_box(self):
         box = Gtk.HBox()
 
         label = Gtk.Label(label="Name")
@@ -63,7 +62,7 @@ class GameDialogCommon(object):
         self.name_entry = Gtk.Entry()
         if self.game:
             self.name_entry.set_text(self.game.name)
-        box.pack_start(self.name_entry, False, False, 20)
+        box.pack_start(self.name_entry, True, True, 20)
 
         return box
 
@@ -76,9 +75,15 @@ class GameDialogCommon(object):
         self.slug_entry = Gtk.Entry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
-        box.pack_start(self.slug_entry, False, False, 20)
+        self.slug_entry.connect('insert_text', self.on_slug_entry_insert)
+        self.slug_entry.connect('activate', self.on_slug_entry_activate)
+        box.pack_start(self.slug_entry, True, True, 0)
 
-        return self._build_entry_box(self.slug_entry, "Identifier")
+        slug_change_button = Gtk.Button("Change")
+        slug_change_button.connect('clicked', self.on_slug_change_clicked)
+        box.pack_start(slug_change_button, False, False, 20)
+
+        return box
 
     def _get_runner_box(self):
         runner_box = Gtk.HBox()
@@ -141,6 +146,34 @@ class GameDialogCommon(object):
                 ("%s (%s)" % (runner.name, description), runner.name)
             )
         return runner_liststore
+
+    def on_slug_change_clicked(self, widget):
+        if self.slug_entry.get_sensitive() is False:
+            self.slug_entry.set_sensitive(True)
+        else:
+            self.change_game_slug()
+
+    def on_slug_entry_insert(self, widget, text, length, position):
+        """Filter inserted characters to only accept alphanumeric and dashes"""
+        position = widget.get_position()
+
+        result = ''.join([c for c in text if c.isalnum() or c == '-']).lower()
+
+        widget.handler_block_by_func(self.on_slug_entry_insert)
+        widget.insert_text(result, position)
+        widget.handler_unblock_by_func(self.on_slug_entry_insert)
+
+        new_pos = position + len(result)
+        GObject.idle_add(widget.set_position, new_pos)
+
+        widget.stop_emission("insert_text")
+
+    def on_slug_entry_activate(self, widget):
+        self.change_game_slug()
+
+    def change_game_slug(self):
+        self.slug = self.slug_entry.get_text()
+        self.slug_entry.set_sensitive(False)
 
     def on_install_runners_clicked(self, _button):
         runners_dialog = gui.runnersdialog.RunnersDialog()
@@ -279,7 +312,6 @@ class GameDialogCommon(object):
             return False
         name = self.name_entry.get_text()
 
-        # Do not modify slug
         if not self.slug:
             self.slug = slugify(name)
 
