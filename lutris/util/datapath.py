@@ -27,15 +27,5 @@ def get_banner_path(slug):
     return os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
 
 
-def get_custom_banner_path(slug):
-    # TODO Remove
-    return os.path.join(settings.BANNER_PATH, "%s-custom.jpg" % slug)
-
-
 def get_icon_path(slug):
     return os.path.join(settings.ICON_PATH, "lutris_%s.png" % slug)
-
-
-def get_custom_icon_path(slug):
-    # TODO Remove
-    return os.path.join(settings.ICON_PATH, "lutris_%s_custom.png" % slug)

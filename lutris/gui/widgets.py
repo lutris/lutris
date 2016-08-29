@@ -65,21 +65,11 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
     if icon_type in ("banner", "banner_small"):
         size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
         default_icon_path = DEFAULT_BANNER
-        # XXX
-        custom_banner = datapath.get_custom_banner_path(game_slug)
-        if os.path.isfile(custom_banner):
-            icon_path = custom_banner
-        else:
-            icon_path = datapath.get_banner_path(game_slug)
+        icon_path = datapath.get_banner_path(game_slug)
     elif icon_type == "icon":
         size = ICON_SIZE
         default_icon_path = DEFAULT_ICON
-        # XXX
-        custom_icon = datapath.get_custom_icon_path(game_slug)
-        if os.path.isfile(custom_icon):
-            icon_path = custom_icon
-        else:
-            icon_path = datapath.get_icon_path(game_slug)
+        icon_path = datapath.get_icon_path(game_slug)
 
     pixbuf = get_pixbuf(icon_path, default_icon_path, size)
     if not is_installed:
