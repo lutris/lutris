@@ -218,6 +218,14 @@ system_options = [
         'option': 'xephyr_resolution',
         'type': 'string',
         'label': 'Xephyr resolution'
+    },
+    {
+        'option': 'use_qwerty_layout',
+        'type': 'bool',
+        'label': 'Switch to US keyboard layout',
+        'default': False,
+        'advanced': True,
+        'help': 'Switch to US keyboard qwerty layout while game is running'
     }
 ]
 
