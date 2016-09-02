@@ -1,7 +1,8 @@
-# -*- coding:Utf-8 -*-
+# -*- coding: utf-8 -*-
 """Module that actually runs the games."""
 import os
 import time
+import subprocess
 
 from gi.repository import GLib, Gtk
 
@@ -223,6 +224,14 @@ class Game(object):
             time.sleep(3)
             env['DISPLAY'] = ':2'
 
+        if system_config.get('use_us_layout'):
+            setxkbmap_command = ['setxkbmap', '-model', 'pc101', 'us', '-print']
+            xkbcomp_command = ['xkbcomp', '-', env.get('DISPLAY', ':0')]
+            xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE).stdin
+            subprocess.Popen(setxkbmap_command,
+                             stdout=xkbcomp,
+                             stdin=subprocess.PIPE).communicate()
+
         pulse_latency = system_config.get('pulse_latency')
         if pulse_latency:
             env['PULSE_LATENCY_MSEC'] = '60'
@@ -357,6 +366,9 @@ class Game(object):
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)
+
+        if self.runner.system_config.get('use_us_layout'):
+            subprocess.Popen(['setxkbmap'])
 
         if self.runner.system_config.get('restore_gamma'):
             display.restore_gamma()
