@@ -220,7 +220,7 @@ system_options = [
         'label': 'Xephyr resolution'
     },
     {
-        'option': 'use_qwerty_layout',
+        'option': 'use_us_layout',
         'type': 'bool',
         'label': 'Switch to US keyboard layout',
         'default': False,
