@@ -42,7 +42,8 @@ if LAUNCH_PATH != "/usr/bin":
 
 from lutris.migrations import migrate
 
-from lutris import pga, runtime
+from lutris import pga
+from lutris.runtime import RuntimeUpdater
 from lutris.config import check_config  # , register_handler
 from lutris.util.log import logger
 from lutris.game import Game
@@ -182,12 +183,14 @@ if game_slug or installer:
                    or pga.get_game_by_field(game_slug, 'slug')
                    or pga.get_game_by_field(game_slug, 'installer_slug'))
 
+    runtime_updater = RuntimeUpdater()
+
     if db_game and db_game['installed'] and not options.reinstall:
         logger.info("Launching %s", db_game['name'])
         if lutris.is_running():
             lutris.run_game(db_game['id'])
         else:
-            runtime.update()
+            runtime_updater.update()
             lutris_game = Game(db_game['id'])
             lutris_game.exit_main_loop = True
             lutris_game.play()
@@ -200,7 +203,7 @@ if game_slug or installer:
         if lutris.is_running():
             lutris.install_game(installer or game_slug)
         else:
-            runtime.update()
+            runtime_updater.update()
             InstallerDialog(installer or game_slug)
             GObject.threads_init()
             Gtk.main()

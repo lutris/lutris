@@ -6,9 +6,10 @@ import subprocess
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
-from lutris import api, pga, runtime, settings, shortcuts
+from lutris import api, pga, settings, shortcuts
 from lutris.game import Game, get_game_list
 from lutris.sync import Sync
+from lutris.runtime import RuntimeUpdater
 
 from lutris.util import display, resources
 from lutris.util.log import logger
@@ -54,6 +55,7 @@ class LutrisWindow(Gtk.Application):
             raise IOError('File %s not found' % ui_filename)
 
         self.service = service
+        self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
 
@@ -345,7 +347,8 @@ class LutrisWindow(Gtk.Application):
             self.set_status("")
 
     def update_runtime(self):
-        cancellables = runtime.update(self.set_status)
+
+        cancellables = self.runtime_updater.update(self.set_status)
         self.threads_stoppers += cancellables
 
     def sync_icons(self, stop_request=None):
