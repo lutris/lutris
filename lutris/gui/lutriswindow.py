@@ -13,6 +13,7 @@ from lutris.sync import Sync
 from lutris.util import display, resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
+from lutris.util import http
 from lutris.util import datapath
 from lutris.util import steam
 
@@ -262,8 +263,6 @@ class LutrisWindow(Gtk.Application):
                 # Store latest version seen to avoid showing
                 # the dialog more than once.
                 settings.write_setting('latest_version', version)
-
-        import http  # Move me
         AsyncCall(http.download_content, on_version_received,
                   'https://lutris.net/version')
 
