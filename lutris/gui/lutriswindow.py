@@ -347,7 +347,6 @@ class LutrisWindow(Gtk.Application):
             self.set_status("")
 
     def update_runtime(self):
-
         cancellables = self.runtime_updater.update(self.set_status)
         self.threads_stoppers += cancellables
 

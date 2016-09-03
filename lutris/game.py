@@ -6,7 +6,8 @@ import subprocess
 
 from gi.repository import GLib, Gtk
 
-from lutris import pga, runtime, settings, shortcuts
+from lutris import pga, settings, shortcuts
+from lutris import runtime
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
@@ -139,11 +140,10 @@ class Game(object):
                 return False
 
         if self.runner.use_runtime():
-            if runtime.is_updating():
-                logger.error("Runtime currently updating")
-                result = dialogs.RuntimeUpdateDialog().run()
-                if not result == Gtk.ResponseType.OK:
-                    return False
+            runtime_updater = runtime.RuntimeUpdater()
+            if runtime_updater.is_updating():
+                dialogs.ErrorDialog("Runtime currently updating",
+                                    "Game might not work as expected")
         return True
 
     def play(self):
