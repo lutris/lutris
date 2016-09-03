@@ -2,7 +2,7 @@
 /share/lutris/ui/dialog-pga-sources.ui~
 /share/lutris/ui/dialog-uninstall-game.ui~
 /share/lutris/ui/about-dialog.ui~
-/share/lutris/ui/LutrisWindow.ui~
+/share/lutris/ui/lutris-window.ui~
 nbproject
 build
 .project

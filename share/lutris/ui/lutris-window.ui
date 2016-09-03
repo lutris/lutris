@@ -726,12 +726,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="status_label">
+              <object class="GtkBox" id="status_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Status</property>
-                <property name="justify">center</property>
-                <property name="lines">1</property>
+                <property name="orientation">vertical</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <placeholder/>
+                </child>
               </object>
               <packing>
                 <property name="expand">True</property>

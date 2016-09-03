@@ -124,8 +124,6 @@ class LutrisWindow(Gtk.Application):
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
-        # Status bar
-        self.status_label = self.builder.get_object('status_label')
         self.joystick_icons = []
         # Buttons
         self.stop_button = self.builder.get_object('stop_button')
@@ -345,7 +343,7 @@ class LutrisWindow(Gtk.Application):
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
             self.threads_stoppers.append(icons_sync.stop_request.set)
-            self.set_status("Library synced")
+            self.set_status("")
 
     def update_runtime(self):
         cancellables = runtime.update(self.set_status)
@@ -357,7 +355,12 @@ class LutrisWindow(Gtk.Application):
                               stop_request=stop_request)
 
     def set_status(self, text):
-        self.status_label.set_text(text)
+        status_box = self.builder.get_object('status_box')
+        for child_widget in status_box.get_children():
+            child_widget.destroy()
+        label = Gtk.Label(text)
+        label.show()
+        status_box.add(label)
 
     def refresh_status(self):
         """Refresh status bar."""
