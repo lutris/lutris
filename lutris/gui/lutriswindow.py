@@ -429,7 +429,7 @@ class LutrisWindow(Gtk.Application):
         if is_connected:
             disconnect_menuitem.show()
             connect_menuitem.hide()
-            connection_status = "Connected as %s" % username
+            connection_status = username
         else:
             disconnect_menuitem.hide()
             connect_menuitem.show()
