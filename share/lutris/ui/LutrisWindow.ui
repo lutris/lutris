@@ -663,16 +663,19 @@
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="statusbar">
+          <object class="GtkBox" id="statusbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="spacing">2</property>
+            <property name="margin_left">10</property>
+            <property name="margin_right">10</property>
+            <property name="spacing">31</property>
+            <property name="homogeneous">True</property>
             <child>
-              <object class="GtkBox" id="status_box">
+              <object class="GtkBox" id="joypads_box">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkImage" id="js1image">
+                  <object class="GtkImage" id="js0image">
                     <property name="can_focus">False</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
@@ -683,7 +686,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="js0image">
+                  <object class="GtkImage" id="js1image">
                     <property name="can_focus">False</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
@@ -694,18 +697,18 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="js3image">
+                  <object class="GtkImage" id="js2image">
                     <property name="can_focus">False</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">False</property>
+                    <property name="fill">True</property>
                     <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="js2image">
+                  <object class="GtkImage" id="js3image">
                     <property name="can_focus">False</property>
                     <property name="pixbuf">../media/gamepad.png</property>
                   </object>
@@ -715,53 +718,46 @@
                     <property name="position">3</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkLabel" id="status_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Lutris</property>
-                    <property name="lines">1</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="connection_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">5</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkSeparator" id="status_separator">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">6</property>
-                  </packing>
-                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Lutris</property>
+                <property name="justify">center</property>
+                <property name="lines">1</property>
               </object>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="connection_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">label</property>
+                <property name="ellipsize">start</property>
+                <property name="xalign">1</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
+            <property name="padding">10</property>
             <property name="position">4</property>
           </packing>
         </child>
