@@ -47,7 +47,7 @@ class LutrisWindow(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE
         )
         ui_filename = os.path.join(
-            datapath.get(), 'ui', 'LutrisWindow.ui'
+            datapath.get(), 'ui', 'lutris-window.ui'
         )
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
