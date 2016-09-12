@@ -98,11 +98,12 @@ class zdoom(Runner):
             command.append("-skill")
             command.append(skill)
 
-        # Append the warp map.
+        # Append the warp arguments.
         warp = self.game_config.get('warp')
         if warp:
             command.append("-warp")
-            command.append(warp)
+            for warparg in warp.split(' '):
+                command.append(warparg)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
