@@ -23,7 +23,7 @@ class RuntimeUpdater:
         return time.gmtime(os.path.getctime(path))
 
     def update(self, status_updater=None):
-        if self.is_updating(False):
+        if self.is_updating():
             logger.debug("Runtime already updating")
             return []
 
