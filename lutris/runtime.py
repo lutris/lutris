@@ -10,15 +10,11 @@ from lutris.util.log import logger
 
 
 class RuntimeUpdater:
-    current_updates = None
+    current_updates = 0
     status_updater = None
 
-    def is_updating(self, include_pending_updates=True):
-        if include_pending_updates and self.current_updates is None:
-            return True
-        if self.current_updates:
-            return self.current_updates > 0
-        return False
+    def is_updating(self):
+        return self.current_updates > 0
 
     def get_created_at(self, name):
         path = os.path.join(RUNTIME_DIR, name)
@@ -37,8 +33,6 @@ class RuntimeUpdater:
         return self.get_runtimes()
 
     def get_runtimes(self):
-        if self.current_updates is None:
-            self.current_updates = 0
         request = http.Request(RUNTIME_URL)
         response = request.get()
         cancellables = []

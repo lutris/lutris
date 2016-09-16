@@ -4,7 +4,7 @@ import os
 import time
 import subprocess
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
 from lutris import pga, settings, shortcuts
 from lutris import runtime
@@ -142,6 +142,9 @@ class Game(object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
+                logger.warning("Runtime updates: {}".format(
+                    runtime_updater.current_updates)
+                )
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         return True
