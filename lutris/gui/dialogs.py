@@ -53,7 +53,7 @@ class NoticeDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
     def __init__(self, message, secondary=None, parent=None):
-        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=None)
+        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary)
