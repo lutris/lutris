@@ -229,9 +229,10 @@ class Game(object):
 
         if system_config.get('use_us_layout'):
             setxkbmap_command = ['setxkbmap', '-model', 'pc101', 'us', '-print']
-            xkbcomp_command = ['xkbcomp', '-', env.get('DISPLAY', ':0')]
+            xkbcomp_command = ['xkbcomp', '-', os.environ.get('DISPLAY', ':0')]
             xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE).stdin
             subprocess.Popen(setxkbmap_command,
+                             env=os.environ,
                              stdout=xkbcomp,
                              stdin=subprocess.PIPE).communicate()
 
@@ -371,7 +372,7 @@ class Game(object):
             display.change_resolution(self.original_outputs)
 
         if self.runner.system_config.get('use_us_layout'):
-            subprocess.Popen(['setxkbmap'])
+            subprocess.Popen(['setxkbmap'], env=os.environ)
 
         if self.runner.system_config.get('restore_gamma'):
             display.restore_gamma()
