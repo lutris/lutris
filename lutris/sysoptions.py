@@ -183,6 +183,14 @@ system_options = [
 
     },
     {
+        'option': 'use_us_layout',
+        'type': 'bool',
+        'label': 'Switch to US keyboard layout',
+        'default': False,
+        'advanced': True,
+        'help': 'Switch to US keyboard qwerty layout while game is running'
+    },
+    {
         'option': 'killswitch',
         'type': 'string',
         'label': 'Killswitch file',
@@ -219,14 +227,6 @@ system_options = [
         'type': 'string',
         'label': 'Xephyr resolution'
     },
-    {
-        'option': 'use_us_layout',
-        'type': 'bool',
-        'label': 'Switch to US keyboard layout',
-        'default': False,
-        'advanced': True,
-        'help': 'Switch to US keyboard qwerty layout while game is running'
-    }
 ]
 
 
