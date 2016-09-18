@@ -18,9 +18,8 @@ def set_cursor(name, window, display=None):
 
 
 def get_vidmodes():
-    xrandr_output = subprocess.Popen("xrandr",
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE).communicate()[0]
+    xrandr_output = subprocess.Popen(["xrandr"],
+                                     stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
 
 
@@ -52,8 +51,7 @@ def get_output_names():
 def turn_off_except(display):
     for output in get_outputs():
         if output[0] != display:
-            subprocess.Popen("xrandr --output %s --off" % output[0],
-                             shell=True)
+            subprocess.Popen(["xrandr", "--output", output[0], "--off"])
 
 
 def get_resolutions():
@@ -92,7 +90,7 @@ def change_resolution(resolution):
         if resolution not in get_resolutions():
             logger.warning("Resolution %s doesn't exist." % resolution)
         else:
-            subprocess.Popen("xrandr -s %s" % resolution, shell=True)
+            subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
             display_name = display[0]
@@ -101,11 +99,12 @@ def change_resolution(resolution):
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
 
-            cmd = "xrandr --output %s --mode %s --pos %sx%s" % (
-                display_name, display_resolution, position[0], position[1])
-
-            subprocess.Popen(cmd, shell=True).communicate()
-            logger.debug(cmd)
+            subprocess.Popen([
+                "xrandr",
+                "--output", display_name,
+                "--mode", display_resolution,
+                "--pos", "{}x{}".format(position[0], position[1])
+            ]).communicate()
 
 
 def restore_gamma():
