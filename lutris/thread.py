@@ -82,12 +82,15 @@ class LutrisThread(threading.Thread):
         if not self.game_process:
             return
         for line in iter(self.game_process.stdout.readline, ''):
+            if not self.is_running:
+                break
             line = line.decode()
             if not line:
                 continue
             self.stdout += line
             if self.debug_output:
                 sys.stdout.write(line)
+                sys.stdout.flush()
 
     def run_in_terminal(self):
         """Write command in a script file and run it.
@@ -205,6 +208,7 @@ class LutrisThread(threading.Thread):
            or self.cycles_without_children >= self.max_cycles_without_children:
             logger.debug("No children left in thread, exiting")
             self.is_running = False
+            self.game_process.communicate()
             self.return_code = self.game_process.returncode
             return False
         if terminated_children and terminated_children == num_watched_children:
