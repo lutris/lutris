@@ -6,7 +6,7 @@ Build-Depends: debhelper,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
- python-gi,
+ python3-gi,
  libgirepository1.0-dev
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
@@ -17,7 +17,7 @@ X-Python-Version: >= 3.4
 Package: lutris
 Architecture: any
 Depends: ${misc:Depends},
- ${python:Depends},
+ ${python3:Depends},
  python3-yaml,
  python3-dbus,
  python3-gi,
