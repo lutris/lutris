@@ -242,16 +242,18 @@ class winesteam(wine.wine):
             on_steam_downloaded()
 
     def is_wine_installed(self):
-        return super(winesteam, self).is_installed()
+        return super(winesteam, self).is_installed(any_version=True)
 
     def is_installed(self):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
+        wine_installed = self.is_wine_installed()
+        if not wine_installed:
+            logger.warning('wine is not installed')
+            return False
         steam_path = self.get_steam_path()
-        if not (steam_path
-                and os.path.exists(self.get_default_prefix())
-                and self.is_wine_installed()):
+        if not steam_path or not os.path.exists(self.get_default_prefix()):
             return False
         return os.path.exists(steam_path)
 
