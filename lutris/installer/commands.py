@@ -330,7 +330,6 @@ class CommandsMixin(object):
             return 'STOP'
 
     def _monitor_task(self, thread):
-        logger.debug("Monitoring %s", thread)
         if not thread.is_running:
             logger.debug("Thread QUIT")
             self._iter_commands()
