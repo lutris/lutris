@@ -179,8 +179,8 @@ class LutrisThread(threading.Thread):
             num_children += 1
             # Exclude other wrapper processes
             excluded = (
-                'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'regedit',
-                'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
+                'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'python3',
+                'regedit', 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
                 'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
                 'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe', 'xkbcomp'
             )
