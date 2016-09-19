@@ -723,6 +723,9 @@ class wine(Runner):
         if game_exe.endswith(".msi"):
             command.append('msiexec')
             command.append('/i')
+        if game_exe.endswith('.lnk'):
+            command.append('start')
+            command.append('/unix')
         command.append(game_exe)
 
         if arguments:
