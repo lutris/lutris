@@ -53,7 +53,6 @@ class Game(object):
         self.state = self.STATE_IDLE
         self.game_log = ''
         self.exit_main_loop = False
-        self.xkbcomp = None
 
         game_data = pga.get_game_by_field(id, 'id')
         self.slug = game_data.get('slug') or ''
@@ -231,10 +230,11 @@ class Game(object):
         if system_config.get('use_us_layout'):
             setxkbmap_command = ['setxkbmap', '-model', 'pc101', 'us', '-print']
             xkbcomp_command = ['xkbcomp', '-', os.environ.get('DISPLAY', ':0')]
-            self.xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
+            xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
             subprocess.Popen(setxkbmap_command,
                              env=os.environ,
-                             stdout=self.xkbcomp.stdin).communicate()
+                             stdout=xkbcomp.stdin).communicate()
+            xkbcomp.communicate()
 
         pulse_latency = system_config.get('pulse_latency')
         if pulse_latency:
@@ -372,7 +372,6 @@ class Game(object):
             display.change_resolution(self.original_outputs)
 
         if self.runner.system_config.get('use_us_layout'):
-            self.xkbcomp.terminate()
             subprocess.Popen(['setxkbmap'], env=os.environ).communicate()
 
         if self.runner.system_config.get('restore_gamma'):
