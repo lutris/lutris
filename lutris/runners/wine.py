@@ -16,6 +16,7 @@ WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_PATHS = {
     'winehq-devel': '/opt/wine-devel/bin/wine',
     'winehq-staging': '/opt/wine-staging/bin/wine',
+    'wine-development': '/usr/lib/wine-development/wine',
     'system': 'wine',
 }
 
@@ -262,6 +263,11 @@ def get_default_version():
 
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
+    if os.path.exists(wine_path) and os.path.isabs(wine_path):
+        wine_stats = os.stat(wine_path)
+        if wine_stats.st_size < 2000:
+            # This version is a script, ignore it
+            return
     try:
         version = subprocess.check_output([wine_path, "--version"]).decode().strip()
     except OSError:
@@ -369,6 +375,7 @@ class wine(Runner):
             labels = {
                 'winehq-devel': 'WineHQ devel (%s)',
                 'winehq-staging': 'WineHQ staging (%s)',
+                'wine-development': 'Wine Development (%s)',
                 'system': 'System (%s)',
             }
             for build in sorted(WINE_PATHS.keys()):
