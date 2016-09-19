@@ -54,6 +54,9 @@ class GameStore(GObject.Object):
         if games:
             self.fill_store(games)
 
+    def get_ids(self):
+        return [row[COL_ID] for row in self.store]
+
     def fill_store(self, games):
         """Fill the model asynchronously and in steps."""
         loader = self._fill_store_generator(games)
@@ -178,13 +181,13 @@ class GameView(object):
         row[COL_RUNNER] = game.runner_name
         self.update_image(game.id, is_installed=True)
 
-    def set_uninstalled(self, game_id):
+    def set_uninstalled(self, game):
         """Update a game row to show as uninstalled"""
-        row = self.get_row_by_id(game_id)
+        row = self.get_row_by_id(game.id)
         if not row:
-            raise ValueError("Couldn't find row for id %s" % game_id)
+            raise ValueError("Couldn't find row for id %s" % game.id)
         row[COL_RUNNER] = ''
-        self.update_image(game_id, is_installed=False)
+        self.update_image(game.id, is_installed=False)
 
     def update_row(self, game):
         """Update game informations.

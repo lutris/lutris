@@ -206,7 +206,7 @@ class LutrisWindow(Gtk.Application):
             for game in games:
                 if game['runner'] == runner_name:
                     steam.mark_as_uninstalled(game)
-                    self.remove_game_from_view(game['id'])
+                    self.view.set_uninstalled(Game(game['id']))
                     break
         elif operation in ('MODIFY', 'CREATE'):
             if not appmanifest.is_installed():
@@ -225,7 +225,11 @@ class LutrisWindow(Gtk.Application):
             game_id = steam.mark_as_installed(appmanifest.steamid,
                                               runner_name,
                                               game_info)
-            self.add_game_to_view(game_id)
+            game_ids = self.view.game_store.get_ids()
+            if game_id not in game_ids:
+                self.add_game_to_view(game_id)
+            else:
+                self.view.set_installed(Game(game_id))
 
     def set_dark_theme(self, is_dark):
         gtksettings = Gtk.Settings.get_default()
