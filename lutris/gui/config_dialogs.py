@@ -1,3 +1,4 @@
+import os
 from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners, settings
@@ -103,19 +104,25 @@ class GameDialogCommon(object):
         banner_box = Gtk.HBox()
         banner_label = Gtk.Label("Banner")
         banner_label.set_alignment(0.5, 0.5)
-        banner_button = Gtk.Button()
-        self._set_banner_image(banner_button)
-        banner_button.connect('clicked', self.on_custom_banner_select)
+        self.banner_button = Gtk.Button()
+        self._set_banner_image()
+        self.banner_button.connect('clicked', self.on_custom_banner_select)
+
+        reset_button = Gtk.Button.new_from_icon_name('edit-clear', Gtk.IconSize.MENU)
+        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button.set_tooltip_text("Remove custom banner")
+        reset_button.connect('clicked', self.on_custom_banner_reset_clicked)
 
         banner_box.pack_start(banner_label, False, False, 20)
-        banner_box.pack_start(banner_button, False, False, 20)
+        banner_box.pack_start(self.banner_button, False, False, 0)
+        banner_box.pack_start(reset_button, False, False, 0)
         return banner_box
 
-    def _set_banner_image(self, widget):
+    def _set_banner_image(self):
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ''
         image.set_from_pixbuf(get_pixbuf_for_game(game_slug, 'banner'))
-        widget.set_image(image)
+        self.banner_button.set_image(image)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -355,10 +362,16 @@ class GameDialogCommon(object):
             dest_path = datapath.get_banner_path(self.game.slug)
             pixbuf = get_pixbuf(banner_path, None, BANNER_SIZE)
             pixbuf.savev(dest_path, 'jpeg', [], [])
-            self._set_banner_image(widget)
+            self._set_banner_image()
             self.game.has_custom_banner = True
 
         dialog.destroy()
+
+    def on_custom_banner_reset_clicked(self, widget):
+        self.game.has_custom_banner = False
+        dest_path = datapath.get_banner_path(self.game.slug)
+        os.remove(dest_path)
+        self._set_banner_image()
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
