@@ -9,10 +9,10 @@ def get_cores():
     ]
 
 
-class retroarch(Runner):
-    human_name = "RetroArch"
-    description = "Frontend for libretro cores"
-    platform = "RetroArch"
+class libretro(Runner):
+    human_name = "libretro"
+    description = "Multi system emulator"
+    platform = "libretro"
     runnable_alone = True
     game_options = [
         {
