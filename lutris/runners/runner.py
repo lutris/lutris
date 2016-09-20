@@ -151,12 +151,6 @@ class Runner(object):
             if not installed:
                 return
 
-        if self.use_runtime():
-            if runtime.is_updating():
-                result = dialogs.RuntimeUpdateDialog().run()
-                if not result == Gtk.ResponseType.OK:
-                    return
-
         command_data = self.get_run_data()
         command = command_data.get('command')
         env = (command_data.get('env') or {}).copy()
