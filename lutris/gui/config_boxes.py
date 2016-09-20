@@ -102,7 +102,7 @@ class ConfigBox(VBox):
             if type(self.tooltip_default) is str:
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += "<b>Default</b>: " + self.tooltip_default
-            if value != default and not option_key in self.raw_config:
+            if value != default and option_key not in self.raw_config:
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += ("<i>(Italic indicates that this option is "
                              "modified in a lower configuration level.)</i>")

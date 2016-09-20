@@ -7,7 +7,7 @@ __all__ = (
     # Microsoft based
     "wine", "winesteam", "dosbox",
     # Multi-system
-    "mame", "mess", "mednafen", "scummvm", "residualvm", "retroarch",
+    "mame", "mess", "mednafen", "scummvm", "residualvm", "libretro",
     # Commdore
     "fsuae", "vice",
     # Atari
