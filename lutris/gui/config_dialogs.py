@@ -11,7 +11,7 @@ from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util import datapath
-from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE
+from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
@@ -105,20 +105,45 @@ class GameDialogCommon(object):
         banner_label = Gtk.Label("Banner")
         banner_label.set_alignment(0.5, 0.5)
         self.banner_button = Gtk.Button()
-        self._set_banner_image()
-        self.banner_button.connect('clicked', self.on_custom_banner_select)
+        self._set_image('banner')
+        self.banner_button.connect('clicked', self.on_custom_image_select, 'banner')
 
-        reset_button = Gtk.Button.new_from_icon_name('edit-clear', Gtk.IconSize.MENU)
-        reset_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_button.set_tooltip_text("Remove custom banner")
-        reset_button.connect('clicked', self.on_custom_banner_reset_clicked)
+        reset_banner_button = Gtk.Button.new_from_icon_name('edit-clear',
+                                                            Gtk.IconSize.MENU)
+        reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_banner_button.set_tooltip_text("Remove custom banner")
+        reset_banner_button.connect('clicked',
+                                    self.on_custom_image_reset_clicked,
+                                    'banner')
+
+        self.icon_button = Gtk.Button()
+        self._set_image('icon')
+        self.icon_button.connect('clicked', self.on_custom_image_select, 'icon')
+
+        reset_icon_button = Gtk.Button.new_from_icon_name('edit-clear',
+                                                          Gtk.IconSize.MENU)
+        reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_icon_button.set_tooltip_text("Remove custom icon")
+        reset_icon_button.connect('clicked', self.on_custom_image_reset_clicked, 'icon')
 
         banner_box.pack_start(banner_label, False, False, 20)
         banner_box.pack_start(self.banner_button, False, False, 0)
-        banner_box.pack_start(reset_button, False, False, 0)
+        banner_box.pack_start(reset_banner_button, False, False, 0)
+        banner_box.pack_start(self.icon_button, False, False, 0)
+        banner_box.pack_start(reset_icon_button, False, False, 0)
         return banner_box
 
-    def _set_banner_image(self):
+    def _set_image(self, image_format):
+        assert image_format in ('banner', 'icon')
+        image = Gtk.Image()
+        game_slug = self.game.slug if self.game else ''
+        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
+        if image_format == 'banner':
+            self.banner_button.set_image(image)
+        else:
+            self.icon_button.set_image(image)
+
+    def _set_icon_image(self):
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ''
         image.set_from_pixbuf(get_pixbuf_for_game(game_slug, 'banner'))
@@ -345,7 +370,7 @@ class GameDialogCommon(object):
         if callback:
             callback()
 
-    def on_custom_banner_select(self, widget):
+    def on_custom_image_select(self, widget, image_type):
         dialog = Gtk.FileChooserDialog("Please choose a custom image", self,
                                        Gtk.FileChooserAction.OPEN,
                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
@@ -358,20 +383,34 @@ class GameDialogCommon(object):
 
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
-            banner_path = dialog.get_filename()
-            dest_path = datapath.get_banner_path(self.game.slug)
-            pixbuf = get_pixbuf(banner_path, None, BANNER_SIZE)
-            pixbuf.savev(dest_path, 'jpeg', [], [])
-            self._set_banner_image()
-            self.game.has_custom_banner = True
+            image_path = dialog.get_filename()
+            if image_type == 'banner':
+                self.game.has_custom_banner = True
+                dest_path = datapath.get_banner_path(self.game.slug)
+                size = BANNER_SIZE
+                file_format = 'jpeg'
+            else:
+                self.game.has_custom_icon = True
+                dest_path = datapath.get_icon_path(self.game.slug)
+                size = ICON_SIZE
+                file_format = 'png'
+            pixbuf = get_pixbuf(image_path, None, size)
+            pixbuf.savev(dest_path, file_format, [], [])
+            self._set_image(image_type)
 
         dialog.destroy()
 
-    def on_custom_banner_reset_clicked(self, widget):
-        self.game.has_custom_banner = False
-        dest_path = datapath.get_banner_path(self.game.slug)
+    def on_custom_image_reset_clicked(self, widget, image_type):
+        if image_type == 'banner':
+            self.game.has_custom_banner = False
+            dest_path = datapath.get_banner_path(self.game.slug)
+        elif image_type == 'icon':
+            self.game.has_custom_icon = False
+            dest_path = datapath.get_icon_path(self.game.slug)
+        else:
+            raise ValueError('Unsupported image type %s', image_type)
         os.remove(dest_path)
-        self._set_banner_image()
+        self._set_image(image_type)
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
