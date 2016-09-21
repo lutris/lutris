@@ -5,14 +5,14 @@ from lutris import settings
 
 def get_cores():
     return [
-        ('4do', '4do (3DO)'),
-        ('gambatte', 'gambatte (Game Boy Color)'),
-        ('genesis_plus_gx', 'genesis plus gx (Sega Genesis)'),
-        ('mupen64plus', 'mupen64plus (Nintendo 64)'),
-        ('pcsx_rearmed', 'pcsx_rearmed (Sony Playstation)'),
-        ('reicast', 'reicast (Sega Dreamcast)'),
-        ('snes9x', 'snes9x (Super Nintendo)'),
-        ('yabause', 'yabause (Sega Saturn)'),
+        ('4do (3DO)', '4do'),
+        ('gambatte (Game Boy Color)', 'gambatte'),
+        ('genesis plus gx (Sega Genesis)', 'genesis_plus_gx'),
+        ('mupen64plus (Nintendo 64)', 'mupen64plus'),
+        ('pcsx_rearmed (Sony Playstation)', 'pcsx_rearmed'),
+        ('reicast (Sega Dreamcast)', 'reicast'),
+        ('snes9x (Super Nintendo)', 'snes9x'),
+        ('yabause (Sega Saturn)', 'yabause'),
     ]
 
 
@@ -51,9 +51,12 @@ class libretro(Runner):
         return os.path.join(settings.RUNNER_DIR,
                             'retroarch/cores/{}_libretro.so'.format(core))
 
+    def get_version(self, use_default=True):
+        return self.game_config['core']
+
     def is_installed(self, core=None):
         is_retroarch_installed = os.path.exists(self.get_executable())
-        if self.game_config and core is None:
+        if self.game_config.get('core') and core is None:
             core = self.game_config['core']
         if not core:
             return is_retroarch_installed

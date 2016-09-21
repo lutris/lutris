@@ -255,11 +255,13 @@ class Runner(object):
             opts['callback'] = callback
         if 'wine' in self.name:
             version = runner_info['version']
-        if version:
-            dirname = '{}-{}'.format(version, runner_info['architecture'])
             opts['merge_single'] = True
+            dirname = '{}-{}'.format(version, runner_info['architecture'])
             opts['dest'] = os.path.join(settings.RUNNER_DIR,
                                         self.name, dirname)
+        if self.name == 'libretro' and version:
+            opts['merge_single'] = False
+            opts['dest'] = os.path.join(settings.RUNNER_DIR, 'retroarch/cores')
         url = runner_info['url']
         self.download_and_extract(url, **opts)
 
