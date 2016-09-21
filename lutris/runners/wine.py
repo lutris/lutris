@@ -89,7 +89,7 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_env='', blocking=False):
+             working_dir=None, winetricks_wine='', blocking=False):
     """Execute a Wine command."""
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
@@ -108,14 +108,14 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
     # Create prefix if necessary
     if not detected_arch:
-        wine_bin = winetricks_env if winetricks_env else wine_path
+        wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_dir=os.path.dirname(wine_bin), arch=arch)
 
     env = {
         'WINEARCH': arch
     }
-    if winetricks_env:
-        env['WINE'] = winetricks_env
+    if winetricks_wine:
+        env['WINE'] = winetricks_wine
     if prefix:
         env['WINEPREFIX'] = prefix
 
@@ -134,18 +134,19 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         return thread
 
 
-def winetricks(app, prefix=None, winetricks_env=None, silent=True):
+def winetricks(app, prefix=None, silent=True, wine_path=None):
     """Execute winetricks."""
-    path = os.path.join(datapath.get(), 'bin/winetricks')
+    winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
     arch = detect_prefix_arch(prefix) or 'win32'
-    if not winetricks_env:
-        winetricks_env = wine().get_executable()
-    if str(silent).lower() in ('yes', 'on', 'true'):
-        args = "-q " + app
+    if wine_path:
+        winetricks_wine = wine_path
     else:
-        args = app
-    return wineexec(None, prefix=prefix, winetricks_env=winetricks_env,
-                    wine_path=path, arch=arch, args=args)
+        winetricks_wine = wine().get_executable()
+    args = app
+    if str(silent).lower() in ('yes', 'on', 'true'):
+        args = "-q " + args
+    return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
+                    wine_path=winetricks_path, arch=arch, args=args)
 
 
 def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True):
@@ -618,7 +619,7 @@ class wine(Runner):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path)
 
     def run_winetricks(self, *args):
-        winetricks('', prefix=self.prefix_path, winetricks_env=self.get_executable())
+        winetricks('', prefix=self.prefix_path, winetricks_wine=self.get_executable())
 
     def run_joycpl(self, *args):
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
