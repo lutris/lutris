@@ -68,7 +68,7 @@ class libretro(Runner):
 
         # Core
         core = self.game_config['core']
-        command.append('--libretro="{}"'.format(self.get_core_path(core)))
+        command.append('--libretro={}'.format(self.get_core_path(core)))
 
         # Main file
         file = self.game_config.get('main_file')
