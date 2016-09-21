@@ -108,8 +108,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
     # Create prefix if necessary
     if not detected_arch:
-        wine_dir = winetricks_env if winetricks_env else wine_path
-        create_prefix(prefix, wine_dir=os.path.dirname(wine_dir), arch=arch)
+        wine_bin = winetricks_env if winetricks_env else wine_path
+        create_prefix(prefix, wine_dir=os.path.dirname(wine_bin), arch=arch)
 
     env = {
         'WINEARCH': arch
