@@ -4,7 +4,9 @@ import os
 import time
 import yaml
 import shutil
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 import platform
 
 from gi.repository import GLib
@@ -128,7 +130,7 @@ class ScriptInterpreter(CommandsMixin):
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
-        if self.script['runner'] == 'libretro':
+        if self.script.get('runner') == 'libretro':
             if 'game' not in self.script or 'core' not in self.script['game']:
                 self.errors.append('Missing libretro core in game section')
         return not bool(self.errors)

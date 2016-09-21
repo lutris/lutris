@@ -253,7 +253,10 @@ class CommandsMixin(object):
 
     def _get_move_paths(self, params):
         """Process raw 'src' and 'dst' data."""
-        src_ref = params['src']
+        try:
+            src_ref = params['src']
+        except KeyError:
+            raise ScriptingError('Missing parameter src')
         src = (self.game_files.get(src_ref) or self._substitute(src_ref))
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
