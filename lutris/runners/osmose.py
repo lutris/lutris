@@ -29,12 +29,6 @@ class osmose(Runner):
         }
     ]
 
-    def is_installed(self):
-        if os.path.exists(self.get_executable()):
-            return True
-        else:
-            return super(osmose, self).is_installed()
-
     def get_executable(self):
         return os.path.join(settings.RUNNER_DIR, 'osmose/osmose')
 
