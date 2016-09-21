@@ -124,7 +124,12 @@ class LutrisThread(threading.Thread):
 
     def iter_children(self, process, topdown=True, first=True):
         if self.runner and self.runner.name.startswith('wine') and first:
-            pids = self.runner.get_pids()
+            if 'WINE' in self.env:
+                # Track the correct version of wine for winetricks
+                wine_version = self.env['WINE']
+            else:
+                wine_version = None
+            pids = self.runner.get_pids(wine_version)
             for pid in pids:
                 wineprocess = Process(pid)
                 if wineprocess.name not in self.runner.core_processes:

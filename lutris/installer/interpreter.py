@@ -305,6 +305,10 @@ class ScriptInterpreter(CommandsMixin):
             params = {}
             if self.runner == 'libretro':
                 params['core'] = self.script['game']['core']
+            if self.runner.startswith('wine'):
+                version = self._get_runner_version()
+                if version:
+                    params['version'] = version
             if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
         self.install_runners()

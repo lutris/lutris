@@ -116,6 +116,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     }
     if winetricks_wine:
         env['WINE'] = winetricks_wine
+    else:
+        env['WINE'] = wine_path
     if prefix:
         env['WINEPREFIX'] = prefix
 
@@ -562,7 +564,7 @@ class wine(Runner):
 
     def get_version(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
-        force the instalation of a specific wine version"""
+        force the installation of a specific wine version"""
         runner_version = self.runner_config.get('version')
         runner_version = support_legacy_version(runner_version)
         if runner_version:
@@ -570,11 +572,14 @@ class wine(Runner):
         if use_default:
             return get_default_version()
 
-    def get_executable(self):
-        """Return the path to the Wine executable."""
+    def get_executable(self, version=None):
+        """Return the path to the Wine executable.
+        A specific version can be specified if needed.
+        """
         path = WINE_DIR
         custom_path = self.runner_config.get('custom_wine_path', '')
-        version = self.get_version()
+        if version is None:
+            version = self.get_version()
         if not version:
             return
 
@@ -591,13 +596,13 @@ class wine(Runner):
 
         return os.path.join(path, version, 'bin/wine')
 
-    def is_installed(self, any_version=False):
+    def is_installed(self, version=None, any_version=False):
         """Check if Wine is installed.
         If `any_version` is set to True, checks if any version of wine is available
         """
         if any_version:
             return len(get_wine_versions()) > 0
-        executable = self.get_executable()
+        executable = self.get_executable(version)
         if executable:
             return os.path.exists(executable)
         else:
@@ -681,13 +686,17 @@ class wine(Runner):
             env = {}
         env['WINEDEBUG'] = self.runner_config['show_debug']
         env['WINEARCH'] = self.wine_arch
+        env['WINE'] = self.get_executable()
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
         return env
 
-    def get_pids(self):
+    def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""
-        exe = self.get_executable()
+        if wine_path:
+            exe = wine_path
+        else:
+            exe = self.get_executable()
         if not exe.startswith('/'):
             exe = system.find_executable(exe)
         if self.wine_arch == 'win64':
