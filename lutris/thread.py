@@ -187,7 +187,7 @@ class LutrisThread(threading.Thread):
                 'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'python3',
                 'regedit', 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
                 'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
-                'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe', 'xkbcomp'
+                'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe', 'xkbcomp', 'wineconsole',
             )
             if child.name in excluded:
                 continue
