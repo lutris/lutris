@@ -26,10 +26,7 @@ class CommandsMixin(object):
         if self.script.get('wine'):
             return wine.support_legacy_version(self.script['wine'].get('version'))
         if self.runner == 'libretro':
-            try:
-                return self.script['game']['core']
-            except KeyError:
-                raise ScriptingError('Missing libretro core in game section')
+            return self.script['game']['core']
 
     def _check_required_params(self, params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""

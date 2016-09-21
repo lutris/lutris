@@ -128,6 +128,9 @@ class ScriptInterpreter(CommandsMixin):
         for field in required_fields:
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
+        if self.script['runner'] == 'libretro':
+            if 'game' not in self.script or 'core' not in self.script['game']:
+                self.errors.append('Missing libretro core in game section')
         return not bool(self.errors)
 
     def _check_dependency(self):
@@ -297,7 +300,10 @@ class ScriptInterpreter(CommandsMixin):
                     required_runners.append(self.get_runner_class(runner_name)())
 
         for runner in required_runners:
-            if not runner.is_installed():
+            params = {}
+            if self.runner == 'libretro':
+                params['core'] = self.script['game']['core']
+            if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
         self.install_runners()
 
