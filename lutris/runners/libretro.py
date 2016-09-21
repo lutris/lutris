@@ -54,14 +54,27 @@ class libretro(Runner):
     def get_version(self, use_default=True):
         return self.game_config['core']
 
+    def is_retroarch_installed(self):
+        return os.path.exists(self.get_executable())
+
     def is_installed(self, core=None):
-        is_retroarch_installed = os.path.exists(self.get_executable())
         if self.game_config.get('core') and core is None:
             core = self.game_config['core']
         if not core:
-            return is_retroarch_installed
+            return self.is_retroarch_installed()
         is_core_installed = os.path.exists(self.get_core_path(core))
-        return is_retroarch_installed and is_core_installed
+        return self.is_retroarch_installed() and is_core_installed
+
+    def install(self, version=None, downloader=None, callback=None):
+        def install_core():
+            super(libretro, self).install(version, downloader, callback)
+
+        if not self.is_retroarch_installed():
+            super(libretro, self).install(version=None,
+                                          downloader=downloader,
+                                          callback=install_core)
+        else:
+            super(libretro, self).install(version, downloader, callback)
 
     def play(self):
         command = [self.get_executable()]
