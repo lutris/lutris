@@ -81,7 +81,7 @@ class LutrisThread(threading.Thread):
             self.game_process = self.execute_process(self.command, env)
         if not self.game_process:
             return
-        for line in iter(self.game_process.stdout.readline, ''):
+        for line in iter(self.game_process.stdout.readline, b''):
             if not self.is_running:
                 break
             line = line.decode()
