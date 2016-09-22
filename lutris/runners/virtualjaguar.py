@@ -8,7 +8,7 @@ class virtualjaguar(Runner):
     human_name = "Virtual Jaguar"
     platform = "Atari Jaguar"
     runnable_alone = True
-
+    runner_executable = 'virtualjaguar/virtualjaguar'
     game_options = [
         {
             "option": "main_file",
@@ -28,9 +28,6 @@ class virtualjaguar(Runner):
             "default": "1"
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'virtualjaguar/virtualjaguar')
 
     def play(self):
         rom = self.game_config.get('main_file') or ''

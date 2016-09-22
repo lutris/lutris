@@ -1,5 +1,4 @@
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -7,6 +6,7 @@ class dolphin(Runner):
     description = "Gamecube and Wii emulator"
     human_name = "Dolphin"
     platform = "Gamecube, Wii"
+    runner_executable = 'dolphin/dolphin-emu'
     game_options = [
         {
             "option": "main_file",
@@ -16,9 +16,6 @@ class dolphin(Runner):
         }
     ]
     runner_options = []
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'dolphin/dolphin-emu')
 
     def play(self):
         iso = self.game_config.get('main_file') or ''

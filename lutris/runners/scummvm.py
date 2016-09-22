@@ -13,6 +13,7 @@ class scummvm(Runner):
     human_name = "ScummVM"
     platform = "2D point-and-click games"
     runnable_alone = True
+    runner_executable = 'scummvm/bin/scummvm'
     game_options = [
         {
             'option': 'game_id',
@@ -85,9 +86,6 @@ class scummvm(Runner):
             "--extrapath=%s" % self.get_scummvm_data_dir(),
             "--themepath=%s" % self.get_scummvm_data_dir()
         ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'scummvm/bin/scummvm')
 
     def get_scummvm_data_dir(self):
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))

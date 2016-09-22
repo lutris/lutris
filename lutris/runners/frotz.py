@@ -2,7 +2,6 @@
 # It is pitch black. You are likely to be eaten by a grue.
 
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -10,6 +9,7 @@ class frotz(Runner):
     human_name = "Frotz"
     description = "Z-code emulator for text adventure games such as Zork."
     platform = "Z-Code"
+    runner_executable = 'frotz/frotz'
 
     game_options = [
         {
@@ -28,12 +28,6 @@ class frotz(Runner):
             'default': True,
         }
     ]
-
-    def __init__(self, config=None):
-        super(frotz, self).__init__(config)
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'frotz/frotz')
 
     def play(self):
         story = self.game_config.get('story') or ''

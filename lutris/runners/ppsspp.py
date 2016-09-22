@@ -1,5 +1,4 @@
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -7,6 +6,7 @@ class ppsspp(Runner):
     human_name = "PPSSPP"
     description = "Sony PSP emulator"
     platform = "Sony PSP"
+    runner_executable = 'ppsspp/PPSSPPSDL'
     game_options = [
         {
             'option': 'main_file',
@@ -24,9 +24,6 @@ class ppsspp(Runner):
             'default': False,
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'ppsspp/PPSSPPSDL')
 
     def play(self):
         arguments = [self.get_executable()]

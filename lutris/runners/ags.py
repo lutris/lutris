@@ -1,6 +1,5 @@
 import os
 
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,6 +7,7 @@ class ags(Runner):
     human_name = "Adventure Game Studio"
     description = "Graphics adventure engine"
     platform = 'Linux'
+    runner_executable = 'ags/ags.sh'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
@@ -21,9 +21,6 @@ class ags(Runner):
             'default': True
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'ags/ags.sh')
 
     def play(self):
         """Run the game."""

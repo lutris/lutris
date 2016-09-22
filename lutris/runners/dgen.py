@@ -1,6 +1,5 @@
 import os
 
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,7 +7,7 @@ class dgen(Runner):
     human_name = "DGen"
     description = "Sega Genesis emulator"
     platform = 'Sega Genesis'
-    description = 'Sega Genesis (aka Sega Mega Drive) emulator'
+    runner_executable = 'dgen/bin/dgen'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
@@ -23,9 +22,6 @@ class dgen(Runner):
             'default': True
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'dgen/bin/dgen')
 
     def play(self):
         """Run the game."""

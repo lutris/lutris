@@ -7,6 +7,7 @@ class mess(Runner):
     human_name = "MESS"
     description = "Multi-system (consoles and computers) emulator"
     platform = 'multi-platform'
+    runner_executable = "mess/mess"
     game_options = [
         {
             'option': 'main_file',
@@ -56,9 +57,6 @@ class mess(Runner):
                      "necessary to the emulation.")
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, "mess/mess")
 
     @property
     def working_dir(self):

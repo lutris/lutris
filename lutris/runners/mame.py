@@ -1,6 +1,5 @@
 import os
 import subprocess
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,6 +7,7 @@ class mame(Runner):
     human_name = "MAME"
     description = "Arcade game emulator"
     platform = "Arcade"
+    runner_executable = 'mame/mame'
     game_options = [
         {
             "option": "main_file",
@@ -25,9 +25,6 @@ class mame(Runner):
             'default': True,
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, "mame/mame")
 
     @property
     def config_dir(self):

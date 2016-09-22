@@ -1,6 +1,5 @@
 import os
 
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,15 +7,13 @@ class citra(Runner):
     human_name = "Citra"
     platform = 'Nintendo 3DS'
     description = 'Nintendo 3DS emulator'
+    runner_executable = 'citra/citra-qt'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
         'label':  'ROM file',
         'help': ("The game data, commonly called a ROM image.")
     }]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'citra/citra-qt')
 
     def play(self):
         """Run the game."""

@@ -13,6 +13,7 @@ class mednafen(Runner):
     platform = ("Atari Lynx, GameBoy, GameBoy Color, "
                 "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
                 "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan")
+    runner_executable = 'mednafen/bin/mednafen'
     machine_choices = (
         ("NES", "nes"),
         ("PC Engine", "pce"),
@@ -81,9 +82,6 @@ class mednafen(Runner):
             "default": "hq4x",
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'mednafen/bin/mednafen')
 
     def find_joysticks(self):
         """ Detect connected joysticks and return their ids """

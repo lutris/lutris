@@ -9,6 +9,7 @@ class zdoom(Runner):
     description = "ZDoom DOOM Game Engine"
     human_name = "ZDoom"
     platform = "PC"
+    runner_executable = 'zdoom/zdoom'
     game_options = [
         {
             'option': 'main_file',
@@ -64,9 +65,6 @@ class zdoom(Runner):
             }
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'zdoom/zdoom')
 
     @property
     def working_dir(self):

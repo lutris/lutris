@@ -13,6 +13,7 @@ class residualvm(Runner):
     platform = "3D point-and-click games"
     description = ("Runs various 3D point-and-click adventure games, "
                    "like Grim Fandango and Escape from Monkey Island.")
+    runner_executable = 'residualvm/residualvm'
     game_options = [
         {
             'option': 'game_id',
@@ -55,9 +56,6 @@ class residualvm(Runner):
     @property
     def game_path(self):
         return self.game_config.get('path')
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'residualvm/residualvm')
 
     def get_residualvm_data_dir(self):
         root_dir = os.path.dirname(self.get_executable())

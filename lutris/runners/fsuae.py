@@ -1,6 +1,3 @@
-import os
-
-from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 
@@ -9,6 +6,7 @@ class fsuae(Runner):
     human_name = "FS-UAE"
     description = "Amiga emulator"
     platform = "Amiga"
+    runner_executable = 'fs-uae/fs-uae'
     game_options = [
         {
             'option': "main_file",
@@ -101,9 +99,6 @@ class fsuae(Runner):
             floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk))
             floppy_images.append("--floppy_image_%d=%s" % (drive, disk))
         return floppy_drives + floppy_images
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'fs-uae/fs-uae')
 
     def get_params(self):
         params = []

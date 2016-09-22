@@ -52,6 +52,7 @@ class dosbox(Runner):
     platform = "MS-DOS"
     description = "DOS Emulator"
     runnable_alone = True
+    runner_executable = "dosbox/bin/dosbox"
     game_options = [
         {
             "option": "main_file",
@@ -134,9 +135,6 @@ class dosbox(Runner):
         """Return the working directory to use when running the game."""
         return os.path.dirname(self.main_file) \
             or super(dosbox, self).working_dir
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, "dosbox/bin/dosbox")
 
     def play(self):
         main_file = self.main_file

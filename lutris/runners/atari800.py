@@ -14,6 +14,7 @@ class atari800(Runner):
     description = "Runs Atari 8bit games"
     human_name = "Atari800"
     platform = "Atari 8bit computers"
+    runner_executable = 'atari800/bin/atari800'
     bios_url = (
         "http://kent.dl.sourceforge.net/project/atari800/"
         "ROM/Original%20XL%20ROM/xf25.zip"
@@ -99,9 +100,6 @@ class atari800(Runner):
                 callback()
 
         super(atari800, self).install(version, downloader, on_runner_installed)
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'atari800/bin/atari800')
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """

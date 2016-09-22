@@ -1,6 +1,5 @@
 import os
 import shutil
-from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris.runners.runner import Runner
@@ -12,6 +11,7 @@ class pcsxr(Runner):
     description = "PlayStation emulator"
     platform = "Playstation"
     runnable_alone = True
+    runner_executable = 'pcsxr/bin/pcsxr'
     game_options = [
         {
             "option": "iso",
@@ -41,18 +41,6 @@ class pcsxr(Runner):
                      "allowing you to configure the emulator.")
         }
     ]
-
-    def get_executable(self):
-        # Lutris provided emulator
-        pcsxr_path = os.path.join(settings.RUNNER_DIR, 'pcsxr/bin/pcsxr')
-        if os.path.exists(pcsxr_path):
-            return pcsxr_path
-        # System wide available emulator
-        candidates = ('pcsx', 'pcsxr')
-        for candidate in candidates:
-            executable = system.find_executable(candidate)
-            if executable:
-                return executable
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):

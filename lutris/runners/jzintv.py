@@ -1,6 +1,4 @@
-# -*- coding:Utf-8 -*-
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -8,7 +6,7 @@ class jzintv(Runner):
     human_name = "jzIntv"
     description = "Intellivision Emulator"
     platform = "Intellivision"
-
+    runner_executable = 'jzintv/bin/jzintv'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
@@ -34,9 +32,6 @@ class jzintv(Runner):
             "label": "Fullscreen"
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'jzintv/bin/jzintv')
 
     def play(self):
         """Run Intellivision game"""

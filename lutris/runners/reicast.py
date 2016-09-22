@@ -14,6 +14,7 @@ class reicast(Runner):
     human_name = "Reicast"
     description = "Sega Dreamcast emulator"
     platform = "Sega Dreamcast"
+    runner_executable = 'reicast/reicast.elf'
 
     game_options = [{
         'option': 'iso',
@@ -100,9 +101,6 @@ class reicast(Runner):
             joypad_list.append((joy_name, dev_id))
         self._joypads = joypad_list
         return joypad_list
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'reicast/reicast.elf')
 
     def write_config(self, config):
         parser = ConfigParser()

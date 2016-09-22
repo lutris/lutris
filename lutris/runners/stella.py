@@ -1,6 +1,4 @@
-"""Runner for stella Atari 2600 emulator"""
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -9,6 +7,7 @@ class stella(Runner):
     human_name = "Stella"
     platform = "Atari 2600"
     runnable_alone = True
+    runner_executable = "stella/bin/stella"
     game_options = [
         {
             "option": "main_file",
@@ -20,9 +19,6 @@ class stella(Runner):
         }
     ]
     runner_options = []
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, "stella/bin/stella")
 
     def play(self):
         cart = self.game_config.get('main_file') or ''

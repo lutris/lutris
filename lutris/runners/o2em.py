@@ -9,6 +9,7 @@ class o2em(Runner):
     description = "Magnavox Oyssey² Emulator"
     platform = "Magnavox Odyssey 2, Phillips Videopac+"
     bios_path = os.path.expanduser("~/.o2em/bios")
+    runner_executable = 'o2em/o2em'
 
     checksums = {
         'o2rom': "562d5ebf9e030a40d6fabfc2f33139fd",
@@ -81,9 +82,6 @@ class o2em(Runner):
             if callback:
                 callback()
         super(o2em, self).install(version, downloader, on_runner_installed)
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'o2em/o2em')
 
     def play(self):
         arguments = ["-biosdir=%s" % self.bios_path]

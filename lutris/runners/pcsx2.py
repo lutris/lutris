@@ -1,5 +1,4 @@
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
@@ -7,6 +6,7 @@ class pcsx2(Runner):
     human_name = "PCSX2"
     description = "Playstation 2 emulator"
     platform = "Sony Playstation 2"
+    runner_executable = 'pcsx2/PCSX2'
     game_options = [
         {
             'option': 'main_file',
@@ -24,9 +24,6 @@ class pcsx2(Runner):
             'default': False,
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'pcsx2/PCSX2')
 
     def play(self):
         arguments = [self.get_executable()]

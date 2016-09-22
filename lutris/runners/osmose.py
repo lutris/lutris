@@ -9,6 +9,7 @@ class osmose(Runner):
     human_name = "Osmose"
     description = "Sega Master System Emulator"
     platform = "Sega Master System"
+    runner_executable = 'osmose/osmose'
     game_options = [
         {
             'option': 'main_file',
@@ -28,9 +29,6 @@ class osmose(Runner):
             'default': False,
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'osmose/osmose')
 
     def play(self):
         """Run Sega Master System game"""

@@ -22,6 +22,7 @@ class libretro(Runner):
     description = "Multi system emulator"
     platform = "libretro"
     runnable_alone = True
+    runner_executable = 'retroarch/retroarch'
     game_options = [
         {
             'option': 'main_file',
@@ -44,9 +45,6 @@ class libretro(Runner):
             'default': True
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch')
 
     def get_core_path(self, core):
         return os.path.join(settings.RUNNER_DIR,

@@ -8,6 +8,7 @@ class mupen64plus(Runner):
     human_name = "Mupen64Plus"
     description = "Nintendo 64 emulator"
     platform = "Nintendo 64"
+    runner_executable = 'mupen64plus/mupen64plus'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
@@ -32,9 +33,6 @@ class mupen64plus(Runner):
     @property
     def working_dir(self):
         return os.path.join(settings.RUNNER_DIR, 'mupen64plus')
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'mupen64plus/mupen64plus')
 
     def play(self):
         arguments = [self.get_executable()]

@@ -39,6 +39,7 @@ class Runner(object):
     system_options_override = []
     context_menu_entries = []
     depends_on = None
+    runner_executable = None
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -128,8 +129,9 @@ class Runner(object):
         return self.platform
 
     def get_executable(self):
-        raise NotImplementedError("Runners must implement get_executable (%s)"
-                                  % self)
+        if not self.runner_executable:
+            raise ValueError('runner_executable not set for {}'.format(self.name))
+        return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
     def play(self):
         """Dummy method, must be implemented by derived runnners."""

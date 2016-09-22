@@ -1,5 +1,3 @@
-# -*- coding:Utf-8 -*-
-""" Super Nintendo runner """
 import os
 import subprocess
 import xml.etree.ElementTree as etree
@@ -16,7 +14,7 @@ class snes9x(Runner):
     human_name = "Snes9x"
     platform = "Super Nintendo"
     runnable_alone = True
-
+    runner_executable = "snes9x/bin/snes9x-gtk"
     game_options = [
         {
             "option": "main_file",
@@ -54,9 +52,6 @@ class snes9x(Runner):
             "default": "1"
         }
     ]
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, "snes9x/bin/snes9x-gtk")
 
     def set_option(self, option, value):
         config_file = os.path.expanduser("~/.snes9x/snes9x.xml")

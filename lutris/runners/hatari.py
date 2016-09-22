@@ -1,6 +1,5 @@
 import os
 import shutil
-from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris.runners.runner import Runner
@@ -12,7 +11,7 @@ class hatari(Runner):
     description = "Atari ST computers emulator"
     platform = "Atari ST computers"
     runnable_alone = True
-
+    runner_executable = 'hatari/bin/hatari'
     game_options = [
         {
             "option": "disk-a",
@@ -122,9 +121,6 @@ class hatari(Runner):
         super(hatari, self).install(version=version,
                                     downloader=downloader,
                                     callback=on_runner_installed)
-
-    def get_executable(self):
-        return os.path.join(settings.RUNNER_DIR, 'hatari/bin/hatari')
 
     def play(self):
         params = [self.get_executable()]
