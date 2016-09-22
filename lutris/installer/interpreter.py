@@ -387,7 +387,10 @@ class ScriptInterpreter(CommandsMixin):
         if exception:
             self.parent.on_install_error(repr(exception))
         elif self.current_command < len(commands):
-            command = commands[self.current_command]
+            try:
+                command = commands[self.current_command]
+            except KeyError:
+                raise ScriptingError('Installer commands are not formatted correctly')
             self.current_command += 1
             method, params = self._map_command(command)
             if isinstance(params, dict):
