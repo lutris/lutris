@@ -128,7 +128,22 @@ class Runner(object):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
 
+    def get_runner_options(self):
+        runner_options = self.runner_options[:]
+        if self.runner_executable:
+            runner_options.append({
+                'option': 'runner_executable',
+                'type': 'file',
+                'label': 'Custom executable for the runner',
+                'advanced': True
+            })
+        return runner_options
+
     def get_executable(self):
+        if 'runner_executable' in self.runner_config:
+            runner_executable = self.runner_config['runner_executable']
+            if os.path.isfile(runner_executable):
+                return runner_executable
         if not self.runner_executable:
             raise ValueError('runner_executable not set for {}'.format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)

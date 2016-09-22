@@ -516,7 +516,7 @@ class RunnerBox(ConfigBox):
         except InvalidRunner:
             runner = None
         if runner:
-            self.options = runner.runner_options
+            self.options = runner.get_runner_options()
         else:
             self.options = []
 
