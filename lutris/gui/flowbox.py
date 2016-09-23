@@ -11,6 +11,7 @@ class GameItem(Gtk.VBox):
         self.parent = parent
         self.game = game
         self.name = game['name']
+        self.slug = game['slug']
         self.runner = game['runner']
         self.installed = game['installed']
 
@@ -26,22 +27,28 @@ class GameItem(Gtk.VBox):
         # For some reason, button-press-events are not registered by the image
         # so it needs to be wrapped in an EventBox
         eventbox = Gtk.EventBox()
-        image = Gtk.Image()
-        pixbuf = get_pixbuf_for_game(self.game['slug'],
-                                     self.banner_type,
-                                     self.game['installed'])
-        image.set_from_pixbuf(pixbuf)
-        eventbox.add(image)
+        self.image = Gtk.Image()
+        self.set_image_pixpuf()
+        eventbox.add(self.image)
         return eventbox
 
+    def set_image_pixpuf(self):
+        pixbuf = get_pixbuf_for_game(self.slug,
+                                     self.banner_type,
+                                     self.installed)
+        self.image.set_from_pixbuf(pixbuf)
+
     def get_label(self):
-        label = Gtk.Label(self.game['name'])
-        label.set_size_request(184, 40)
-        label.set_max_width_chars(20)
-        label.set_property('wrap', True)
-        label.set_justify(Gtk.Justification.CENTER)
-        label.set_halign(Gtk.Align.CENTER)
-        return label
+        self.label = Gtk.Label(self.game['name'])
+        self.label.set_size_request(184, 40)
+        self.label.set_max_width_chars(20)
+        self.label.set_property('wrap', True)
+        self.label.set_justify(Gtk.Justification.CENTER)
+        self.label.set_halign(Gtk.Align.CENTER)
+        return self.label
+
+    def set_label_text(self, text):
+        self.label.set_text(text)
 
     def popup_contextual_menu(self, widget, event):
         if event.button != 3:
@@ -78,6 +85,9 @@ class GameFlowBox(Gtk.FlowBox):
 
     @property
     def selected_game(self):
+        """Because of shitty naming conventions in previous Game views, this
+        returns an id and not a game.
+        """
         children = self.get_selected_children()
         if not children:
             return
@@ -88,7 +98,9 @@ class GameFlowBox(Gtk.FlowBox):
         """Generator to fill the model in steps."""
         n = 0
         for game in self.game_list:
-            self.add(GameItem(game, self))
+            item = GameItem(game, self)
+            game['item'] = item  # keep a reference of created widgets
+            self.add(item)
             n += 1
             if (n % step) == 0:
                 yield True
@@ -115,6 +127,21 @@ class GameFlowBox(Gtk.FlowBox):
             widget = child.get_children()[0]
             if widget == game_item:
                 return child
+
+    def remove_game(self, game_id):
+        for index, game in enumerate(self.game_list):
+            if game['id'] == game_id:
+                child = self.get_child(game['item'])
+                self.remove(child)
+                self.game_list.pop(index)
+                return
+
+    def update_image(self, game_id, is_installed):
+        for index, game in enumerate(self.game_list):
+            if game['id'] == game_id:
+                item = game['item']
+                item.installed = is_installed
+                item.set_image_pixpuf()
 
     def popup_contextual_menu(self, event, widget):
         self.select_child(self.get_child(widget))
