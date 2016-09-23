@@ -30,7 +30,7 @@ def show_error_message(message):
         dialogs.ErrorDialog("The file %s is not executable" % message['file'])
 
 
-def get_game_list():
+def get_game_ids():
     games = pga.get_games()
     return [game['id'] for game in games]
 

@@ -7,7 +7,7 @@ import subprocess
 from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings, shortcuts
-from lutris.game import Game, get_game_list
+from lutris.game import Game, get_game_ids
 from lutris.sync import Sync
 from lutris.runtime import RuntimeUpdater
 
@@ -27,17 +27,10 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
+from lutris.gui.flowbox import GameFlowBox
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
-
-
-def load_view(view, store):
-    if view == 'grid':
-        view = GameGridView(store)
-    elif view == 'list':
-        view = GameListView(store)
-    return view
 
 
 class LutrisWindow(Gtk.Application):
@@ -87,10 +80,11 @@ class LutrisWindow(Gtk.Application):
         dark_theme_menuitem.set_active(use_dark_theme)
         self.set_dark_theme(use_dark_theme)
 
+        self.game_list = pga.get_games()
         # Load view
         logger.debug("Loading view")
         self.game_store = GameStore([], self.icon_type, filter_installed)
-        self.view = load_view(view_type, self.game_store)
+        self.view = self.get_view(view_type)
 
         logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
@@ -143,10 +137,14 @@ class LutrisWindow(Gtk.Application):
             ('add', "Add manually", self.add_manually),
             ('configure', "Configure", self.edit_game_configuration),
             ('browse', "Browse files", self.on_browse_files),
-            ('desktop-shortcut', "Create desktop shortcut", self.create_desktop_shortcut),
-            ('rm-desktop-shortcut', "Delete desktop shortcut", self.remove_desktop_shortcut),
-            ('menu-shortcut', "Create application menu shortcut", self.create_menu_shortcut),
-            ('rm-menu-shortcut', "Delete application menu shortcut", self.remove_menu_shortcut),
+            ('desktop-shortcut', "Create desktop shortcut",
+             self.create_desktop_shortcut),
+            ('rm-desktop-shortcut', "Delete desktop shortcut",
+             self.remove_desktop_shortcut),
+            ('menu-shortcut', "Create application menu shortcut",
+             self.create_menu_shortcut),
+            ('rm-menu-shortcut', "Delete application menu shortcut",
+             self.remove_menu_shortcut),
             ('install_more', "Install (add) another version", self.on_install_clicked),
             ('remove', "Remove", self.on_remove_game),
         ]
@@ -237,14 +235,21 @@ class LutrisWindow(Gtk.Application):
 
     def init_game_store(self):
         logger.debug("Getting game list")
-        game_list = get_game_list()
-        self.game_store.fill_store(game_list)
+        game_ids = get_game_ids()
+        self.game_store.fill_store(game_ids)
         self.switch_splash_screen()
+
+    def get_view(self, view_type):
+        if view_type == 'grid':
+            # view_type = GameGridView(self.game_store)
+            return GameFlowBox(self.game_list)
+        elif view_type == 'list':
+            return GameListView(self.game_store)
 
     @property
     def current_view_type(self):
         return 'grid' \
-            if self.view.__class__.__name__ == "GameGridView" \
+            if self.view.__class__.__name__ == "GameFlowBox" \
             else 'list'
 
     def connect_signals(self):
@@ -310,7 +315,7 @@ class LutrisWindow(Gtk.Application):
         icon_type = self.get_icon_type(view_type)
         self.game_store.set_icon_type(icon_type)
 
-        self.view = load_view(view_type, self.game_store)
+        self.view = self.get_view(view_type)
         self.view.contextual_menu = self.menu
         self.connect_signals()
         self.games_scrollwindow.add(self.view)
@@ -662,20 +667,22 @@ class LutrisWindow(Gtk.Application):
         if game.is_installed:
             dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
 
-    def on_viewmenu_toggled(self, menuitem):
-        view_type = 'grid' if menuitem.get_active() else 'list'
-        if view_type == self.current_view_type:
-            return
-        self.switch_view(view_type)
-        self.grid_view_btn.set_active(view_type == 'grid')
-        self.list_view_btn.set_active(view_type == 'list')
+    def on_viewmenu_toggled(self, widget):
+        self.on_view_toggled(widget)
 
     def on_viewbtn_toggled(self, widget):
+        self.on_view_toggled(widget)
+
+    def on_view_toggled(self, widget):
         view_type = 'grid' if widget.get_active() else 'list'
         if view_type == self.current_view_type:
             return
         self.switch_view(view_type)
+
+        self.grid_view_btn.set_active(view_type == 'grid')
         self.grid_view_menuitem.set_active(view_type == 'grid')
+
+        self.list_view_btn.set_active(view_type == 'list')
         self.list_view_menuitem.set_active(view_type == 'list')
 
     def on_icon_type_activate(self, menuitem):
@@ -724,5 +731,9 @@ class LutrisWindow(Gtk.Application):
         self.sidebar_visible = not self.sidebar_visible
 
     def on_sidebar_changed(self, widget):
-        self.view.game_store.filter_runner = widget.get_selected_runner()
-        self.game_store.modelfilter.refilter()
+        if self.get_view_type() == 'grid':
+            self.view.filter_runner = widget.get_selected_runner()
+            self.view.invalidate_filter()
+        else:
+            self.view.game_store.filter_runner = widget.get_selected_runner()
+            self.game_store.modelfilter.refilter()

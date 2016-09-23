@@ -388,10 +388,17 @@ class ContextualMenu(Gtk.Menu):
             menuitem.action_id = name
             self.append(menuitem)
 
-    def popup(self, event, game_row):
-        game_id = game_row[COL_ID]
-        game_slug = game_row[COL_SLUG]
-        runner_slug = game_row[COL_RUNNER]
+    def popup(self, event, game_row=None, game=None):
+        if game_row:
+            game_id = game_row[COL_ID]
+            game_slug = game_row[COL_SLUG]
+            runner_slug = game_row[COL_RUNNER]
+            is_installed = game_row[COL_INSTALLED]
+        elif game:
+            game_id = game['id']
+            game_slug = game['slug']
+            runner_slug = game['runner']
+            is_installed = game['installed']
 
         # Clear existing menu
         for item in self.get_children():
@@ -415,7 +422,6 @@ class ContextualMenu(Gtk.Menu):
         self.show_all()
 
         # Hide some items
-        is_installed = game_row[COL_INSTALLED]
         hiding_condition = {
             'add': is_installed,
             'install': is_installed,
@@ -438,7 +444,7 @@ class ContextualMenu(Gtk.Menu):
                 not is_installed
                 or not menu_launcher_exists(game_slug, game_id)
             ),
-            'browse': not is_installed or game_row[COL_RUNNER] == 'browser',
+            'browse': not is_installed or runner_slug == 'browser',
         }
         for menuitem in self.get_children():
             if type(menuitem) is not Gtk.ImageMenuItem:
