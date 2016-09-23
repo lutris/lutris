@@ -47,21 +47,7 @@ class GameItem(Gtk.VBox):
         if event.button != 3:
             return
         self.parent.popup_contextual_menu(event, self)
-        #try:
-        #    view.current_path = view.get_path_at_pos(event.x, event.y)
-        #    if view.current_path:
-        #        pass
-        #        #if type(view) is GameGridView:
-        #        #    view.select_path(view.current_path)
-        #        #elif type(view) is GameListView:
-        #        #    view.set_cursor(view.current_path[0])
-        #except ValueError:
-        #    (_, path) = view.get_selection().get_selected()
-        #    view.current_path = path
 
-        #if view.current_path:
-        #    game_row = self.get_row_by_id(self.selected_game)
-        #    self.contextual_menu.popup(event, game_row)
 
 class GameFlowBox(Gtk.FlowBox):
     __gsignals__ = {

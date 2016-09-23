@@ -503,15 +503,23 @@ class LutrisWindow(Gtk.Application):
         settings.write_setting(
             'filter_installed', setting_value
         )
-        self.game_store.filter_installed = filter_installed
-        self.game_store.modelfilter.refilter()
+        if self.current_view_type == 'grid':
+            self.view.filter_installed = filter_installed
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_installed = filter_installed
+            self.game_store.modelfilter.refilter()
 
     def on_pga_menuitem_activate(self, _widget, _data=None):
         dialogs.PgaSourceDialog(parent=self.window)
 
     def on_search_entry_changed(self, widget):
-        self.game_store.filter_text = widget.get_text()
-        self.game_store.modelfilter.refilter()
+        if self.current_view_type == 'grid':
+            self.view.filter_text = widget.get_text()
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_text = widget.get_text()
+            self.game_store.modelfilter.refilter()
 
     def _get_current_game_id(self):
         """Return the id of the current selected game while taking care of the
