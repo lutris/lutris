@@ -6,28 +6,42 @@ class GameItem(Gtk.VBox):
     def __init__(self, game, parent):
         super(GameItem, self).__init__()
 
-        self.eventbox = Gtk.EventBox()
-        self.connect('button-press-event', self.popup_contextual_menu)
+        self.banner_type = 'banner'
+
         self.parent = parent
         self.game = game
         self.name = game['name']
         self.runner = game['runner']
         self.installed = game['installed']
 
+        image = self.get_image()
+        self.pack_start(image, False, False, 0)
+        label = self.get_label()
+        self.pack_start(label, False, False, 0)
+
+        self.connect('button-press-event', self.popup_contextual_menu)
+        self.show_all()
+
+    def get_image(self):
+        # For some reason, button-press-events are not registered by the image
+        # so it needs to be wrapped in an EventBox
+        eventbox = Gtk.EventBox()
         image = Gtk.Image()
-        label = Gtk.Label(game['name'])
+        pixbuf = get_pixbuf_for_game(self.game['slug'],
+                                     self.banner_type,
+                                     self.game['installed'])
+        image.set_from_pixbuf(pixbuf)
+        eventbox.add(image)
+        return eventbox
+
+    def get_label(self):
+        label = Gtk.Label(self.game['name'])
         label.set_size_request(184, 40)
         label.set_max_width_chars(20)
         label.set_property('wrap', True)
         label.set_justify(Gtk.Justification.CENTER)
         label.set_halign(Gtk.Align.CENTER)
-
-        pixbuf = get_pixbuf_for_game(game['slug'], 'banner', game['installed'])
-        image.set_from_pixbuf(pixbuf)
-        self.eventbox.add(image)
-        self.pack_start(self.eventbox, False, False, 0)
-        self.pack_start(label, False, False, 0)
-        self.show_all()
+        return label
 
     def popup_contextual_menu(self, widget, event):
         if event.button != 3:
@@ -61,9 +75,10 @@ class GameFlowBox(Gtk.FlowBox):
 
         self.set_valign(Gtk.Align.START)
 
-        # self.connect('child-activated', self.on_child_activated)
+        self.connect('child-activated', self.on_child_activated)
 
         self.set_filter_func(self.filter_func)
+        self.set_activate_on_single_click(False)
 
         self.contextual_menu = None
 
@@ -74,6 +89,14 @@ class GameFlowBox(Gtk.FlowBox):
         self.game_list = game_list
         loader = self._fill_store_generator()
         GLib.idle_add(loader.__next__)
+
+    @property
+    def selected_game(self):
+        children = self.get_selected_children()
+        if not children:
+            return
+        game_item = children[0].get_children()[0]
+        return game_item.game['id']
 
     def _fill_store_generator(self, step=50):
         """Generator to fill the model in steps."""
