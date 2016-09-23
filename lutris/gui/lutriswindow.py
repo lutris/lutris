@@ -582,7 +582,7 @@ class LutrisWindow(Gtk.Application):
     def on_game_installed(self, view, game_id):
         if type(game_id) != int:
             raise ValueError("game_id must be an int")
-        if not self.view.get_row_by_id(game_id):
+        if not self.view.has_game_id(game_id):
             logger.debug("Adding new installed game to view (%d)" % game_id)
             self.add_game_to_view(game_id, async=False)
 

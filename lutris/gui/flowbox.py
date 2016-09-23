@@ -1,3 +1,4 @@
+from lutris import pga
 from gi.repository import Gtk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
 
@@ -128,6 +129,25 @@ class GameFlowBox(Gtk.FlowBox):
             if widget == game_item:
                 return child
 
+    def has_game_id(self, game_id):
+        for game in self.game_list:
+            if game['id'] == game_id:
+                return True
+        return False
+
+    def add_game(self, game_id):
+        if not game_id:
+            return
+        game = pga.get_game_by_field(game_id, 'id')
+        if not game or 'slug' not in game:
+            raise ValueError('Can\'t find game {} ({})'.format(
+                game_id, game
+            ))
+        item = GameItem(game, self)
+        game['item'] = item
+        self.add(item)
+        self.game_list.append(game)
+
     def remove_game(self, game_id):
         for index, game in enumerate(self.game_list):
             if game['id'] == game_id:
@@ -142,6 +162,11 @@ class GameFlowBox(Gtk.FlowBox):
                 item = game['item']
                 item.installed = is_installed
                 item.set_image_pixpuf()
+
+    def set_selected_game(self, game_id):
+        for game in self.game_list:
+            if game['id'] == game_id:
+                self.select_child(self.get_child(game['item']))
 
     def popup_contextual_menu(self, event, widget):
         self.select_child(self.get_child(widget))

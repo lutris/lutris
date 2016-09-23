@@ -158,6 +158,9 @@ class GameView(object):
                 game_row = model_row
         return game_row
 
+    def has_game_id(self, game_id):
+        return bool(self.get_row_by_id(game_id))
+
     def add_game(self, game_id):
         self.game_store.add_game(game_id)
 
