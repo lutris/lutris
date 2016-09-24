@@ -63,19 +63,16 @@ class GameStore(GObject.Object):
         GLib.idle_add(loader.__next__)
 
     def _fill_store_generator(self, games, step=100):
-        """Generator to fill the model in steps."""
+        """Generator to fill the model in steps.
+        TODO: Document how this works because I have no idea what's going on
+        """
         n = 0
-        # self.freeze_child_notify()
         for game_id in games:
             self.add_game(game_id)
-
             # Yield to GTK main loop once in a while
             n += 1
             if (n % step) == 0:
-                # self.thaw_child_notify()
                 yield True
-                # self.freeze_child_notify()
-        # self.thaw_child_notify()
         yield False
 
     def filter_view(self, model, _iter, filter_data=None):
