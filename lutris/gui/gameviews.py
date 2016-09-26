@@ -58,20 +58,26 @@ class GameStore(GObject.Object):
         return [row[COL_ID] for row in self.store]
 
     def fill_store(self, games):
-        """Fill the model asynchronously and in steps."""
+        """Fill the model asynchronously and in steps.
+
+        Each iteration on `loader` adds a batch of games to the model as a low
+        priority operation so they get displayed before adding the next batch.
+        This is an optimization to avoid having to wait for all games to be
+        loaded in the model before the list is drawn on the window.
+        """
         loader = self._fill_store_generator(games)
         GLib.idle_add(loader.__next__)
 
-    def _fill_store_generator(self, games, step=100):
-        """Generator to fill the model in steps.
-        TODO: Document how this works because I have no idea what's going on
-        """
+    def _fill_store_generator(self, games, batch=100):
+        """Generator to fill the model in batches."""
         n = 0
         for game_id in games:
             self.add_game(game_id)
             # Yield to GTK main loop once in a while
             n += 1
-            if (n % step) == 0:
+            if (n % batch) == 0:
+                # Returning True to GLib.idle_add makes it run the callback
+                # again. (Yeah, the GTK doc isn't clear about this feature :)
                 yield True
         yield False
 
