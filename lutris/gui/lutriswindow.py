@@ -318,6 +318,10 @@ class LutrisWindow(Gtk.Application):
         self.view = self.get_view(view_type)
         self.view.contextual_menu = self.menu
         self.connect_signals()
+        scrollwindow_children = self.games_scrollwindow.get_children()
+        if len(scrollwindow_children):
+            child = scrollwindow_children[0]
+            child.destroy()
         self.games_scrollwindow.add(self.view)
         self.view.show_all()
 

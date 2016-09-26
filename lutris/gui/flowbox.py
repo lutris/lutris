@@ -156,6 +156,12 @@ class GameFlowBox(Gtk.FlowBox):
                 self.game_list.pop(index)
                 return
 
+    def update_row(self, game):
+        for index, _game in enumerate(self.game_list):
+            if game['id '] == _game['id']:
+                self.update_image(game['id'], _game['installed'])
+
+
     def update_image(self, game_id, is_installed):
         for index, game in enumerate(self.game_list):
             if game['id'] == game_id:
