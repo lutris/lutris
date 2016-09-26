@@ -565,13 +565,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLinkButton" id="add_game_link">
-                <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+              <object class="GtkLinkButton" id="website_link">
+                <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="relief">none</property>
-                <signal name="activate-link" handler="add_game" swapped="no"/>
+                <property name="halign">center</property>
+                <property name="relief">half</property>
+                <property name="uri">http://lutris.net/games/</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -585,7 +586,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="relief">none</property>
+                <property name="halign">center</property>
+                <property name="relief">half</property>
                 <signal name="activate-link" handler="on_connect" swapped="no"/>
               </object>
               <packing>
@@ -595,13 +597,14 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLinkButton" id="website_link">
-                <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
+              <object class="GtkLinkButton" id="add_game_link">
+                <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="relief">none</property>
-                <property name="uri">http://lutris.net/games/</property>
+                <property name="halign">center</property>
+                <property name="relief">half</property>
+                <signal name="activate-link" handler="add_game" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
