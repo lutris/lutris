@@ -490,8 +490,8 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
-    def __init__(self):
-        super(SystemConfigDialog, self).__init__("System preferences")
+    def __init__(self, parent=None):
+        super(SystemConfigDialog, self).__init__("System preferences", parent=parent)
 
         self.game = None
         self.runner_name = None

@@ -499,7 +499,7 @@ class LutrisWindow(Gtk.Application):
 
     def on_preferences_activate(self, _widget, _data=None):
         """Callback when preferences is activated."""
-        SystemConfigDialog()
+        SystemConfigDialog(parent=self.window)
 
     def on_show_installed_games_toggled(self, widget, data=None):
         filter_installed = widget.get_active()
