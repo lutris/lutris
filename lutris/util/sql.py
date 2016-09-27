@@ -1,4 +1,8 @@
+import time
 import sqlite3
+
+# Number of attempts to retry failed queries
+DB_RETRIES = 3
 
 
 class db_cursor(object):
@@ -15,13 +19,28 @@ class db_cursor(object):
         self.db_conn.close()
 
 
+def cursor_execute(cursor, query, params=None):
+    """Function used to retry queries in case an error occurs"""
+    i = 0
+    while True:
+        try:
+            return cursor.execute(query, params)
+        except sqlite3.OperationalError:
+            i += 1
+            if i == DB_RETRIES:
+                raise
+            else:
+                time.sleep(0.5)
+
+
 def db_insert(db_path, table, fields):
     columns = ", ".join(list(fields.keys()))
     placeholders = ("?, " * len(fields))[:-2]
     field_values = _decode_utf8_values(list(fields.values()))
     with db_cursor(db_path) as cursor:
         try:
-            cursor.execute(
+            cursor_execute(
+                cursor,
                 "insert into {0}({1}) values ({2})".format(
                     table, columns, placeholders
                 ),
@@ -46,12 +65,13 @@ def db_update(db_path, table, updated_fields, row):
     with db_cursor(db_path) as cursor:
         query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns,
                                                       condition_field)
-        cursor.execute(query, field_values + condition_value)
+        cursor_execute(cursor, query, field_values + condition_value)
 
 
 def db_delete(db_path, table, field, value):
     with db_cursor(db_path) as cursor:
-        cursor.execute("delete from {0} where {1}=?".format(table, field),
+        cursor_execute(cursor,
+                       "delete from {0} where {1}=?".format(table, field),
                        (value,))
 
 
@@ -63,13 +83,14 @@ def db_select(db_path, table, fields=None, condition=None):
     with db_cursor(db_path) as cursor:
         if condition:
             assert len(condition) == 2
-            cursor.execute(
-                "SELECT {0} FROM {1} where {2}=?".format(
-                    columns, table, condition[0]
-                ), (condition[1], )
-            )
+            query = "SELECT {0} FROM {1} where {2}=?".format(columns,
+                                                             table,
+                                                             condition[0])
+            params = (condition[1], )
         else:
-            cursor.execute("SELECT {0} FROM {1}".format(columns, table))
+            query = "SELECT {0} FROM {1}".format(columns, table)
+            params = ()
+        cursor_execute(cursor, query, params)
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
     results = []
@@ -83,7 +104,7 @@ def db_select(db_path, table, fields=None, condition=None):
 
 def db_query(db_path, query, params=()):
     with db_cursor(db_path) as cursor:
-        cursor.execute(query, params)
+        cursor_execute(cursor, query, params)
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
     results = []
@@ -112,4 +133,4 @@ def add_field(db_path, tablename, field):
         tablename, field['name'], field['type']
     )
     with db_cursor(db_path) as cursor:
-        cursor.execute(query)
+        cursor_execute(cursor, query)
