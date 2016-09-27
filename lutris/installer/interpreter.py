@@ -495,7 +495,7 @@ class ScriptInterpreter(CommandsMixin):
         # Config update
         if 'system' in self.script:
             config['system'] = self._substitute_config(self.script['system'])
-        if self.runner in self.script:
+        if self.runner in self.script and self.script[self.runner]:
             config[self.runner] = self._substitute_config(
                 self.script[self.runner]
             )
