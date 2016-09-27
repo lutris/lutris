@@ -302,11 +302,11 @@ class winesteam(wine.wine):
 
     def create_prefix(self, prefix_dir):
         logger.debug("Creating default winesteam prefix")
-        wine_dir = os.path.dirname(self.get_executable())
+        wine_path = self.get_executable()
 
         if not os.path.exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
-        create_prefix(prefix_dir, arch=self.wine_arch, wine_dir=wine_dir)
+        create_prefix(prefix_dir, arch=self.wine_arch, wine_path=wine_path)
 
         # Fix steam text display
         set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",

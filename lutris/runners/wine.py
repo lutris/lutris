@@ -61,7 +61,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
              prefix=prefix, arch=arch, blocking=True)
 
 
-def create_prefix(prefix, wine_dir=None, arch='win32'):
+def create_prefix(prefix, wine_path=None, arch='win32'):
     """Create a new Wine prefix."""
     logger.debug("Creating a %s prefix in %s", arch, prefix)
 
@@ -70,9 +70,10 @@ def create_prefix(prefix, wine_dir=None, arch='win32'):
     if os.path.isdir(prefix) and not os.listdir(prefix):
         os.rmdir(prefix)
 
-    if not wine_dir:
-        wine_dir = os.path.dirname(wine().get_executable())
-    wineboot_path = os.path.join(wine_dir, 'wineboot')
+    if not wine_path:
+        wine_path = wine().get_executable()
+
+    wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
 
     env = {
         'WINEARCH': arch,
@@ -109,7 +110,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     # Create prefix if necessary
     if not detected_arch:
         wine_bin = winetricks_wine if winetricks_wine else wine_path
-        create_prefix(prefix, wine_dir=os.path.dirname(wine_bin), arch=arch)
+        create_prefix(prefix, wine_path=wine_bin, arch=arch)
 
     env = {
         'WINEARCH': arch
