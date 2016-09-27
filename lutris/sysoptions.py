@@ -225,7 +225,8 @@ system_options = [
     {
         'option': 'xephyr_resolution',
         'type': 'string',
-        'label': 'Xephyr resolution'
+        'label': 'Xephyr resolution',
+        'help': 'Screen resolution of the Xephyr server'
     },
 ]
 
