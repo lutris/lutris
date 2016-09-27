@@ -642,7 +642,8 @@ class LutrisWindow(Gtk.Application):
     def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game
         UninstallGameDialog(game_id=selected_game,
-                            callback=self.remove_game_from_view)
+                            callback=self.remove_game_from_view,
+                            parent=self.window)
 
     def remove_game_from_view(self, game_id, from_library=False):
         def do_remove_game():
