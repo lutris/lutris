@@ -1,8 +1,9 @@
 import time
 import sqlite3
+from lutris.util.log import logger
 
 # Number of attempts to retry failed queries
-DB_RETRIES = 3
+DB_RETRIES = 5
 
 
 class db_cursor(object):
@@ -22,15 +23,21 @@ class db_cursor(object):
 def cursor_execute(cursor, query, params=None):
     """Function used to retry queries in case an error occurs"""
     i = 0
+    if params is None:
+        params = ()
     while True:
         try:
             return cursor.execute(query, params)
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as ex:
             i += 1
             if i == DB_RETRIES:
                 raise
             else:
-                time.sleep(0.5)
+                logger.error("SQL query '%s' failed. %d retries remaining",
+                             query,
+                             DB_RETRIES - i)
+                logger.error(ex)
+                time.sleep(1)
 
 
 def db_insert(db_path, table, fields):
@@ -133,4 +140,4 @@ def add_field(db_path, tablename, field):
         tablename, field['name'], field['type']
     )
     with db_cursor(db_path) as cursor:
-        cursor_execute(cursor, query)
+        cursor.execute(query)
