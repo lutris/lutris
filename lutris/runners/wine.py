@@ -700,11 +700,12 @@ class wine(Runner):
             exe = self.get_executable()
         if not exe.startswith('/'):
             exe = system.find_executable(exe)
+        pids = system.get_pids_using_file(exe)
         if self.wine_arch == 'win64':
             wine64 = system.find_executable(exe + '64')
-            if wine64:
-                exe = wine64
-        return system.get_pids_using_file(exe)
+            pids_64 = system.get_pids_using_file(wine64)
+            pids = pids + pids_64
+        return pids
 
     def get_xinput_path(self):
         xinput_path = os.path.join(settings.RUNTIME_DIR,
