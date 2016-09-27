@@ -423,7 +423,7 @@ class LutrisWindow(Gtk.Application):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self.window)
         login_dialog.connect('connected', self.on_connect_success)
-        self.connect_link.hide()
+        return True
 
     def on_connect_success(self, dialog, credentials):
         if isinstance(credentials, str):
@@ -432,6 +432,7 @@ class LutrisWindow(Gtk.Application):
             username = credentials["username"]
         self.toggle_connection(True, username)
         self.sync_library()
+        self.connect_link.hide()
 
     def on_disconnect(self, *args):
         api.disconnect()
@@ -625,6 +626,7 @@ class LutrisWindow(Gtk.Application):
             self.window,
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
+        return True
 
     def add_game_to_view(self, game_id, async=True):
         if not game_id:

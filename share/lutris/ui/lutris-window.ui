@@ -588,6 +588,7 @@
                 <property name="receives_default">True</property>
                 <property name="halign">center</property>
                 <property name="relief">half</property>
+                <property name="uri">null</property>
                 <signal name="activate-link" handler="on_connect" swapped="no"/>
               </object>
               <packing>
@@ -604,6 +605,7 @@
                 <property name="receives_default">True</property>
                 <property name="halign">center</property>
                 <property name="relief">half</property>
+                <property name="uri">null</property>
                 <signal name="activate-link" handler="add_game" swapped="no"/>
               </object>
               <packing>
