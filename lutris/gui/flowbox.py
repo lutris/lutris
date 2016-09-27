@@ -156,11 +156,24 @@ class GameFlowBox(Gtk.FlowBox):
                 self.game_list.pop(index)
                 return
 
+    def set_installed(self, game):
+        for index, _game in enumerate(self.game_list):
+            if game.id == _game['id']:
+                _game['runner'] = game.runner_name
+                _game['installed'] = True
+                self.update_image(game['id'], True)
+
+    def set_uninstalled(self, game):
+        for index, _game in enumerate(self.game_list):
+            if game.id == _game['id']:
+                _game['runner'] = ''
+                _game['installed'] = False
+                self.update_image(game['id'], False)
+
     def update_row(self, game):
         for index, _game in enumerate(self.game_list):
             if game['id '] == _game['id']:
                 self.update_image(game['id'], _game['installed'])
-
 
     def update_image(self, game_id, is_installed):
         for index, game in enumerate(self.game_list):
