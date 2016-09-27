@@ -72,6 +72,7 @@ class GameFlowBox(Gtk.FlowBox):
         self.connect('child-activated', self.on_child_activated)
 
         self.set_filter_func(self.filter_func)
+        self.set_sort_func(self.sort_func)
         self.set_activate_on_single_click(False)
 
         self.contextual_menu = None
@@ -119,6 +120,16 @@ class GameFlowBox(Gtk.FlowBox):
             if self.filter_runner != game.runner:
                 return False
         return True
+
+    def sort_func(self, child1, child2):
+        game1 = child1.get_children()[0]
+        game2 = child2.get_children()[0]
+        if game1.name > game2.name:
+            return 1
+        elif game1.name < game2.name:
+            return -1
+        else:
+            return 0
 
     def on_child_activated(self, widget, child):
         self.emit('game-activated')
