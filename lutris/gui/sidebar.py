@@ -55,7 +55,7 @@ class SidebarTreeView(Gtk.TreeView):
 
     def load_all_runners(self):
         """Append runners to the model."""
-        runner_node = self.model.append(None, ['runners', None, "Runners"])
+        runner_node = self.model.append(None, ['runners', None, "All runners"])
         for slug in self.runners:
             name = runners.import_runner(slug).human_name
             icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
