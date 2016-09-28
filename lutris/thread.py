@@ -84,7 +84,10 @@ class LutrisThread(threading.Thread):
         for line in iter(self.game_process.stdout.readline, b''):
             if not self.is_running:
                 break
-            line = line.decode()
+            try:
+                line = line.decode()
+            except UnicodeDecodeError:
+                line = ''
             if not line:
                 continue
             self.stdout += line
