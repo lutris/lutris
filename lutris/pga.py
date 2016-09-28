@@ -103,23 +103,9 @@ def syncdb():
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
     migrated = migrate_games()
-    if 'installed' in migrated:
-        set_installed_games()
     if 'configpath' in migrated:
         set_config_paths()
     migrate_sources()
-
-    # Rename runners
-    sql.db_update(PGA_DB, 'games', {'runner': 'mame'}, ('runner', 'sdlmame'))
-    sql.db_update(PGA_DB, 'games', {'runner': 'mess'}, ('runner', 'sdlmess'))
-
-
-def set_installed_games():
-    games = get_games()
-    for game in games:
-        if game['directory'] and os.path.exists(game['directory']):
-            sql.db_update(PGA_DB, 'games',
-                          {'installed': 1}, ('id', game['id']))
 
 
 def set_config_paths():
