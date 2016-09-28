@@ -348,7 +348,7 @@ class LutrisWindow(Gtk.Application):
                 logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
-        AsyncCall(Sync().sync_all, update_gui)
+        AsyncCall(Sync().sync_from_remote, update_gui)
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):

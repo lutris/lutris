@@ -207,7 +207,7 @@ def fix_path_case(path):
 
 
 def get_pids_using_file(path):
-    """Return a list of pids using file `path`."""
+    """Return a set of pids using file `path`."""
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return []
@@ -216,7 +216,7 @@ def get_pids_using_file(path):
         fuser_output = execute(["fuser", path])
     else:
         fuser_output = execute(["/sbin/fuser", path])
-    return fuser_output.split()
+    return set(fuser_output.split())
 
 
 def get_terminal_apps():

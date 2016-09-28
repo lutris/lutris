@@ -704,7 +704,7 @@ class wine(Runner):
         if self.wine_arch == 'win64':
             wine64 = system.find_executable(exe + '64')
             pids_64 = system.get_pids_using_file(wine64)
-            pids = pids + pids_64
+            pids = pids | pids_64
         return pids
 
     def get_xinput_path(self):

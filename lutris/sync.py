@@ -8,15 +8,11 @@ class Sync(object):
     def __init__(self):
         self.library = pga.get_games()
 
-    def sync_all(self):
-        added, updated = self.sync_from_remote()
-        return added, updated
-
     def sync_from_remote(self):
         """Synchronize from remote to local library.
 
         :return: The added and updated games (slugs)
-        :rtype: tuple of sets
+        :rtype: tuple of sets, added games and updated games
         """
         logger.debug("Syncing game library")
         # Get local library
