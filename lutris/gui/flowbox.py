@@ -124,9 +124,9 @@ class GameFlowBox(Gtk.FlowBox):
     def sort_func(self, child1, child2):
         game1 = child1.get_children()[0]
         game2 = child2.get_children()[0]
-        if game1.name > game2.name:
+        if game1.name.lower() > game2.name.lower():
             return 1
-        elif game1.name < game2.name:
+        elif game1.name.lower() < game2.name.lower():
             return -1
         else:
             return 0
