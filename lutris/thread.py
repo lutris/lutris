@@ -188,7 +188,7 @@ class LutrisThread(threading.Thread):
                 'regedit', 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
                 'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
                 'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe', 'xkbcomp', 'wineconsole',
-                'xboxdrv'
+                'xboxdrv', 'winedbg'
             )
             if child.name in excluded:
                 continue
