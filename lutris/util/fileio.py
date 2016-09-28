@@ -6,7 +6,7 @@ class EvilConfigParser(RawConfigParser):
     """ConfigParser with support for evil INIs using duplicate keys."""
     def write(self, fp):
         for section in self._sections:
-            fp.write("[%s]\n" % section)
+            fp.write("[{}]\n".format(section).encode('utf-8'))
             for (key, value) in list(self._sections[section].items()):
                 if key == "__name__":
                     continue
@@ -14,8 +14,8 @@ class EvilConfigParser(RawConfigParser):
                     # Duplicated keys writing support inside
                     key = "=".join((key,
                                     str(value).replace('\n', '\n%s=' % key)))
-                fp.write("%s\n" % (key))
-            fp.write("\n")
+                fp.write("{}\n".format(key).encode('utf-8'))
+            fp.write("\n".encode('utf-8'))
 
 
 class MultiOrderedDict(OrderedDict):

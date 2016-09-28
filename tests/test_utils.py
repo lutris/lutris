@@ -1,8 +1,10 @@
+import os
 from collections import OrderedDict
 from unittest import TestCase
 from lutris.util import system
 from lutris.util import steam
 from lutris.util import strings
+from lutris.util import fileio
 
 
 class TestFileUtils(TestCase):
@@ -110,3 +112,19 @@ class TestVersionSort(TestCase):
         versions = strings.version_sort(versions, reverse=True)
         self.assertEqual(versions[0], '1.9')
         self.assertEqual(versions[3], '1.6')
+
+
+class TestEvilConfigParser(TestCase):
+    def setUp(self):
+        self.config_path = os.path.join(os.path.dirname(__file__), 'test.ini')
+
+    def tearDown(self):
+        if os.path.exists(self.config_path):
+            os.remove(self.config_path)
+
+    def test_config_parse_can_write_to_disk(self):
+        parser = fileio.EvilConfigParser(dict_type=fileio.MultiOrderedDict)
+        parser.add_section('Test')
+        parser.set('Test', 'key', 'value')
+        with open(self.config_path, 'wb') as config:
+            parser.write(config)
