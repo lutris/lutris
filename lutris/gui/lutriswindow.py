@@ -8,7 +8,7 @@ from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings, shortcuts
 from lutris.game import Game, get_game_ids
-from lutris.sync import Sync
+from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
 
 from lutris.util import display, resources
@@ -348,7 +348,7 @@ class LutrisWindow(Gtk.Application):
                 logger.error("No results returned when syncing the library")
 
         self.set_status("Syncing library")
-        AsyncCall(Sync().sync_from_remote, update_gui)
+        AsyncCall(sync_from_remote, update_gui)
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
