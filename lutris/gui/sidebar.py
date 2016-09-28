@@ -48,18 +48,20 @@ class SidebarTreeView(Gtk.TreeView):
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
         self.runners = sorted(runners.__all__)
-        self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.load_all_runners()
         self.update()
         self.expand_all()
 
     def load_all_runners(self):
         """Append runners to the model."""
-        runner_node = self.model.append(None, ['runners', None, "All runners"])
+        self.root_node = self.model.append(None, ['runners', None, "All runners"])
         for slug in self.runners:
-            name = runners.import_runner(slug).human_name
-            icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
-            self.model.append(runner_node, [slug, icon, name])
+            self.add_runner(slug)
+
+    def add_runner(self, slug):
+        name = runners.import_runner(slug).human_name
+        icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
+        self.model.append(self.root_node, [slug, icon, name])
 
     def get_selected_runner(self):
         """Return the selected runner's name."""
@@ -77,7 +79,7 @@ class SidebarTreeView(Gtk.TreeView):
         return model[iter][0] in self.installed_runners
 
     def update(self, *args):
-        self.used_runners = runners.get_installed()
+        self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.model_filter.refilter()
         self.expand_all()
         return True
