@@ -7,8 +7,7 @@ from lutris.util.log import logger
 def sync_missing_games(not_in_local, remote_library):
     """Get missing games in local library from remote library.
 
-    :return: The slugs of the added games
-    :rtype: set
+    :return: A set of ids of the added games
     """
     if not not_in_local:
         return set()
@@ -33,8 +32,7 @@ def sync_missing_games(not_in_local, remote_library):
 def sync_game_details(remote_library):
     """Update local game details,
 
-    :return: The slugs of the updated games.
-    :rtype: set
+    :return: A set of ids of the updated games.
     """
     if not remote_library:
         return set()
