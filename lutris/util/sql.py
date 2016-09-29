@@ -88,14 +88,21 @@ def db_select(db_path, table, fields=None, condition=None):
     else:
         columns = "*"
     with db_cursor(db_path) as cursor:
+        query = "SELECT {} FROM {}"
         if condition:
-            assert len(condition) == 2
-            query = "SELECT {0} FROM {1} where {2}=?".format(columns,
-                                                             table,
-                                                             condition[0])
-            params = (condition[1], )
+            condition_field, condition_value = condition
+            if isinstance(condition_value, (list, tuple, set)):
+                condition_value = tuple(condition_value)
+                placeholders = ', '.join('?' * len(condition_value))
+                where_condition = ' where {} in (' + placeholders + ')'
+            else:
+                condition_value = (condition_value, )
+                where_condition = ' where {}=?'
+            query = query + where_condition
+            query = query.format(columns, table, condition_field)
+            params = condition_value
         else:
-            query = "SELECT {0} FROM {1}".format(columns, table)
+            query = query.format(columns, table)
             params = ()
         cursor_execute(cursor, query, params)
         rows = cursor.fetchall()
