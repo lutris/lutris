@@ -43,7 +43,7 @@ def cursor_execute(cursor, query, params=None):
 def db_insert(db_path, table, fields):
     columns = ", ".join(list(fields.keys()))
     placeholders = ("?, " * len(fields))[:-2]
-    field_values = _decode_utf8_values(list(fields.values()))
+    field_values = tuple(fields.values())
     with db_cursor(db_path) as cursor:
         try:
             cursor_execute(
@@ -66,7 +66,7 @@ def db_update(db_path, table, updated_fields, row):
        condition given with the `row` tuple.
     """
     columns = "=?, ".join(list(updated_fields.keys())) + "=?"
-    field_values = _decode_utf8_values(list(updated_fields.values()))
+    field_values = tuple(updated_fields.values())
     condition_field = "{0}=?".format(row[0])
     condition_value = (row[1], )
     with db_cursor(db_path) as cursor:
@@ -128,18 +128,6 @@ def db_query(db_path, query, params=()):
             row_data[column] = row[index]
         results.append(row_data)
     return results
-
-
-def _decode_utf8_values(values_list):
-    """Return a tuple of values with UTF-8 string values being decoded.
-    XXX Might be obsolete in Python3 (Removed the decoding part)
-    """
-    i = 0
-    for v in values_list:
-        if type(v) is str:
-            values_list[i] = v
-        i += 1
-    return tuple(values_list)
 
 
 def add_field(db_path, tablename, field):
