@@ -92,7 +92,7 @@ class Request(object):
         return self
 
     def post(self, data):
-        pass
+        raise NotImplementedError
 
     @property
     def json(self):
