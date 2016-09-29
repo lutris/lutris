@@ -11,7 +11,7 @@ the ``installer`` section. The value can either be a string containing a URI
 pointing at the required file or a dictionary containing the ``filename`` and
 ``url`` keys. The ``url`` key is equivalent to passing only a string to the
 installer and the ``filename`` key will be used to give the local copy another
-name. [TODO: example]
+name.
 
 If the game contains copyrighted files that cannot be redistributed, the value
 should begin with ``N/A``. When the installer encounter this value, it will
