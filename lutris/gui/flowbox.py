@@ -89,7 +89,7 @@ class GameFlowBox(Gtk.FlowBox):
         self.filter_installed = filter_installed
 
         self.game_list = game_list
-        self.fill_store(self.game_list)
+        self.populate_games(self.game_list)
 
     @property
     def selected_game(self):
@@ -102,14 +102,7 @@ class GameFlowBox(Gtk.FlowBox):
         game_item = children[0].get_children()[0]
         return game_item.game['id']
 
-    def refresh(self):
-        new_games = []
-        for game in self.game_list:
-            if not game.get('item'):
-                new_games.append(game)
-        self.fill_store(new_games)
-
-    def fill_store(self, games):
+    def populate_games(self, games):
         loader = self._fill_store_generator(games)
         GLib.idle_add(loader.__next__)
 

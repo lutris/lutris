@@ -337,10 +337,9 @@ class LutrisWindow(Gtk.Application):
             if result:
                 added_ids, updated_ids = result
                 added_games = pga.get_game_by_field(added_ids, 'id', all=True)
-                self.game_store.fill_store(added_games)
                 self.game_list += added_games
+                self.view.populate_games(added_games)
                 self.switch_splash_screen()
-                self.view.refresh()
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
