@@ -119,7 +119,10 @@ The following command line arguments are available::
   -i INSTALLER_FILE, --install=INSTALLER_FILE
                         Install a game from a yml file
   -l, --list-games      List all games in database
-  -s, --list-steam      List Steam (Windows) games
+  -o, --installed       Only list installed games
+  -j, --json            Display the list of games in JSON format
+  --list-steam-games    List available Steam games
+  --list-steam-folders  List all known Steam library folders
   --reinstall           Reinstall game
 
 Additionally, you can pass a `lutris:` protocol link followed by a game
