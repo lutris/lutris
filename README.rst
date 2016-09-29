@@ -23,6 +23,7 @@ We currently support the following runners:
 * Web browser
 * Wine
 * Wine + Steam
+* Libretro
 * DosBOX
 * Mame
 * Mess
@@ -35,14 +36,10 @@ We currently support the following runners:
 * Atari800
 * Hatari
 * Virtual Jaguar
-* Snes9x
-* Mupen64 Plus
 * Dolphin
-* PCSXR
 * PPSSPP
 * PCSX2
 * Osmose
-* GenS
 * Reicast
 * Frotz
 * Jzintv
