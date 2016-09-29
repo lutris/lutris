@@ -217,13 +217,7 @@ class ScriptInterpreter(CommandsMixin):
             return
 
         if os.path.exists(dest_file):
-            logger.debug("Destination file exists")
-            if settings.KEEP_CACHED_ASSETS:
-                self.game_files[file_id] = dest_file
-                self.iter_game_files()
-                return
-            else:
-                os.remove(dest_file)
+            os.remove(dest_file)
 
         # Change parent's status
         self.parent.set_status('')
