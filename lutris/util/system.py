@@ -210,7 +210,7 @@ def get_pids_using_file(path):
     """Return a set of pids using file `path`."""
     if not os.path.exists(path):
         logger.error("No file %s", path)
-        return []
+        return set()
     fuser_output = []
     if os.path.exists('/bin/fuser'):
         fuser_output = execute(["fuser", path])
