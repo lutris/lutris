@@ -83,11 +83,9 @@ class LutrisWindow(Gtk.Application):
         self.game_list = pga.get_games()
 
         # Load view
-        logger.debug("Loading view")
         self.game_store = GameStore([], self.icon_type, self.filter_installed)
         self.view = self.get_view(view_type)
 
-        logger.debug("Connecting signals")
         self.main_box = self.builder.get_object('main_box')
         self.splash_box = self.builder.get_object('splash_box')
         self.connect_link = self.builder.get_object('connect_link')
@@ -306,7 +304,6 @@ class LutrisWindow(Gtk.Application):
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
-        logger.debug("Switching view")
         self.view.destroy()
         self.load_icon_type_from_settings(view_type)
         self.game_store.set_icon_type(self.icon_type)
@@ -404,7 +401,6 @@ class LutrisWindow(Gtk.Application):
     def on_dark_theme_toggled(self, widget):
         use_dark_theme = widget.get_active()
         setting_value = 'true' if use_dark_theme else 'false'
-        logger.debug("Dark theme now %s", setting_value)
         settings.write_setting('dark_theme', setting_value)
         self.set_dark_theme(use_dark_theme)
 
@@ -467,7 +463,6 @@ class LutrisWindow(Gtk.Application):
         """Signal for window close."""
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
-            logger.debug("Stopping %s", stopper)
             stopper()
         self.steam_watcher.stop()
 
@@ -476,7 +471,6 @@ class LutrisWindow(Gtk.Application):
             self.running_game.stop()
 
         if self.service:
-            logger.debug('Stopping service')
             self.service.stop()
 
         # Save settings
@@ -485,7 +479,6 @@ class LutrisWindow(Gtk.Application):
         settings.write_setting('height', height)
 
         Gtk.main_quit(*args)
-        logger.debug("Quitting lutris")
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""
