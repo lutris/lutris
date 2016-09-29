@@ -15,6 +15,8 @@ class SidebarTreeView(Gtk.TreeView):
     def __init__(self):
         super(SidebarTreeView, self).__init__()
 
+        self.installed_runners = []
+
         self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, str)
         self.model_filter = self.model.filter_new()
         self.model_filter.set_visible_func(self.filter_rule)
