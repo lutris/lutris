@@ -21,11 +21,35 @@ class electron(Runner):
             'help': ("The full address of the game's web page.")
         }
     ]
-    runner_executable = 'electron/bin/electron-runner'
+    runner_options = [
+        {
+            "option": "fullscreen",
+            "label": "Open game in fullscreen",
+            "type": "bool",
+            "default": False,
+            'help': ("Tells Electron to launch the game in fullscreen.")
+        },
+        {
+            "option": "disable_scrolling",
+            "label": "Disable page scrolling and hide scrollbars",
+            "type": "bool",
+            "default": False,
+            'help': ("Disables scrolling on the page.")
+        },
+        {
+            'option': 'window_size',
+            'label': 'Default window size',
+            'type': 'choice_with_entry',
+            'choices': ["640x480", "800x600", "1024x768", "1280x720", "1280x1024", "1920x1080"],
+            'default': '800x600',
+            'help': ("The initial size of the game window when not opened")
+        }
+    ]
+    runner_executable = 'electron/electron'
     system_options_override = [
         {
             'option': 'disable_runtime',
-            'default': True,
+            'default': False,
         }
     ]
 
@@ -42,4 +66,22 @@ class electron(Runner):
         if not os.path.exists(icon):
             icon = DEFAULT_ICON
 
-        return {'command': [self.get_executable(), url, icon]}
+        command = [self.get_executable()]
+
+        command.append('/home/djazz/code/git/lutris-electron-runner/app')
+
+        command.append(url)
+
+        command.append(icon)
+
+        if self.runner_config.get("disable_scrolling"):
+            command.append("--disable-scrolling")
+
+        if self.runner_config.get("fullscreen"):
+            command.append("--fullscreen")
+
+        if self.runner_config.get("window_size"):
+            command.append("--window")
+            command.append(self.runner_config.get("window_size"))
+
+        return {'command': command}
