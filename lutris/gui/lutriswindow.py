@@ -437,11 +437,11 @@ class LutrisWindow(Gtk.Application):
             disconnect_menuitem.show()
             connect_menuitem.hide()
             connection_status = username
+            logger.info('Connected to lutris.net as %s', connection_status)
         else:
             disconnect_menuitem.hide()
             connect_menuitem.show()
             connection_status = "Not connected"
-        logger.info(connection_status)
         connection_label.set_text(connection_status)
 
     def on_register_account(self, *args):
