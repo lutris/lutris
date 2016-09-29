@@ -305,8 +305,9 @@ class CommandsMixin(object):
         if runner_name == 'wine':
             wine_version = self._get_runner_version()
 
-        if wine_version and task_name in ('wineexec', 'winetricks', 'create_prefix'):
-            data['wine_path'] = wine.get_wine_version_exe(wine_version)
+        if runner_name.startswith('wine'):
+            if wine_version:
+                data['wine_path'] = wine.get_wine_version_exe(wine_version)
 
         for key in data:
             value = data[key]
