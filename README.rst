@@ -141,14 +141,12 @@ are yet to be implemented!
 
 Here's what to expect from the future versions of lutris:
 
-* Better support for multiple wine version
 * Integration with GOG and Humble Bundle
 * Integration with the TOSEC databse
 * Management of Personnal Game Archives (let you store your games files on
   private storage, allowing you to reinstall them on all your devices)
 * Game saves sync
 * Community features (friends list, chat, multiplayer game scheduling)
-* Patched emulators to provide better fullscreen and controller support
 * Controller configuration GUI (with xboxdrv / joy2key support)
 
 Come with us!
