@@ -30,4 +30,4 @@ fmt = '%(levelname)-8s %(asctime)s [%(module)s]:%(message)s'
 formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
 logger.addHandler(console)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)

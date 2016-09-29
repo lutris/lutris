@@ -54,8 +54,6 @@ from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
 
 # Support for command line options.
 parser = optparse.OptionParser(version="%prog " + VERSION)
-parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
-                  help="Verbose output")
 parser.add_option("-d", "--debug", action="store_true", dest="debug",
                   help="Show debug messages")
 parser.add_option("-i", "--install", dest="installer_file",
@@ -72,9 +70,6 @@ parser.add_option("-j", "--json", action="store_true", dest="json",
                   help="Display the list of games in JSON format")
 parser.add_option("--reinstall", action="store_true", help="Reinstall game")
 (options, args) = parser.parse_args()
-
-if options.verbose:
-    logger.setLevel(logging.INFO)
 
 if options.debug:
     logger.setLevel(logging.DEBUG)
