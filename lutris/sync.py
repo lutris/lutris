@@ -38,11 +38,6 @@ def sync_game_details(remote_library):
         return set()
     updated = set()
 
-    # Get remote games (TODO: use this when switched API to DRF)
-    # remote_games = get_games(sorted(local_slugs))
-    # if not remote_games:
-    #     return set()
-
     for remote_game in remote_library:
         slug = remote_game['slug']
         sync_required = False

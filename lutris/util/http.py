@@ -32,15 +32,6 @@ def download_content(url, data=None, log_errors=True, stop_request=None):
     return request.content
 
 
-def download_json(url, params=''):
-    """Download and decode json string at URL."""
-    if params:
-        url = url + "?" + params
-    content = download_content(url)
-    if content:
-        return json.loads(content)
-
-
 class Request(object):
     def __init__(self, url, error_logging=True, timeout=5, stop_request=None,
                  thread_queue=None, headers={}):

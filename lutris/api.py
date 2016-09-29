@@ -68,17 +68,6 @@ def get_library():
         return []
 
 
-# TODO: use it when switched API to DRF
-def get_games(slugs):
-    """Return remote games from a list of slugs.
-
-    :rtype: list of dicts"""
-    logger.debug("Fetching game set")
-    game_set = ';'.join(slugs)
-    url = settings.SITE_URL + "api/game/%s/" % game_set
-    return http.download_json(url, params="?format=json")['objects']
-
-
 def get_runners(runner_name):
     api_url = settings.SITE_URL + "api/runners/" + runner_name
     response = http.Request(api_url).get()
