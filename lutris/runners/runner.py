@@ -311,7 +311,6 @@ class Runner(object):
     def extract(self, archive=None, dest=None, merge_single=None,
                 callback=None):
         if not os.path.exists(archive):
-            # TODO Check install methods to catch RunnerInstallationError
             raise RunnerInstallationError("Failed to extract {}", archive)
         extract_archive(archive, dest, merge_single=merge_single)
         os.remove(archive)

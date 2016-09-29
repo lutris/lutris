@@ -301,9 +301,6 @@ class CommandsMixin(object):
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
 
-        # Check/install Wine runner at version specified in the script
-        # TODO : move this, the runner should be installed before the install
-        # starts
         wine_version = None
         if runner_name == 'wine':
             wine_version = self._get_runner_version()

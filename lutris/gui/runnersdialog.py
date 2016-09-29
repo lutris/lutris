@@ -4,7 +4,8 @@ from gi.repository import Gtk, GObject, Gdk
 import lutris.runners
 from lutris import settings
 from lutris.gui.widgets import get_runner_icon
-from lutris.runners import import_runner
+from lutris.runners import import_runner, RunnerInstallationError
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 
@@ -144,7 +145,10 @@ class RunnersDialog(Gtk.Window):
         if runner.depends_on is not None:
             dependency = runner.depends_on()
             dependency.install()
-        runner.install()
+        try:
+            runner.install()
+        except RunnerInstallationError as ex:
+            ErrorDialog(ex.message)
         if runner.is_installed():
             self.emit('runner-installed')
             widget.hide()
