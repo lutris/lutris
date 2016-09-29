@@ -308,7 +308,7 @@
                         <property name="can_focus">False</property>
                         <property name="label">_Add</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="add_game" swapped="no"/>
+                        <signal name="activate" handler="on_add_game_button_clicked" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -350,12 +350,12 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkMenuItem" id="imagemenuitem10">
+                      <object class="GtkMenuItem" id="about_menuitem">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label">_About</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="about" swapped="no"/>
+                        <signal name="activate" handler="on_about_clicked" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -410,7 +410,7 @@
                 <property name="tooltip_text" translatable="yes">Manually add a game</property>
                 <property name="label" translatable="yes">Add Game</property>
                 <property name="icon_name">list-add</property>
-                <signal name="clicked" handler="add_game" swapped="no"/>
+                <signal name="clicked" handler="on_add_game_button_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -606,7 +606,7 @@
                 <property name="halign">center</property>
                 <property name="relief">half</property>
                 <property name="uri">null</property>
-                <signal name="activate-link" handler="add_game" swapped="no"/>
+                <signal name="activate-link" handler="on_add_game_button_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

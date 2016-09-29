@@ -71,8 +71,8 @@ class GameStore(GObject.Object):
     def _fill_store_generator(self, games, batch=100):
         """Generator to fill the model in batches."""
         n = 0
-        for game_id in games:
-            self.add_game(game_id)
+        for game in games:
+            self.add_game(game)
             # Yield to GTK main loop once in a while
             n += 1
             if (n % batch) == 0:
@@ -97,26 +97,29 @@ class GameStore(GObject.Object):
                 return False
         return True
 
-    def add_game(self, game_id):
+    def add_game_by_id(self, game_id):
         """Add a game into the store."""
         if not game_id:
             return
-        game_data = pga.get_game_by_field(game_id, 'id')
-        if not game_data or 'slug' not in game_data:
+        game = pga.get_game_by_field(game_id, 'id')
+        if not game or 'slug' not in game:
             raise ValueError('Can\'t find game {} ({})'.format(
-                game_id, game_data
+                game_id, game
             ))
-        pixbuf = get_pixbuf_for_game(game_data['slug'], self.icon_type,
-                                     game_data['installed'])
-        name = game_data['name'].replace('&', "&amp;")
+        self.add_game(game)
+
+    def add_game(self, game):
+        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
+                                     game['installed'])
+        name = game['name'].replace('&', "&amp;")
         self.store.append((
-            game_data['id'],
-            game_data['slug'],
+            game['id'],
+            game['slug'],
             name,
             pixbuf,
-            str(game_data['year']),
-            game_data['runner'],
-            game_data['installed']
+            str(game['year']),
+            game['runner'],
+            game['installed']
         ))
 
     def update_all_icons(self, icon_type):
@@ -164,8 +167,8 @@ class GameView(object):
     def has_game_id(self, game_id):
         return bool(self.get_row_by_id(game_id))
 
-    def add_game(self, game_id):
-        self.game_store.add_game(game_id)
+    def add_game_by_id(self, game_id):
+        self.game_store.add_game_by_id(game_id)
 
     def remove_game(self, removed_id):
         row = self.get_row_by_id(removed_id)

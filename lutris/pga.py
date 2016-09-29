@@ -147,6 +147,12 @@ def get_games(name_filter=None, filter_installed=False):
     return sql.db_query(PGA_DB, query, params)
 
 
+def get_game_ids():
+    """Return a list of ids of games in the database."""
+    games = get_games()
+    return [game['id'] for game in games]
+
+
 def get_steam_games():
     """Return the games with a SteamID"""
     query = "select * from games where steamid is not null and steamid != ''"

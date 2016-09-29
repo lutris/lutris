@@ -146,7 +146,7 @@ class GameFlowBox(Gtk.FlowBox):
                 return True
         return False
 
-    def add_game(self, game_id):
+    def add_game_by_id(self, game_id):
         if not game_id:
             return
         game = pga.get_game_by_field(game_id, 'id')
@@ -154,6 +154,9 @@ class GameFlowBox(Gtk.FlowBox):
             raise ValueError('Can\'t find game {} ({})'.format(
                 game_id, game
             ))
+        self.add_game(game)
+
+    def add_game(self, game):
         item = GameItem(game, self)
         game['item'] = item
         self.add(item)

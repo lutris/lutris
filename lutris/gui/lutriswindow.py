@@ -7,7 +7,7 @@ import subprocess
 from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings, shortcuts
-from lutris.game import Game, get_game_ids
+from lutris.game import Game
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
 
@@ -134,8 +134,8 @@ class LutrisWindow(Gtk.Application):
         main_entries = [
             ('play', "Play", self.on_game_run),
             ('install', "Install", self.on_install_clicked),
-            ('add', "Add manually", self.add_manually),
-            ('configure', "Configure", self.edit_game_configuration),
+            ('add', "Add manually", self.on_add_manually),
+            ('configure', "Configure", self.on_edit_game_configuration),
             ('browse', "Browse files", self.on_browse_files),
             ('desktop-shortcut', "Create desktop shortcut",
              self.create_desktop_shortcut),
@@ -196,6 +196,12 @@ class LutrisWindow(Gtk.Application):
         self.steam_watcher = steam.SteamWatcher(steamapps_paths,
                                                 self.on_steam_game_changed)
 
+    @property
+    def current_view_type(self):
+        return 'grid' \
+            if self.view.__class__.__name__ == "GameFlowBox" \
+            else 'list'
+
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
         runner_name = appmanifest.get_runner_name()
@@ -234,9 +240,9 @@ class LutrisWindow(Gtk.Application):
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def init_game_store(self):
-        logger.debug("Getting game list")
-        game_ids = get_game_ids()
-        self.game_store.fill_store(game_ids)
+        """Populate the game list in the client"""
+        games = pga.get_games()
+        self.game_store.fill_store(games)
         self.switch_splash_screen()
 
     def get_view(self, view_type):
@@ -245,12 +251,6 @@ class LutrisWindow(Gtk.Application):
             return GameFlowBox(self.game_list)
         elif view_type == 'list':
             return GameListView(self.game_store)
-
-    @property
-    def current_view_type(self):
-        return 'grid' \
-            if self.view.__class__.__name__ == "GameFlowBox" \
-            else 'list'
 
     def connect_signals(self):
         """Connect signals from the view with the main window.
@@ -339,11 +339,12 @@ class LutrisWindow(Gtk.Application):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                added, updated = result
                 self.switch_splash_screen()
-                self.game_store.fill_store(added)
+                added_ids, updated_ids = result
+                added_games = pga.get_game_by_field('id', added_ids, all=True)
+                self.game_store.fill_store(added_games)
 
-                GLib.idle_add(self.update_existing_games, added, updated, True)
+                GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
 
@@ -351,8 +352,8 @@ class LutrisWindow(Gtk.Application):
         AsyncCall(sync_from_remote, update_gui)
 
     def update_existing_games(self, added, updated, first_run=False):
-        for game_id in updated.difference(added):
-            self.view.update_row(pga.get_game_by_field(game_id, 'id'))
+        for game in updated.difference(added):
+            self.view.update_row(pga.get_game_by_field(game, 'id'))
 
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
@@ -399,10 +400,6 @@ class LutrisWindow(Gtk.Application):
             else:
                 self.joystick_icons[index].set_visible(False)
         return True
-
-    def about(self, _widget, _data=None):
-        """Open the about dialog."""
-        dialogs.AboutDialog(parent=self.window)
 
     # ---------
     # Callbacks
@@ -526,6 +523,10 @@ class LutrisWindow(Gtk.Application):
             self.game_store.filter_text = widget.get_text()
             self.game_store.modelfilter.refilter()
 
+    def on_about_clicked(self, _widget, _data=None):
+        """Open the about dialog."""
+        dialogs.AboutDialog(parent=self.window)
+
     def _get_current_game_id(self):
         """Return the id of the current selected game while taking care of the
         double clic bug.
@@ -602,7 +603,7 @@ class LutrisWindow(Gtk.Application):
         is_installed = game.is_installed
         self.view.update_image(game_id, is_installed)
 
-    def add_manually(self, *args):
+    def on_add_manually(self, widget, *args):
         def on_game_added(game):
             self.view.set_installed(game)
             self.sidebar_treeview.update()
@@ -620,8 +621,8 @@ class LutrisWindow(Gtk.Application):
         log_window.run()
         log_window.destroy()
 
-    def add_game(self, _widget, _data=None):
-        """Add a new game."""
+    def on_add_game_button_clicked(self, _widget, _data=None):
+        """Add a new game manually with the AddGameDialog."""
         dialog = AddGameDialog(
             self.window,
             callback=lambda: self.add_game_to_view(dialog.game.id)
@@ -633,7 +634,7 @@ class LutrisWindow(Gtk.Application):
             raise ValueError("Missing game id")
 
         def do_add_game():
-            self.view.add_game(game_id)
+            self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
             self.sidebar_treeview.update()
         if async:
@@ -668,14 +669,14 @@ class LutrisWindow(Gtk.Application):
                 "Can't open %s \nThe folder doesn't exist." % path
             )
 
-    def edit_game_configuration(self, _button):
+    def on_edit_game_configuration(self, widget):
         """Edit game preferences."""
         game = Game(self.view.selected_game)
 
         def on_dialog_saved():
             game_id = dialog.game.id
             self.view.remove_game(game_id)
-            self.view.add_game(game_id)
+            self.view.add_game_by_id(game_id)
             self.view.set_selected_game(game_id)
             self.sidebar_treeview.update()
 
