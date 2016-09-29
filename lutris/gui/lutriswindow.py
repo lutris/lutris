@@ -68,7 +68,7 @@ class LutrisWindow(Gtk.Application):
         window = self.builder.get_object('window')
         window.resize(width, height)
         view_type = self.get_view_type()
-        self.icon_type = self.get_icon_type(view_type)
+        self.load_icon_type_from_settings(view_type)
         self.filter_installed = \
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
@@ -281,17 +281,17 @@ class LutrisWindow(Gtk.Application):
             return view_type
         return settings.GAME_VIEW
 
-    def get_icon_type(self, view_type):
+    def load_icon_type_from_settings(self, view_type):
         """Return the icon style depending on the type of view."""
         if view_type == 'list':
-            icon_type = settings.read_setting('icon_type_listview')
+            self.icon_type = settings.read_setting('icon_type_listview')
             default = settings.ICON_TYPE_LISTVIEW
         else:
-            icon_type = settings.read_setting('icon_type_gridview')
+            self.icon_type = settings.read_setting('icon_type_gridview')
             default = settings.ICON_TYPE_GRIDVIEW
-        if icon_type not in ("banner_small", "banner", "icon"):
-            icon_type = default
-        return icon_type
+        if self.icon_type not in ("banner_small", "banner", "icon"):
+            self.icon_type = default
+        return self.icon_type
 
     def switch_splash_screen(self):
         if len(self.game_list) == 0:
@@ -308,8 +308,8 @@ class LutrisWindow(Gtk.Application):
         """Switch between grid view and list view."""
         logger.debug("Switching view")
         self.view.destroy()
-        icon_type = self.get_icon_type(view_type)
-        self.game_store.set_icon_type(icon_type)
+        self.load_icon_type_from_settings(view_type)
+        self.game_store.set_icon_type(self.icon_type)
 
         self.view = self.get_view(view_type)
         self.view.contextual_menu = self.menu
@@ -323,11 +323,11 @@ class LutrisWindow(Gtk.Application):
 
         # Note: set_active(True *or* False) apparently makes ALL the menuitems
         # in the group send the activate signal...
-        if icon_type == 'banner_small':
+        if self.icon_type == 'banner_small':
             self.banner_small_menuitem.set_active(True)
-        if icon_type == 'icon':
+        elif self.icon_type == 'icon':
             self.icon_menuitem.set_active(True)
-        if icon_type == 'banner':
+        elif self.icon_type == 'banner':
             self.banner_menuitem.set_active(True)
         settings.write_setting('view_type', view_type)
 
