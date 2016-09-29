@@ -64,7 +64,7 @@ class GameFlowBox(Gtk.FlowBox):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
 
-    def __init__(self, game_list):
+    def __init__(self, game_list, filter_installed):
         super(GameFlowBox, self).__init__()
 
         self.set_valign(Gtk.Align.START)
@@ -79,7 +79,7 @@ class GameFlowBox(Gtk.FlowBox):
 
         self.filter_text = ''
         self.filter_runner = ''
-        self.filter_installed = False
+        self.filter_installed = filter_installed
 
         self.game_list = game_list
         self.fill_store(self.game_list)
@@ -196,7 +196,7 @@ class GameFlowBox(Gtk.FlowBox):
 
     def update_row(self, game):
         for index, _game in enumerate(self.game_list):
-            if game['id '] == _game['id']:
+            if game['id'] == _game['id']:
                 self.update_image(game['id'], _game['installed'])
 
     def update_image(self, game_id, is_installed):

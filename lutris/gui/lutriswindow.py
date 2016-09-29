@@ -69,7 +69,7 @@ class LutrisWindow(Gtk.Application):
         window.resize(width, height)
         view_type = self.get_view_type()
         self.icon_type = self.get_icon_type(view_type)
-        filter_installed = \
+        self.filter_installed = \
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
@@ -84,7 +84,7 @@ class LutrisWindow(Gtk.Application):
 
         # Load view
         logger.debug("Loading view")
-        self.game_store = GameStore([], self.icon_type, filter_installed)
+        self.game_store = GameStore([], self.icon_type, self.filter_installed)
         self.view = self.get_view(view_type)
 
         logger.debug("Connecting signals")
@@ -94,7 +94,7 @@ class LutrisWindow(Gtk.Application):
         # View menu
         installed_games_only_menuitem =\
             self.builder.get_object('filter_installed')
-        installed_games_only_menuitem.set_active(filter_installed)
+        installed_games_only_menuitem.set_active(self.filter_installed)
         self.grid_view_menuitem = self.builder.get_object("gridview_menuitem")
         self.grid_view_menuitem.set_active(view_type == 'grid')
         self.list_view_menuitem = self.builder.get_object("listview_menuitem")
@@ -244,7 +244,7 @@ class LutrisWindow(Gtk.Application):
     def get_view(self, view_type):
         if view_type == 'grid':
             # view_type = GameGridView(self.game_store)
-            return GameFlowBox(self.game_list)
+            return GameFlowBox(self.game_list, filter_installed=self.filter_installed)
         elif view_type == 'list':
             return GameListView(self.game_store)
 
@@ -335,7 +335,6 @@ class LutrisWindow(Gtk.Application):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                logger.debug('results ok')
                 added_ids, updated_ids = result
                 added_games = pga.get_game_by_field(added_ids, 'id', all=True)
                 self.game_store.fill_store(added_games)
