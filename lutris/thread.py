@@ -76,6 +76,8 @@ class LutrisThread(threading.Thread):
             self.run_in_terminal()
         else:
             self.terminal = False
+            for key, value in self.env.items():
+                os.environ[key] = value
             env = os.environ.copy()
             env.update(self.env)
             self.game_process = self.execute_process(self.command, env)

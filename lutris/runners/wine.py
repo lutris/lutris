@@ -532,7 +532,10 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        return os.path.expanduser(self.game_config.get('prefix', ''))
+        prefix_path = self.game_config.get('prefix', '')
+        if not prefix_path:
+            prefix_path = os.environ.get('WINEPREFIX', '')
+        return os.path.expanduser(prefix_path)
 
     @property
     def game_exe(self):
@@ -702,7 +705,7 @@ class wine(Runner):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)
         if self.wine_arch == 'win64':
-            wine64 = system.find_executable(exe + '64')
+            wine64 = exe + '64'
             pids_64 = system.get_pids_using_file(wine64)
             pids = pids | pids_64
         return pids
