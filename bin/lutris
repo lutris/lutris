@@ -91,7 +91,7 @@ if options.list_games:
                 'slug': game['slug'],
                 'name': game['name'],
                 'runner': game['runner'],
-                'directory': game['directory'] or '-'
+                'directory': game['directory']
             })
         print(json.dumps(games, indent=2))
     else:
