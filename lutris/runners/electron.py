@@ -24,10 +24,31 @@ class electron(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": "Open game in fullscreen",
+            "label": "Open in fullscreen",
             "type": "bool",
             "default": False,
             'help': ("Tells Electron to launch the game in fullscreen.")
+        },
+        {
+            "option": "frameless",
+            "label": "Borderless window",
+            "type": "bool",
+            "default": False,
+            'help': ("The window has no borders/frame.")
+        },
+        {
+            "option": "disable_resizing",
+            "label": "Disable window resizing (disables fullscreen)",
+            "type": "bool",
+            "default": False,
+            'help': ("You can't resize this window.")
+        },
+        {
+            "option": "disable_menu_bar",
+            "label": "Disable menu bar",
+            "type": "bool",
+            "default": False,
+            'help': ("This also disables default keyboard shortcuts, like copy/paste and fullscreen toggling.")
         },
         {
             "option": "disable_scrolling",
@@ -37,13 +58,35 @@ class electron(Runner):
             'help': ("Disables scrolling on the page.")
         },
         {
+            "option": "hide_cursor",
+            "label": "Hide mouse cursor",
+            "type": "bool",
+            "default": False,
+            'help': ("Prevents the mouse cursor from showing when hovering above the window.")
+        },
+        {
             'option': 'window_size',
-            'label': 'Default window size',
+            'label': 'Window size',
             'type': 'choice_with_entry',
             'choices': ["640x480", "800x600", "1024x768", "1280x720", "1280x1024", "1920x1080"],
             'default': '800x600',
-            'help': ("The initial size of the game window when not opened")
-        }
+            'help': ("The initial size of the game window when not opened.")
+        },
+        {
+            'option': 'open_links',
+            'label': 'Open links inside game window',
+            'type': 'bool',
+            'default': False,
+            'help': ("Enable this option if you want clicked links to open inside the game window. By default all links open in your default web browser.")
+        },
+        {
+            "option": "devtools",
+            "label": "Debug with Developer Tools",
+            "type": "bool",
+            "default": False,
+            'help': ("Let's you debug the page."),
+            'advanced': True
+        },
     ]
     runner_executable = 'electron/electron'
     system_options_override = [
@@ -74,14 +117,32 @@ class electron(Runner):
 
         command.append(icon)
 
-        if self.runner_config.get("disable_scrolling"):
-            command.append("--disable-scrolling")
-
         if self.runner_config.get("fullscreen"):
             command.append("--fullscreen")
+
+        if self.runner_config.get("frameless"):
+            command.append("--frameless")
+
+        if self.runner_config.get("disable_resizing"):
+            command.append("--disable-resizing")
+
+        if self.runner_config.get("disable_menu_bar"):
+            command.append("--disable-menu-bar")
 
         if self.runner_config.get("window_size"):
             command.append("--window")
             command.append(self.runner_config.get("window_size"))
+
+        if self.runner_config.get("disable_scrolling"):
+            command.append("--disable-scrolling")
+
+        if self.runner_config.get("hide_cursor"):
+            command.append("--hide-cursor")
+
+        if self.runner_config.get("open_links"):
+            command.append("--open-links")
+
+        if self.runner_config.get("devtools"):
+            command.append("--devtools")
 
         return {'command': command}
