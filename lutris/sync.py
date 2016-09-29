@@ -74,8 +74,10 @@ def sync_game_details(remote_library):
 
         # TODO: Only update if icon actually updated
         if icon_sync_required:
-            resources.download_icon(slug, 'banner', overwrite=True)
-            resources.download_icon(slug, 'icon', overwrite=True)
+            if not local_game.get('has_custom_banner'):
+                resources.download_icon(slug, 'banner', overwrite=True)
+            if not local_game.get('has_custom_icon'):
+                resources.download_icon(slug, 'icon', overwrite=True)
 
     if updated:
         logger.debug("%d games updated", len(updated))
