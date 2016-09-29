@@ -11,9 +11,6 @@ import platform
 
 from gi.repository import GLib
 
-from .errors import ScriptingError
-from .commands import CommandsMixin
-
 from lutris import pga, settings
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
@@ -21,6 +18,9 @@ from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
 
 from lutris.config import LutrisConfig, make_game_config_id
+
+from lutris.installer.errors import ScriptingError
+from lutris.installer.commands import CommandsMixin
 
 from lutris.runners import (
     wine, winesteam, steam, import_runner,
