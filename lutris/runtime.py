@@ -55,8 +55,6 @@ class RuntimeUpdater:
                 cancellables.append(downloader.cancel)
                 downloader.start()
                 GLib.timeout_add(100, self.check_download_progress, downloader)
-            else:
-                logger.debug("Runtime %s up to date", name)
         return cancellables
 
     def check_download_progress(self, downloader):

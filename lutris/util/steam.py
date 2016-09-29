@@ -335,7 +335,7 @@ class SteamWatcher(threading.Thread):
         mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
         self.notifier = pyinotify.Notifier(watch_manager, event_handler)
         for steamapp_path in self.steamapps_paths:
-            logger.info('Watching Steam folder %s', steamapp_path)
+            logger.debug('Watching Steam folder %s', steamapp_path)
             watch_manager.add_watch(steamapp_path, mask, rec=False)
         self.notifier.loop()
 

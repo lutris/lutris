@@ -90,17 +90,13 @@ def sync_from_remote():
     :return: The added and updated games (slugs)
     :rtype: tuple of sets, added games and updated games
     """
-    logger.debug("Syncing game library")
-
-    # Get local library
     local_library = pga.get_games()
     local_slugs = set([game['slug'] for game in local_library])
 
-    # Get remote library
     try:
         remote_library = api.get_library()
     except Exception as ex:
-        logger.debug("Error while downloading the remote library: %s" % ex)
+        logger.error("Error while downloading the remote library: %s" % ex)
         remote_library = {}
     remote_slugs = set([game['slug'] for game in remote_library])
 
