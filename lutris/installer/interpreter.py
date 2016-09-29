@@ -4,9 +4,6 @@ import os
 import time
 import yaml
 import shutil
-import urllib.request
-import urllib.error
-import urllib.parse
 import platform
 
 from gi.repository import GLib
@@ -16,6 +13,7 @@ from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
+from lutris.util.http import Request
 
 from lutris.config import LutrisConfig, make_game_config_id
 
@@ -30,17 +28,9 @@ from lutris.runners import (
 
 def fetch_script(game_ref):
     """Download install script(s) for matching game_ref."""
-    # TODO use http.Request
-    request = urllib.request.Request(url=settings.INSTALLER_URL % game_ref)
-    try:
-        request = urllib.request.urlopen(request)
-        script_contents = request.read()
-    except IOError:
-        return
-    # Data should be JSON here, but JSON is also valid YAML.
-    # At some point we will be dropping the YAML parser and load installer
-    # data with json.loads
-    return yaml.safe_load(script_contents)
+    request = Request(settings.INSTALLER_URL % game_ref)
+    request.get()
+    return request.json
 
 
 class ScriptInterpreter(CommandsMixin):
