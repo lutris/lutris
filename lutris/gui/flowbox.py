@@ -4,10 +4,10 @@ from lutris.gui.widgets import get_pixbuf_for_game
 
 
 class GameItem(Gtk.VBox):
-    def __init__(self, game, parent):
+    def __init__(self, game, parent, icon_type='banner'):
         super(GameItem, self).__init__()
 
-        self.banner_type = 'banner'
+        self.icon_type = icon_type
 
         self.parent = parent
         self.game = game
@@ -35,14 +35,19 @@ class GameItem(Gtk.VBox):
 
     def set_image_pixpuf(self):
         pixbuf = get_pixbuf_for_game(self.slug,
-                                     self.banner_type,
+                                     self.icon_type,
                                      self.installed)
         self.image.set_from_pixbuf(pixbuf)
 
     def get_label(self):
         self.label = Gtk.Label(self.game['name'])
         self.label.set_size_request(184, 40)
-        self.label.set_max_width_chars(20)
+
+        if self.icon_type == 'banner':
+            self.label.set_max_width_chars(20)
+        else:
+            self.label.set_max_width_chars(15)
+
         self.label.set_property('wrap', True)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_halign(Gtk.Align.CENTER)
@@ -64,7 +69,7 @@ class GameFlowBox(Gtk.FlowBox):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
 
-    def __init__(self, game_list, filter_installed):
+    def __init__(self, game_list, icon_type='banner', filter_installed=False):
         super(GameFlowBox, self).__init__()
 
         self.set_valign(Gtk.Align.START)
@@ -76,6 +81,8 @@ class GameFlowBox(Gtk.FlowBox):
         self.set_activate_on_single_click(False)
 
         self.contextual_menu = None
+
+        self.icon_type = icon_type
 
         self.filter_text = ''
         self.filter_runner = ''
@@ -110,7 +117,7 @@ class GameFlowBox(Gtk.FlowBox):
         """Generator to fill the model in steps."""
         n = 0
         for game in games:
-            item = GameItem(game, self)
+            item = GameItem(game, self, icon_type=self.icon_type)
             game['item'] = item  # keep a reference of created widgets
             self.add(item)
             n += 1

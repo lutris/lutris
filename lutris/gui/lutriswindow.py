@@ -244,7 +244,9 @@ class LutrisWindow(Gtk.Application):
     def get_view(self, view_type):
         if view_type == 'grid':
             # view_type = GameGridView(self.game_store)
-            return GameFlowBox(self.game_list, filter_installed=self.filter_installed)
+            return GameFlowBox(self.game_list,
+                               icon_type=self.icon_type,
+                               filter_installed=self.filter_installed)
         elif view_type == 'list':
             return GameListView(self.game_store)
 
@@ -305,8 +307,6 @@ class LutrisWindow(Gtk.Application):
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         logger.debug("Switching view")
-        if view_type == self.get_view_type():
-            return
         self.view.destroy()
         icon_type = self.get_icon_type(view_type)
         self.game_store.set_icon_type(icon_type)
@@ -699,14 +699,15 @@ class LutrisWindow(Gtk.Application):
         self.list_view_menuitem.set_active(view_type == 'list')
 
     def on_icon_type_activate(self, menuitem):
-        icon_type = menuitem.get_name()
-        if icon_type == self.game_store.icon_type or not menuitem.get_active():
+        self.icon_type = menuitem.get_name()
+        if self.icon_type == self.game_store.icon_type or not menuitem.get_active():
             return
         if self.current_view_type == 'grid':
-            settings.write_setting('icon_type_gridview', icon_type)
+            settings.write_setting('icon_type_gridview', self.icon_type)
         elif self.current_view_type == 'list':
-            settings.write_setting('icon_type_listview', icon_type)
-        self.game_store.set_icon_type(icon_type)
+            settings.write_setting('icon_type_listview', self.icon_type)
+        self.game_store.set_icon_type(self.icon_type)
+        self.switch_view(self.get_view_type())
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""

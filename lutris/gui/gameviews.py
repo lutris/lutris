@@ -122,17 +122,14 @@ class GameStore(GObject.Object):
             game['installed']
         ))
 
-    def update_all_icons(self, icon_type):
-        for row in self.store:
-            row[COL_ICON] = get_pixbuf_for_game(
-                row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
-            )
-
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
             self.icon_type = icon_type
-            self.update_all_icons(icon_type)
-            self.emit('icons-changed', icon_type)
+            for row in self.store:
+                row[COL_ICON] = get_pixbuf_for_game(
+                    row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
+                )
+            self.emit('icons-changed', icon_type)  # Obsolete, only for GridView
 
 
 class GameView(object):
@@ -335,6 +332,7 @@ class GameListView(Gtk.TreeView, GameView):
 
 
 class GameGridView(Gtk.IconView, GameView):
+    """DEPRECATED: Remove in Lutris 0.4.1"""
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, store):
