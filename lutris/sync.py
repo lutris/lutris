@@ -45,25 +45,25 @@ def sync_game_details(remote_library):
 
     for remote_game in remote_library:
         slug = remote_game['slug']
-        synced = False
-        sync_icons = True
+        sync_required = False
+        icon_sync_required = True
         local_game = pga.get_game_by_field(slug, 'slug')
         if not local_game:
             continue
 
-        # Sync updated
         if local_game['updated'] and remote_game['updated'] > local_game['updated']:
-            synced = True
-        # Sync new DB fields
+            # The remote game's info is more recent than the local game
+            sync_required = True
         else:
-            # XXX I have absolutely no idea what the code below does.
-            for key, value in local_game.items():
-                if value or key not in remote_game:
-                    continue
-                if remote_game[key]:
-                    synced = True
-                    sync_icons = False
-        if not synced:
+            for key in remote_game.keys():
+                if key in local_game.keys() and remote_game[key] and not local_game[key]:
+                    # Remote game has data that is missing from the local game.
+                    logger.warning('Oh, that happened! ¯\_(ツ)_/¯')
+                    sync_required = True
+                    icon_sync_required = False
+                    break
+
+        if not sync_required:
             continue
 
         logger.debug("Syncing details for %s" % slug)
@@ -75,14 +75,15 @@ def sync_game_details(remote_library):
             updated=remote_game['updated'],
             steamid=remote_game['steamid']
         )
+        updated.add(game_id)
 
-        # Sync icons (TODO: Only update if icon actually updated)
-        if sync_icons:
+        # TODO: Only update if icon actually updated
+        if icon_sync_required:
             resources.download_icon(slug, 'banner', overwrite=True)
             resources.download_icon(slug, 'icon', overwrite=True)
-            updated.add(game_id)
 
-    logger.debug("%d games updated", len(updated))
+    if updated:
+        logger.debug("%d games updated", len(updated))
     return updated
 
 

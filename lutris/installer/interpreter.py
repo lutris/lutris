@@ -533,7 +533,7 @@ class ScriptInterpreter(CommandsMixin):
         return config
 
     # --------------------
-    # "Afer the end" stage
+    # "After the end" stage
     # --------------------
 
     def cleanup(self):
