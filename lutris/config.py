@@ -61,6 +61,7 @@ def check_config(force_wipe=False):
 
 
 def make_game_config_id(game_slug):
+    """Return an unique config id to avoid clashes between multiple games"""
     return "{}-{}".format(game_slug, int(time.time()))
 
 
@@ -121,7 +122,7 @@ class LutrisConfig(object):
     To read, use the config sections dicts: game_config, runner_config and
     system_config.
 
-    To write, modify the relevant `raw_XXXX_config` section dict, then run
+    To write, modify the relevant `raw_*_config` section dict, then run
     `save()`.
 
     """

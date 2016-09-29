@@ -126,7 +126,10 @@ class ScriptInterpreter(CommandsMixin):
         return not bool(self.errors)
 
     def _check_dependency(self):
-        # XXX Maybe handle this with Game instead of hitting directly the PGA?
+        """When a game is a mod or an extension of another game, check that the base
+        game is installed.
+        If the game is available, install the game in the base game folder
+        """
         game = pga.get_game_by_field(self.requires, field='installer_slug')
         # Legacy support of installers using game slug as requirement
         if not game:
@@ -445,23 +448,16 @@ class ScriptInterpreter(CommandsMixin):
         """Write the game configuration in the DB and config file."""
 
         configpath = make_game_config_id(self.script['slug'])
-        config_filename = os.path.join(settings.CONFIG_DIR,
-                                       "games/%s.yml" % configpath)
-        if self.requires:  # and os.path.exists(config_filename):
-            # The installer is patching an existing game, update its config
-            # XXX Maybe drop the self.requires condition and always update
-            #     the existing config?
-            # XXX Now it's not going to update configs ever again since we
-            # create a unique config_id so how do we deal with that?
+        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
 
-            # is that okay?
-            required_game = pga.get_game_by_field(self.requires,
-                                                  field='installer_slug')
-            lutris_config = LutrisConfig(
+        if self.requires:
+            # Load the base game config
+            required_game = pga.get_game_by_field(self.requires, field='installer_slug')
+            base_config = LutrisConfig(
                 runner_slug=self.runner,
                 game_config_id=required_game['configpath']
             )
-            config = lutris_config.game_level
+            config = base_config.game_level
         else:
             config = {
                 'game': {},
