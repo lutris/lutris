@@ -149,6 +149,10 @@ class GameView(object):
         """Signal handlers common to all views"""
         self.connect('button-press-event', self.popup_contextual_menu)
 
+    def refresh(self):
+        """Unused here, only implemented in GameFlowBox"""
+        pass
+
     @property
     def n_games(self):
         return len(self.game_store.store)

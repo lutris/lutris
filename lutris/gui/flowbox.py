@@ -82,8 +82,7 @@ class GameFlowBox(Gtk.FlowBox):
         self.filter_installed = False
 
         self.game_list = game_list
-        loader = self._fill_store_generator()
-        GLib.idle_add(loader.__next__)
+        self.fill_store(self.game_list)
 
     @property
     def selected_game(self):
@@ -96,10 +95,21 @@ class GameFlowBox(Gtk.FlowBox):
         game_item = children[0].get_children()[0]
         return game_item.game['id']
 
-    def _fill_store_generator(self, step=50):
+    def refresh(self):
+        new_games = []
+        for game in self.game_list:
+            if not game.get('item'):
+                new_games.append(game)
+        self.fill_store(new_games)
+
+    def fill_store(self, games):
+        loader = self._fill_store_generator(games)
+        GLib.idle_add(loader.__next__)
+
+    def _fill_store_generator(self, games, step=50):
         """Generator to fill the model in steps."""
         n = 0
-        for game in self.game_list:
+        for game in games:
             item = GameItem(game, self)
             game['item'] = item  # keep a reference of created widgets
             self.add(item)

@@ -81,6 +81,7 @@ class LutrisWindow(Gtk.Application):
         self.set_dark_theme(use_dark_theme)
 
         self.game_list = pga.get_games()
+
         # Load view
         logger.debug("Loading view")
         self.game_store = GameStore([], self.icon_type, filter_installed)
@@ -178,7 +179,8 @@ class LutrisWindow(Gtk.Application):
         # view
         steam.sync_with_lutris()
 
-        self.init_game_store()
+        self.game_store.fill_store(self.game_list)
+        self.switch_splash_screen()
 
         self.update_runtime()
 
@@ -239,12 +241,6 @@ class LutrisWindow(Gtk.Application):
         gtksettings = Gtk.Settings.get_default()
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
-    def init_game_store(self):
-        """Populate the game list in the client"""
-        games = pga.get_games()
-        self.game_store.fill_store(games)
-        self.switch_splash_screen()
-
     def get_view(self, view_type):
         if view_type == 'grid':
             # view_type = GameGridView(self.game_store)
@@ -296,7 +292,7 @@ class LutrisWindow(Gtk.Application):
         return icon_type
 
     def switch_splash_screen(self):
-        if not pga.get_table_length():
+        if len(self.game_list) == 0:
             self.splash_box.show()
             self.games_scrollwindow.hide()
             self.sidebar_viewport.hide()
@@ -339,11 +335,13 @@ class LutrisWindow(Gtk.Application):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
             if result:
-                self.switch_splash_screen()
+                logger.debug('results ok')
                 added_ids, updated_ids = result
-                added_games = pga.get_game_by_field('id', added_ids, all=True)
+                added_games = pga.get_game_by_field(added_ids, 'id', all=True)
                 self.game_store.fill_store(added_games)
-
+                self.game_list += added_games
+                self.switch_splash_screen()
+                self.view.refresh()
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
@@ -352,8 +350,8 @@ class LutrisWindow(Gtk.Application):
         AsyncCall(sync_from_remote, update_gui)
 
     def update_existing_games(self, added, updated, first_run=False):
-        for game in updated.difference(added):
-            self.view.update_row(pga.get_game_by_field(game, 'id'))
+        for game_id in updated.difference(added):
+            self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
@@ -365,7 +363,7 @@ class LutrisWindow(Gtk.Application):
         self.threads_stoppers += cancellables
 
     def sync_icons(self, stop_request=None):
-        resources.fetch_icons([game for game in pga.get_games()],
+        resources.fetch_icons([game for game in self.game_list],
                               callback=self.on_image_downloaded,
                               stop_request=stop_request)
 
