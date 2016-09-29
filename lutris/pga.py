@@ -189,10 +189,6 @@ def add_games_bulk(games):
 
 
 def add_or_update(**params):
-    """
-    FIXME probably not the desired behavior since it disallows multiple games
-    with the same slug
-    """
     slug = params.get('slug')
     name = params.get('name')
     id = params.get('id')
