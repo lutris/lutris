@@ -65,10 +65,6 @@ parameters depend on the runner:
 
 *   winesteam: ``args``, ``prefix`` (optional Wine prefix).
 
-[TODO: reference all options] Meanwhile, you can check the configuration window
-of any game using the runner you're writing for to get a list of the available
-options.
-
 Example:
 
 ::
