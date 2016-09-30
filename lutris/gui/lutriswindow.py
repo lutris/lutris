@@ -229,7 +229,7 @@ class LutrisWindow(Gtk.Application):
             game_id = steam.mark_as_installed(appmanifest.steamid,
                                               runner_name,
                                               game_info)
-            game_ids = self.view.game_store.get_ids()
+            game_ids = [game['id'] for game in self.game_list]
             if game_id not in game_ids:
                 self.add_game_to_view(game_id)
             else:
