@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 import os
+import sys
 from setuptools import setup
 from lutris.settings import VERSION
+
+if sys.version_info < (3, 4):
+    sys.exit('Python 3.4 is required to run Lutris')
 
 data_files = []
 
