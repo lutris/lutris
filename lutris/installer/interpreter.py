@@ -424,6 +424,8 @@ class ScriptInterpreter(CommandsMixin):
     def _get_game_launcher(self):
         """Return the key and value of the launcher"""
         launcher_value = None
+
+        # exe64 can be provided to specify an executable for 64bit systems
         is_64bit = platform.machine() == "x86_64"
         exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
 
@@ -431,9 +433,12 @@ class ScriptInterpreter(CommandsMixin):
             if launcher not in self.script:
                 continue
             launcher_value = self.script[launcher]
+
             if launcher == "exe64":
-                launcher = "exe"
+                launcher = "exe"  # If exe64 is used, rename it to exe
+
             break
+
         if not launcher_value:
             launcher = None
         return (launcher, launcher_value)
@@ -479,9 +484,10 @@ class ScriptInterpreter(CommandsMixin):
             config[self.runner] = self._substitute_config(
                 self.script[self.runner]
             )
-        if 'game' in self.script:
-            config['game'].update(self._substitute_config(self.script['game']))
 
+        # Game options such as exe or main_file can be added at the root of the
+        # script as a shortcut, this integrates them into the game config
+        # properly
         launcher, launcher_value = self._get_game_launcher()
         if type(launcher_value) == list:
             game_files = []
@@ -502,8 +508,11 @@ class ScriptInterpreter(CommandsMixin):
                 launcher_value = os.path.join(self.target_path, launcher_value)
             config['game'][launcher] = launcher_value
 
+        if 'game' in self.script:
+            config['game'].update(self.script['game'])
+            config['game'] = self._substitute_config(config['game'])
+
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
-        logger.debug(yaml_config)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
 
