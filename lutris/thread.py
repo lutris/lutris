@@ -17,6 +17,14 @@ from lutris.util.system import find_executable
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
+# List of process names that are ignored by the process monitoring
+EXCLUDED_PROCESSES = (
+    'lutris', 'python', 'python3',
+    'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
+    'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
+    'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
+    'control', 'regedit', 'winecfg.exe', 'wdfmgr.exe',  'wineconsole', 'winedbg'
+)
 
 
 class LutrisThread(threading.Thread):
@@ -187,15 +195,7 @@ class LutrisThread(threading.Thread):
                     continue
 
             num_children += 1
-            # Exclude other wrapper processes
-            excluded = (
-                'bash', 'control', 'lutris', 'PnkBstrA.exe', 'python', 'python3',
-                'regedit', 'sh', 'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
-                'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'tee',
-                'tr', 'winecfg.exe', 'zenity', 'wdfmgr.exe', 'xkbcomp', 'wineconsole',
-                'xboxdrv', 'winedbg'
-            )
-            if child.name in excluded:
+            if child.name in EXCLUDED_PROCESSES:
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
