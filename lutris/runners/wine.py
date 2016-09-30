@@ -628,7 +628,7 @@ class wine(Runner):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path)
 
     def run_winetricks(self, *args):
-        winetricks('', prefix=self.prefix_path, winetricks_wine=self.get_executable())
+        winetricks('', prefix=self.prefix_path, wine_path=self.get_executable())
 
     def run_joycpl(self, *args):
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
