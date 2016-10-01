@@ -139,6 +139,10 @@ class web(Runner):
 
         command.append(url)
 
+        command.append("--name")
+        command.append(game_data.get('name'))
+
+        command.append("--icon")
         command.append(icon)
 
         if self.runner_config.get("fullscreen"):
