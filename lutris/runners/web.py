@@ -135,7 +135,7 @@ class web(Runner):
 
         command = [self.get_executable()]
 
-        command.append(os.path.join(settings.RUNNER_DIR, 'web/runner.asar'))
+        command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
 
         command.append(url)
 
