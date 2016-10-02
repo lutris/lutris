@@ -741,5 +741,5 @@ class LutrisWindow(Gtk.Application):
             self.view.filter_runner = widget.get_selected_runner()
             self.view.invalidate_filter()
         else:
-            self.view.game_store.filter_runner = widget.get_selected_runner()
+            self.game_store.filter_runner = widget.get_selected_runner()
             self.game_store.modelfilter.refilter()
