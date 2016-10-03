@@ -24,15 +24,18 @@ __all__ = (
 
 
 class InvalidRunner(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 
 class RunnerInstallationError(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 
 class NonInstallableRunnerError(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 
 def get_runner_module(runner_name):
