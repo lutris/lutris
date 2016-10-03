@@ -106,6 +106,10 @@ class vice(Runner):
         if self.runner_config.get("joy"):
             params += ["-joydev1", "5"]
         rom = self.game_config.get('main_file')
+        if not rom:
+            return {'error': 'CUSTOM', 'text': 'No rom provided'}
+        if not os.path.exists(rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom}
         if rom.endswith('.crt'):
             params.append('-cartgeneric')
         params.append(rom)

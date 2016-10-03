@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Runner for Sega Master System"""
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 
