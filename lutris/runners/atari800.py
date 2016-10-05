@@ -2,7 +2,6 @@
 import os.path
 import logging
 
-from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import DownloadDialog, ErrorDialog
 from lutris.runners.runner import Runner

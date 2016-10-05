@@ -1,5 +1,7 @@
 import os
 from lutris import settings
+from lutris.util import system
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -68,6 +70,21 @@ class vice(Runner):
         except KeyError:
             raise ValueError("Invalid machine '%s'" % machine)
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
+
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed(*args):
+            config_path = system.create_folder('~/.vice')
+            lib_dir = os.path.join(settings.RUNNER_DIR, 'vice/lib/vice')
+            if not os.path.exists(lib_dir):
+                lib_dir = os.path.join(settings.RUNNER_DIR, 'vice/lib64/vice')
+            if not os.path.exists(lib_dir):
+                logger.error('Missing lib folder in the Vice runner')
+            else:
+                system.merge_folders(lib_dir, config_path)
+            if callback:
+                callback()
+
+        super(vice, self).install(version, downloader, on_runner_installed)
 
     def get_roms_path(self, machine=None):
         if not machine:
