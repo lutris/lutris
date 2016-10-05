@@ -100,11 +100,12 @@ class vice(Runner):
                   "-chdir", self.get_roms_path(machine)]
         option_prefix = self.get_option_prefix(machine)
         if self.runner_config.get("fullscreen"):
-            params.append('-{}full'.format(option_prefix))
+            params.append('-fullscreen')
         if self.runner_config.get("double"):
             params.append("-{}dsize".format(option_prefix))
         if self.runner_config.get("joy"):
             params += ["-joydev1", "5"]
+            params += ["-joydev2", "6"]
         rom = self.game_config.get('main_file')
         if not rom:
             return {'error': 'CUSTOM', 'text': 'No rom provided'}
