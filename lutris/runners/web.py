@@ -103,12 +103,6 @@ class web(Runner):
         },
     ]
     runner_executable = 'web/electron/electron'
-    system_options_override = [
-        {
-            'option': 'disable_runtime',
-            'default': False,
-        }
-    ]
 
     def get_env(self, full=True):
         if full:
