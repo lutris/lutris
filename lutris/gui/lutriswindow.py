@@ -430,6 +430,9 @@ class LutrisWindow(Gtk.Application):
         self.toggle_connection(False)
         self.connect_link.show()
 
+        synchronize_menuitem = self.builder.get_object('synchronize_menuitem')
+        synchronize_menuitem.set_sensitive(False)
+
     def toggle_connection(self, is_connected, username=None):
         disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
         connect_menuitem = self.builder.get_object('connect_menuitem')
