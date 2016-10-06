@@ -59,7 +59,7 @@ class libretro(Runner):
     def is_installed(self, core=None):
         if self.game_config.get('core') and core is None:
             core = self.game_config['core']
-        if not core:
+        if not core or self.runner_config.get('runner_executable'):
             return self.is_retroarch_installed()
         is_core_installed = os.path.exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
