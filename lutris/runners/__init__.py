@@ -3,7 +3,7 @@
 
 __all__ = (
     # Native
-    "linux", "steam", "browser", "desura",
+    "linux", "steam", "browser", "web", "desura",
     # Microsoft based
     "wine", "winesteam", "dosbox",
     # Multi-system
