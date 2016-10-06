@@ -282,7 +282,7 @@ class ClientLoginDialog(GtkBuilderDialog):
             NoticeDialog("Login failed", parent=self.parent)
         else:
             self.emit('connected', username)
-        self.dialog.destroy()
+            self.dialog.destroy()
 
 
 class ClientUpdateDialog(GtkBuilderDialog):
