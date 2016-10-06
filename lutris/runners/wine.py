@@ -137,10 +137,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         return thread
 
 
-def winetricks(app, prefix=None, silent=True, wine_path=None):
+def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None):
     """Execute winetricks."""
     winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
-    arch = detect_prefix_arch(prefix) or 'win32'
+    if arch not in ('win32', 'win64'):
+        arch = detect_prefix_arch(prefix) or 'win32'
     if wine_path:
         winetricks_wine = wine_path
     else:
