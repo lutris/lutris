@@ -78,6 +78,7 @@
                     <child>
                       <object class="GtkMenuItem" id="synchronize_menuitem">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Manually re-synchronize your games.</property>
                         <property name="label" translatable="yes">Synchronize library</property>

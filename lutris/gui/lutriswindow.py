@@ -422,6 +422,8 @@ class LutrisWindow(Gtk.Application):
         self.toggle_connection(True, username)
         self.sync_library()
         self.connect_link.hide()
+        synchronize_menuitem = self.builder.get_object('synchronize_menuitem')
+        synchronize_menuitem.set_sensitive(True)
 
     def on_disconnect(self, *args):
         api.disconnect()
@@ -451,7 +453,7 @@ class LutrisWindow(Gtk.Application):
         except subprocess.CalledProcessError:
             Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
 
-    def on_synchronize_manually(self, *args):
+    def on_synchronize_manually(self, widget):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
 
