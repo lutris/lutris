@@ -10,6 +10,8 @@ def get_cores():
         ('genesis plus gx (Sega Genesis)', 'genesis_plus_gx'),
         ('mupen64plus (Nintendo 64)', 'mupen64plus'),
         ('pcsx rearmed (Sony Playstation)', 'pcsx_rearmed'),
+        ('mednafen psx (Sony Playstation)', 'mednafen_psx'),
+        ('mednafen psx OpenGL (Sony Playstation)', 'mednafen_psx_hw'),
         ('reicast (Sega Dreamcast)', 'reicast'),
         ('snes9x (Super Nintendo)', 'snes9x'),
         ('yabause (Sega Saturn)', 'yabause'),
