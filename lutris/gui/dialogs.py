@@ -44,8 +44,8 @@ class AboutDialog(GtkBuilderDialog):
 
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
-    def __init__(self, message):
-        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK)
+    def __init__(self, message, parent=None):
+        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -249,6 +249,7 @@ class ClientLoginDialog(GtkBuilderDialog):
     def __init__(self, parent):
         super(ClientLoginDialog, self).__init__(parent=parent)
 
+        self.parent = parent
         self.username_entry = self.builder.get_object('username_entry')
         self.password_entry = self.builder.get_object('password_entry')
 
@@ -278,7 +279,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
-            NoticeDialog("Login failed")
+            NoticeDialog("Login failed", parent=self.parent)
         else:
             self.emit('connected', username)
         self.dialog.destroy()
