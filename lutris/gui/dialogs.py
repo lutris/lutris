@@ -6,6 +6,7 @@ from gi.repository import GLib, Gtk, GObject
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
+from lutris.util.log import logger
 
 
 class GtkBuilderDialog(GObject.Object):
