@@ -4,7 +4,6 @@ import os
 import string
 import shlex
 from urllib.parse import urlparse
-# import subprocess
 
 from lutris.runners.runner import Runner
 from lutris.util import datapath
@@ -123,7 +122,7 @@ class web(Runner):
             'option': 'custom_browser_args',
             'label': "Web browser arguments",
             'type': 'string',
-            'default': '$GAME',
+            'default': '"$GAME"',
             'help': ('Command line arguments to pass to the executable.\n'
                      '$GAME or $URL inserts the game url.\n\n'
                      'For Chrome/Chromium app mode use: --app="$GAME"')
@@ -165,7 +164,10 @@ class web(Runner):
             # is it possible to disable lutris runtime here?
             browser = self.runner_config.get('custom_browser_executable') or 'xdg-open'
 
-            arguments = string.Template(self.runner_config.get('custom_browser_args')).safe_substitute({
+            args = self.runner_config.get('custom_browser_args')
+            if args == '':
+                args = '"$GAME"'
+            arguments = string.Template(args).safe_substitute({
                 'GAME': url,
                 'URL': url
             })
@@ -174,10 +176,6 @@ class web(Runner):
 
             for arg in shlex.split(arguments):
                 command.append(arg)
-
-            # Lutris thread doesn't play nice with detaching external processes
-            # os.spawnvpe(os.P_NOWAITO, browser, [browser, url], os.environ)
-            # subprocess.Popen([browser, url], close_fds=True)
 
             return {'command': command}
 
