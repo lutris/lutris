@@ -16,7 +16,7 @@ class web(Runner):
     human_name = "Web"
     description = "Runs web based games"
     platform = "Web based games"
-    description = "Runs web games"
+    description = "Runs web based games"
     game_options = [
         {
             "option": "main_file",
