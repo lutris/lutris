@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import string
+import shlex
+from urllib.parse import urlparse
 # import subprocess
 
 from lutris.runners.runner import Runner
@@ -104,17 +107,26 @@ class web(Runner):
         },
         {
             'option': 'external_browser',
-            'label': 'Open in default web browser (old behavior, broken)',
+            'label': 'Open in web browser (old behavior)',
             'type': 'bool',
             'default': False,
-            'help': ("Requires a web browser to be installed. Uses xdg-open by default.")
+            'help': ("Launch the game in a web browser.")
         },
         {
             'option': 'custom_browser_executable',
             'label': "Custom web browser executable",
             'type': 'file',
             'help': ('Select the executable of a browser on your system.\n'
-                     'If left blank, Lutris will launch your default browser.')
+                     'If left blank, Lutris will launch your default browser (xdg-open).')
+        },
+        {
+            'option': 'custom_browser_args',
+            'label': "Web browser arguments",
+            'type': 'string',
+            'default': '$GAME',
+            'help': ('Command line arguments to pass to the executable.\n'
+                     '$GAME inserts the game url. Use $FILE if it\'s an offline game.\n\n'
+                     'For Chrome/Chromium app mode use: --app="$GAME"')
         }
     ]
     runner_executable = 'web/electron/electron'
@@ -135,6 +147,16 @@ class web(Runner):
             return {'error': 'CUSTOM',
                     'text': ("The web address is empty, \n"
                              "verify the game's configuration."), }
+
+        # check if it's an url or a file
+        isUrl = urlparse(url).scheme is not ''
+
+        if not isUrl:
+            if not os.path.exists(url):
+                return {'error': 'CUSTOM',
+                        'text': ("The file " + url + " does not exist, \n"
+                                 "verify the game's configuration."), }
+            url = 'file://' + url
 
         game_data = pga.get_game_by_field(self.config.game_config_id, 'configpath')
 
@@ -190,8 +212,20 @@ class web(Runner):
             return {'command': command, 'env': self.get_env(False)}
 
         else:
+
             browser = self.runner_config.get('custom_browser_executable') or 'xdg-open'
+
+            arguments = string.Template(self.runner_config.get('custom_browser_args')).safe_substitute({
+                'GAME': url
+            })
+
+            command = [browser]
+
+            for arg in shlex.split(arguments):
+                command.append(arg)
+
             # Lutris thread doesn't play nice with detaching external processes
             # os.spawnvpe(os.P_NOWAITO, browser, [browser, url], os.environ)
             # subprocess.Popen([browser, url], close_fds=True)
-            return {'command': [browser, url], 'env': os.environ.copy()}
+
+            return {'command': command}
