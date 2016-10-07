@@ -117,7 +117,7 @@ class vice(Runner):
                   "-chdir", self.get_roms_path(machine)]
         option_prefix = self.get_option_prefix(machine)
         if self.runner_config.get("fullscreen"):
-            params.append('-fullscreen')
+            params.append('-{}full'.format(option_prefix))
         if self.runner_config.get("double"):
             params.append("-{}dsize".format(option_prefix))
         if self.runner_config.get("joy"):
