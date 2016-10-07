@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import string
+import shlex
+from urllib.parse import urlparse
 
 from lutris.runners.runner import Runner
 from lutris.util import datapath
@@ -12,13 +15,13 @@ class web(Runner):
     human_name = "Web"
     description = "Runs web based games"
     platform = "Web based games"
-    description = "Runs web games"
+    description = "Runs web based games"
     game_options = [
         {
             "option": "main_file",
             "type": "string",
-            "label": "Full address (URL)",
-            'help': ("The full address of the game's web page.")
+            "label": "Full URL or HTML file path",
+            'help': ("The full address of the game's web page or path to a HTML file.")
         }
     ]
     runner_options = [
@@ -101,6 +104,29 @@ class web(Runner):
             'help': ("Let's you debug the page."),
             'advanced': True
         },
+        {
+            'option': 'external_browser',
+            'label': 'Open in web browser (old behavior)',
+            'type': 'bool',
+            'default': False,
+            'help': ("Launch the game in a web browser.")
+        },
+        {
+            'option': 'custom_browser_executable',
+            'label': "Custom web browser executable",
+            'type': 'file',
+            'help': ('Select the executable of a browser on your system.\n'
+                     'If left blank, Lutris will launch your default browser (xdg-open).')
+        },
+        {
+            'option': 'custom_browser_args',
+            'label': "Web browser arguments",
+            'type': 'string',
+            'default': '"$GAME"',
+            'help': ('Command line arguments to pass to the executable.\n'
+                     '$GAME or $URL inserts the game url.\n\n'
+                     'For Chrome/Chromium app mode use: --app="$GAME"')
+        }
     ]
     runner_executable = 'web/electron/electron'
 
@@ -121,7 +147,38 @@ class web(Runner):
                     'text': ("The web address is empty, \n"
                              "verify the game's configuration."), }
 
+        # check if it's an url or a file
+        isUrl = urlparse(url).scheme is not ''
+
+        if not isUrl:
+            if not os.path.exists(url):
+                return {'error': 'CUSTOM',
+                        'text': ("The file " + url + " does not exist, \n"
+                                 "verify the game's configuration."), }
+            url = 'file://' + url
+
         game_data = pga.get_game_by_field(self.config.game_config_id, 'configpath')
+
+        # keep the old behavior from browser runner, but with support for extra arguments!
+        if self.runner_config.get("external_browser"):
+            # is it possible to disable lutris runtime here?
+            browser = self.runner_config.get('custom_browser_executable') or 'xdg-open'
+
+            args = self.runner_config.get('custom_browser_args')
+            if args == '':
+                args = '"$GAME"'
+            arguments = string.Template(args).safe_substitute({
+                'GAME': url,
+                'URL': url
+            })
+
+            command = [browser]
+
+            for arg in shlex.split(arguments):
+                command.append(arg)
+
+            return {'command': command}
+
 
         icon = datapath.get_icon_path(game_data.get('slug'))
         if not os.path.exists(icon):
@@ -170,4 +227,4 @@ class web(Runner):
         if self.runner_config.get("devtools"):
             command.append("--devtools")
 
-        return {'command': command, 'env': self.get_env()}
+        return {'command': command, 'env': self.get_env(False)}
