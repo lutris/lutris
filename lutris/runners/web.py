@@ -125,7 +125,7 @@ class web(Runner):
             'type': 'string',
             'default': '$GAME',
             'help': ('Command line arguments to pass to the executable.\n'
-                     '$GAME inserts the game url. Use $FILE if it\'s an offline game.\n\n'
+                     '$GAME or $URL inserts the game url.\n\n'
                      'For Chrome/Chromium app mode use: --app="$GAME"')
         }
     ]
@@ -160,63 +160,14 @@ class web(Runner):
 
         game_data = pga.get_game_by_field(self.config.game_config_id, 'configpath')
 
-        if not self.runner_config.get("external_browser"):
-
-            icon = datapath.get_icon_path(game_data.get('slug'))
-            if not os.path.exists(icon):
-                icon = DEFAULT_ICON
-
-            command = [self.get_executable()]
-
-            command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
-
-            command.append(url)
-
-            command.append("--name")
-            command.append(game_data.get('name'))
-
-            command.append("--icon")
-            command.append(icon)
-
-            if self.runner_config.get("fullscreen"):
-                command.append("--fullscreen")
-
-            if self.runner_config.get("frameless"):
-                command.append("--frameless")
-
-            if self.runner_config.get("disable_resizing"):
-                command.append("--disable-resizing")
-
-            if self.runner_config.get("disable_menu_bar"):
-                command.append("--disable-menu-bar")
-
-            if self.runner_config.get("window_size"):
-                command.append("--window-size")
-                command.append(self.runner_config.get("window_size"))
-
-            if self.runner_config.get("maximize_window"):
-                command.append("--maximize-window")
-
-            if self.runner_config.get("disable_scrolling"):
-                command.append("--disable-scrolling")
-
-            if self.runner_config.get("hide_cursor"):
-                command.append("--hide-cursor")
-
-            if self.runner_config.get("open_links"):
-                command.append("--open-links")
-
-            if self.runner_config.get("devtools"):
-                command.append("--devtools")
-
-            return {'command': command, 'env': self.get_env(False)}
-
-        else:
-
+        # keep the old behavior from browser runner, but with support for extra arguments!
+        if self.runner_config.get("external_browser"):
+            # is it possible to disable lutris runtime here?
             browser = self.runner_config.get('custom_browser_executable') or 'xdg-open'
 
             arguments = string.Template(self.runner_config.get('custom_browser_args')).safe_substitute({
-                'GAME': url
+                'GAME': url,
+                'URL': url
             })
 
             command = [browser]
@@ -229,3 +180,53 @@ class web(Runner):
             # subprocess.Popen([browser, url], close_fds=True)
 
             return {'command': command}
+
+
+        icon = datapath.get_icon_path(game_data.get('slug'))
+        if not os.path.exists(icon):
+            icon = DEFAULT_ICON
+
+        command = [self.get_executable()]
+
+        command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
+
+        command.append(url)
+
+        command.append("--name")
+        command.append(game_data.get('name'))
+
+        command.append("--icon")
+        command.append(icon)
+
+        if self.runner_config.get("fullscreen"):
+            command.append("--fullscreen")
+
+        if self.runner_config.get("frameless"):
+            command.append("--frameless")
+
+        if self.runner_config.get("disable_resizing"):
+            command.append("--disable-resizing")
+
+        if self.runner_config.get("disable_menu_bar"):
+            command.append("--disable-menu-bar")
+
+        if self.runner_config.get("window_size"):
+            command.append("--window-size")
+            command.append(self.runner_config.get("window_size"))
+
+        if self.runner_config.get("maximize_window"):
+            command.append("--maximize-window")
+
+        if self.runner_config.get("disable_scrolling"):
+            command.append("--disable-scrolling")
+
+        if self.runner_config.get("hide_cursor"):
+            command.append("--hide-cursor")
+
+        if self.runner_config.get("open_links"):
+            command.append("--open-links")
+
+        if self.runner_config.get("devtools"):
+            command.append("--devtools")
+
+        return {'command': command, 'env': self.get_env(False)}
