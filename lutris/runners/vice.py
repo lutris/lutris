@@ -124,8 +124,17 @@ class vice(Runner):
 
     def play(self):
         machine = self.runner_config.get("machine")
-        params = [self.get_executable(machine),
-                  "-chdir", self.get_roms_path(machine)]
+
+        rom = self.game_config.get('main_file')
+        if not rom:
+            return {'error': 'CUSTOM', 'text': 'No rom provided'}
+        if not os.path.exists(rom):
+            return {'error': 'FILE_NOT_FOUND', 'file': rom}
+
+        params = [self.get_executable(machine)]
+        rom_dir = os.path.dirname(rom)
+        params.append('-chdir')
+        params.append(rom_dir)
         option_prefix = self.get_option_prefix(machine)
         if self.runner_config.get("fullscreen"):
             params.append('-{}full'.format(option_prefix))
@@ -134,11 +143,6 @@ class vice(Runner):
         if self.runner_config.get("joy"):
             for dev in range(self.get_joydevs(machine)):
                 params += ["-joydev{}".format(dev + 1), "4"]
-        rom = self.game_config.get('main_file')
-        if not rom:
-            return {'error': 'CUSTOM', 'text': 'No rom provided'}
-        if not os.path.exists(rom):
-            return {'error': 'FILE_NOT_FOUND', 'file': rom}
         if rom.endswith('.crt'):
             params.append('-cartgeneric')
         params.append(rom)
