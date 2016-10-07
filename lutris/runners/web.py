@@ -128,6 +128,12 @@ class web(Runner):
                      'For Chrome/Chromium app mode use: --app="$GAME"')
         }
     ]
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': True,
+        }
+    ]
     runner_executable = 'web/electron/electron'
 
     def get_env(self, full=True):
