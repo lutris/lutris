@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+# import subprocess
 
 from lutris.runners.runner import Runner
 from lutris.util import datapath
@@ -17,8 +18,8 @@ class web(Runner):
         {
             "option": "main_file",
             "type": "string",
-            "label": "Full address (URL)",
-            'help': ("The full address of the game's web page.")
+            "label": "Full URL or HTML file path",
+            'help': ("The full address of the game's web page or path to a HTML file.")
         }
     ]
     runner_options = [
@@ -101,6 +102,20 @@ class web(Runner):
             'help': ("Let's you debug the page."),
             'advanced': True
         },
+        {
+            'option': 'external_browser',
+            'label': 'Open in default web browser (old behavior, broken)',
+            'type': 'bool',
+            'default': False,
+            'help': ("Requires a web browser to be installed. Uses xdg-open by default.")
+        },
+        {
+            'option': 'custom_browser_executable',
+            'label': "Custom web browser executable",
+            'type': 'file',
+            'help': ('Select the executable of a browser on your system.\n'
+                     'If left blank, Lutris will launch your default browser.')
+        }
     ]
     runner_executable = 'web/electron/electron'
 
@@ -123,51 +138,60 @@ class web(Runner):
 
         game_data = pga.get_game_by_field(self.config.game_config_id, 'configpath')
 
-        icon = datapath.get_icon_path(game_data.get('slug'))
-        if not os.path.exists(icon):
-            icon = DEFAULT_ICON
+        if not self.runner_config.get("external_browser"):
 
-        command = [self.get_executable()]
+            icon = datapath.get_icon_path(game_data.get('slug'))
+            if not os.path.exists(icon):
+                icon = DEFAULT_ICON
 
-        command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
+            command = [self.get_executable()]
 
-        command.append(url)
+            command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
 
-        command.append("--name")
-        command.append(game_data.get('name'))
+            command.append(url)
 
-        command.append("--icon")
-        command.append(icon)
+            command.append("--name")
+            command.append(game_data.get('name'))
 
-        if self.runner_config.get("fullscreen"):
-            command.append("--fullscreen")
+            command.append("--icon")
+            command.append(icon)
 
-        if self.runner_config.get("frameless"):
-            command.append("--frameless")
+            if self.runner_config.get("fullscreen"):
+                command.append("--fullscreen")
 
-        if self.runner_config.get("disable_resizing"):
-            command.append("--disable-resizing")
+            if self.runner_config.get("frameless"):
+                command.append("--frameless")
 
-        if self.runner_config.get("disable_menu_bar"):
-            command.append("--disable-menu-bar")
+            if self.runner_config.get("disable_resizing"):
+                command.append("--disable-resizing")
 
-        if self.runner_config.get("window_size"):
-            command.append("--window-size")
-            command.append(self.runner_config.get("window_size"))
+            if self.runner_config.get("disable_menu_bar"):
+                command.append("--disable-menu-bar")
 
-        if self.runner_config.get("maximize_window"):
-            command.append("--maximize-window")
+            if self.runner_config.get("window_size"):
+                command.append("--window-size")
+                command.append(self.runner_config.get("window_size"))
 
-        if self.runner_config.get("disable_scrolling"):
-            command.append("--disable-scrolling")
+            if self.runner_config.get("maximize_window"):
+                command.append("--maximize-window")
 
-        if self.runner_config.get("hide_cursor"):
-            command.append("--hide-cursor")
+            if self.runner_config.get("disable_scrolling"):
+                command.append("--disable-scrolling")
 
-        if self.runner_config.get("open_links"):
-            command.append("--open-links")
+            if self.runner_config.get("hide_cursor"):
+                command.append("--hide-cursor")
 
-        if self.runner_config.get("devtools"):
-            command.append("--devtools")
+            if self.runner_config.get("open_links"):
+                command.append("--open-links")
 
-        return {'command': command, 'env': self.get_env()}
+            if self.runner_config.get("devtools"):
+                command.append("--devtools")
+
+            return {'command': command, 'env': self.get_env(False)}
+
+        else:
+            browser = self.runner_config.get('custom_browser_executable') or 'xdg-open'
+            # Lutris thread doesn't play nice with detaching external processes
+            # os.spawnvpe(os.P_NOWAITO, browser, [browser, url], os.environ)
+            # subprocess.Popen([browser, url], close_fds=True)
+            return {'command': [browser, url], 'env': os.environ.copy()}
