@@ -471,7 +471,7 @@ class LutrisWindow(Gtk.Application):
             stopper()
         self.steam_watcher.stop()
 
-        if self.running_game:
+        if self.running_game and self.running_game.state != self.running_game.STATE_STOPPED:
             logger.info("%s is still running, stopping it", self.running_game.name)
             self.running_game.stop()
 
