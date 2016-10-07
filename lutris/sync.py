@@ -53,7 +53,6 @@ def sync_game_details(remote_library):
             for key in remote_game.keys():
                 if key in local_game.keys() and remote_game[key] and not local_game[key]:
                     # Remote game has data that is missing from the local game.
-                    logger.warning('Oh, that happened! ¯\_(ツ)_/¯')
                     sync_required = True
                     icon_sync_required = False
                     break
