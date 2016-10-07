@@ -11,6 +11,7 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
+from lutris.gui.dialogs import FileDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_PATHS = {
@@ -369,6 +370,7 @@ class wine(Runner):
     def __init__(self, config=None):
         super(wine, self).__init__(config)
         self.context_menu_entries = [
+            ('wineexec', "Run EXE inside wine prefix", self.run_wineexec),
             ('winecfg', "Wine configuration", self.run_winecfg),
             ('wine-regedit', "Wine registry", self.run_regedit),
             ('winetricks', 'Winetricks', self.run_winetricks),
@@ -620,6 +622,13 @@ class wine(Runner):
             msi_args += " /q"
         return wineexec("msiexec", args=msi_args, prefix=prefix,
                         wine_path=wine_path, working_dir=working_dir, blocking=blocking)
+
+    def run_wineexec(self, *args):
+        dlg = FileDialog("Select an EXE or MSI file")
+        filename = dlg.filename
+        if not filename:
+            return
+        wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path)
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
