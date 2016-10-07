@@ -105,11 +105,22 @@ class vice(Runner):
             'c64': 'VICII',
             'c128': 'VICII',
             'vic20': 'VIC',
-            'pet': 'Crtc',
+            'pet': 'CRTC',
             'plus4': 'TED',
-            'cmbii': 'Crtc'
+            'cmbii': 'CRTC'
         }
         return prefixes[machine]
+
+    def get_joydevs(self, machine):
+        joydevs = {
+            'c64': 2,
+            'c128': 2,
+            'vic20': 1,
+            'pet': 0,
+            'plus4': 2,
+            'cmbii': 0
+        }
+        return joydevs[machine]
 
     def play(self):
         machine = self.runner_config.get("machine")
@@ -121,8 +132,8 @@ class vice(Runner):
         if self.runner_config.get("double"):
             params.append("-{}dsize".format(option_prefix))
         if self.runner_config.get("joy"):
-            params += ["-joydev1", "5"]
-            params += ["-joydev2", "6"]
+            for dev in range(self.get_joydevs(machine)):
+                params += ["-joydev{}".format(dev + 1), "4"]
         rom = self.game_config.get('main_file')
         if not rom:
             return {'error': 'CUSTOM', 'text': 'No rom provided'}
