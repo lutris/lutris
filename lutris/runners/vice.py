@@ -39,6 +39,18 @@ class vice(Runner):
             'default': True,
         },
         {
+            'option': 'aspect_ratio',
+            'type': 'bool',
+            'label': 'Keep aspect ratio',
+            'default': True
+        },
+        {
+            'option': 'drivesound',
+            'type': 'bool',
+            'label': 'Enable sound emulation of disk drives',
+            'default': False
+        },
+        {
             "option": "machine",
             "type": "choice",
             "label": "Machine",
@@ -136,10 +148,20 @@ class vice(Runner):
         params.append('-chdir')
         params.append(rom_dir)
         option_prefix = self.get_option_prefix(machine)
+
         if self.runner_config.get("fullscreen"):
             params.append('-{}full'.format(option_prefix))
+
         if self.runner_config.get("double"):
             params.append("-{}dsize".format(option_prefix))
+
+        if not self.runner_config.get('aspect_ratio', True):
+            params.append('-sdlaspectmode')
+            params.append('0')
+
+        if self.runner_config.get('drivesound'):
+            params.append('-drivesound')
+
         if self.runner_config.get("joy"):
             for dev in range(self.get_joydevs(machine)):
                 params += ["-joydev{}".format(dev + 1), "4"]
