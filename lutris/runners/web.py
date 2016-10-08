@@ -90,6 +90,13 @@ class web(Runner):
             'help': ("Enable this option if you want clicked links to open inside the game window. By default all links open in your default web browser.")
         },
         {
+            "option": "remove_margin",
+            "label": "Remove default <body> margin & padding",
+            "type": "bool",
+            "default": False,
+            'help': ("Sets margin and padding to zero on &lt;html&gt; and &lt;body&gt; elements.")
+        },
+        {
             "option": "enable_flash",
             "label": "Enable Adobe Flash Player",
             "type": "bool",
@@ -229,6 +236,9 @@ class web(Runner):
 
         if self.runner_config.get("open_links"):
             command.append("--open-links")
+
+        if self.runner_config.get("remove_margin"):
+            command.append("--remove-margin")
 
         if self.runner_config.get("devtools"):
             command.append("--devtools")
