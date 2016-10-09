@@ -41,7 +41,6 @@ def sync_game_details(remote_library):
     for remote_game in remote_library:
         slug = remote_game['slug']
         sync_required = False
-        icon_sync_required = True
         local_game = pga.get_game_by_field(slug, 'slug')
         if not local_game:
             continue
@@ -54,7 +53,6 @@ def sync_game_details(remote_library):
                 if key in local_game.keys() and remote_game[key] and not local_game[key]:
                     # Remote game has data that is missing from the local game.
                     sync_required = True
-                    icon_sync_required = False
                     break
 
         if not sync_required:
@@ -71,12 +69,10 @@ def sync_game_details(remote_library):
         )
         updated.add(game_id)
 
-        # TODO: Only update if icon actually updated
-        if icon_sync_required:
-            if not local_game.get('has_custom_banner'):
-                resources.download_icon(slug, 'banner', overwrite=True)
-            if not local_game.get('has_custom_icon'):
-                resources.download_icon(slug, 'icon', overwrite=True)
+        if not local_game.get('has_custom_banner'):
+            resources.download_icon(slug, 'banner', overwrite=True)
+        if not local_game.get('has_custom_icon'):
+            resources.download_icon(slug, 'icon', overwrite=True)
 
     if updated:
         logger.debug("%d games updated", len(updated))
