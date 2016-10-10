@@ -33,11 +33,6 @@ def test_urlretrieve():
     urllib.urlretrieve(TEST_URL, "/tmp/test-dl")
 
 
-@timed
-def test_download_asset():
-    http.download_asset(TEST_URL, "/tmp/test-asset", overwrite=True)
-
-
 class DownloadDialogBenchmark(DownloadDialog):
     def download_complete(self, _widget, _data):
         print("Complete")
@@ -53,4 +48,3 @@ def test_download_dialog():
 
 test_download_dialog()
 # test_urlretrieve()
-# test_download_asset()
