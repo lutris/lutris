@@ -33,10 +33,9 @@ def download_content(url, data=None, log_errors=True, stop_request=None):
 
 
 class Request(object):
-    def __init__(self, url, error_logging=True, timeout=5, stop_request=None,
+    def __init__(self, url, timeout=5, stop_request=None,
                  thread_queue=None, headers={}):
         self.url = url
-        self.error_logging = error_logging
         self.content = ''
         self.timeout = timeout
         self.stop_request = stop_request
@@ -50,12 +49,9 @@ class Request(object):
         try:
             request = urllib.request.urlopen(req, timeout=self.timeout)
         except urllib.error.HTTPError as e:
-            if self.error_logging:
-                logger.error("Unavailable url (%s): %s", self.url, e)
+            logger.error("Unavailable url (%s): %s", self.url, e)
         except (socket.timeout, urllib.error.URLError) as e:
-            if self.error_logging:
-                logger.error("Unable to connect to server (%s): %s",
-                             self.url, e)
+            logger.error("Unable to connect to server (%s): %s", self.url, e)
         else:
             try:
                 total_size = request.info().get('Content-Length').strip()
@@ -71,8 +67,7 @@ class Request(object):
                 try:
                     chunk = request.read(self.buffer_size)
                 except socket.timeout as e:
-                    if self.error_logging:
-                        logger.error("Request timed out")
+                    logger.error("Request timed out")
                     self.content = ''
                     return self
                 self.downloaded_size += len(chunk)
