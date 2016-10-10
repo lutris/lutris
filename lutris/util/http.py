@@ -17,8 +17,7 @@ def download_asset(url, dest, overwrite=False, stop_request=None):
             return
     # TODO: Downloading icons and banners makes a bunch of useless http
     # requests + it's really slow
-    content = download_content(url, log_errors=False,
-                               stop_request=stop_request)
+    content = download_content(url, stop_request=stop_request)
     if content:
         with open(dest, 'wb') as dest_file:
             dest_file.write(content)
@@ -27,8 +26,8 @@ def download_asset(url, dest, overwrite=False, stop_request=None):
         return False
 
 
-def download_content(url, data=None, log_errors=True, stop_request=None):
-    request = Request(url, log_errors, stop_request=stop_request).get(data)
+def download_content(url, data=None, stop_request=None):
+    request = Request(url, stop_request=stop_request).get(data)
     return request.content
 
 
