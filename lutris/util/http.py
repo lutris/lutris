@@ -17,18 +17,15 @@ def download_asset(url, dest, overwrite=False, stop_request=None):
             return
     # TODO: Downloading icons and banners makes a bunch of useless http
     # requests + it's really slow
-    content = download_content(url, stop_request=stop_request)
+
+    request = Request(url, stop_request=stop_request).get()
+    content = request.content
     if content:
         with open(dest, 'wb') as dest_file:
             dest_file.write(content)
         return True
     else:
         return False
-
-
-def download_content(url, data=None, stop_request=None):
-    request = Request(url, stop_request=stop_request).get(data)
-    return request.content
 
 
 class Request(object):
