@@ -265,18 +265,23 @@ class Game(object):
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
-        ld_library_path = []
-        if self.runner.use_runtime():
-            env['STEAM_RUNTIME'] = os.path.join(settings.RUNTIME_DIR, 'steam')
-            ld_library_path += runtime.get_paths()
 
+        # Runtime management
+        ld_library_path = ""
+        if self.runner.use_runtime():
+            runtime_env = runtime.get_env()
+            if 'STEAM_RUNTIME' in runtime_env:
+                env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
+            if 'LD_LIBRARY_PATH' in runtime_env:
+                ld_library_path = runtime_env['LD_LIBRARY_PATH']
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
-            ld_library_path.append(game_ld_libary_path)
-
+            if not ld_library_path:
+                ld_library_path = '$LD_LIBRARY_PATH'
+            ld_library_path = ":".join(game_ld_libary_path, ld_library_path)
         if ld_library_path:
-            ld_full = ':'.join(ld_library_path)
-            env["LD_LIBRARY_PATH"] = "{}:$LD_LIBRARY_PATH".format(ld_full)
+            env["LD_LIBRARY_PATH"] = ld_library_path
+
         # /Env vars
 
         self.game_thread = LutrisThread(launch_arguments,
