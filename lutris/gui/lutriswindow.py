@@ -260,18 +260,16 @@ class LutrisWindow(Gtk.Application):
 
     def check_update(self):
         """Verify availability of client update."""
-
-        def on_version_received(version, error):
-            if not version:
-                return
+        version_request = http.Request('https://lutris.net/version')
+        version_request.get()
+        version = version_request.content
+        if version:
             latest_version = settings.read_setting('latest_version')
             if version > (latest_version or settings.VERSION):
                 dialogs.ClientUpdateDialog()
                 # Store latest version seen to avoid showing
                 # the dialog more than once.
                 settings.write_setting('latest_version', version)
-        AsyncCall(http.download_content, on_version_received,
-                  'https://lutris.net/version')
 
     def get_view_type(self):
         view_type = settings.read_setting('view_type')
