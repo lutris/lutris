@@ -68,7 +68,13 @@ class Request(object):
                 if self.stop_request and self.stop_request.is_set():
                     self.content = ''
                     return self
-                chunk = request.read(self.buffer_size)
+                try:
+                    chunk = request.read(self.buffer_size)
+                except socket.timeout as e:
+                    if self.error_logging:
+                        logger.error("Request timed out")
+                    self.content = ''
+                    return self
                 self.downloaded_size += len(chunk)
                 if self.thread_queue:
                     self.thread_queue.put(
