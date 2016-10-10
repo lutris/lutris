@@ -105,6 +105,9 @@ class RuntimeUpdater:
 
 def get_env():
     """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
+    if is_disabled():
+        return {}
+
     steam_runtime_dir = os.path.join(RUNTIME_DIR, 'steam')
     ld_library_path = ':'.join(get_paths()) + ':$LD_LIBRARY_PATH'
     return {
