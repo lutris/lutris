@@ -177,9 +177,9 @@ class Runner(object):
 
     def use_runtime(self):
         disable_runtime = self.system_config.get('disable_runtime')
-        env_runtime = os.getenv('LUTRIS_RUNTIME')
-        if env_runtime and env_runtime.lower() in ('0', 'off'):
-            disable_runtime = True
+        disable_runtime_by_env = runtime.is_disabled()
+        if disable_runtime_by_env is True:
+            disable_runtime = disable_runtime_by_env
         return not disable_runtime
 
     def install_dialog(self):

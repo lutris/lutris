@@ -9,6 +9,19 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
+def is_disabled():
+    """Checks if runtime is disabled from an environment variable.
+    Returns True if LUTRIS_RUNTIME is set to a negative value,
+    False if any other value and None if LUTRIS_RUNTIME is not set.
+    """
+    env_runtime = os.getenv('LUTRIS_RUNTIME')
+    if env_runtime:
+        if env_runtime.lower() in ('0', 'off'):
+            return True
+        else:
+            return False
+
+
 class RuntimeUpdater:
     current_updates = 0
     status_updater = None
