@@ -6,6 +6,7 @@ from textwrap import dedent
 
 from lutris import runtime
 from lutris import settings
+from lutris.config import LutrisConfig
 from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
@@ -123,7 +124,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if prefix:
         env['WINEPREFIX'] = prefix
 
-    if settings.RUNNER_DIR in wine_path:
+    wine_config = LutrisConfig(runner_slug='wine')
+    if not wine_config.system_config['disable_runtime'] and not runtime.is_disabled():
         env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     command = [wine_path]
