@@ -356,7 +356,7 @@ class LutrisWindow(Gtk.Application):
         self.threads_stoppers += cancellables
 
     def sync_icons(self, stop_request=None):
-        resources.fetch_icons([game for game in self.game_list],
+        resources.fetch_icons([game['slug'] for game in self.game_list],
                               callback=self.on_image_downloaded,
                               stop_request=stop_request)
 
@@ -584,16 +584,18 @@ class LutrisWindow(Gtk.Application):
             logger.debug("Adding new installed game to view (%d)" % game_id)
             self.add_game_to_view(game_id, async=False)
 
-        view.set_installed(Game(game_id))
-        self.sidebar_treeview.update()
-        game_data = pga.get_game_by_field(game_id, field='id')
-        GLib.idle_add(resources.fetch_icons,
-                      [game_data], self.on_image_downloaded)
-
-    def on_image_downloaded(self, game_id):
         game = Game(game_id)
-        is_installed = game.is_installed
-        self.view.update_image(game_id, is_installed)
+        view.set_installed()
+        self.sidebar_treeview.update()
+        GLib.idle_add(resources.fetch_icons,
+                      [game.slug], self.on_image_downloaded)
+
+    def on_image_downloaded(self, game_slug):
+        games = pga.get_game_by_field(game_slug, field='slug', all=True)
+        for game in games:
+            game = Game(game['id'])
+            is_installed = game.is_installed
+            self.view.update_image(game.id, is_installed)
 
     def on_add_manually(self, widget, *args):
         def on_game_added(game):
