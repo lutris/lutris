@@ -10,6 +10,10 @@ from lutris.util.log import logger
 class Request(object):
     def __init__(self, url, timeout=5, stop_request=None,
                  thread_queue=None, headers={}):
+
+        if url.startswith('//'):
+            url = 'https:' + url
+
         self.url = url
         self.content = ''
         self.timeout = timeout
