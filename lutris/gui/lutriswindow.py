@@ -347,7 +347,7 @@ class LutrisWindow(Gtk.Application):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
-            icons_sync = AsyncCall(self.sync_icons)
+            icons_sync = AsyncCall(self.sync_icons, callback=None)
             self.threads_stoppers.append(icons_sync.stop_request.set)
             self.set_status("")
 
