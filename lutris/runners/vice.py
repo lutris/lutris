@@ -51,6 +51,16 @@ class vice(Runner):
             'default': False
         },
         {
+            'option': 'renderer',
+            'type': 'choice',
+            'label': 'Graphics renderer',
+            'choices': [
+                ('OpenGL', 'opengl'),
+                ('Software', 'software')
+            ],
+            'default': 'opengl'
+        },
+        {
             "option": "machine",
             "type": "choice",
             "label": "Machine",
@@ -154,6 +164,10 @@ class vice(Runner):
 
         if self.runner_config.get("double"):
             params.append("-{}dsize".format(option_prefix))
+
+        if self.runner_config.get('renderer'):
+            params.append('-sdl2renderer')
+            params.append(self.runner_config['renderer'])
 
         if not self.runner_config.get('aspect_ratio', True):
             params.append('-sdlaspectmode')
