@@ -1,5 +1,6 @@
 import os
 import re
+import concurrent.futures
 
 from lutris import settings
 from lutris import api
@@ -65,11 +66,9 @@ def fetch_icons(game_slugs, callback=None, stop_request=None):
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
 
     downloads = banner_downloads + icon_downloads
-    for url, dest_path in downloads:
-        print(url, dest_path)
-        if stop_request and stop_request.is_set():
-            break
-        download_media(url, dest_path)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+        for url, dest_path in downloads:
+            executor.submit(download_media, url, dest_path)
 
     if updated_slugs and callback:
         callback(updated_slugs)
