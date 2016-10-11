@@ -590,12 +590,13 @@ class LutrisWindow(Gtk.Application):
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
 
-    def on_image_downloaded(self, game_slug):
-        games = pga.get_game_by_field(game_slug, field='slug', all=True)
-        for game in games:
-            game = Game(game['id'])
-            is_installed = game.is_installed
-            self.view.update_image(game.id, is_installed)
+    def on_image_downloaded(self, game_slugs):
+        for game_slug in game_slugs:
+            games = pga.get_game_by_field(game_slug, field='slug', all=True)
+            for game in games:
+                game = Game(game['id'])
+                is_installed = game.is_installed
+                self.view.update_image(game.id, is_installed)
 
     def on_add_manually(self, widget, *args):
         def on_game_added(game):

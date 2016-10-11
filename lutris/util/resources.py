@@ -1,6 +1,8 @@
 import os
+import re
 
 from lutris import settings
+from lutris import api
 from lutris.util.log import logger
 from lutris.util.http import Request
 
@@ -25,43 +27,59 @@ def has_icon(game, icon_type):
 
 
 def fetch_icons(game_slugs, callback=None, stop_request=None):
-    no_banners = []
-    no_icons = []
-    for slug in game_slugs:
-        if not has_icon(slug, BANNER):
-            no_banners.append(slug)
-        if not has_icon(slug, ICON):
-            no_icons.append(slug)
-    for game in no_banners:
+    no_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
+    no_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
+
+    # Remove duplicate slugs
+    missing_media_slugs = list(set(no_banners) | set(no_icons))
+
+    response = api.get_games(game_slugs=missing_media_slugs)
+    results = response['results']
+    while response['next']:
+        page_match = re.search(r'page=(\d+)', response['next'])
+        if page_match:
+            page = page_match.group(1)
+        else:
+            logger.error("No page found in %s", response['next'])
+            break
+        response = api.get_games(game_slugs=missing_media_slugs, page=page)
+        results += response['results']
+
+    banner_downloads = []
+    icon_downloads = []
+    updated_slugs = []
+    for game in results:
+        if game['slug'] in no_banners:
+            banner_url = game['banner_url']
+            if banner_url:
+                dest_path = get_icon_path(game['slug'], BANNER)
+                banner_downloads.append((game['banner_url'], dest_path))
+                updated_slugs.append(game['slug'])
+        if game['slug'] in no_icons:
+            icon_url = game['icon_url']
+            if icon_url:
+                dest_path = get_icon_path(game['slug'], ICON)
+                icon_downloads.append(game['icon_url'], dest_path)
+                updated_slugs.append(game['slug'])
+
+    updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
+
+    downloads = banner_downloads + icon_downloads
+    for url, dest_path in downloads:
+        print(url, dest_path)
         if stop_request and stop_request.is_set():
             break
-        download_icon(slug, BANNER, callback=callback, stop_request=stop_request)
-    for game in no_icons:
-        if stop_request and stop_request.is_set():
-            break
-        download_icon(slug, ICON, callback=callback, stop_request=stop_request)
+        download_media(url, dest_path)
+
+    if updated_slugs and callback:
+        callback(updated_slugs)
 
 
-def download_icon(game_slug, icon_type, overwrite=False, callback=None,
-                  stop_request=None):
-    if icon_type == BANNER:
-        url = settings.BANNER_URL % game_slug
-    if icon_type == ICON:
-        url = settings.ICON_URL % game_slug
-
-    dest = get_icon_path(game_slug, icon_type)
-
+def download_media(url, dest, overwrite=False):
     if os.path.exists(dest):
         if overwrite:
             os.remove(dest)
         else:
             return
-
-    request = Request(url, stop_request=stop_request).get()
-    content = request.content
-    if content:
-        with open(dest, 'wb') as dest_file:
-            dest_file.write(content)
-        if callback:
-            logger.debug("Downloaded %s for %s" % (icon_type, game_slug))
-            callback(game_slug)
+    request = Request(url).get()
+    request.write_to_file(dest)

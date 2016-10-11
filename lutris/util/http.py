@@ -61,6 +61,12 @@ class Request(object):
     def post(self, data):
         raise NotImplementedError
 
+    def write_to_file(self, path):
+        content = self.content
+        if content:
+            with open(path, 'wb') as dest_file:
+                dest_file.write(content)
+
     @property
     def json(self):
         if self.content:

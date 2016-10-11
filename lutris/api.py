@@ -74,12 +74,15 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_games(game_slugs=None):
-    api_url = settings.SITE_URL + "api/games"
+def get_games(game_slugs=None, page=1):
+    url = settings.SITE_URL + "api/games"
 
-    response = http.Request(api_url, headers={'Content-Type': 'application/json'})
+    if int(page) > 1:
+        url += "?page={}".format(page)
+
+    response = http.Request(url, headers={'Content-Type': 'application/json'})
     if game_slugs:
-        payload = json.dumps({'games': game_slugs}).encode('utf-8')
+        payload = json.dumps({'games': game_slugs, 'page': page}).encode('utf-8')
     else:
         payload = None
     response.get(data=payload)
