@@ -590,7 +590,7 @@ class LutrisWindow(Gtk.Application):
             self.add_game_to_view(game_id, async=False)
 
         game = Game(game_id)
-        view.set_installed()
+        view.set_installed(game)
         self.sidebar_treeview.update()
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
