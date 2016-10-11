@@ -446,12 +446,17 @@ class LutrisWindow(Gtk.Application):
             connection_status = "Not connected"
         connection_label.set_text(connection_status)
 
+    def on_games_button_clicked(self, widget):
+        self._open_browser("https://lutris.net/games/")
+
     def on_register_account(self, *args):
-        register_url = "https://lutris.net/user/register"
+        self._open_browser("https://lutris.net/user/register")
+
+    def _open_browser(self, url):
         try:
-            subprocess.check_call(["xdg-open", register_url])
+            subprocess.check_call(["xdg-open", url])
         except subprocess.CalledProcessError:
-            Gtk.show_uri(None, register_url, Gdk.CURRENT_TIME)
+            Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, widget):
         """Callback when Synchronize Library is activated."""

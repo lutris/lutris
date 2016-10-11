@@ -377,6 +377,34 @@
             <property name="toolbar_style">icons</property>
             <property name="icon_size">4</property>
             <child>
+              <object class="GtkToolButton" id="games_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Browse games</property>
+                <property name="label" translatable="yes">Browse games</property>
+                <property name="icon_name">applications-games</property>
+                <signal name="clicked" handler="on_games_button_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="runners_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Manage runners</property>
+                <property name="label" translatable="yes">Manage runners</property>
+                <property name="icon_name">system-run</property>
+                <signal name="clicked" handler="on_runners_activate" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="play_button">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
