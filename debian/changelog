@@ -1,9 +1,27 @@
+lutris (0.4.0) xenial; urgency=medium
+
+  * Project ported to Python3
+  * Libretro runner added
+  * New web runner, using Electron by default
+  * Adventure Game Studio runner added
+  * Improvements and fixes in Vice runner
+  * Fixes for Zdoom runner
+  * Main icon view uses Gtk.FlowBox
+  * Optimization for downloading icons and banners
+  * Add system option to switch to US keyboard layout while running a game
+  * Add system option to select monitor in SDL1 games
+  * Allow changing game id
+  * Allow setting custom banners and icons
+
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 11 Oct 2016 11:19:17 -0700
+
 lutris (0.3.8) xenial; urgency=medium
 
   * Add option to use the dark GTK theme variant
   * Add Desmume runner
   * Add option to limit games to a single CPU core
-  * Fix button mappings on mednafen  
+  * Fix button mappings on mednafen
   * Improve Reicast installation
   * Add controller support to Reicast
   * Disable Wine crash dialogs by default
