@@ -1,10 +1,9 @@
 # -*- coding:Utf-8 -*-
 from gi.repository import Gtk, GObject, Gdk
 
-import lutris.runners
+from lutris import runners
 from lutris import settings
 from lutris.gui.widgets import get_runner_icon
-from lutris.runners import import_runner, RunnerInstallationError
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
@@ -37,7 +36,7 @@ class RunnersDialog(Gtk.Window):
         self.show_all()
 
         # Runner list
-        runner_list = sorted(lutris.runners.__all__)
+        runner_list = sorted(runners.__all__)
         runner_vbox = Gtk.VBox()
         runner_vbox.show()
 
@@ -65,7 +64,7 @@ class RunnersDialog(Gtk.Window):
 
     def get_runner_hbox(self, runner_name):
         # Get runner details
-        runner = import_runner(runner_name)()
+        runner = runners.import_runner(runner_name)()
         platform = runner.platform
         description = runner.description
 
@@ -147,7 +146,8 @@ class RunnersDialog(Gtk.Window):
             dependency.install()
         try:
             runner.install()
-        except RunnerInstallationError as ex:
+        except (runners.RunnerInstallationError,
+                runners.NonInstallableRunnerError) as ex:
             ErrorDialog(ex.message)
         if runner.is_installed():
             self.emit('runner-installed')
