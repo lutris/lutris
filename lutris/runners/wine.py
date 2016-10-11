@@ -618,7 +618,8 @@ class wine(Runner):
             return False
 
     @classmethod
-    def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None, working_dir=None, blocking=False):
+    def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None,
+                 working_dir=None, blocking=False):
         msi_args = "/i %s" % msi_file
         if quiet:
             msi_args += " /q"

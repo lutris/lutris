@@ -1,5 +1,4 @@
 import os
-from lutris import settings
 from lutris.runners.runner import Runner
 
 

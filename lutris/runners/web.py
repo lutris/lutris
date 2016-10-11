@@ -11,6 +11,7 @@ from lutris import pga, settings
 
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 
+
 class web(Runner):
     human_name = "Web"
     description = "Runs web based games"
@@ -43,7 +44,8 @@ class web(Runner):
             'option': 'window_size',
             'label': 'Window size',
             'type': 'choice_with_entry',
-            'choices': ["640x480", "800x600", "1024x768", "1280x720", "1280x1024", "1920x1080"],
+            'choices': ["640x480", "800x600", "1024x768",
+                        "1280x720", "1280x1024", "1920x1080"],
             'default': '800x600',
             'help': ("The initial size of the game window when not opened.")
         },
@@ -66,7 +68,8 @@ class web(Runner):
             "label": "Disable menu bar and default shortcuts",
             "type": "bool",
             "default": False,
-            'help': ("This also disables default keyboard shortcuts, like copy/paste and fullscreen toggling.")
+            'help': ("This also disables default keyboard shortcuts, "
+                     "like copy/paste and fullscreen toggling.")
         },
         {
             "option": "disable_scrolling",
@@ -80,21 +83,26 @@ class web(Runner):
             "label": "Hide mouse cursor",
             "type": "bool",
             "default": False,
-            'help': ("Prevents the mouse cursor from showing when hovering above the window.")
+            'help': ("Prevents the mouse cursor from showing "
+                     "when hovering above the window.")
         },
         {
             'option': 'open_links',
             'label': 'Open links in game window',
             'type': 'bool',
             'default': False,
-            'help': ("Enable this option if you want clicked links to open inside the game window. By default all links open in your default web browser.")
+            'help': (
+                "Enable this option if you want clicked links to open inside the "
+                "game window. By default all links open in your default web browser."
+            )
         },
         {
             "option": "remove_margin",
             "label": "Remove default <body> margin & padding",
             "type": "bool",
             "default": False,
-            'help': ("Sets margin and padding to zero on &lt;html&gt; and &lt;body&gt; elements.")
+            'help': ("Sets margin and padding to zero "
+                     "on &lt;html&gt; and &lt;body&gt; elements.")
         },
         {
             "option": "enable_flash",
@@ -192,14 +200,14 @@ class web(Runner):
 
             return {'command': command}
 
-
         icon = datapath.get_icon_path(game_data.get('slug'))
         if not os.path.exists(icon):
             icon = DEFAULT_ICON
 
         command = [self.get_executable()]
 
-        command.append(os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'))
+        command.append(os.path.join(settings.RUNNER_DIR,
+                                    'web/electron/resources/app.asar'))
 
         command.append(url)
 

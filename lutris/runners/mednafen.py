@@ -1,6 +1,5 @@
 import os
 import subprocess
-from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
@@ -114,15 +113,15 @@ class mednafen(Runner):
         # Button mappings (based on Xbox360 controller)
         BTN_A = "00000000"
         BTN_B = "00000001"
-        BTN_X = "00000002"
-        BTN_Y = "00000003"
+        # BTN_X = "00000002"
+        # BTN_Y = "00000003"
         BTN_R = "00000004"
         BTN_L = "00000005"
         BTN_SELECT = "00000006"
         BTN_START = "00000007"
-        BTN_HOME = "00000008"
-        BTN_THUMB_L = "00000009"
-        BTN_THUMB_R = "00000010"
+        # BTN_HOME = "00000008"
+        # BTN_THUMB_L = "00000009"
+        # BTN_THUMB_R = "00000010"
         AXIS_UP = "0000c001"
         AXIS_DOWN = "00008001"
         AXIS_LEFT = "0000c000"

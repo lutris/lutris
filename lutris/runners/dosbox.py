@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-from lutris import settings
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.runners.runner import Runner

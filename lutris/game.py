@@ -6,7 +6,7 @@ import subprocess
 
 from gi.repository import GLib
 
-from lutris import pga, settings, shortcuts
+from lutris import pga, shortcuts
 from lutris import runtime
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util import audio, display, jobs, system, strings

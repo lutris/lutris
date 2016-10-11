@@ -2,7 +2,6 @@
 import os
 import subprocess
 
-from lutris import settings
 from lutris.runners.runner import Runner
 
 RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
