@@ -15,13 +15,6 @@ def get_icon_path(game, icon_type):
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game)
 
 
-def get_icon_url(game, icon_type):
-    if icon_type == BANNER:
-        return settings.BANNER_URL % game
-    if icon_type == ICON:
-        return settings.ICON_URL % game
-
-
 def has_icon(game, icon_type):
     if icon_type == BANNER:
         icon_path = get_icon_path(game, BANNER)
@@ -51,7 +44,11 @@ def fetch_icons(game_slugs, callback=None, stop_request=None):
 
 def download_icon(game_slug, icon_type, overwrite=False, callback=None,
                   stop_request=None):
-    url = get_icon_url(game_slug, icon_type)
+    if icon_type == BANNER:
+        url = settings.BANNER_URL % game_slug
+    if icon_type == ICON:
+        url = settings.ICON_URL % game_slug
+
     dest = get_icon_path(game_slug, icon_type)
 
     if os.path.exists(dest):
