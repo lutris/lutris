@@ -12,6 +12,9 @@ class Request(object):
     def __init__(self, url, timeout=5, stop_request=None,
                  thread_queue=None, headers={}):
 
+        if not url:
+            raise ValueError('An URL is required!')
+
         if url.startswith('//'):
             url = 'https:' + url
 
