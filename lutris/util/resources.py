@@ -59,7 +59,7 @@ def fetch_icons(game_slugs, callback=None, stop_request=None):
             icon_url = game['icon_url']
             if icon_url:
                 dest_path = get_icon_path(game['slug'], ICON)
-                icon_downloads.append(game['icon_url'], dest_path)
+                icon_downloads.append((game['icon_url'], dest_path))
                 updated_slugs.append(game['slug'])
 
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
