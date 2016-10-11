@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
+from lutris.settings import SITE_URL
 from lutris.util.log import logger
 
 
@@ -13,6 +14,9 @@ class Request(object):
 
         if url.startswith('//'):
             url = 'https:' + url
+
+        if url.startswith('/'):
+            url = SITE_URL + url
 
         self.url = url
         self.content = ''
