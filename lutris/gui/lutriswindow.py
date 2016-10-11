@@ -347,7 +347,7 @@ class LutrisWindow(Gtk.Application):
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
-            icons_sync = AsyncCall(self.sync_icons, None, stoppable=True)
+            icons_sync = AsyncCall(self.sync_icons)
             self.threads_stoppers.append(icons_sync.stop_request.set)
             self.set_status("")
 
@@ -355,10 +355,9 @@ class LutrisWindow(Gtk.Application):
         cancellables = self.runtime_updater.update(self.set_status)
         self.threads_stoppers += cancellables
 
-    def sync_icons(self, stop_request=None):
+    def sync_icons(self):
         resources.fetch_icons([game['slug'] for game in self.game_list],
-                              callback=self.on_image_downloaded,
-                              stop_request=stop_request)
+                              callback=self.on_image_downloaded)
 
     def set_status(self, text):
         status_box = self.builder.get_object('status_box')

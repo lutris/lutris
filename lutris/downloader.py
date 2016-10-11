@@ -53,7 +53,7 @@ class Downloader():
             os.remove(self.dest)
         self.file_pointer = open(self.dest, 'wb')
         self.thread = jobs.AsyncCall(self.async_download, self.on_done,
-                                     self.url, self.queue, stoppable=True)
+                                     self.url, self.queue)
         self.stop_request = self.thread.stop_request
 
     def check_progress(self):

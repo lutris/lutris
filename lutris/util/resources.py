@@ -27,7 +27,7 @@ def has_icon(game, icon_type):
         return os.path.exists(icon_path)
 
 
-def fetch_icons(game_slugs, callback=None, stop_request=None):
+def fetch_icons(game_slugs, callback=None):
     no_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
     no_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
 
