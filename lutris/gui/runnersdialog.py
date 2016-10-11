@@ -17,6 +17,9 @@ class RunnersDialog(Gtk.Window):
 
     def __init__(self):
         GObject.GObject.__init__(self)
+
+        self.runner_labels = {}
+
         self.set_title("Manage runners")
         width = int(settings.read_setting('runners_manager_width') or 700)
         height = int(settings.read_setting('runners_manager_height') or 500)
@@ -36,17 +39,13 @@ class RunnersDialog(Gtk.Window):
         self.show_all()
 
         # Runner list
-        runner_list = sorted(runners.__all__)
-        runner_vbox = Gtk.VBox()
-        runner_vbox.show()
+        self.runner_list = sorted(runners.__all__)
+        self.runner_vbox = Gtk.VBox()
+        self.runner_vbox.show()
 
-        self.runner_labels = {}
-        for runner_name in runner_list:
-            hbox = self.get_runner_hbox(runner_name)
-            runner_vbox.pack_start(hbox, True, True, 5)
-            separator = Gtk.Separator()
-            runner_vbox.pack_start(separator, False, False, 5)
-        scrolled_window.add_with_viewport(runner_vbox)
+        self.populate_runners()
+
+        scrolled_window.add_with_viewport(self.runner_vbox)
 
         # Bottom bar
         buttons_box = Gtk.Box()
@@ -54,7 +53,12 @@ class RunnersDialog(Gtk.Window):
         open_runner_button = Gtk.Button("Open Runners Folder")
         open_runner_button.show()
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
-        buttons_box.add(open_runner_button)
+        buttons_box.pack_start(open_runner_button, False, False, 0)
+
+        refresh_button = Gtk.Button("Refresh")
+        refresh_button.show()
+        refresh_button.connect('clicked', self.on_refresh_clicked)
+        buttons_box.pack_start(refresh_button, False, False, 10)
 
         # Signals
         self.connect('destroy', self.on_destroy)
@@ -120,6 +124,13 @@ class RunnersDialog(Gtk.Window):
 
         return hbox
 
+    def populate_runners(self):
+        for runner_name in self.runner_list:
+            hbox = self.get_runner_hbox(runner_name)
+            self.runner_vbox.pack_start(hbox, True, True, 5)
+            separator = Gtk.Separator()
+            self.runner_vbox.pack_start(separator, False, False, 5)
+
     def set_button_display(self, runner):
         if runner.multiple_versions:
             self.versions_button.show()
@@ -161,6 +172,11 @@ class RunnersDialog(Gtk.Window):
 
     def on_runner_open_clicked(self, widget):
         Gtk.show_uri(None, 'file://' + settings.RUNNER_DIR, Gdk.CURRENT_TIME)
+
+    def on_refresh_clicked(self, widget):
+        for child in self.runner_vbox.get_children():
+            child.destroy()
+        self.populate_runners()
 
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():
