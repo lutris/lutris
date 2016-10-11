@@ -27,11 +27,11 @@ ICON_PATH = os.path.join(GLib.get_user_data_dir(),
 
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting('pga_path') or os.path.join(DATA_DIR, 'pga.db')
-SITE_URL = sio.read_setting("website") or "https://lutris.net/"
+SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
-INSTALLER_URL = SITE_URL + 'games/install/%s/'
-ICON_URL = SITE_URL + 'games/icon/%s.png'
-BANNER_URL = SITE_URL + 'games/banner/%s.jpg'
+INSTALLER_URL = SITE_URL + '/games/install/%s/'
+ICON_URL = SITE_URL + '/games/icon/%s.png'
+BANNER_URL = SITE_URL + '/games/banner/%s.jpg'
 RUNTIME_URL = "https://lutris.net/api/runtime"
 
 # Default config options

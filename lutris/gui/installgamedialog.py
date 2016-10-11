@@ -137,7 +137,7 @@ class InstallerDialog(Gtk.Window):
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
         elif dlg.result == dlg.NEW_INSTALLER:
-            installer_url = settings.SITE_URL + "games/%s/" % self.game_ref
+            installer_url = settings.SITE_URL + "/games/%s/" % self.game_ref
             webbrowser.open(installer_url)
 
     # ---------------------------

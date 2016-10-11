@@ -28,7 +28,7 @@ def read_api_key():
 def connect(username, password):
     credentials = urllib.parse.urlencode({'username': username,
                                           'password': password}).encode('utf-8')
-    login_url = settings.SITE_URL + "api/accounts/token"
+    login_url = settings.SITE_URL + "/api/accounts/token"
     try:
         request = urllib.request.urlopen(login_url, credentials, 10)
     except (socket.timeout, urllib.error.URLError) as ex:
@@ -57,7 +57,7 @@ def get_library():
         return []
     username = credentials["username"]
     token = credentials["token"]
-    url = settings.SITE_URL + "api/games/library/%s" % username
+    url = settings.SITE_URL + "/api/games/library/%s" % username
     headers = {'Authorization': 'Token ' + token}
     request = http.Request(url, headers=headers)
     response = request.get()
@@ -69,13 +69,13 @@ def get_library():
 
 
 def get_runners(runner_name):
-    api_url = settings.SITE_URL + "api/runners/" + runner_name
+    api_url = settings.SITE_URL + "/api/runners/" + runner_name
     response = http.Request(api_url).get()
     return response.json
 
 
 def get_games(game_slugs=None, page=1):
-    url = settings.SITE_URL + "api/games"
+    url = settings.SITE_URL + "/api/games"
 
     if int(page) > 1:
         url += "?page={}".format(page)
