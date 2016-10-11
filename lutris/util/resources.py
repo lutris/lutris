@@ -2,7 +2,7 @@ import os
 
 from lutris import settings
 from lutris.util.log import logger
-from lutris.util import http
+from lutris.util.http import Request
 
 BANNER = "banner"
 ICON = "icon"
@@ -29,6 +29,26 @@ def has_icon(game, icon_type):
     elif icon_type == ICON:
         icon_path = get_icon_path(game, ICON)
         return os.path.exists(icon_path)
+
+
+def download_asset(url, dest, overwrite=False, stop_request=None):
+    if os.path.exists(dest):
+        if overwrite:
+            os.remove(dest)
+        else:
+            logger.info("Destination %s exists, not overwriting" % dest)
+            return
+    # TODO: Downloading icons and banners makes a bunch of useless http
+    # requests + it's really slow
+
+    request = Request(url, stop_request=stop_request).get()
+    content = request.content
+    if content:
+        with open(dest, 'wb') as dest_file:
+            dest_file.write(content)
+        return True
+    else:
+        return False
 
 
 def fetch_icons(game_slugs, callback=None, stop_request=None):

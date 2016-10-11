@@ -1,4 +1,3 @@
-import os
 import json
 import socket
 import urllib.request
@@ -6,26 +5,6 @@ import urllib.error
 import urllib.parse
 
 from lutris.util.log import logger
-
-
-def download_asset(url, dest, overwrite=False, stop_request=None):
-    if os.path.exists(dest):
-        if overwrite:
-            os.remove(dest)
-        else:
-            logger.info("Destination %s exists, not overwriting" % dest)
-            return
-    # TODO: Downloading icons and banners makes a bunch of useless http
-    # requests + it's really slow
-
-    request = Request(url, stop_request=stop_request).get()
-    content = request.content
-    if content:
-        with open(dest, 'wb') as dest_file:
-            dest_file.write(content)
-        return True
-    else:
-        return False
 
 
 class Request(object):
