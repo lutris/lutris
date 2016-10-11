@@ -7,8 +7,8 @@ from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    def __init__(self, function, on_done, *args, **kwargs):
-        """Execute `function` in a new thread then schedule `on_done` for
+    def __init__(self, function, callback, *args, **kwargs):
+        """Execute `function` in a new thread then schedule `callback` for
         execution in the main loop.
         """
         self.stop_request = threading.Event()
@@ -16,7 +16,7 @@ class AsyncCall(threading.Thread):
         super(AsyncCall, self).__init__(target=self.target, args=args,
                                         kwargs=kwargs)
         self.function = function
-        self.on_done = on_done if on_done else lambda r, e: None
+        self.callback = callback if callback else lambda r, e: None
         self.daemon = kwargs.pop('daemon', True)
 
         self.start()
@@ -35,4 +35,4 @@ class AsyncCall(threading.Thread):
             print(ex_type, ex_value)
             traceback.print_tb(tb)
 
-        GLib.idle_add(lambda: self.on_done(result, error))
+        GLib.idle_add(lambda: self.callback(result, error))
