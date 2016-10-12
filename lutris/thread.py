@@ -170,7 +170,10 @@ class LutrisThread(threading.Thread):
             self.stop_func()
         for key in self.original_env:
             if self.original_env[key] is None:
-                del os.environ[key]
+                try:
+                    del os.environ[key]
+                except KeyError:
+                    pass
             else:
                 os.environ[key] = self.original_env[key]
         self.is_running = False
