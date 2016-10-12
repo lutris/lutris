@@ -215,12 +215,18 @@ class LutrisThread(threading.Thread):
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
-        if num_children == 0 \
-           or self.cycles_without_children >= self.max_cycles_without_children:
-            logger.debug("No children left in thread, exiting")
+        max_cycles_reached = (self.cycles_without_children
+                              >= self.max_cycles_without_children)
+        if num_children == 0 or max_cycles_reached:
+            if max_cycles_reached:
+                logger.debug('Maximum number of cycles without children reached')
             self.is_running = False
             self.stop()
-            self.game_process.communicate()
+            if num_children == 0:
+                logger.debug("No children left in thread")
+                self.game_process.communicate()
+            else:
+                logger.debug('Some processes are still active')
             self.return_code = self.game_process.returncode
             return False
         if terminated_children and terminated_children == num_watched_children:
