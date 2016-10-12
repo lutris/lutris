@@ -21,7 +21,7 @@ WARMUP_TIME = 5 * 60
 EXCLUDED_PROCESSES = (
     'lutris', 'python', 'python3',
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
-    'steam', 'Steam.exe', 'steamer', 'steamerrorrepor',
+    'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
     'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
     'control', 'regedit', 'winecfg.exe', 'wdfmgr.exe',  'wineconsole', 'winedbg'
 )
