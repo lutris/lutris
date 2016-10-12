@@ -36,6 +36,7 @@ class LutrisThread(threading.Thread):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
+        self.original_env = {}
         self.command = command
         self.runner = runner
         self.game_process = None
@@ -86,6 +87,7 @@ class LutrisThread(threading.Thread):
             self.terminal = False
             for key, value in self.env.items():
                 logger.debug('Storing environment variable %s to %s', key, value)
+                self.original_env['key'] = os.environ.get('key')
                 os.environ[key] = value
             env = os.environ.copy()
             env.update(self.env)
@@ -166,6 +168,11 @@ class LutrisThread(threading.Thread):
             thread.stop()
         if hasattr(self, 'stop_func'):
             self.stop_func()
+        for key in self.original_env:
+            if self.original_env[key] is None:
+                del os.environ[key]
+            else:
+                os.environ[key] = self.original_env[key]
         self.is_running = False
         if not killall:
             return
