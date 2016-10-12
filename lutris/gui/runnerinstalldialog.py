@@ -5,6 +5,7 @@ from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util import jobs
 from lutris.gui.widgets import Dialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris import api
 from lutris import settings
 from lutris.downloader import Downloader
@@ -27,6 +28,10 @@ class RunnerInstallDialog(Dialog):
 
         self.runner = runner
         self.runner_info = api.get_runners(self.runner)
+        if not self.runner_info:
+            ErrorDialog('Unable to get runner versions, check your internet connection',
+                        parent=parent)
+            return
         label = Gtk.Label("%s version management" % self.runner_info['name'])
         self.vbox.add(label)
         self.runner_store = self.get_store()
