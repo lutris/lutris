@@ -35,6 +35,9 @@ def fetch_icons(game_slugs, callback=None):
     missing_media_slugs = list(set(no_banners) | set(no_icons))
 
     response = api.get_games(game_slugs=missing_media_slugs)
+    if not response:
+        logger.warning('Unable to get games from API')
+        return
     results = response['results']
     while response['next']:
         page_match = re.search(r'page=(\d+)', response['next'])
