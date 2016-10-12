@@ -87,7 +87,7 @@ class LutrisThread(threading.Thread):
             self.terminal = False
             for key, value in self.env.items():
                 logger.debug('Storing environment variable %s to %s', key, value)
-                self.original_env['key'] = os.environ.get('key')
+                self.original_env[key] = os.environ.get(key)
                 os.environ[key] = value
             env = os.environ.copy()
             env.update(self.env)
