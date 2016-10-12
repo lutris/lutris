@@ -176,9 +176,8 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
 
-        sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or 'off'
-        if sdl_video_fullscreen != 'off':
-            env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen
+        sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or ''
+        env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen
 
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
@@ -262,9 +261,8 @@ class Game(object):
         system_env = system_config.get('env') or {}
         env.update(system_env)
 
-        ld_preload = gameplay_info.get('ld_preload')
-        if ld_preload:
-            env["LD_PRELOAD"] = ld_preload
+        ld_preload = gameplay_info.get('ld_preload') or ''
+        env["LD_PRELOAD"] = ld_preload
 
         # Runtime management
         ld_library_path = ""
@@ -279,8 +277,7 @@ class Game(object):
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
             ld_library_path = ":".join(game_ld_libary_path, ld_library_path)
-        if ld_library_path:
-            env["LD_LIBRARY_PATH"] = ld_library_path
+        env["LD_LIBRARY_PATH"] = ld_library_path
 
         # /Env vars
 
