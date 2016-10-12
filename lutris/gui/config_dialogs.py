@@ -17,6 +17,19 @@ DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
 
 
+class SlugEntry(Gtk.Entry, Gtk.Editable):
+    def __init__(self):
+        super(SlugEntry, self).__init__()
+
+    def do_insert_text(self, new_text, length, position):
+        """Filter inserted characters to only accept alphanumeric and dashes"""
+        new_text = ''.join([c for c in new_text if c.isalnum() or c == '-']).lower()
+        if new_text:
+            self.get_buffer().insert_text(position, new_text, length)
+            return position + length
+        return position
+
+
 class GameDialogCommon(object):
     no_runner_label = "Select a runner in the Game Info tab"
 
@@ -73,10 +86,9 @@ class GameDialogCommon(object):
         label = Gtk.Label(label="Identifier")
         box.pack_start(label, False, False, 20)
 
-        self.slug_entry = Gtk.Entry()
+        self.slug_entry = SlugEntry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
-        self.slug_entry.connect('insert_text', self.on_slug_entry_insert)
         self.slug_entry.connect('activate', self.on_slug_entry_activate)
         box.pack_start(self.slug_entry, True, True, 0)
 
@@ -184,21 +196,6 @@ class GameDialogCommon(object):
             self.slug_entry.set_sensitive(True)
         else:
             self.change_game_slug()
-
-    def on_slug_entry_insert(self, widget, text, length, position):
-        """Filter inserted characters to only accept alphanumeric and dashes"""
-        position = widget.get_position()
-
-        result = ''.join([c for c in text if c.isalnum() or c == '-']).lower()
-
-        widget.handler_block_by_func(self.on_slug_entry_insert)
-        widget.insert_text(result, position)
-        widget.handler_unblock_by_func(self.on_slug_entry_insert)
-
-        new_pos = position + len(result)
-        GObject.idle_add(widget.set_position, new_pos)
-
-        widget.stop_emission("insert_text")
 
     def on_slug_entry_activate(self, widget):
         self.change_game_slug()
