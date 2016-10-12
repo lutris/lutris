@@ -81,16 +81,26 @@ class LutrisThread(threading.Thread):
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
+        # Store provided environment variables so they can be used by future
+        # processes.
+        for key, value in self.env.items():
+            logger.debug('Storing environment variable %s to %s', key, value)
+            self.original_env[key] = os.environ.get(key)
+            os.environ[key] = value
+
+        # Reset library paths if they were not provided
+        for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
+            if key not in self.env and os.environ.get(key):
+                del os.environ[key]
+
+        # Copy the resulting environment to what will be passed to the process
+        env = os.environ.copy()
+        env.update(self.env)
+
         if self.terminal and find_executable(self.terminal):
             self.run_in_terminal()
         else:
             self.terminal = False
-            for key, value in self.env.items():
-                logger.debug('Storing environment variable %s to %s', key, value)
-                self.original_env[key] = os.environ.get(key)
-                os.environ[key] = value
-            env = os.environ.copy()
-            env.update(self.env)
             self.game_process = self.execute_process(self.command, env)
         if not self.game_process:
             return
