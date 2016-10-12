@@ -219,6 +219,7 @@ class LutrisThread(threading.Thread):
            or self.cycles_without_children >= self.max_cycles_without_children:
             logger.debug("No children left in thread, exiting")
             self.is_running = False
+            self.stop()
             self.game_process.communicate()
             self.return_code = self.game_process.returncode
             return False
