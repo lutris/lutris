@@ -268,7 +268,7 @@ class Game(object):
         ld_library_path = ""
         if self.runner.use_runtime():
             runtime_env = runtime.get_env()
-            if 'STEAM_RUNTIME' in runtime_env:
+            if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
                 env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
             if 'LD_LIBRARY_PATH' in runtime_env:
                 ld_library_path = runtime_env['LD_LIBRARY_PATH']

@@ -155,7 +155,13 @@ class Runner(object):
 
         Reimplement in derived runner if need be."""
         exe = self.get_executable()
-        return {'command': [exe], 'env': {}}
+        env = {}
+        try:
+            env = self.get_env()
+        except AttributeError:
+            pass
+
+        return {'command': [exe], 'env': env}
 
     def run(self, *args):
         """Run the runner alone."""

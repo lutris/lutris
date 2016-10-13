@@ -56,6 +56,15 @@ class steam(Runner):
             'default': False,
             'help': ("Shut down Steam after the game has quit\n"
                      "(only if Steam was started by Lutris)")
+        },
+        {
+            'option': 'steam_native_runtime',
+            'label': "Disable Steam Runtime (use native libraries)",
+            'type': 'bool',
+            'default': False,
+            'help': ("Launches Steam with STEAM_RUNTIME=0. "
+                     "Make sure you disabled Lutris Runtime and "
+                     "have the required libraries installed.")
         }
     ]
     system_options_override = [
@@ -115,6 +124,14 @@ class steam(Runner):
 
     def get_executable(self):
         return system.find_executable('steam')
+
+    def get_env(self):
+        env = {}
+
+        if self.runner_config.get('steam_native_runtime'):
+            env['STEAM_RUNTIME'] = '0'
+
+        return env
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
@@ -204,7 +221,8 @@ class steam(Runner):
         return {
             'command': [self.get_executable(),
                         'steam://rungameid/%s' % self.appid],
-            'rootpid': self.original_steampid
+            'rootpid': self.original_steampid,
+            'env': self.get_env()
         }
 
     def watch_game_process(self):
@@ -235,5 +253,5 @@ class steam(Runner):
                                '(game config=%s)' % self.game_config)
         logger.debug("Launching Steam uninstall of game %s" % appid)
         command = [self.get_executable(), 'steam://uninstall/%s' % appid]
-        thread = LutrisThread(command, runner=self, watch=False)
+        thread = LutrisThread(command, runner=self, env=self.get_env(), watch=False)
         thread.start()
