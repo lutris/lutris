@@ -6,14 +6,10 @@ from lutris.util.log import logger
 
 def set_cursor(name, window, display=None):
     """Set a named mouse cursor for the given window."""
-    cursors = {
-        'default': Gdk.CursorType.ARROW,
-        'wait': Gdk.CursorType.WATCH,
-    }
 
     if not display:
         display = Gdk.Display.get_default()
-    cursor = Gdk.Cursor.new_for_display(display, cursors[name])
+    cursor = Gdk.Cursor.new_from_name(display, name)
     window.set_cursor(cursor)
 
 
