@@ -152,7 +152,6 @@ class LutrisWindow(Gtk.Application):
 
         # Sidebar
         self.sidebar_paned = self.builder.get_object('sidebar_paned')
-        self.sidebar_paned.set_position(150)
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
@@ -162,8 +161,6 @@ class LutrisWindow(Gtk.Application):
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
         self.window.show_all()
-        if not self.sidebar_visible:
-            self.sidebar_viewport.hide()
         self.builder.connect_signals(self)
         self.connect_signals()
 
@@ -180,6 +177,7 @@ class LutrisWindow(Gtk.Application):
         self.game_store.fill_store(self.game_list)
         self.switch_splash_screen()
 
+        self.show_sidebar()
         self.update_runtime()
 
         # Connect account and/or sync
@@ -293,12 +291,11 @@ class LutrisWindow(Gtk.Application):
         if len(self.game_list) == 0:
             self.splash_box.show()
             self.games_scrollwindow.hide()
-            self.sidebar_viewport.hide()
+            self.show_sidebar(force_hide=True)
         else:
             self.splash_box.hide()
             self.games_scrollwindow.show()
-            if self.sidebar_visible:
-                self.sidebar_viewport.show()
+            self.show_sidebar()
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
@@ -730,22 +727,19 @@ class LutrisWindow(Gtk.Application):
         game = Game(self.view.selected_game)
         shortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
-    def toggle_sidebar(self, _widget=None):
-        if self.sidebar_visible:
-            self.sidebar_paned.remove(self.games_scrollwindow)
-            self.main_box.remove(self.sidebar_paned)
-            self.main_box.remove(self.statusbar)
-            self.main_box.pack_start(self.games_scrollwindow, True, True, 0)
-            self.main_box.pack_start(self.statusbar, False, False, 0)
-            settings.write_setting('sidebar_visible', 'false')
-        else:
-            self.main_box.remove(self.games_scrollwindow)
-            self.sidebar_paned.add2(self.games_scrollwindow)
-            self.main_box.remove(self.statusbar)
-            self.main_box.pack_start(self.sidebar_paned, True, True, 0)
-            self.main_box.pack_start(self.statusbar, False, False, 0)
-            settings.write_setting('sidebar_visible', 'true')
+    def toggle_sidebar(self, widget=None):
         self.sidebar_visible = not self.sidebar_visible
+        if self.sidebar_visible:
+            settings.write_setting('sidebar_visible', 'true')
+        else:
+            settings.write_setting('sidebar_visible', 'false')
+        self.show_sidebar()
+
+    def show_sidebar(self, force_hide=None):
+        if self.sidebar_visible and force_hide is not True:
+            self.sidebar_paned.set_position(150)
+        else:
+            self.sidebar_paned.set_position(0)
 
     def on_sidebar_changed(self, widget):
         if self.get_view_type() == 'grid':
