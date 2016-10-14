@@ -1,5 +1,5 @@
 import os
-from gi.repository import Gtk, Pango, GObject
+from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
@@ -446,7 +446,8 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
         super(EditGameConfigDialog, self).__init__(
-            "Configure %s" % game.name, parent
+            "Configure %s" % game.name,
+            parent=parent
         )
         self.game = game
         self.lutris_config = game.config
@@ -464,10 +465,11 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
 class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runner config edit dialog."""
-    def __init__(self, runner):
+    def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
         super(RunnerConfigDialog, self).__init__(
-            "Configure %s" % self.runner_name
+            "Configure %s" % self.runner_name,
+            parent=parent
         )
 
         self.game = None

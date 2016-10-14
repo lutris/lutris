@@ -14,7 +14,6 @@ LABEL = 2
 class SidebarTreeView(Gtk.TreeView):
     def __init__(self):
         super(SidebarTreeView, self).__init__()
-
         self.installed_runners = []
 
         self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, str)
@@ -95,7 +94,8 @@ class SidebarTreeView(Gtk.TreeView):
             runner_slug = self.get_selected_runner()
             if runner_slug not in self.runners:
                 return
-            ContextualMenu().popup(event, runner_slug, self.get_toplevel())
+            menu = ContextualMenu()
+            menu.popup(event, runner_slug, self.get_toplevel())
 
 
 class ContextualMenu(Gtk.Menu):
@@ -134,7 +134,7 @@ class ContextualMenu(Gtk.Menu):
                                           event.button, event.time)
 
     def on_configure_runner(self, *args):
-        RunnerConfigDialog(self.runner)
+        RunnerConfigDialog(self.runner, parent=self.parent_window)
 
     def on_manage_versions(self, *args):
         dlg_title = "Manage %s versions" % self.runner.name
