@@ -79,6 +79,8 @@ class GameFlowBox(Gtk.FlowBox):
         self.set_filter_func(self.filter_func)
         self.set_sort_func(self.sort_func)
         self.set_activate_on_single_click(False)
+        self.set_max_children_per_line(1)
+        self.set_max_children_per_line(20)
 
         self.contextual_menu = None
 
