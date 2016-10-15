@@ -25,12 +25,12 @@ BuildRequires:  pygobject3
 Requires:       pygobject3, PyYAML, pyxdg, dbus-python
 %endif
 %if 0%{?suse_version}
-BuildRequires:  python-gobject
+BuildRequires:  python3-gobject
 BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
-Requires:       python-gobject, python-gtk, python-PyYAML, python-xdg, dbus-1-python
+Requires:       python3-gobject, python3-PyYAML, python3-xdg, dbus-1-python3
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes
