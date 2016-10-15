@@ -4,4 +4,4 @@
 # Fri, 29 Jan 2016 08:11:44 -0500
 export PYBUILD_NAME=lutris
 %:
-	dh $@ --with python2 --buildsystem=pybuild
+	dh $@ --with python3 --buildsystem=pybuild
