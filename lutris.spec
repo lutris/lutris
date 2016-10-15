@@ -14,7 +14,7 @@ BuildArch:      noarch
 
 # Common build dependencies
 BuildRequires:  desktop-file-utils
-BuildRequires:  python-devel
+BuildRequires:  python3-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  pygobject3, python3-wheel, python3-gobject
