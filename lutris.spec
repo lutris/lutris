@@ -55,10 +55,10 @@ on Linux.
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-%{__python3} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+%{__python3} setup.py install -O1 --skip-build --root %{buildroot}
 %if 0%{?fedora_version} || 0%{?suse_version}
-%fdupes $RPM_BUILD_ROOT%{python3_sitelib}
+%fdupes %{buildroot}%{python3_sitelib}
 %endif
 
 #desktop icon
@@ -67,7 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-desktop-file-install --dir=$RPM_BUILD_ROOT%{_datadir}/applications share/applications/%{name}.desktop
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{name}.desktop
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
@@ -92,11 +92,15 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/polkit-1/actions/*
-%{python3_sitelib}/%{name}-%{version}-py3.5.egg-info
+%{python3_sitelib}/%{name}-%{version}-py*.egg-info
 %{python3_sitelib}/%{name}/
 
 
 %changelog
+* Sat Oct 15 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.0
+- Update to Python 3
+- Bump version to 0.4.0
+
 * Sat Dec 12 2015 Rémi Verschelde <akien@mageia.org> - 0.3.7-2
 - Remove ownership of system directories
 - Spec file cleanup
