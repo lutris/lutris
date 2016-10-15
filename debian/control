@@ -3,6 +3,7 @@ Section: games
 Priority: optional
 Build-Depends: debhelper,
  python3,
+ python3-setuptools,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
