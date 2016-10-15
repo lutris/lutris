@@ -1,4 +1,4 @@
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           lutris
 Version:        0.4.0
@@ -51,14 +51,14 @@ on Linux.
 
 
 %build
-%{__python} setup.py build
+%{__python3} setup.py build
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
+%{__python3} setup.py install -O1 --skip-build --root $RPM_BUILD_ROOT
 %if 0%{?fedora_version} || 0%{?suse_version}
-%fdupes $RPM_BUILD_ROOT%{python_sitelib}
+%fdupes $RPM_BUILD_ROOT%{python3_sitelib}
 %endif
 
 #desktop icon
@@ -92,8 +92,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/polkit-1/actions/*
-%{python_sitelib}/%{name}-%{version}-py2.7.egg-info
-%{python_sitelib}/%{name}/
+%{python3_sitelib}/%{name}-%{version}-py3.5.egg-info
+%{python3_sitelib}/%{name}/
 
 
 %changelog
