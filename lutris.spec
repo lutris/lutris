@@ -1,4 +1,6 @@
 %{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+# openSUSE does not define this, so define for compatibility
+%{!?python3: %define __python3 python3}
 
 Name:           lutris
 Version:        0.4.0
@@ -30,6 +32,7 @@ BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
+BuildRequires:  python3-setuptools
 Requires:       python3-gobject, python3-PyYAML, python3-xdg, dbus-1-python3
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
