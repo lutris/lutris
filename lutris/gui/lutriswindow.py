@@ -27,7 +27,7 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
-from lutris.gui.flowbox import GameFlowBox
+from lutris.gui import flowbox
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
@@ -238,12 +238,12 @@ class LutrisWindow(Gtk.Application):
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def get_view(self, view_type):
-        if view_type == 'grid':
+        if view_type == 'grid' and flowbox.FLOWBOX_SUPPORTED:
             # view_type = GameGridView(self.game_store)
-            return GameFlowBox(self.game_list,
-                               icon_type=self.icon_type,
-                               filter_installed=self.filter_installed)
-        elif view_type == 'list':
+            return flowbox.GameFlowBox(self.game_list,
+                                       icon_type=self.icon_type,
+                                       filter_installed=self.filter_installed)
+        else:
             return GameListView(self.game_store)
 
     def connect_signals(self):

@@ -2,6 +2,13 @@ from lutris import pga
 from gi.repository import Gtk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
 
+try:
+    FlowBox = Gtk.FlowBox
+    FLOWBOX_SUPPORTED = True
+except AttributeError:
+    FlowBox = object
+    FLOWBOX_SUPPORTED = False
+
 
 class GameItem(Gtk.VBox):
     def __init__(self, game, parent, icon_type='banner'):
@@ -62,7 +69,7 @@ class GameItem(Gtk.VBox):
         self.parent.popup_contextual_menu(event, self)
 
 
-class GameFlowBox(Gtk.FlowBox):
+class GameFlowBox(FlowBox):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
