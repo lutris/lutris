@@ -166,7 +166,7 @@ class GameDialogCommon(object):
         runner_dropdown = Gtk.ComboBox.new_with_model(runner_liststore)
         runner_dropdown.set_id_column(1)
         runner_index = 0
-        if self.game:
+        if self.runner_name:
             for runner in runner_liststore:
                 if self.runner_name == str(runner[1]):
                     break
@@ -412,7 +412,7 @@ class GameDialogCommon(object):
 
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
-    def __init__(self, parent, game=None, callback=None):
+    def __init__(self, parent, game=None, runner=None, callback=None):
         super(AddGameDialog, self).__init__("Add a new game", parent=parent)
         self.game = game
         self.saved = False
@@ -422,7 +422,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.runner_name = game.runner_name
             self.slug = game.slug
         else:
-            self.runner_name = None
+            self.runner_name = runner
             self.slug = None
 
         self.game_config_id = self.get_config_id()

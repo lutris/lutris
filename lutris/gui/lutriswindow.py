@@ -57,6 +57,7 @@ class LutrisWindow(Gtk.Application):
         self.game_selection_time = 0
         self.game_launch_time = 0
         self.last_selected_game = None
+        self.selected_runner = None
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
@@ -607,7 +608,10 @@ class LutrisWindow(Gtk.Application):
             self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
-        AddGameDialog(self.window, game, callback=lambda: on_game_added(game))
+        AddGameDialog(self.window,
+                      game=game,
+                      runner=self.selected_runner,
+                      callback=lambda: on_game_added(game))
 
     def on_view_game_log_activate(self, widget):
         if not self.running_game:
@@ -623,6 +627,7 @@ class LutrisWindow(Gtk.Application):
         """Add a new game manually with the AddGameDialog."""
         dialog = AddGameDialog(
             self.window,
+            runner=self.selected_runner,
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
         return True
@@ -743,9 +748,10 @@ class LutrisWindow(Gtk.Application):
             self.sidebar_paned.set_position(0)
 
     def on_sidebar_changed(self, widget):
+        self.selected_runner = widget.get_selected_runner()
         if self.current_view_type == 'grid':
-            self.view.filter_runner = widget.get_selected_runner()
+            self.view.filter_runner = self.selected_runner
             self.view.invalidate_filter()
         else:
-            self.game_store.filter_runner = widget.get_selected_runner()
+            self.game_store.filter_runner = self.selected_runner
             self.game_store.modelfilter.refilter()
