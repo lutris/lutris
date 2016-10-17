@@ -1,3 +1,9 @@
+lutris (0.4.0ubuntu2) xenial; urgency=medium
+
+  * Fix a nasty bug that would freeze the installer window
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 13:21:01 -0700
+
 lutris (0.4.0ubuntu1) xenial; urgency=medium
 
   * Fix some packaging issues

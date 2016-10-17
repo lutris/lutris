@@ -3,7 +3,7 @@
 %{!?python3: %define __python3 python3}
 
 Name:           lutris
-Version:        0.4.0ubuntu1
+Version:        0.4.0ubuntu2
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
