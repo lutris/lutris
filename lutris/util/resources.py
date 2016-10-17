@@ -33,6 +33,8 @@ def fetch_icons(game_slugs, callback=None):
 
     # Remove duplicate slugs
     missing_media_slugs = list(set(no_banners) | set(no_icons))
+    if not missing_media_slugs:
+        return
 
     response = api.get_games(game_slugs=missing_media_slugs)
     if not response:
