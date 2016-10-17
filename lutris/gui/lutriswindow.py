@@ -741,11 +741,9 @@ class LutrisWindow(Gtk.Application):
             settings.write_setting('sidebar_visible', 'false')
         self.show_sidebar()
 
-    def show_sidebar(self, force_hide=None):
-        if self.sidebar_visible and force_hide is not True:
-            self.sidebar_paned.set_position(150)
-        else:
-            self.sidebar_paned.set_position(0)
+    def show_sidebar(self):
+        width = 150 if self.sidebar_visible else 0
+        self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
         self.selected_runner = widget.get_selected_runner()
