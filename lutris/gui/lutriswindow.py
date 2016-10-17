@@ -292,12 +292,12 @@ class LutrisWindow(Gtk.Application):
     def switch_splash_screen(self):
         if len(self.game_list) == 0:
             self.splash_box.show()
+            self.sidebar_paned.hide()
             self.games_scrollwindow.hide()
-            self.show_sidebar(force_hide=True)
         else:
             self.splash_box.hide()
+            self.sidebar_paned.show()
             self.games_scrollwindow.show()
-            self.show_sidebar()
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
