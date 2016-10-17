@@ -9,6 +9,9 @@ def set_cursor(name, window, display=None):
 
     if not display:
         display = Gdk.Display.get_default()
+    if not window:
+        logger.error('No window provided in set_cursor')
+        return
     cursor = Gdk.Cursor.new_from_name(display, name)
     window.set_cursor(cursor)
 
