@@ -90,8 +90,7 @@ class desura(Runner):
     def get_installed_app_path(self, appid):
         return os.path.join(self.get_common_path(), appid)
 
-    def install(self):
-        self.logger.debug("Installing desura")
+    def install(self, version=None, downloader=None, callback=None):
         if self.arch == "x86_64":
             tarball = "desura-x86_64.tar.gz"
         else:
