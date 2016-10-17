@@ -604,7 +604,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(self.sidebar_treeview.update)
 
         game = Game(self.view.selected_game)
+<<<<<<< afd81714a2cb170542480a676db21b98f0a375f4
         AddGameDialog(self,
+=======
+        AddGameDialog(self.window,
+>>>>>>> Preselect selected runner when adding games (Fixes #408)
                       game=game,
                       runner=self.selected_runner,
                       callback=lambda: on_game_added(game))
@@ -624,7 +628,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_game_button_clicked(self, *args):
         """Add a new game manually with the AddGameDialog."""
         dialog = AddGameDialog(
+<<<<<<< afd81714a2cb170542480a676db21b98f0a375f4
             self,
+=======
+            self.window,
+>>>>>>> Preselect selected runner when adding games (Fixes #408)
             runner=self.selected_runner,
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
@@ -741,6 +749,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
+<<<<<<< afd81714a2cb170542480a676db21b98f0a375f4
         type, slug = widget.get_selected_filter()
         selected_runner = None
         selected_platform = None
@@ -762,4 +771,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             self.game_store.filter_runner = self.selected_runner
             self.game_store.filter_platform = self.selected_platform
+=======
+        self.selected_runner = widget.get_selected_runner()
+        if self.current_view_type == 'grid':
+            self.view.filter_runner = self.selected_runner
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_runner = self.selected_runner
+>>>>>>> Preselect selected runner when adding games (Fixes #408)
             self.game_store.modelfilter.refilter()
