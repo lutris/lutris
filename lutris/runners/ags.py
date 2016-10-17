@@ -23,6 +23,7 @@ class ags(Runner):
         {
             'option': 'filter',
             'type': 'choice',
+            'label': 'Graphics filter',
             'choices': [
                 ('None', 'none'),
                 ('Standard scaling', 'stdscale'),
