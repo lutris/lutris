@@ -242,10 +242,19 @@ def set_drive_path(prefix, letter, path):
 
 def get_wine_versions():
     """Return the list of Wine versions installed"""
-    if not os.path.exists(WINE_DIR):
-        return []
-    dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
-    return [dirname for dirname in dirs if is_version_installed(dirname)]
+    versions = []
+
+    for build in sorted(WINE_PATHS.keys()):
+        version = get_system_wine_version(WINE_PATHS[build])
+        if version:
+            versions.append(build)
+
+    if os.path.exists(WINE_DIR):
+        dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
+        for dirname in dirs:
+            if is_version_installed(dirname):
+                versions.append(dirname)
+    return versions
 
 
 def get_wine_version_exe(version):
@@ -380,23 +389,24 @@ class wine(Runner):
         ]
 
         def get_wine_version_choices():
-            versions = []
-            labels = {
-                'winehq-devel': 'WineHQ devel (%s)',
-                'winehq-staging': 'WineHQ staging (%s)',
-                'wine-development': 'Wine Development (%s)',
-                'system': 'System (%s)',
-            }
-            for build in sorted(WINE_PATHS.keys()):
-                version = get_system_wine_version(WINE_PATHS[build])
-                if version:
-                    versions.append((labels[build] % version, build))
-
-            versions.append(
+            version_choices = [
                 ('Custom (select executable below)', 'custom')
-            )
-            versions += [(v, v) for v in get_wine_versions()]
-            return versions
+            ]
+            labels = {
+                'winehq-devel': 'WineHQ devel ({})',
+                'winehq-staging': 'WineHQ staging ({})',
+                'wine-development': 'Wine Development ({})',
+                'system': 'System ({})',
+            }
+            versions = get_wine_versions()
+            for version in versions:
+                if version in labels.keys():
+                    version_number = get_system_wine_version(WINE_PATHS[version])
+                    label = labels[version].format(version_number)
+                else:
+                    label = version
+                version_choices.append((label, version))
+            return version_choices
 
         self.runner_options = [
             {
