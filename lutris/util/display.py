@@ -13,6 +13,9 @@ def set_cursor(name, window, display=None):
         logger.error('No window provided in set_cursor')
         return
     cursor = Gdk.Cursor.new_from_name(display, name)
+    if not cursor:
+        logger.error('Could not get cursor "%s" for display "%s"', name, display)
+        return
     window.set_cursor(cursor)
 
 
