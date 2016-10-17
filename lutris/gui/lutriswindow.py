@@ -239,7 +239,6 @@ class LutrisWindow(Gtk.Application):
 
     def get_view(self, view_type):
         if view_type == 'grid' and flowbox.FLOWBOX_SUPPORTED:
-            # view_type = GameGridView(self.game_store)
             return flowbox.GameFlowBox(self.game_list,
                                        icon_type=self.icon_type,
                                        filter_installed=self.filter_installed)
@@ -270,6 +269,8 @@ class LutrisWindow(Gtk.Application):
                 settings.write_setting('latest_version', version)
 
     def get_view_type(self):
+        if not flowbox.FLOWBOX_SUPPORTED:
+            return 'list'
         view_type = settings.read_setting('view_type')
         if view_type in ['grid', 'list']:
             return view_type
@@ -742,7 +743,7 @@ class LutrisWindow(Gtk.Application):
             self.sidebar_paned.set_position(0)
 
     def on_sidebar_changed(self, widget):
-        if self.get_view_type() == 'grid':
+        if self.current_view_type == 'grid':
             self.view.filter_runner = widget.get_selected_runner()
             self.view.invalidate_filter()
         else:
