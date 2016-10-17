@@ -1,3 +1,10 @@
+lutris (0.4.0ubuntu1) xenial; urgency=medium
+
+  * Fix some packaging issues
+  * Fix AGS runner
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 12:08:34 -0700
+
 lutris (0.4.0) xenial; urgency=medium
 
   * Project ported to Python3
