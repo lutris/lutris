@@ -7,6 +7,7 @@ import yaml
 
 from lutris import pga, settings, shortcuts
 from lutris.installer import interpreter
+from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
@@ -156,6 +157,10 @@ class InstallerDialog(Gtk.Window):
         for index, script in enumerate(self.scripts):
             for item in ['description', 'notes']:
                 script[item] = script.get(item) or ''
+            for item in ['runner', 'version']:
+                if item not in script:
+                    raise ScriptingError('Missing field "%s" in install script' % item)
+
             runner = script['runner']
             version = script['version']
             label = "{} ({})".format(version, runner)

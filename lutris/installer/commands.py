@@ -5,7 +5,7 @@ import shlex
 
 from gi.repository import GLib
 
-from .errors import ScriptingError
+from lutris.installer.errors import ScriptingError
 
 from lutris import runtime
 from lutris.util import extract, disks, system
