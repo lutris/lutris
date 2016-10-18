@@ -1,3 +1,11 @@
+lutris (0.4.1) xenial; urgency=medium
+
+  * Switch to new versioning scheme
+  * Improve terminal emulator detection
+  * Initial support for ARM
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Oct 2016 13:35:36 -0700
+
 lutris (0.4.0ubuntu4) xenial; urgency=medium
 
   * Better fixes for old Gtk versions

@@ -1,4 +1,4 @@
-VERSION="0.4.0ubuntu4"
+VERSION="0.4.1"
 
 cover:
 	rm tests/fixtures/pga.db -f
