@@ -4,7 +4,7 @@ import os
 from gi.repository import GLib, Gtk, Gdk, GObject
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets import DownloadProgressBox
+from lutris.gui.widgets import DownloadProgressBox, Dialog
 from lutris.util import datapath
 
 
@@ -316,3 +316,28 @@ class NoInstallerDialog(Gtk.MessageDialog):
                          "Close", self.EXIT)
         self.result = self.run()
         self.destroy()
+
+
+class PlatformConnectDialog(Dialog):
+    """Login form for external services"""
+
+    def __init__(self, service):
+        self.service = service
+        super(PlatformConnectDialog, self).__init__(title=service.name)
+
+        self.username_entry = Gtk.Entry()
+        self.username_entry.set_text("login")
+        self.vbox.pack_start(self.username_entry, True, True, 0)
+
+        self.password_entry = Gtk.Entry()
+        self.vbox.pack_start(self.password_entry, True, True, 0)
+
+        connect_button = Gtk.Button("Connect")
+        connect_button.connect("clicked", self.on_connect_clicked)
+        self.vbox.pack_start(connect_button, True, True, 0)
+        self.show_all()
+
+    def on_connect_clicked(self, button):
+        username = self.username_entry.get_text()
+        password = self.password_entry.get_text()
+        self.client = self.service.login(username, password)
