@@ -10,6 +10,32 @@ import traceback
 from lutris.util.log import logger
 
 
+TERMINAL_CANDIDATES = [
+    'xterm',
+    'gnome-terminal',
+    'konsole',
+    'xfce4-terminal',
+    'pantheon-terminal',
+    'terminator',
+    'urxvt',
+    'cool-retro-term',
+    'Eterm',
+    'guake',
+    'lilyterm',
+    'lxterminal',
+    'roxterm',
+    'rxvt',
+    'aterm',
+    'sakura',
+    'st',
+    'terminology',
+    'termite',
+    'wterm',
+    'yuakuake',
+]
+
+INSTALLED_TERMINALS = []
+
 is_64bit = sys.maxsize > 2**32
 
 
@@ -220,34 +246,13 @@ def get_pids_using_file(path):
 
 
 def get_terminal_apps():
-    candidates = [
-        'xterm',
-        'gnome-terminal',
-        'konsole',
-        'xfce4-terminal',
-        'pantheon-terminal',
-        'terminator',
-        'urxvt',
-        'cool-retro-term',
-        'Eterm',
-        'guake',
-        'lilyterm',
-        'lxterminal',
-        'roxterm',
-        'rxvt',
-        'aterm',
-        'sakura',
-        'st',
-        'terminology',
-        'termite',
-        'wterm',
-        'yuakuake',
-    ]
-    installed_terms = []
-    for exe in candidates:
-        if find_executable(exe):
-            installed_terms.append(exe)
-    return installed_terms
+    if INSTALLED_TERMINALS:
+        return INSTALLED_TERMINALS
+    else:
+        for exe in TERMINAL_CANDIDATES:
+            if find_executable(exe):
+                INSTALLED_TERMINALS.append(exe)
+    return INSTALLED_TERMINALS
 
 
 def get_default_terminal():
