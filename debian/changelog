@@ -1,3 +1,12 @@
+lutris (0.4.0ubuntu4) xenial; urgency=medium
+
+  * Better fixes for old Gtk versions
+  * System wine is detected when installing Wine Steam
+  * Preselect runner when adding a game and the sidebar filter is active
+  * Fix sidebar being displayed on splash screen
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 17 Oct 2016 17:16:59 -0700
+
 lutris (0.4.0ubuntu3) xenial; urgency=medium
 
   * Fallback to list view when running an old version of Gtk
