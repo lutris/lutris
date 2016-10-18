@@ -80,7 +80,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkGrid">
+          <object class="GtkGrid" id="login-grid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="valign">start</property>
