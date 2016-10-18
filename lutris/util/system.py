@@ -221,10 +221,26 @@ def get_pids_using_file(path):
 
 def get_terminal_apps():
     candidates = [
-        'aterm', 'cool-retro-term', 'Eterm',
-        'gnome-terminal', 'guake', 'konsole', 'lilyterm', 'lxterminal',
-        'pantheon-terminal', 'roxterm', 'rxvt', 'sakura', 'st', 'terminator',
-        'terminology', 'termite', 'urxvt', 'wterm', 'xfce4-terminal', 'xterm',
+        'xterm',
+        'gnome-terminal',
+        'konsole',
+        'xfce4-terminal',
+        'pantheon-terminal',
+        'terminator',
+        'urxvt',
+        'cool-retro-term',
+        'Eterm',
+        'guake',
+        'lilyterm',
+        'lxterminal',
+        'roxterm',
+        'rxvt',
+        'aterm',
+        'sakura',
+        'st',
+        'terminology',
+        'termite',
+        'wterm',
         'yuakuake',
     ]
     installed_terms = []
