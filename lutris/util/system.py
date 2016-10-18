@@ -39,13 +39,14 @@ INSTALLED_TERMINALS = []
 is_64bit = sys.maxsize > 2**32
 
 
-def execute(command, env=None, cwd=None, log_errors=False):
+def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
     """Execute a system command and return its results."""
     existing_env = os.environ.copy()
     if env:
         existing_env.update(env)
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
-    logger.debug("Executing %s", ' '.join(command))
+    if not quiet:
+        logger.debug("Executing %s", ' '.join(command))
 
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
@@ -85,10 +86,10 @@ def get_md5_hash(filename):
     return md5.hexdigest()
 
 
-def find_executable(exec_name):
+def find_executable(exec_name, quiet=False):
     if not exec_name:
         raise ValueError("find_executable: exec_name required")
-    return execute(['which', exec_name])
+    return execute(['which', exec_name], quiet=quiet)
 
 
 def get_pid(program, multiple=False):
@@ -250,7 +251,7 @@ def get_terminal_apps():
         return INSTALLED_TERMINALS
     else:
         for exe in TERMINAL_CANDIDATES:
-            if find_executable(exe):
+            if find_executable(exe, quiet=True):
                 INSTALLED_TERMINALS.append(exe)
     return INSTALLED_TERMINALS
 
