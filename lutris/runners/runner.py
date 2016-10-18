@@ -26,6 +26,8 @@ def get_arch():
         return 'x86_64'
     elif '86' in machine:
         return 'i386'
+    elif 'arm7' in machine:
+        return 'arm7'
 
 
 class Runner(object):
