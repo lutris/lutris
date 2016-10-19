@@ -374,11 +374,9 @@ class LutrisWindow(Gtk.Application):
                 self.set_status("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
-                display.set_cursor('default', self.window.get_window())
                 self.stop_button.set_sensitive(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
-                display.set_cursor('default', self.window.get_window())
                 self.stop_button.set_sensitive(True)
         for index in range(4):
             self.joystick_icons.append(
@@ -539,7 +537,6 @@ class LutrisWindow(Gtk.Application):
             game_id = self._get_current_game_id()
         if not game_id:
             return
-        display.set_cursor('wait', self.window.get_window())
         self.running_game = Game(game_id)
         if self.running_game.is_installed:
             self.running_game.play()
@@ -563,7 +560,6 @@ class LutrisWindow(Gtk.Application):
             logger.debug("Installing game %s (%s)" % (game_ref, game_id))
         if not game_ref:
             return
-        display.set_cursor('wait', self.window.get_window())
         InstallerDialog(game_ref, self)
 
     def game_selection_changed(self, _widget):

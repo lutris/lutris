@@ -109,8 +109,6 @@ class InstallerDialog(Gtk.Window):
                            self.game_ref)
 
     def on_scripts_obtained(self, scripts, _error=None):
-        if self.parent:
-            display.set_cursor('default', self.parent.window.get_window())
         if not scripts:
             self.destroy()
             self.run_no_installer_dialog()

@@ -1,26 +1,6 @@
 import subprocess
-from gi.repository import Gdk
 
 from lutris.util.log import logger
-
-
-def set_cursor(name, window, display=None):
-    """Set a named mouse cursor for the given window."""
-
-    if not display:
-        display = Gdk.Display.get_default()
-    if not window:
-        logger.error('No window provided in set_cursor')
-        return
-    try:
-        cursor = Gdk.Cursor.new_from_name(display, name)
-    except TypeError:
-        logger.error('Failed to retrive cursor "%s" for display "%s"', name, display)
-        return
-    if not cursor:
-        logger.error('Could not get cursor "%s" for display "%s"', name, display)
-        return
-    window.set_cursor(cursor)
 
 
 def get_vidmodes():
