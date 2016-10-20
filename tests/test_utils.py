@@ -128,3 +128,25 @@ class TestEvilConfigParser(TestCase):
         parser.set('Test', 'key', 'value')
         with open(self.config_path, 'wb') as config:
             parser.write(config)
+
+
+class TestUnpackDependencies(TestCase):
+    def test_single_dependency(self):
+        string = 'quake'
+        dependencies = strings.unpack_dependencies(string)
+        self.assertEqual(dependencies, ['quake'])
+
+    def test_multiple_dependencies(self):
+        string = 'quake,  quake-1,quake-steam, quake-gog   '
+        dependencies = strings.unpack_dependencies(string)
+        self.assertEqual(dependencies, ['quake', 'quake-1', 'quake-steam', 'quake-gog'])
+
+    def test_dependency_options(self):
+        string = 'quake,  quake-1,quake-steam | quake-gog|quake-humble   '
+        dependencies = strings.unpack_dependencies(string)
+        self.assertEqual(dependencies, ['quake', 'quake-1', ('quake-steam', 'quake-gog', 'quake-humble')])
+
+    def test_strips_extra_commas(self):
+        string = ', , , ,, ,,,,quake,  quake-1,quake-steam | quake-gog|quake-humble |||| , |, | ,|,| ,  '
+        dependencies = strings.unpack_dependencies(string)
+        self.assertEqual(dependencies, ['quake', 'quake-1', ('quake-steam', 'quake-gog', 'quake-humble')])

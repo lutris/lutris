@@ -47,3 +47,25 @@ def version_sort(versions, reverse=False):
         version.append(suffix)
         return version
     return sorted(versions, key=version_key, reverse=reverse)
+
+
+def unpack_dependencies(string):
+    """Parse a string to allow for complex dependencies
+    Works in a similar fashion as Debian dependencies, separate dependencies
+    are comma separated and multiple choices for satisfying a dependency are
+    separated by pipes.
+
+    Example: quake-steam | quake-gog, some-quake-mod returns:
+        [('quake-steam', 'quake-gog'), 'some-quake-mod']
+    """
+    dependencies = string.split(',')
+    dependencies = [dep.strip() for dep in dependencies if dep.strip()]
+    for index, dependency in enumerate(dependencies):
+        if '|' in dependency:
+            choices = tuple([choice.strip()
+                             for choice in dependencies[index].split('|')
+                             if choice.strip()])
+            dependencies[index] = choices
+
+    dependencies = [dep for dep in dependencies if dep]
+    return dependencies
