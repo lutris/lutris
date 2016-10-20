@@ -365,19 +365,14 @@ class PlatformConnectDialog(Dialog):
     """Login form for external services"""
 
     def __init__(self, service):
+        from lutris.gui.webview import WebView
         self.service = service
         super(PlatformConnectDialog, self).__init__(title=service.name)
-
-        self.username_entry = Gtk.Entry()
-        self.username_entry.set_text("login")
-        self.vbox.pack_start(self.username_entry, True, True, 0)
-
-        self.password_entry = Gtk.Entry()
-        self.vbox.pack_start(self.password_entry, True, True, 0)
-
-        connect_button = Gtk.Button("Connect")
-        connect_button.connect("clicked", self.on_connect_clicked)
-        self.vbox.pack_start(connect_button, True, True, 0)
+        self.set_default_size(390, 420)
+        url = "https://login.gog.com/login"
+        self.webview = WebView()
+        self.webview.load_uri(url)
+        self.vbox.pack_start(self.webview, True, True, 0)
         self.show_all()
 
     def on_connect_clicked(self, button):
