@@ -36,6 +36,10 @@ class RuntimeUpdater:
         return time.gmtime(os.path.getctime(path))
 
     def update(self, status_updater=None):
+        if is_disabled():
+            logger.debug("Runtime disabled, not updating it.")
+            return []
+
         if self.is_updating():
             logger.debug("Runtime already updating")
             return []
