@@ -90,13 +90,23 @@ class libretro(Runner):
         else:
             super(libretro, self).install(version, downloader, callback)
 
-    def play(self):
-        command = [self.get_executable()]
+    def get_run_data(self):
+        return {
+            'command': [self.get_executable()] + self.get_runner_parameters()
+        }
 
+    def get_runner_parameters(self):
+        parameters = []
         # Fullscreen
         fullscreen = self.runner_config.get('fullscreen')
         if fullscreen:
-            command.append('--fullscreen')
+            parameters.append('--fullscreen')
+        return parameters
+
+    def play(self):
+        command = [self.get_executable()]
+
+        command += self.get_runnner_parameters()
 
         # Core
         core = self.game_config.get('core')
