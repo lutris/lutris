@@ -99,12 +99,25 @@ class libretro(Runner):
             command.append('--fullscreen')
 
         # Core
-        core = self.game_config['core']
+        core = self.game_config.get('core')
+        if not core:
+            return {
+                'error': 'CUSTOM',
+                'text': "No core has been selected for this game"
+            }
         command.append('--libretro={}'.format(self.get_core_path(core)))
 
         # Main file
         file = self.game_config.get('main_file')
-        if file:
-            command.append(file)
-
+        if not file:
+            return {
+                'error': 'CUSTOM',
+                'text': 'No game file specified'
+            }
+        if not os.path.exists(file):
+            return {
+                'error': 'FILE_NOT_FOUND',
+                'file': file
+            }
+        command.append(file)
         return {'command': command}
