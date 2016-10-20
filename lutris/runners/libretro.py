@@ -32,12 +32,17 @@ def get_cores():
     ]
 
 
+def get_default_config_path():
+    return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch.cfg')
+
+
 class libretro(Runner):
     human_name = "libretro"
     description = "Multi system emulator"
     platform = "libretro"
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
+
     game_options = [
         {
             'option': 'main_file',
@@ -58,6 +63,12 @@ class libretro(Runner):
             'type': 'bool',
             'label': 'Fullscreen',
             'default': True
+        },
+        {
+            'option': 'config_file',
+            'type': 'file',
+            'label': 'Config file',
+            'default': get_default_config_path()
         }
     ]
 
@@ -101,6 +112,10 @@ class libretro(Runner):
         fullscreen = self.runner_config.get('fullscreen')
         if fullscreen:
             parameters.append('--fullscreen')
+
+        config_file = self.runner_config.get('config_file') \
+            or get_default_config_path()
+        parameters.append('--config={}'.format(config_file))
         return parameters
 
     def play(self):
