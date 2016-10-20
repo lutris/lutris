@@ -24,7 +24,7 @@ class RetroConfig:
                 value = value.strip("\"")
                 self.config.append((key, value))
 
-    def write(self):
+    def save(self):
         with open(self.config_path, 'w') as config_file:
             for (key, value) in self.config:
                 config_file.write("{} = \"{}\"\n".format(key, value))

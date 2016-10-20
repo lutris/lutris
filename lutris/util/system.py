@@ -281,5 +281,12 @@ def path_exists(path):
     return os.path.exists(path)
 
 
+def path_is_empty(path):
+    """Return True is the given path doen't exist or it is an empty directory"""
+    if not path_exists(path):
+        return True
+    return len(os.listdir(path)) == 0
+
+
 def stacktrace():
     traceback.print_stack()

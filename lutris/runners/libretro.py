@@ -1,5 +1,7 @@
 import os
 from lutris.runners.runner import Runner
+from lutris.util.libretro import RetroConfig
+from lutris.util import system
 from lutris import settings
 
 
@@ -34,6 +36,10 @@ def get_cores():
 
 def get_default_config_path():
     return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch.cfg')
+
+
+def get_default_assets_directory():
+    return os.path.join(settings.RUNNER_DIR, 'retroarch/assets')
 
 
 class libretro(Runner):
@@ -102,9 +108,24 @@ class libretro(Runner):
             super(libretro, self).install(version, downloader, callback)
 
     def get_run_data(self):
+        self.prelaunch()
         return {
             'command': [self.get_executable()] + self.get_runner_parameters()
         }
+
+    def get_config_file(self):
+        return self.runner_config.get('config_file') or get_default_config_path()
+
+    def prelaunch(self):
+        config_file = self.get_config_file()
+        if os.path.exists(config_file):
+            retro_config = RetroConfig(config_file)
+
+            # Change assets path to the Lutris provided one if necessary
+            assets_directory = os.path.expanduser(retro_config['assets_directory'])
+            if system.path_is_empty(assets_directory):
+                retro_config['assets_directory'] = get_default_assets_directory()
+                retro_config.save()
 
     def get_runner_parameters(self):
         parameters = []
@@ -113,9 +134,7 @@ class libretro(Runner):
         if fullscreen:
             parameters.append('--fullscreen')
 
-        config_file = self.runner_config.get('config_file') \
-            or get_default_config_path()
-        parameters.append('--config={}'.format(config_file))
+        parameters.append('--config={}'.format(self.get_config_file()))
         return parameters
 
     def play(self):
