@@ -17,6 +17,8 @@ class GogApi:
 
 class GogService:
     name = "GOG"
+    login_url = "https://login.gog.com/login"
+    login_success_url = "https://login.gog.com/account"
 
     def __init__(self):
         self.api = GogApi()

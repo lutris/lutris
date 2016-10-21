@@ -373,14 +373,13 @@ class PlatformConnectDialog(Dialog):
                                                      "cookies.txt",
                                                      WebKit2.CookiePersistentStorage(0))
         self.service = service
-        url = "https://login.gog.com/login"
 
         super(PlatformConnectDialog, self).__init__(title=service.name)
         self.set_border_width(0)
         self.set_default_size(390, 425)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
-        self.webview.load_uri(url)
+        self.webview.load_uri(service.login_url)
         self.webview.connect('load-changed', self.on_navigation)
         self.vbox.pack_start(self.webview, True, True, 0)
 
@@ -388,10 +387,6 @@ class PlatformConnectDialog(Dialog):
 
     def on_navigation(self, widget, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
-            print(widget)
-            print(load_event)
-
-    def on_connect_clicked(self, button):
-        username = self.username_entry.get_text()
-        password = self.password_entry.get_text()
-        self.client = self.service.login(username, password)
+            uri = widget.get_uri()
+            if uri == self.service.login_success_url:
+                self.destroy()
