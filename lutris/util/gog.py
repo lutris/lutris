@@ -1,6 +1,8 @@
+import os
 import gi
 gi.require_version('GnomeKeyring', '1.0')
 from gi.repository import GnomeKeyring
+from lutris import settings
 from lutris.util.http import Request
 
 
@@ -19,6 +21,7 @@ class GogService:
     name = "GOG"
     login_url = "https://login.gog.com/login"
     login_success_url = "https://login.gog.com/account"
+    credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
 
     def __init__(self):
         self.api = GogApi()

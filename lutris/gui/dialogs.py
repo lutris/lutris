@@ -327,7 +327,7 @@ class PlatformConnectDialog(Dialog):
 
         self.context = WebKit2.WebContext.new()
         WebKit2.CookieManager.set_persistent_storage(self.context.get_cookie_manager(),
-                                                     "cookies.txt",
+                                                     service.credentials_path,
                                                      WebKit2.CookiePersistentStorage(0))
         self.service = service
 
