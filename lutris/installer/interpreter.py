@@ -10,6 +10,7 @@ from gi.repository import GLib
 
 from lutris import pga, settings
 from lutris.util import system
+from lutris.util import strings
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
@@ -62,8 +63,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = self.script['name']
         self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
-        if self.requires:
-            self._check_dependency()
+        self._check_dependency()
         if self.creates_game_folder:
             self.target_path = self.get_default_target()
 
@@ -125,21 +125,48 @@ class ScriptInterpreter(CommandsMixin):
                 self.errors.append('Missing libretro core in game section')
         return not bool(self.errors)
 
+    def _get_installed_dependency(self, dependency):
+        """Return whether a dependency is installed"""
+        game = pga.get_game_by_field(dependency, field='installer_slug')
+        # Legacy support of installers using game slug as requirement
+        if not game:
+            game = pga.get_game_by_field(dependency, 'slug')
+        if bool(game) and bool(game['directory']):
+            return game
+
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
         game is installed.
-        If the game is available, install the game in the base game folder
+        If the game is available, install the game in the base game folder.
+        The first game available listed in the dependencies is the one picked to base
+        the installed on.
         """
-        game = pga.get_game_by_field(self.requires, field='installer_slug')
-        # Legacy support of installers using game slug as requirement
-        if not game:
-            game = pga.get_game_by_field(self.requires, 'slug')
-
-        if not game or not game['directory']:
-            raise ScriptingError(
-                "You need to install {} before".format(self.requires)
-            )
-        self.target_path = game['directory']
+        dependencies = strings.unpack_dependencies(self.requires)
+        error_message = "You need to install {} before"
+        for index, dependency in enumerate(dependencies):
+            if isinstance(dependency, tuple):
+                dependency_choices = [
+                    self._get_installed_dependency(dep) for dep in dependency
+                ]
+                installed_games = [
+                    dep for dep in dependency_choices if dep
+                ]
+                if not installed_games:
+                    raise ScriptingError(
+                        error_message.format(' or '.join(dependency))
+                    )
+                if index == 0:
+                    self.target_path = installed_games[0]['directory']
+                    self.requires = installed_games[0]['installer_slug']
+            else:
+                game = self._is_dependency_installed(dependency)
+                if not game:
+                    raise ScriptingError(
+                        error_message.format(dependency)
+                    )
+                if index == 0:
+                    self.target_path = game['directory']
+                    self.requires = game['installer_slug']
 
     # ---------------------
     # "Get the files" stage

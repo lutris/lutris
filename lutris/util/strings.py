@@ -58,6 +58,8 @@ def unpack_dependencies(string):
     Example: quake-steam | quake-gog, some-quake-mod returns:
         [('quake-steam', 'quake-gog'), 'some-quake-mod']
     """
+    if not string:
+        return []
     dependencies = string.split(',')
     dependencies = [dep.strip() for dep in dependencies if dep.strip()]
     for index, dependency in enumerate(dependencies):
