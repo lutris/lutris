@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
-"""Common message dialogs"""
 import os
+import gi
+gi.require_version('WebKit2', '4.0')
+
+from gi.repository import WebKit2
 from gi.repository import GLib, Gtk, Gdk, GObject
 
 from lutris import api, pga, runtime, settings
@@ -322,16 +324,29 @@ class PlatformConnectDialog(Dialog):
     """Login form for external services"""
 
     def __init__(self, service):
-        from lutris.gui.webview import WebView
+
+        self.context = WebKit2.WebContext.new()
+        WebKit2.CookieManager.set_persistent_storage(self.context.get_cookie_manager(),
+                                                     "cookies.txt",
+                                                     WebKit2.CookiePersistentStorage(0))
         self.service = service
+        url = "https://login.gog.com/login"
+
         super(PlatformConnectDialog, self).__init__(title=service.name)
         self.set_border_width(0)
         self.set_default_size(390, 425)
-        url = "https://login.gog.com/login"
-        self.webview = WebView()
+
+        self.webview = WebKit2.WebView.new_with_context(self.context)
         self.webview.load_uri(url)
+        self.webview.connect('load-changed', self.on_navigation)
         self.vbox.pack_start(self.webview, True, True, 0)
+
         self.show_all()
+
+    def on_navigation(self, widget, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            print(widget)
+            print(load_event)
 
     def on_connect_clicked(self, button):
         username = self.username_entry.get_text()
