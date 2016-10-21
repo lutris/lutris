@@ -368,7 +368,8 @@ class PlatformConnectDialog(Dialog):
         from lutris.gui.webview import WebView
         self.service = service
         super(PlatformConnectDialog, self).__init__(title=service.name)
-        self.set_default_size(390, 420)
+        self.set_border_width(0)
+        self.set_default_size(390, 425)
         url = "https://login.gog.com/login"
         self.webview = WebView()
         self.webview.load_uri(url)
