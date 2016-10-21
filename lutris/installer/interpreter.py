@@ -159,7 +159,7 @@ class ScriptInterpreter(CommandsMixin):
                     self.target_path = installed_games[0]['directory']
                     self.requires = installed_games[0]['installer_slug']
             else:
-                game = self._is_dependency_installed(dependency)
+                game = self._get_installed_dependency(dependency)
                 if not game:
                     raise ScriptingError(
                         error_message.format(dependency)
