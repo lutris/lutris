@@ -155,13 +155,13 @@ class hatari(Runner):
             params.append("--joy1")
             params.append(self.runner_config['joy1'])
 
-        if os.path.exists(self.runner_config.get('bios_file', '')):
+        if system.path_exists(self.runner_config.get('bios_file', '')):
             params.append('--tos')
             params.append(self.runner_config["bios_file"])
         else:
             return {'error': 'NO_BIOS'}
         diska = self.game_config.get('disk-a')
-        if not os.path.exists(diska):
+        if not system.path_exists(diska):
             return {'error': 'FILE_NOT_FOUND', 'file': diska}
         params.append("--disk-a")
         params.append(diska)
