@@ -25,6 +25,7 @@ def is_disabled():
 class RuntimeUpdater:
     current_updates = 0
     status_updater = None
+    cancellables = []
 
     def is_updating(self):
         return self.current_updates > 0
@@ -52,7 +53,6 @@ class RuntimeUpdater:
     def get_runtimes(self):
         request = http.Request(RUNTIME_URL)
         response = request.get()
-        cancellables = []
         runtimes = response.json or []
         for runtime in runtimes:
             name = runtime['name']
@@ -69,10 +69,9 @@ class RuntimeUpdater:
                 archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
                 self.current_updates += 1
                 downloader = Downloader(url, archive_path, overwrite=True)
-                cancellables.append(downloader.cancel)
+                self.cancellables.append(downloader.cancel)
                 downloader.start()
                 GLib.timeout_add(100, self.check_download_progress, downloader)
-        return cancellables
 
     def check_download_progress(self, downloader):
         """Call download.check_progress(), return True if download finished."""

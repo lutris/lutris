@@ -11,7 +11,7 @@ from lutris.game import Game
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
 
-from lutris.util import display, resources
+from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import http
@@ -351,8 +351,8 @@ class LutrisWindow(Gtk.Application):
             self.set_status("")
 
     def update_runtime(self):
-        cancellables = self.runtime_updater.update(self.set_status)
-        self.threads_stoppers += cancellables
+        self.runtime_updater.update(self.set_status)
+        self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
         resources.fetch_icons([game['slug'] for game in self.game_list],
