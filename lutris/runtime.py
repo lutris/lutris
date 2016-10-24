@@ -48,16 +48,34 @@ class RuntimeUpdater:
         if status_updater:
             self.status_updater = status_updater
 
-        return self.get_runtimes()
+        return self.download_runtimes()
 
-    def get_runtimes(self):
+    def _iter_runtimes(self):
         request = http.Request(RUNTIME_URL)
         response = request.get()
         runtimes = response.json or []
         for runtime in runtimes:
-            name = runtime['name']
-            if '64' in name and not system.is_64bit:
+
+            # Skip 32bit runtimes on 64 bit systems except the lib32 one
+            if(runtime['architecture'] == 'i386'
+               and system.is_64bit
+               and runtime['name'] != 'lib32'):
+                logger.debug('Skipping runtime %s for %s',
+                             runtime['name'], runtime['architecture'])
                 continue
+
+            # Skip 64bit runtimes on 32 bit systems
+            if(runtime['architecture'] == 'x86_64'
+               and not system.is_64bit):
+                logger.debug('Skipping runtime %s for %s',
+                             runtime['name'], runtime['architecture'])
+                continue
+
+            yield runtime
+
+    def download_runtimes(self):
+        for runtime in self._iter_runtimes():
+            name = runtime['name']
             created_at = runtime['created_at']
             created_at = time.strptime(created_at[:created_at.find('.')],
                                        "%Y-%m-%dT%H:%M:%S")
