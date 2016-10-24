@@ -87,12 +87,6 @@ def unzip(filename, dest=None):
     subprocess.call(command)
 
 
-def unrar(filename):
-    """Unrar a file."""
-
-    subprocess.call(["unrar", "x", filename])
-
-
 def untar(filename, dest=None, method='gzip'):
     """Untar a file."""
     cwd = os.getcwd()
