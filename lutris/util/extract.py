@@ -79,14 +79,6 @@ def decompress_gz(file_path, dest_path=None):
     return dest_path
 
 
-def unzip(filename, dest=None):
-    """Unzip a file."""
-    command = ["unzip", '-o', filename]
-    if dest:
-        command = command + ['-d', dest]
-    subprocess.call(command)
-
-
 def untar(filename, dest=None, method='gzip'):
     """Untar a file."""
     cwd = os.getcwd()
