@@ -1,0 +1,50 @@
+WINE REGISTRY Version 2
+;; All keys relative to \\Machine
+
+#arch=win64
+
+[Software\\Classes\\Wow6432Node] 1240428288
+#time=000000000
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders] 1477412318
+#time=1d22edb718069bc
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders] 1477412318
+#time=1d22edb71806a0c
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Run] 1477412318
+#time=1d22edb718c61e0
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce] 1477412318
+#time=1d22edb71808154
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\RunServices] 1477412318
+#time=1d22edb716b685a
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce] 1477412318
+#time=1d22edb716b67ba
+
+[Software\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList] 1477412318
+#time=1d22edb71806b38
+"ProfilesDirectory"=str(2):"C:\\users"
+
+[System\\CurrentControlSet\\Control\\ComputerName\\ComputerName] 1477412318
+#time=1d22edb716b40c8
+"ComputerName"="monica"
+
+[System\\CurrentControlSet\\Control\\Nls\\Codepage] 1477412318
+#time=1d22edb716b3fc4
+"ACP"="1252"
+"MACCP"="10000"
+"OEMCP"="437"
+
+[System\\CurrentControlSet\\Control\\Session Manager\\Environment] 1477412318
+#time=1d22edb716b6238
+"NUMBER_OF_PROCESSORS"="8"
+"PROCESSOR_ARCHITECTURE"="AMD64"
+"PROCESSOR_IDENTIFIER"="AMD64 Family 6 Model 60 Stepping 3, GenuineIntel"
+"PROCESSOR_LEVEL"="6"
+"PROCESSOR_REVISION"="3c03"
+
+[System\\CurrentControlSet\\Services] 1477412318
+#time=1d22edb716bcaf2
