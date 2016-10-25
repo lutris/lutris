@@ -20,23 +20,23 @@ class TestWineRegistry(TestCase):
         self.assertEqual(value, '31')
 
     def test_can_get_timestamp_as_int(self):
-        key = self.registry.get_key('Control Panel/Keyboard')
+        key = self.registry.keys.get('Control Panel/Keyboard')
         self.assertEqual(key.timestamp, 1477412318)
 
     def test_can_get_timestamp_as_float(self):
-        key = self.registry.get_key('Control Panel/Sound')
+        key = self.registry.keys.get('Control Panel/Sound')
         self.assertEqual(key.timestamp, 1475423303.7943190)
 
     def test_can_get_meta(self):
-        key = self.registry.get_key('Control Panel/Sound')
+        key = self.registry.keys.get('Control Panel/Sound')
         self.assertEqual(key.get_meta('time'), '1d21cc468677196')
 
     def test_can_get_string_value(self):
-        key = self.registry.get_key('Control Panel/Desktop')
+        key = self.registry.keys.get('Control Panel/Desktop')
         self.assertEqual(key.get_subkey('DragFullWindows'), '0')
 
     def test_can_get_dword_value(self):
-        key = self.registry.get_key('Control Panel/Desktop')
+        key = self.registry.keys.get('Control Panel/Desktop')
         self.assertEqual(key.get_subkey('CaretWidth'), 1)
 
     def test_can_render_key(self):
@@ -46,5 +46,5 @@ class TestWineRegistry(TestCase):
             '"Codepages"="1252,437"\n'
             '"LogPixels"=dword:00000000\n'
         )
-        key = self.registry.get_key('Software/Wine/Fonts')
+        key = self.registry.keys.get('Software/Wine/Fonts')
         self.assertEqual(key.render(), expected)

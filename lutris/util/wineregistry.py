@@ -53,8 +53,7 @@ class WineRegistry(object):
     def __init__(self, reg_filename=None):
         self.arch = 'win32'
         self.version = 2
-        self.keys = []
-        self.key_map = {}
+        self.keys = OrderedDict()
         if reg_filename:
             self.prefix_path = os.path.dirname(reg_filename)
             self.parse_reg_file(reg_filename)
@@ -68,7 +67,6 @@ class WineRegistry(object):
     def parse_reg_file(self, reg_filename):
         registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
-        key_index = 0
         for line in registry_lines:
             # Remove trailing newlines
             line = line.rstrip('\n')
@@ -80,21 +78,13 @@ class WineRegistry(object):
                 continue
             if line.startswith('['):
                 current_key = WineRegistryKey(key_def=line)
-                self.keys.append(current_key)
-                self.key_map[current_key.name] = key_index
-                key_index += 1
+                self.keys[current_key.name] = current_key
                 continue
             if current_key:
                 current_key.parse(line)
 
-    def get_key(self, key):
-        if key not in self.key_map.keys():
-            return
-        key_index = self.key_map[key]
-        return self.keys[key_index]
-
     def query(self, keypath, value=None):
-        key = self.get_key(keypath)
+        key = self.keys.get(keypath)
         if key:
             return key.get_subkey(value)
 
