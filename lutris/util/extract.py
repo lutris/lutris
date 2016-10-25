@@ -2,18 +2,23 @@ import os
 import uuid
 import shutil
 import tarfile
+import subprocess
 import gzip
-from lutris.util.system import merge_folders
+from lutris.util import system
 from lutris.util.log import logger
+from lutris import settings
 
 
 def is_7zip_supported(path, extractor):
-    supported_extractors = ('ar', 'arj', 'cab', 'chm', 'cpio', 'cramfs', 'dmg', 'ext',
-                            'fat', 'gpt', 'hfs', 'ihex', 'iso', 'lzh', 'lzma', 'mbr',
-                            'msi', 'nsis', 'ntfs', 'qcow2', 'rar', 'rpm', 'squashfs',
-                            'udf', 'uefi', 'vdi', 'vhd', 'vmdk', 'wim', 'xar', 'z')
+    supported_extractors = (
+        '7z', 'xz', 'bzip2', 'gzip', 'tar', 'zip',
+        'ar', 'arj', 'cab', 'chm', 'cpio', 'cramfs', 'dmg', 'ext',
+        'fat', 'gpt', 'hfs', 'ihex', 'iso', 'lzh', 'lzma', 'mbr',
+        'msi', 'nsis', 'ntfs', 'qcow2', 'rar', 'rpm', 'squashfs',
+        'udf', 'uefi', 'vdi', 'vhd', 'vmdk', 'wim', 'xar', 'z',
+    )
     if extractor:
-        return extractor in supported_extractors
+        return extractor.lower() in supported_extractors
     else:
         _base, ext = os.path.splitext(path)
         if ext:
