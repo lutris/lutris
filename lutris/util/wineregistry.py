@@ -51,7 +51,8 @@ class WindowsFileTime:
 
 class WineRegistry(object):
     def __init__(self, reg_filename=None):
-        self.arch = None
+        self.arch = 'win32'
+        self.version = 2
         self.keys = []
         self.key_map = {}
         self.prefix_path = os.path.dirname(reg_filename)
