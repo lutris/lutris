@@ -28,7 +28,9 @@ def is_7zip_supported(path, extractor):
 
 def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     path = os.path.abspath(path)
+    mode = None
     logger.debug("Extracting %s to %s", path, to_directory)
+
     if(path.endswith('.tar.gz') or path.endswith('.tgz')
        or extractor == 'tgz'):
         opener, mode = tarfile.open, 'r:gz'
@@ -39,7 +41,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
          or extractor == 'bz2'):
         opener, mode = tarfile.open, 'r:bz2'
     elif(is_7zip_supported(path, extractor)):
-        opener = extract_7zip
+        opener = '7zip'
     else:
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
@@ -47,9 +49,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         )
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
-    handler = opener(path, mode)
-    handler.extractall(temp_path)
-    handler.close()
+    _do_extract(path, temp_path, opener, mode)
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:
@@ -79,6 +79,15 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         shutil.rmtree(temp_dir)
     logger.debug("Finished extracting %s", path)
     return (path, to_directory)
+
+
+def _do_extract(archive, dest, opener, mode=None):
+    if opener == '7zip':
+        extract_7zip(archive, dest)
+    else:
+        handler = opener(archive, mode)
+        handler.extractall(dest)
+        handler.close()
 
 
 def decompress_gz(file_path, dest_path=None):
