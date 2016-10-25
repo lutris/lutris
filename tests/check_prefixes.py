@@ -9,7 +9,9 @@ PREFIXES_PATH = os.path.expanduser("~/Games/wine/prefixes")
 
 def get_registries():
     registries = []
-    for prefix in os.listdir(PREFIXES_PATH):
+    directories = os.listdir(PREFIXES_PATH)
+    directories.append(os.path.expanduser("~/.wine"))
+    for prefix in directories:
         for path in os.listdir(os.path.join(PREFIXES_PATH, prefix)):
             if path.endswith(".reg"):
                 registries.append(os.path.join(PREFIXES_PATH, prefix, path))
