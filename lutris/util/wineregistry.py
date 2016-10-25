@@ -72,7 +72,7 @@ class WineRegistry(object):
             # Remove trailing newlines
             line = line.rstrip('\n')
             if line.startswith('WINE REGISTRY Version'):
-                self.version = line[len('WINE REGISTRY Version '):]
+                self.version = int(line[len('WINE REGISTRY Version '):])
                 continue
             if line.startswith('#arch'):
                 self.arch = line.split('=')[1]

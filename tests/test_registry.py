@@ -12,6 +12,8 @@ class TestWineRegistry(TestCase):
 
     def test_can_load_registry(self):
         self.assertTrue(len(self.registry.keys) > 10)
+        self.assertEqual(self.registry.version, 2)
+        self.assertEqual(self.registry.arch, 'win64')
 
     def test_can_query_registry(self):
         value = self.registry.query('Control Panel/Keyboard', 'KeyboardSpeed')
