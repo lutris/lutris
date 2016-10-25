@@ -1,4 +1,5 @@
 import os
+from collections import OrderedDict
 from datetime import datetime
 
 TYPES = {
@@ -120,8 +121,8 @@ class WineRegistryKey(object):
         else:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
 
-        self.values = {}
-        self.metas = {}
+        self.values = OrderedDict()
+        self.metas = OrderedDict()
         self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
     def set_key(self, name, value):
