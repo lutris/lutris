@@ -130,8 +130,8 @@ WINE REGISTRY Version 2
 "SnapToDefaultButton"="0"
 "SwapMouseButtons"="0"
 
-[Control Panel\\Sound] 1477412318
-#time=1d22edb718040d6
+[Control Panel\\Sound] 1475423303 7943190
+#time=1d21cc468677196
 "Beep"="Yes"
 
 [Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders] 1477412318

@@ -20,3 +20,7 @@ class TestWineRegistry(TestCase):
     def test_can_get_timestamp_as_int(self):
         key = self.registry.get_key('Control Panel/Keyboard')
         self.assertEqual(key.timestamp, 1477412318)
+
+    def test_can_get_timestamp_as_float(self):
+        key = self.registry.get_key('Control Panel/Sound')
+        self.assertEqual(key.timestamp, 1475423303.7943190)

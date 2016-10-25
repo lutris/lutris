@@ -113,16 +113,21 @@ class WineRegistry(object):
 
 class WineRegistryKey(object):
     def __init__(self, key_def):
-        key, timestamp = key_def.strip().rsplit(' ', 1)
-        self.timestamp = int(timestamp)
+        self.raw_name = key_def[:key_def.index(']') + 1]
+        self.raw_timestamp = key_def[key_def.index(']') + 1:]
+        ts_parts = self.raw_timestamp.strip().split()
+        if len(ts_parts) == 1:
+            self.timestamp = int(ts_parts[0])
+        else:
+            self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
         self.values = {}
-        self.name = key.replace('\\\\', '/').strip("[]")
+        self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
     def set_key(self, name, value):
         self.values[name.strip("\"")] = value.strip()
 
     def __str__(self):
-        return "[{0}] {1}".format(self.winname, self.timestamp)
+        return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
     @property
     def winname(self):
