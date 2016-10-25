@@ -3,11 +3,24 @@ import re
 from collections import OrderedDict
 from datetime import datetime
 
-TYPES = {
-    'str': 'REG_SZ',
-    'str(2)': 'REG_EXPAND_SZ',
-    'dword': 'REG_DWORD',
-    'hex': 'REG_BINARY',
+(
+    REG_NONE,
+    REG_SZ,
+    REG_EXPAND_SZ,
+    REG_BINARY,
+    REG_DWORD,
+    REG_DWORD_BIG_ENDIAN,
+    REG_LINK,
+    REG_MULTI_SZ
+) = range(8)
+
+DATA_TYPES = {
+    '\"': REG_SZ,
+    'str:\"': REG_SZ,
+    'str(2):\"': REG_EXPAND_SZ,
+    'str(7):\"': REG_MULTI_SZ,
+    'hex': REG_BINARY,
+    'dword': REG_DWORD,
 }
 
 
