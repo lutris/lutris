@@ -71,6 +71,7 @@ class WineRegistry(object):
     def parse_reg_file(self, reg_filename):
         registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
+        add_next_to_value = False
         for line in registry_lines:
             line = line.rstrip('\n')  # Remove trailing newlines
 
@@ -92,7 +93,11 @@ class WineRegistry(object):
                 continue
 
             if current_key:
-                current_key.parse(line)
+                if add_next_to_value:
+                    current_key.add_to_last(line)
+                else:
+                    current_key.parse(line)
+                add_next_to_value = line.endswith('\\')
 
     def render(self):
         content = ""
@@ -154,12 +159,16 @@ class WineRegistryKey(object):
             k, v = line.split('=', 1)
             self.set_subkey('default', v)
 
+    def add_to_last(self, line):
+        last_subkey = list(self.subkeys.keys())[-1]
+        self.subkeys[last_subkey] += "\n{}".format(line)
+
     def render(self):
         """Return the content of the key in the wine .reg format"""
         content = self.raw_name + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
             if value is None:
-                content += "#{}".format(key)
+                content += "#{}\n".format(key)
             else:
                 content += "#{}={}\n".format(key, value)
         for key, value in self.subkeys.items():

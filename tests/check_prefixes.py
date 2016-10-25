@@ -29,7 +29,7 @@ def check_registry(registry_path):
         with open(os.path.join(os.path.dirname(__file__), 'error.reg'), 'w') as wrong_reg:
             wrong_reg.write(content)
 
-        raise ValueError("Invalid prefix parsing for {}".format(registry_path))
+        raise ValueError("Content of parsed registry doesn't match: {}".format(registry_path))
 
 
 for registry in get_registries():
