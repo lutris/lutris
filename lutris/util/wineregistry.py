@@ -71,11 +71,14 @@ class WineRegistry(object):
         for line in registry_lines:
             # Remove trailing newlines
             line = line.rstrip('\n')
+            if line.startswith('WINE REGISTRY Version'):
+                self.version = line[len('WINE REGISTRY Version '):]
+                continue
             if line.startswith('#arch'):
                 self.arch = line.split('=')[1]
                 continue
             if line.startswith('['):
-                current_key = WineRegistryKey(line)
+                current_key = WineRegistryKey(key_def=line)
                 self.keys.append(current_key)
                 self.key_map[current_key.name] = key_index
                 key_index += 1
@@ -111,7 +114,7 @@ class WineRegistry(object):
 
 
 class WineRegistryKey(object):
-    def __init__(self, key_def):
+    def __init__(self, key_def=None):
         self.raw_name = key_def[:key_def.index(']') + 1]
 
         # Parse timestamp either as int or float
