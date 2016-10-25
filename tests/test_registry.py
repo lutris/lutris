@@ -24,3 +24,7 @@ class TestWineRegistry(TestCase):
     def test_can_get_timestamp_as_float(self):
         key = self.registry.get_key('Control Panel/Sound')
         self.assertEqual(key.timestamp, 1475423303.7943190)
+
+    def test_can_get_meta(self):
+        key = self.registry.get_key('Control Panel/Sound')
+        self.assertEqual(key.get_meta('time'), '1d21cc468677196')

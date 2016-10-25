@@ -67,6 +67,8 @@ class WineRegistry(object):
         current_key = None
         key_index = 0
         for line in registry_lines:
+            # Remove trailing newlines
+            line = line.rstrip('\n')
             if line.startswith('#arch'):
                 self.arch = line.split('=')[1]
                 continue
@@ -77,7 +79,9 @@ class WineRegistry(object):
                 key_index += 1
                 continue
             if current_key:
-                if line.startswith('"'):
+                if line.startswith('#'):
+                    current_key.add_meta(line)
+                elif line.startswith('"'):
                     k, v = line.split('=', 1)
                     current_key.set_key(k, v)
                 elif line.startswith('@'):
@@ -114,13 +118,17 @@ class WineRegistry(object):
 class WineRegistryKey(object):
     def __init__(self, key_def):
         self.raw_name = key_def[:key_def.index(']') + 1]
+
+        # Parse timestamp either as int or float
         self.raw_timestamp = key_def[key_def.index(']') + 1:]
         ts_parts = self.raw_timestamp.strip().split()
         if len(ts_parts) == 1:
             self.timestamp = int(ts_parts[0])
         else:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
+
         self.values = {}
+        self.metas = {}
         self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
     def set_key(self, name, value):
@@ -128,6 +136,16 @@ class WineRegistryKey(object):
 
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
+
+    def add_meta(self, meta_line):
+        if not meta_line.startswith('#'):
+            raise ValueError("Key metas should start with '#'")
+        meta_line = meta_line[1:]
+        key, value = meta_line.split('=')
+        self.metas[key] = value
+
+    def get_meta(self, name):
+        return self.metas.get(name)
 
     def get_value(self, name):
         if name not in self.values:
