@@ -28,3 +28,11 @@ class TestWineRegistry(TestCase):
     def test_can_get_meta(self):
         key = self.registry.get_key('Control Panel/Sound')
         self.assertEqual(key.get_meta('time'), '1d21cc468677196')
+
+    def test_can_get_string_value(self):
+        key = self.registry.get_key('Control Panel/Desktop')
+        self.assertEqual(key.get_value('DragFullWindows'), '0')
+
+    def test_can_get_dword_value(self):
+        key = self.registry.get_key('Control Panel/Desktop')
+        self.assertEqual(key.get_value('CaretWidth'), 1)

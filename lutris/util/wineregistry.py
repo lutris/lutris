@@ -153,5 +153,7 @@ class WineRegistryKey(object):
         value = self.values[name]
         if value.startswith("\"") and value.endswith("\""):
             return value[1:-1]
+        elif value.startswith('dword:'):
+            return int(value[6:], 16)
         else:
             raise ValueError("TODO: finish handling other types")
