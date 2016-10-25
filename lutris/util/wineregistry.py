@@ -158,7 +158,10 @@ class WineRegistryKey(object):
         """Return the content of the key in the wine .reg format"""
         content = self.raw_name + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
-            content += "#{}={}\n".format(key, value)
+            if value is None:
+                content += "#{}".format(key)
+            else:
+                content += "#{}={}\n".format(key, value)
         for key, value in self.subkeys.items():
             if key == 'default':
                 key = '@'
@@ -178,7 +181,15 @@ class WineRegistryKey(object):
         if not meta_line.startswith('#'):
             raise ValueError("Key metas should start with '#'")
         meta_line = meta_line[1:]
-        key, value = meta_line.split('=')
+        parts = meta_line.split('=')
+        if len(parts) == 2:
+            key = parts[0]
+            value = parts[1]
+        elif len(parts) == 1:
+            key = parts[0]
+            value = None
+        else:
+            raise ValueError("Invalid meta line '{}'".format(meta_line))
         self.metas[key] = value
 
     def get_meta(self, name):
