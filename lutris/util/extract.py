@@ -7,6 +7,24 @@ from lutris.util.system import merge_folders
 from lutris.util.log import logger
 
 
+def is_7zip_supported(path, extractor):
+    supported_extractors = ('ar', 'arj', 'cab', 'chm', 'cpio', 'cramfs', 'dmg', 'ext',
+                            'fat', 'gpt', 'hfs', 'ihex', 'iso', 'lzh', 'lzma', 'mbr',
+                            'msi', 'nsis', 'ntfs', 'qcow2', 'rar', 'rpm', 'squashfs',
+                            'udf', 'uefi', 'vdi', 'vhd', 'vmdk', 'wim', 'xar', 'z')
+    if extractor:
+        return extractor in supported_extractors
+    else:
+        _base, ext = os.path.splitext(path)
+        if ext:
+            ext = ext.lstrip('.').lower()
+            return ext in supported_extractors
+
+
+def extract_7zip(path):
+    raise NotImplementedError
+
+
 def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
@@ -19,6 +37,8 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     elif(path.endswith('.tar.bz2') or path.endswith('.tbz')
          or extractor == 'bz2'):
         opener, mode = tarfile.open, 'r:bz2'
+    elif(is_7zip_supported(path, extractor)):
+        opener = extract_7zip
     else:
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
