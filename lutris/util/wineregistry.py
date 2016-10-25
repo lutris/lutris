@@ -51,18 +51,22 @@ class WindowsFileTime:
 class WineRegistry(object):
     def __init__(self, reg_filename=None):
         self.arch = None
-        self.keys = {}
-        self.key_order = []
-        self.prefix_path = None
-        if reg_filename:
-            self.parse_reg_file(reg_filename)
+        self.keys = []
+        self.key_map = {}
+        self.prefix_path = os.path.dirname(reg_filename)
+        self.parse_reg_file(reg_filename)
 
-    def parse_reg_file(self, reg_filename):
+    def get_raw_registry(self, reg_filename):
+        """Return an array of the unprocessed contents of a registry file"""
         with open(reg_filename, 'r') as reg_file:
             registry_content = reg_file.readlines()
-        self.prefix_path = os.path.dirname(reg_filename)
+        return registry_content
+
+    def parse_reg_file(self, reg_filename):
+        registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
-        for line in registry_content:
+        key_index = 0
+        for line in registry_lines:
             if line.startswith('#arch'):
                 self.arch = line.split('=')[1]
                 continue
@@ -70,8 +74,9 @@ class WineRegistry(object):
                 key, timestamp = line.strip().rsplit(' ', 1)
                 current_key = WineRegistryKey(key)
                 current_key.timestamp = timestamp
-                self.keys[current_key.name] = current_key
-                self.key_order.append(current_key.name)
+                self.keys.append(current_key)
+                self.key_map[current_key.name] = key_index
+                key_index += 1
                 continue
             if current_key:
                 if line.startswith('"'):
@@ -81,11 +86,16 @@ class WineRegistry(object):
                     k, v = line.split('=', 1)
                     current_key.set_key('default', v)
 
-    def query(self, keypath, value=None):
-        if keypath not in self.keys:
+    def get_key(self, key):
+        if key not in self.key_map.keys():
             return
-        key = self.keys[keypath]
-        return key.get_value(value)
+        key_index = self.key_map[key]
+        return self.keys[key_index]
+
+    def query(self, keypath, value=None):
+        key = self.get_key(keypath)
+        if key:
+            return key.get_value(value)
 
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
