@@ -19,7 +19,11 @@ def check_registry(registry_path):
     with open(registry_path, 'r') as registry_file:
         original_content = registry_file.read()
 
-    registry = WineRegistry(registry_path)
+    try:
+        registry = WineRegistry(registry_path)
+    except:
+        sys.stderr.write("Error parsing {}\n".format(registry_path))
+        raise
     content = registry.render()
     if content != original_content:
         with open(os.path.join(os.path.dirname(__file__), 'error.reg'), 'w') as wrong_reg:
