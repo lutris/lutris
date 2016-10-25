@@ -79,14 +79,7 @@ class WineRegistry(object):
                 key_index += 1
                 continue
             if current_key:
-                if line.startswith('#'):
-                    current_key.add_meta(line)
-                elif line.startswith('"'):
-                    k, v = line.split('=', 1)
-                    current_key.set_key(k, v)
-                elif line.startswith('@'):
-                    k, v = line.split('=', 1)
-                    current_key.set_key('default', v)
+                current_key.parse(line)
 
     def get_key(self, key):
         if key not in self.key_map.keys():
@@ -136,6 +129,16 @@ class WineRegistryKey(object):
 
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
+
+    def parse(self, line):
+        if line.startswith('#'):
+            self.add_meta(line)
+        elif line.startswith('"'):
+            k, v = line.split('=', 1)
+            self.set_key(k, v)
+        elif line.startswith('@'):
+            k, v = line.split('=', 1)
+            self.set_key('default', v)
 
     def add_meta(self, meta_line):
         if not meta_line.startswith('#'):
