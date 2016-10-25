@@ -115,4 +115,4 @@ def extract_7zip(path, dest):
         _7zip_path = system.find_executable('7z')
     if not system.path_exists(_7zip_path):
         raise OSError("7zip is not found in the lutris runtime or on the system")
-    subprocess.call([_7zip_path, 'x', path, '-o' + dest, '-aoa'])
+    subprocess.call([_7zip_path, 'x', path, '-o"{}"'.format(dest), '-aoa'])
