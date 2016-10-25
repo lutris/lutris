@@ -1,4 +1,5 @@
 import os
+import re
 from collections import OrderedDict
 from datetime import datetime
 
@@ -149,12 +150,18 @@ class WineRegistryKey(object):
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
+    def unquote(self, string):
+        return re.sub(r"([^\\])\\\"", r"\1__QUOTE__", string)
+
+    def requote(self, string):
+        return string.replace("__QUOTE__", "\\\"")
+
     def parse(self, line):
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
-            key, value = line.split('=', 1)
-            self.set_subkey(key, value)
+            key, value = self.unquote(line).split('=', 1)
+            self.set_subkey(self.requote(key), self.requote(value))
         elif line.startswith('@'):
             k, v = line.split('=', 1)
             self.set_subkey('default', v)
