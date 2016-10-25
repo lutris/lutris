@@ -129,13 +129,6 @@ class WineRegistryKey(object):
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
-    @property
-    def winname(self):
-        return self.name.replace('/', '\\\\')
-
-    def show_key(self, name):
-        return "\"{0}\"={1}".format(name, self.values[name])
-
     def get_value(self, name):
         if name not in self.values:
             return
@@ -144,17 +137,3 @@ class WineRegistryKey(object):
             return value[1:-1]
         else:
             raise ValueError("TODO: finish handling other types")
-
-if __name__ == "__main__":
-    registry = WineRegistry(os.path.expanduser("~/.wine/user.reg"))
-    for keyname in registry.keys:
-        key = registry.keys[keyname]
-        print(key)
-        for name in key.values:
-            print((key.show_key(name)))
-        print()
-
-    steam_key = "Software/Valve/Steam"
-    print(("Querying registry for {}".format(steam_key)))
-    q = registry.query(steam_key, "SteamExe")
-    print(q)
