@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 TYPES = {
     'str': 'REG_SZ',
@@ -6,6 +7,45 @@ TYPES = {
     'dword': 'REG_DWORD',
     'hex': 'REG_BINARY',
 }
+
+
+class WindowsFileTime:
+    """Utility class to deal with Windows FILETIME structures.
+
+    See: https://msdn.microsoft.com/en-us/library/ms724284(v=vs.85).aspx
+    """
+    ticks_per_seconds = 10000000  # 1 tick every 100 nanoseconds
+    epoch_delta = 11644473600  # 3600 * 24 * ((1970 - 1601) * 365 + 89)
+
+    def __init__(self, timestamp=None):
+        self.timestamp = timestamp
+
+    def __repr__(self):
+        return "<{}>: {}".format(self.__class__.__name__, self.timestamp)
+
+    @classmethod
+    def from_hex(cls, hexvalue):
+        timestamp = int(hexvalue, 16)
+        return WindowsFileTime(timestamp)
+
+    def to_hex(self):
+        return '{:x}'.format(self.timestamp)
+
+    @classmethod
+    def from_unix_timestamp(cls, timestamp):
+        timestamp = timestamp + cls.epoch_delta
+        timestamp = int(timestamp * cls.ticks_per_seconds)
+        return WindowsFileTime(timestamp)
+
+    def to_unix_timestamp(self):
+        if not self.timestamp:
+            raise ValueError("No timestamp set")
+        unix_ts = self.timestamp / self.ticks_per_seconds
+        unix_ts = unix_ts - self.epoch_delta
+        return unix_ts
+
+    def to_date_time(self):
+        return datetime.fromtimestamp(self.to_unix_timestamp())
 
 
 class WineRegistry(object):
