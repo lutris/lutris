@@ -7,8 +7,8 @@ FIXTURES_PATH = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 class TestWineRegistry(TestCase):
     def setUp(self):
-        registry_path = os.path.join(FIXTURES_PATH, 'user.reg')
-        self.registry = WineRegistry(registry_path)
+        self.registry_path = os.path.join(FIXTURES_PATH, 'user.reg')
+        self.registry = WineRegistry(self.registry_path)
 
     def test_can_load_registry(self):
         self.assertTrue(len(self.registry.keys) > 10)
@@ -48,3 +48,19 @@ class TestWineRegistry(TestCase):
         )
         key = self.registry.keys.get('Software/Wine/Fonts')
         self.assertEqual(key.render(), expected)
+
+    def test_render_user_reg(self):
+        content = self.registry.render()
+        with open(self.registry_path, 'r') as registry_file:
+            original_content = registry_file.read()
+        self.assertEqual(content, original_content)
+
+    def test_can_render_system_reg(self):
+        registry_path = os.path.join(FIXTURES_PATH, 'system.reg')
+        with open(registry_path, 'r') as registry_file:
+            original_content = registry_file.read()
+        system_reg = WineRegistry(registry_path)
+        content = system_reg.render()
+        with open(registry_path + '.new', 'w') as new_file:
+            new_file.write(content)
+        self.assertEqual(content, original_content)

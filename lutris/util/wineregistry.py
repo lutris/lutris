@@ -50,9 +50,13 @@ class WindowsFileTime:
 
 
 class WineRegistry(object):
+    version_header = "WINE REGISTRY Version "
+    relative_to_header = ";; All keys relative to "
+
     def __init__(self, reg_filename=None):
         self.arch = 'win32'
         self.version = 2
+        self.relative_to = "\\\\User\\\\S-1-5-21-0-0-0-1000"
         self.keys = OrderedDict()
         if reg_filename:
             self.prefix_path = os.path.dirname(reg_filename)
@@ -68,20 +72,37 @@ class WineRegistry(object):
         registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
         for line in registry_lines:
-            # Remove trailing newlines
-            line = line.rstrip('\n')
-            if line.startswith('WINE REGISTRY Version'):
-                self.version = int(line[len('WINE REGISTRY Version '):])
+            line = line.rstrip('\n')  # Remove trailing newlines
+
+            if line.startswith(self.version_header):
+                self.version = int(line[len(self.version_header):])
                 continue
+
+            if line.startswith(self.relative_to_header):
+                self.relative_to = line[len(self.relative_to_header):]
+                continue
+
             if line.startswith('#arch'):
                 self.arch = line.split('=')[1]
                 continue
+
             if line.startswith('['):
                 current_key = WineRegistryKey(key_def=line)
                 self.keys[current_key.name] = current_key
                 continue
+
             if current_key:
                 current_key.parse(line)
+
+    def render(self):
+        content = ""
+        content += "{}{}\n".format(self.version_header, self.version)
+        content += "{}{}\n\n".format(self.relative_to_header, self.relative_to)
+        content += "#arch={}\n".format(self.arch)
+        for key in self.keys:
+            content += "\n"
+            content += self.keys[key].render()
+        return content
 
     def query(self, keypath, value=None):
         key = self.keys.get(keypath)
