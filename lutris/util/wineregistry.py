@@ -140,6 +140,26 @@ class WineRegistryKey(object):
             k, v = line.split('=', 1)
             self.set_key('default', v)
 
+    def render(self):
+        """Return the content of the key in the wine .reg format"""
+        content = self.raw_name + self.raw_timestamp + "\n"
+        for key, value in self.metas.items():
+            content += "#{}={}\n".format(key, value)
+        for key, value in self.values.items():
+            if key == 'default':
+                key = '@'
+            else:
+                key = "\"{}\"".format(key)
+            content += "{}={}\n".format(key, value)
+        return content
+
+    def render_value(self, value):
+        if isinstance(value, int):
+            return "dword:{:08x}".format(value)
+        elif isinstance(value, str):
+            print(value)
+            return "\"{}\"\n".format(value)
+
     def add_meta(self, meta_line):
         if not meta_line.startswith('#'):
             raise ValueError("Key metas should start with '#'")

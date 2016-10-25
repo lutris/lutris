@@ -36,3 +36,13 @@ class TestWineRegistry(TestCase):
     def test_can_get_dword_value(self):
         key = self.registry.get_key('Control Panel/Desktop')
         self.assertEqual(key.get_value('CaretWidth'), 1)
+
+    def test_can_render_key(self):
+        expected = (
+            '[Software\\\\Wine\\\\Fonts] 1477412318\n'
+            '#time=1d22edb71813e3c\n'
+            '"Codepages"="1252,437"\n'
+            '"LogPixels"=dword:00000000\n'
+        )
+        key = self.registry.get_key('Software/Wine/Fonts')
+        self.assertEqual(key.render(), expected)
