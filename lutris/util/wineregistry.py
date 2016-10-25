@@ -55,8 +55,9 @@ class WineRegistry(object):
         self.version = 2
         self.keys = []
         self.key_map = {}
-        self.prefix_path = os.path.dirname(reg_filename)
-        self.parse_reg_file(reg_filename)
+        if reg_filename:
+            self.prefix_path = os.path.dirname(reg_filename)
+            self.parse_reg_file(reg_filename)
 
     def get_raw_registry(self, reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
