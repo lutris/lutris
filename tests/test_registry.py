@@ -31,11 +31,11 @@ class TestWineRegistry(TestCase):
 
     def test_can_get_string_value(self):
         key = self.registry.get_key('Control Panel/Desktop')
-        self.assertEqual(key.get_value('DragFullWindows'), '0')
+        self.assertEqual(key.get_subkey('DragFullWindows'), '0')
 
     def test_can_get_dword_value(self):
         key = self.registry.get_key('Control Panel/Desktop')
-        self.assertEqual(key.get_value('CaretWidth'), 1)
+        self.assertEqual(key.get_subkey('CaretWidth'), 1)
 
     def test_can_render_key(self):
         expected = (

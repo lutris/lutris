@@ -91,7 +91,7 @@ class WineRegistry(object):
     def query(self, keypath, value=None):
         key = self.get_key(keypath)
         if key:
-            return key.get_value(value)
+            return key.get_subkey(value)
 
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
@@ -121,12 +121,9 @@ class WineRegistryKey(object):
         else:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
 
-        self.values = OrderedDict()
+        self.subkeys = OrderedDict()
         self.metas = OrderedDict()
         self.name = self.raw_name.replace('\\\\', '/').strip("[]")
-
-    def set_key(self, name, value):
-        self.values[name.strip("\"")] = value.strip()
 
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
@@ -135,18 +132,18 @@ class WineRegistryKey(object):
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
-            k, v = line.split('=', 1)
-            self.set_key(k, v)
+            key, value = line.split('=', 1)
+            self.set_subkey(key, value)
         elif line.startswith('@'):
             k, v = line.split('=', 1)
-            self.set_key('default', v)
+            self.set_subkey('default', v)
 
     def render(self):
         """Return the content of the key in the wine .reg format"""
         content = self.raw_name + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
             content += "#{}={}\n".format(key, value)
-        for key, value in self.values.items():
+        for key, value in self.subkeys.items():
             if key == 'default':
                 key = '@'
             else:
@@ -171,10 +168,13 @@ class WineRegistryKey(object):
     def get_meta(self, name):
         return self.metas.get(name)
 
-    def get_value(self, name):
-        if name not in self.values:
+    def set_subkey(self, name, value):
+        self.subkeys[name.strip("\"")] = value.strip()
+
+    def get_subkey(self, name):
+        if name not in self.subkeys:
             return
-        value = self.values[name]
+        value = self.subkeys[name]
         if value.startswith("\"") and value.endswith("\""):
             return value[1:-1]
         elif value.startswith('dword:'):
