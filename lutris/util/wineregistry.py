@@ -71,9 +71,7 @@ class WineRegistry(object):
                 self.arch = line.split('=')[1]
                 continue
             if line.startswith('['):
-                key, timestamp = line.strip().rsplit(' ', 1)
-                current_key = WineRegistryKey(key)
-                current_key.timestamp = timestamp
+                current_key = WineRegistryKey(line)
                 self.keys.append(current_key)
                 self.key_map[current_key.name] = key_index
                 key_index += 1
@@ -114,8 +112,9 @@ class WineRegistry(object):
 
 
 class WineRegistryKey(object):
-    def __init__(self, key):
-        self.timestamp = None
+    def __init__(self, key_def):
+        key, timestamp = key_def.strip().rsplit(' ', 1)
+        self.timestamp = int(timestamp)
         self.values = {}
         self.name = key.replace('\\\\', '/').strip("[]")
 
