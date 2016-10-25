@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
+import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from lutris.util.wineregistry import WineRegistry
 PREFIXES_PATH = os.path.expanduser("~/Games/wine/prefixes")
@@ -26,11 +27,15 @@ def check_registry(registry_path):
         raise
     content = registry.render()
     if content != original_content:
-        with open(os.path.join(os.path.dirname(__file__), 'error.reg'), 'w') as wrong_reg:
+        wrong_path = os.path.join(os.path.dirname(__file__), 'error.reg')
+        with open(wrong_path, 'w') as wrong_reg:
             wrong_reg.write(content)
 
-        raise ValueError("Content of parsed registry doesn't match: {}".format(registry_path))
+        print("Content of parsed registry doesn't match: {}".format(registry_path))
+        subprocess.call(["meld", registry_path, wrong_path])
+        sys.exit(2)
 
-
-for registry in get_registries():
+registries = get_registries()
+for registry in registries:
     check_registry(registry)
+print("All {} registry files validated!".format(len(registries)))
