@@ -163,21 +163,19 @@ class WineRegistryKey(object):
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
-    def unquote(self, string):
-        return re.sub(r"([^\\])\\\"", r"\1__QUOTE__", string)
-
-    def requote(self, string):
-        return string.replace("__QUOTE__", "\\\"")
-
     def parse(self, line):
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
-            key, value = self.unquote(line).split('=', 1)
-            self.set_subkey(self.requote(key), self.requote(value))
+            elems = re.split(re.compile(r'(?<=[^\\]\")='), line, maxsplit=1)
+            if len(elems) != 2:
+                print(elems)
+                raise ValueError("Unable to split %s" % line)
+            key, value = elems
+            self.set_subkey(key, value)
         elif line.startswith('@'):
             k, v = line.split('=', 1)
-            self.set_subkey('default', v)
+            self.set_subkey('\"default\"', v)
 
     def add_to_last(self, line):
         last_subkey = list(self.subkeys.keys())[-1]
@@ -225,7 +223,7 @@ class WineRegistryKey(object):
         return self.metas.get(name)
 
     def set_subkey(self, name, value):
-        self.subkeys[name.strip("\"")] = value.strip()
+        self.subkeys[name[1:-1]] = value.strip()
 
     def get_subkey(self, name):
         if name not in self.subkeys:
