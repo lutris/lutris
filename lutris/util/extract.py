@@ -26,10 +26,6 @@ def is_7zip_supported(path, extractor):
             return ext in supported_extractors
 
 
-def extract_7zip(path):
-    raise NotImplementedError
-
-
 def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     path = os.path.abspath(path)
     logger.debug("Extracting %s to %s", path, to_directory)
@@ -47,7 +43,8 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     else:
         raise RuntimeError(
             "Could not extract `%s` as no appropriate extractor is found"
-            % path)
+            % path
+        )
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     handler = opener(path, mode)
@@ -76,7 +73,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
                     os.remove(destination_path)
                     shutil.move(source_path, destination_path)
                 elif os.path.isdir(destination_path):
-                    merge_folders(source_path, destination_path)
+                    system.merge_folders(source_path, destination_path)
             else:
                 shutil.move(source_path, destination_path)
         shutil.rmtree(temp_dir)
@@ -101,3 +98,12 @@ def decompress_gz(file_path, dest_path=None):
     dest_file.close()
 
     return dest_path
+
+
+def extract_7zip(path, dest):
+    _7zip_path = os.path.join(settings.RUNTIME_DIR, 'p7zip/7z')
+    if not system.path_exists(_7zip_path):
+        _7zip_path = system.find_executable('7z')
+    if not system.path_exists(_7zip_path):
+        raise OSError("7zip is not found in the lutris runtime or on the system")
+    subprocess.call([_7zip_path, 'x', path, '-o' + dest, '-aoa'])
