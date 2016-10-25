@@ -61,6 +61,4 @@ class TestWineRegistry(TestCase):
             original_content = registry_file.read()
         system_reg = WineRegistry(registry_path)
         content = system_reg.render()
-        with open(registry_path + '.new', 'w') as new_file:
-            new_file.write(content)
         self.assertEqual(content, original_content)
