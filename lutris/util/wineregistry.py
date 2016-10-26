@@ -74,8 +74,13 @@ class WineRegistry(object):
         self.keys = OrderedDict()
         self.reg_filename = reg_filename
         if reg_filename:
-            self.prefix_path = os.path.dirname(reg_filename)
             self.parse_reg_file(reg_filename)
+
+    @property
+    def prefix_path(self):
+        """Return the Wine prefix path (where the .reg files are located)"""
+        if self.reg_filename:
+            return os.path.dirname(self.reg_filename)
 
     def get_raw_registry(self, reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
