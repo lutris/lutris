@@ -215,6 +215,9 @@ class FileChooserEntry(Gtk.Box):
             '_Cancel', Gtk.ResponseType.CLOSE,
             '_OK', Gtk.ResponseType.OK
         )
+
+        self.file_chooser_dlg.set_create_folders(True)
+
         if default_path:
             self.file_chooser_dlg.set_current_folder(
                 os.path.expanduser(default_path)
