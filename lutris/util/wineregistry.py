@@ -72,6 +72,7 @@ class WineRegistry(object):
         self.version = 2
         self.relative_to = "\\\\User\\\\S-1-5-21-0-0-0-1000"
         self.keys = OrderedDict()
+        self.reg_filename = reg_filename
         if reg_filename:
             self.prefix_path = os.path.dirname(reg_filename)
             self.parse_reg_file(reg_filename)
@@ -122,6 +123,15 @@ class WineRegistry(object):
             content += "\n"
             content += self.keys[key].render()
         return content
+
+    def save(self, path=None):
+        """Write the registry to a file"""
+        if not path:
+            path = self.reg_filename
+        if not path:
+            raise OSError("No filename provided")
+        with open(path, 'w') as registry_file:
+            registry_file.write(self.render())
 
     def query(self, keypath, value=None):
         key = self.keys.get(keypath)
