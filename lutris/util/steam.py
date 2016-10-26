@@ -270,7 +270,11 @@ def sync_with_lutris():
                 game_info = None
                 if steamid not in steamids_in_lutris and platform == 'linux':
                     appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-                    appmanifest = AppManifest(appmanifest_path)
+                    try:
+                        appmanifest = AppManifest(appmanifest_path)
+                    except Exception:
+                        logger.error("Unable to parse file %s", appmanifest_path)
+                        continue
                     if appmanifest.is_installed():
                         game_info = {
                             'name': appmanifest.name,
@@ -284,7 +288,11 @@ def sync_with_lutris():
                             break
                     if game_info:
                         appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-                        appmanifest = AppManifest(appmanifest_path)
+                        try:
+                            appmanifest = AppManifest(appmanifest_path)
+                        except Exception:
+                            logger.error("Unable to parse file %s", appmanifest_path)
+                            continue
                         if appmanifest.is_installed():
                             runner_name = appmanifest.get_runner_name()
                             mark_as_installed(steamid, runner_name, game_info)
