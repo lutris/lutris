@@ -152,6 +152,13 @@ class WineRegistry(object):
             self.keys[key.name] = key
         key.set_subkey(subkey, value)
 
+    def clear_key(self, path):
+        """Removes all subkeys from a key"""
+        key = self.keys.get(path)
+        if not key:
+            return
+        key.subkeys.clear()
+
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:

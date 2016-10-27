@@ -78,6 +78,13 @@ class TestWineRegistry(TestCase):
         self.registry.set_value('Wine/DX11', 'FullyWorking', 'HellYeah')
         self.assertEqual(self.registry.query('Wine/DX11', 'FullyWorking'), 'HellYeah')
 
+    def test_can_clear_a_key(self):
+        path = 'Control Panel/Mouse'
+        key = self.registry.keys.get(path)
+        self.assertEqual(len(key.subkeys), 13)
+        self.registry.clear_key(path)
+        self.assertEqual(len(key.subkeys), 0)
+
 
 class TestWineRegistryKey(TestCase):
     def test_creation_by_key_def_parses(self):
