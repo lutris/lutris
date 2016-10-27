@@ -49,10 +49,6 @@ class Request(object):
             request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as e:
             logger.error("Unavailable url (%s): %s", self.url, e)
-        except (socket.timeout, urllib.error.URLError) as e:
-            logger.error("Unable to connect to server (%s): %s", self.url, e)
-        else:
-            try:
                 total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
