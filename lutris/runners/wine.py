@@ -689,21 +689,24 @@ class wine(Runner):
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
                     enable_wine_desktop = True
+                    continue
+                elif key == 'ShowCrashDialog':
+                    prefix_manager.set_crash_dialogs(value)
+                    continue
                 else:
-                    if key == 'ShowCrashDialog':
-                        prefix_manager.set_crash_dialogs(value)
-                        continue
-                    else:
-                        type = 'REG_SZ'
-                    set_regedit(path, key, value, type=type,
-                                wine_path=self.get_executable(), prefix=prefix,
-                                arch=self.wine_arch)
+                    type = 'REG_SZ'
+                set_regedit(path, key, value, type=type,
+                            wine_path=self.get_executable(), prefix=prefix,
+                            arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
         overrides = self.runner_config.get('overrides') or {}
         for dll, value in overrides.items():
             prefix_manager.override_dll(dll, value)
 
     def prelaunch(self):
+        prefix_manager = WinePrefixManager(self.prefix_path)
+        prefix_manager.setup_defaults()
+        prefix_manager.configure_joypads()
         self.set_regedit_keys()
         return True
 

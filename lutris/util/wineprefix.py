@@ -1,6 +1,7 @@
 import os
 from lutris.util.wineregistry import WineRegistry
 from lutris.util.log import logger
+from lutris.util import joypad
 
 
 class WinePrefixManager:
@@ -51,3 +52,13 @@ class WinePrefixManager:
         key = self.hkcu_prefix + "/Software/Wine/WineDbg"
         value = 1 if enabled else 0
         self.set_registry_key(key, "ShowCrashDialog", value)
+
+    def configure_joypads(self):
+        joypads = joypad.get_joypads()
+        key = self.hkcu_prefix + '/Software/Wine/DirectInput/Joysticks'
+        for device, joypad_name in joypads:
+            if 'event' in device:
+                disable = "{} (js)".format(joypad_name)
+            else:
+                disable = "{} (event)".format(joypad_name)
+            print("Disabling ", disable)
