@@ -68,9 +68,10 @@ class WinePrefixManager:
     def configure_joypads(self):
         joypads = joypad.get_joypads()
         key = self.hkcu_prefix + '/Software/Wine/DirectInput/Joysticks'
+        self.clear_registry_key(key)
         for device, joypad_name in joypads:
             if 'event' in device:
-                disable = "{} (js)".format(joypad_name)
+                disabled_joypad = "{} (js)".format(joypad_name)
             else:
-                disable = "{} (event)".format(joypad_name)
-            print("Disabling ", disable)
+                disabled_joypad = "{} (event)".format(joypad_name)
+            self.set_registry_key(key, disabled_joypad, 'disabled')
