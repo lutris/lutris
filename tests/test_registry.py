@@ -68,6 +68,16 @@ class TestWineRegistry(TestCase):
         self.registry.set_value('Control Panel/Desktop', 'DragWidth', '8')
         self.assertEqual(self.registry.query('Control Panel/Desktop', 'DragWidth'), '8')
 
+    def test_can_set_value_to_a_new_sub_key(self):
+        self.assertEqual(self.registry.query('Control Panel/Desktop', 'BliBlu'), None)
+        self.registry.set_value('Control Panel/Desktop', 'BliBlu', 'yep')
+        self.assertEqual(self.registry.query('Control Panel/Desktop', 'BliBlu'), 'yep')
+
+    def test_can_set_value_to_a_new_key(self):
+        self.assertEqual(self.registry.query('Wine/DX11', 'FullyWorking'), None)
+        self.registry.set_value('Wine/DX11', 'FullyWorking', 'HellYeah')
+        self.assertEqual(self.registry.query('Wine/DX11', 'FullyWorking'), 'HellYeah')
+
 
 class TestWineRegistryKey(TestCase):
     def test_creation_by_key_def_parses(self):

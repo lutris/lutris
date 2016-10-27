@@ -146,7 +146,8 @@ class WineRegistry(object):
     def set_value(self, path, subkey, value):
         key = self.keys.get(path)
         if not key:
-            key = WineRegistry(path=path)
+            key = WineRegistryKey(path=path)
+            self.keys[key.name] = key
         key.set_subkey(subkey, value)
 
     def get_unix_path(self, windows_path):
