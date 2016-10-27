@@ -166,20 +166,33 @@ class WineRegistry(object):
 
 
 class WineRegistryKey(object):
-    def __init__(self, key_def=None):
-        self.raw_name = key_def[:key_def.index(']') + 1]
+    def __init__(self, key_def=None, path=None):
+
+        self.subkeys = OrderedDict()
+        self.metas = OrderedDict()
+
+        if path:
+            # Key is created by path, it's a new key
+            timestamp = datetime.now().timestamp()
+            self.name = path
+            self.raw_name = "[{}]".format(path.replace('/', '\\\\'))
+            self.raw_timestamp = ' '.join(str(timestamp).split('.'))
+            key_def = "{} {}".format(self.raw_name, self.raw_timestamp)
+
+            windows_timestamp = WindowsFileTime.from_unix_timestamp(timestamp)
+            self.metas["time"] = windows_timestamp.to_hex()
+        else:
+            # Existing key loaded from file
+            self.raw_name = key_def[:key_def.index(']') + 1]
+            self.raw_timestamp = key_def[key_def.index(']') + 2:]
+            self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
         # Parse timestamp either as int or float
-        self.raw_timestamp = key_def[key_def.index(']') + 1:]
         ts_parts = self.raw_timestamp.strip().split()
         if len(ts_parts) == 1:
             self.timestamp = int(ts_parts[0])
         else:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
-
-        self.subkeys = OrderedDict()
-        self.metas = OrderedDict()
-        self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
     def __str__(self):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
@@ -204,7 +217,7 @@ class WineRegistryKey(object):
 
     def render(self):
         """Return the content of the key in the wine .reg format"""
-        content = self.raw_name + self.raw_timestamp + "\n"
+        content = self.raw_name + ' ' + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
             if value is None:
                 content += "#{}\n".format(key)
