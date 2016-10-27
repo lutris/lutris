@@ -15,16 +15,28 @@ class WinePrefixManager:
         self.sandbox()
         self.override_dll("winemenubuilder.exe", "")
 
-    def set_registry_key(self, key, subkey, value):
+    def get_registry_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            reg_path = os.path.join(self.path, 'user.reg')
-            key = key[len(self.hkcu_prefix) + 1:]
+            return os.path.join(self.path, 'user.reg')
+        else:
+            raise ValueError("Unsupported key '{}'".format(key))
+
+    def get_key_path(self, key):
+        if key.startswith(self.hkcu_prefix):
+            return key[len(self.hkcu_prefix) + 1:]
         else:
             raise ValueError(
                 "The key {} is currently not supported by WinePrefixManager".format(key)
             )
-        registry = WineRegistry(reg_path)
-        registry.set_value(key, subkey, value)
+
+    def set_registry_key(self, key, subkey, value):
+        registry = WineRegistry(self.get_registry_path(key))
+        registry.set_value(self.get_key_path(key), subkey, value)
+        registry.save()
+
+    def clear_registry_key(self, key):
+        registry = WineRegistry(self.get_registry_path(key))
+        registry.clear_key(self.get_key_path(key))
         registry.save()
 
     def override_dll(self, dll, mode):
