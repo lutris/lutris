@@ -692,6 +692,7 @@ class wine(Runner):
                 else:
                     if key == 'ShowCrashDialog':
                         prefix_manager.set_crash_dialogs(value)
+                        continue
                     else:
                         type = 'REG_SZ'
                     set_regedit(path, key, value, type=type,
