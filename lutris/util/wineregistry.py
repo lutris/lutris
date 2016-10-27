@@ -74,6 +74,8 @@ class WineRegistry(object):
         self.keys = OrderedDict()
         self.reg_filename = reg_filename
         if reg_filename:
+            if not os.path.exists(reg_filename):
+                raise OSError("Registry '%s' does not exists" % reg_filename)
             self.parse_reg_file(reg_filename)
 
     @property
