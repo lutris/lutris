@@ -138,10 +138,16 @@ class WineRegistry(object):
         with open(path, 'w') as registry_file:
             registry_file.write(self.render())
 
-    def query(self, keypath, value=None):
-        key = self.keys.get(keypath)
+    def query(self, path, subkey):
+        key = self.keys.get(path)
         if key:
-            return key.get_subkey(value)
+            return key.get_subkey(subkey)
+
+    def set_value(self, path, subkey, value):
+        key = self.keys.get(path)
+        if not key:
+            key = WineRegistry(path=path)
+        key.set_subkey(subkey, value)
 
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
