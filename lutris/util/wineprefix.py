@@ -16,7 +16,7 @@ class WinePrefixManager:
 
     def set_registry_key(self, key, subkey, value):
         if key.startswith(self.hkcu_prefix):
-            reg_path = os.path.join('user.reg')
+            reg_path = os.path.join(self.path, 'user.reg')
             key = key[len(self.hkcu_prefix) + 1:]
         else:
             raise ValueError(
