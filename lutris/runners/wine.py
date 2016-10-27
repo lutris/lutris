@@ -679,6 +679,8 @@ class wine(Runner):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
         enable_wine_desktop = False
+        prefix_manager = WinePrefixManager(prefix)
+
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or 'auto'
             if not value or value == 'auto' and key != 'ShowCrashDialog':
@@ -689,11 +691,7 @@ class wine(Runner):
                     enable_wine_desktop = True
                 else:
                     if key == 'ShowCrashDialog':
-                        if value is True:
-                            value = '00000001'
-                        else:
-                            value = '00000000'
-                        type = 'REG_DWORD'
+                        prefix_manager.set_crash_dialogs(value)
                     else:
                         type = 'REG_SZ'
                     set_regedit(path, key, value, type=type,
@@ -701,7 +699,6 @@ class wine(Runner):
                                 arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
         overrides = self.runner_config.get('overrides') or {}
-        prefix_manager = WinePrefixManager(prefix)
         for dll, value in overrides.items():
             prefix_manager.override_dll(dll, value)
 

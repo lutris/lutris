@@ -45,3 +45,9 @@ class WinePrefixManager:
                 if os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
+
+    def set_crash_dialogs(self, enabled):
+        """Enable or diable Wine crash dialogs"""
+        key = self.hkcu_prefix + "/Software/Wine/WineDbg"
+        value = 1 if enabled else 0
+        self.set_registry_key(key, "ShowCrashDialog", value)
