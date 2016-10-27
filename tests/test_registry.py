@@ -63,6 +63,11 @@ class TestWineRegistry(TestCase):
         content = system_reg.render()
         self.assertEqual(content, original_content)
 
+    def test_can_set_value_to_existing_subkey(self):
+        self.assertEqual(self.registry.query('Control Panel/Desktop', 'DragWidth'), '4')
+        self.registry.set_value('Control Panel/Desktop', 'DragWidth', '8')
+        self.assertEqual(self.registry.query('Control Panel/Desktop', 'DragWidth'), '8')
+
 
 class TestWineRegistryKey(TestCase):
     def test_creation_by_key_def_parses(self):

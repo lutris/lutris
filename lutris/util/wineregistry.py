@@ -201,15 +201,12 @@ class WineRegistryKey(object):
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
-            elems = re.split(re.compile(r'(?<=[^\\]\")='), line, maxsplit=1)
-            if len(elems) != 2:
-                print(elems)
-                raise ValueError("Unable to split %s" % line)
-            key, value = elems
-            self.set_subkey(key, value)
+            key, value = re.split(re.compile(r'(?<=[^\\]\")='), line, maxsplit=1)
+            key = key[1:-1]
+            self.subkeys[key] = value
         elif line.startswith('@'):
             k, v = line.split('=', 1)
-            self.set_subkey('\"default\"', v)
+            self.subkeys['default'] = v
 
     def add_to_last(self, line):
         last_subkey = list(self.subkeys.keys())[-1]
@@ -235,8 +232,9 @@ class WineRegistryKey(object):
         if isinstance(value, int):
             return "dword:{:08x}".format(value)
         elif isinstance(value, str):
-            print(value)
-            return "\"{}\"\n".format(value)
+            return "\"{}\"".format(value)
+        else:
+            raise NotImplementedError("TODO")
 
     def add_meta(self, meta_line):
         if not meta_line.startswith('#'):
@@ -257,7 +255,7 @@ class WineRegistryKey(object):
         return self.metas.get(name)
 
     def set_subkey(self, name, value):
-        self.subkeys[name[1:-1]] = value.strip()
+        self.subkeys[name] = self.render_value(value)
 
     def get_subkey(self, name):
         if name not in self.subkeys:
@@ -268,4 +266,4 @@ class WineRegistryKey(object):
         elif value.startswith('dword:'):
             return int(value[6:], 16)
         else:
-            raise ValueError("TODO: finish handling other types")
+            raise ValueError("Handle %s" % value)
