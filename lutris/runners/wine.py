@@ -701,11 +701,9 @@ class wine(Runner):
                                 arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
         overrides = self.runner_config.get('overrides') or {}
-        overrides_path = "%s\DllOverrides" % self.reg_prefix
+        prefix_manager = WinePrefixManager(prefix)
         for dll, value in overrides.items():
-            set_regedit(overrides_path, dll, value,
-                        wine_path=self.get_executable(),
-                        prefix=prefix, arch=self.wine_arch)
+            prefix_manager.override_dll(dll, value)
 
     def prelaunch(self):
         self.set_regedit_keys()
