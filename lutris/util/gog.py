@@ -11,12 +11,13 @@ from lutris.util.cookies import WebkitCookieJar
 class GogService:
     name = "GOG"
     root_url = 'https://www.gog.com'
-    login_url = "https://login.gog.com/auth?client_id=46755278331571209&layout=default&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success&response_type=code"
+    login_url = ("https://login.gog.com/auth?"
+                 "client_id=46755278331571209"
+                 "&layout=default"
+                 "&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success"
+                 "&response_type=code")
     login_success_url = "https://login.gog.com/account"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
-
-    def login(self, username, password):
-        self.api.login(username, password)
 
     def load_cookies(self):
         if not os.path.exists(self.credentials_path):
