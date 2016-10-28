@@ -16,7 +16,7 @@ class GogService:
                  "&layout=default"
                  "&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success"
                  "&response_type=code")
-    login_success_url = "https://login.gog.com/account"
+    login_success_url = "https://www.gog.com/on_login_success"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
 
     def load_cookies(self):
