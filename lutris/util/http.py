@@ -12,7 +12,7 @@ from lutris.util.log import logger
 
 class Request(object):
     def __init__(self, url, timeout=5, stop_request=None,
-                 thread_queue=None, headers=None, cookies=None):
+                 thread_queue=None, headers={}, cookies=None):
 
         if not url:
             raise ValueError('An URL is required!')
