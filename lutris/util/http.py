@@ -12,7 +12,7 @@ from lutris.util.log import logger
 
 class Request(object):
     def __init__(self, url, timeout=5, stop_request=None,
-                 thread_queue=None, headers={}):
+                 thread_queue=None, headers=None, cookies=None):
 
         if not url:
             raise ValueError('An URL is required!')
@@ -36,6 +36,11 @@ class Request(object):
         if not isinstance(headers, dict):
             raise TypeError('HTTP headers needs to be a dict ({})'.format(headers))
         self.headers.update(headers)
+        if cookies:
+            cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
+            self.opener = urllib.request.build_opener(cookie_processor)
+        else:
+            self.opener = None
 
     @property
     def user_agent(self):
@@ -46,9 +51,16 @@ class Request(object):
     def get(self, data=None):
         req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
-            request = urllib.request.urlopen(req, timeout=self.timeout)
+            if self.opener:
+                request = self.opener.open(req, timeout=self.timeout)
+            else:
+                request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as e:
             logger.error("Unavailable url (%s): %s", self.url, e)
+        except (socket.timeout, urllib.error.URLError) as e:
+            logger.error("Unable to connect to server (%s): %s", self.url, e)
+        else:
+            try:
                 total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
@@ -76,6 +88,7 @@ class Request(object):
                     break
             request.close()
             self.content = b''.join(chunks)
+            self.info = request.info()
         return self
 
     def post(self, data):
