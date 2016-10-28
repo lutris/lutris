@@ -4,6 +4,8 @@ gi.require_version('GnomeKeyring', '1.0')
 from gi.repository import GnomeKeyring
 from lutris import settings
 from lutris.util.http import Request
+from lutris.util.log import logger
+from lutris.util.cookies import WebkitCookieJar
 
 
 class GogApi:
@@ -19,7 +21,8 @@ class GogApi:
 
 class GogService:
     name = "GOG"
-    login_url = "https://login.gog.com/login"
+    root_url = 'https://www.gog.com'
+    login_url = "https://login.gog.com/auth?client_id=46755278331571209&layout=default&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success&response_type=code"
     login_success_url = "https://login.gog.com/account"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
 
@@ -28,6 +31,21 @@ class GogService:
 
     def login(self, username, password):
         self.api.login(username, password)
+
+    def load_cookies(self):
+        if not os.path.exists(self.credentials_path):
+            logger.debug("No cookies found, please authenticate first")
+            return
+        cookiejar = WebkitCookieJar(self.credentials_path)
+        cookiejar.load()
+        return cookiejar
+
+    def get_library(self):
+        url = self.root_url + '/account/getFilteredProducts?mediaType=1'
+        cookies = self.load_cookies()
+        request = Request(url, cookies=cookies)
+        request.get()
+        return request.text
 
     def store_credentials(self, username, password):
         # See
