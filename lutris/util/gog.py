@@ -8,26 +8,12 @@ from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
 
 
-class GogApi:
-    root_url = 'https://www.gog.com'
-
-    def login(self, username, password):
-        request = Request(self.root_url)
-        request.get()
-        with open('response.html', 'wb') as response_file:
-            response_file.write(request.content)
-        print('ok')
-
-
 class GogService:
     name = "GOG"
     root_url = 'https://www.gog.com'
     login_url = "https://login.gog.com/auth?client_id=46755278331571209&layout=default&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success&response_type=code"
     login_success_url = "https://login.gog.com/account"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
-
-    def __init__(self):
-        self.api = GogApi()
 
     def login(self, username, password):
         self.api.login(username, password)
@@ -45,7 +31,7 @@ class GogService:
         cookies = self.load_cookies()
         request = Request(url, cookies=cookies)
         request.get()
-        return request.text
+        return request.json
 
     def store_credentials(self, username, password):
         # See
