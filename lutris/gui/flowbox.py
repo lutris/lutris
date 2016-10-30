@@ -82,6 +82,7 @@ class GameFlowBox(FlowBox):
         self.set_valign(Gtk.Align.START)
 
         self.connect('child-activated', self.on_child_activated)
+        self.connect('selected-children-changed', self.on_selection_changed)
 
         self.set_filter_func(self.filter_func)
         self.set_sort_func(self.sort_func)
@@ -152,6 +153,9 @@ class GameFlowBox(FlowBox):
 
     def on_child_activated(self, widget, child):
         self.emit('game-activated')
+
+    def on_selection_changed(self, widget):
+        self.emit('game-selected')
 
     def get_child(self, game_item):
         for child in self.get_children():
