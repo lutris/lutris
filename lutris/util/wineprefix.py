@@ -41,7 +41,7 @@ class WinePrefixManager:
 
     def override_dll(self, dll, mode):
         key = self.hkcu_prefix + "/Software/Wine/DllOverrides"
-        if mode == "disabled":
+        if mode.startswith("dis"):
             mode = ""
         if mode not in ("builtin", "native", "builtin,native", "native,builtin", ""):
             logger.error("DLL override '%s' mode is not valid", mode)
