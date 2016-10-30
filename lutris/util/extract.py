@@ -115,7 +115,7 @@ def extract_7zip(path, dest, archive_type=None):
         _7zip_path = system.find_executable('7z')
     if not system.path_exists(_7zip_path):
         raise OSError("7zip is not found in the lutris runtime or on the system")
-    command = [_7zip_path, 'x', path, '-o"{}"'.format(dest), '-aoa']
+    command = [_7zip_path, 'x', path, '-o{}'.format(dest), '-aoa']
     if archive_type:
         command.append('-t{}'.format(archive_type))
     subprocess.call(command)
