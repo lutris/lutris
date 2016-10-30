@@ -48,7 +48,8 @@ class RuntimeUpdater:
         if status_updater:
             self.status_updater = status_updater
 
-        return self.download_runtimes()
+        for runtime in self._iter_runtimes():
+            self.download_runtime()
 
     def _iter_runtimes(self):
         request = http.Request(RUNTIME_URL)
@@ -73,23 +74,24 @@ class RuntimeUpdater:
 
             yield runtime
 
-    def download_runtimes(self):
-        for runtime in self._iter_runtimes():
-            name = runtime['name']
-            created_at = runtime['created_at']
-            created_at = time.strptime(created_at[:created_at.find('.')],
-                                       "%Y-%m-%dT%H:%M:%S")
-            if self.get_created_at(name) < created_at:
-                if self.status_updater:
-                    self.status_updater("Updating Runtime")
-                logger.debug('Updating runtime %s', name)
-                url = runtime['url']
-                archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
-                self.current_updates += 1
-                downloader = Downloader(url, archive_path, overwrite=True)
-                self.cancellables.append(downloader.cancel)
-                downloader.start()
-                GLib.timeout_add(100, self.check_download_progress, downloader)
+    def download_runtime(self, runtime):
+        name = runtime['name']
+        created_at = runtime['created_at']
+        created_at = time.strptime(created_at[:created_at.find('.')],
+                                   "%Y-%m-%dT%H:%M:%S")
+        if self.get_created_at(name) >= created_at:
+            logger.debug("Runtime %s is up to date", name)
+            return
+        if self.status_updater:
+            self.status_updater("Updating Runtime")
+        logger.debug('Updating runtime %s', name)
+        url = runtime['url']
+        archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
+        self.current_updates += 1
+        downloader = Downloader(url, archive_path, overwrite=True)
+        self.cancellables.append(downloader.cancel)
+        downloader.start()
+        GLib.timeout_add(100, self.check_download_progress, downloader)
 
     def check_download_progress(self, downloader):
         """Call download.check_progress(), return True if download finished."""
