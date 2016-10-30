@@ -49,7 +49,7 @@ class RuntimeUpdater:
             self.status_updater = status_updater
 
         for runtime in self._iter_runtimes():
-            self.download_runtime()
+            self.download_runtime(runtime)
 
     def _iter_runtimes(self):
         request = http.Request(RUNTIME_URL)
