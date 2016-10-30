@@ -49,7 +49,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         )
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
-    _do_extract(path, temp_path, opener, mode)
+    _do_extract(path, temp_path, opener, mode, extractor)
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:
@@ -81,9 +81,9 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     return (path, to_directory)
 
 
-def _do_extract(archive, dest, opener, mode=None):
+def _do_extract(archive, dest, opener, mode=None, extractor=None):
     if opener == '7zip':
-        extract_7zip(archive, dest)
+        extract_7zip(archive, dest, archive_type=extractor)
     else:
         handler = opener(archive, mode)
         handler.extractall(dest)
@@ -109,10 +109,13 @@ def decompress_gz(file_path, dest_path=None):
     return dest_path
 
 
-def extract_7zip(path, dest):
+def extract_7zip(path, dest, archive_type=None):
     _7zip_path = os.path.join(settings.RUNTIME_DIR, 'p7zip/7z')
     if not system.path_exists(_7zip_path):
         _7zip_path = system.find_executable('7z')
     if not system.path_exists(_7zip_path):
         raise OSError("7zip is not found in the lutris runtime or on the system")
-    subprocess.call([_7zip_path, 'x', path, '-o"{}"'.format(dest), '-aoa'])
+    command = [_7zip_path, 'x', path, '-o"{}"'.format(dest), '-aoa']
+    if archive_type:
+        command.append('-t{}'.format(archive_type))
+    subprocess.call(command)
