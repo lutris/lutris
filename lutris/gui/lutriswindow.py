@@ -121,7 +121,6 @@ class LutrisWindow(Gtk.Application):
         # Scroll window
         self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
         self.games_scrollwindow.add(self.view)
-        self.joystick_icons = []
         # Buttons
         self.stop_button = self.builder.get_object('stop_button')
         self.stop_button.set_sensitive(False)
