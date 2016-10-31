@@ -223,7 +223,12 @@ def fix_path_case(path):
         if os.path.exists(tested_path):
             current_path = tested_path
             continue
-        for filename in os.listdir(current_path):
+        try:
+            path_contents = os.listdir(current_path)
+        except OSError:
+            logger.error("Can't read contents of %s", current_path)
+            path_contents = []
+        for filename in path_contents:
             if filename.lower() == part.lower():
                 current_path = os.path.join(current_path, filename)
                 continue
