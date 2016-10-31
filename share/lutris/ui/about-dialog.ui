@@ -38,6 +38,7 @@ Xodetaetl &lt;dev@xod.me&gt;</property>
     <property name="wrap_license">True</property>
     <property name="license_type">gpl-3-0</property>
     <signal name="close" handler="on_close" swapped="no"/>
+    <signal name="response" handler="on_response" swapped="no"/>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
