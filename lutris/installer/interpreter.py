@@ -116,13 +116,20 @@ class ScriptInterpreter(CommandsMixin):
 
     def is_valid(self):
         """Return True if script is usable."""
-        required_fields = ('runner', 'name', 'game_slug')
-        for field in required_fields:
+
+        # Check that installers contains all required fields
+        for field in ('runner', 'name', 'game_slug'):
             if not self.script.get(field):
                 self.errors.append("Missing field '%s'" % field)
+
+        # Check that libretro installers have a core specified
         if self.script.get('runner') == 'libretro':
             if 'game' not in self.script or 'core' not in self.script['game']:
                 self.errors.append('Missing libretro core in game section')
+
+        # Check that installers don't contain both 'requires' and 'extends'
+        if self.script.get('requires') and self.script.get('extends'):
+            self.errors.append('Scripts can\'t have both extends and requires')
         return not bool(self.errors)
 
     def _get_installed_dependency(self, dependency):
