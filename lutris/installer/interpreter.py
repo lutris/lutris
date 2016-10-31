@@ -135,7 +135,7 @@ class ScriptInterpreter(CommandsMixin):
     def _get_installed_dependency(self, dependency):
         """Return whether a dependency is installed"""
         game = pga.get_game_by_field(dependency, field='installer_slug')
-        # Legacy support of installers using game slug as requirement
+
         if not game:
             game = pga.get_game_by_field(dependency, 'slug')
         if bool(game) and bool(game['directory']):
