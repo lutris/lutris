@@ -12,7 +12,7 @@ from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
-from lutris.util import display, jobs
+from lutris.util import jobs
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
