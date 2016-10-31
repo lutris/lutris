@@ -378,14 +378,6 @@ class LutrisWindow(Gtk.Application):
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
                 self.stop_button.set_sensitive(True)
-        for index in range(4):
-            self.joystick_icons.append(
-                self.builder.get_object('js' + str(index) + 'image')
-            )
-            if os.path.exists("/dev/input/js%d" % index):
-                self.joystick_icons[index].set_visible(True)
-            else:
-                self.joystick_icons[index].set_visible(False)
         return True
 
     # ---------
