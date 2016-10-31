@@ -106,8 +106,8 @@ class ScriptInterpreter(CommandsMixin):
             return False
         if self.files:
             return True
-        if self.runner in ('linux', 'wine', 'dosbox'):
-            # Can use 'insert-disc' and have no files
+        command_names = [list(c.keys())[0] for c in self.script.get('installer', [])]
+        if 'insert-disc' in command_names:
             return True
         return False
 
