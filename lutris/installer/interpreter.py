@@ -63,6 +63,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = self.script['name']
         self.game_slug = self.script['game_slug']
         self.requires = self.script.get('requires')
+        self.extends = self.script.get('extends')
         self._check_dependency()
         if self.creates_game_folder:
             self.target_path = self.get_default_target()
@@ -148,7 +149,10 @@ class ScriptInterpreter(CommandsMixin):
         The first game available listed in the dependencies is the one picked to base
         the installed on.
         """
-        dependencies = strings.unpack_dependencies(self.requires)
+        if self.extends:
+            dependencies = [self.extends]
+        else:
+            dependencies = strings.unpack_dependencies(self.requires)
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
@@ -479,7 +483,10 @@ class ScriptInterpreter(CommandsMixin):
 
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
-
+        if self.extends:
+            logger.info('This is an extension to %s, not creating a new game entry',
+                        self.extends)
+            return
         configpath = make_game_config_id(self.script['slug'])
         config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
 
