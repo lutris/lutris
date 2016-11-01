@@ -25,9 +25,6 @@ changelog-add:
 changelog-edit:
 	dch -e
 
-upload-ppa:
-	dput ppa:strycore/ppa ../lutris_${VERSION}_i386.changes
-
 clean:
 	rm -rf build
 	debclean
