@@ -98,7 +98,11 @@ class libretro(Runner):
 
     def install(self, version=None, downloader=None, callback=None):
         def install_core():
-            super(libretro, self).install(version, downloader, callback)
+            if not version:
+                if callback:
+                    callback()
+            else:
+                super(libretro, self).install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
             super(libretro, self).install(version=None,
