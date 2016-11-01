@@ -15,7 +15,7 @@ class TestScriptInterpreter(TestCase):
     def test_script_with_correct_values_is_valid(self):
         script = {
             'runner': 'wine',
-            'installer': 'bar',
+            'installer': [],
             'name': 'baz',
             'game_slug': 'baz',
         }
@@ -26,7 +26,7 @@ class TestScriptInterpreter(TestCase):
     def test_move_requires_src_and_dst(self):
         script = {
             'foo': 'bar',
-            'installer': {},
+            'installer': [],
             'name': 'missing_runner',
             'game_slug': 'missing-runner'
         }
