@@ -5,7 +5,7 @@ from gi.repository import GLib
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 COPYRIGHT = "(c) 2010-2016 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>",
            "Pascal Reinhard (Xodetaetl) <dev@xod.me"]

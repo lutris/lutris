@@ -1,3 +1,13 @@
+lutris (0.4.2) yakkety; urgency=medium
+
+  * Add suport for 7zip extractors
+  * Python based Wine registry parser
+  * Allow more complex rules for installer dependencies
+  * Fixes in RetroArch runner
+  * Misc bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 31 Oct 2016 18:05:14 -0700
+
 lutris (0.4.1) xenial; urgency=medium
 
   * Switch to new versioning scheme
