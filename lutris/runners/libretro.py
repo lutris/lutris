@@ -42,6 +42,12 @@ def get_default_assets_directory():
     return os.path.join(settings.RUNNER_DIR, 'retroarch/assets')
 
 
+def get_default_cores_directory():
+    return os.path.join(settings.RUNNER_DIR, 'retroarch/cores')
+
+def get_default_info_directory():
+    return os.path.join(settings.RUNNER_DIR, 'retroarch/info')
+
 class libretro(Runner):
     human_name = "libretro"
     description = "Multi system emulator"
@@ -125,11 +131,15 @@ class libretro(Runner):
         if os.path.exists(config_file):
             retro_config = RetroConfig(config_file)
 
+            retro_config['libretro_directory'] = get_default_cores_directory()
+            retro_config['libretro_info_path'] = get_default_info_directory()
+
             # Change assets path to the Lutris provided one if necessary
             assets_directory = os.path.expanduser(retro_config['assets_directory'])
             if system.path_is_empty(assets_directory):
                 retro_config['assets_directory'] = get_default_assets_directory()
-                retro_config.save()
+            retro_config.save()
+        return True
 
     def get_runner_parameters(self):
         parameters = []
@@ -144,7 +154,7 @@ class libretro(Runner):
     def play(self):
         command = [self.get_executable()]
 
-        command += self.get_runnner_parameters()
+        command += self.get_runner_parameters()
 
         # Core
         core = self.game_config.get('core')
