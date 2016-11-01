@@ -1,4 +1,4 @@
-VERSION="0.4.1"
+VERSION=`grep "VERSION" lutris/settings.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 
 cover:
 	rm tests/fixtures/pga.db -f
