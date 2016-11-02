@@ -24,6 +24,7 @@ class InstallerDialog(Gtk.Window):
 
     def __init__(self, game_ref, parent=None):
         Gtk.Window.__init__(self)
+        self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
