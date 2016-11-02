@@ -160,6 +160,7 @@ class LutrisWindow(Gtk.Application):
         # Window initialization
         self.window = self.builder.get_object("window")
         self.window.resize_to_geometry(width, height)
+        self.window.set_default_icon_name('lutris')
         self.window.show_all()
         self.builder.connect_signals(self)
         self.connect_signals()
