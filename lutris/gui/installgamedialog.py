@@ -89,6 +89,7 @@ class InstallerDialog(Gtk.Window):
         self.set_keep_above(True)
         self.present()
         self.set_keep_above(False)
+        self.present()
 
     def add_button(self, label, handler=None):
         button = Gtk.Button.new_with_mnemonic(label)
