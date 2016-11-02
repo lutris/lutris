@@ -243,11 +243,13 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return set()
-    fuser_output = []
+    fuser_output = ""
     if os.path.exists('/bin/fuser'):
         fuser_output = execute(["fuser", path])
-    else:
+    elif os.path.exists('/sbin/fuser'):
         fuser_output = execute(["/sbin/fuser", path])
+    else:
+        logger.warning("fuser not available, please install psmisc")
     return set(fuser_output.split())
 
 
