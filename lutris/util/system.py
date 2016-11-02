@@ -243,14 +243,19 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("No file %s", path)
         return set()
+    fuser_path = None
     fuser_output = ""
-    if os.path.exists('/bin/fuser'):
-        fuser_output = execute(["fuser", path])
-    elif os.path.exists('/sbin/fuser'):
-        fuser_output = execute(["/sbin/fuser", path])
-    else:
+    path_candidates = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
+    for candidate in path_candidates:
+        fuser_path = os.path.join(candidate, 'fuser')
+        if os.path.exists(fuser_path):
+            break
+    if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
-    return set(fuser_output.split())
+        return set([])
+    else:
+        fuser_output = execute([fuser_path, path])
+        return set(fuser_output.split())
 
 
 def get_terminal_apps():
