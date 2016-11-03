@@ -95,10 +95,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/polkit-1/actions/*
-%{_datadir}/appdata/*.appdata.xml
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
 
+%dir
+%{_datadir}/appdata/
 
 %changelog
 * Sat Oct 15 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.0
