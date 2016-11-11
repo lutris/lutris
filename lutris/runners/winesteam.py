@@ -159,7 +159,7 @@ class winesteam(wine.wine):
         args.append('-no-dwrite')
 
         # Try to fix Steam's browser. Never worked but it's supposed to...
-        args.append('-no-cef-sandox')
+        args.append('-no-cef-sandbox')
 
         return args
 
