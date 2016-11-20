@@ -459,7 +459,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs('game')
-        self.build_action_area("Edit", self.on_save, callback)
+        self.build_action_area("Save", self.on_save, callback)
         self.show_all()
 
 
@@ -480,7 +480,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs('runner')
-        self.build_action_area("Edit", self.on_save)
+        self.build_action_area("Save", self.on_save)
         self.show_all()
 
     def on_save(self, wigdet, data=None):
