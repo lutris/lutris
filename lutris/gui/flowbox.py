@@ -1,4 +1,5 @@
 from lutris import pga
+from lutris.util.log import logger
 from gi.repository import Gtk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
 
@@ -215,7 +216,10 @@ class GameFlowBox(FlowBox):
     def update_image(self, game_id, is_installed):
         for index, game in enumerate(self.game_list):
             if game['id'] == game_id:
-                item = game['item']
+                item = game.get('item')
+                if not item:
+                    logger.error("Couldn't get item for game %s", game)
+                    return
                 item.installed = is_installed
                 item.set_image_pixpuf()
 
