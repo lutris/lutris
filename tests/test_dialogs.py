@@ -63,7 +63,7 @@ class TestGameDialog(TestCase):
 
         buttons = self.get_buttons().get_children()
         self.assertEqual(buttons[0].get_label(), 'Cancel')
-        self.assertEqual(buttons[1].get_label(), 'Add')
+        self.assertEqual(buttons[1].get_label(), 'Save')
 
         self.dlg.runner_dropdown.set_active_id('linux')
         self.assertEqual(self.dlg.lutris_config.runner_slug, 'linux')
