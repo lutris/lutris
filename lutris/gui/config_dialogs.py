@@ -248,7 +248,7 @@ class GameDialogCommon(object):
     def _add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
-    def build_action_area(self, label, button_callback, callback2=None):
+    def build_action_area(self, button_callback, callback2=None):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
 
         # Advanced settings checkbox
@@ -265,12 +265,12 @@ class GameDialogCommon(object):
         cancel_button.connect("clicked", self.on_cancel_clicked)
         hbox.pack_start(cancel_button, True, True, 10)
 
-        button = Gtk.Button(label=label)
+        save_button = Gtk.Button(label="Save")
         if callback2:
-            button.connect("clicked", button_callback, callback2)
+            save_button.connect("clicked", button_callback, callback2)
         else:
-            button.connect("clicked", button_callback)
-        hbox.pack_start(button, True, True, 0)
+            save_button.connect("clicked", button_callback)
+        hbox.pack_start(save_button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
     def on_show_advanced_options_toggled(self, checkbox):
@@ -431,7 +431,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
                                           level='game')
         self.build_notebook()
         self.build_tabs('game')
-        self.build_action_area("Add", self.on_save, callback)
+        self.build_action_area(self.on_save, callback)
         self.name_entry.grab_focus()
         self.show_all()
 
@@ -459,7 +459,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs('game')
-        self.build_action_area("Edit", self.on_save, callback)
+        self.build_action_area(self.on_save, callback)
         self.show_all()
 
 
@@ -480,7 +480,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
         self.build_notebook()
         self.build_tabs('runner')
-        self.build_action_area("Edit", self.on_save)
+        self.build_action_area(self.on_save)
         self.show_all()
 
     def on_save(self, wigdet, data=None):
@@ -501,7 +501,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self.vbox.pack_start(self.system_sw, True, True, 0)
-        self.build_action_area("Save", self.on_save)
+        self.build_action_area(self.on_save)
         self.show_all()
 
     def on_save(self, widget):
