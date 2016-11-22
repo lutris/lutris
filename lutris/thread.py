@@ -23,7 +23,7 @@ EXCLUDED_PROCESSES = (
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
     'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
     'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
-    'control', 'regedit', 'winecfg.exe', 'wdfmgr.exe',  'wineconsole', 'winedbg'
+    'control', 'winecfg.exe', 'wdfmgr.exe',  'wineconsole', 'winedbg'
 )
 
 
