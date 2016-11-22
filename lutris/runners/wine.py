@@ -704,6 +704,8 @@ class wine(Runner):
             prefix_manager.override_dll(dll, value)
 
     def prelaunch(self):
+        if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
+            create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
         prefix_manager.setup_defaults()
         prefix_manager.configure_joypads()
