@@ -34,7 +34,10 @@ class GtkBuilderDialog(GObject.Object):
 
     def on_response(self, widget, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
-            self.dialog.hide()
+            try:
+                self.dialog.hide()
+            except AttributeError:
+                pass
 
 
 class AboutDialog(GtkBuilderDialog):
