@@ -343,6 +343,7 @@ class LutrisWindow(Gtk.Application):
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
+            # XXX this migth not work if the game has no 'item' set
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
