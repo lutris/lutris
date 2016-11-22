@@ -45,8 +45,10 @@ def get_default_assets_directory():
 def get_default_cores_directory():
     return os.path.join(settings.RUNNER_DIR, 'retroarch/cores')
 
+
 def get_default_info_directory():
     return os.path.join(settings.RUNNER_DIR, 'retroarch/info')
+
 
 class libretro(Runner):
     human_name = "libretro"
