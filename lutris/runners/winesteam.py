@@ -242,7 +242,7 @@ class winesteam(wine.wine):
             on_steam_downloaded()
 
     def is_wine_installed(self, version=None):
-        return super(winesteam, self).is_installed(version=version, any_version=True)
+        return super(winesteam, self).is_installed(version=version)
 
     def is_installed(self, version=None):
         """Checks if wine is installed and if the steam executable is on the

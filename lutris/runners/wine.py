@@ -620,11 +620,11 @@ class wine(Runner):
 
         return os.path.join(path, version, 'bin/wine')
 
-    def is_installed(self, version=None, any_version=False):
+    def is_installed(self, version=None):
         """Check if Wine is installed.
-        If `any_version` is set to True, checks if any version of wine is available
+        If no version is passed, checks if any version of wine is available
         """
-        if any_version:
+        if not version:
             return len(get_wine_versions()) > 0
         executable = self.get_executable(version)
         if executable:
