@@ -279,7 +279,7 @@ class Game(object):
         if game_ld_libary_path:
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
-            ld_library_path = ":".join(game_ld_libary_path, ld_library_path)
+            ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
         env["LD_LIBRARY_PATH"] = ld_library_path
 
         # /Env vars
