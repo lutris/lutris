@@ -247,7 +247,7 @@ class LutrisThread(threading.Thread):
                 logger.debug("No children left in thread")
                 self.game_process.communicate()
             else:
-                logger.debug('Some processes are still active')
+                logger.debug('Some processes are still active (%d)', num_children)
             self.return_code = self.game_process.returncode
             return False
         if terminated_children and terminated_children == num_watched_children:
