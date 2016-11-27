@@ -17,6 +17,13 @@ class dolphin(Runner):
     ]
     runner_options = []
 
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': True,
+        }
+    ]
+
     def play(self):
         iso = self.game_config.get('main_file') or ''
         if not os.path.exists(iso):
