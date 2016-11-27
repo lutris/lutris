@@ -153,7 +153,8 @@ class dosbox(Runner):
             command.append('-conf')
             command.append(self.game_config['config_file'])
 
-        if self.runner_config.get('scaler'):
+        scaler = self.runner_config.get('scaler')
+        if scaler and scaler != 'none':
             command.append("-scaler")
             command.append(self.runner_config['scaler'])
 
