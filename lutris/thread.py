@@ -217,6 +217,7 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             if child.name in EXCLUDED_PROCESSES:
+                logger.debug("Excluding %s from process monitor" % child.name)
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
