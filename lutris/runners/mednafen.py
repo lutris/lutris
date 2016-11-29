@@ -89,7 +89,7 @@ class mednafen(Runner):
             return []
         output = subprocess.Popen([self.get_executable(), "dummy"],
                                   stdout=subprocess.PIPE).communicate()[0]
-        ouput = output.split("\n")
+        ouput = str(output).split("\n")
         found = False
         joy_list = []
         for line in ouput:
