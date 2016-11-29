@@ -193,8 +193,9 @@ class WineRegistryKey(object):
             self.metas["time"] = windows_timestamp.to_hex()
         else:
             # Existing key loaded from file
-            self.raw_name = key_def[:key_def.index(']') + 1]
-            self.raw_timestamp = key_def[key_def.index(']') + 2:]
+            self.raw_name, self.raw_timestamp = re.split(re.compile(r'(?<=[^\\]\]) '),
+                                                         key_def,
+                                                         maxsplit=1)
             self.name = self.raw_name.replace('\\\\', '/').strip("[]")
 
         # Parse timestamp either as int or float
