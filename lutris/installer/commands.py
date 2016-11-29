@@ -355,7 +355,8 @@ class CommandsMixin(object):
             os.makedirs(basedir)
 
         parser = EvilConfigParser(allow_no_value=True,
-                                  dict_type=MultiOrderedDict)
+                                  dict_type=MultiOrderedDict,
+                                  strict=False)
         parser.optionxform = str  # Preserve text case
         parser.read(config_file)
 
