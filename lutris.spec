@@ -1,6 +1,7 @@
+%{!?__python3: %global __python3 /usr/bin/python3}
 %{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-# openSUSE does not define this, so define for compatibility
-%{!?python3: %define __python3 python3}
+%{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
+%{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
 Name:           lutris
 Version:        0.4.3
@@ -19,12 +20,12 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 
 %if 0%{?fedora_version}
-BuildRequires:  pygobject3, python3-wheel, python3-setuptools, python3-gobject
-Requires:       pygobject3, PyYAML, pyxdg, dbus-python
+BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
+Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, dbus-python3
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
-BuildRequires:  pygobject3
-Requires:       pygobject3, PyYAML, pyxdg, dbus-python
+BuildRequires:  python3-gobject
+Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, dbus-python3
 %endif
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject
@@ -54,12 +55,11 @@ on Linux.
 
 
 %build
-%{__python3} setup.py build
+%py3_build
 
 
 %install
-rm -rf %{buildroot}
-%{__python3} setup.py install -O1 --skip-build --root %{buildroot}
+%py3_install
 %if 0%{?fedora_version} || 0%{?suse_version}
 %fdupes %{buildroot}%{python3_sitelib}
 %endif
@@ -102,6 +102,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_datadir}/appdata/
 
 %changelog
+* Tue Nov 29 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.3
+- Ensure correct Python3 dependencies
+- Set up Python macros for building (Thanks to Pharaoh_Atem on #opensuse-buildservice)
+
 * Sat Oct 15 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.0
 - Update to Python 3
 - Bump version to 0.4.0
