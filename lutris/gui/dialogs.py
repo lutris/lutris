@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Common message dialogs"""
 import os
-from gi.repository import GLib, Gtk, GObject
+from gi.repository import GLib, Gtk, Gdk, GObject
 
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets import DownloadProgressBox
@@ -296,8 +296,7 @@ class ClientUpdateDialog(GtkBuilderDialog):
     dialog_object = "client_update_dialog"
 
     def on_open_downloads_clicked(self, _widget):
-        import subprocess
-        subprocess.call(['xdg-open', 'https://lutris.net'])
+        Gtk.show_uri(None, "http://lutris.net", Gdk.CURRENT_TIME)
 
 
 class NoInstallerDialog(Gtk.MessageDialog):

@@ -443,10 +443,7 @@ class LutrisWindow(Gtk.Application):
         self._open_browser("https://lutris.net/user/register")
 
     def _open_browser(self, url):
-        try:
-            subprocess.check_call(["xdg-open", url])
-        except subprocess.CalledProcessError:
-            Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
+        Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     def on_synchronize_manually(self, widget):
         """Callback when Synchronize Library is activated."""
