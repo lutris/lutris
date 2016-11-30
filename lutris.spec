@@ -21,11 +21,11 @@ BuildRequires:  python3-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
-Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, dbus-python3
+Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, python3-dbus
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  python3-gobject
-Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, dbus-python3
+Requires:       python3-gobject, python3-PyYAML, python3-pyxdg, python3-dbus
 %endif
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject
