@@ -59,13 +59,7 @@ def get_launcher_path(game_slug, game_id):
     When legacy is set, it will return the old path with only the slug,
     otherwise it will return the path with slug + id
     """
-    xdg_executable = 'xdg-user-dir'
-    if not system.find_executable(xdg_executable):
-        logger.error("%s not found", xdg_executable)
-        return
-    desktop_dir = subprocess.Popen([xdg_executable, 'DESKTOP'],
-                                   stdout=subprocess.PIPE).communicate()[0]
-    desktop_dir = str(desktop_dir).strip()
+    desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
 
     legacy_launcher_path = os.path.join(
         desktop_dir, get_xdg_basename(game_slug, game_id, legacy=True)
