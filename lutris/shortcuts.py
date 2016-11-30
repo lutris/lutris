@@ -5,7 +5,6 @@ import shutil
 import subprocess
 
 from textwrap import dedent
-from xdg import BaseDirectory
 from gi.repository import GLib
 
 from lutris.util import system
@@ -84,7 +83,7 @@ def get_menu_launcher_path(game_slug, game_id):
     """Return the path to a XDG menu launcher, prioritizing legacy paths if
     they exist
     """
-    menu_dir = os.path.join(BaseDirectory.xdg_data_home, 'applications')
+    menu_dir = os.path.join(GLib.get_user_data_dir(), 'applications')
     menu_path = os.path.join(
         menu_dir, get_xdg_basename(game_slug, game_id, legacy=True)
     )
