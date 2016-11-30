@@ -33,7 +33,6 @@ setup(
         'PyYAML',
         'PyGObject',
         'dbus-python',
-        'pyxdg',
         'pyinotify',
         'evdev'
     ],

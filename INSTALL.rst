@@ -49,7 +49,6 @@ Install required packaging tools::
     yum install @development-tools
     yum install fedora-packager
     yum install python-devel
-    yum install pyxdg
 
 Create a user to build the package with::
 
