@@ -88,8 +88,9 @@ class mednafen(Runner):
         if not self.is_installed:
             return []
         output = subprocess.Popen([self.get_executable(), "dummy"],
-                                  stdout=subprocess.PIPE).communicate()[0]
-        ouput = str(output).split("\n")
+                                  stdout=subprocess.PIPE,
+                                  universal_newlines=True).communicate()[0]
+        ouput = output.split("\n")
         found = False
         joy_list = []
         for line in ouput:
