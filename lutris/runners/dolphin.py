@@ -6,6 +6,7 @@ class dolphin(Runner):
     description = "Gamecube and Wii emulator"
     human_name = "Dolphin"
     platform = "Gamecube, Wii"
+    runnable_alone = True
     runner_executable = 'dolphin/dolphin-emu'
     game_options = [
         {
