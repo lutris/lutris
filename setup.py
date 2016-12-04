@@ -32,7 +32,6 @@ setup(
     install_requires=[
         'PyYAML',
         'PyGObject',
-        'dbus-python',
         'pyinotify',
         'evdev'
     ],
