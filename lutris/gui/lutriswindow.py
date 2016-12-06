@@ -33,21 +33,16 @@ from lutris.gui.gameviews import (
 )
 
 
-class LutrisWindow(Gtk.Application):
+class LutrisWindow:
     """Handler class for main window signals."""
-    def __init__(self, service=None):
+    def __init__(self):
 
-        Gtk.Application.__init__(
-            self, application_id="net.lutris.main",
-            flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE
-        )
         ui_filename = os.path.join(
             datapath.get(), 'ui', 'lutris-window.ui'
         )
         if not os.path.exists(ui_filename):
             raise IOError('File %s not found' % ui_filename)
 
-        self.service = service
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
@@ -465,15 +460,10 @@ class LutrisWindow(Gtk.Application):
             logger.info("%s is still running, stopping it", self.running_game.name)
             self.running_game.stop()
 
-        if self.service:
-            self.service.stop()
-
         # Save settings
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
-
-        Gtk.main_quit(*args)
 
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""

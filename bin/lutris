@@ -13,26 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import dbus
-import dbus.service
 import os
 import sys
-import logging
-import optparse
-import signal
-import time
-import json
-
-# pylint: disable=E0611
-import gi
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
-
-from dbus.mainloop.glib import DBusGMainLoop
-DBusGMainLoop(set_as_default=True)
-
-from gi.repository import Gdk, Gtk, GObject, GLib
-
 from os.path import realpath, dirname, normpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
@@ -40,132 +22,11 @@ if LAUNCH_PATH != "/usr/bin":
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 
-from lutris.migrations import migrate
+from lutris.gui.application import Application
 
-from lutris import pga
-from lutris.runtime import RuntimeUpdater
-from lutris.config import check_config  # , register_handler
-from lutris.util.log import logger
-from lutris.game import Game
-from lutris.gui.installgamedialog import InstallerDialog
-from lutris.settings import VERSION
-from lutris.util import service
-from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
+app = Application()
+sys.exit(app.run(sys.argv))
 
-# Support for command line options.
-parser = optparse.OptionParser(version="%prog " + VERSION)
-parser.add_option("-d", "--debug", action="store_true", dest="debug",
-                  help="Show debug messages")
-parser.add_option("-i", "--install", dest="installer_file",
-                  help="Install a game from a yml file")
-parser.add_option("-l", "--list-games", action="store_true", dest="list_games",
-                  help="List games in database")
-parser.add_option("-o", "--installed", action="store_true", dest="list_installed",
-                  help="Only list installed games")
-parser.add_option("--list-steam-games", action="store_true",
-                  help="List available Steam games")
-parser.add_option("--list-steam-folders", action="store_true",
-                  help="List all known Steam library folders")
-parser.add_option("-j", "--json", action="store_true", dest="json",
-                  help="Display the list of games in JSON format")
-parser.add_option("--reinstall", action="store_true", help="Reinstall game")
-(options, args) = parser.parse_args()
-
-if options.debug:
-    logger.setLevel(logging.DEBUG)
-
-if options.list_games:
-    game_list = pga.get_games()
-    if options.list_installed:
-        game_list = [game for game in game_list if game['installed']]
-    if options.json:
-        games = []
-        for game in game_list:
-            games.append({
-                'id': game['id'],
-                'slug': game['slug'],
-                'name': game['name'],
-                'runner': game['runner'],
-                'directory': game['directory']
-            })
-        print(json.dumps(games, indent=2))
-    else:
-        for game in game_list:
-            print("{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
-                game['id'],
-                game['name'][:40],
-                game['slug'][:40],
-                game['runner'] or '-',
-                game['directory'] or '-'
-            ))
-    exit()
-if options.list_steam_games:
-    steamapps_paths = get_steamapps_paths()
-    for platform in ('linux', 'windows'):
-        for path in steamapps_paths[platform]:
-            appmanifest_files = get_appmanifests(path)
-            for appmanifest_file in appmanifest_files:
-                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                print("  {:8} | {:<60} | {:10} | {}".format(
-                    appmanifest.steamid,
-                    appmanifest.name or '-',
-                    platform,
-                    ", ".join(appmanifest.states)
-
-                ))
-    exit()
-if options.list_steam_folders:
-    steamapps_paths = get_steamapps_paths()
-    for platform in ('linux', 'windows'):
-        for path in steamapps_paths[platform]:
-            print(path)
-    exit()
-
-
-check_config(force_wipe=False)
-
-installer = False
-game = None
-
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-# D-Bus init
-
-bus = dbus.SessionBus()
-lutris = service.get_service(bus)
-
-# Make sure the existing process is not frozen
-if type(lutris) is dbus.Interface:
-    try:
-        lutris.is_running()
-    except dbus.exceptions.DBusException as e:
-        logger.error(e)
-        try:
-            # Get existing process' PID
-            dbus_proxy = bus.get_object('org.freedesktop.DBus',
-                                        '/org/freedesktop/DBus/Bus')
-            dbus_interface = dbus.Interface(dbus_proxy, 'org.freedesktop.DBus')
-            pid = dbus_interface.GetConnectionUnixProcessID(lutris.bus_name)
-
-            os.kill(pid, signal.SIGKILL)
-        except (OSError, dbus.exceptions.DBusException) as ex:
-            logger.error("Lutris was non responsive, we tried, we failed and failed "
-                         "some more. Please now try to restart Lutris")
-            logger.error(ex)
-            exit()
-        else:
-            time.sleep(1)  # Wait for bus name to be available again
-            lutris = service.LutrisService(bus, '/', service.DBUS_INTERFACE)
-
-migrate()
-
-game_slug = ""
-for arg in args:
-    if arg.startswith('lutris:'):
-        game_slug = arg[7:]
-        break
-
-installer = options.installer_file
 
 if game_slug or installer:
     if not game_slug and not os.path.isfile(installer):
@@ -200,10 +61,5 @@ if game_slug or installer:
         else:
             runtime_updater.update()
             InstallerDialog(installer or game_slug)
-            GObject.threads_init()
-            Gtk.main()
     exit()
 
-lutris.run(int(time.time()))
-if lutris.is_running():
-    Gdk.notify_startup_complete()
