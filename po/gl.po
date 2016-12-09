@@ -49,7 +49,7 @@ msgstr ""
 
 #: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
 msgid "Lutris"
-msgstr ""
+msgstr "Lutris"
 
 #: ../data/ui/LutrisWindow3.ui.h:2
 msgid "_File"
@@ -69,7 +69,7 @@ msgstr "_Axuda"
 
 #: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
 msgid "Add game"
-msgstr ""
+msgstr "Añadir un xogo"
 
 #: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
 msgid "Play"
