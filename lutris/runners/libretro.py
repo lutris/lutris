@@ -186,6 +186,12 @@ class libretro(Runner):
                 else:
                     logger.warning("Firmware '{}' not found!".format(firmware_filename))
 
+                # Before closing issue #431
+                # TODO check for firmware*_opt and display an error message if
+                # firmware is missing
+                # TODO Add dialog for copying the firmware in the correct
+                # location
+
         return True
 
     def get_runner_parameters(self):
