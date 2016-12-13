@@ -109,6 +109,11 @@ def get_pid(program, multiple=False):
         return pids[0]
 
 
+def get_all_pids():
+    """Return all pids of currently running processes"""
+    return [int(pid) for pid in os.listdir('/proc') if pid.isdigit()]
+
+
 def kill_pid(pid):
     try:
         int(pid)

@@ -13,7 +13,7 @@ from textwrap import dedent
 from lutris import settings
 from lutris.util.log import logger
 from lutris.util.process import Process
-from lutris.util.system import find_executable
+from lutris.util import system
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
@@ -53,6 +53,9 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
+
+        # Keep a copy of previously running processes
+        self.old_pids = system.get_all_pids()
 
         if cwd:
             self.cwd = cwd
@@ -97,7 +100,7 @@ class LutrisThread(threading.Thread):
         env = os.environ.copy()
         env.update(self.env)
 
-        if self.terminal and find_executable(self.terminal):
+        if self.terminal and system.find_executable(self.terminal):
             self.run_in_terminal()
         else:
             self.terminal = False
@@ -216,6 +219,9 @@ class LutrisThread(threading.Thread):
                     continue
 
             num_children += 1
+            if child.pid in self.old_pids:
+                logger.debug("Excluding %s (not opened by thread)" % child.name)
+                continue
             if child.name in EXCLUDED_PROCESSES:
                 logger.debug("Excluding %s from process monitor" % child.name)
                 continue
