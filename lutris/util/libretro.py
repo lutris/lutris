@@ -18,7 +18,7 @@ class RetroConfig:
         with open(config_path, 'r') as config_file:
             for line in config_file.readlines():
                 try:
-                    key, value = line.strip().split(' = ')
+                    key, value = line.strip().split(' = ', 1)
                 except ValueError:
                     continue
                 value = value.strip("\"")
@@ -45,7 +45,6 @@ class RetroConfig:
         for (k, value) in self.config:
             if key == k:
                 return self.deserialize_value(value)
-        raise KeyError(key)
 
     def __setitem__(self, key, value):
         for index, (k, v) in enumerate(self.config):
@@ -53,3 +52,6 @@ class RetroConfig:
                 self.config[index] = (key, self.serialize_value(value))
                 return
         self.config.append((key, self.serialize_value(value)))
+
+    def keys(self):
+        return list([key for (key, _value) in self.config])
