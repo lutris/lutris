@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import logging
 import signal
 import json
@@ -35,36 +34,71 @@ from lutris.config import check_config  # , register_handler
 from lutris.util.log import logger
 from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
-from lutris.settings import VERSION
 from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
 from .lutriswindow import LutrisWindow
 
-class Application(Gtk.Application):
 
+class Application(Gtk.Application):
     def __init__(self):
         Gtk.Application.__init__(self, application_id='net.lutris.Lutris',
                                  flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         GLib.set_application_name(_('Lutris'))
         self.window = None
 
-        self.add_main_option('debug', ord('d'), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('Show debug messages'), None)
-        self.add_main_option('install', ord('i'), GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
-                             _('Install a game from a yml file'), None)
-        self.add_main_option('list-games', ord('l'), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('List all games in database'), None)
-        self.add_main_option('installed', ord('o'), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('Only list installed games'), None)
-        self.add_main_option('list-steam-games', ord('s'), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('List available Steam games'), None)
-        self.add_main_option('list-steam-folders', 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('List all known Steam library folders'), None)
-        self.add_main_option('json', ord('j'), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('Display the list of games in JSON format'), None)
-        self.add_main_option('reinstall', 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             _('Reinstall game'), None)
-        self.add_main_option(GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY,
-                             _('uri to open'), 'URI')
+        self.add_main_option('debug',
+                             ord('d'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Show debug messages'),
+                             None)
+        self.add_main_option('install',
+                             ord('i'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             _('Install a game from a yml file'),
+                             None)
+        self.add_main_option('list-games',
+                             ord('l'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('List all games in database'),
+                             None)
+        self.add_main_option('installed',
+                             ord('o'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Only list installed games'),
+                             None)
+        self.add_main_option('list-steam-games',
+                             ord('s'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('List available Steam games'),
+                             None)
+        self.add_main_option('list-steam-folders',
+                             0,
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('List all known Steam library folders'),
+                             None)
+        self.add_main_option('json',
+                             ord('j'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Display the list of games in JSON format'),
+                             None)
+        self.add_main_option('reinstall',
+                             0,
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Reinstall game'),
+                             None)
+        self.add_main_option(GLib.OPTION_REMAINING,
+                             0,
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING_ARRAY,
+                             _('uri to open'),
+                             'URI')
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
@@ -104,13 +138,16 @@ class Application(Gtk.Application):
                     self._print(command_line, json.dumps(games, indent=2))
             else:
                 for game in game_list:
-                    self._print(command_line, "{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
-                        game['id'],
-                        game['name'][:40],
-                        game['slug'][:40],
-                        game['runner'] or '-',
-                        game['directory'] or '-'
-                    ))
+                    self._print(
+                        command_line,
+                        "{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+                            game['id'],
+                            game['name'][:40],
+                            game['slug'][:40],
+                            game['runner'] or '-',
+                            game['directory'] or '-'
+                        )
+                    )
             return 0
 
         if options.contains('list-steam-games'):
@@ -120,13 +157,15 @@ class Application(Gtk.Application):
                     appmanifest_files = get_appmanifests(path)
                     for appmanifest_file in appmanifest_files:
                         appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                        self._print(command_line, "  {:8} | {:<60} | {:10} | {}".format(
-                            appmanifest.steamid,
-                            appmanifest.name or '-',
-                            platform,
-                            ", ".join(appmanifest.states)
-
-                        ))
+                        self._print(
+                            command_line,
+                            "  {:8} | {:<60} | {:10} | {}".format(
+                                appmanifest.steamid,
+                                appmanifest.name or '-',
+                                platform,
+                                ", ".join(appmanifest.states)
+                            )
+                        )
             return 0
 
         if options.contains('list-steam-folders'):
@@ -145,9 +184,9 @@ class Application(Gtk.Application):
         if uri:
             uri = uri.get_strv()
         if uri and len(uri):
-            uri = uri[0] # TODO: Support multiple
+            uri = uri[0]  # TODO: Support multiple
             if not uri.startswith('lutris:'):
-                self._print(command_line, '%s is not a valid URI' %uri)
+                self._print(command_line, '%s is not a valid URI' % uri)
                 return 1
             game_slug = uri[7:]
 
@@ -164,7 +203,7 @@ class Application(Gtk.Application):
                            or pga.get_game_by_field(game_slug, 'installer_slug'))
 
             if db_game and db_game['installed'] and not options.contains('reinstall'):
-                self._print(command_line, "Launching %s" %db_game['name'])
+                self._print(command_line, "Launching %s" % db_game['name'])
                 if self.window:
                     self.run_game(db_game['id'])
                 else:
@@ -178,7 +217,7 @@ class Application(Gtk.Application):
                         lutris_game.stop()
                 return 0
             else:
-                self._print(command_line, "Installing %s" %game_slug)
+                self._print(command_line, "Installing %s" % game_slug)
                 if self.window:
                     self.install_game(installer or game_slug)
                 else:
@@ -202,4 +241,3 @@ class Application(Gtk.Application):
 
     def run_game(self, game_id):
         self.window.on_game_run(game_id=game_id)
-
