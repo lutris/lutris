@@ -191,9 +191,14 @@ class Application(Gtk.Application):
             game_slug = uri[7:]
 
         if game_slug or options.contains('install'):
-            installer = options.lookup_value('install').get_string()
-            if not game_slug and not os.path.isfile(installer):
-                self._print(command_line, "No such file: %s" % installer)
+            if options.contains('install'):
+                installer_file = options.lookup_value('install').get_string()
+                installer = installer_file
+            else:
+                installer_file = None
+                installer = game_slug
+            if not game_slug and not os.path.isfile(installer_file):
+                self._print(command_line, "No such file: %s" % installer_file)
                 return 1
 
             db_game = None
@@ -217,14 +222,14 @@ class Application(Gtk.Application):
                         lutris_game.stop()
                 return 0
             else:
-                self._print(command_line, "Installing %s" % game_slug)
+                self._print(command_line, "Installing %s" % installer)
                 if self.window:
-                    self.install_game(installer or game_slug)
+                    self.install_game(installer)
                 else:
                     runtime_updater = RuntimeUpdater()
                     runtime_updater.update()
                     # FIXME: This should be a Gtk.Dialog child of LutrisWindow
-                    dialog = InstallerDialog(installer or game_slug)
+                    dialog = InstallerDialog(installer)
                     self.add_window(dialog)
                 return 0
 
