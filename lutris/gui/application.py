@@ -142,6 +142,8 @@ class Application(Gtk.Application):
 
         game_slug = ''
         uri = options.lookup_value(GLib.OPTION_REMAINING)
+        if uri:
+            uri = uri.get_strv()
         if uri and len(uri):
             uri = uri[0] # TODO: Support multiple
             if not uri.startswith('lutris:'):
@@ -150,7 +152,7 @@ class Application(Gtk.Application):
             game_slug = uri[7:]
 
         if game_slug or options.contains('install'):
-            installer = options.lookup_value('install')
+            installer = options.lookup_value('install').get_string()
             if not game_slug and not os.path.isfile(installer):
                 self._print(command_line, "No such file: %s" % installer)
                 return 1
@@ -162,7 +164,7 @@ class Application(Gtk.Application):
                            or pga.get_game_by_field(game_slug, 'installer_slug'))
 
             if db_game and db_game['installed'] and not options.contains('reinstall'):
-                self._print(command_line, "Launching %s", db_game['name'])
+                self._print(command_line, "Launching %s" %db_game['name'])
                 if self.window:
                     self.run_game(db_game['id'])
                 else:
@@ -176,7 +178,7 @@ class Application(Gtk.Application):
                         lutris_game.stop()
                 return 0
             else:
-                self._print(command_line, "Installing %s", game_slug)
+                self._print(command_line, "Installing %s" %game_slug)
                 if self.window:
                     self.install_game(installer or game_slug)
                 else:
