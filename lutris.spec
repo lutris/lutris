@@ -4,7 +4,7 @@
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
 Name:           lutris
-Version:        0.4.3
+Version:        0.4.4
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 

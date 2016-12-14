@@ -1,3 +1,16 @@
+lutris (0.4.4) yakkety; urgency=medium
+
+  * Add widget to edit environment variables in system options
+  * Ignore processes launched before the game
+  * Check for presence and checksum of BIOS files in RetroArch
+  * Prevent a crash on empty Wine prefixes
+  * Remove DBus service and replace with Gtk.Application
+  * Make Dolphin runnable by itself
+  * Remove dependencies to python3-xdg and xdg-user-dirs
+  * Fix joystick detection in Mednafen
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Dec 2016 16:55:59 -0800
+
 lutris (0.4.3) yakkety; urgency=medium
 
   * Change labels in dialogs to "Save"
