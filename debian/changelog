@@ -1,3 +1,9 @@
+lutris (0.4.4.1) yakkety; urgency=medium
+
+  * Fix installer command line options
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Dec 2016 18:47:29 -0800
+
 lutris (0.4.4) yakkety; urgency=medium
 
   * Add widget to edit environment variables in system options
