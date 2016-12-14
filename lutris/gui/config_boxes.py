@@ -3,7 +3,7 @@ import os
 from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
-from lutris.gui.widgets import VBox, Label, FileChooserEntry
+from lutris.gui.widgets import VBox, Label, FileChooserEntry, EditableGrid
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -168,6 +168,8 @@ class ConfigBox(VBox):
                                                 option["label"], value)
         elif option_type == 'label':
             self.generate_label(option["label"])
+        elif option_type == 'mapping':
+            self.generate_editable_grid(option_key, label=option['label'], value=value)
         else:
             raise ValueError("Unknown widget type %s" % option_type)
 
@@ -341,6 +343,23 @@ class ConfigBox(VBox):
         """Action triggered on file select dialog 'file-set' signal."""
         filename = entry.get_text()
         self.option_changed(entry.get_parent(), option, filename)
+
+    # Editable grid
+    def generate_editable_grid(self, option_name, label, value=None):
+        value = value or {}
+        value = list(value.items())
+        label = Label(label)
+        label.set_alignment(0.5, 0)
+
+        grid = EditableGrid(value, columns=["Key", "Value"])
+        grid.connect('changed', self.on_grid_changed, option_name)
+        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.pack_start(grid, True, True, 0)
+        self.option_widget = grid
+
+    def on_grid_changed(self, grid, option):
+        values = dict(grid.get_data())
+        self.option_changed(grid, option, values)
 
     # Multiple file selector
     def generate_multiple_file_chooser(self, option_name, label, value=None):

@@ -137,6 +137,13 @@ system_options = [
                  "Note: Not all terminal emulators are guaranteed to work.")
     },
     {
+        'option': 'env',
+        'type': 'mapping',
+        'label': 'Environment variables',
+        'advanced': True,
+        'help': "Environment variables loaded at run time"
+    },
+    {
         'option': 'prefix_command',
         'type': 'string',
         'label': 'Command prefix',

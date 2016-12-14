@@ -296,6 +296,10 @@ class Dialog(Gtk.Dialog):
 
 
 class EditableGrid(Gtk.Grid):
+    __gsignals__ = {
+        "changed": (GObject.SIGNAL_RUN_FIRST, None, ())
+    }
+
     def __init__(self, data, columns):
         self.columns = columns
         super(EditableGrid, self).__init__()
@@ -303,10 +307,6 @@ class EditableGrid(Gtk.Grid):
         self.set_row_homogeneous(True)
         self.set_row_spacing(10)
         self.set_column_spacing(10)
-        self.set_margin_bottom(10)
-        self.set_margin_top(10)
-        self.set_margin_left(10)
-        self.set_margin_right(10)
 
         self.liststore = Gtk.ListStore(str, str)
         for item in data:
@@ -321,7 +321,7 @@ class EditableGrid(Gtk.Grid):
 
             column = Gtk.TreeViewColumn(column_title, renderer, text=i)
             column.set_resizable(True)
-            column.set_min_width(200)
+            column.set_min_width(100)
             column.set_sort_column_id(0)
             self.treeview.append_column(column)
 
@@ -338,21 +338,25 @@ class EditableGrid(Gtk.Grid):
         self.scrollable_treelist.set_vexpand(True)
         self.scrollable_treelist.add(self.treeview)
 
-        self.attach(self.scrollable_treelist, 0, 0, 8, 5)
-        self.attach(self.add_button, 8 - len(self.buttons), 6, 1, 1)
+        self.attach(self.scrollable_treelist, 0, 0, 5, 5)
+        self.attach(self.add_button, 5 - len(self.buttons), 6, 1, 1)
         for i, button in enumerate(self.buttons[1:]):
             self.attach_next_to(button, self.buttons[i], Gtk.PositionType.RIGHT, 1, 1)
+        self.show_all()
 
     def on_add(self, widget):
         self.liststore.append(["", ""])
+        self.emit('changed')
 
     def on_delete(self, widget):
         selection = self.treeview.get_selection()
         liststore, iter = selection.get_selected()
         self.liststore.remove(iter)
+        self.emit('changed')
 
     def on_text_edited(self, widget, path, text, field):
         self.liststore[path][field] = text
+        self.emit('changed')
 
     def get_data(self):
         model_data = []
