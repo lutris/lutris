@@ -2,9 +2,8 @@
 # pylint: disable=E0611
 import os
 import time
-import subprocess
 
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, Gdk, GLib
 
 from lutris import api, pga, settings, shortcuts
 from lutris.game import Game
