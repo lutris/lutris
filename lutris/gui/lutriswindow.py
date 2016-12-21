@@ -464,6 +464,8 @@ class LutrisWindow:
         settings.write_setting('width', width)
         settings.write_setting('height', height)
 
+        self.window.destroy()
+
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""
         RunnersDialog()
