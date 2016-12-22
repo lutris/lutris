@@ -1,13 +1,8 @@
 import os
 import re
 import time
-import threading
-try:
-    import pyinotify
-    from pyinotify import ProcessEvent
-except ImportError:
-    pyinotify = None
-    ProcessEvent = object
+
+from gi.repository import GLib, Gio
 from collections import OrderedDict
 from lutris import pga
 from lutris.util.log import logger
@@ -305,51 +300,27 @@ def sync_with_lutris():
                 mark_as_uninstalled(game)
 
 
-class SteamWatchHandler(ProcessEvent):
-    def __init__(self, callback):
+class SteamWatcher:
+    def __init__(self, steamapps_paths, callback=None):
+        self.monitors = []
         self.callback = callback
+        for steam_path in steamapps_paths:
+            path = Gio.File.new_for_path(steam_path)
+            try:
+                monitor = path.monitor_directory(Gio.FileMonitorFlags.NONE)
+                logger.debug('Watching Steam folder %s', steam_path)
+                monitor.connect('changed', self._on_directory_changed)
+                self.monitors.append(monitor)
+            except GLib.Error as e:
+                logger.exception(e)
 
-    def process_IN_MODIFY(self, event):
-        self.process_event('MODIFY', event.pathname)
-
-    def process_IN_CREATE(self, event):
-        self.process_event('CREATE', event.pathname)
-
-    def process_IN_DELETE(self, event):
-        self.process_event('DELETE', event.pathname)
-
-    def process_event(self, event_type, path):
+    def _on_directory_changed(self, monitor, _file, other_file, event_type):
+        path = _file.get_path()
         if not path.endswith('.acf'):
             return
+        logger.debug('Detected file change ({}) to {}'.format(Gio.FileMonitorEvent(event_type).value_name,
+                                                              path))
         self.callback(event_type, path)
-
-
-class SteamWatcher(threading.Thread):
-    def __init__(self, steamapps_paths, callback=None):
-        self.notifier = None
-        if not pyinotify:
-            logger.error("pyinotify is not installed, "
-                         "Lutris won't keep track of steam games")
-        else:
-            self.steamapps_paths = steamapps_paths
-            self.callback = callback
-            super(SteamWatcher, self).__init__()
-            self.daemon = True
-            self.start()
-
-    def run(self):
-        watch_manager = pyinotify.WatchManager()
-        event_handler = SteamWatchHandler(self.callback)
-        mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
-        self.notifier = pyinotify.Notifier(watch_manager, event_handler)
-        for steamapp_path in self.steamapps_paths:
-            logger.debug('Watching Steam folder %s', steamapp_path)
-            watch_manager.add_watch(steamapp_path, mask, rec=False)
-        self.notifier.loop()
-
-    def stop(self):
-        if self.notifier:
-            self.notifier.stop()
 
 
 class AppManifest:
