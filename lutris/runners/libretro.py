@@ -159,7 +159,7 @@ class libretro(Runner):
             core_config = RetroConfig(info_file)
             try:
                 firmware_count = int(core_config['firmware_count'])
-            except ValueError:
+            except (ValueError, TypeError):
                 firmware_count = 0
             system_path = self.get_system_directory(retro_config)
             notes = core_config['notes'] or ''
