@@ -26,8 +26,15 @@ def show_error_message(message):
     elif "NO_BIOS" == message['error']:
         dialogs.ErrorDialog("A bios file is required to run this game")
     elif "FILE_NOT_FOUND" == message['error']:
-        message_text = message['file'].replace('&', '&amp;')
-        dialogs.ErrorDialog("The file %s could not be found" % message_text)
+        filename = message['file']
+        if filename:
+            message_text = "The file {} could not be found".format(
+                filename.replace('&', '&amp;')
+            )
+        else:
+            message_text = "No file provided"
+        dialogs.ErrorDialog(message_text)
+
     elif "NOT_EXECUTABLE" == message['error']:
         message_text = message['file'].replace('&', '&amp;')
         dialogs.ErrorDialog("The file %s is not executable" % message_text)
