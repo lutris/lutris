@@ -6,6 +6,7 @@ import sys
 import time
 import threading
 import subprocess
+import contextlib
 
 from gi.repository import GLib
 from textwrap import dedent
@@ -118,11 +119,9 @@ class LutrisThread(threading.Thread):
                 continue
             self.stdout += line
             if self.debug_output:
-                try:
+                with contextlib.suppress(BlockingIOError):
                     sys.stdout.write(line)
                     sys.stdout.flush()
-                except BlockingIOError:
-                    pass
 
     def run_in_terminal(self):
         """Write command in a script file and run it.
