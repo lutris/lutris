@@ -107,8 +107,8 @@ class Application(Gtk.Application):
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow()
-            self.add_window(self.window.window)
-        self.window.window.present()
+            self.add_window(self.window)
+        self.window.present()
 
     @staticmethod
     def _print(command_line, string):
@@ -239,7 +239,7 @@ class Application(Gtk.Application):
     def do_shutdown(self):
         Gtk.Application.do_shutdown(self)
         if self.window:
-            self.window.window.destroy()
+            self.window.destroy()
 
     def install_game(self, game_ref):
         self.window.on_install_clicked(game_ref=game_ref)
