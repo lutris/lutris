@@ -118,8 +118,11 @@ class LutrisThread(threading.Thread):
                 continue
             self.stdout += line
             if self.debug_output:
-                sys.stdout.write(line)
-                sys.stdout.flush()
+                try:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+                except BlockingIOError:
+                    pass
 
     def run_in_terminal(self):
         """Write command in a script file and run it.
