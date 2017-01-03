@@ -3,7 +3,7 @@
 import os
 import time
 
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings, shortcuts
 from lutris.game import Game
@@ -199,13 +199,13 @@ class LutrisWindow:
         appmanifest = steam.AppManifest(path)
         runner_name = appmanifest.get_runner_name()
         games = pga.get_game_by_field(appmanifest.steamid, field='steamid', all=True)
-        if operation == 'DELETE':
+        if operation == Gio.FileMonitorEvent.DELETED:
             for game in games:
                 if game['runner'] == runner_name:
                     steam.mark_as_uninstalled(game)
                     self.view.set_uninstalled(Game(game['id']))
                     break
-        elif operation in ('MODIFY', 'CREATE'):
+        elif operation in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
             if not appmanifest.is_installed():
                 return
             if runner_name == 'windows':
@@ -452,7 +452,7 @@ class LutrisWindow:
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
-        self.steam_watcher.stop()
+        self.steam_watcher = None
 
         if self.running_game \
            and self.running_game.state != self.running_game.STATE_STOPPED:

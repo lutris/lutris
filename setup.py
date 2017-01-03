@@ -32,7 +32,6 @@ setup(
     install_requires=[
         'PyYAML',
         'PyGObject',
-        'pyinotify',
         'evdev'
     ],
     url='https://lutris.net',

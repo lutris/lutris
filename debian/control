@@ -21,7 +21,6 @@ Depends: ${misc:Depends},
  ${python3:Depends},
  python3-yaml,
  python3-gi,
- python3-pyinotify,
  gir1.2-gtk-3.0,
  psmisc
 Recommends: python3-evdev,
