@@ -20,6 +20,7 @@ from lutris.util import steam
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
 from lutris.gui.logwindow import LogWindow
+from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
@@ -32,16 +33,48 @@ from lutris.gui.gameviews import (
 )
 
 
-class LutrisWindow:
+@GtkTemplate(ui=os.path.join(datapath.get(), 'ui', 'lutris-window.ui'))
+class LutrisWindow(Gtk.ApplicationWindow):
     """Handler class for main window signals."""
-    def __init__(self):
 
-        ui_filename = os.path.join(
-            datapath.get(), 'ui', 'lutris-window.ui'
-        )
-        if not os.path.exists(ui_filename):
-            raise IOError('File %s not found' % ui_filename)
+    __gtype_name__ = 'LutrisWindow'
 
+    dark_theme_menuitem = GtkTemplate.Child()
+    main_box = GtkTemplate.Child()
+    splash_box = GtkTemplate.Child()
+    connect_link = GtkTemplate.Child()
+
+    sidebar_menuitem = GtkTemplate.Child()
+    installed_games_only_menuitem = GtkTemplate.Child()
+    grid_view_menuitem = GtkTemplate.Child()
+    list_view_menuitem = GtkTemplate.Child()
+
+    grid_view_btn = GtkTemplate.Child()
+    list_view_btn = GtkTemplate.Child()
+
+    banner_small_menuitem = GtkTemplate.Child()
+    banner_menuitem = GtkTemplate.Child()
+    icon_menuitem = GtkTemplate.Child()
+
+    games_scrollwindow = GtkTemplate.Child()
+
+    stop_button = GtkTemplate.Child()
+    delete_button = GtkTemplate.Child()
+    play_button = GtkTemplate.Child()
+
+    sidebar_paned = GtkTemplate.Child()
+    sidebar_viewport = GtkTemplate.Child()
+
+    statusbar = GtkTemplate.Child()
+
+    synchronize_menuitem = GtkTemplate.Child()
+    disconnect_menuitem = GtkTemplate.Child()
+    connect_menuitem = GtkTemplate.Child()
+    connection_label = GtkTemplate.Child()
+
+    status_box = GtkTemplate.Child()
+
+    def __init__(self, **kwargs):
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
@@ -53,26 +86,27 @@ class LutrisWindow:
         self.last_selected_game = None
         self.selected_runner = None
 
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file(ui_filename)
-
         # Load settings
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
-        window = self.builder.get_object('window')
-        window.resize(width, height)
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
         self.filter_installed = \
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+        use_dark_theme = settings.read_setting('dark_theme') == 'true'
+
+        # Window initialization
+        super().__init__(default_width=width,
+                         default_height=height,
+                         icon_name='lutris',
+                         **kwargs)
+        self.init_template()
 
         # Set theme to dark if set in the settings
-        dark_theme_menuitem = self.builder.get_object('dark_theme_menuitem')
-        use_dark_theme = settings.read_setting('dark_theme') == 'true'
-        dark_theme_menuitem.set_active(use_dark_theme)
+        self.dark_theme_menuitem.set_active(use_dark_theme)
         self.set_dark_theme(use_dark_theme)
 
         self.game_list = pga.get_games()
@@ -80,48 +114,23 @@ class LutrisWindow:
         # Load view
         self.game_store = GameStore([], self.icon_type, self.filter_installed)
         self.view = self.get_view(view_type)
+        self.games_scrollwindow.add(self.view)
+        self.connect_signals()
 
-        self.main_box = self.builder.get_object('main_box')
-        self.splash_box = self.builder.get_object('splash_box')
-        self.connect_link = self.builder.get_object('connect_link')
         # View menu
-        installed_games_only_menuitem =\
-            self.builder.get_object('filter_installed')
-        installed_games_only_menuitem.set_active(self.filter_installed)
-        self.grid_view_menuitem = self.builder.get_object("gridview_menuitem")
+        self.installed_games_only_menuitem.set_active(self.filter_installed)
         self.grid_view_menuitem.set_active(view_type == 'grid')
-        self.list_view_menuitem = self.builder.get_object("listview_menuitem")
         self.list_view_menuitem.set_active(view_type == 'list')
-        sidebar_menuitem = self.builder.get_object('sidebar_menuitem')
-        sidebar_menuitem.set_active(self.sidebar_visible)
+        self.sidebar_menuitem.set_active(self.sidebar_visible)
 
         # View buttons
-        self.grid_view_btn = self.builder.get_object('switch_grid_view_btn')
         self.grid_view_btn.set_active(view_type == 'grid')
-        self.list_view_btn = self.builder.get_object('switch_list_view_btn')
         self.list_view_btn.set_active(view_type == 'list')
+
         # Icon type menu
-        self.banner_small_menuitem = \
-            self.builder.get_object('banner_small_menuitem')
         self.banner_small_menuitem.set_active(self.icon_type == 'banner_small')
-        self.banner_menuitem = self.builder.get_object('banner_menuitem')
         self.banner_menuitem.set_active(self.icon_type == 'banner')
-        self.icon_menuitem = self.builder.get_object('icon_menuitem')
         self.icon_menuitem.set_active(self.icon_type == 'icon')
-
-        self.search_entry = self.builder.get_object('search_entry')
-        self.search_entry.connect('icon-press', self.on_clear_search)
-
-        # Scroll window
-        self.games_scrollwindow = self.builder.get_object('games_scrollwindow')
-        self.games_scrollwindow.add(self.view)
-        # Buttons
-        self.stop_button = self.builder.get_object('stop_button')
-        self.stop_button.set_sensitive(False)
-        self.delete_button = self.builder.get_object('delete_button')
-        self.delete_button.set_sensitive(False)
-        self.play_button = self.builder.get_object('play_button')
-        self.play_button.set_sensitive(False)
 
         # Contextual menu
         main_entries = [
@@ -145,25 +154,12 @@ class LutrisWindow:
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        self.sidebar_paned = self.builder.get_object('sidebar_paned')
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
-        self.sidebar_viewport = self.builder.get_object('sidebar_viewport')
         self.sidebar_viewport.add(self.sidebar_treeview)
 
-        # Window initialization
-        self.window = self.builder.get_object("window")
-        self.window.resize_to_geometry(width, height)
-        self.window.set_default_icon_name('lutris')
-        self.window.show_all()
-        self.builder.connect_signals(self)
-        self.connect_signals()
-
-        self.statusbar = self.builder.get_object("statusbar")
-
-        # XXX Hide PGA config menu item until it actually gets implemented
-        pga_menuitem = self.builder.get_object('pga_menuitem')
-        pga_menuitem.hide()
+        # Finally show window
+        self.show_all()
 
         # Sync local lutris library with current Steam games before setting up
         # view
@@ -248,7 +244,6 @@ class LutrisWindow:
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
-        self.window.connect("configure-event", self.on_resize)
 
     def check_update(self):
         """Verify availability of client update."""
@@ -354,12 +349,11 @@ class LutrisWindow:
                               callback=self.on_image_downloaded)
 
     def set_status(self, text):
-        status_box = self.builder.get_object('status_box')
-        for child_widget in status_box.get_children():
+        for child_widget in self.status_box.get_children():
             child_widget.destroy()
         label = Gtk.Label(text)
         label.show()
-        status_box.add(label)
+        self.status_box.add(label)
 
     def refresh_status(self):
         """Refresh status bar."""
@@ -379,19 +373,22 @@ class LutrisWindow:
     # Callbacks
     # ---------
 
+    @GtkTemplate.Callback
     def on_dark_theme_toggled(self, widget):
         use_dark_theme = widget.get_active()
         setting_value = 'true' if use_dark_theme else 'false'
         settings.write_setting('dark_theme', setting_value)
         self.set_dark_theme(use_dark_theme)
 
+    @GtkTemplate.Callback
     def on_clear_search(self, widget, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             widget.set_text('')
 
+    @GtkTemplate.Callback
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
-        login_dialog = dialogs.ClientLoginDialog(self.window)
+        login_dialog = dialogs.ClientLoginDialog(self)
         login_dialog.connect('connected', self.on_connect_success)
         return True
 
@@ -403,50 +400,54 @@ class LutrisWindow:
         self.toggle_connection(True, username)
         self.sync_library()
         self.connect_link.hide()
-        synchronize_menuitem = self.builder.get_object('synchronize_menuitem')
-        synchronize_menuitem.set_sensitive(True)
+        self.synchronize_menuitem.set_sensitive(True)
 
+    @GtkTemplate.Callback
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
         self.connect_link.show()
-
-        synchronize_menuitem = self.builder.get_object('synchronize_menuitem')
-        synchronize_menuitem.set_sensitive(False)
+        self.synchronize_menuitem.set_sensitive(False)
 
     def toggle_connection(self, is_connected, username=None):
-        disconnect_menuitem = self.builder.get_object('disconnect_menuitem')
-        connect_menuitem = self.builder.get_object('connect_menuitem')
-        connection_label = self.builder.get_object('connection_label')
-
         if is_connected:
-            disconnect_menuitem.show()
-            connect_menuitem.hide()
+            self.disconnect_menuitem.show()
+            self.connect_menuitem.hide()
             connection_status = username
             logger.info('Connected to lutris.net as %s', connection_status)
         else:
-            disconnect_menuitem.hide()
-            connect_menuitem.show()
+            self.disconnect_menuitem.hide()
+            self.connect_menuitem.show()
             connection_status = "Not connected"
-        connection_label.set_text(connection_status)
+        self.connection_label.set_text(connection_status)
 
+    @GtkTemplate.Callback
     def on_games_button_clicked(self, widget):
         self._open_browser("https://lutris.net/games/")
 
+    @GtkTemplate.Callback
     def on_register_account(self, *args):
         self._open_browser("https://lutris.net/user/register")
 
-    def _open_browser(self, url):
+    @staticmethod
+    def _open_browser(url):
         Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
+    @GtkTemplate.Callback
     def on_synchronize_manually(self, widget):
         """Callback when Synchronize Library is activated."""
         self.sync_library()
 
+    @GtkTemplate.Callback
     def on_resize(self, widget, *args):
         """WTF is this doing?"""
         self.window_size = widget.get_size()
 
+    @GtkTemplate.Callback
+    def on_quit_activate(self, *args):
+        self.destroy()
+
+    @GtkTemplate.Callback
     def on_destroy(self, *args):
         """Signal for window close."""
         # Stop cancellable running threads
@@ -464,15 +465,15 @@ class LutrisWindow:
         settings.write_setting('width', width)
         settings.write_setting('height', height)
 
-        self.window.destroy()
-
+    @GtkTemplate.Callback
     def on_runners_activate(self, _widget, _data=None):
         """Callback when manage runners is activated."""
         RunnersDialog()
 
+    @GtkTemplate.Callback
     def on_preferences_activate(self, _widget, _data=None):
         """Callback when preferences is activated."""
-        SystemConfigDialog(parent=self.window)
+        SystemConfigDialog(parent=self)
 
     def on_show_installed_games_toggled(self, widget, data=None):
         filter_installed = widget.get_active()
@@ -487,9 +488,11 @@ class LutrisWindow:
             self.game_store.filter_installed = filter_installed
             self.game_store.modelfilter.refilter()
 
+    @GtkTemplate.Callback
     def on_pga_menuitem_activate(self, _widget, _data=None):
-        dialogs.PgaSourceDialog(parent=self.window)
+        dialogs.PgaSourceDialog(parent=self)
 
+    @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
         if self.current_view_type == 'grid':
             self.view.filter_text = widget.get_text()
@@ -498,9 +501,10 @@ class LutrisWindow:
             self.game_store.filter_text = widget.get_text()
             self.game_store.modelfilter.refilter()
 
+    @GtkTemplate.Callback
     def on_about_clicked(self, _widget, _data=None):
         """Open the about dialog."""
-        dialogs.AboutDialog(parent=self.window)
+        dialogs.AboutDialog(parent=self)
 
     def _get_current_game_id(self):
         """Return the id of the current selected game while taking care of the
@@ -512,6 +516,7 @@ class LutrisWindow:
         self.game_launch_time = time.time()
         return self.view.selected_game
 
+    @GtkTemplate.Callback
     def on_game_run(self, _widget=None, game_id=None):
         """Launch a game, or install it if it is not"""
         if not game_id:
@@ -526,6 +531,7 @@ class LutrisWindow:
             self.running_game = None
             InstallerDialog(game_slug, self)
 
+    @GtkTemplate.Callback
     def on_game_stop(self, *args):
         """Stop running game."""
         if self.running_game:
@@ -585,25 +591,27 @@ class LutrisWindow:
             self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
-        AddGameDialog(self.window,
+        AddGameDialog(self,
                       game=game,
                       runner=self.selected_runner,
                       callback=lambda: on_game_added(game))
 
+    @GtkTemplate.Callback
     def on_view_game_log_activate(self, widget):
         if not self.running_game:
             dialogs.ErrorDialog('No game log available')
             return
         log_title = u"Log for {}".format(self.running_game)
-        log_window = LogWindow(log_title, self.window)
+        log_window = LogWindow(log_title, self)
         log_window.logtextview.set_text(self.running_game.game_log)
         log_window.run()
         log_window.destroy()
 
+    @GtkTemplate.Callback
     def on_add_game_button_clicked(self, _widget, _data=None):
         """Add a new game manually with the AddGameDialog."""
         dialog = AddGameDialog(
-            self.window,
+            self,
             runner=self.selected_runner,
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
@@ -622,11 +630,12 @@ class LutrisWindow:
         else:
             do_add_game()
 
+    @GtkTemplate.Callback
     def on_remove_game(self, _widget, _data=None):
         selected_game = self.view.selected_game
         UninstallGameDialog(game_id=selected_game,
                             callback=self.remove_game_from_view,
-                            parent=self.window)
+                            parent=self)
 
     def remove_game_from_view(self, game_id, from_library=False):
         def do_remove_game():
@@ -661,11 +670,13 @@ class LutrisWindow:
             self.sidebar_treeview.update()
 
         if game.is_installed:
-            dialog = EditGameConfigDialog(self.window, game, on_dialog_saved)
+            dialog = EditGameConfigDialog(self, game, on_dialog_saved)
 
+    @GtkTemplate.Callback
     def on_viewmenu_toggled(self, widget):
         self.on_view_toggled(widget)
 
+    @GtkTemplate.Callback
     def on_viewbtn_toggled(self, widget):
         self.on_view_toggled(widget)
 
@@ -681,6 +692,7 @@ class LutrisWindow:
         self.list_view_btn.set_active(view_type == 'list')
         self.list_view_menuitem.set_active(view_type == 'list')
 
+    @GtkTemplate.Callback
     def on_icon_type_activate(self, menuitem):
         self.icon_type = menuitem.get_name()
         if self.icon_type == self.game_store.icon_type or not menuitem.get_active():
@@ -710,6 +722,7 @@ class LutrisWindow:
         game = Game(self.view.selected_game)
         shortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
+    @GtkTemplate.Callback
     def toggle_sidebar(self, widget=None):
         self.sidebar_visible = not self.sidebar_visible
         if self.sidebar_visible:

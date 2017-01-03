@@ -30,7 +30,7 @@ class TestGameDialog(TestCase):
     def setUp(self):
         check_config()
         lutris_window = LutrisWindow()
-        self.dlg = config_dialogs.AddGameDialog(lutris_window.window)
+        self.dlg = config_dialogs.AddGameDialog(lutris_window)
 
     def get_notebook(self):
         return self.dlg.vbox.get_children()[0]
