@@ -2,6 +2,7 @@
 # pylint: disable=E0611
 import os
 import time
+from collections import namedtuple
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
@@ -39,39 +40,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     __gtype_name__ = 'LutrisWindow'
 
-    dark_theme_menuitem = GtkTemplate.Child()
     main_box = GtkTemplate.Child()
     splash_box = GtkTemplate.Child()
     connect_link = GtkTemplate.Child()
-
-    sidebar_menuitem = GtkTemplate.Child()
-    installed_games_only_menuitem = GtkTemplate.Child()
-    grid_view_menuitem = GtkTemplate.Child()
-    list_view_menuitem = GtkTemplate.Child()
-
-    grid_view_btn = GtkTemplate.Child()
-    list_view_btn = GtkTemplate.Child()
-
-    banner_small_menuitem = GtkTemplate.Child()
-    banner_menuitem = GtkTemplate.Child()
-    icon_menuitem = GtkTemplate.Child()
-
     games_scrollwindow = GtkTemplate.Child()
-
-    stop_button = GtkTemplate.Child()
-    delete_button = GtkTemplate.Child()
-    play_button = GtkTemplate.Child()
-
     sidebar_paned = GtkTemplate.Child()
     sidebar_viewport = GtkTemplate.Child()
-
     statusbar = GtkTemplate.Child()
-
-    synchronize_menuitem = GtkTemplate.Child()
-    disconnect_menuitem = GtkTemplate.Child()
-    connect_menuitem = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
-
     status_box = GtkTemplate.Child()
 
     def __init__(self, **kwargs):
@@ -96,41 +72,26 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
-        use_dark_theme = settings.read_setting('dark_theme') == 'true'
+        self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
 
         # Window initialization
+        self.game_list = pga.get_games()
+        self.game_store = GameStore([], self.icon_type, self.filter_installed)
+        self.view = self.get_view(view_type)
         super().__init__(default_width=width,
                          default_height=height,
                          icon_name='lutris',
                          **kwargs)
         self.init_template()
+        self._init_actions()
 
         # Set theme to dark if set in the settings
-        self.dark_theme_menuitem.set_active(use_dark_theme)
-        self.set_dark_theme(use_dark_theme)
-
-        self.game_list = pga.get_games()
+        self.set_dark_theme(self.use_dark_theme)
 
         # Load view
-        self.game_store = GameStore([], self.icon_type, self.filter_installed)
-        self.view = self.get_view(view_type)
         self.games_scrollwindow.add(self.view)
         self.connect_signals()
-
-        # View menu
-        self.installed_games_only_menuitem.set_active(self.filter_installed)
-        self.grid_view_menuitem.set_active(view_type == 'grid')
-        self.list_view_menuitem.set_active(view_type == 'list')
-        self.sidebar_menuitem.set_active(self.sidebar_visible)
-
-        # View buttons
-        self.grid_view_btn.set_active(view_type == 'grid')
-        self.list_view_btn.set_active(view_type == 'list')
-
-        # Icon type menu
-        self.banner_small_menuitem.set_active(self.icon_type == 'banner_small')
-        self.banner_menuitem.set_active(self.icon_type == 'banner')
-        self.icon_menuitem.set_active(self.icon_type == 'icon')
+        self.view.show()
 
         # Contextual menu
         main_entries = [
@@ -157,9 +118,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_treeview = SidebarTreeView()
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport.add(self.sidebar_treeview)
-
-        # Finally show window
-        self.show_all()
+        self.sidebar_treeview.show()
 
         # Sync local lutris library with current Steam games before setting up
         # view
@@ -184,6 +143,68 @@ class LutrisWindow(Gtk.ApplicationWindow):
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = steam.SteamWatcher(steamapps_paths,
                                                 self.on_steam_game_changed)
+
+    def _init_actions(self):
+        Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
+        Action.__new__.__defaults__ = (None, None, True, None, None)
+
+        actions = {
+            'browse-games': Action(
+                lambda *x: self._open_browser('https://lutris.net/games/')
+            ),
+            'register-account': Action(
+                lambda *x: self._open_browser('https://lutris.net/user/register')
+            ),
+
+            'disconnect': Action(self.on_disconnect),
+            'connect': Action(self.on_connect),
+            'synchronize': Action(lambda *x: self.sync_library()),
+
+            'add-game': Action(self.on_add_game_button_clicked),
+            'view-game-log': Action(self.on_view_game_log_activate),
+
+            'stop-game': Action(self.on_game_stop, enabled=False),
+            'start-game': Action(self.on_game_run, enabled=False),
+            'remove-game': Action(self.on_remove_game, enabled=False),
+
+            'preferences': Action(self.on_preferences_activate),
+            'manage-runners': Action(lambda *x: RunnersDialog()),
+            'about': Action(self.on_about_clicked),
+
+            'show-installed-only': Action(self.on_show_installed_state_change, type='b',
+                                          default=self.filter_installed,
+                                          accel='<Primary>h'),
+            'view-type': Action(self.on_viewtype_state_change, type='s',
+                                default=self.current_view_type),
+            'icon-type': Action(self.on_icontype_state_change, type='s',
+                                default=self.icon_type),
+            'use-dark-theme': Action(self.on_dark_theme_state_change, type='b',
+                                     default=self.use_dark_theme),
+            'show-side-bar': Action(self.on_sidebar_state_change, type='b',
+                                    default=self.sidebar_visible),
+        }
+
+        self.actions = {}
+        app = self.props.application
+        for name, value in actions.items():
+            if not value.type:
+                action = Gio.SimpleAction.new(name)
+                action.connect('activate', value.callback)
+            else:
+                default_value = None
+                param_type = None
+                if value.default is not None:
+                    default_value = GLib.Variant(value.type, value.default)
+                if value.type != 'b':
+                    param_type = default_value.get_type()
+                action = Gio.SimpleAction.new_stateful(name, param_type, default_value)
+                action.connect('change-state', value.callback)
+            self.actions[name] = action
+            if value.enabled is False:
+                action.props.enabled = False
+            self.add_action(action)
+            if value.accel:
+                app.add_accelerator(value.accel, 'win.' + name)
 
     @property
     def current_view_type(self):
@@ -224,7 +245,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             else:
                 self.view.set_installed(Game(game_id))
 
-    def set_dark_theme(self, is_dark):
+    @staticmethod
+    def set_dark_theme(is_dark):
         gtksettings = Gtk.Settings.get_default()
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
@@ -245,7 +267,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
 
-    def check_update(self):
+    @staticmethod
+    def check_update():
         """Verify availability of client update."""
         version_request = http.Request('https://lutris.net/version')
         version_request.get()
@@ -258,7 +281,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 # the dialog more than once.
                 settings.write_setting('latest_version', version)
 
-    def get_view_type(self):
+    @staticmethod
+    def get_view_type():
         if not flowbox.FLOWBOX_SUPPORTED:
             return 'list'
         view_type = settings.read_setting('view_type')
@@ -304,14 +328,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.games_scrollwindow.add(self.view)
         self.view.show_all()
 
-        # Note: set_active(True *or* False) apparently makes ALL the menuitems
-        # in the group send the activate signal...
-        if self.icon_type == 'banner_small':
-            self.banner_small_menuitem.set_active(True)
-        elif self.icon_type == 'icon':
-            self.icon_menuitem.set_active(True)
-        elif self.icon_type == 'banner':
-            self.banner_menuitem.set_active(True)
         settings.write_setting('view_type', view_type)
 
     def sync_library(self):
@@ -363,22 +379,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 self.set_status("Preparing to launch %s" % name)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
-                self.stop_button.set_sensitive(False)
+                self.actions['stop-game'].props.enabled = False
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
-                self.stop_button.set_sensitive(True)
+                self.actions['stop-game'].props.enabled = True
         return True
 
     # ---------
     # Callbacks
     # ---------
 
-    @GtkTemplate.Callback
-    def on_dark_theme_toggled(self, widget):
-        use_dark_theme = widget.get_active()
-        setting_value = 'true' if use_dark_theme else 'false'
+    def on_dark_theme_state_change(self, action, value):
+        action.set_state(value)
+        self.use_dark_theme = value.get_boolean()
+        setting_value = 'true' if self.use_dark_theme else 'false'
         settings.write_setting('dark_theme', setting_value)
-        self.set_dark_theme(use_dark_theme)
+        self.set_dark_theme(self.use_dark_theme)
 
     @GtkTemplate.Callback
     def on_clear_search(self, widget, icon_pos, event):
@@ -400,52 +416,32 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.toggle_connection(True, username)
         self.sync_library()
         self.connect_link.hide()
-        self.synchronize_menuitem.set_sensitive(True)
+        self.actions['synchronize'].props.enabled = True
 
     @GtkTemplate.Callback
     def on_disconnect(self, *args):
         api.disconnect()
         self.toggle_connection(False)
         self.connect_link.show()
-        self.synchronize_menuitem.set_sensitive(False)
+        self.actions['synchronize'].props.enabled = False
 
     def toggle_connection(self, is_connected, username=None):
+        connect_item = self.props.application.set_connect_state(is_connected)
         if is_connected:
-            self.disconnect_menuitem.show()
-            self.connect_menuitem.hide()
             connection_status = username
             logger.info('Connected to lutris.net as %s', connection_status)
         else:
-            self.disconnect_menuitem.hide()
-            self.connect_menuitem.show()
             connection_status = "Not connected"
         self.connection_label.set_text(connection_status)
-
-    @GtkTemplate.Callback
-    def on_games_button_clicked(self, widget):
-        self._open_browser("https://lutris.net/games/")
-
-    @GtkTemplate.Callback
-    def on_register_account(self, *args):
-        self._open_browser("https://lutris.net/user/register")
 
     @staticmethod
     def _open_browser(url):
         Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     @GtkTemplate.Callback
-    def on_synchronize_manually(self, widget):
-        """Callback when Synchronize Library is activated."""
-        self.sync_library()
-
-    @GtkTemplate.Callback
     def on_resize(self, widget, *args):
         """WTF is this doing?"""
         self.window_size = widget.get_size()
-
-    @GtkTemplate.Callback
-    def on_quit_activate(self, *args):
-        self.destroy()
 
     @GtkTemplate.Callback
     def on_destroy(self, *args):
@@ -466,17 +462,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting('height', height)
 
     @GtkTemplate.Callback
-    def on_runners_activate(self, _widget, _data=None):
-        """Callback when manage runners is activated."""
-        RunnersDialog()
-
-    @GtkTemplate.Callback
-    def on_preferences_activate(self, _widget, _data=None):
+    def on_preferences_activate(self, *args):
         """Callback when preferences is activated."""
         SystemConfigDialog(parent=self)
 
-    def on_show_installed_games_toggled(self, widget, data=None):
-        filter_installed = widget.get_active()
+    def on_show_installed_state_change(self, action, value):
+        action.set_state(value)
+        filter_installed = value.get_boolean()
         setting_value = 'true' if filter_installed else 'false'
         settings.write_setting(
             'filter_installed', setting_value
@@ -489,7 +481,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.modelfilter.refilter()
 
     @GtkTemplate.Callback
-    def on_pga_menuitem_activate(self, _widget, _data=None):
+    def on_pga_menuitem_activate(self, *args):
         dialogs.PgaSourceDialog(parent=self)
 
     @GtkTemplate.Callback
@@ -502,7 +494,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.modelfilter.refilter()
 
     @GtkTemplate.Callback
-    def on_about_clicked(self, _widget, _data=None):
+    def on_about_clicked(self, *args):
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
 
@@ -516,8 +508,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_launch_time = time.time()
         return self.view.selected_game
 
-    @GtkTemplate.Callback
-    def on_game_run(self, _widget=None, game_id=None):
+    def on_game_run(self, *args, game_id=None):
         """Launch a game, or install it if it is not"""
         if not game_id:
             game_id = self._get_current_game_id()
@@ -536,9 +527,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Stop running game."""
         if self.running_game:
             self.running_game.stop()
-            self.stop_button.set_sensitive(False)
+            self.actions['stop-game'].props.enabled = False
 
-    def on_install_clicked(self, _widget=None, game_ref=None):
+    def on_install_clicked(self, *args, game_ref=None):
         """Install a game"""
         if not game_ref:
             game_id = self._get_current_game_id()
@@ -561,8 +552,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.last_selected_game = self.view.selected_game
 
         sensitive = True if self.view.selected_game else False
-        self.play_button.set_sensitive(sensitive)
-        self.delete_button.set_sensitive(sensitive)
+        self.actions['start-game'].props.enabled = sensitive
+        self.actions['remove-game'].props.enabled = sensitive
 
     def on_game_installed(self, view, game_id):
         if type(game_id) != int:
@@ -597,7 +588,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                       callback=lambda: on_game_added(game))
 
     @GtkTemplate.Callback
-    def on_view_game_log_activate(self, widget):
+    def on_view_game_log_activate(self, *args):
         if not self.running_game:
             dialogs.ErrorDialog('No game log available')
             return
@@ -608,7 +599,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         log_window.destroy()
 
     @GtkTemplate.Callback
-    def on_add_game_button_clicked(self, _widget, _data=None):
+    def on_add_game_button_clicked(self, *args):
         """Add a new game manually with the AddGameDialog."""
         dialog = AddGameDialog(
             self,
@@ -631,7 +622,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             do_add_game()
 
     @GtkTemplate.Callback
-    def on_remove_game(self, _widget, _data=None):
+    def on_remove_game(self, *args):
         selected_game = self.view.selected_game
         UninstallGameDialog(game_id=selected_game,
                             callback=self.remove_game_from_view,
@@ -672,30 +663,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
 
-    @GtkTemplate.Callback
-    def on_viewmenu_toggled(self, widget):
-        self.on_view_toggled(widget)
+    def on_viewtype_state_change(self, action, val):
+        action.set_state(val)
+        view_type = val.get_string()
+        if view_type != self.current_view_type:
+            self.switch_view(view_type)
 
-    @GtkTemplate.Callback
-    def on_viewbtn_toggled(self, widget):
-        self.on_view_toggled(widget)
-
-    def on_view_toggled(self, widget):
-        view_type = 'grid' if widget.get_active() else 'list'
-        if view_type == self.current_view_type:
-            return
-        self.switch_view(view_type)
-
-        self.grid_view_btn.set_active(view_type == 'grid')
-        self.grid_view_menuitem.set_active(view_type == 'grid')
-
-        self.list_view_btn.set_active(view_type == 'list')
-        self.list_view_menuitem.set_active(view_type == 'list')
-
-    @GtkTemplate.Callback
-    def on_icon_type_activate(self, menuitem):
-        self.icon_type = menuitem.get_name()
-        if self.icon_type == self.game_store.icon_type or not menuitem.get_active():
+    def on_icontype_state_change(self, action, value):
+        action.set_state(value)
+        self.icon_type = value.get_string()
+        if self.icon_type == self.game_store.icon_type:
             return
         if self.current_view_type == 'grid':
             settings.write_setting('icon_type_gridview', self.icon_type)
@@ -722,9 +699,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game = Game(self.view.selected_game)
         shortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
-    @GtkTemplate.Callback
-    def toggle_sidebar(self, widget=None):
-        self.sidebar_visible = not self.sidebar_visible
+    def on_sidebar_state_change(self, action, value):
+        action.set_state(value)
+        self.sidebar_visible = value.get_boolean()
         if self.sidebar_visible:
             settings.write_setting('sidebar_visible', 'true')
         else:
