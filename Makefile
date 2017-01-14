@@ -33,3 +33,7 @@ build-all: deb
 
 upload:
 	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/
+
+pgp-renew:
+	osc signkey --extend home:strycore
+	osc rebuildpac home:strycore --all
