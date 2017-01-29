@@ -275,6 +275,7 @@ def is_version_installed(version):
 
 
 def get_default_version():
+    """Return the default version of wine. Prioritize 32bit builds"""
     installed_versions = get_wine_versions()
     wine32_versions = [version for version in installed_versions if '64' not in version]
     if wine32_versions:
@@ -596,29 +597,31 @@ class wine(Runner):
         if use_default:
             return get_default_version()
 
+    def get_path_for_version(self, version):
+        if version in WINE_PATHS.keys():
+            return system.find_executable(WINE_PATHS[version])
+        elif version == 'custom':
+            return self.runner_config.get('custom_wine_path', '')
+        else:
+            return os.path.join(WINE_DIR, version, 'bin/wine')
+
     def get_executable(self, version=None):
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
         """
-        path = WINE_DIR
-        custom_path = self.runner_config.get('custom_wine_path', '')
         if version is None:
             version = self.get_version()
         if not version:
             return
 
-        if version in WINE_PATHS.keys():
-            abs_path = system.find_executable(WINE_PATHS[version])
-            if abs_path:
-                return abs_path
-            # Fall back on bundled Wine
-            version = get_default_version()
-        elif version == 'custom':
-            if os.path.exists(custom_path):
-                return custom_path
-            version = get_default_version()
+        wine_path = self.get_path_for_version(version)
+        if os.path.exists(wine_path):
+            return wine_path
 
-        return os.path.join(path, version, 'bin/wine')
+        # Fallback to default version
+        default_version = get_default_version()
+        logger.warning("No wine version %s found, falling back to %s", version, default_version)
+        return self.get_path_for_version(default_version)
 
     def is_installed(self, version=None):
         """Check if Wine is installed.
