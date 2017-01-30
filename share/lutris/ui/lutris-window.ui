@@ -138,19 +138,13 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkEntry" id="search_entry">
+                  <object class="GtkSearchEntry" id="search_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="has_focus">True</property>
-                    <property name="invisible_char">•</property>
                     <property name="width_chars">30</property>
-                    <property name="primary_icon_name">edit-find</property>
-                    <property name="secondary_icon_name">edit-clear</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">False</property>
-                    <property name="primary_icon_tooltip_text" translatable="yes">Filter the list of games</property>
-                    <signal name="changed" handler="on_search_entry_changed" swapped="no"/>
-                    <signal name="icon-press" handler="on_clear_search"/>
+                    <property name="placeholder-text" translatable="yes">Filter the list of games</property>
+                    <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
                   </object>
                 </child>
               </object>
