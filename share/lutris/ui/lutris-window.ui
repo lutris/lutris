@@ -33,345 +33,6 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkMenuBar" id="main_menubar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkMenuItem" id="lutris_menuitem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Lutris</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="lutris_menu">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkMenuItem" id="connect_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Connect to your Lutris account</property>
-                        <property name="label" translatable="yes">Connect</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_connect" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="disconnect_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Disconnect</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_disconnect" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="register_account">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Register a new account on lutris.net</property>
-                        <property name="label" translatable="yes">Register account</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_register_account" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="synchronize_menuitem">
-                        <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Manually re-synchronize your games.</property>
-                        <property name="label" translatable="yes">Synchronize library</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_synchronize_manually" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="runners_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Install and configure the game runners</property>
-                        <property name="label" translatable="yes">Manage runners</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_runners_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="pga_menuitem">
-                        <!-- XXX Hide PGA config menu item until it actually gets implemented -->
-                        <property name="visible">False</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Manage Game Archives</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_pga_menuitem_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separator">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="preferences_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip_markup" translatable="yes">configure the default options</property>
-                        <property name="tooltip_text" translatable="yes">configure the default options</property>
-                        <property name="label" translatable="yes">_Preferences</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_preferences_activate" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="quit_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label">_Quit</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_quit_activate" swapped="no"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="view_menuitem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="view_menu">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="installed_games_only_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">I_nstalled games only</property>
-                        <property name="use_underline">True</property>
-                        <signal name="toggled" handler="on_show_installed_games_toggled" swapped="no"/>
-                        <accelerator key="h" signal="activate" modifiers="GDK_CONTROL_MASK"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem3">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkRadioMenuItem" id="grid_view_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Grid</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <property name="draw_as_radio">True</property>
-                        <signal name="toggled" handler="on_viewmenu_toggled" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkRadioMenuItem" id="list_view_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_List</property>
-                        <property name="use_underline">True</property>
-                        <property name="draw_as_radio">True</property>
-                        <property name="group">grid_view_menuitem</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="icon_type_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Icon style</property>
-                        <property name="use_underline">True</property>
-                        <child type="submenu">
-                          <object class="GtkMenu" id="menu1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <child>
-                              <object class="GtkRadioMenuItem" id="banner_small_menuitem">
-                                <property name="name">banner_small</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Small banner</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_as_radio">True</property>
-                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkRadioMenuItem" id="banner_menuitem">
-                                <property name="name">banner</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Banner</property>
-                                <property name="use_underline">True</property>
-                                <property name="active">True</property>
-                                <property name="draw_as_radio">True</property>
-                                <property name="group">banner_small_menuitem</property>
-                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkRadioMenuItem" id="icon_menuitem">
-                                <property name="name">icon</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Icon</property>
-                                <property name="use_underline">True</property>
-                                <property name="draw_as_radio">True</property>
-                                <property name="group">banner_small_menuitem</property>
-                                <signal name="activate" handler="on_icon_type_activate" swapped="no"/>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="dark_theme_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Use _dark theme</property>
-                        <property name="use_underline">True</property>
-                        <signal name="toggled" handler="on_dark_theme_toggled" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckMenuItem" id="sidebar_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Side panel</property>
-                        <property name="use_underline">True</property>
-                        <property name="active">True</property>
-                        <signal name="toggled" handler="toggle_sidebar" swapped="no"/>
-                        <accelerator key="F9" signal="activate"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="game_menuitem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Game</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="game_menu">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkMenuItem" id="playgame_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Play</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_game_run" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="stopgame_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label">_Stop</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_game_stop" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separator1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="addgame_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label">_Add</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_add_game_button_clicked" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="removegame_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label">_Remove</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_remove_game" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="separator2">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="view_game_log">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">View last game's _log</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_view_game_log_activate" swapped="no"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="help_menuitem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Help</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="help_menu">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkMenuItem" id="about_menuitem">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label">_About</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_about_clicked" swapped="no"/>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkToolbar" id="lutris_toolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -384,7 +45,7 @@
                 <property name="tooltip_text" translatable="yes">Browse games</property>
                 <property name="label" translatable="yes">Browse games</property>
                 <property name="icon_name">applications-games</property>
-                <signal name="clicked" handler="on_games_button_clicked" swapped="no"/>
+                <property name="action-name">win.browse-games</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -398,7 +59,7 @@
                 <property name="tooltip_text" translatable="yes">Manage runners</property>
                 <property name="label" translatable="yes">Manage runners</property>
                 <property name="icon_name">system-run</property>
-                <signal name="clicked" handler="on_runners_activate" swapped="no"/>
+                <property name="action-name">win.manage-runners</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -406,14 +67,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="play_button">
+              <object class="GtkToolButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Play game</property>
                 <property name="label" translatable="yes">Play</property>
                 <property name="icon_name">media-playback-start</property>
-                <property name="sensitive">0</property>
-                <signal name="clicked" handler="on_game_run" swapped="no"/>
+                <property name="action-name">win.start-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -421,14 +81,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="stop_button">
+              <object class="GtkToolButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Stop game</property>
                 <property name="label" translatable="yes">Stop</property>
                 <property name="icon_name">media-playback-stop</property>
-                <property name="sensitive">0</property>
-                <signal name="clicked" handler="on_game_stop" swapped="no"/>
+                <property name="action-name">win.stop-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -442,7 +101,7 @@
                 <property name="tooltip_text" translatable="yes">Manually add a game</property>
                 <property name="label" translatable="yes">Add Game</property>
                 <property name="icon_name">list-add</property>
-                <signal name="clicked" handler="on_add_game_button_clicked" swapped="no"/>
+                <property name="action-name">win.add-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -450,14 +109,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="delete_button">
+              <object class="GtkToolButton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Remove game from library</property>
                 <property name="label" translatable="yes">Remove</property>
                 <property name="icon_name">edit-delete</property>
-                <property name="sensitive">0</property>
-                <signal name="clicked" handler="on_remove_game" swapped="no"/>
+                <property name="action-name">win.remove-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -510,7 +168,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkRadioButton" id="grid_view_btn">
+                      <object class="GtkToggleButton">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -519,7 +177,8 @@
                         <property name="xalign">0.5</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
-                        <signal name="toggled" handler="on_viewbtn_toggled" swapped="no"/>
+                        <property name="action-name">win.view-type</property>
+                        <property name="action-target">'grid'</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -528,7 +187,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="list_view_btn">
+                      <object class="GtkToggleButton">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -537,7 +196,8 @@
                         <property name="xalign">0.5</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">False</property>
-                        <property name="group">grid_view_btn</property>
+                        <property name="action-name">win.view-type</property>
+                        <property name="action-target">'list'</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -623,7 +283,7 @@
                 <property name="halign">center</property>
                 <property name="relief">half</property>
                 <property name="uri">null</property>
-                <signal name="activate-link" handler="on_connect" swapped="no"/>
+                <property name="action-name">win.connect</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -640,7 +300,7 @@
                 <property name="halign">center</property>
                 <property name="relief">half</property>
                 <property name="uri">null</property>
-                <signal name="activate-link" handler="on_add_game_button_clicked" swapped="no"/>
+                <property name="action-name">win.add-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>

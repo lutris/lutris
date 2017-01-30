@@ -34,6 +34,7 @@ from lutris.config import check_config  # , register_handler
 from lutris.util.log import logger
 from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
+from lutris.util import datapath
 from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
 from .lutriswindow import LutrisWindow
 
@@ -100,14 +101,32 @@ class Application(Gtk.Application):
                              _('uri to open'),
                              'URI')
 
+    def set_connect_state(self, connected):
+        # We fiddle with the menu directly which is rather ugly
+        menu = self.get_menubar().get_item_link(0, 'submenu').get_item_link(0, 'section')
+        menu.remove(0)  # Assert that it is the very first item
+        if connected:
+            item = Gio.MenuItem.new('Disconnect', 'win.disconnect')
+        else:
+            item = Gio.MenuItem.new('Connect', 'win.connect')
+        menu.prepend_item(item)
+
     def do_startup(self):
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+        action = Gio.SimpleAction.new('quit')
+        action.connect('activate', lambda *x: self.quit())
+        self.add_action(action)
+        self.add_accelerator('<Primary>q', 'app.quit')
+
+        builder = Gtk.Builder.new_from_file(os.path.join(datapath.get(), 'ui', 'menus-traditional.ui'))
+        menubar = builder.get_object('menubar')
+        self.set_menubar(menubar)
+
     def do_activate(self):
         if not self.window:
-            self.window = LutrisWindow()
-            self.add_window(self.window)
+            self.window = LutrisWindow(application=self)
         self.window.present()
 
     @staticmethod
