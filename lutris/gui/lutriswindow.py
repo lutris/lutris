@@ -226,7 +226,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         elif operation in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
             if not appmanifest.is_installed():
                 return
-            if runner_name == 'windows':
+            if runner_name == 'winesteam':
                 return
             game_info = None
             for game in games:
