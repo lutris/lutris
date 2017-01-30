@@ -162,14 +162,14 @@ class RunnersDialog(Gtk.Window):
             runner.install()
         except (runners.RunnerInstallationError,
                 runners.NonInstallableRunnerError) as ex:
-            ErrorDialog(ex.message)
+            ErrorDialog(ex.message, parent=self)
         if runner.is_installed():
             self.emit('runner-installed')
             widget.hide()
             runner_label.set_sensitive(True)
 
     def on_configure_clicked(self, widget, runner, runner_label):
-        config_dialog = RunnerConfigDialog(runner)
+        config_dialog = RunnerConfigDialog(runner, parent=self)
         config_dialog.connect('destroy', self.set_install_state,
                               runner, runner_label)
 
