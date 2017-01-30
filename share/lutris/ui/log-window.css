@@ -1,0 +1,9 @@
+.lutris-logview > text {
+  color: rgb(255, 199, 116);
+  background-color: rgb(47, 47, 47);
+}
+
+.lutris-logview > text > selection {
+  color: rgb(47, 47, 47);
+  background-color: rgb(255, 199, 116);
+}
