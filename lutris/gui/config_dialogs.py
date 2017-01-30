@@ -38,7 +38,7 @@ class GameDialogCommon(object):
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.add_with_viewport(widget)
+        scrolled_window.add(widget)
         return scrolled_window
 
     def build_notebook(self):
