@@ -645,7 +645,7 @@ class wine(Runner):
                         wine_path=wine_path, working_dir=working_dir, blocking=blocking)
 
     def run_wineexec(self, *args):
-        dlg = FileDialog("Select an EXE or MSI file")
+        dlg = FileDialog("Select an EXE or MSI file", default_path=self.game_path)
         filename = dlg.filename
         if not filename:
             return
