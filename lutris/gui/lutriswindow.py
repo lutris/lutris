@@ -232,6 +232,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             for game in games:
                 if game['installed'] == 0:
                     game_info = game
+                else:
+                    # Game is already installed, don't do anything
+                    return
             if not game_info:
                 game_info = {
                     'name': appmanifest.name,
