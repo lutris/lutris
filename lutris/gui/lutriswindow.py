@@ -50,7 +50,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     connection_label = GtkTemplate.Child()
     status_box = GtkTemplate.Child()
 
-    def __init__(self, **kwargs):
+    def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
@@ -81,6 +81,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         super().__init__(default_width=width,
                          default_height=height,
                          icon_name='lutris',
+                         application=application,
                          **kwargs)
         self.init_template()
         self._init_actions()

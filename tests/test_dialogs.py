@@ -9,7 +9,7 @@ from lutris.config import check_config
 # from lutris import settings
 from lutris import pga
 from lutris.gui import config_dialogs
-from lutris.gui.lutriswindow import LutrisWindow
+from lutris.gui.application import Application
 from unittest import TestCase
 from lutris import runners
 
@@ -29,7 +29,8 @@ class TestGameDialogCommon(TestCase):
 class TestGameDialog(TestCase):
     def setUp(self):
         check_config()
-        lutris_window = LutrisWindow()
+        lutris_application = Application()
+        lutris_window = lutris_application.window
         self.dlg = config_dialogs.AddGameDialog(lutris_window)
 
     def get_notebook(self):
