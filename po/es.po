@@ -13,7 +13,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: gl\n"
+"Language: es\n"
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
