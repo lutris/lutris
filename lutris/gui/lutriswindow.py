@@ -594,7 +594,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_view_game_log_activate(self, *args):
         if not self.running_game:
-            dialogs.ErrorDialog('No game log available')
+            dialogs.ErrorDialog('No game log available', parent=self)
             return
         log_title = u"Log for {}".format(self.running_game)
         log_window = LogWindow(log_title, self)

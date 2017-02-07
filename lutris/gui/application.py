@@ -45,6 +45,12 @@ class Application(Gtk.Application):
                                  flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.css_provider = Gtk.CssProvider.new()
+
+        try:
+            self.css_provider.load_from_path(os.path.join(datapath.get(), 'ui', 'log-window.css'))
+        except GLib.Error as e:
+            logger.exception(e)
 
         self.add_main_option('debug',
                              ord('d'),
@@ -127,6 +133,9 @@ class Application(Gtk.Application):
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
+            screen = self.window.props.screen
+            Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider,
+                                                     Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         self.window.present()
 
     @staticmethod
