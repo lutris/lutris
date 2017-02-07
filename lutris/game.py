@@ -19,7 +19,7 @@ from lutris.gui import dialogs
 def show_error_message(message):
     """Display an error message based on the runner's output."""
     if "CUSTOM" == message['error']:
-        message_text = message['file'].replace('&', '&amp;')
+        message_text = message['text'].replace('&', '&amp;')
         dialogs.ErrorDialog(message_text)
     elif "RUNNER_NOT_INSTALLED" == message['error']:
         dialogs.ErrorDialog('Error the runner is not installed')
