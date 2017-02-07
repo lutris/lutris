@@ -3,7 +3,7 @@
 
 __all__ = (
     # Native
-    "linux", "steam", "browser", "web", "desura",
+    "linux", "steam", "browser", "web",
     # Microsoft based
     "wine", "winesteam", "dosbox",
     # Multi-system
@@ -13,7 +13,7 @@ __all__ = (
     # Atari
     "stella", "atari800", "hatari", "virtualjaguar",
     # Nintendo
-    "snes9x",  "mupen64plus", "dolphin", "desmume", "citra",
+    "snes9x", "mupen64plus", "dolphin", "desmume", "citra",
     # Sony
     "pcsxr", "ppsspp", "pcsx2",
     # Sega
