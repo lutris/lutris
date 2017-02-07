@@ -401,11 +401,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_dark_theme(self.use_dark_theme)
 
     @GtkTemplate.Callback
-    def on_clear_search(self, widget, icon_pos, event):
-        if icon_pos == Gtk.EntryIconPosition.SECONDARY:
-            widget.set_text('')
-
-    @GtkTemplate.Callback
     def on_connect(self, *args):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self)
