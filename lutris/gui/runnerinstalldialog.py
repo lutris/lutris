@@ -43,7 +43,7 @@ class RunnerInstallDialog(Dialog):
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_window.add_with_viewport(self.treeview)
+        scrolled_window.add(self.treeview)
 
         self.vbox.pack_start(scrolled_window, True, True, 14)
         self.show_all()

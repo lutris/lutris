@@ -40,12 +40,12 @@ class RunnersDialog(Gtk.Window):
 
         # Runner list
         self.runner_list = sorted(runners.__all__)
-        self.runner_vbox = Gtk.VBox()
-        self.runner_vbox.show()
+        self.runner_listbox = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
+        self.runner_listbox.set_header_func(self._listbox_header_func)
 
         self.populate_runners()
 
-        scrolled_window.add_with_viewport(self.runner_vbox)
+        scrolled_window.add(self.runner_listbox)
 
         # Bottom bar
         buttons_box = Gtk.Box()
@@ -65,6 +65,11 @@ class RunnersDialog(Gtk.Window):
         self.connect('configure-event', self.on_resize)
 
         self.vbox.pack_start(buttons_box, False, False, 5)
+
+    @staticmethod
+    def _listbox_header_func(row, before):
+        if not row.get_header() and before is not None:
+            row.set_header(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
 
     def get_runner_hbox(self, runner_name):
         # Get runner details
@@ -127,9 +132,7 @@ class RunnersDialog(Gtk.Window):
     def populate_runners(self):
         for runner_name in self.runner_list:
             hbox = self.get_runner_hbox(runner_name)
-            self.runner_vbox.pack_start(hbox, True, True, 5)
-            separator = Gtk.Separator()
-            self.runner_vbox.pack_start(separator, False, False, 5)
+            self.runner_listbox.add(hbox)
 
     def set_button_display(self, runner):
         if runner.multiple_versions:
@@ -159,14 +162,14 @@ class RunnersDialog(Gtk.Window):
             runner.install()
         except (runners.RunnerInstallationError,
                 runners.NonInstallableRunnerError) as ex:
-            ErrorDialog(ex.message)
+            ErrorDialog(ex.message, parent=self)
         if runner.is_installed():
             self.emit('runner-installed')
             widget.hide()
             runner_label.set_sensitive(True)
 
     def on_configure_clicked(self, widget, runner, runner_label):
-        config_dialog = RunnerConfigDialog(runner)
+        config_dialog = RunnerConfigDialog(runner, parent=self)
         config_dialog.connect('destroy', self.set_install_state,
                               runner, runner_label)
 
@@ -174,7 +177,7 @@ class RunnersDialog(Gtk.Window):
         Gtk.show_uri(None, 'file://' + settings.RUNNER_DIR, Gdk.CURRENT_TIME)
 
     def on_refresh_clicked(self, widget):
-        for child in self.runner_vbox.get_children():
+        for child in self.runner_listbox:
             child.destroy()
         self.populate_runners()
 
