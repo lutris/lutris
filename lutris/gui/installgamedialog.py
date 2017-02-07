@@ -138,7 +138,7 @@ class InstallerDialog(Gtk.Window):
             game_data = pga.get_game_by_field(self.game_ref, 'slug')
             game = Game(game_data['id'])
             AddGameDialog(
-                self.parent.window,
+                self.window,
                 game=game,
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
