@@ -27,11 +27,11 @@ class Process(object):
         with open(stat_filename) as stat_file:
             try:
                 _stat = stat_file.readline()
-            except ProcessLookupError:
+            except (ProcessLookupError, FileNotFoundError):
                 logger.warning('Unable to read stat for process %s', self.pid)
                 return
         if parsed:
-            return _stat[_stat.rfind(")")+1:].split()
+            return _stat[_stat.rfind(")") + 1:].split()
         return _stat
 
     def get_thread_ids(self):
@@ -62,7 +62,7 @@ class Process(object):
         """Filename of the executable."""
         _stat = self.get_stat(parsed=False)
         if _stat:
-            return _stat[_stat.find("(")+1:_stat.rfind(")")]
+            return _stat[_stat.find("(") + 1:_stat.rfind(")")]
 
     @property
     def state(self):
