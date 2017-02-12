@@ -3,6 +3,7 @@ import socket
 import urllib.request
 import urllib.error
 import urllib.parse
+from ssl import CertificateError
 
 from lutris.settings import SITE_URL
 from lutris.util.log import logger
@@ -34,7 +35,7 @@ class Request(object):
         req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
             request = urllib.request.urlopen(req, timeout=self.timeout)
-        except urllib.error.HTTPError as e:
+        except (urllib.error.HTTPError, CertificateError) as e:
             logger.error("Unavailable url (%s): %s", self.url, e)
         except (socket.timeout, urllib.error.URLError) as e:
             logger.error("Unable to connect to server (%s): %s", self.url, e)
