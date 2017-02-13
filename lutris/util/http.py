@@ -5,6 +5,8 @@ import urllib.error
 import urllib.parse
 from ssl import CertificateError
 
+from lutris.settings import PROJECT
+from lutris.settings import VERSION
 from lutris.settings import SITE_URL
 from lutris.util.log import logger
 
@@ -29,6 +31,8 @@ class Request(object):
         self.thread_queue = thread_queue
         self.buffer_size = 32 * 1024  # Bytes
         self.downloaded_size = 0
+        if not headers.get('User-Agent'):
+            headers['User-Agent'] = PROJECT + '/' + VERSION
         self.headers = headers
 
     def get(self, data=None):
