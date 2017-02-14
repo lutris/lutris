@@ -64,6 +64,12 @@ class Application(Gtk.Application):
                              GLib.OptionArg.STRING,
                              _('Install a game from a yml file'),
                              None)
+        self.add_main_option('exec',
+                             ord('e'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             _('Execute a program with the lutris runtime'),
+                             None)
         self.add_main_option('list-games',
                              ord('l'),
                              GLib.OptionFlags.NONE,
@@ -126,7 +132,9 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator('<Primary>q', 'app.quit')
 
-        builder = Gtk.Builder.new_from_file(os.path.join(datapath.get(), 'ui', 'menus-traditional.ui'))
+        builder = Gtk.Builder.new_from_file(
+            os.path.join(datapath.get(), 'ui', 'menus-traditional.ui')
+        )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
 
@@ -201,6 +209,12 @@ class Application(Gtk.Application):
             for platform in ('linux', 'windows'):
                 for path in steamapps_paths[platform]:
                     self._print(command_line, path)
+            return 0
+
+        if options.contains('exec'):
+            # TODO implement binary exec
+            exec_file = options.lookup_value('exec').get_string()
+            print("Running command '{}'".format(exec_file))
             return 0
 
         check_config(force_wipe=False)
