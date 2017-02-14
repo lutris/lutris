@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import shlex
 import threading
 import subprocess
 import contextlib
@@ -12,6 +13,7 @@ from gi.repository import GLib
 from textwrap import dedent
 
 from lutris import settings
+from lutris import runtime
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util import system
@@ -263,3 +265,11 @@ class LutrisThread(threading.Thread):
             logger.debug("All children terminated")
             self.game_process.wait()
         return True
+
+
+def exec_in_thread(command):
+    arguments = shlex.split(command)
+    env = runtime.get_env()
+    thread = LutrisThread(arguments, env=env)
+    thread.start()
+    return thread
