@@ -15,28 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import logging
-import signal
 import json
+import logging
+import os
+import signal
 from gettext import gettext as _
 
-# pylint: disable=E0611
 import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gio, Gtk
+from gi.repository import Gio, GLib, Gtk
 
-from lutris.migrations import migrate
 from lutris import pga
-from lutris.runtime import RuntimeUpdater
 from lutris.config import check_config  # , register_handler
-from lutris.util.log import logger
 from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
+from lutris.migrations import migrate
+from lutris.runtime import RuntimeUpdater
+from lutris.thread import exec_in_thread
 from lutris.util import datapath
-from lutris.util.steam import get_steamapps_paths, AppManifest, get_appmanifests
+from lutris.util.log import logger
+from lutris.util.steam import (AppManifest, get_appmanifests,
+                               get_steamapps_paths)
+
 from .lutriswindow import LutrisWindow
+
+
 
 
 class Application(Gtk.Application):
@@ -215,9 +219,13 @@ class Application(Gtk.Application):
             return 0
 
         if options.contains('exec'):
-            # TODO implement binary exec
-            exec_file = options.lookup_value('exec').get_string()
-            print("Running command '{}'".format(exec_file))
+            command = options.lookup_value('exec').get_string()
+            print("Running command '{}'".format(command))
+            thread = exec_in_thread(command)
+            try:
+                GLib.MainLoop().run()
+            except KeyboardInterrupt:
+                thread.stop()
             return 0
 
         check_config(force_wipe=False)
