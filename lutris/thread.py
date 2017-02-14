@@ -264,6 +264,7 @@ class LutrisThread(threading.Thread):
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
+            return False
         return True
 
 
