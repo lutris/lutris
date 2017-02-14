@@ -142,8 +142,11 @@ class Application(Gtk.Application):
         if not self.window:
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen
-            Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider,
-                                                     Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            Gtk.StyleContext.add_provider_for_screen(
+                screen,
+                self.css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
         self.window.present()
 
     @staticmethod

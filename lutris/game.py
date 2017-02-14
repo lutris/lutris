@@ -16,30 +16,6 @@ from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 
 
-def show_error_message(message):
-    """Display an error message based on the runner's output."""
-    if "CUSTOM" == message['error']:
-        message_text = message['text'].replace('&', '&amp;')
-        dialogs.ErrorDialog(message_text)
-    elif "RUNNER_NOT_INSTALLED" == message['error']:
-        dialogs.ErrorDialog('Error the runner is not installed')
-    elif "NO_BIOS" == message['error']:
-        dialogs.ErrorDialog("A bios file is required to run this game")
-    elif "FILE_NOT_FOUND" == message['error']:
-        filename = message['file']
-        if filename:
-            message_text = "The file {} could not be found".format(
-                filename.replace('&', '&amp;')
-            )
-        else:
-            message_text = "No file provided"
-        dialogs.ErrorDialog(message_text)
-
-    elif "NOT_EXECUTABLE" == message['error']:
-        message_text = message['file'].replace('&', '&amp;')
-        dialogs.ErrorDialog("The file %s is not executable" % message_text)
-
-
 class Game(object):
     """This class takes cares of loading the configuration for a game
        and running it.
@@ -83,6 +59,29 @@ class Game(object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    def show_error_message(self, message):
+        """Display an error message based on the runner's output."""
+        if "CUSTOM" == message['error']:
+            message_text = message['text'].replace('&', '&amp;')
+            dialogs.ErrorDialog(message_text)
+        elif "RUNNER_NOT_INSTALLED" == message['error']:
+            dialogs.ErrorDialog('Error the runner is not installed')
+        elif "NO_BIOS" == message['error']:
+            dialogs.ErrorDialog("A bios file is required to run this game")
+        elif "FILE_NOT_FOUND" == message['error']:
+            filename = message['file']
+            if filename:
+                message_text = "The file {} could not be found".format(
+                    filename.replace('&', '&amp;')
+                )
+            else:
+                message_text = "No file provided"
+            dialogs.ErrorDialog(message_text)
+
+        elif "NOT_EXECUTABLE" == message['error']:
+            message_text = message['file'].replace('&', '&amp;')
+            dialogs.ErrorDialog("The file %s is not executable" % message_text)
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
@@ -182,7 +181,7 @@ class Game(object):
 
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
-            show_error_message(gameplay_info)
+            self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
 
