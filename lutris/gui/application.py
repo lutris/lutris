@@ -30,6 +30,7 @@ from lutris import pga
 from lutris.config import check_config  # , register_handler
 from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.migrations import migrate
 from lutris.runtime import RuntimeUpdater
 from lutris.thread import exec_in_thread
@@ -39,8 +40,6 @@ from lutris.util.steam import (AppManifest, get_appmanifests,
                                get_steamapps_paths)
 
 from .lutriswindow import LutrisWindow
-
-
 
 
 class Application(Gtk.Application):
@@ -56,6 +55,12 @@ class Application(Gtk.Application):
         except GLib.Error as e:
             logger.exception(e)
 
+        if hasattr(self, 'add_main_option'):
+            self.add_arguments()
+        else:
+            ErrorDialog("Your Linux distribution is too old, Lutris won't function properly")
+
+    def add_arguments(self):
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
@@ -169,68 +174,23 @@ class Application(Gtk.Application):
             if options.contains('installed'):
                 game_list = [game for game in game_list if game['installed']]
             if options.contains('json'):
-                    games = []
-                    for game in game_list:
-                        games.append({
-                            'id': game['id'],
-                            'slug': game['slug'],
-                            'name': game['name'],
-                            'runner': game['runner'],
-                            'directory': game['directory']
-                        })
-                    self._print(command_line, json.dumps(games, indent=2))
+                self.print_game_json(command_line, game_list)
             else:
-                for game in game_list:
-                    self._print(
-                        command_line,
-                        "{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
-                            game['id'],
-                            game['name'][:40],
-                            game['slug'][:40],
-                            game['runner'] or '-',
-                            game['directory'] or '-'
-                        )
-                    )
+                self.print_game_list(command_line, game_list)
             return 0
-
-        if options.contains('list-steam-games'):
-            steamapps_paths = get_steamapps_paths()
-            for platform in ('linux', 'windows'):
-                for path in steamapps_paths[platform]:
-                    appmanifest_files = get_appmanifests(path)
-                    for appmanifest_file in appmanifest_files:
-                        appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                        self._print(
-                            command_line,
-                            "  {:8} | {:<60} | {:10} | {}".format(
-                                appmanifest.steamid,
-                                appmanifest.name or '-',
-                                platform,
-                                ", ".join(appmanifest.states)
-                            )
-                        )
+        elif options.contains('list-steam-games'):
+            self.print_steam_list(command_line)
             return 0
-
-        if options.contains('list-steam-folders'):
-            steamapps_paths = get_steamapps_paths()
-            for platform in ('linux', 'windows'):
-                for path in steamapps_paths[platform]:
-                    self._print(command_line, path)
+        elif options.contains('list-steam-folders'):
+            self.print_steam_folders(command_line)
             return 0
-
-        if options.contains('exec'):
+        elif options.contains('exec'):
             command = options.lookup_value('exec').get_string()
-            print("Running command '{}'".format(command))
-            thread = exec_in_thread(command)
-            try:
-                GLib.MainLoop().run()
-            except KeyboardInterrupt:
-                thread.stop()
+            self.execute_command(command)
             return 0
 
         check_config(force_wipe=False)
         migrate()
-        game = None
 
         game_slug = ''
         uri = options.lookup_value(GLib.OPTION_REMAINING)
@@ -256,9 +216,9 @@ class Application(Gtk.Application):
 
             db_game = None
             if game_slug:
-                db_game = (pga.get_game_by_field(game_slug, 'id')
-                           or pga.get_game_by_field(game_slug, 'slug')
-                           or pga.get_game_by_field(game_slug, 'installer_slug'))
+                db_game = (pga.get_game_by_field(game_slug, 'id') or
+                           pga.get_game_by_field(game_slug, 'slug') or
+                           pga.get_game_by_field(game_slug, 'installer_slug'))
 
             if db_game and db_game['installed'] and not options.contains('reinstall'):
                 self._print(command_line, "Launching %s" % db_game['name'])
@@ -288,6 +248,63 @@ class Application(Gtk.Application):
 
         self.activate()
         return 0
+
+    def print_game_list(self, command_line, game_list):
+        for game in game_list:
+            self._print(
+                command_line,
+                "{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
+                    game['id'],
+                    game['name'][:40],
+                    game['slug'][:40],
+                    game['runner'] or '-',
+                    game['directory'] or '-'
+                )
+            )
+
+    def print_game_json(self, command_line, game_list):
+        games = [
+            {
+                'id': game['id'],
+                'slug': game['slug'],
+                'name': game['name'],
+                'runner': game['runner'],
+                'directory': game['directory']
+            }
+            for game in game_list
+        ]
+        self._print(command_line, json.dumps(games, indent=2))
+
+    def print_steam_list(self, command_line):
+        steamapps_paths = get_steamapps_paths()
+        for platform in ('linux', 'windows'):
+            for path in steamapps_paths[platform]:
+                appmanifest_files = get_appmanifests(path)
+                for appmanifest_file in appmanifest_files:
+                    appmanifest = AppManifest(os.path.join(path, appmanifest_file))
+                    self._print(
+                        command_line,
+                        "  {:8} | {:<60} | {:10} | {}".format(
+                            appmanifest.steamid,
+                            appmanifest.name or '-',
+                            platform,
+                            ", ".join(appmanifest.states)
+                        )
+                    )
+
+    def execute_command(self, command):
+        print("Running command '{}'".format(command))
+        thread = exec_in_thread(command)
+        try:
+            GLib.MainLoop().run()
+        except KeyboardInterrupt:
+            thread.stop()
+
+    def print_steam_folders(self, command_line):
+        steamapps_paths = get_steamapps_paths()
+        for platform in ('linux', 'windows'):
+            for path in steamapps_paths[platform]:
+                self._print(command_line, path)
 
     def do_shutdown(self):
         Gtk.Application.do_shutdown(self)
