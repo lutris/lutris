@@ -38,7 +38,10 @@ class Process(object):
         """Return a list of thread ids opened by process."""
         basedir = '/proc/{}/task/'.format(self.pid)
         if os.path.isdir(basedir):
-            return [tid for tid in os.listdir(basedir)]
+            try:
+                return [tid for tid in os.listdir(basedir)]
+            except FileNotFoundError:
+                return []
         else:
             return []
 
