@@ -26,7 +26,7 @@ EXCLUDED_PROCESSES = (
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
     'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
     'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
-    'control', 'winecfg.exe', 'wdfmgr.exe',  'wineconsole', 'winedbg'
+    'control', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg'
 )
 
 
@@ -247,8 +247,8 @@ class LutrisThread(threading.Thread):
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
-        max_cycles_reached = (self.cycles_without_children
-                              >= self.max_cycles_without_children)
+        max_cycles_reached = (self.cycles_without_children >=
+                              self.max_cycles_without_children)
         if num_children == 0 or max_cycles_reached:
             if max_cycles_reached:
                 logger.debug('Maximum number of cycles without children reached')
@@ -264,7 +264,9 @@ class LutrisThread(threading.Thread):
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
-            return False
+            # FIXME Returning false breaks installers, but not returning false
+            # leaves the thread running endlessly when some games crashes.
+            # return False
         return True
 
 
