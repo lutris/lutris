@@ -270,6 +270,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
+        self.view.connect("remove-game", self.on_remove_game)
 
     @staticmethod
     def check_update():
