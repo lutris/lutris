@@ -393,6 +393,9 @@ class ScriptInterpreter(CommandsMixin):
             except KeyError:
                 raise ScriptingError("Missing appid for steam game")
 
+            if 'arch' in self.script['game']:
+                self.steam_data['arch'] = self.script['game']['arch']
+
             commands = self.script.get('installer', [])
             self.steam_data['platform'] = 'windows' \
                 if self.runner == 'winesteam' else 'linux'
@@ -646,6 +649,9 @@ class ScriptInterpreter(CommandsMixin):
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
+            steam_runner.config = LutrisConfig(runner_slug=self.runner)
+            if 'arch' in self.steam_data:
+                steam_runner.config.game_config['arch'] = self.steam_data['arch']
             AsyncCall(steam_runner.install_game, None, appid, is_game_files)
 
             self.install_start_time = time.localtime()

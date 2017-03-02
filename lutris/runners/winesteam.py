@@ -128,7 +128,11 @@ class winesteam(wine.wine):
 
     @property
     def prefix_path(self):
-        _prefix = self.game_config.get('prefix') or self.get_default_prefix()
+        _prefix = \
+            self.game_config.get('prefix') or \
+            self.get_or_create_default_prefix(
+                arch=self.game_config.get('arch')
+            )
         return os.path.expanduser(_prefix)
 
     @property
@@ -300,13 +304,13 @@ class winesteam(wine.wine):
         if steamapps_paths:
             return steamapps_paths[0]
 
-    def create_prefix(self, prefix_dir):
+    def create_prefix(self, prefix_dir, arch='win32'):
         logger.debug("Creating default winesteam prefix")
         wine_path = self.get_executable()
 
         if not os.path.exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
-        create_prefix(prefix_dir, arch=self.wine_arch, wine_path=wine_path)
+        create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
 
         # Fix steam text display
         set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
@@ -314,16 +318,19 @@ class winesteam(wine.wine):
                     wine_path=self.get_executable(),
                     prefix=prefix_dir)
 
-    def get_default_prefix(self):
+    def get_default_prefix(self, arch='win32'):
         """Return the default prefix' path."""
-        return os.path.join(settings.RUNNER_DIR, 'winesteam/prefix')
+        path = 'winesteam/prefix'
+        if arch == 'win64':
+            path += '64'
+        return os.path.join(settings.RUNNER_DIR, path)
 
-    def get_or_create_default_prefix(self):
+    def get_or_create_default_prefix(self, arch='win32'):
         """Return the default prefix' path. Create it if it doesn't exist"""
-        default_prefix = self.get_default_prefix()
-        if not os.path.exists(default_prefix):
-            self.create_prefix(default_prefix)
-        return default_prefix
+        prefix = self.get_default_prefix(arch=arch)
+        if not os.path.exists(prefix):
+            self.create_prefix(prefix, arch=arch)
+        return prefix
 
     def install_game(self, appid, generate_acf=False):
         if not appid:
