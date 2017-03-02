@@ -58,6 +58,16 @@ class steam(Runner):
                      "(only if Steam was started by Lutris)")
         },
         {
+            'option': 'start_in_big_picture',
+            'label': "Start Steam in Big Picture mode",
+            'type': 'bool',
+            'default': False,
+            'help': ("Launches Steam in Big Picture mode.\n"
+                     "Only works if Steam is not running or "
+                     "already running in Big Picture mode.\n"
+                     "Useful when playing with a Steam Controller.")
+        },
+        {
             'option': 'steam_native_runtime',
             'label': "Disable Steam Runtime (use native libraries)",
             'type': 'bool',
@@ -218,9 +228,12 @@ class steam(Runner):
 
         # Get current steam pid to act as the root pid instead of lutris
         self.original_steampid = get_steam_pid()
+        command = [self.get_executable()]
+        if self.runner_config.get('start_in_big_picture'):
+            command.append('-tenfoot')
+        command.append('steam://rungameid/%s' % self.appid)
         return {
-            'command': [self.get_executable(),
-                        'steam://rungameid/%s' % self.appid],
+            'command': command,
             'rootpid': self.original_steampid,
             'env': self.get_env()
         }
