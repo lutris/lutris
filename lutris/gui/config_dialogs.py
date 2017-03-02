@@ -29,6 +29,18 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
             return position + length
         return position
 
+class NumberEntry(Gtk.Entry, Gtk.Editable):
+    def __init__(self):
+        super(NumberEntry, self).__init__()
+
+    def do_insert_text(self, new_text, length, position):
+        """Filter inserted characters to only accept numbers"""
+        new_text = ''.join([c for c in new_text if c.isnumeric()])
+        if new_text:
+            self.get_buffer().insert_text(position, new_text, length)
+            return position + length
+        return position
+
 
 class GameDialogCommon(object):
     no_runner_label = "Select a runner in the Game Info tab"
@@ -63,6 +75,9 @@ class GameDialogCommon(object):
 
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 5)  # Runner
+
+        info_box.pack_start(self._get_platform_box(), False, False, 5)
+        info_box.pack_start(self._get_year_box(), False, False, 5)
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
@@ -144,6 +159,34 @@ class GameDialogCommon(object):
         banner_box.pack_start(self.icon_button, False, False, 0)
         banner_box.pack_start(reset_icon_button, False, False, 0)
         return banner_box
+
+    def _get_platform_box(self):
+        box = Gtk.HBox()
+
+        label = Gtk.Label(label="Platform")
+        box.pack_start(label, False, False, 20)
+
+        self.platform_entry = Gtk.Entry()
+        if self.game:
+            self.platform_entry.set_text(self.game.platform)
+            if self.game.runner:
+                self.platform_entry.set_placeholder_text(self.game.runner.platform)
+        box.pack_start(self.platform_entry, True, True, 20)
+
+        return box
+
+    def _get_year_box(self):
+        box = Gtk.HBox()
+
+        label = Gtk.Label(label="Release year")
+        box.pack_start(label, False, False, 20)
+
+        self.year_entry = NumberEntry()
+        if self.game:
+            self.year_entry.set_text(str(self.game.year or ''))
+        box.pack_start(self.year_entry, True, True, 20)
+
+        return box
 
     def _set_image(self, image_format):
         assert image_format in ('banner', 'icon')
@@ -230,6 +273,7 @@ class GameDialogCommon(object):
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
+            self.game.runner = None
         self._add_notebook_tab(game_sw, "Game options")
 
     def _build_runner_tab(self, config_level):
@@ -312,6 +356,10 @@ class GameDialogCommon(object):
 
         self._rebuild_tabs()
         self.notebook.set_current_page(current_page)
+        if self.game.runner:
+            self.platform_entry.set_placeholder_text(self.game.runner.platform)
+        else:
+            self.platform_entry.set_placeholder_text('')
 
     def _rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
@@ -347,6 +395,12 @@ class GameDialogCommon(object):
         if not self.game:
             self.game = Game()
 
+        platform = self.platform_entry.get_text()
+
+        year = None
+        if self.year_entry.get_text():
+            year = int(self.year_entry.get_text())
+
         if self.lutris_config.game_config_id == TEMP_CONFIG:
             self.lutris_config.game_config_id = self.get_config_id()
 
@@ -354,6 +408,8 @@ class GameDialogCommon(object):
         runner = runner_class(self.lutris_config)
         self.game.name = name
         self.game.slug = self.slug
+        self.game.platform = platform
+        self.game.year = year
         self.game.runner_name = self.runner_name
         self.game.config = self.lutris_config
         self.game.directory = runner.game_path

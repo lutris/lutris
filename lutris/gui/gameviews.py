@@ -3,6 +3,7 @@ from gi.repository import Gtk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.game import Game
+from lutris import runners
 from lutris import pga, settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
@@ -17,8 +18,10 @@ from lutris.util.log import logger
     COL_ICON,
     COL_YEAR,
     COL_RUNNER,
+    COL_RUNNER_HUMAN_NAME,
+    COL_PLATFORM,
     COL_INSTALLED,
-) = list(range(7))
+) = list(range(9))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -46,8 +49,9 @@ class GameStore(GObject.Object):
         self.filter_installed = filter_installed
         self.filter_text = None
         self.filter_runner = None
+        self.filter_platform = None
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -95,6 +99,10 @@ class GameStore(GObject.Object):
             runner = model.get_value(_iter, COL_RUNNER)
             if not self.filter_runner == runner:
                 return False
+        if self.filter_platform:
+            platform = model.get_value(_iter, COL_PLATFORM)
+            if not self.filter_platform == platform:
+                return False
         return True
 
     def add_game_by_id(self, game_id):
@@ -112,13 +120,25 @@ class GameStore(GObject.Object):
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
         name = game['name'].replace('&', "&amp;")
+        platform = game['platform']
+        runner = None
+        runner_name = game['runner']
+        runner_human_name = ''
+        if runner_name:
+            runner = runners.import_runner(runner_name)
+            runner_human_name = runner.human_name
+        if not platform and runner:
+            platform = str(runner.platform or '')
+
         self.store.append((
             game['id'],
             game['slug'],
             name,
             pixbuf,
             str(game['year']),
-            game['runner'],
+            runner_name,
+            runner_human_name,
+            platform,
             game['installed']
         ))
 
@@ -189,6 +209,7 @@ class GameView(object):
         if not row:
             raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
         row[COL_RUNNER] = game.runner_name
+        row[COL_PLATFORM] = ''
         self.update_image(game.id, is_installed=True)
 
     def set_uninstalled(self, game):
@@ -197,6 +218,7 @@ class GameView(object):
         if not row:
             raise ValueError("Couldn't find row for id %s" % game.id)
         row[COL_RUNNER] = ''
+        row[COL_PLATFORM] = ''
         self.update_image(game.id, is_installed=False)
 
     def update_row(self, game):
@@ -275,9 +297,13 @@ class GameListView(Gtk.TreeView, GameView):
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
-        column = self.set_column(default_text_cell, "Runner", COL_RUNNER)
+        column = self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME)
         width = settings.read_setting('runner_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 100)
+        column.set_fixed_width(int(width) if width else 120)
+        self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
+
+        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
