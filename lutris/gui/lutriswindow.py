@@ -17,6 +17,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util import steam
+from lutris.util import desktopapps
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -74,6 +75,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('sidebar_visible') in ['true', None]
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
 
+        # Sync local lutris library with current Steam games and desktop games
+        # before setting up game list and view
+        steam.sync_with_lutris()
+        desktopapps.sync_with_lutris()
+
         # Window initialization
         self.game_list = pga.get_games()
         self.game_store = GameStore([], self.icon_type, self.filter_installed)
@@ -120,10 +126,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
         self.sidebar_viewport.add(self.sidebar_treeview)
         self.sidebar_treeview.show()
-
-        # Sync local lutris library with current Steam games before setting up
-        # view
-        steam.sync_with_lutris()
 
         self.game_store.fill_store(self.game_list)
         self.switch_splash_screen()

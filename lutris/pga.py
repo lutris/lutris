@@ -124,20 +124,24 @@ def set_config_paths():
             )
 
 
-def get_games(name_filter=None, filter_installed=False):
+def get_games(name_filter=None, filter_installed=False, filter_runner=None):
     """Get the list of every game in database."""
     query = "select * from games"
-    params = ()
+    params = []
     filters = []
     if name_filter:
-        params = (name_filter, )
+        params.append(name_filter)
         filters.append("name LIKE ?")
     if filter_installed:
         filters.append("installed = 1")
+    if filter_runner:
+        params.append(filter_runner)
+        filters.append("runner = ?")
     if filters:
         query += " WHERE " + " AND ".join([f for f in filters])
     query += " ORDER BY slug"
-    return sql.db_query(PGA_DB, query, params)
+
+    return sql.db_query(PGA_DB, query, tuple(params))
 
 
 def get_game_ids():
@@ -151,6 +155,9 @@ def get_steam_games():
     query = "select * from games where steamid is not null and steamid != ''"
     return sql.db_query(PGA_DB, query)
 
+def get_desktop_games():
+    query = "select * from games where runner = 'linux' and installer_slug = 'desktopapp'"
+    return sql.db_query(PGA_DB, query)
 
 def get_game_by_field(value, field='slug', all=False):
     """Query a game based on a database field"""
