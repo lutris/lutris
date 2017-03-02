@@ -187,7 +187,7 @@ class GameDialogCommon(object):
         for runner in runners.get_installed():
             description = runner.description
             runner_liststore.append(
-                ("%s (%s)" % (runner.name, description), runner.name)
+                ("%s (%s)" % (runner.human_name, description), runner.name)
             )
         return runner_liststore
 
