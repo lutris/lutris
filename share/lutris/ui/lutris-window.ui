@@ -26,7 +26,7 @@
     <property name="window_position">center</property>
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
-    <signal name="configure-event" handler="on_resize"/>
+    <signal name="size-allocate" handler="on_resize" swapped="no"/>
     <child>
       <object class="GtkBox" id="main_box">
         <property name="visible">True</property>

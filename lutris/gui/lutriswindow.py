@@ -66,6 +66,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
+        self.maximized  = settings.read_setting('maximized') == 'True'
+
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
         self.filter_installed = \
@@ -83,6 +85,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                          icon_name='lutris',
                          application=application,
                          **kwargs)
+        if self.maximized:
+            self.maximize()
         self.init_template()
         self._init_actions()
 
@@ -439,8 +443,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *args):
-        """WTF is this doing?"""
-        self.window_size = widget.get_size()
+        """Size-allocate signal.
+
+        Updates stored window size and maximized state.
+        """
+        if not widget.get_window():
+            return
+        self.maximized = widget.is_maximized()
+        if not self.maximized:
+            self.window_size = widget.get_size()
 
     @GtkTemplate.Callback
     def on_destroy(self, *args):
@@ -459,6 +470,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         width, height = self.window_size
         settings.write_setting('width', width)
         settings.write_setting('height', height)
+        settings.write_setting('maximized', self.maximized)
 
     @GtkTemplate.Callback
     def on_preferences_activate(self, *args):
