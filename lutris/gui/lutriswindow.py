@@ -330,6 +330,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
+        self.set_selected_runner(self.selected_runner)
+        self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
         settings.write_setting('view_type', view_type)
@@ -468,6 +470,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_show_installed_state_change(self, action, value):
         action.set_state(value)
         filter_installed = value.get_boolean()
+        self.set_show_installed_state(filter_installed)
+
+    def set_show_installed_state(self, filter_installed):
+        self.filter_installed = filter_installed
         setting_value = 'true' if filter_installed else 'false'
         settings.write_setting(
             'filter_installed', setting_value
@@ -712,7 +718,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
-        self.selected_runner = widget.get_selected_runner()
+        self.set_selected_runner(widget.get_selected_runner())
+
+    def set_selected_runner(self, runner):
+        self.selected_runner = runner
         if self.current_view_type == 'grid':
             self.view.filter_runner = self.selected_runner
             self.view.invalidate_filter()
