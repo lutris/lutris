@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from gi.repository import Gtk, GObject, Pango, GLib
+from gi.repository import Gtk, Gdk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris.game import Game
@@ -137,6 +137,7 @@ class GameView(object):
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
     selected_game = None
     current_path = None
@@ -145,6 +146,7 @@ class GameView(object):
     def connect_signals(self):
         """Signal handlers common to all views"""
         self.connect('button-press-event', self.popup_contextual_menu)
+        self.connect('key-press-event', self.handle_key_press)
 
     def populate_games(self, games):
         """Shortcut method to the GameStore fill_store method"""
@@ -242,6 +244,12 @@ class GameView(object):
             game_row = self.get_row_by_id(self.selected_game)
             self.contextual_menu.popup(event, game_row)
 
+    def handle_key_press(self, widget, event):
+        if not self.selected_game: return
+        key = event.keyval
+        if key == Gdk.KEY_Delete:
+            self.emit("remove-game")
+
 
 class GameListView(Gtk.TreeView, GameView):
     """Show the main list of games."""
@@ -285,7 +293,7 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.connect_signals()
         self.connect('row-activated', self.on_row_activated)
-        self.connect('cursor-changed', self.on_cursor_changed)
+        self.get_selection().connect('changed', self.on_cursor_changed)
 
     def set_text_cell(self):
         text_cell = Gtk.CellRendererText()

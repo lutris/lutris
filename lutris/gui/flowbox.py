@@ -1,6 +1,6 @@
 from lutris import pga
 from lutris.util.log import logger
-from gi.repository import Gtk, GObject, GLib
+from gi.repository import Gtk, Gdk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
 
 try:
@@ -75,6 +75,7 @@ class GameFlowBox(FlowBox):
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ())
     }
 
     def __init__(self, game_list, icon_type='banner', filter_installed=False):
@@ -84,6 +85,7 @@ class GameFlowBox(FlowBox):
 
         self.connect('child-activated', self.on_child_activated)
         self.connect('selected-children-changed', self.on_selection_changed)
+        self.connect('key-press-event', self.handle_key_press)
 
         self.set_filter_func(self.filter_func)
         self.set_sort_func(self.sort_func)
@@ -231,3 +233,9 @@ class GameFlowBox(FlowBox):
     def popup_contextual_menu(self, event, widget):
         self.select_child(self.get_child(widget))
         self.contextual_menu.popup(event, game=widget.game)
+
+    def handle_key_press(self, widget, event):
+        if not self.selected_game: return
+        key = event.keyval
+        if key == Gdk.KEY_Delete:
+            self.emit("remove-game")
