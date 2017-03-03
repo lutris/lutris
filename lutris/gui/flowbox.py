@@ -1,4 +1,5 @@
 from lutris import pga
+from lutris.runners import import_runner
 from lutris.util.log import logger
 from gi.repository import Gtk, Gdk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
@@ -22,6 +23,7 @@ class GameItem(Gtk.VBox):
         self.name = game['name']
         self.slug = game['slug']
         self.runner = game['runner']
+        self.platform = game['platform']
         self.installed = game['installed']
 
         image = self.get_image()
@@ -98,7 +100,8 @@ class GameFlowBox(FlowBox):
         self.icon_type = icon_type
 
         self.filter_text = ''
-        self.filter_runner = ''
+        self.filter_runner = None
+        self.filter_platform = None
         self.filter_installed = filter_installed
 
         self.game_list = game_list
@@ -141,6 +144,14 @@ class GameFlowBox(FlowBox):
                 return False
         if self.filter_runner:
             if self.filter_runner != game.runner:
+                return False
+        if self.filter_platform:
+            platform = game.platform
+            if not platform:
+                runner = import_runner(game.runner)()
+                if runner and runner.is_installed():
+                    platform = runner.platform
+            if self.filter_platform != platform:
                 return False
         return True
 
