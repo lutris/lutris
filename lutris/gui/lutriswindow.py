@@ -121,6 +121,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
              self.remove_menu_shortcut),
             ('install_more', "Install (add) another version", self.on_install_clicked),
             ('remove', "Remove", self.on_remove_game),
+            ('view', "View on Lutris.net", self.on_view_game),
         ]
         self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
@@ -668,6 +669,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             dialogs.NoticeDialog(
                 "Can't open %s \nThe folder doesn't exist." % path
             )
+
+    def on_view_game(self, widget):
+        game = Game(self.view.selected_game)
+        self._open_browser('https://lutris.net/games/' + game.slug)
 
     def on_edit_game_configuration(self, widget):
         """Edit game preferences."""
