@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+import time
+
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
@@ -20,8 +23,9 @@ from lutris.util.log import logger
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
+    COL_LASTPLAYED,
     COL_INSTALLED,
-) = list(range(9))
+) = list(range(10))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -51,7 +55,7 @@ class GameStore(GObject.Object):
         self.filter_runner = None
         self.filter_platform = None
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -130,6 +134,10 @@ class GameStore(GObject.Object):
         if not platform and runner:
             platform = str(runner.platform or '')
 
+        lastplayed = ''
+        if game['lastplayed']:
+            lastplayed = time.strftime("%c", time.localtime(game['lastplayed']))
+
         self.store.append((
             game['id'],
             game['slug'],
@@ -139,6 +147,7 @@ class GameStore(GObject.Object):
             runner_name,
             runner_human_name,
             platform,
+            lastplayed,
             game['installed']
         ))
 
@@ -313,6 +322,14 @@ class GameListView(Gtk.TreeView, GameView):
         column.connect("notify::width", self.on_column_width_changed)
 
         column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
+        width = settings.read_setting('platform_column_width', 'list view')
+        column.set_fixed_width(int(width) if width else 120)
+        self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
+
+        column = self.set_column(default_text_cell, "Last played", COL_LASTPLAYED)
+        width = settings.read_setting('lastplayed_column_width', 'list view')
+        column.set_fixed_width(int(width) if width else 120)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
