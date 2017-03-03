@@ -45,6 +45,8 @@ class SidebarTreeView(Gtk.TreeView):
         self.set_headers_visible(False)
         self.set_fixed_height_mode(True)
 
+        self.get_selection().set_mode(Gtk.SelectionMode.BROWSE)
+
         self.connect('button-press-event', self.popup_contextual_menu)
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
@@ -70,6 +72,8 @@ class SidebarTreeView(Gtk.TreeView):
         if not selection:
             return
         model, iter = selection.get_selected()
+        if not iter:
+            return
         runner_slug = model.get_value(iter, SLUG)
         if runner_slug != 'runners':
             return runner_slug
