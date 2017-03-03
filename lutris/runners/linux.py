@@ -8,6 +8,7 @@ from lutris.runners.runner import Runner
 class linux(Runner):
     human_name = "Linux"
     description = "Runs native games"
+    platform = "Linux"
 
     game_options = [
         {
@@ -52,7 +53,6 @@ class linux(Runner):
 
     def __init__(self, config=None):
         super(linux, self).__init__(config)
-        self.platform = "Linux games"
         self.ld_preload = None
 
     @property

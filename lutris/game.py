@@ -41,6 +41,7 @@ class Game(object):
         self.directory = game_data.get('directory') or ''
         self.name = game_data.get('name') or ''
         self.is_installed = bool(game_data.get('installed')) or False
+        self.platform = game_data.get('platform') or ''
         self.year = game_data.get('year') or ''
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
@@ -129,6 +130,8 @@ class Game(object):
             name=self.name,
             runner=self.runner_name,
             slug=self.slug,
+            platform=self.platform,
+            year=self.year,
             directory=self.directory,
             installed=self.is_installed,
             configpath=self.config.game_config_id,
