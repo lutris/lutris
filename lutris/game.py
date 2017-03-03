@@ -43,6 +43,7 @@ class Game(object):
         self.is_installed = bool(game_data.get('installed')) or False
         self.platform = game_data.get('platform') or ''
         self.year = game_data.get('year') or ''
+        self.lastplayed = game_data.get('lastplayed') or 0
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
         self.has_custom_banner = bool(game_data.get('has_custom_banner')) or False
@@ -132,6 +133,7 @@ class Game(object):
             slug=self.slug,
             platform=self.platform,
             year=self.year,
+            lastplayed=self.lastplayed,
             directory=self.directory,
             installed=self.is_installed,
             configpath=self.config.game_config_id,
@@ -370,9 +372,11 @@ class Game(object):
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
+        self.state = self.STATE_STOPPED
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
-        self.state = self.STATE_STOPPED
+        self.lastplayed = int(time.time())
+        self.save()
 
         os.chdir(os.path.expanduser('~'))
 
