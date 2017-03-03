@@ -468,7 +468,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
     def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
         super(RunnerConfigDialog, self).__init__(
-            "Configure %s" % self.runner_name,
+            "Configure %s" % runner.human_name,
             parent=parent
         )
 
