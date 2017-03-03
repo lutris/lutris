@@ -414,10 +414,10 @@ class ConfigBox(VBox):
         dialog.set_select_multiple(True)
 
         first_file_dir = os.path.dirname(value[0]) if value else None
-        dialog.set_current_folder(first_file_dir
-                                  or self.game.directory
-                                  or self.config.get('game_path')
-                                  or os.path.expanduser('~'))
+        dialog.set_current_folder(first_file_dir or
+                                  self.game.directory or
+                                  self.config.get('game_path') or
+                                  os.path.expanduser('~'))
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             self.add_files_to_treeview(dialog, option_name, self.wrapper)

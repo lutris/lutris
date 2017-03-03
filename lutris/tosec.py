@@ -24,13 +24,13 @@ import os.path
 import datetime
 
 STANDARD_CODES = {
-    "[a]":   "Alternate",
-    "[p]":   "Pirate",
-    "[t]":   "Trained",
-    "[T-]":  "OldTranslation",
-    "[T+]":  "NewerTranslation",
-    "(-)":   "Unknown Year",
-    "[!]":   "Verified Good Dump",
+    "[a]": "Alternate",
+    "[p]": "Pirate",
+    "[t]": "Trained",
+    "[T-]": "OldTranslation",
+    "[T+]": "NewerTranslation",
+    "(-)": "Unknown Year",
+    "[!]": "Verified Good Dump",
     "(\d+)": "(# of Languages)",
     "(??k)": "ROM Size",
     "(Unl)": "Unlicensed",
@@ -111,8 +111,8 @@ class TOSEC:
 
         # If the old version is more recent thab the new one, the new one
         # shouldn't be added
-        if(actual_version
-           and datefromiso(actual_version) >= datefromiso(new_version)):
+        if(actual_version and
+           datefromiso(actual_version) >= datefromiso(new_version)):
             return False
 
         # What if we have to update the version instead of adding it ?

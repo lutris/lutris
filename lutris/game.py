@@ -347,8 +347,8 @@ class Game(object):
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog("<b>Error lauching the game:</b>\n"
-                                + self.game_thread.error)
+            dialogs.ErrorDialog("<b>Error lauching the game:</b>\n" +
+                                self.game_thread.error)
             self.on_game_quit()
             return False
         self.game_log = self.game_thread.stdout

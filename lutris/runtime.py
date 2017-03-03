@@ -58,16 +58,16 @@ class RuntimeUpdater:
         for runtime in runtimes:
 
             # Skip 32bit runtimes on 64 bit systems except the lib32 one
-            if(runtime['architecture'] == 'i386'
-               and system.is_64bit
-               and runtime['name'] != 'lib32'):
+            if(runtime['architecture'] == 'i386' and
+               system.is_64bit and
+               runtime['name'] != 'lib32'):
                 logger.debug('Skipping runtime %s for %s',
                              runtime['name'], runtime['architecture'])
                 continue
 
             # Skip 64bit runtimes on 32 bit systems
-            if(runtime['architecture'] == 'x86_64'
-               and not system.is_64bit):
+            if(runtime['architecture'] == 'x86_64' and
+               not system.is_64bit):
                 logger.debug('Skipping runtime %s for %s',
                              runtime['name'], runtime['architecture'])
                 continue

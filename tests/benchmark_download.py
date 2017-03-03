@@ -9,7 +9,6 @@ from gi.repository import Gtk, Gdk, GObject
 
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from lutris.util import http
 from lutris.gui.dialogs import DownloadDialog
 
 TEST_URL = "https://lutris.net/releases/lutris_0.3.0.tar.gz"

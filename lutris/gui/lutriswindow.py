@@ -67,7 +67,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         width = int(settings.read_setting('width') or 800)
         height = int(settings.read_setting('height') or 600)
         self.window_size = (width, height)
-        self.maximized  = settings.read_setting('maximized') == 'True'
+        self.maximized = settings.read_setting('maximized') == 'True'
 
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
@@ -435,7 +435,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions['synchronize'].props.enabled = False
 
     def toggle_connection(self, is_connected, username=None):
-        connect_item = self.props.application.set_connect_state(is_connected)
+        self.props.application.set_connect_state(is_connected)
         if is_connected:
             connection_status = username
             logger.info('Connected to lutris.net as %s', connection_status)

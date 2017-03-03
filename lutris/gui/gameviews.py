@@ -267,7 +267,8 @@ class GameView(object):
             self.contextual_menu.popup(event, game_row)
 
     def handle_key_press(self, widget, event):
-        if not self.selected_game: return
+        if not self.selected_game:
+            return
         key = event.keyval
         if key == Gdk.KEY_Delete:
             self.emit("remove-game")
@@ -474,20 +475,20 @@ class ContextualMenu(Gtk.Menu):
             'play': not is_installed,
             'configure': not is_installed,
             'desktop-shortcut': (
-                not is_installed
-                or desktop_launcher_exists(game_slug, game_id)
+                not is_installed or
+                desktop_launcher_exists(game_slug, game_id)
             ),
             'menu-shortcut': (
-                not is_installed
-                or menu_launcher_exists(game_slug, game_id)
+                not is_installed or
+                menu_launcher_exists(game_slug, game_id)
             ),
             'rm-desktop-shortcut': (
-                not is_installed
-                or not desktop_launcher_exists(game_slug, game_id)
+                not is_installed or
+                not desktop_launcher_exists(game_slug, game_id)
             ),
             'rm-menu-shortcut': (
-                not is_installed
-                or not menu_launcher_exists(game_slug, game_id)
+                not is_installed or
+                not menu_launcher_exists(game_slug, game_id)
             ),
             'browse': not is_installed or runner_slug == 'browser',
         }

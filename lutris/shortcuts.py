@@ -2,13 +2,11 @@
 import os
 import stat
 import shutil
-import subprocess
 
 from textwrap import dedent
 from gi.repository import GLib
 
 from lutris.util import system
-from lutris.util.log import logger
 from lutris.settings import CACHE_DIR
 
 
@@ -38,7 +36,7 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
 
     launcher_filename = get_xdg_basename(game_slug, game_id, legacy=False)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
-    tmp_launcher = open(tmp_launcher_path,  "w")
+    tmp_launcher = open(tmp_launcher_path, "w")
     tmp_launcher.write(launcher_content)
     tmp_launcher.close()
     os.chmod(tmp_launcher_path, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC |

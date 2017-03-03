@@ -19,6 +19,7 @@ class ScriptingError(Exception):
     def __repr__(self):
         return self.message
 
+
 _excepthook = sys.excepthook
 
 
@@ -30,4 +31,6 @@ def error_handler(error_type, value, traceback):
         ErrorDialog(message)
     else:
         _excepthook(error_type, value, traceback)
+
+
 sys.excepthook = error_handler

@@ -235,7 +235,8 @@ class GameFlowBox(FlowBox):
         self.contextual_menu.popup(event, game=widget.game)
 
     def handle_key_press(self, widget, event):
-        if not self.selected_game: return
+        if not self.selected_game:
+            return
         key = event.keyval
         if key == Gdk.KEY_Delete:
             self.emit("remove-game")

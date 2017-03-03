@@ -11,7 +11,7 @@ class ags(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label':  'Game executable or directory'
+        'label': 'Game executable or directory'
     }]
     runner_options = [
         {

@@ -40,6 +40,6 @@ class CellRendererButton(Gtk.CellRenderer):
         (x, y, w, h) = self.do_get_size(widget, cell_area)
         h -= 4
         # Gtk.render_background(context, cr, x, y, w, h)
-        Gtk.render_frame(context, cr, x, y, w-2, h+4)
+        Gtk.render_frame(context, cr, x, y, w - 2, h + 4)
         Gtk.render_layout(context, cr, x + 10, y, self.layout)
         context.restore()

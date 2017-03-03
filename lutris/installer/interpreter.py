@@ -91,9 +91,9 @@ class ScriptInterpreter(CommandsMixin):
     @property
     def should_create_target(self):
         return (
-            not os.path.exists(self.target_path)
-            and 'nocreatedir' not in self.script
-            and self.creates_game_folder
+            not os.path.exists(self.target_path) and
+            'nocreatedir' not in self.script and
+            self.creates_game_folder
         )
 
     @property

@@ -5,7 +5,7 @@ from lutris import runners, settings
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
 from lutris import gui
-from lutris.gui.config_boxes import GameBox,  RunnerBox, SystemBox
+from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
 from lutris.util.log import logger
@@ -28,6 +28,7 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
             self.get_buffer().insert_text(position, new_text, length)
             return position + length
         return position
+
 
 class NumberEntry(Gtk.Entry, Gtk.Editable):
     def __init__(self):

@@ -20,6 +20,7 @@ IGNORED_EXECUTABLES = (
     "lutris", "steam"
 )
 
+
 def mark_as_installed(appid, runner_name, game_info):
     for key in ['name', 'slug']:
         assert game_info[key]
@@ -42,6 +43,7 @@ def mark_as_installed(appid, runner_name, game_info):
     game_config.save()
     return game_id
 
+
 def mark_as_uninstalled(game_info):
     assert 'id' in game_info
     assert 'name' in game_info
@@ -52,6 +54,7 @@ def mark_as_uninstalled(game_info):
         installed=0
     )
     return game_id
+
 
 def sync_with_lutris():
     apps = get_games()
@@ -75,13 +78,13 @@ def sync_with_lutris():
                 'exe': app[2],
                 'args': app[3]
             }
-            game_id = mark_as_installed(appid, 'linux', game_info)
+            mark_as_installed(appid, 'linux', game_info)
 
     unavailable_slugs = slugs_in_lutris.difference(seen_slugs)
     for slug in unavailable_slugs:
         for game in desktop_games_in_lutris:
             if game['slug'] == slug:
-                game_id = mark_as_uninstalled(game)
+                mark_as_uninstalled(game)
 
 
 def get_games():
@@ -93,7 +96,6 @@ def get_games():
         if app.get_nodisplay() or app.get_is_hidden():
             continue
         appid = os.path.splitext(app.get_id())[0]
-        env = []
         exe = None
         args = []
 
@@ -117,7 +119,7 @@ def get_games():
         exe = cli[0]
         args = cli[1:]
         # remove %U etc. and change %% to % in arguments
-        args = list(map(lambda arg: re.sub('%[^%]', '', arg).replace('%%','%'), args))
+        args = list(map(lambda arg: re.sub('%[^%]', '', arg).replace('%%', '%'), args))
 
         args = subprocess.list2cmdline(args)
 

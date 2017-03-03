@@ -38,8 +38,9 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
     elif path.endswith('.gz') or extractor == 'gzip':
         decompress_gz(path, to_directory)
         return
-    elif(path.endswith('.tar.bz2') or path.endswith('.tbz')
-         or extractor == 'bz2'):
+    elif(path.endswith('.tar.bz2') or
+         path.endswith('.tbz') or
+         extractor == 'bz2'):
         opener, mode = tarfile.open, 'r:bz2'
     elif(is_7zip_supported(path, extractor)):
         opener = '7zip'

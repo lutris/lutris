@@ -37,6 +37,7 @@ def check_registry(registry_path):
         subprocess.call(["meld", registry_path, wrong_path])
         sys.exit(2)
 
+
 registries = get_registries()
 for registry in registries:
     check_registry(registry)

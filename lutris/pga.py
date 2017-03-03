@@ -155,9 +155,11 @@ def get_steam_games():
     query = "select * from games where steamid is not null and steamid != ''"
     return sql.db_query(PGA_DB, query)
 
+
 def get_desktop_games():
     query = "select * from games where runner = 'linux' and installer_slug = 'desktopapp'"
     return sql.db_query(PGA_DB, query)
+
 
 def get_game_by_field(value, field='slug', all=False):
     """Query a game based on a database field"""
