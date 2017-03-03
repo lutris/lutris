@@ -15,8 +15,7 @@ DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 class web(Runner):
     human_name = "Web"
     description = "Runs web based games"
-    platform = "Web based games"
-    description = "Runs web based games"
+    platform = "Web"
     game_options = [
         {
             "option": "main_file",
