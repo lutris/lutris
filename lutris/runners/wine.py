@@ -914,12 +914,19 @@ class wine(Runner):
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
         """Take a Windows path, return the corresponding Linux path."""
+        if not prefix_path:
+            prefix_path = os.path.expanduser("~/.wine")
+
         path = path.replace("\\\\", "/").replace('\\', '/')
-        if path.startswith('C'):
-            if not prefix_path:
-                prefix_path = os.path.expanduser("~/.wine")
-            path = os.path.join(prefix_path, 'drive_c', path[3:])
-        elif path[1] == ':':
-            # Trim Windows path
-            path = path[2:]
-        return path
+
+        if path[1] == ':': # absolute path
+            drive = os.path.join(prefix_path, 'dosdevices', path[:2].lower())
+            if os.path.islink(drive): # Try to resolve the path
+                drive = os.readlink(drive)
+            return os.path.join(drive, path[3:])
+
+        elif path[0] == '/': # drive-relative path. C is as good a guess as any..
+            return os.path.join(prefix_path, 'drive_c', path[1:])
+
+        else: # Relative path
+            return path
