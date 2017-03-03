@@ -7,7 +7,7 @@ cover:
 
 test:
 	rm tests/fixtures/pga.db -f
-	nosetests3
+	nosetests
 
 deb-source: clean
 	gbp buildpackage -S
