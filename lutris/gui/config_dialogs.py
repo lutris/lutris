@@ -356,8 +356,9 @@ class GameDialogCommon(object):
 
         self._rebuild_tabs()
         self.notebook.set_current_page(current_page)
-        if self.game.runner:
-            self.platform_entry.set_placeholder_text(self.game.runner.platform)
+        if self.runner_name:
+            runner = runners.import_runner(self.runner_name)
+            self.platform_entry.set_placeholder_text(runner.platform)
         else:
             self.platform_entry.set_placeholder_text('')
 
