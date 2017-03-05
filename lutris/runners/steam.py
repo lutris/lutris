@@ -1,6 +1,8 @@
 import os
 import time
+import shlex
 import subprocess
+
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
@@ -46,7 +48,14 @@ class steam(Runner):
                      "page at steampowered.com. Example: 235320 is the "
                      "app ID for <i>Original War</i> in: \n"
                      "http://store.steampowered.com/app/<b>235320</b>/")
-        }
+        },
+        {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Arguments',
+            'help': ("Command line arguments used when launching the game.\n"
+                     "Ignored when Steam Big Picture mode is enabled.")
+        },
     ]
     runner_options = [
         {
@@ -75,7 +84,15 @@ class steam(Runner):
             'help': ("Launches Steam with STEAM_RUNTIME=0. "
                      "Make sure you disabled Lutris Runtime and "
                      "have the required libraries installed.")
-        }
+        },
+        {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Arguments',
+            'advanced': True,
+            'help': ("Extra command line arguments used when "
+                     "launching Steam")
+        },
     ]
     system_options_override = [
         {
@@ -134,6 +151,20 @@ class steam(Runner):
 
     def get_executable(self):
         return system.find_executable('steam')
+
+    @property
+    def launch_args(self):
+        args = [self.get_executable()]
+
+        if self.runner_config.get('start_in_big_picture'):
+            args.append('-bigpicture')
+
+        steam_args = self.runner_config.get('args') or ''
+        if steam_args:
+            for arg in shlex.split(steam_args):
+                args.append(arg)
+
+        return args
 
     def get_env(self):
         env = {}
@@ -223,15 +254,26 @@ class steam(Runner):
                         return False
         return True
 
+    def get_run_data(self):
+        return {'command': self.launch_args, 'env': self.get_env()}
+
     def play(self):
         self.game_launch_time = time.localtime()
+        game_args = self.game_config.get('args') or ''
 
         # Get current steam pid to act as the root pid instead of lutris
         self.original_steampid = get_steam_pid()
-        command = [self.get_executable()]
-        if self.runner_config.get('start_in_big_picture'):
-            command.append('-tenfoot')
-        command.append('steam://rungameid/%s' % self.appid)
+        command = self.launch_args
+
+        if self.runner_config.get('start_in_big_picture') or not game_args:
+            command.append('steam://rungameid/%s' % self.appid)
+        else:
+            command.append('-applaunch')
+            command.append(self.appid)
+            if game_args:
+                for arg in shlex.split(game_args):
+                    command.append(arg)
+
         return {
             'command': command,
             'rootpid': self.original_steampid,
