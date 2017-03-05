@@ -537,7 +537,14 @@ class wine(Runner):
                 'advanced': True,
                 'help': ("Output debugging information in the game log "
                          "(might affect performance)")
-            }
+            },
+            {
+                'option': 'overrides',
+                'type': 'mapping',
+                'label': 'DLL overrides',
+                'advanced': True,
+                'help': "Sets WINEDLLOVERRIDES when launching the game."
+            },
         ]
 
     @property
@@ -691,9 +698,6 @@ class wine(Runner):
                             wine_path=self.get_executable(), prefix=prefix,
                             arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
-        overrides = self.runner_config.get('overrides') or {}
-        for dll, value in overrides.items():
-            prefix_manager.override_dll(dll, value)
 
     def prelaunch(self):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
@@ -714,6 +718,20 @@ class wine(Runner):
         env['WINE'] = self.get_executable()
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
+
+        overrides = self.runner_config.get('overrides')
+        if overrides:
+            arr = []
+            for dll, value in overrides.items():
+                if not value:
+                    value = ''
+                value = value.replace(' ', '')
+                value = value.replace('builtin', 'b')
+                value = value.replace('native', 'n')
+                value = value.replace('disabled', '')
+                arr.append(dll + '=' + value)
+            env['WINEDLLOVERRIDES'] = ','.join(arr)
+
         return env
 
     def get_pids(self, wine_path=None):
