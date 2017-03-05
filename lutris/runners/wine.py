@@ -97,7 +97,7 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_wine='', blocking=False):
+             working_dir=None, winetricks_wine='', blocking=False, config=None):
     """Execute a Wine command."""
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
@@ -129,7 +129,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if prefix:
         env['WINEPREFIX'] = prefix
 
-    wine_config = LutrisConfig(runner_slug='wine')
+    wine_config = config or LutrisConfig(runner_slug='wine')
     if not wine_config.system_config['disable_runtime'] and not runtime.is_disabled():
         env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
@@ -145,7 +145,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         return thread
 
 
-def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None):
+def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=None):
     """Execute winetricks."""
     winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
     if arch not in ('win32', 'win64'):
@@ -158,10 +158,10 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None):
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "-q " + args
     return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
-                    wine_path=winetricks_path, arch=arch, args=args)
+                    wine_path=winetricks_path, arch=arch, args=args, config=config)
 
 
-def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True):
+def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True, config=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -170,22 +170,11 @@ def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True):
     winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
     logger.debug("winecfg: %s", winecfg_path)
 
-    env = []
-    if prefix:
-        env.append('WINEPREFIX="%s" ' % prefix)
-    env.append('WINEARCH="%s" ' % arch)
-
-    if settings.RUNNER_DIR in wine_path:
-        runtime32_path = os.path.join(settings.RUNTIME_DIR, "lib32")
-        env.append('LD_LIBRARY_PATH={}'.format(runtime32_path))
-
-    command = '{0} "{1}"'.format(' '.join(env), winecfg_path)
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-    if blocking:
-        p.communicate()
+    return wineexec(None, prefix=prefix, winetricks_wine=winecfg_path,
+                    wine_path=winecfg_path, arch=arch, config=config)
 
 
-def joycpl(wine_path=None, prefix=None):
+def joycpl(wine_path=None, prefix=None, config=None):
     """Execute Joystick control panel."""
     arch = detect_prefix_arch(prefix) or 'win32'
     wineexec('control', prefix=prefix,
@@ -649,20 +638,20 @@ class wine(Runner):
         filename = dlg.filename
         if not filename:
             return
-        wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path)
+        wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                arch=self.wine_arch, blocking=False)
+                arch=self.wine_arch, blocking=False, config=self)
 
     def run_regedit(self, *args):
-        wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path)
+        wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
 
     def run_winetricks(self, *args):
-        winetricks('', prefix=self.prefix_path, wine_path=self.get_executable())
+        winetricks('', prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
     def run_joycpl(self, *args):
-        joycpl(prefix=self.prefix_path, wine_path=self.get_executable())
+        joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
     def set_wine_desktop(self, enable_desktop=False):
         path = self.reg_keys['Desktop']
