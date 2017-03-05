@@ -5,8 +5,8 @@ from gi.repository import GLib
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
-VERSION = "0.4.4.1"
-COPYRIGHT = "(c) 2010-2016 Lutris Gaming Platform"
+VERSION = "0.4.5"
+COPYRIGHT = "(c) 2010-2017 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>",
            "Pascal Reinhard (Xodetaetl) <dev@xod.me"]
 ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]

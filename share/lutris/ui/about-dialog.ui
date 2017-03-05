@@ -13,7 +13,7 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="program_name">Lutris</property>
-    <property name="copyright" translatable="yes">© 2010, 2016 Mathieu Comandon</property>
+    <property name="copyright" translatable="yes">© 2010, 2017 Mathieu Comandon</property>
     <property name="comments" translatable="yes">Open Source Gaming Platform</property>
     <property name="website">http://lutris.net</property>
     <property name="website_label" translatable="yes">http://lutris.net</property>
