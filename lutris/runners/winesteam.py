@@ -159,9 +159,6 @@ class winesteam(wine.wine):
     def launch_args(self):
         args = [self.get_executable(), self.get_steam_path()]
 
-        # Fix invisible text in Steam
-        args.append('-no-dwrite')
-
         # Try to fix Steam's browser. Never worked but it's supposed to...
         args.append('-no-cef-sandbox')
 
@@ -311,12 +308,6 @@ class winesteam(wine.wine):
         if not os.path.exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
-
-        # Fix steam text display
-        set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
-                    'DWriteEnable', '0', 'REG_DWORD',
-                    wine_path=self.get_executable(),
-                    prefix=prefix_dir)
 
     def get_default_prefix(self, arch='win32'):
         """Return the default prefix' path."""
