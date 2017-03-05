@@ -3,10 +3,8 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-before_install:
+before_script:
   - sudo apt-get -qq update
-  - sudo apt-get install -y python3-yaml python3-gi gir1.2-gtk-3.0 psmisc
-install:
-  - python setup.py install
+  - sudo apt-get install -y python3-yaml python3-gi gir1.2-gtk-3.0 psmisc gir1.2-glib-2.0 libgirepository1.0-dev
 script: nosetests
 
