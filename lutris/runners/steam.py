@@ -35,7 +35,7 @@ def is_running():
 class steam(Runner):
     description = "Runs Steam for Linux games"
     human_name = "Steam"
-    platform = "Steam for Linux"
+    platform = "PC/Linux (Steam)"
     runnable_alone = True
     game_options = [
         {
