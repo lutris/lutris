@@ -2,6 +2,7 @@
 """Runner for the Steam platform"""
 import os
 import time
+import shlex
 import subprocess
 
 from lutris import settings
@@ -67,8 +68,7 @@ class winesteam(wine.wine):
             'option': 'args',
             'type': 'string',
             'label': 'Arguments',
-            'help': ("Windows command line arguments used when launching "
-                     "Steam")
+            'help': ("Command line arguments used when launching the game")
         },
         {
             'option': 'prefix',
@@ -118,6 +118,17 @@ class winesteam(wine.wine):
                 'help': ("Shut down Steam after the game has quit.")
             },
         )
+        self.runner_options.insert(
+            2,
+            {
+                'option': 'args',
+                'type': 'string',
+                'label': 'Arguments',
+                'advanced': True,
+                'help': ("Extra command line arguments used when "
+                         "launching Steam")
+            },
+        )
 
     def __repr__(self):
         return "Winesteam runner (%s)" % self.config
@@ -161,6 +172,11 @@ class winesteam(wine.wine):
 
         # Try to fix Steam's browser. Never worked but it's supposed to...
         args.append('-no-cef-sandbox')
+
+        steam_args = self.runner_config.get('args') or ''
+        if steam_args:
+            for arg in shlex.split(steam_args):
+                args.append(arg)
 
         return args
 
@@ -360,7 +376,7 @@ class winesteam(wine.wine):
 
     def play(self):
         self.game_launch_time = time.localtime()
-        args = self.game_config.get('args') or ''
+        game_args = self.game_config.get('args') or ''
 
         launch_info = {}
         launch_info['env'] = self.get_env(full=False)
@@ -369,10 +385,14 @@ class winesteam(wine.wine):
             launch_info['ld_preload'] = self.get_xinput_path()
 
         command = self.launch_args
-        if self.appid:
+        if not game_args:
             command.append('steam://rungameid/%s' % self.appid)
-        if args:
-            command.append(args)
+        else:
+            command.append('-applaunch')
+            command.append(self.appid)
+            if game_args:
+                for arg in shlex.split(game_args):
+                    command.append(arg)
         launch_info['command'] = command
         return launch_info
 
