@@ -274,8 +274,6 @@ class GameDialogCommon(object):
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
-            if self.game:
-                self.game.runner = None
         self._add_notebook_tab(game_sw, "Game options")
 
     def _build_runner_tab(self, config_level):

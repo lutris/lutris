@@ -62,6 +62,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_launch_time = 0
         self.last_selected_game = None
         self.selected_runner = None
+        self.selected_runner = None
 
         # Load settings
         width = int(settings.read_setting('width') or 800)
@@ -338,7 +339,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.set_selected_runner(self.selected_runner)
+        self.set_selected_filter(self.selected_runner, self.selected_platform)
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
@@ -738,13 +739,25 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
-        self.set_selected_runner(widget.get_selected_runner())
+        selected_filter = widget.get_selected_filter()
+        selected_runner = None
+        selected_platform = None
+        if not selected_filter:
+            pass
+        elif selected_filter.startswith('platform:'):
+            selected_platform = selected_filter.split(':', 2)[1]
+        else:
+            selected_runner = selected_filter
+        self.set_selected_filter(selected_runner, selected_platform)
 
-    def set_selected_runner(self, runner):
+    def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
+        self.selected_platform = platform
         if self.current_view_type == 'grid':
             self.view.filter_runner = self.selected_runner
+            self.view.filter_platform = self.selected_platform
             self.view.invalidate_filter()
         else:
             self.game_store.filter_runner = self.selected_runner
+            self.game_store.filter_platform = self.selected_platform
             self.game_store.modelfilter.refilter()
