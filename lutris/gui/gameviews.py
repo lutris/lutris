@@ -143,7 +143,7 @@ class GameStore(GObject.Object):
             game['slug'],
             name,
             pixbuf,
-            str(game['year']),
+            str(game['year'] or ''),
             runner_name,
             runner_human_name,
             platform,
