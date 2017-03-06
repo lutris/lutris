@@ -62,7 +62,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_launch_time = 0
         self.last_selected_game = None
         self.selected_runner = None
-        self.selected_runner = None
+        self.selected_platform = None
 
         # Load settings
         width = int(settings.read_setting('width') or 800)

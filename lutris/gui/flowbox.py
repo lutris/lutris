@@ -147,7 +147,7 @@ class GameFlowBox(FlowBox):
                 return False
         if self.filter_platform:
             platform = game.platform
-            if not platform:
+            if not platform and game.runner:
                 runner = import_runner(game.runner)()
                 if runner and runner.is_installed():
                     platform = runner.platform
