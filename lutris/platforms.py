@@ -6,7 +6,7 @@ from lutris.runners import import_runner
 
 def get_installed(sort=True):
     """Return a list of installed platforms (strings)."""
-    installed_platforms = []
+    used_platforms = []
     all_games = pga.get_games(filter_installed=True)
     for game in all_games:
         if not game.get('runner'):
@@ -15,8 +15,8 @@ def get_installed(sort=True):
         if not platform:
             runner = import_runner(game.get('runner'))()
 
-            if runner and runner.is_installed():
+            if runner:
                 platform = runner.platform
-        if platform not in installed_platforms:
-            installed_platforms.append(platform)
-    return sorted(installed_platforms) if sort else installed_platforms
+        if platform and platform not in used_platforms:
+            used_platforms.append(platform)
+    return sorted(used_platforms) if sort else used_platforms
