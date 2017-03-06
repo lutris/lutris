@@ -21,6 +21,10 @@ IGNORED_EXECUTABLES = (
     "lutris", "steam"
 )
 
+IGNORED_CATEGORIES = (
+    "Emulator", "Development", "Utility"
+)
+
 
 def mark_as_installed(appid, runner_name, game_info):
     for key in ['name', 'slug']:
@@ -108,8 +112,16 @@ def get_games():
         if 'game' not in categories:
             continue
 
+        # contains a blacklisted category
+        ok = True
+        for c in categories:
+            if c in map(str.lower, IGNORED_CATEGORIES):
+                ok = False
+        if not ok:
+            continue
+
         # game is blacklisted
-        if appid in IGNORED_GAMES:
+        if appid.lower() in map(str.lower, IGNORED_GAMES):
             continue
 
         # executable is blacklisted
