@@ -17,6 +17,14 @@ UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(),
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
+ICON_SMALL_SIZE = (20, 20)
+
+IMAGE_SIZES = {
+    'banner': BANNER_SIZE,
+    'banner_small': BANNER_SMALL_SIZE,
+    'icon': ICON_SIZE,
+    'icon_small': ICON_SMALL_SIZE
+}
 
 
 def get_pixbuf(image, default_image, size):
@@ -63,13 +71,16 @@ def get_overlay(size):
 
 def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
     if icon_type in ("banner", "banner_small"):
-        size = BANNER_SIZE if icon_type == "banner" else BANNER_SMALL_SIZE
         default_icon_path = DEFAULT_BANNER
         icon_path = datapath.get_banner_path(game_slug)
-    elif icon_type == "icon":
-        size = ICON_SIZE
+    elif icon_type in ("icon", "icon_small"):
         default_icon_path = DEFAULT_ICON
         icon_path = datapath.get_icon_path(game_slug)
+    else:
+        logger.error("Invalid icon type '%s'", icon_type)
+        return
+
+    size = IMAGE_SIZES[icon_type]
 
     pixbuf = get_pixbuf(icon_path, default_icon_path, size)
     if not is_installed:
