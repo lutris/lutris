@@ -735,7 +735,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.show_sidebar()
 
     def show_sidebar(self):
-        width = 150 if self.sidebar_visible else 0
+        width = 180 if self.sidebar_visible else 0
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
