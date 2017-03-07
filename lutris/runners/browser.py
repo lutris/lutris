@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class browser(Runner):
     human_name = "Browser"
     description = "Runs browser games"
-    platform = "Web"
+    platforms = "Web"
     description = "Runs games in the browser"
     game_options = [
         {

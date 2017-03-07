@@ -6,7 +6,27 @@ from lutris.runners.runner import Runner
 class mess(Runner):
     human_name = "MESS"
     description = "Multi-system (consoles and computers) emulator"
-    platform = 'multi-platform'
+    # TODO: A lot of platforms/machines are missing
+    platforms = (
+        ('Amstrad', 'CPC 464'),
+        ('Amstrad', 'CPC 6128'),
+        ('Amstrad', 'GX4000'),
+        ('Apple', 'II'),
+        ('Apple', 'IIGS'),
+        ('Commodore', '64'),
+        ('Sinclair', 'ZX Spectrum'),
+        ('Sinclair', 'ZX Spectrum 128'),
+    )
+    machine_choices = [
+        ("Amstrad CPC 464", 'cpc464'),
+        ("Amstrad CPC 6128", 'cpc6128'),
+        ("Amstrad GX4000", 'gx4000'),
+        ("Apple II", 'apple2ee'),
+        ("Apple IIGS", 'apple2gs'),
+        ("Commodore 64", 'c64'),
+        ("ZX Spectrum", 'spectrum'),
+        ("ZX Spectrum 128", 'spec128'),
+    ]
     runner_executable = "mess/mess"
     game_options = [
         {
@@ -19,16 +39,7 @@ class mess(Runner):
             'option': 'machine',
             'type': 'choice_with_entry',
             'label': "Machine",
-            'choices': [
-                ("Amstrad CPC 464", 'cpc464'),
-                ("Amstrad CPC 6128", 'cpc6128'),
-                ("Amstrad GX4000", 'gx4000'),
-                ("Apple II", 'apple2ee'),
-                ("Apple IIGS", 'apple2gs'),
-                ("Commodore 64", 'c64'),
-                ("ZX Spectrum", 'spectrum'),
-                ("ZX Spectrum 128", 'spec128'),
-            ],
+            'choices': machine_choices,
             'help': ("The emulated machine.")
         },
         {
@@ -57,6 +68,15 @@ class mess(Runner):
                      "necessary to the emulation.")
         }
     ]
+
+    @property
+    def platform(self):
+        machine = self.game_config.get('machine')
+        if machine:
+            for i, m in enumerate(self.machine_choices):
+                if m[1] == machine:
+                    return self.platforms[i]
+        return ('',)
 
     @property
     def working_dir(self):

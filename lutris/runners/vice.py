@@ -8,7 +8,7 @@ from lutris.runners.runner import Runner
 class vice(Runner):
     description = "Commodore Emulator"
     human_name = "Vice"
-    platform = "Commodore 64"
+    platforms = ('Commodore', '64')
 
     game_options = [{
         "option": "main_file",

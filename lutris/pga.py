@@ -124,9 +124,9 @@ def set_config_paths():
             )
 
 
-def get_games(name_filter=None, filter_installed=False, filter_runner=None):
+def get_games(name_filter=None, filter_installed=False, filter_runner=None, select='*'):
     """Get the list of every game in database."""
-    query = "select * from games"
+    query = "select " + select + " from games"
     params = []
     filters = []
     if name_filter:

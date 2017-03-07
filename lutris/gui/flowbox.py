@@ -3,6 +3,7 @@ from lutris.runners import import_runner
 from lutris.util.log import logger
 from gi.repository import Gtk, Gdk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
+from lutris.game import Game
 
 try:
     FlowBox = Gtk.FlowBox
@@ -19,7 +20,8 @@ class GameItem(Gtk.VBox):
         self.icon_type = icon_type
 
         self.parent = parent
-        self.game = game
+        self.game = Game(game['id'])
+        self.id = game['id']
         self.name = game['name']
         self.slug = game['slug']
         self.runner = game['runner']
@@ -50,7 +52,7 @@ class GameItem(Gtk.VBox):
         self.image.set_from_pixbuf(pixbuf)
 
     def get_label(self):
-        self.label = Gtk.Label(self.game['name'])
+        self.label = Gtk.Label(self.name)
         self.label.set_size_request(184, 40)
 
         if self.icon_type == 'banner':
@@ -116,7 +118,7 @@ class GameFlowBox(FlowBox):
         if not children:
             return
         game_item = children[0].get_children()[0]
-        return game_item.game['id']
+        return game_item.game.id
 
     def populate_games(self, games):
         loader = self._fill_store_generator(games)
@@ -146,13 +148,14 @@ class GameFlowBox(FlowBox):
             if self.filter_runner != game.runner:
                 return False
         if self.filter_platform:
-            platform = game.platform
-            if not platform:
-                runner = import_runner(game.runner)()
-                if runner and runner.is_installed():
-                    platform = runner.platform
-            if self.filter_platform != platform:
+            if not game.game.runner:
                 return False
+            platform = game.game.get_platform(string=False)
+            if len(self.filter_platform) > len(platform):
+                return False
+            for i, f in enumerate(self.filter_platform):
+                if f != platform[i]:
+                    return False
         return True
 
     def sort_func(self, child1, child2):

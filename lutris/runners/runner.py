@@ -33,7 +33,7 @@ def get_arch():
 class Runner(object):
     """Generic runner (base class for other runners)."""
     multiple_versions = False
-    platform = NotImplemented
+    platforms = NotImplemented
     runnable_alone = False
     game_options = []
     runner_options = []
@@ -127,6 +127,21 @@ class Runner(object):
     def machine(self):
         self.logger.error("runner.machine accessed, please use platform")
         return self.platform
+
+    @property
+    def platform(self):
+        return self.platforms
+
+    def get_platform(self, string=False):
+        isstr = type(self.platforms) is str
+        if string and not isstr:
+            return ' / '.join(self.platform)
+        elif string and isstr:
+            return self.platform
+        elif isstr:
+            return (self.platform,)
+        else:
+            return self.platform
 
     def get_runner_options(self):
         runner_options = self.runner_options[:]

@@ -5,7 +5,28 @@ from lutris.util.display import get_current_resolution
 class fsuae(Runner):
     human_name = "FS-UAE"
     description = "Amiga emulator"
-    platform = "Amiga"
+    platforms = (
+        ('Amiga', '500'),
+        ('Amiga', '500+'),
+        ('Amiga', '600'),
+        ('Amiga', '1000'),
+        ('Amiga', '1200'),
+        ('Amiga', '1200'),
+        ('Amiga', '4000'),
+        ('Amiga', 'CD32'),
+        ('Commodore', 'CDTV'),
+    )
+    model_choices = [
+        ("Amiga 500", 'A500'),
+        ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
+        ("Amiga 600 with 1 MB chip RAM", 'A600'),
+        ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
+        ("Amiga 1200 with 2 MB chip RAM", 'A1200'),
+        ("Amiga 1200 but with 68020 processor", 'A1200/020'),
+        ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
+        ("Amiga CD32", 'CD32'),
+        ("Commodore CDTV", 'CDTV'),
+    ]
     runner_executable = 'fs-uae/fs-uae'
     game_options = [
         {
@@ -32,17 +53,7 @@ class fsuae(Runner):
             "option": "model",
             "label": "Amiga model",
             "type": "choice",
-            "choices": [
-                ("Amiga 500", 'A500'),
-                ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
-                ("Amiga 600 with 1 MB chip RAM", 'A600'),
-                ("Amiga 1000 with 512 KB chip RAM", 'A1000'),
-                ("Amiga 1200 with 2 MB chip RAM", 'A1200'),
-                ("Amiga 1200 but with 68020 processor", 'A1200/020'),
-                ("Amiga 4000 with 2 MB chip RAM and a 68040", 'A4000/040'),
-                ("CD32 unit", 'CD32'),
-                ("Commodore CDTV unit", 'CDTV'),
-            ],
+            "choices": model_choices,
             'default': 'A500',
             'help': ("Specify the Amiga model you want to emulate.")
         },
@@ -77,6 +88,15 @@ class fsuae(Runner):
                      "the displays of yesteryear.")
         }
     ]
+
+    @property
+    def platform(self):
+        model = self.runner_config.get('model')
+        if model:
+            for i, m in enumerate(self.model_choices):
+                if m[1] == model:
+                    return self.platforms[i]
+        return ('',)
 
     def insert_floppies(self):
         disks = []

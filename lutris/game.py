@@ -62,6 +62,9 @@ class Game(object):
             value += " (%s)" % self.runner_name
         return value
 
+    def get_platform(self, string=True):
+        return self.runner.get_platform(string=string)
+
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
         if "CUSTOM" == message['error']:

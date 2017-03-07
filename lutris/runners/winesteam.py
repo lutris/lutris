@@ -51,7 +51,7 @@ class winesteam(wine.wine):
     description = "Runs Steam for Windows games"
     multiple_versions = False
     human_name = "Wine Steam"
-    platform = "PC/Windows (Steam)"
+    platform = ('PC', 'Windows')
     runnable_alone = True
     depends_on = wine.wine
     game_options = [

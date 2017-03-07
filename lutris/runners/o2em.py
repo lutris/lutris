@@ -5,8 +5,13 @@ from lutris.runners.runner import Runner
 
 class o2em(Runner):
     human_name = "O2EM"
-    description = "Magnavox Oyssey² Emulator"
-    platform = "Magnavox Odyssey 2, Phillips Videopac+"
+    description = "Magnavox Osyssey² Emulator"
+    platforms = (
+        ('Magnavox', 'Odyssey²'),
+        ('Phillips', 'C52'),
+        ('Phillips', 'Videopac+'),
+        ('Brandt', 'Jopac'),
+    )
     bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = 'o2em/o2em'
 
@@ -73,6 +78,15 @@ class o2em(Runner):
                      "the displays of yesteryear.")
         }
     ]
+
+    @property
+    def platform(self):
+        bios = self.runner_config.get('bios')
+        if bios:
+            for i, b in enumerate(self.bios_choices):
+                if b[1] == bios:
+                    return self.platforms[i]
+        return ('',)
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):

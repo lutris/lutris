@@ -6,7 +6,7 @@ class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
     description = "ZDoom DOOM Game Engine"
     human_name = "ZDoom"
-    platform = "PC"
+    platforms = "PC"
     runner_executable = 'zdoom/zdoom'
     game_options = [
         {
