@@ -32,6 +32,7 @@ def load_platforms():
 def get_active(sort=True):
     """Return a list of platforms with games (strings)."""
     active_platforms = []
+    stubs = set()
     all_games = pga.get_games(filter_installed=True, select='id')
     for game in all_games:
         # load game info
@@ -42,13 +43,19 @@ def get_active(sort=True):
         # convert to tuple if string
         if isinstance(platform, str):
             platform = (platform,)
-        prefix = ''
 
+        stub = ' / '.join(platform[:-1])
+
+        prefix = ''
         for p in platform:
             p = prefix + p
             prefix = p + ' / '
-            if p not in active_platforms:
-                active_platforms.append(p)
+        if p not in active_platforms:
+            active_platforms.append(p)
+            if stub in stubs and stub not in active_platforms:
+                active_platforms.append(stub)
+            stubs.add(stub)
+
     return sorted(active_platforms) if sort else active_platforms
 
 
