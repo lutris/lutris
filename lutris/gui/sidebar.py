@@ -24,7 +24,7 @@ class SidebarTreeView(Gtk.TreeView):
         self.set_model(self.model_filter)
 
         column = Gtk.TreeViewColumn("Runners")
-        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        # column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
 
         # Runner slug
         text_renderer = Gtk.CellRendererText()
@@ -34,7 +34,7 @@ class SidebarTreeView(Gtk.TreeView):
 
         # Icon
         icon_renderer = Gtk.CellRendererPixbuf()
-        icon_renderer.set_property('stock-size', 16)
+        icon_renderer.set_property('width', 20)
         column.pack_start(icon_renderer, False)
         column.add_attribute(icon_renderer, "pixbuf", ICON)
 
