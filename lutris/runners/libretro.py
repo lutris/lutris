@@ -7,6 +7,8 @@ from lutris import settings
 
 
 def get_cores():
+    # Don't forget to update self.platforms
+    # The order has to be the same!
     return [
         ('4do (3DO)', '4do'),
         ('FCEUmm (Nintendo Entertainment System)', 'fceumm'),
@@ -23,7 +25,7 @@ def get_cores():
         ('Mednafen PSX (Sony Playstation)', 'mednafen_psx'),
         ('Mednafen PSX OpenGL (Sony Playstation)', 'mednafen_psx_hw'),
         ('Mupen64Plus (Nintendo 64)', 'mupen64plus'),
-        ('O2EM (Magnavox Odyssey 2)', 'o2em'),
+        ('O2EM (Magnavox Odyssey²)', 'o2em'),
         ('PCSX Rearmed (Sony Playstation)', 'pcsx_rearmed'),
         ('PicoDrive (Sega Genesis)', 'picodrive'),
         ('PPSSPP (PlayStation Portable)', 'ppsspp'),
@@ -54,7 +56,32 @@ def get_default_info_directory():
 class libretro(Runner):
     human_name = "libretro"
     description = "Multi system emulator"
-    platform = "libretro"
+    platforms = (
+        ('3DO',),
+        ('Nintendo', 'NES'),
+        ('Sinclair', 'ZX Spectrum'),
+        ('Nintendo', 'Game Boy Color'),
+        ('Sega', 'Genesis'),
+        ('Atari', 'Lynx'),
+        ('Atari', 'ST/STE/TT/Falcon'),
+        ('SNK', 'Neo Geo Pocket'),
+        ('NEC', 'PC Engine (TurboGrafx-16)'),
+        ('NEC', 'PC-FX'),
+        ('NEC', 'PC Engine (SuperGrafx)'),
+        ('Bandai', 'WonderSwan'),
+        ('Sony', 'PlayStation'),
+        ('Sony', 'PlayStation'),
+        ('Nintendo', 'N64'),
+        ('Magnavox', 'Odyssey²'),
+        ('Sony', 'PlayStation'),
+        ('Sega', 'Genesis'),
+        ('Sony', 'PlayStation Portable'),
+        ('Sega', 'Dreamcast'),
+        ('Nintendo', 'SNES'),
+        ('Sega', 'Saturn'),
+        ('Nintendo', 'Game Boy Advance'),
+        ('Nintendo', 'Game Boy Advance'),
+    )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
 
@@ -86,6 +113,16 @@ class libretro(Runner):
             'default': get_default_config_path()
         }
     ]
+
+    @property
+    def platform(self):
+        core = self.game_config.get('core')
+        if core:
+            cores = get_cores()
+            for i, c in enumerate(cores):
+                if c[1] == core:
+                    return self.platforms[i]
+        return ('',)
 
     def get_core_path(self, core):
         return os.path.join(settings.RUNNER_DIR,

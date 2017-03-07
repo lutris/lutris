@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class ppsspp(Runner):
     human_name = "PPSSPP"
     description = "Sony PSP emulator"
-    platform = "Sony PSP"
+    platforms = ('Sony', 'PlayStation Portable')
     runner_executable = 'ppsspp/PPSSPPSDL'
     game_options = [
         {

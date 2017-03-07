@@ -9,7 +9,7 @@ from lutris.util import system
 class hatari(Runner):
     human_name = "Hatari"
     description = "Atari ST computers emulator"
-    platform = "Atari ST computers"
+    platforms = ('Atari', 'ST')
     runnable_alone = True
     runner_executable = 'hatari/bin/hatari'
     game_options = [

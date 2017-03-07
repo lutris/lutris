@@ -13,7 +13,7 @@ from lutris.gui.dialogs import NoticeDialog
 class reicast(Runner):
     human_name = "Reicast"
     description = "Sega Dreamcast emulator"
-    platform = "Sega Dreamcast"
+    platforms = ('Sega', 'Dreamcast')
     runner_executable = 'reicast/reicast.elf'
 
     game_options = [{

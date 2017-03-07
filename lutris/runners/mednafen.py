@@ -9,17 +9,30 @@ class mednafen(Runner):
     human_name = "Mednafen"
     description = ("Multi-system emulator including NES, GB(A), PC Engine "
                    "support.")
-    platform = ("Atari Lynx, GameBoy, GameBoy Color, "
-                "GameBoy Advance, NES, PC Engine (TurboGrafx 16), PC-FX, "
-                "SuperGrafx, NeoGeo Pocket, NeoGeo Pocket Color, WonderSwan")
-    runner_executable = 'mednafen/bin/mednafen'
+    # TODO: Add more platforms/machines
+    platforms = (
+        ('Nintendo', 'NES'),
+        ('NEC', 'PC Engine (TurboGrafx-16)'),
+        ('Nintendo', 'Game Boy'),
+        ('Nintendo', 'Game Boy Advance'),
+        ('Sony', 'PlayStation'),
+        # ('Atari', 'Lynx'),
+        # ('Nintendo', 'Game Boy Color'),
+        # ('NEC', 'PC Engine (TurboGrafx-16)'),
+        # ('NEC', 'PC-FX'),
+        # ('NEC', 'PC Engine (SuperGrafx)'),
+        # ('SNK', 'Neo Geo Pocket'),
+        # ('SNK', 'Neo Geo Pocket Color'),
+        # ('Bandai', 'WonderSwan'),
+    )
     machine_choices = (
         ("NES", "nes"),
         ("PC Engine", "pce"),
         ('Game Boy', 'gb'),
         ('Game Boy Advance', 'gba'),
-        ('Playstation', 'psx')
+        ('PlayStation', 'psx'),
     )
+    runner_executable = 'mednafen/bin/mednafen'
     game_options = [
         {
             "option": "main_file",
@@ -81,6 +94,15 @@ class mednafen(Runner):
             "default": "hq4x",
         }
     ]
+
+    @property
+    def platform(self):
+        machine = self.game_config.get('machine')
+        if machine:
+            for i, m in enumerate(self.machine_choices):
+                if m[1] == machine:
+                    return self.platforms[i]
+        return ('',)
 
     def find_joysticks(self):
         """ Detect connected joysticks and return their ids """

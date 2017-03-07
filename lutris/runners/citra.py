@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 
 class citra(Runner):
     human_name = "Citra"
-    platform = 'Nintendo 3DS'
+    platforms = ('Nintendo', '3DS')
     description = 'Nintendo 3DS emulator'
     runner_executable = 'citra/citra-qt'
     game_options = [{

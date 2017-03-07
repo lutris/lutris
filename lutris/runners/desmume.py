@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 
 class desmume(Runner):
     human_name = "DeSmuME"
-    platform = 'Nintendo DS'
+    platforms = ('Nintendo', 'DS')
     description = 'Nintendo DS emulator'
     runner_executable = 'desmume/bin/desmume'
     game_options = [{

@@ -7,7 +7,7 @@ from lutris.runners.runner import Runner
 class mupen64plus(Runner):
     human_name = "Mupen64Plus"
     description = "Nintendo 64 emulator"
-    platform = "Nintendo 64"
+    platforms = ('Nintendo', 'N64')
     runner_executable = 'mupen64plus/mupen64plus'
     game_options = [{
         'option': 'main_file',

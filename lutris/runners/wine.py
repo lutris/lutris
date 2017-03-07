@@ -305,7 +305,7 @@ def support_legacy_version(version):
 class wine(Runner):
     description = "Runs Windows games"
     human_name = "Wine"
-    platform = 'PC/Windows'
+    platforms = ('PC', 'Windows')
     multiple_versions = True
     game_options = [
         {

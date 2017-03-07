@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 class ags(Runner):
     human_name = "Adventure Game Studio"
     description = "Graphics adventure engine"
-    platform = 'PC'
+    platforms = 'PC'
     runner_executable = 'ags/ags.sh'
     game_options = [{
         'option': 'main_file',

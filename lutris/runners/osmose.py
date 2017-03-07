@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class osmose(Runner):
     human_name = "Osmose"
     description = "Sega Master System Emulator"
-    platform = "Sega Master System"
+    platforms = ('Sega', 'Master System')
     runner_executable = 'osmose/osmose'
     game_options = [
         {

@@ -12,7 +12,7 @@ from lutris.util import display, extract, system
 class atari800(Runner):
     description = "Runs Atari 8bit games"
     human_name = "Atari800"
-    platform = "Atari 8bit computers"
+    platforms = ('Atari', '8bit computers')
     runner_executable = 'atari800/bin/atari800'
     bios_url = (
         "http://kent.dl.sourceforge.net/project/atari800/"
