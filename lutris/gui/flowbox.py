@@ -148,6 +148,8 @@ class GameFlowBox(FlowBox):
             if self.filter_runner != game.runner:
                 return False
         if self.filter_platform:
+            if not game.game.runner:
+                return False
             platform = game.game.get_platform(string=False)
             if len(self.filter_platform) > len(platform):
                 return False
