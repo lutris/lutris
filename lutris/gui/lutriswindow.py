@@ -311,7 +311,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             self.icon_type = settings.read_setting('icon_type_gridview')
             default = settings.ICON_TYPE_GRIDVIEW
-        if self.icon_type not in ("banner_small", "banner", "icon"):
+        if self.icon_type not in ("banner_small", "banner", "icon", "icon_small"):
             self.icon_type = default
         return self.icon_type
 
@@ -735,7 +735,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.show_sidebar()
 
     def show_sidebar(self):
-        width = 150 if self.sidebar_visible else 0
+        width = 180 if self.sidebar_visible else 0
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):

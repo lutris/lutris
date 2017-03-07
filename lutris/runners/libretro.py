@@ -54,7 +54,7 @@ def get_default_info_directory():
 
 
 class libretro(Runner):
-    human_name = "libretro"
+    human_name = "Libretro"
     description = "Multi system emulator"
     platforms = (
         ('3DO',),

@@ -12,23 +12,24 @@ The games can be installed anywhere you want on your system, the tool
 does not impose anything.
 
 Lutris relies on various programs referenced as 'runners' to provide a
-vast library of games. These runners (with the exception of Steam,Desura
-and Web browsers) are provided by lutris, you don't need to install them
+vast library of games. These runners (with the exception of Steam
+and Web browsers) are provided by Lutris, you don't need to install them
 with your package manager.
+
 We currently support the following runners:
 
 * Linux (Native games)
 * Steam
-* Desura (Experimental support)
-* Web browser
+* Web
 * Wine
 * Wine + Steam
 * Libretro
-* DosBOX
-* Mame
-* Mess
+* DOSBox
+* MAME
+* MESS
 * ScummVM
 * ResidualVM
+* Adventure Game Studio
 * Mednafen
 * FS-UAE
 * Vice
@@ -36,15 +37,21 @@ We currently support the following runners:
 * Atari800
 * Hatari
 * Virtual Jaguar
+* Snes9x
+* Mupen64Plus
 * Dolphin
-* PPSSPP
+* PCSX-Reloaded
 * PCSX2
+* PPSSPP
 * Osmose
 * Reicast
 * Frotz
-* Jzintv
-* O2em
+* jzIntv
+* O2EM
 * ZDoom
+* Citra
+* DeSmuME
+* DGen
 
 
 Installer scripts
@@ -53,7 +60,7 @@ Installer scripts
 Lutris automates installation of games using configuration files written
 in JSON or YAML, these scripts list various files needed to install a game
 and run a list of actions on them (such as extract, move, execute, …).
-The syntax of installers is described in `docs/installers.rst` (also
+The syntax of installers is described in ``docs/installers.rst`` (also
 available on lutris.net when writing installers).
 
 A web UI is planned to ease the creation of these scripts.
@@ -61,7 +68,8 @@ A web UI is planned to ease the creation of these scripts.
 Game Library
 ============
 
-You can optionally create an account on lutris.net and connect to this
+You can optionally create an account on `lutris.net
+<https://lutris.net>`_ and connect to this
 account on the client. This will allow you to sync your game library from
 the website to the client (not the other way around). If you wish, you can
 sync your Steam library with your Lutris library on the website.
@@ -69,23 +77,23 @@ sync your Steam library with your Lutris library on the website.
 The client does not store your lutris.net credentials on your computer.
 Instead, when you authenticate, the website will send a token which will
 be used to sync your library. This token is stored in
-~/.cache/lutris/auth-token
+``~/.cache/lutris/auth-token``
 
 Configuration files
 ===================
 
 The client, runner and games configuration files are stored in
-~/.config/lutris. There is no need to manually edit these files as
+``~/.config/lutris``. There is no need to manually edit these files as
 everything should be done from the client.
 
-`lutris.conf`: stores preferences for the client's UI
+``lutris.conf``: stores preferences for the client's UI
 
-`system.yml`: stores configuration that will be used for every game
+``system.yml``: stores configuration that will be used for every game
 
-`runners/*.yml`: stores configuration used for any game from a particular
+``runners/*.yml``: stores configuration used for any game from a particular
 runner
 
-`games/*.yml`: stores configuration used for a specific game
+``games/*.yml``: stores configuration used for a specific game
 
 The game configuration can override previously defined runner and system
 configuration and runner configuration can override system configuration.
@@ -94,15 +102,15 @@ Runners and game database
 =========================
 
 The data necessary to manage your library and run the game is stored in
-~/.local/share/lutris .
+``~/.local/share/lutris``
 
-`pga.db`: stores your game library, the installation status, the location
+``pga.db``: stores your game library, the installation status, the location
 on the filesystem plus some additional metadata. This file is a SQLite
 database.
 
-`runners/*`: runners downloaded from lutris.net (emulators and such)
+``runners/*``: runners downloaded from lutris.net (emulators and such)
 
-`icons/*.png` and `banners/*.jpg`: images for the games.
+``icons/*.png`` and ``banners/*.jpg``: images for the games.
 
 Command line options
 ====================
@@ -122,13 +130,13 @@ The following command line arguments are available::
   --list-steam-folders  List all known Steam library folders
   --reinstall           Reinstall game
 
-Additionally, you can pass a `lutris:` protocol link followed by a game
+Additionally, you can pass a ``lutris:`` protocol link followed by a game
 identifier on the command line such as::
 
     lutris lutris:quake
 
 This will install the game if not already installed or launch the game
-otherwise (unless the `--reinstall` flag is passed).
+otherwise (unless the ``--reinstall`` flag is passed).
 
 Planned features
 ================

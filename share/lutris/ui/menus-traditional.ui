@@ -69,6 +69,11 @@
             <attribute name="action">win.icon-type</attribute>
             <attribute name="target">icon</attribute>
           </item>
+          <item>
+            <attribute name="label">Small icon</attribute>
+            <attribute name="action">win.icon-type</attribute>
+            <attribute name="target">icon_small</attribute>
+          </item>
         </submenu>
         <item>
           <attribute name="label">Use _dark theme</attribute>
