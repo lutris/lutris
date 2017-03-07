@@ -8,23 +8,31 @@ from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.widgets import get_runner_icon
 
-SLUG = 0
-ICON = 1
-LABEL = 2
+TYPE = 0
+SLUG = 1
+ICON = 2
+LABEL = 3
 
 
 class SidebarTreeView(Gtk.TreeView):
     def __init__(self):
         super(SidebarTreeView, self).__init__()
         self.installed_runners = []
+        self.active_platforms = []
 
-        self.model = Gtk.TreeStore(str, GdkPixbuf.Pixbuf, str)
+        self.model = Gtk.TreeStore(str, str, GdkPixbuf.Pixbuf, str)
         self.model_filter = self.model.filter_new()
         self.model_filter.set_visible_func(self.filter_rule)
         self.set_model(self.model_filter)
 
-        column = Gtk.TreeViewColumn("Runners")
+        column = Gtk.TreeViewColumn("Filters")
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+
+        # Type
+        type_renderer = Gtk.CellRendererText()
+        type_renderer.set_visible(False)
+        column.pack_start(type_renderer, True)
+        column.add_attribute(type_renderer, "text", TYPE)
 
         # Runner slug
         text_renderer = Gtk.CellRendererText()
@@ -53,7 +61,7 @@ class SidebarTreeView(Gtk.TreeView):
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
         self.runners = sorted(runners.__all__)
-        self.platforms = platforms.get_installed(sort=True)
+        self.platforms = sorted(platforms.__all__)
         self.platform_node = None
         self.load_all_runners()
         self.load_all_platforms()
@@ -62,14 +70,14 @@ class SidebarTreeView(Gtk.TreeView):
 
     def load_all_runners(self):
         """Append runners to the model."""
-        self.runner_node = self.model.append(None, ['runners', None, "All runners"])
+        self.runner_node = self.model.append(None, ['runners', '', None, "All runners"])
         for slug in self.runners:
             self.add_runner(slug)
 
     def add_runner(self, slug):
         name = runners.import_runner(slug).human_name
         icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
-        self.model.append(self.runner_node, [slug, icon, name])
+        self.model.append(self.runner_node, ['runners', slug, icon, name])
 
     def get_selected_filter(self):
         """Return the selected runner's name."""
@@ -79,36 +87,39 @@ class SidebarTreeView(Gtk.TreeView):
         model, iter = selection.get_selected()
         if not iter:
             return
+        type = model.get_value(iter, TYPE)
         slug = model.get_value(iter, SLUG)
-        if slug != 'runners' and slug != 'platforms':
-            return slug
+        return (type, slug)
 
     def load_all_platforms(self):
         """Update platforms in the model."""
-        data = ['platforms', None, "All platforms"]
-        if self.platform_node:
-            # replace old node
-            old_node = self.platform_node
-            self.platform_node = self.model.insert_before(None, old_node, data)
-            self.model.remove(old_node)
-        else:
-            self.platform_node = self.model.append(None, data)
+        data = ['platforms', '', None, "All platforms"]
+
+        self.platform_node = self.model.append(None, data)
 
         for platform in self.platforms:
             self.add_platform(platform)
 
     def add_platform(self, name):
-        self.model.append(self.platform_node, ['platform:' + name, None, name])
+        self.model.append(self.platform_node, [
+            'platforms',
+            name,
+            None,
+            name.replace(' / ', ' ')
+        ])
 
     def filter_rule(self, model, iter, data):
-        if model[iter][0] == 'runners' or model[iter][0] == 'platforms':
+        if not model[iter][0]:
+            return False
+        if (model[iter][0] == 'runners' or model[iter][0] == 'platforms') and model[iter][1] == '':
             return True
-        return model[iter][0] and (model[iter][0] in self.installed_runners or model[iter][0].startswith('platform:'))
+        return (model[iter][0] == 'runners' and model[iter][1] in self.installed_runners) or \
+               (model[iter][0] == 'platforms' and model[iter][1] in self.active_platforms)
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
+        self.active_platforms = [platform for platform in platforms.get_active()]
         self.model_filter.refilter()
-        self.load_all_platforms()
         self.expand_all()
         return True
 
@@ -118,11 +129,11 @@ class SidebarTreeView(Gtk.TreeView):
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:
             view.set_cursor(view.current_path[0])
-            runner_slug = self.get_selected_filter()
-            if runner_slug not in self.runners:
+            type, slug = self.get_selected_filter()
+            if type != 'runners' or not slug or slug not in self.runners:
                 return
             menu = ContextualMenu()
-            menu.popup(event, runner_slug, self.get_toplevel())
+            menu.popup(event, slug, self.get_toplevel())
 
 
 class ContextualMenu(Gtk.Menu):

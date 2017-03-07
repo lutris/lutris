@@ -62,7 +62,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_launch_time = 0
         self.last_selected_game = None
         self.selected_runner = None
-        self.selected_runner = None
+        self.selected_platform = None
 
         # Load settings
         width = int(settings.read_setting('width') or 800)
@@ -739,15 +739,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
-        selected_filter = widget.get_selected_filter()
+        type, slug = widget.get_selected_filter()
         selected_runner = None
         selected_platform = None
-        if not selected_filter:
+        if not slug:
             pass
-        elif selected_filter.startswith('platform:'):
-            selected_platform = selected_filter.split(':', 2)[1]
-        else:
-            selected_runner = selected_filter
+        elif type == 'platforms':
+            selected_platform = slug.split(' / ')
+        elif type == 'runners':
+            selected_runner = slug
         self.set_selected_filter(selected_runner, selected_platform)
 
     def set_selected_filter(self, runner, platform):

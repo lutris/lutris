@@ -74,7 +74,13 @@ class RunnersDialog(Gtk.Window):
     def get_runner_hbox(self, runner_name):
         # Get runner details
         runner = runners.import_runner(runner_name)()
-        platform = runner.platform
+        platform = runner.platforms
+        if (isinstance(platform, tuple) or isinstance(platform, list)) and isinstance(platform[0], tuple):
+            platform = map(lambda p: ' '.join(p), platform)
+            platform = sorted(list(set(platform)))
+            platform = ', '.join(platform)
+        if not isinstance(platform, str):
+            platform = ' '.join(platform)
         description = runner.description
 
         hbox = Gtk.HBox()

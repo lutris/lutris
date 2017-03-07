@@ -23,9 +23,10 @@ from lutris.util.log import logger
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
+    COL_PLATFORM_HUMAN_NAME,
     COL_LASTPLAYED,
     COL_INSTALLED,
-) = list(range(10))
+) = list(range(11))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -55,7 +56,7 @@ class GameStore(GObject.Object):
         self.filter_runner = None
         self.filter_platform = None
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -104,9 +105,12 @@ class GameStore(GObject.Object):
             if not self.filter_runner == runner:
                 return False
         if self.filter_platform:
-            platform = model.get_value(_iter, COL_PLATFORM)
-            if not self.filter_platform == platform:
+            platform = model.get_value(_iter, COL_PLATFORM).split(' / ')
+            if len(self.filter_platform) > len(platform):
                 return False
+            for i, f in enumerate(self.filter_platform):
+                if f != platform[i]:
+                    return False
         return True
 
     def add_game_by_id(self, game_id):
@@ -124,15 +128,14 @@ class GameStore(GObject.Object):
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
         name = game['name'].replace('&', "&amp;")
-        platform = game['platform']
         runner = None
+        platform = ''
         runner_name = game['runner']
         runner_human_name = ''
         if runner_name:
             runner = runners.import_runner(runner_name)
             runner_human_name = runner.human_name
-        if not platform and runner:
-            platform = str(runner.platform or '')
+            platform = Game(game['id']).get_platform()
 
         lastplayed = ''
         if game['lastplayed']:
@@ -147,6 +150,7 @@ class GameStore(GObject.Object):
             runner_name,
             runner_human_name,
             platform,
+            platform.replace(' / ', ' '),
             lastplayed,
             game['installed']
         ))
@@ -321,7 +325,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
-        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
+        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM_HUMAN_NAME)
         width = settings.read_setting('platform_column_width', 'list view')
         column.set_fixed_width(int(width) if width else 120)
         self.append_column(column)
@@ -458,10 +462,10 @@ class ContextualMenu(Gtk.Menu):
             runner_slug = game_row[COL_RUNNER]
             is_installed = game_row[COL_INSTALLED]
         elif game:
-            game_id = game['id']
-            game_slug = game['slug']
-            runner_slug = game['runner']
-            is_installed = game['installed']
+            game_id = game.id
+            game_slug = game.slug
+            runner_slug = game.runner_name
+            is_installed = game.is_installed
 
         # Clear existing menu
         for item in self.get_children():
@@ -472,7 +476,7 @@ class ContextualMenu(Gtk.Menu):
         # Runner specific items
         runner_entries = None
         if runner_slug:
-            game = Game(game_id)
+            game = game or Game(game_id)
             try:
                 runner = import_runner(runner_slug)(game.config)
             except InvalidRunner:
