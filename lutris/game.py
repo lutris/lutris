@@ -63,6 +63,10 @@ class Game(object):
         return value
 
     def get_platform(self, string=True):
+        if not self.runner:
+            logger.warning("%s has no runner", self.__unicode__())
+            return
+
         return self.runner.get_platform(string=string)
 
     def show_error_message(self, message):
