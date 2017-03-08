@@ -25,9 +25,8 @@ class SidebarTreeView(Gtk.TreeView):
         self.model_filter.set_visible_func(self.filter_rule)
         self.set_model(self.model_filter)
 
-
         column = Gtk.TreeViewColumn("Runners")
-        # column.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
 
         # Type
         type_renderer = Gtk.CellRendererText()
