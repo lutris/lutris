@@ -1,3 +1,30 @@
+lutris (0.4.5) yakkety; urgency=medium
+  
+  * Fix Quit menu item
+  * Fall back to an existing Wine version if selected doesn't exist
+  * Remove Desura
+  * Add --exec command line flag
+  * Fix minor issues when switching between grid and list view
+  * Add "View on Lutris.net" to game context menus
+  * Add 64-bit support to Wine Steam runner
+  * Make Lutris remember window maximized state and size
+  * Sidepanel doesn't resize with the window
+  * Make delete key trigger remove game dialog
+  * Auto-import installed (.desktop) games on the system
+  * Scan for games before loading gui
+  * Show runner human name everywhere
+  * Add Steam Big Picture mode option to the Steam runner config
+  * Make year editable in game info dialog
+  * Remove the force-disable of DirectWrite in Wine Steam
+  * Show last played in game list view
+  * Fix Wine dll overrides
+  * Add game command line argument option to Steam/Wine Steam games
+  * Add small icons option
+  * Fix the runner icons in sidebar
+  * Add filter by platform
+
+ -- Daniel J <djazz@djazz.se> Wed, 08 Mar 2017 08:08:09 +0100
+
 lutris (0.4.4.1) yakkety; urgency=medium
 
   * Fix installer command line options
