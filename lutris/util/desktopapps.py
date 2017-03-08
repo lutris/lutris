@@ -15,10 +15,15 @@ from lutris.config import make_game_config_id, LutrisConfig
 IGNORED_GAMES = (
     "lutris", "mame", "dosbox", "playonlinux", "org.gnome.Games", "retroarch",
     "steam", "steam-runtime", "steam-valve", "steam-native", "PlayOnLinux",
-    "fs-uae-arcade", "PCSX2", "ppsspp", "qchdman", "qmc2-sdlmame", "qmc2-arcade"
+    "fs-uae-arcade", "PCSX2", "ppsspp", "qchdman", "qmc2-sdlmame", "qmc2-arcade",
+    "sc-controller", "epsxe"
 )
 IGNORED_EXECUTABLES = (
     "lutris", "steam"
+)
+
+IGNORED_CATEGORIES = (
+    "Emulator", "Development", "Utility"
 )
 
 
@@ -108,8 +113,16 @@ def get_games():
         if 'game' not in categories:
             continue
 
+        # contains a blacklisted category
+        ok = True
+        for c in categories:
+            if c in map(str.lower, IGNORED_CATEGORIES):
+                ok = False
+        if not ok:
+            continue
+
         # game is blacklisted
-        if appid in IGNORED_GAMES:
+        if appid.lower() in map(str.lower, IGNORED_GAMES):
             continue
 
         # executable is blacklisted
