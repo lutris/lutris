@@ -18,6 +18,7 @@ IGNORED_GAMES = (
     "fs-uae-arcade", "PCSX2", "ppsspp", "qchdman", "qmc2-sdlmame", "qmc2-arcade",
     "sc-controller", "epsxe"
 )
+
 IGNORED_EXECUTABLES = (
     "lutris", "steam"
 )
@@ -41,12 +42,19 @@ def mark_as_installed(appid, runner_name, game_info):
         installer_slug=game_info['installer_slug']
     )
 
-    game_config = LutrisConfig(
+    config = LutrisConfig(
         runner_slug=runner_name,
         game_config_id=config_id,
     )
-    game_config.raw_game_config.update({'appid': appid, 'exe': game_info['exe'], 'args': game_info['args']})
-    game_config.save()
+    config.raw_game_config.update({
+        'appid': appid,
+        'exe': game_info['exe'],
+        'args': game_info['args']
+    })
+    config.raw_system_config.update({
+        'disable_runtime': True
+    })
+    config.save()
     return game_id
 
 
@@ -71,8 +79,23 @@ def sync_with_lutris():
     for app in apps:
         game_info = None
         name = app[0]
-        slug = slugify(name)
         appid = app[1]
+        slug = slugify(name)
+
+        # if it fails to get slug from the name
+        if not slug:
+            slug = slugify(appid)
+
+        if not name or not slug or not appid:
+            logger.error("Failed to load desktop game "
+                         "\"" + str(name) + "\" "
+                         "(app: " + str(appid) + ", slug: " + slug + ")")
+            continue
+        else:
+            logger.debug("Found desktop game "
+                         "\"" + str(name) + "\" "
+                         "(app: " + str(appid) + ", slug: " + slug + ")")
+
         seen_slugs.add(slug)
 
         if slug not in slugs_in_lutris:
