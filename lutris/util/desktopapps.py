@@ -18,6 +18,7 @@ IGNORED_GAMES = (
     "fs-uae-arcade", "PCSX2", "ppsspp", "qchdman", "qmc2-sdlmame", "qmc2-arcade",
     "sc-controller", "epsxe"
 )
+
 IGNORED_EXECUTABLES = (
     "lutris", "steam"
 )
@@ -41,12 +42,19 @@ def mark_as_installed(appid, runner_name, game_info):
         installer_slug=game_info['installer_slug']
     )
 
-    game_config = LutrisConfig(
+    config = LutrisConfig(
         runner_slug=runner_name,
         game_config_id=config_id,
     )
-    game_config.raw_game_config.update({'appid': appid, 'exe': game_info['exe'], 'args': game_info['args']})
-    game_config.save()
+    config.raw_game_config.update({
+        'appid': appid,
+        'exe': game_info['exe'],
+        'args': game_info['args']
+    })
+    config.raw_system_config.update({
+        'disable_runtime': True
+    })
+    config.save()
     return game_id
 
 
