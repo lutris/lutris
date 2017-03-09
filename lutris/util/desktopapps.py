@@ -79,16 +79,22 @@ def sync_with_lutris():
     for app in apps:
         game_info = None
         name = app[0]
-        slug = slugify(name)
         appid = app[1]
+        slug = slugify(name)
+
+        # if it fails to get slug from the name
+        if not slug:
+            slug = slugify(appid)
 
         if not name or not slug or not appid:
             logger.error("Failed to load desktop game "
-                         "\"" + str(name) + "\" (" + str(appid) + ".desktop)")
+                         "\"" + str(name) + "\" "
+                         "(app: " + str(appid) + ", slug: " + slug + ")")
             continue
         else:
             logger.debug("Found desktop game "
-                         "\"" + str(name) + "\" (" + str(appid) + ".desktop)")
+                         "\"" + str(name) + "\" "
+                         "(app: " + str(appid) + ", slug: " + slug + ")")
 
         seen_slugs.add(slug)
 
