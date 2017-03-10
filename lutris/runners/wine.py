@@ -601,7 +601,7 @@ class wine(Runner):
         else:
             return os.path.join(WINE_DIR, version, 'bin/wine')
 
-    def get_executable(self, version=None):
+    def get_executable(self, version=None, fallback=True):
         """Return the path to the Wine executable.
         A specific version can be specified if needed.
         """
@@ -614,18 +614,20 @@ class wine(Runner):
         if os.path.exists(wine_path):
             return wine_path
 
-        # Fallback to default version
-        default_version = get_default_version()
-        logger.warning("No wine version %s found, falling back to %s", version, default_version)
-        return self.get_path_for_version(default_version)
+        if fallback:
+            # Fallback to default version
+            default_version = get_default_version()
+            logger.warning("No wine version %s found, falling back to %s",
+                           version, default_version)
+            return self.get_path_for_version(default_version)
 
-    def is_installed(self, version=None):
+    def is_installed(self, version=None, fallback=True):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
         if not version:
             return len(get_wine_versions()) > 0
-        executable = self.get_executable(version)
+        executable = self.get_executable(version, fallback)
         if executable:
             return os.path.exists(executable)
         else:
