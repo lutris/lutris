@@ -197,6 +197,14 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
 
+        sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
+        if sdl_gamecontrollerconfig:
+            path = os.path.expanduser(sdl_gamecontrollerconfig)
+            if os.path.exists(path):
+                with open(path, "r") as f:
+                    sdl_gamecontrollerconfig = f.read()
+            env['SDL_GAMECONTROLLERCONFIG']  = sdl_gamecontrollerconfig
+
         sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or ''
         env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen
 
