@@ -258,14 +258,14 @@ class winesteam(wine.wine):
             dialog.run()
             on_steam_downloaded()
 
-    def is_wine_installed(self, version=None):
-        return super(winesteam, self).is_installed(version=version)
+    def is_wine_installed(self, version=None, fallback=True):
+        return super(winesteam, self).is_installed(version=version, fallback=fallback)
 
-    def is_installed(self, version=None):
+    def is_installed(self, version=None, fallback=True):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        wine_installed = self.is_wine_installed(version)
+        wine_installed = self.is_wine_installed(version, fallback)
         if not wine_installed:
             logger.warning('wine is not installed')
             return False

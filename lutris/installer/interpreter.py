@@ -334,6 +334,8 @@ class ScriptInterpreter(CommandsMixin):
                 version = self._get_runner_version()
                 if version:
                     params['version'] = version
+                    # Force the wine version to be installed
+                    params['fallback'] = False
             if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
         self.install_runners()
