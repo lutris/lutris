@@ -586,7 +586,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         game = Game(game_id)
         view.set_installed(game)
-        self.sidebar_treeview.update()
+        GLib.idle_add(self.sidebar_treeview.update)
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
 
@@ -601,7 +601,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_manually(self, widget, *args):
         def on_game_added(game):
             self.view.set_installed(game)
-            self.sidebar_treeview.update()
+            GLib.idle_add(self.sidebar_treeview.update)
 
         game = Game(self.view.selected_game)
         AddGameDialog(self,
@@ -637,7 +637,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def do_add_game():
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
-            self.sidebar_treeview.update()
+            GLib.idle_add(self.sidebar_treeview.update)
         if async:
             GLib.idle_add(do_add_game)
         else:
@@ -684,7 +684,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.remove_game(game_id)
             self.view.add_game_by_id(game_id)
             self.view.set_selected_game(game_id)
-            self.sidebar_treeview.update()
+            GLib.idle_add(self.sidebar_treeview.update)
 
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)

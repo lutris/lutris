@@ -395,7 +395,6 @@ class GameDialogCommon(object):
             self.game.steamid = self.lutris_config.game_config['appid']
         self.game.save()
         self.destroy()
-        logger.debug("Saved %s", name)
         self.saved = True
         if callback:
             callback()

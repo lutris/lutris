@@ -5,7 +5,6 @@ from lutris import platforms
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.widgets import get_runner_icon
 
 TYPE = 0
