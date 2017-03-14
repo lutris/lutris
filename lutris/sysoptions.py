@@ -187,7 +187,6 @@ system_options = [
         'condition': system.find_executable('pulseaudio'),
         'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
                  'audio quality on some games')
-
     },
     {
         'option': 'use_us_layout',
@@ -214,6 +213,14 @@ system_options = [
         'condition': system.find_executable('xboxdrv'),
         'help': ("Command line options for xboxdrv, a driver for XBOX 360"
                  "controllers. Requires the xboxdrv package installed.")
+    },
+    {
+        'option': 'sdl_gamecontrollerconfig',
+        'type': 'string',
+        'label': 'SDL2 gamepad mapping',
+        'advanced': True,
+        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom"
+                 "gamecontrollerdb.txt file containing mappings.")
     },
     {
         'option': 'xephyr',
