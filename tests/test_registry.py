@@ -98,3 +98,15 @@ class TestWineRegistryKey(TestCase):
         self.assertEqual(key.name, 'Control Panel/Desktop')
         self.assertEqual(key.raw_name, '[Control Panel\\\\Desktop]')
         self.assertRegexpMatches(key.raw_timestamp, r'\d+\s\d+')
+
+    def test_parse_registry_key(self):
+        key = WineRegistryKey(path='Control Panel/Desktop')
+        key.parse('"C:\\\\users\\\\strider\\\\My Music\\\\iTunes\\\\iTunes Music\\\\Podcasts\\\\"=dword:00000001')
+        self.assertEqual(key.subkeys["C:\\\\users\\\\strider\\\\My Music\\\\iTunes\\\\iTunes Music\\\\Podcasts\\\\"],
+                         'dword:00000001')
+
+        key.parse('"A"=val')
+        self.assertEqual(key.subkeys["A"], 'val')
+
+        key.parse('"String with \\"quotes\\""=val')
+        self.assertEqual(key.subkeys['String with \\"quotes\\"'], 'val')
