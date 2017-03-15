@@ -410,11 +410,12 @@ class winesteam(wine.wine):
 
     def shutdown(self):
         """Shutdown Steam in a clean way."""
-        wineserver = self.get_executable() + 'server'
-        subprocess.Popen([wineserver, '-k'], env=self.get_env())
+        logger.debug("Stopping all winesteam processes")
+        super(winesteam, self).stop()
 
     def stop(self):
         if self.runner_config.get('quit_steam_on_exit'):
+            logger.debug("Game configured to stop Steam on exit")
             self.shutdown()
 
     def remove_game_data(self, appid=None, **kwargs):

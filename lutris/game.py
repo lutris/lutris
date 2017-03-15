@@ -387,7 +387,8 @@ class Game(object):
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
-        self.state = self.STATE_STOPPED
+        if self.state != self.STATE_STOPPED:
+            self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
@@ -405,12 +406,6 @@ class Game(object):
         if self.runner.system_config.get('restore_gamma'):
             display.restore_gamma()
 
-        if self.runner.system_config.get('xboxdrv') \
-           and self.xboxdrv_thread.is_running:
-            self.xboxdrv_thread.stop()
-
-        if self.game_thread:
-            self.game_thread.stop()
         self.process_return_codes()
 
         if self.exit_main_loop:
