@@ -63,7 +63,9 @@ class GameItem(Gtk.VBox):
         self.label.set_property('wrap', True)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_halign(Gtk.Align.CENTER)
-        return self.label
+        eventbox = Gtk.EventBox()
+        eventbox.add(self.label)
+        return eventbox
 
     def set_label_text(self, text):
         self.label.set_text(text)
