@@ -416,11 +416,6 @@ class winesteam(wine.wine):
     def stop(self):
         if self.runner_config.get('quit_steam_on_exit'):
             self.shutdown()
-            for x in range(1, 10):
-                time.sleep(1)
-                if is_running():
-                    break
-            super(winesteam, self).stop()
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
