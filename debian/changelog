@@ -1,3 +1,14 @@
+lutris (0.4.6) yakkety; urgency=medium
+
+  * Various UI fixes
+  * Add option for SDL2 controller mappings
+  * Fix Wine install in game installers
+  * Disable Lutris Runtime in XDG imported games
+  * Fix Wine Registry parsing for keys ending in a backslash
+  * Prevent games from stopping twice
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 15 Mar 2017 16:07:39 -0700
+
 lutris (0.4.5) yakkety; urgency=medium
 
   * Fix Quit menu item
@@ -23,7 +34,7 @@ lutris (0.4.5) yakkety; urgency=medium
   * Fix the runner icons in sidebar
   * Add filter by platform
 
- -- Mathieu Comandon <strycore@gmail.com> Wed, 08 Mar 2017 08:08:09 +0100
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 08 Mar 2017 08:08:09 +0100
 
 lutris (0.4.4.1) yakkety; urgency=medium
 
