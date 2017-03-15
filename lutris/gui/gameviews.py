@@ -55,6 +55,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
+        self.runner_names = {}
 
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
@@ -137,8 +138,12 @@ class GameStore(GObject.Object):
             game_inst = Game(game['id'])
             if not game_inst.is_installed:
                 return
-            runner = runners.import_runner(runner_name)
-            runner_human_name = runner.human_name
+            if runner_name in self.runner_names:
+                runner_human_name = self.runner_names[runner_name]
+            else:
+                runner = runners.import_runner(runner_name)
+                runner_human_name = runner.human_name
+                self.runner_names[runner_name] = runner_human_name
             platform = game_inst.get_platform()
             if platform:
                 platform_name = platform.replace(' / ', ' ')

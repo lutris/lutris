@@ -73,9 +73,9 @@ class mess(Runner):
     def platform(self):
         machine = self.game_config.get('machine')
         if machine:
-            for i, m in enumerate(self.machine_choices):
-                if m[1] == machine:
-                    return self.platforms[i]
+            for index, machine_choice in enumerate(self.machine_choices):
+                if machine_choice[1] == machine:
+                    return self.platforms[index]
         return ('',)
 
     @property
