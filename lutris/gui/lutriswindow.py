@@ -638,6 +638,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
             GLib.idle_add(self.sidebar_treeview.update)
+            return False
+
         if async:
             GLib.idle_add(do_add_game)
         else:
@@ -659,7 +661,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_id, is_installed=False)
-        self.sidebar_treeview.update()
+        GLib.idle_add(self.sidebar_treeview.update())
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)

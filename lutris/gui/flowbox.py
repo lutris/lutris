@@ -209,6 +209,7 @@ class GameFlowBox(FlowBox):
             if game['id'] == game_id:
                 child = self.get_child(game['item'])
                 self.remove(child)
+                child.destroy()
                 self.game_list.pop(index)
                 return
 
