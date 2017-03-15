@@ -41,11 +41,11 @@ class GameItem(Gtk.VBox):
         # so it needs to be wrapped in an EventBox
         eventbox = Gtk.EventBox()
         self.image = Gtk.Image()
-        self.set_image_pixpuf()
+        self.set_image_pixbuf()
         eventbox.add(self.image)
         return eventbox
 
-    def set_image_pixpuf(self):
+    def set_image_pixbuf(self):
         pixbuf = get_pixbuf_for_game(self.slug,
                                      self.icon_type,
                                      self.installed)
@@ -63,7 +63,9 @@ class GameItem(Gtk.VBox):
         self.label.set_property('wrap', True)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_halign(Gtk.Align.CENTER)
-        return self.label
+        eventbox = Gtk.EventBox()
+        eventbox.add(self.label)
+        return eventbox
 
     def set_label_text(self, text):
         self.label.set_text(text)
@@ -237,7 +239,7 @@ class GameFlowBox(FlowBox):
                     logger.error("Couldn't get item for game %s", game)
                     return
                 item.installed = is_installed
-                item.set_image_pixpuf()
+                item.set_image_pixbuf()
 
     def set_selected_game(self, game_id):
         for game in self.game_list:

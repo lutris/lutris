@@ -255,10 +255,10 @@ class GameView(object):
         if row:
             game_slug = row[COL_SLUG]
             # get_pixbuf_for_game.cache_clear()
-            game_pixpuf = get_pixbuf_for_game(game_slug,
+            game_pixbuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)
-            row[COL_ICON] = game_pixpuf
+            row[COL_ICON] = game_pixbuf
             row[COL_INSTALLED] = is_installed
             if type(self) is GameGridView:
                 GLib.idle_add(self.queue_draw)
