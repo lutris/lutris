@@ -120,7 +120,8 @@ class SidebarTreeView(Gtk.TreeView):
         self.active_platforms = [platform for platform in platforms.get_active()]
         self.model_filter.refilter()
         self.expand_all()
-        return True
+        # Return False here because this method is called with GLib.idle_add
+        return False
 
     def popup_contextual_menu(self, view, event):
         if event.button != 3:
