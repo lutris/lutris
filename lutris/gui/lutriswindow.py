@@ -661,7 +661,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_id, is_installed=False)
-        GLib.idle_add(self.sidebar_treeview.update())
+        GLib.idle_add(self.sidebar_treeview.update)
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)

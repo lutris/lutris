@@ -1,5 +1,4 @@
 from lutris import pga
-from lutris.runners import import_runner
 from lutris.util.log import logger
 from gi.repository import Gtk, Gdk, GObject, GLib
 from lutris.gui.widgets import get_pixbuf_for_game
@@ -217,6 +216,7 @@ class GameFlowBox(FlowBox):
         for index, _game in enumerate(self.game_list):
             if game.id == _game['id']:
                 _game['runner'] = game.runner_name
+                _game['item'].game.is_installed = True
                 _game['installed'] = True
                 self.update_image(_game['id'], True)
 
@@ -225,6 +225,7 @@ class GameFlowBox(FlowBox):
             if game.id == _game['id']:
                 _game['runner'] = ''
                 _game['installed'] = False
+                _game['item'].game.is_installed = False
                 self.update_image(_game['id'], False)
 
     def update_row(self, game):
