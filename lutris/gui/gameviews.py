@@ -134,9 +134,12 @@ class GameStore(GObject.Object):
         runner_name = game['runner']
         runner_human_name = ''
         if runner_name:
+            game_inst = Game(game['id'])
+            if not game_inst.is_installed:
+                return
             runner = runners.import_runner(runner_name)
             runner_human_name = runner.human_name
-            platform = Game(game['id']).get_platform()
+            platform = game_inst.get_platform()
             if platform:
                 platform_name = platform.replace(' / ', ' ')
 
