@@ -120,9 +120,19 @@ class zdoom(Runner):
             command.append(wad)
 
         # Append the pwad files to load, if provided.
-        pwads = self.game_config.get('files') or []
-        for pwad in pwads:
+        files = self.game_config.get('files') or []
+        pwads = [f for f in files if f.lower().endswith('.wad') or f.lower().endswith('.pk3')]
+        deh = [f for f in files if f.lower().endswith('.deh')]
+        bex = [f for f in files if f.lower().endswith('.bex')]
+        if deh:
+            command.append('-deh')
+            command.append(deh[0])
+        if bex:
+            command.append('-bex')
+            command.append(bex[0])
+        if pwads:
             command.append("-file")
-            command.append(pwad)
+            for pwad in pwads:
+                command.append(pwad)
 
         return {'command': command}
