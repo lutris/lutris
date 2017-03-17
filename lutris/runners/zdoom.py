@@ -1,3 +1,4 @@
+import os
 from lutris.util import display
 from lutris.runners.runner import Runner
 
@@ -68,6 +69,17 @@ class zdoom(Runner):
     def working_dir(self):
         # Run in the installed game's directory.
         return self.game_path
+
+    def get_executable(self):
+        executable = super(zdoom, self).get_executable()
+        executable_dir = os.path.dirname(executable)
+        if not os.path.exists(executable_dir):
+            return executable
+        if not os.path.exists(executable):
+            gzdoom_executable = os.path.join(executable_dir, 'gzdoom')
+            if os.path.exists(gzdoom_executable):
+                return gzdoom_executable
+        return executable
 
     def play(self):
         command = [self.get_executable()]
