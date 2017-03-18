@@ -127,7 +127,14 @@ class dosbox(Runner):
 
     @property
     def main_file(self):
-        return self.game_config.get('main_file') or ''
+        main_file = self.game_config.get('main_file')
+        if not main_file:
+            return ''
+        if os.path.isabs(main_file):
+            return main_file
+        game_directory = self.game_data.get('directory')
+        if game_directory:
+            return os.path.join(game_directory, main_file)
 
     @property
     def working_dir(self):
