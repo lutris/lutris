@@ -49,7 +49,11 @@ def fetch_icons(game_slugs, callback=None):
             logger.error("No page found in %s", response['next'])
             break
         response = api.get_games(game_slugs=missing_media_slugs, page=page)
-        results += response.get('results', [])
+        if not response:
+            logger.warning("Unable to get response for page %s", page)
+            break
+        else:
+            results += response.get('results', [])
 
     banner_downloads = []
     icon_downloads = []
