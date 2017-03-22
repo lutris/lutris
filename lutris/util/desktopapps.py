@@ -124,6 +124,11 @@ def get_games():
     for app in apps:
         if app.get_nodisplay() or app.get_is_hidden():
             continue
+
+        # Check app has an executable
+        if not app.get_executable():
+            continue
+
         appid = os.path.splitext(app.get_id())[0]
         exe = None
         args = []
@@ -138,8 +143,8 @@ def get_games():
 
         # contains a blacklisted category
         ok = True
-        for c in categories:
-            if c in map(str.lower, IGNORED_CATEGORIES):
+        for category in categories:
+            if category in map(str.lower, IGNORED_CATEGORIES):
                 ok = False
         if not ok:
             continue
