@@ -745,7 +745,7 @@ class wine(Runner):
         if not exe.startswith('/'):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)
-        if self.wine_arch == 'win64':
+        if self.wine_arch == 'win64' and os.path.basename(exe) == 'wine':
             wine64 = exe + '64'
             pids_64 = system.get_pids_using_file(wine64)
             pids = pids | pids_64
