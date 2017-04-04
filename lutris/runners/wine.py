@@ -715,7 +715,7 @@ class wine(Runner):
             env = os.environ.copy()
         else:
             env = {}
-        env['WINEDEBUG'] = self.runner_config['show_debug']
+        env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
         if self.prefix_path:
