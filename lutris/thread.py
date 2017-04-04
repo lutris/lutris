@@ -35,7 +35,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd=None):
+                 watch=True, cwd=None, include_processes=[]):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -56,6 +56,7 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
+        self.include_processes = include_processes
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -226,7 +227,7 @@ class LutrisThread(threading.Thread):
             if child.pid in self.old_pids:
                 logger.debug("Excluding %s (not opened by thread)" % child.name)
                 continue
-            if child.name in EXCLUDED_PROCESSES:
+            if child.name in EXCLUDED_PROCESSES and child.name not in self.include_processes:
                 logger.debug("Excluding %s from process monitor" % child.name)
                 continue
             num_watched_children += 1

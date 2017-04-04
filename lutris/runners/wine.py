@@ -97,8 +97,27 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_wine='', blocking=False, config=None):
-    """Execute a Wine command."""
+             working_dir=None, winetricks_wine='', blocking=False,
+             config=None, include_processes=[]):
+    """
+    Execute a Wine command.
+
+    Args:
+        executable (str): wine program to run, pass None to run wine itself
+        args (str): program arguments
+        wine_path (str): path to the wine version to use
+        prefix (str): path to the wine prefix to use
+        arch (str): wine architecture of the prefix
+        working_dir (str): path to the working dir for the process
+        winetricks_wine (str): path to the wine version used by winetricks
+        blocking (bool): if true, do not run the process in a thread
+        config (LutrisConfig): LutrisConfig object for the process context
+        watch (list): list of process names to monitor (even when in a ignore list)
+
+    Returns:
+        Process results if the process is running in blocking mode or
+        LutrisThread instance otherwise.
+    """
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
     if arch not in ('win32', 'win64'):
@@ -140,7 +159,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
-        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir)
+        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir, include_processes=include_processes)
         thread.start()
         return thread
 
@@ -171,7 +190,8 @@ def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True, config=Non
     logger.debug("winecfg: %s", winecfg_path)
 
     return wineexec(None, prefix=prefix, winetricks_wine=winecfg_path,
-                    wine_path=winecfg_path, arch=arch, config=config)
+                    wine_path=winecfg_path, arch=arch, config=config,
+                    include_processes=['winecfg.exe'])
 
 
 def joycpl(wine_path=None, prefix=None, config=None):
