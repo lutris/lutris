@@ -86,7 +86,7 @@ class SidebarTreeView(Gtk.TreeView):
             self.add_platform(platform)
 
     def add_platform(self, name):
-        self.model.append(self.platform_node, ['platforms', name, None, name ])
+        self.model.append(self.platform_node, ['platforms', name, None, name])
 
     def get_selected_filter(self):
         """Return the selected runner's name."""

@@ -159,7 +159,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
-        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir, include_processes=include_processes)
+        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir,
+                              include_processes=include_processes)
         thread.start()
         return thread
 

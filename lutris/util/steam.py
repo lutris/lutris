@@ -327,8 +327,9 @@ class SteamWatcher:
         path = _file.get_path()
         if not path.endswith('.acf'):
             return
-        logger.debug('Detected file change ({}) to {}'.format(Gio.FileMonitorEvent(event_type).value_name,
-                                                              path))
+        logger.debug('Detected file change ({}) to {}'.format(
+            Gio.FileMonitorEvent(event_type).value_name, path)
+        )
         self.callback(event_type, path)
 
 
