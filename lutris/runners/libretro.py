@@ -30,7 +30,7 @@ def get_core_choices():
         ('mGBA (Game Boy Advance)', 'mgba'),
         ('Mupen64Plus (Nintendo 64)', 'mupen64plus'),
         ('Nestopia (Nintendo Entertainment System)', 'nestopia'),
-        ('O2EM (Magnavox Odyssey 2)', 'o2em'),
+        ('O2EM (Magnavox Odyssey²)', 'o2em'),
         ('PCSX Rearmed (Sony Playstation)', 'pcsx_rearmed'),
         ('PicoDrive (Sega Genesis)', 'picodrive'),
         ('PPSSPP (PlayStation Portable)', 'ppsspp'),
