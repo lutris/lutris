@@ -83,6 +83,15 @@ class vice(Runner):
         }
     ]
 
+    @property
+    def platform(self):
+        machine = self.game_config.get('machine')
+        if machine:
+            for index, choice in enumerate(self.machine_choices):
+                if choice[1] == machine:
+                    return self.platforms[index]
+        return ''
+
     def get_executable(self, machine=None):
         if not machine:
             machine = "c64"
