@@ -129,9 +129,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
             working_dir = os.path.dirname(executable)
 
     if executable.endswith(".msi"):
-        executable = 'msiexec /i "%s"' % executable
-    elif executable:
-        executable = '%s' % executable
+        args = '/i "%s"' % executable
+        executable = 'msiexec'
 
     # Create prefix if necessary
     if not detected_arch:
