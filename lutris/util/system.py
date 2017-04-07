@@ -70,7 +70,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
             stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.decode().strip()
+    return stdout.decode(errors='replace').strip()
 
 
 def get_md5_hash(filename):
