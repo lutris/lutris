@@ -189,7 +189,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'use-dark-theme': Action(self.on_dark_theme_state_change, type='b',
                                      default=self.use_dark_theme),
             'show-side-bar': Action(self.on_sidebar_state_change, type='b',
-                                    default=self.sidebar_visible),
+                                    default=self.sidebar_visible, accel='F9'),
         }
 
         self.actions = {}
