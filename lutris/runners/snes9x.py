@@ -12,7 +12,7 @@ SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 class snes9x(Runner):
     description = "Super Nintendo emulator"
     human_name = "Snes9x"
-    platforms = ('Nintendo', 'SNES')
+    platforms = ['Nintendo SNES']
     runnable_alone = True
     runner_executable = "snes9x/bin/snes9x-gtk"
     game_options = [

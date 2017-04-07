@@ -7,10 +7,10 @@ class o2em(Runner):
     human_name = "O2EM"
     description = "Magnavox Osyssey² Emulator"
     platforms = (
-        ('Magnavox', 'Odyssey²'),
-        ('Phillips', 'C52'),
-        ('Phillips', 'Videopac+'),
-        ('Brandt', 'Jopac'),
+        'Magnavox Odyssey²',
+        'Phillips C52',
+        'Phillips Videopac+',
+        'Brandt Jopac',
     )
     bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = 'o2em/o2em'
@@ -86,7 +86,7 @@ class o2em(Runner):
             for i, b in enumerate(self.bios_choices):
                 if b[1] == bios:
                     return self.platforms[i]
-        return ('',)
+        return ''
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):

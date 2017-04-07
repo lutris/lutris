@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class pcsx2(Runner):
     human_name = "PCSX2"
     description = "PlayStation 2 emulator"
-    platforms = ('Sony', 'PlayStation 2')
+    platforms = ['Sony PlayStation 2']
     runner_executable = 'pcsx2/PCSX2'
     game_options = [
         {

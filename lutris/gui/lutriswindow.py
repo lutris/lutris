@@ -586,7 +586,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         game = Game(game_id)
         view.set_installed(game)
-        GLib.idle_add(self.sidebar_treeview.update)
+        self.sidebar_treeview.update()
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
 
@@ -601,7 +601,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_manually(self, widget, *args):
         def on_game_added(game):
             self.view.set_installed(game)
-            GLib.idle_add(self.sidebar_treeview.update)
+            self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
         AddGameDialog(self,
@@ -637,7 +637,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def do_add_game():
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
-            GLib.idle_add(self.sidebar_treeview.update)
+            self.sidebar_treeview.update()
             return False
 
         if async:
@@ -661,7 +661,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_id, is_installed=False)
-        GLib.idle_add(self.sidebar_treeview.update)
+        self.sidebar_treeview.update()
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
@@ -747,7 +747,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not slug:
             pass
         elif type == 'platforms':
-            selected_platform = slug.split(' / ')
+            selected_platform = slug
         elif type == 'runners':
             selected_runner = slug
         self.set_selected_filter(selected_runner, selected_platform)

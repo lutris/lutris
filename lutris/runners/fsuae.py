@@ -5,17 +5,17 @@ from lutris.util.display import get_current_resolution
 class fsuae(Runner):
     human_name = "FS-UAE"
     description = "Amiga emulator"
-    platforms = (
-        ('Amiga', '500'),
-        ('Amiga', '500+'),
-        ('Amiga', '600'),
-        ('Amiga', '1000'),
-        ('Amiga', '1200'),
-        ('Amiga', '1200'),
-        ('Amiga', '4000'),
-        ('Amiga', 'CD32'),
-        ('Commodore', 'CDTV'),
-    )
+    platforms = [
+        'Amiga 500',
+        'Amiga 500+',
+        'Amiga 600',
+        'Amiga 1000',
+        'Amiga 1200',
+        'Amiga 1200',
+        'Amiga 4000',
+        'Amiga CD32',
+        'Commodore CDTV',
+    ]
     model_choices = [
         ("Amiga 500", 'A500'),
         ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
@@ -93,10 +93,10 @@ class fsuae(Runner):
     def platform(self):
         model = self.runner_config.get('model')
         if model:
-            for i, m in enumerate(self.model_choices):
-                if m[1] == model:
-                    return self.platforms[i]
-        return ('',)
+            for index, machine in enumerate(self.model_choices):
+                if machine[1] == model:
+                    return self.platforms[index]
+        return ''
 
     def insert_floppies(self):
         disks = []

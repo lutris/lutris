@@ -6,7 +6,7 @@ from lutris.util.log import logger
 from lutris import settings
 
 
-def get_cores():
+def get_core_choices():
     # Don't forget to update self.platforms
     # The order has to be the same!
     return [
@@ -57,30 +57,30 @@ class libretro(Runner):
     human_name = "Libretro"
     description = "Multi system emulator"
     platforms = (
-        ('3DO',),
-        ('Nintendo', 'NES'),
-        ('Sinclair', 'ZX Spectrum'),
-        ('Nintendo', 'Game Boy Color'),
-        ('Sega', 'Genesis'),
-        ('Atari', 'Lynx'),
-        ('Atari', 'ST/STE/TT/Falcon'),
-        ('SNK', 'Neo Geo Pocket'),
-        ('NEC', 'PC Engine (TurboGrafx-16)'),
-        ('NEC', 'PC-FX'),
-        ('NEC', 'PC Engine (SuperGrafx)'),
-        ('Bandai', 'WonderSwan'),
-        ('Sony', 'PlayStation'),
-        ('Sony', 'PlayStation'),
-        ('Nintendo', 'N64'),
-        ('Magnavox', 'Odyssey²'),
-        ('Sony', 'PlayStation'),
-        ('Sega', 'Genesis'),
-        ('Sony', 'PlayStation Portable'),
-        ('Sega', 'Dreamcast'),
-        ('Nintendo', 'SNES'),
-        ('Sega', 'Saturn'),
-        ('Nintendo', 'Game Boy Advance'),
-        ('Nintendo', 'Game Boy Advance'),
+        '3DO',
+        'Nintendo NES',
+        'Sinclair ZX Spectrum',
+        'Nintendo Game Boy Color',
+        'Sega Genesis',
+        'Atari Lynx',
+        'Atari ST/STE/TT/Falcon',
+        'SNK Neo Geo Pocket',
+        'NEC PC Engine (TurboGrafx-16',
+        'NEC PC-FX',
+        'NEC PC Engine (SuperGrafx',
+        'Bandai WonderSwan',
+        'Sony PlayStation',
+        'Sony PlayStation',
+        'Nintendo N64',
+        'Magnavox Odyssey²',
+        'Sony PlayStation',
+        'Sega Genesis',
+        'Sony PlayStation Portable',
+        'Sega Dreamcast',
+        'Nintendo SNES',
+        'Sega Saturn',
+        'Nintendo Game Boy Advance',
+        'Nintendo Game Boy Advance',
     )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
@@ -95,7 +95,7 @@ class libretro(Runner):
             'option': 'core',
             'type': 'choice',
             'label': 'Core',
-            'choices': get_cores(),
+            'choices': get_core_choices(),
         }
     ]
 
@@ -116,13 +116,12 @@ class libretro(Runner):
 
     @property
     def platform(self):
-        core = self.game_config.get('core')
-        if core:
-            cores = get_cores()
-            for i, c in enumerate(cores):
-                if c[1] == core:
-                    return self.platforms[i]
-        return ('',)
+        game_core = self.game_config.get('core')
+        if game_core:
+            for index, core in enumerate(get_core_choices()):
+                if core[1] == game_core:
+                    return self.platforms[index]
+        return ''
 
     def get_core_path(self, core):
         return os.path.join(settings.RUNNER_DIR,

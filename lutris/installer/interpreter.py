@@ -8,7 +8,9 @@ import platform
 
 from gi.repository import GLib
 
-from lutris import pga, settings
+from lutris import pga
+from lutris import settings
+from lutris.game import Game
 from lutris.util import system
 from lutris.util import strings
 from lutris.util.jobs import AsyncCall
@@ -521,6 +523,11 @@ class ScriptInterpreter(CommandsMixin):
             configpath=configpath,
             id=self.game_id
         )
+
+        game = Game(self.game_id)
+        game.set_platform_from_runner()
+        game.save()
+
         logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
 
         # Config update

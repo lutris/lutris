@@ -151,12 +151,8 @@ class GameFlowBox(FlowBox):
         if self.filter_platform:
             if not game.game.runner:
                 return False
-            platform = game.game.get_platform(string=False)
-            if len(self.filter_platform) > len(platform):
+            if self.filter_platform != game.game.platform:
                 return False
-            for i, f in enumerate(self.filter_platform):
-                if f != platform[i]:
-                    return False
         return True
 
     def sort_func(self, child1, child2):

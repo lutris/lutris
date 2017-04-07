@@ -8,7 +8,7 @@ from lutris.runners.runner import Runner
 class frotz(Runner):
     human_name = "Frotz"
     description = "Z-code emulator for text adventure games such as Zork."
-    platforms = "Z-Machine"
+    platforms = ["Z-Machine"]
     runner_executable = 'frotz/frotz'
 
     game_options = [

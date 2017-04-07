@@ -8,14 +8,14 @@ class mess(Runner):
     description = "Multi-system (consoles and computers) emulator"
     # TODO: A lot of platforms/machines are missing
     platforms = (
-        ('Amstrad', 'CPC 464'),
-        ('Amstrad', 'CPC 6128'),
-        ('Amstrad', 'GX4000'),
-        ('Apple', 'II'),
-        ('Apple', 'IIGS'),
-        ('Commodore', '64'),
-        ('Sinclair', 'ZX Spectrum'),
-        ('Sinclair', 'ZX Spectrum 128'),
+        'Amstrad CPC 464',
+        'Amstrad CPC 6128',
+        'Amstrad GX4000',
+        'Apple II',
+        'Apple IIGS',
+        'Commodore 64',
+        'Sinclair ZX Spectrum',
+        'Sinclair ZX Spectrum 128',
     )
     machine_choices = [
         ("Amstrad CPC 464", 'cpc464'),
@@ -76,7 +76,7 @@ class mess(Runner):
             for index, machine_choice in enumerate(self.machine_choices):
                 if machine_choice[1] == machine:
                     return self.platforms[index]
-        return ('',)
+        return ''
 
     @property
     def working_dir(self):

@@ -48,7 +48,7 @@ def makeconfig(path, drives, commands):
 class dosbox(Runner):
     human_name = "DOSBox"
     description = "MS-Dos emulator"
-    platforms = "MS-DOS"
+    platforms = ["MS-DOS"]
     description = "DOS Emulator"
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"

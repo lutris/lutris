@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class stella(Runner):
     description = "Atari 2600 emulator"
     human_name = "Stella"
-    platforms = ('Atari', '2600')
+    platforms = ['Atari 2600']
     runnable_alone = True
     runner_executable = "stella/bin/stella"
     game_options = [

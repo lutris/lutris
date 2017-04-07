@@ -23,10 +23,9 @@ from lutris.util.log import logger
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
-    COL_PLATFORM_HUMAN_NAME,
     COL_LASTPLAYED,
     COL_INSTALLED,
-) = list(range(11))
+) = list(range(10))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -57,7 +56,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.runner_names = {}
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -106,12 +105,9 @@ class GameStore(GObject.Object):
             if not self.filter_runner == runner:
                 return False
         if self.filter_platform:
-            platform = model.get_value(_iter, COL_PLATFORM).split(' / ')
-            if len(self.filter_platform) > len(platform):
+            platform = model.get_value(_iter, COL_PLATFORM)
+            if platform != self.filter_platform:
                 return False
-            for i, f in enumerate(self.filter_platform):
-                if f != platform[i]:
-                    return False
         return True
 
     def add_game_by_id(self, game_id):
@@ -131,7 +127,6 @@ class GameStore(GObject.Object):
         name = game['name'].replace('&', "&amp;")
         runner = None
         platform = ''
-        platform_name = ''
         runner_name = game['runner']
         runner_human_name = ''
         if runner_name:
@@ -144,9 +139,7 @@ class GameStore(GObject.Object):
                 runner = runners.import_runner(runner_name)
                 runner_human_name = runner.human_name
                 self.runner_names[runner_name] = runner_human_name
-            platform = game_inst.get_platform()
-            if platform:
-                platform_name = platform.replace(' / ', ' ')
+            platform = game_inst.platform
 
         lastplayed = ''
         if game['lastplayed']:
@@ -161,7 +154,6 @@ class GameStore(GObject.Object):
             runner_name,
             runner_human_name,
             platform,
-            platform_name,
             lastplayed,
             game['installed']
         ))
@@ -336,7 +328,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
-        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM_HUMAN_NAME)
+        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
         width = settings.read_setting('platform_column_width', 'list view')
         column.set_fixed_width(int(width) if width else 120)
         self.append_column(column)

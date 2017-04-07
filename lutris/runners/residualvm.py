@@ -9,7 +9,7 @@ RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
 
 class residualvm(Runner):
     human_name = "ResidualVM"
-    platforms = "3D point-and-click games"  # TODO
+    platforms = ["Linux"]  # TODO
     description = ("Runs various 3D point-and-click adventure games, "
                    "like Grim Fandango and Escape from Monkey Island.")
     runner_executable = 'residualvm/residualvm'

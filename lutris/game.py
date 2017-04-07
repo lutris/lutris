@@ -40,6 +40,7 @@ class Game(object):
         self.runner_name = game_data.get('runner') or ''
         self.directory = game_data.get('directory') or ''
         self.name = game_data.get('name') or ''
+
         self.is_installed = bool(game_data.get('installed')) or False
         self.platform = game_data.get('platform') or ''
         self.year = game_data.get('year') or ''
@@ -61,13 +62,6 @@ class Game(object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
-
-    def get_platform(self, string=True):
-        if not self.runner:
-            logger.warning("%s has no runner", self.__unicode__())
-            return
-
-        return self.runner.get_platform(string=string)
 
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
@@ -131,6 +125,11 @@ class Game(object):
         self.config.remove()
         shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         return from_library
+
+    def set_platform_from_runner(self):
+        if not self.runner:
+            return
+        self.platform = self.runner.platform
 
     def save(self):
         self.config.save()
@@ -203,7 +202,7 @@ class Game(object):
             if os.path.exists(path):
                 with open(path, "r") as f:
                     sdl_gamecontrollerconfig = f.read()
-            env['SDL_GAMECONTROLLERCONFIG']  = sdl_gamecontrollerconfig
+            env['SDL_GAMECONTROLLERCONFIG'] = sdl_gamecontrollerconfig
 
         sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or ''
         env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen

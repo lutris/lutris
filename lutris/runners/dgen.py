@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 class dgen(Runner):
     human_name = "DGen"
     description = "Sega Genesis emulator"
-    platforms = ('Sega', 'Genesis')
+    platforms = ['Sega Genesis']
     runner_executable = 'dgen/bin/dgen'
     game_options = [{
         'option': 'main_file',

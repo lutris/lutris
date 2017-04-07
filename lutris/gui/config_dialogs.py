@@ -8,7 +8,6 @@ from lutris import gui
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets import VBox, Dialog
-from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util import datapath
 from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
@@ -393,6 +392,7 @@ class GameDialogCommon(object):
         self.game.is_installed = True
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
+        self.game.set_platform_from_runner()
         self.game.save()
         self.destroy()
         self.saved = True

@@ -3,11 +3,11 @@ VERSION=`grep "VERSION" lutris/settings.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
-	nosetests --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+	nosetests3 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
 
 test:
 	rm tests/fixtures/pga.db -f
-	nosetests
+	nosetests3
 
 deb-source: clean
 	gbp buildpackage -S

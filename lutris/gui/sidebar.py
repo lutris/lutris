@@ -2,6 +2,7 @@ from gi.repository import Gtk, GdkPixbuf, GObject
 
 from lutris import runners
 from lutris import platforms
+from lutris import pga
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -62,12 +63,12 @@ class SidebarTreeView(Gtk.TreeView):
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
         self.platform_node = None
-        self.load_all_runners()
-        self.load_all_platforms()
+        self.load_runners()
+        self.load_platforms()
         self.update()
         self.expand_all()
 
-    def load_all_runners(self):
+    def load_runners(self):
         """Append runners to the model."""
         self.runner_node = self.model.append(None, ['runners', '', None, "All runners"])
         for slug in self.runners:
@@ -77,6 +78,15 @@ class SidebarTreeView(Gtk.TreeView):
         name = runners.import_runner(slug).human_name
         icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
         self.model.append(self.runner_node, ['runners', slug, icon, name])
+
+    def load_platforms(self):
+        """Update platforms in the model."""
+        self.platform_node = self.model.append(None, ['platforms', '', None, "All platforms"])
+        for platform in self.platforms:
+            self.add_platform(platform)
+
+    def add_platform(self, name):
+        self.model.append(self.platform_node, ['platforms', name, None, name ])
 
     def get_selected_filter(self):
         """Return the selected runner's name."""
@@ -90,23 +100,6 @@ class SidebarTreeView(Gtk.TreeView):
         slug = model.get_value(iter, SLUG)
         return (type, slug)
 
-    def load_all_platforms(self):
-        """Update platforms in the model."""
-        data = ['platforms', '', None, "All platforms"]
-
-        self.platform_node = self.model.append(None, data)
-
-        for platform in self.platforms:
-            self.add_platform(platform)
-
-    def add_platform(self, name):
-        self.model.append(self.platform_node, [
-            'platforms',
-            name,
-            None,
-            name.replace(' / ', ' ')
-        ])
-
     def filter_rule(self, model, iter, data):
         if not model[iter][0]:
             return False
@@ -117,7 +110,7 @@ class SidebarTreeView(Gtk.TreeView):
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
-        self.active_platforms = [platform for platform in platforms.get_active()]
+        self.active_platforms = pga.get_used_platforms()
         self.model_filter.refilter()
         self.expand_all()
         # Return False here because this method is called with GLib.idle_add
