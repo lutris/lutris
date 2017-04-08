@@ -30,7 +30,7 @@ def get_arch():
         return 'armv7'
 
 
-class Runner(object):
+class Runner:
     """Generic runner (base class for other runners)."""
     multiple_versions = False
     platforms = []
@@ -123,8 +123,7 @@ class Runner(object):
         """Return the working directory to use when running the game."""
         return os.path.expanduser("~/")
 
-    @property
-    def platform(self):
+    def get_platform(self):
         return self.platforms[0]
 
     def get_runner_options(self):

@@ -245,7 +245,7 @@ class GameDialogCommon(object):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             try:
-                self.game.runner = runners.import_runner(self.runner_name)
+                self.game.runner = runners.import_runner(self.runner_name)()
             except runners.InvalidRunner:
                 pass
             self.game_box = GameBox(self.lutris_config, self.game)

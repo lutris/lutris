@@ -89,8 +89,7 @@ class fsuae(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         model = self.runner_config.get('model')
         if model:
             for index, machine in enumerate(self.model_choices):

@@ -79,8 +79,7 @@ class o2em(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         bios = self.runner_config.get('bios')
         if bios:
             for i, b in enumerate(self.bios_choices):

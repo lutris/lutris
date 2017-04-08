@@ -124,8 +124,7 @@ class libretro(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         game_core = self.game_config.get('core')
         if game_core:
             for index, core in enumerate(get_core_choices()):

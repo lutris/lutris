@@ -37,8 +37,7 @@ class dolphin(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         selected_platform = self.game_config.get('platform')
         if selected_platform:
             return self.platforms[int(selected_platform)]

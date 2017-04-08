@@ -69,8 +69,7 @@ class mess(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         machine = self.game_config.get('machine')
         if machine:
             for index, machine_choice in enumerate(self.machine_choices):

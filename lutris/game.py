@@ -129,7 +129,7 @@ class Game(object):
     def set_platform_from_runner(self):
         if not self.runner:
             return
-        self.platform = self.runner.platform
+        self.platform = self.runner.get_platform()
 
     def save(self):
         self.config.save()
