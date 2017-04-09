@@ -1,3 +1,14 @@
+lutris (0.4.7) yakkety; urgency=medium
+
+  * Add support for more libretro cores
+  * Revert main view to IconView instead of Flowbox, improving performance
+  * Persist game platforms to the database, improving performance
+  * Fix argument parsing for msi installers
+  * Use gzdoom instead of zdoom
+  * Misc bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 13:40:50 -0700
+
 lutris (0.4.6) yakkety; urgency=medium
 
   * Various UI fixes

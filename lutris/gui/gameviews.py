@@ -391,7 +391,6 @@ class GameListView(Gtk.TreeView, GameView):
 
 
 class GameGridView(Gtk.IconView, GameView):
-    """DEPRECATED: Remove in Lutris 0.4.1"""
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, store):
