@@ -180,7 +180,7 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=
                     wine_path=winetricks_path, arch=arch, args=args, config=config)
 
 
-def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True, config=None):
+def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -671,7 +671,7 @@ class wine(Runner):
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                arch=self.wine_arch, blocking=False, config=self)
+                arch=self.wine_arch, config=self)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
