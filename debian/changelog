@@ -1,3 +1,9 @@
+lutris (0.4.7.1) yakkety; urgency=medium
+
+  * Fix a bug with the platforms accessing the database before it's created
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 16:38:39 -0700
+
 lutris (0.4.7) yakkety; urgency=medium
 
   * Add support for more libretro cores
