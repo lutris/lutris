@@ -27,7 +27,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import pga
-from lutris.config import check_config  # , register_handler
+from lutris.config import check_config
+from lutris.platforms import update_platforms
 from lutris.game import Game
 from lutris.gui.installgamedialog import InstallerDialog
 from lutris.gui.dialogs import ErrorDialog
@@ -44,8 +45,13 @@ from .lutriswindow import LutrisWindow
 
 class Application(Gtk.Application):
     def __init__(self):
+
         Gtk.Application.__init__(self, application_id='net.lutris.Lutris',
                                  flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        check_config()
+        migrate()
+        update_platforms()
+
         GLib.set_application_name(_('Lutris'))
         self.window = None
         self.css_provider = Gtk.CssProvider.new()
@@ -188,9 +194,6 @@ class Application(Gtk.Application):
             command = options.lookup_value('exec').get_string()
             self.execute_command(command)
             return 0
-
-        check_config(force_wipe=False)
-        migrate()
 
         game_slug = ''
         uri = options.lookup_value(GLib.OPTION_REMAINING)

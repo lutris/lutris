@@ -16,7 +16,7 @@ def _init_platforms():
             __all__[platform].append(runner_name)
 
 
-def _update_platforms():
+def update_platforms():
     pga_games = pga.get_games(filter_installed=True)
     for pga_game in pga_games:
         if pga_game.get('platform') or not pga_game['runner']:
@@ -27,4 +27,3 @@ def _update_platforms():
 
 
 _init_platforms()
-_update_platforms()
