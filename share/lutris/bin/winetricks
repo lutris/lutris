@@ -1515,7 +1515,7 @@ fi
 # other_files
 #     Extra installer files, in one string, space-separated.
 # reader_control
-#     If set, the control id of the configuration panel checkbox controling
+#     If set, the control id of the configuration panel checkbox controlling
 #     Adobe Reader installation.
 #     Some games don't have it, some games do with different ids.
 # run_command
@@ -3032,9 +3032,9 @@ winetricks_prefixmenu()
          ;;
     de*) _W_msg_title="Winetricks - wineprefix auswählen"
          _W_msg_body='Was möchten Sie tun?'
-         _W_msg_apps='Eine Programm installieren'
+         _W_msg_apps='Ein Programm installieren'
          _W_msg_games='Ein Spiel installieren'
-         _W_msg_benchmarks='Ein Benchmark installieren'
+         _W_msg_benchmarks='Einen Benchmark-Test installieren'
          _W_msg_default="Standard wineprefix auswählen"
          _W_msg_unattended0="Automatische Installation deaktivieren"
          _W_msg_unattended1="Automatische Installation aktivieren"
@@ -3716,7 +3716,7 @@ winetricks_showmenu()
     unset _W_msg_body _W_msg_title
 }
 
-# Converts a metadata abolute path to its app code
+# Converts a metadata absolute path to its app code
 winetricks_metadata_basename()
 {
     # Classic, but too slow on cygwin
@@ -4524,8 +4524,11 @@ winetricks_set_wineprefix()
         ;;
     esac
 
-    # FIXME: wrong on 64-bit Windows for now
     W_COMMONFILES_X86_WIN="$(w_expand_env CommonProgramFiles)"
+
+    # CommonProgramW6432 is only defined on win64, not win32 arches
+    W_COMMONFILES_WIN="$(w_expand_env CommonProgramW6432)"
+    W_COMMONFILES_WIN="${W_COMMONFILES_WIN:-$W_COMMONFILES_X86_WIN}"
 
     W_WINDIR_UNIX="$W_DRIVE_C/windows"
 
@@ -4573,7 +4576,7 @@ winetricks_set_wineprefix()
         # shellcheck disable=SC2034
         W_SYSTEM64_DLLS_WIN64="C:\\windows\\system32"  # path to access 64-bit dlls from 64-bit apps
         # 64-bit prefixes still have plenty of issues:
-        w_warn "You are using a 64-bit WINEPREFIX. If you encounter problems, please retest in a clean 32-bit WINEPREFIX before reporting a bug."
+        w_warn "You are using a 64-bit WINEPREFIX. Note that many verbs only install 32-bit versions of packages.  If you encounter problems, please retest in a clean 32-bit WINEPREFIX before reporting a bug."
     else
         W_ARCH=win32
         W_SYSTEM32_DLLS="$W_WINDIR_UNIX/system32"
@@ -4975,7 +4978,9 @@ winetricks_install_app()
 #----------------------------------------------------------------
 
 #----- common download for several verbs
+# Note: please put a file list $(cabextract -l $foo) / $(unzip -l $foo) at ./misc/filelists/${helper}.txt
 
+# Filelist at ./misc/filelists/directx-feb2010.txt
 helper_directx_dl()
 {
     # February 2010 DirectX 9c User Redistributable
@@ -4987,6 +4992,7 @@ helper_directx_dl()
     DIRECTX_NAME=directx_feb2010_redist.exe
 }
 
+# Filelist at ./misc/filelists/directx-jun2010.txt
 helper_directx_Jun2010()
 {
     # June 2010 DirectX 9c User Redistributable
@@ -4996,6 +5002,7 @@ helper_directx_Jun2010()
     DIRECTX_NAME=directx_Jun2010_redist.exe
 }
 
+# Filelist at ./misc/filelists/directx-feb2010.txt
 helper_d3dx9_xx()
 {
     dllname=d3dx9_$1
@@ -5020,6 +5027,7 @@ helper_d3dx9_xx()
     w_override_dlls native "$dllname"
 }
 
+# Filelist at ./misc/filelists/win2ksp4.txt
 helper_win2ksp4()
 {
     filename=$1
@@ -5029,6 +5037,7 @@ helper_win2ksp4()
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/win2ksp4/W2KSP4_EN.EXE
 }
 
+# Filelist at ./misc/filelists/winxpsp3.txt
 helper_winxpsp3()
 {
     filename=$1
@@ -5046,6 +5055,7 @@ helper_winxpsp3()
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/winxpsp3/WindowsXP-KB936929-SP3-x86-ENU.exe
 }
 
+# Filelist at ./misc/filelists/win7sp1.txt
 helper_win7sp1()
 {
     filename=$1
@@ -5054,6 +5064,17 @@ helper_win7sp1()
     w_download_to win7sp1 https://download.microsoft.com/download/0/A/F/0AFB5316-3062-494A-AB78-7FB0D4461357/windows6.1-KB976932-X86.exe e5449839955a22fc4dd596291aff1433b998f9797e1c784232226aba1f8abd97
 
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/win7sp1/windows6.1-KB976932-X86.exe
+}
+
+# Filelist at ./misc/filelists/win7sp1_x64.txt
+helper_win7sp1_x64()
+{
+    filename=$1
+
+    # https://www.microsoft.com/en-us/download/details.aspx?id=5842
+    w_download_to win7sp1 https://download.microsoft.com/download/0/A/F/0AFB5316-3062-494A-AB78-7FB0D4461357/windows6.1-KB976932-X64.exe f4d1d418d91b1619688a482680ee032ffd2b65e420c6d2eaecf8aa3762aa64c8
+
+    w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/win7sp1/windows6.1-KB976932-X64.exe
 }
 
 #---------------------------------------------------------
@@ -6998,6 +7019,12 @@ load_esent()
     helper_win7sp1 x86_microsoft-windows-e..estorageengine-isam_31bf3856ad364e35_6.1.7601.17514_none_f3ebb0cc8a4dd814/esent.dll
     w_try cp "$W_TMP/x86_microsoft-windows-e..estorageengine-isam_31bf3856ad364e35_6.1.7601.17514_none_f3ebb0cc8a4dd814/esent.dll" "$W_SYSTEM32_DLLS/esent.dll"
 
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-e..estorageengine-isam_31bf3856ad364e35_6.1.7601.17514_none_500a4c5042ab494a/esent.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-e..estorageengine-isam_31bf3856ad364e35_6.1.7601.17514_none_500a4c5042ab494a/esent.dll" "$W_SYSTEM64_DLLS/esent.dll"
+    fi
+
     w_override_dlls native,builtin esent
 }
 
@@ -7085,6 +7112,12 @@ load_gdiplus()
     # gdiplus has changed in win7. See https://bugs.winehq.org/show_bug.cgi?id=32163#c3
     helper_win7sp1 x86_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.7601.17514_none_72d18a4386696c80/gdiplus.dll
     w_try cp "$W_TMP/x86_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.7601.17514_none_72d18a4386696c80/gdiplus.dll" "$W_SYSTEM32_DLLS/gdiplus.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.7601.17514_none_2b24536c71ed437a/gdiplus.dll
+        w_try cp "$W_TMP/amd64_microsoft.windows.gdiplus_6595b64144ccf1df_1.1.7601.17514_none_2b24536c71ed437a/gdiplus.dll" "$W_SYSTEM64_DLLS/gdiplus.dll"
+    fi
 
     # For some reason, native, builtin isn't good enough...?
     w_override_dlls native gdiplus
@@ -7370,19 +7403,26 @@ w_metadata jet40 dlls \
     year="2003" \
     media="download" \
     file1="jet40sp8_9xnt.exe" \
-    installed_file1="$W_COMMONFILES_X86_WIN/Microsoft Shared/dao/dao360.dll"
+    installed_file1="$W_COMMONFILES_WIN/Microsoft Shared/dao/dao360.dll"
 
 load_jet40()
 {
     w_call mdac27
     w_call wsh57
+
     # https://support.microsoft.com/kb/239114
     # See also https://bugs.winehq.org/show_bug.cgi?id=6085
     # FIXME: "failed with error 2"
     w_download https://download.microsoft.com/download/4/3/9/4393c9ac-e69e-458d-9f6d-2fe191c51469/jet40sp8_9xnt.exe b060246cd499085a31f15873689d5fa7df817e407c8261a5c71fa6b9f7042560
+
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" jet40sp8_9xnt.exe $W_UNATTENDED_SLASH_Q
 }
+
+# FIXME: verify_jet40()
+# See https://github.com/Winetricks/winetricks/issues/327,
+# https://en.wikibooks.org/wiki/JET_Database/Creating_and_connecting, and
+# https://msdn.microsoft.com/en-us/library/ms677200%28v=vs.85%29.aspx
 
 #----------------------------------------------------------------
 
@@ -7628,6 +7668,12 @@ load_mf()
 {
     helper_win7sp1 x86_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_9e6699276b03c38e/mf.dll
     w_try cp "$W_TMP/x86_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_9e6699276b03c38e/mf.dll" "$W_SYSTEM32_DLLS/mf.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_fa8534ab236134c4/mf.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_fa8534ab236134c4/mf.dll" "$W_SYSTEM64_DLLS/mf.dll"
+    fi
 
     w_override_dlls native,builtin mf
 }
@@ -7883,6 +7929,12 @@ load_msftedit()
 {
     helper_win7sp1 x86_microsoft-windows-msftedit_31bf3856ad364e35_6.1.7601.17514_none_d7d862f19573a5ff/msftedit.dll
     w_try cp "$W_TMP/x86_microsoft-windows-msftedit_31bf3856ad364e35_6.1.7601.17514_none_d7d862f19573a5ff/msftedit.dll" "$W_SYSTEM32_DLLS/msftedit.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-msftedit_31bf3856ad364e35_6.1.7601.17514_none_33f6fe754dd11735/msftedit.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-msftedit_31bf3856ad364e35_6.1.7601.17514_none_33f6fe754dd11735/msftedit.dll" "$W_SYSTEM64_DLLS/msftedit.dll"
+    fi
 
     w_override_dlls native,builtin mstfedit
 }
