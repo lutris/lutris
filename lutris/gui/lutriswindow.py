@@ -536,16 +536,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.running_game.stop()
             self.actions['stop-game'].props.enabled = False
 
-    def on_install_clicked(self, *args, game_ref=None):
+    def on_install_clicked(self, *args, game_slug=None, installer_file=None):
         """Install a game"""
-        if not game_ref:
+        if not game_slug:
             game_id = self._get_current_game_id()
             game = pga.get_game_by_field(game_id, 'id')
-            game_ref = game.get('slug')
-            logger.debug("Installing game %s (%s)" % (game_ref, game_id))
-        if not game_ref:
+            game_slug = game.get('slug')
+            logger.debug("Installing game %s (%s)" % (game_slug, game_id))
+        if not game_slug:
             return
-        InstallerDialog(game_ref, self)
+        InstallerDialog(game_slug=game_slug, installer_file=installer_file, parent=self)
 
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640

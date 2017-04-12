@@ -29,11 +29,11 @@ from lutris.runners import (
 )
 
 
-def fetch_script(game_ref):
-    """Download install script(s) for matching game_ref."""
-    request = Request(settings.INSTALLER_URL % game_ref)
+def fetch_script(game_slug, revision=None):
+    """Download install script(s) for matching game_slug."""
+    request = Request(settings.INSTALLER_URL % game_slug)
     request.get()
-    return request.json
+    return request.json['results']
 
 
 class ScriptInterpreter(CommandsMixin):

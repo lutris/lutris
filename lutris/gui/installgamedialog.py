@@ -22,13 +22,15 @@ class InstallerDialog(Gtk.Window):
     game_dir = None
     download_progress = None
 
-    def __init__(self, game_ref, parent=None):
+    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
         Gtk.Window.__init__(self)
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
-        self.game_ref = game_ref
+        self.game_slug = game_slug
+        self.installer_file = installer_file
+        self.revision = revision
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
@@ -105,14 +107,14 @@ class InstallerDialog(Gtk.Window):
     # ---------------------------
 
     def get_scripts(self):
-        if os.path.isfile(self.game_ref):
+        if os.path.isfile(self.installer_file):
             # local script
-            logger.debug("Opening script: %s", self.game_ref)
-            scripts = yaml.safe_load(open(self.game_ref, 'r').read())
+            logger.debug("Opening script: %s", self.installer_file)
+            scripts = yaml.safe_load(open(self.installer_file, 'r').read())
             self.on_scripts_obtained(scripts)
         else:
             jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
-                           self.game_ref)
+                           self.game_slug)
 
     def on_scripts_obtained(self, scripts, _error=None):
         if not scripts:
@@ -135,7 +137,7 @@ class InstallerDialog(Gtk.Window):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game_data = pga.get_game_by_field(self.game_ref, 'slug')
+            game_data = pga.get_game_by_field(self.game_slug, 'slug')
             game = Game(game_data['id'])
             AddGameDialog(
                 self.parent,
@@ -143,8 +145,7 @@ class InstallerDialog(Gtk.Window):
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
         elif dlg.result == dlg.NEW_INSTALLER:
-            installer_url = settings.SITE_URL + "/games/%s/" % self.game_ref
-            webbrowser.open(installer_url)
+            webbrowser.open(settings.GAME_URL % self.game_slug)
 
     # ---------------------------
     # "Choose installer" stage

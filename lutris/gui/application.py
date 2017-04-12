@@ -209,15 +209,12 @@ class Application(Gtk.Application):
             game_slug = installer_info['game_slug']
 
         if game_slug or options.contains('install'):
+            installer_file = None
             if options.contains('install'):
                 installer_file = options.lookup_value('install').get_string()
-                installer = installer_file
-            else:
-                installer_file = None
-                installer = game_slug
-            if not game_slug and not os.path.isfile(installer_file):
-                self._print(command_line, "No such file: %s" % installer_file)
-                return 1
+                if not os.path.isfile(installer_file):
+                    self._print(command_line, "No such file: %s" % installer_file)
+                    return 1
 
             db_game = None
             if game_slug:
@@ -239,14 +236,14 @@ class Application(Gtk.Application):
                     except KeyboardInterrupt:
                         lutris_game.stop()
             else:
-                self._print(command_line, "Installing %s" % installer)
+                self._print(command_line, "Installing %s" % game_slug or installer_file)
                 if self.window:
-                    self.install_game(installer)
+                    self.window.on_install_clicked(game_slug=game_slug, installer_file=installer_file)
                 else:
                     runtime_updater = RuntimeUpdater()
                     runtime_updater.update()
                     # FIXME: This should be a Gtk.Dialog child of LutrisWindow
-                    dialog = InstallerDialog(installer)
+                    dialog = InstallerDialog(game_slug=game_slug, installer_file=installer_file)
                     self.add_window(dialog)
             return 0
 
@@ -314,9 +311,6 @@ class Application(Gtk.Application):
         Gtk.Application.do_shutdown(self)
         if self.window:
             self.window.destroy()
-
-    def install_game(self, game_ref):
-        self.window.on_install_clicked(game_ref=game_ref)
 
     def run_game(self, game_id):
         self.window.on_game_run(game_id=game_id)
