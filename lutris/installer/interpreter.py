@@ -31,9 +31,19 @@ from lutris.runners import (
 
 def fetch_script(game_slug, revision=None):
     """Download install script(s) for matching game_slug."""
-    request = Request(settings.INSTALLER_URL % game_slug)
+    installer_url = settings.INSTALLER_URL % game_slug
+    if revision:
+        installer_url += '/revisions/{}'.format(revision)
+        key = None
+    else:
+        key = 'results'
+    request = Request(installer_url)
     request.get()
-    return request.json['results']
+    response = request.json
+    if key:
+        return response[key]
+    else:
+        return response
 
 
 class ScriptInterpreter(CommandsMixin):
