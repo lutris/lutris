@@ -222,7 +222,8 @@ class Application(Gtk.Application):
                            pga.get_game_by_field(game_slug, 'slug') or
                            pga.get_game_by_field(game_slug, 'installer_slug'))
 
-            if db_game and db_game['installed'] and not options.contains('reinstall'):
+            force_install = options.contains('reinstall') or bool(installer_info.get('revision'))
+            if db_game and db_game['installed'] and not force_install:
                 self._print(command_line, "Launching %s" % db_game['name'])
                 if self.window:
                     self.run_game(db_game['id'])

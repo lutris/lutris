@@ -13,6 +13,7 @@ from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
 from lutris.util import jobs
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
@@ -107,7 +108,7 @@ class InstallerDialog(Gtk.Window):
     # ---------------------------
 
     def get_scripts(self):
-        if os.path.isfile(self.installer_file):
+        if system.path_exists(self.installer_file):
             # local script
             logger.debug("Opening script: %s", self.installer_file)
             scripts = yaml.safe_load(open(self.installer_file, 'r').read())

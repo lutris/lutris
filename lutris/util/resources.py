@@ -99,7 +99,7 @@ def parse_installer_url(url):
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
     """
     try:
-        parsed_url = url
+        parsed_url = urlparse(url)
     except:
         return False
     if parsed_url.scheme != "lutris":
@@ -109,7 +109,7 @@ def parse_installer_url(url):
         return False
     revision = None
     if parsed_url.query:
-        query = dict(parse_qsl(parsed_url))
+        query = dict(parse_qsl(parsed_url.query))
         revision = query.get('revision')
     return {
         'game_slug': game_slug,
