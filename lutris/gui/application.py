@@ -37,6 +37,7 @@ from lutris.runtime import RuntimeUpdater
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.log import logger
+from lutris.util.resources import parse_installer_url
 from lutris.util.steam import (AppManifest, get_appmanifests,
                                get_steamapps_paths)
 
@@ -201,10 +202,11 @@ class Application(Gtk.Application):
             uri = uri.get_strv()
         if uri and len(uri):
             uri = uri[0]  # TODO: Support multiple
-            if not uri.startswith('lutris:'):
+            installer_info = parse_installer_url(uri)
+            if installer_info is False:
                 self._print(command_line, '%s is not a valid URI' % uri)
                 return 1
-            game_slug = uri[7:]
+            game_slug = installer_info['game_slug']
 
         if game_slug or options.contains('install'):
             if options.contains('install'):
@@ -236,7 +238,6 @@ class Application(Gtk.Application):
                         GLib.MainLoop().run()
                     except KeyboardInterrupt:
                         lutris_game.stop()
-                return 0
             else:
                 self._print(command_line, "Installing %s" % installer)
                 if self.window:
@@ -247,7 +248,7 @@ class Application(Gtk.Application):
                     # FIXME: This should be a Gtk.Dialog child of LutrisWindow
                     dialog = InstallerDialog(installer)
                     self.add_window(dialog)
-                return 0
+            return 0
 
         self.activate()
         return 0

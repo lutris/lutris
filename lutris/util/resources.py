@@ -1,6 +1,7 @@
 import os
 import re
 import concurrent.futures
+from urllib.parse import urlparse, parse_qsl
 
 from lutris import settings
 from lutris import api
@@ -91,3 +92,26 @@ def download_media(url, dest, overwrite=False):
             return
     request = Request(url).get()
     request.write_to_file(dest)
+
+
+def parse_installer_url(url):
+    """
+    Parses `lutris:` urls, extracting any info necessary to install or run a game.
+    """
+    try:
+        parsed_url = url
+    except:
+        return False
+    if parsed_url.scheme != "lutris":
+        return False
+    game_slug = parsed_url.path
+    if not game_slug:
+        return False
+    revision = None
+    if parsed_url.query:
+        query = dict(parse_qsl(parsed_url))
+        revision = query.get('revision')
+    return {
+        'game_slug': game_slug,
+        'revision': revision
+    }
