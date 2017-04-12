@@ -197,6 +197,7 @@ class Application(Gtk.Application):
             return 0
 
         game_slug = ''
+        revision = None
         uri = options.lookup_value(GLib.OPTION_REMAINING)
         if uri:
             uri = uri.get_strv()
@@ -207,6 +208,7 @@ class Application(Gtk.Application):
                 self._print(command_line, '%s is not a valid URI' % uri)
                 return 1
             game_slug = installer_info['game_slug']
+            revision = installer_info['revision']
 
         if game_slug or options.contains('install'):
             installer_file = None
@@ -239,12 +241,16 @@ class Application(Gtk.Application):
             else:
                 self._print(command_line, "Installing %s" % game_slug or installer_file)
                 if self.window:
-                    self.window.on_install_clicked(game_slug=game_slug, installer_file=installer_file)
+                    self.window.on_install_clicked(game_slug=game_slug,
+                                                   installer_file=installer_file,
+                                                   revision=revision)
                 else:
                     runtime_updater = RuntimeUpdater()
                     runtime_updater.update()
                     # FIXME: This should be a Gtk.Dialog child of LutrisWindow
-                    dialog = InstallerDialog(game_slug=game_slug, installer_file=installer_file)
+                    dialog = InstallerDialog(game_slug=game_slug,
+                                             installer_file=installer_file,
+                                             revision=revision)
                     self.add_window(dialog)
             return 0
 

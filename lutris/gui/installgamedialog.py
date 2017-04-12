@@ -115,7 +115,7 @@ class InstallerDialog(Gtk.Window):
             self.on_scripts_obtained(scripts)
         else:
             jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
-                           self.game_slug)
+                           self.game_slug, self.revision)
 
     def on_scripts_obtained(self, scripts, _error=None):
         if not scripts:
