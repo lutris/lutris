@@ -48,7 +48,7 @@ def fetch_script(game_slug, revision=None):
 
 class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
-    def __init__(self, script, parent):
+    def __init__(self, installer, parent):
         self.error = None
         self.errors = []
         self.target_path = None
@@ -62,20 +62,24 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
-        self.script = script
+        self.script = installer['script']
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
         if not self.script:
             return
+
+        self.files = self.script.get('files', [])
+        self.year = installer['year']
+        self.name = installer['name']
+        self.runner = installer['runner']
+        self.game_name = installer['name']
+        self.game_slug = installer['game_slug']
+        self.requires = self.script.get('requires')
+        self.extends = self.script.get('extends')
+
         if not self.is_valid():
             raise ScriptingError("Invalid script", (self.script, self.errors))
 
-        self.files = self.script.get('files', [])
-        self.runner = self.script['runner']
-        self.game_name = self.script['name']
-        self.game_slug = self.script['game_slug']
-        self.requires = self.script.get('requires')
-        self.extends = self.script.get('extends')
         self._check_dependency()
         if self.creates_game_folder:
             self.target_path = self.get_default_target()
@@ -132,11 +136,11 @@ class ScriptInterpreter(CommandsMixin):
 
         # Check that installers contains all required fields
         for field in ('runner', 'name', 'game_slug'):
-            if not self.script.get(field):
+            if not hasattr(self, field) or not getattr(self, field):
                 self.errors.append("Missing field '%s'" % field)
 
         # Check that libretro installers have a core specified
-        if self.script.get('runner') == 'libretro':
+        if self.runner == 'libretro':
             if 'game' not in self.script or 'core' not in self.script['game']:
                 self.errors.append('Missing libretro core in game section')
 
@@ -376,7 +380,7 @@ class ScriptInterpreter(CommandsMixin):
             runner = import_runner(runner_name)
         except InvalidRunner:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError('Invalid runner provided %s', runner_name)
+            raise ScriptingError('Invalid runner provided %s' % runner_name)
         return runner
 
     def file_selected(self, file_path):
@@ -504,7 +508,7 @@ class ScriptInterpreter(CommandsMixin):
             logger.info('This is an extension to %s, not creating a new game entry',
                         self.extends)
             return
-        configpath = make_game_config_id(self.script['slug'])
+        configpath = make_game_config_id(self.slug)
         config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
 
         if self.requires:
@@ -521,15 +525,15 @@ class ScriptInterpreter(CommandsMixin):
             }
 
         self.game_id = pga.add_or_update(
-            name=self.script['name'],
+            name=self.name,
             runner=self.runner,
             slug=self.game_slug,
             directory=self.target_path,
             installed=1,
-            installer_slug=self.script['slug'],
+            installer_slug=self.slug,
             parent_slug=self.requires,
-            year=self.script.get('year'),
-            steamid=self.script.get('steamid'),
+            year=self.year,
+            steamid=self.steamid,
             configpath=configpath,
             id=self.game_id
         )
