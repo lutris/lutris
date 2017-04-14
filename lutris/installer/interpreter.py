@@ -71,12 +71,12 @@ class ScriptInterpreter(CommandsMixin):
 
         self.files = self.script.get('files', [])
         self.slug = installer['slug']
-        self.year = installer['year']
+        self.year = installer.get('year')
         self.name = installer['name']
         self.runner = installer['runner']
         self.game_name = installer['name']
         self.game_slug = installer['game_slug']
-        self.steamid = installer['steamid']
+        self.steamid = installer.get('steamid')
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
 
