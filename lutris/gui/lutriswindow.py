@@ -527,7 +527,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             game_slug = self.running_game.slug
             self.running_game = None
-            InstallerDialog(game_slug, self)
+            InstallerDialog(game_slug=game_slug, parent=self)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
