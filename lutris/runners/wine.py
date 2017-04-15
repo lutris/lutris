@@ -175,7 +175,7 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=
         winetricks_wine = wine().get_executable()
     args = app
     if str(silent).lower() in ('yes', 'on', 'true'):
-        args = "-q " + args
+        args = "--unattended " + args
     return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
                     wine_path=winetricks_path, arch=arch, args=args, config=config)
 
