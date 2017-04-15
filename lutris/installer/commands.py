@@ -287,7 +287,7 @@ class CommandsMixin(object):
             # than the one for this installer
             runner_name, task_name = task_name.split('.')
         else:
-            runner_name = self.script["runner"]
+            runner_name = self.runner
         return runner_name, task_name
 
     def task(self, data):
