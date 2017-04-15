@@ -71,7 +71,7 @@ class Downloader():
 
     def cancel(self):
         """Request download stop and remove destination file."""
-        logger.debug("Download cancelled")
+        logger.debug("Download of %s cancelled", self.url)
         self.state = self.CANCELLED
         if self.stop_request:
             self.stop_request.set()
