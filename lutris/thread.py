@@ -150,6 +150,8 @@ class LutrisThread(threading.Thread):
 
     def execute_process(self, command, env=None):
         try:
+            if self.cwd and not system.path_exists(self.cwd):
+                os.makedirs(self.cwd)
             return subprocess.Popen(command, bufsize=1,
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     cwd=self.cwd, env=env)
