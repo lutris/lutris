@@ -1,3 +1,13 @@
+lutris (0.4.8) zesty; urgency=medium
+
+  * Switch installer scripts to the REST API
+  * Allow users to test installer drafts
+  * Add cabextract as a dependency
+  * Fix for processes crashing when the working directory doesn't exist
+  * Add $VERSION as a variable usable in scripts    
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Apr 2017 16:06:38 -0700
+
 lutris (0.4.7.1) yakkety; urgency=medium
 
   * Fix a bug with the platforms accessing the database before it's created
