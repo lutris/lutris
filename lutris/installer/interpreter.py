@@ -31,11 +31,11 @@ from lutris.runners import (
 
 def fetch_script(game_slug, revision=None):
     """Download install script(s) for matching game_slug."""
-    installer_url = settings.INSTALLER_URL % game_slug
     if revision:
-        installer_url += '/revisions/{}'.format(revision)
+        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
         key = None
     else:
+        installer_url = settings.INSTALLER_URL % game_slug
         key = 'results'
     logger.debug("Fetching installer %s", installer_url)
     request = Request(installer_url)
