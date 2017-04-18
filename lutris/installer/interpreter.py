@@ -70,6 +70,7 @@ class ScriptInterpreter(CommandsMixin):
             return
 
         self.files = self.script.get('files', [])
+        self.version = installer['version']
         self.slug = installer['slug']
         self.year = installer.get('year')
         self.name = installer['name']
@@ -642,6 +643,7 @@ class ScriptInterpreter(CommandsMixin):
             "DISC": self.game_disc,
             "USER": os.getenv('USER'),
             "INPUT": self._get_last_user_input(),
+            "VERSION": self.version,
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
