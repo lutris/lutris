@@ -19,6 +19,7 @@ class TestScriptInterpreter(TestCase):
             'name': 'Doom',
             'slug': 'doom',
             'game_slug': 'doom',
+            'version': 'doom-gzdoom'
         }
         interpreter = ScriptInterpreter(installer, None)
         self.assertFalse(interpreter.errors)
@@ -29,7 +30,8 @@ class TestScriptInterpreter(TestCase):
             'foo': 'bar',
             'script': [],
             'name': 'missing_runner',
-            'game_slug': 'missing-runner'
+            'game_slug': 'missing-runner',
+            'version': 'bar-baz'
         }
         with self.assertRaises(ScriptingError):
             interpreter = ScriptInterpreter(script, None)
