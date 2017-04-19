@@ -505,9 +505,20 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
-                'help': ("This option ensures any pending drawing operations "
-                         "are submitted to the driver, but at a significant "
-                         "performance cost.")
+                'help': ("This option ensures any pending drawing operations are submitted to the driver, but at"
+                         " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
+                         " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead.""")
+            },
+            {
+                'option': 'UseGLSL',
+                'label': "Use GLSL",
+                'type': 'choice',
+                'choices': [('Enabled', 'enabled'),
+                            ('Disabled', 'disabled')],
+                'default': 'enabled',
+                'advanced': True,
+                'help': ("When set to \"disabled\", this disables the use of GLSL for shaders."
+                         "In general disabling GLSL is not recommended, only use this for debugging purposes.")
             },
             {
                 'option': 'RenderTargetLockMode',
