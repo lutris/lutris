@@ -89,7 +89,7 @@ def get_md5_hash(filename):
 def find_executable(exec_name, quiet=False):
     if not exec_name:
         raise ValueError("find_executable: exec_name required")
-    return execute(['which', exec_name], quiet=quiet)
+    return shutil.which(exec_name)
 
 
 def get_pid(program, multiple=False):

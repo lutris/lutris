@@ -1,13 +1,13 @@
 """Get games installed as desktop applications."""
 
 import os
-import shutil
 import shlex
 import subprocess
 import re
 
 from gi.repository import Gio
 from lutris import pga
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
@@ -166,6 +166,6 @@ def get_games():
         args = subprocess.list2cmdline(args)
 
         if not exe.startswith('/'):
-            exe = shutil.which(exe)
+            exe = system.find_executable(exe)
         game_list.append((app.get_display_name(), appid, exe, args))
     return game_list
