@@ -137,7 +137,7 @@ def get_games():
         categories = app.get_categories()
         if not categories:
             continue
-        categories = filter(None, categories.lower().split(';'))
+        categories = list(filter(None, categories.lower().split(';')))
         if 'game' not in categories:
             continue
 
