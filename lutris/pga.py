@@ -288,7 +288,7 @@ def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(PGA_DB) as cursor:
         query = ("select distinct platform from games "
-                 "where platform is not null order by platform")
+                 "where platform is not null and platform is not '' order by platform")
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
