@@ -26,11 +26,62 @@ class reicast(Runner):
                  "Supported formats: ISO, CDI")
     }]
 
-    @staticmethod
-    def get_joypads():
+    def __init__(self, config=None):
+        super(reicast, self).__init__(config)
+
+        self.runner_options = [
+            {
+                'option': 'fullscreen',
+                'type': 'bool',
+                'label': 'Fullscreen',
+                'default': False,
+            },
+            {
+                'option': 'device_id_1',
+                'type': 'choice',
+                'label': 'Joypad 1',
+                'choices': self.get_joypads,
+                'default': '-1'
+            },
+            {
+                'option': 'device_id_2',
+                'type': 'choice',
+                'label': 'Joypad 2',
+                'choices': self.get_joypads,
+                'default': '-1'
+            },
+            {
+                'option': 'device_id_3',
+                'type': 'choice',
+                'label': 'Joypad 3',
+                'choices': self.get_joypads,
+                'default': '-1'
+            },
+            {
+                'option': 'device_id_4',
+                'type': 'choice',
+                'label': 'Joypad 4',
+                'choices': self.get_joypads,
+                'default': '-1'
+            }
+        ]
+
+    def install(self, version=None, downloader=None, callback=None):
+        def on_runner_installed(*args):
+            mapping_path = system.create_folder('~/.reicast/mappings')
+            mapping_source = os.path.join(settings.RUNNER_DIR, 'reicast/mappings')
+            for mapping_file in os.listdir(mapping_source):
+                shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
+
+            system.create_folder('~/.reicast/data')
+            NoticeDialog("You have to copy valid BIOS files to ~/.reicast/data "
+                         "before playing")
+        super(reicast, self).install(version, downloader, on_runner_installed)
+
+    def get_joypads(self):
         """Return list of joypad in a format usable in the options"""
-        if reicast.joypads:
-            return reicast.joypads
+        if self.joypads:
+            return self.joypads
         joypad_list = [('No joystick', '-1')]
         joypad_devices = joypad.get_joypads()
         name_counter = Counter([j[1] for j in joypad_devices])
@@ -48,60 +99,8 @@ class reicast(Runner):
             if index:
                 joy_name += " (%d)" % index
             joypad_list.append((joy_name, dev_id))
-        reicast.joypads = joypad_list
+        self.joypads = joypad_list
         return joypad_list
-
-    def __init__(self, config=None):
-        super(reicast, self).__init__(config)
-
-        self.runner_options = [
-            {
-                'option': 'fullscreen',
-                'type': 'bool',
-                'label': 'Fullscreen',
-                'default': False,
-            },
-            {
-                'option': 'device_id_1',
-                'type': 'choice',
-                'label': 'Joypad 1',
-                'choices': reicast.get_joypads(),
-                'default': '-1'
-            },
-            {
-                'option': 'device_id_2',
-                'type': 'choice',
-                'label': 'Joypad 2',
-                'choices': reicast.get_joypads(),
-                'default': '-1'
-            },
-            {
-                'option': 'device_id_3',
-                'type': 'choice',
-                'label': 'Joypad 3',
-                'choices': reicast.get_joypads(),
-                'default': '-1'
-            },
-            {
-                'option': 'device_id_4',
-                'type': 'choice',
-                'label': 'Joypad 4',
-                'choices': reicast.get_joypads(),
-                'default': '-1'
-            }
-        ]
-
-    def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed(*args):
-            mapping_path = system.create_folder('~/.reicast/mappings')
-            mapping_source = os.path.join(settings.RUNNER_DIR, 'reicast/mappings')
-            for mapping_file in os.listdir(mapping_source):
-                shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
-
-            system.create_folder('~/.reicast/data')
-            NoticeDialog("You have to copy valid BIOS files to ~/.reicast/data "
-                         "before playing")
-        super(reicast, self).install(version, downloader, on_runner_installed)
 
     def write_config(self, config):
         parser = ConfigParser()
