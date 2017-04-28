@@ -107,6 +107,8 @@ def parse_installer_url(url):
     game_slug = parsed_url.path
     if not game_slug:
         return False
+    # urlparse can't parse if the path only contain numbers
+    # workaround to remove the scheme manually:
     if game_slug.startswith('lutris:'):
         game_slug = game_slug[7:]
     revision = None
