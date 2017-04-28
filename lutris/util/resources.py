@@ -107,6 +107,8 @@ def parse_installer_url(url):
     game_slug = parsed_url.path
     if not game_slug:
         return False
+    if game_slug.startswith('lutris:'):
+        game_slug = game_slug[7:]
     revision = None
     if parsed_url.query:
         query = dict(parse_qsl(parsed_url.query))
