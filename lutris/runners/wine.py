@@ -132,6 +132,10 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         args = '/i "%s"' % executable
         executable = 'msiexec'
 
+    if executable.lower().endswith(".bat"):
+        args = '/C "%s"' % executable
+        executable = 'cmd'
+
     # Create prefix if necessary
     if not detected_arch:
         wine_bin = winetricks_wine if winetricks_wine else wine_path
