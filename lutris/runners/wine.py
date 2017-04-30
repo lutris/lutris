@@ -128,13 +128,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    if executable.endswith(".msi"):
-        args = '/i "%s"' % executable
-        executable = 'msiexec'
-
-    if executable.lower().endswith(".bat"):
-        args = '/C "%s"' % executable
-        executable = 'cmd'
+    executable, _args = get_real_executable(executable)
+    if _args:
+        args = '{} "{}"'.format(_args[0], _args[1])
 
     # Create prefix if necessary
     if not detected_arch:
@@ -323,6 +319,23 @@ def support_legacy_version(version):
     if version not in ('custom', 'system') and '-' not in version:
         version += '-i386'
     return version
+
+
+def get_real_executable(windows_executable):
+    """Given a Windows executable, return the real program
+    capable of launching it along with necessary arguments."""
+    exec_name = windows_executable.lower()
+
+    if exec_name.endswith(".msi"):
+        return ('msiexec', ['/i', windows_executable])
+
+    if exec_name.endswith(".bat"):
+        return ('cmd', ['/C', windows_executable])
+
+    if exec_name.endswith(".lnk"):
+        return ('start', ['/unix', windows_executable])
+
+    return (windows_executable, [])
 
 
 # pylint: disable=C0103
@@ -811,13 +824,10 @@ class wine(Runner):
                 logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
 
         command = [self.get_executable()]
-        if game_exe.endswith(".msi"):
-            command.append('msiexec')
-            command.append('/i')
-        if game_exe.endswith('.lnk'):
-            command.append('start')
-            command.append('/unix')
+        game_exe, _args = get_real_executable(game_exe)
         command.append(game_exe)
+        if _args:
+            command = command + _args
 
         if arguments:
             for arg in shlex.split(arguments):
