@@ -128,13 +128,17 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    if executable.endswith(".msi"):
+    if executable.lower().endswith(".msi"):
         args = '/i "%s"' % executable
         executable = 'msiexec'
 
     if executable.lower().endswith(".bat"):
         args = '/C "%s"' % executable
         executable = 'cmd'
+
+    if executable.lower().endswith(".lnk"):
+        args = '/unix "%s"' % executable
+        executable = 'start'
 
     # Create prefix if necessary
     if not detected_arch:
@@ -811,10 +815,13 @@ class wine(Runner):
                 logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
 
         command = [self.get_executable()]
-        if game_exe.endswith(".msi"):
+        if game_exe.lower().endswith(".msi"):
             command.append('msiexec')
             command.append('/i')
-        if game_exe.endswith('.lnk'):
+        if game_exe.lower().endswith(".bat"):
+            command.append('cmd')
+            command.append('/C')
+        if game_exe.lower().endswith('.lnk'):
             command.append('start')
             command.append('/unix')
         command.append(game_exe)
