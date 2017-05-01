@@ -140,6 +140,11 @@ class ScriptInterpreter(CommandsMixin):
     def is_valid(self):
         """Return True if script is usable."""
 
+        if not isinstance(self.script, dict):
+            self.errors.append("Script must be a dictionary")
+            # Return early since the method assumes a dict
+            return False
+
         # Check that installers contains all required fields
         for field in ('runner', 'name', 'game_slug'):
             if not hasattr(self, field) or not getattr(self, field):
