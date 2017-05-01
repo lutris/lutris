@@ -78,12 +78,13 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = installer['name']
         self.game_slug = installer['game_slug']
         self.steamid = installer.get('steamid')
+
+        if not self.is_valid():
+            raise ScriptingError("Invalid script: \n{}".format("\n".join(self.errors)), self.script)
+
         self.files = self.script.get('files', [])
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
-
-        if not self.is_valid():
-            raise ScriptingError("Invalid script", (self.script, self.errors))
 
         self._check_dependency()
         if self.creates_game_folder:
