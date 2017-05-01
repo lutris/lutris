@@ -201,6 +201,8 @@ class Application(Gtk.Application):
         uri = options.lookup_value(GLib.OPTION_REMAINING)
         if uri:
             uri = uri.get_strv()
+
+        installer_info = {}
         if uri and len(uri):
             uri = uri[0]  # TODO: Support multiple
             installer_info = parse_installer_url(uri)

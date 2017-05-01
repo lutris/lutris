@@ -63,13 +63,13 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
-        self.script = installer['script']
+        self.script = installer.get('script')
+        if not self.script:
+            raise ScriptingError("This installer doesn't have a 'script' section")
+
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
-        if not self.script:
-            return
 
-        self.files = self.script.get('files', [])
         self.version = installer['version']
         self.slug = installer['slug']
         self.year = installer.get('year')
@@ -78,6 +78,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = installer['name']
         self.game_slug = installer['game_slug']
         self.steamid = installer.get('steamid')
+        self.files = self.script.get('files', [])
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
 
