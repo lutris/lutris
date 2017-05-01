@@ -2,6 +2,17 @@ from unittest import TestCase
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.installer.errors import ScriptingError
 
+TEST_INSTALLER = {
+    'script': {
+        'game': 'test'
+    },
+    'version': 'test',
+    'game_slug': 'test',
+    'name': 'test',
+    'slug': 'test',
+    'runner': 'linux'
+}
+
 
 class MockInterpreter(ScriptInterpreter):
     """A script interpreter mock."""
@@ -38,14 +49,14 @@ class TestScriptInterpreter(TestCase):
             interpreter._get_move_paths({})
 
     def test_get_command_returns_a_method(self):
-        interpreter = MockInterpreter({'script': []}, None)
+        interpreter = MockInterpreter(TEST_INSTALLER, None)
         command, params = interpreter._map_command({'move': 'whatever'})
         self.assertIn("bound method CommandsMixin.move", str(command))
         self.assertEqual(params, "whatever")
 
     def test_get_command_doesnt_return_private_methods(self):
         """ """
-        interpreter = MockInterpreter({'script': []}, None)
+        interpreter = MockInterpreter(TEST_INSTALLER, None)
         with self.assertRaises(ScriptingError) as ex:
             command, params = interpreter._map_command(
                 {'_substitute': 'foo'}
