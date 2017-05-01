@@ -1,3 +1,4 @@
+import os
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 
@@ -115,8 +116,12 @@ class fsuae(Runner):
         floppy_drives = []
         floppy_images = []
         for drive, disk in enumerate(disks):
-            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk))
-            floppy_images.append("--floppy_image_%d=%s" % (drive, disk))
+            if not os.path.isabs(disk):
+                disk_path = os.path.join(self.game_path, disk)
+            else:
+                disk_path = disk
+            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk_path))
+            floppy_images.append("--floppy_image_%d=%s" % (drive, disk_path))
         return floppy_drives + floppy_images
 
     def get_params(self):
