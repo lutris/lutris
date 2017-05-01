@@ -228,10 +228,10 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             if child.pid in self.old_pids:
-                logger.debug("Excluding %s (not opened by thread)" % child.name)
+                logger.debug("Excluding %s (%s) (not opened by thread)" % (child.name, child.state))
                 continue
             if child.name in EXCLUDED_PROCESSES and child.name not in self.include_processes:
-                logger.debug("Excluding %s from process monitor" % child.name)
+                logger.debug("Excluding %s (%s) from process monitor" % (child.name, child.state))
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
