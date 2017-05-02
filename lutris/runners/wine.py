@@ -3,8 +3,6 @@ import time
 import shlex
 import subprocess
 
-from textwrap import dedent
-
 from lutris import runtime
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -43,12 +41,9 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
     }
     # Make temporary reg file
     reg_file = open(reg_path, "w")
-    reg_file.write(dedent(
-        """
-        REGEDIT4
-        [%s]
-        "%s"=%s
-        """ % (path, key, formatted_value[type])))
+    reg_file.write(
+        'REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type])
+    )
     reg_file.close()
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
