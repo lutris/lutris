@@ -292,13 +292,38 @@ w_killall()
     kill -s KILL $(pgrep $1)
 }
 
+# Warn user if package is broken. Optionally provide a link to the bug report.
+w_package_broken_win64()
+{
+    # Optional:
+    bug_link="$1"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        if [ -n "$1" ] ; then
+            w_die "This package is broken on 64-bit Wine. Using a prefix made with WINEARCH=win32 to work around this. See: ${bug_link}"
+        else
+            w_die "This package is broken on 64-bit Wine. Using a prefix made with WINEARCH=win32 to work around this."
+        fi
+    fi
+}
+
 # Some packages don't support win64, die with an appropriate message
-# Note: this is for packages that natively don't support win64, not packages that are broken on wine64
+# Note: this is for packages that natively don't support win64, not packages that are broken on wine64, for that, use w_package_broken_win64()
 w_package_unsupported_win64()
 {
     if [ "$W_ARCH" = "win64" ]
     then
         w_die "This package does not work on a 64-bit installation. You must use a prefix made with WINEARCH=win32."
+    fi
+}
+
+# For packages that are not well tested or have some known issues on win64, but aren't broken
+w_package_warn_win64()
+{
+    if [ "$W_ARCH" = "win64" ]
+    then
+        w_die "This package may not fully work on a 64-bit installation. 32-bit prefixes may work better."
     fi
 }
 
@@ -1069,7 +1094,7 @@ w_download_to()
             w_die "Downloading $_W_url failed"
         fi
         # Download from the Wayback Machine on second try
-        _W_url="https://web.archive.org/web/$_W_url"
+        _W_url="https://web.archive.org/web/2000/$_W_url"
     done
 
     if test "$_W_sum" && test ! "$checksum_ok" ; then
@@ -2871,6 +2896,9 @@ winetricks_latest_version_check()
 {
     if [ "$WINETRICKS_LATEST_VERSION_CHECK" = 'disabled' ] || [ -f "${WINETRICKS_CONFIG}/disable-latest-version-check" ] ; then
         w_info "winetricks latest version check update disabled"
+        return
+    # Used by ./src/release.sh, not for end users. Silently disables update check, without using $WINETRICKS_SUPER_QUIET
+    elif [ "$WINETRICKS_LATEST_VERSION_CHECK" = 'development' ] ; then
         return
     fi
 
@@ -5049,8 +5077,11 @@ helper_winxpsp3()
         w_try mv "$W_CACHE/xpsp3" "$W_CACHE/winxpsp3"
     fi
 
+    # Formerly at:
     # https://www.microsoft.com/en-us/download/details.aspx?id=24
-    w_download_to winxpsp3 https://download.microsoft.com/download/d/3/0/d30e32d8-418a-469d-b600-f32ce3edf42d/WindowsXP-KB936929-SP3-x86-ENU.exe 62e524a552db9f6fd22d469010ea4d7e28ee06fa615a1c34362129f808916654
+    # https://download.microsoft.com/download/d/3/0/d30e32d8-418a-469d-b600-f32ce3edf42d/WindowsXP-KB936929-SP3-x86-ENU.exe
+    # Mirror list: http://www.filewatcher.com/m/WindowsXP-KB936929-SP3-x86-ENU.exe.331805736-0.html
+    w_download_to winxpsp3 ftp://ftp.gnome.org/mirror/archive/ftp.sunet.se/pub/security/vendor/microsoft/winxp/Service_Packs/WindowsXP-KB936929-SP3-x86-ENU.exe 62e524a552db9f6fd22d469010ea4d7e28ee06fa615a1c34362129f808916654
 
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/winxpsp3/WindowsXP-KB936929-SP3-x86-ENU.exe
 }
@@ -6409,8 +6440,11 @@ load_dotnet30()
 {
     w_package_unsupported_win64
 
-    # https://msdn.microsoft.com/en-us/netframework/bb264589.aspx
-    w_download https://download.microsoft.com/download/3/F/0/3F0A922C-F239-4B9B-9CB0-DF53621C57D9/dotnetfx3.exe 6cf8921e00f52bbd888aa7a520a7bac47e818e2a850bcc44494c64d6cbfafdac
+    # Originally at https://msdn.microsoft.com/en-us/netframework/bb264589.aspx
+    # No longer on microsoft.com, and archive.org is unreliablel. Choose amongst the oldest/most reliable looking from
+    # http://www.filewatcher.com/m/dotnetfx3.exe.52770576-0.html
+    # (and verify sha256sum, of course ;))
+    w_download ftp://ftp.softlab-nsk.com/pub/ForwardTxSoftware/DotNetFX123/DotNet_v3/dotnetfx3.exe 6cf8921e00f52bbd888aa7a520a7bac47e818e2a850bcc44494c64d6cbfafdac
 
     w_call remove_mono
 
@@ -6643,7 +6677,7 @@ w_metadata dotnet40 dlls \
 
 load_dotnet40()
 {
-    w_package_unsupported_win64
+    w_package_warn_win64
 
     case "$W_PLATFORM" in
         windows_cmd) ;;
@@ -6689,10 +6723,7 @@ w_metadata dotnet45 dlls \
 
 load_dotnet45()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_warn "This package may not work on a 64-bit installation"
-    fi
+    w_package_warn_win64
 
     # The installer will fail later in dotnet35 if cabextract isn't installed, so check/fail now:
     w_try_cabextract -v >/dev/null
@@ -6703,7 +6734,9 @@ load_dotnet45()
     w_call remove_mono
 
     # See https://appdb.winehq.org/objectManager.php?sClass=version&iId=25478 for Focht's recipe
-    w_call dotnet35
+
+    # Seems unneeded in wine-2.0
+    # w_call dotnet35
     w_call dotnet40
     w_set_winver win7
 
@@ -6743,10 +6776,7 @@ w_metadata dotnet452 dlls \
 
 load_dotnet452()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_warn "This package may not work on a 64-bit installation"
-    fi
+    w_package_warn_win64
 
     # The installer will fail later in dotnet35 if cabextract isn't installed, so check/fail now:
     w_try_cabextract -v >/dev/null
@@ -6757,7 +6787,9 @@ load_dotnet452()
     w_call remove_mono
 
     # See https://appdb.winehq.org/objectManager.php?sClass=version&iId=25478 for Focht's recipe
-    w_call dotnet35
+
+    # Seems unneeded in wine-2.0
+    # w_call dotnet35
     w_call dotnet40
     w_set_winver win7
 
@@ -6797,10 +6829,7 @@ w_metadata dotnet46 dlls \
 
 load_dotnet46()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_warn "This package may not work on a 64-bit installation"
-    fi
+    w_package_warn_win64
 
     # https://support.microsoft.com/kb/3045560
     w_download https://download.microsoft.com/download/C/3/A/C3A5200B-D33C-47E9-9D70-2F7C65DAAD94/NDP46-KB3045557-x86-x64-AllOS-ENU.exe b21d33135e67e3486b154b11f7961d8e1cfd7a603267fb60febb4a6feab5cf87
@@ -6850,10 +6879,7 @@ w_metadata dotnet461 dlls \
 
 load_dotnet461()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_warn "This package may not work on a 64-bit installation"
-    fi
+    w_package_warn_win64
 
     # https://www.microsoft.com/en-us/download/details.aspx?id=49982
     w_download https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/NDP461-KB3102436-x86-x64-AllOS-ENU.exe beaa901e07347d056efe04e8961d5546c7518fab9246892178505a7ba631c301
@@ -6896,10 +6922,7 @@ w_metadata dotnet462 dlls \
 
 load_dotnet462()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_warn "This package may not work on a 64-bit installation"
-    fi
+    w_package_warn_win64
 
     if w_workaround_wine_bug 42170 "Running un-official repacked .NET 4.6.2 setup until the official version is fixed."
     then
@@ -8886,8 +8909,16 @@ load_vcrun2005()
     # https://support.microsoft.com/kb/2538242
     w_download https://download.microsoft.com/download/8/B/4/8B42259F-5D70-43F4-AC2E-4B208FD8D66A/vcredist_x86.EXE 4ee4da0fe62d5fa1b5e80c6e6d88a4a2f8b3b140c35da51053d0d7b72a381d29
 
+    # For native to be used, msvc* dlls must either be set to native only, OR
+    # set to native, builtin and remove wine's builtin manifest. Removing the manifest
+    # Makes it harder for user to revert later, so use native only method.
+    # For more info, see:
+    # https://bugs.winehq.org/show_bug.cgi?id=28225
+    # https://bugs.winehq.org/show_bug.cgi?id=33604
+    # https://bugs.winehq.org/show_bug.cgi?id=42859
+    w_override_dlls native atl80 msvcm80 msvcp80 msvcr80 vcomp
+
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_override_dlls native,builtin atl80 msvcm80 msvcp80 msvcr80 vcomp
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_Q
 }
 
@@ -8907,7 +8938,15 @@ load_vcrun2008()
     # https://technet.microsoft.com/library/security/ms11-025 or
     # https://support.microsoft.com/kb/2538242
     w_download https://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x86.exe 6b3e4c51c6c0e5f68c8a72b497445af3dbf976394cbb62aa23569065c28deeb6
-    w_override_dlls native,builtin atl90 msvcm90 msvcp90 msvcr90 vcomp90
+
+    # For native to be used, msvc* dlls must either be set to native only, OR
+    # set to native, builtin and remove wine's builtin manifest. Removing the manifest
+    # Makes it harder for user to revert later, so use native only method.
+    # For more info, see:
+    # https://bugs.winehq.org/show_bug.cgi?id=28225
+    # https://bugs.winehq.org/show_bug.cgi?id=33604
+    # https://bugs.winehq.org/show_bug.cgi?id=42859
+    w_override_dlls native atl90 msvcm90 msvcp90 msvcr90 vcomp90
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_Q
 
@@ -9212,15 +9251,22 @@ load_windowscodecs()
 w_metadata winhttp dlls \
     title="MS Windows HTTP Services" \
     publisher="Microsoft" \
-    year="2005" \
+    year="2011" \
     media="download" \
-    file1="../win2ksp4/W2KSP4_EN.EXE" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/winhttp.dll"
 
 load_winhttp()
 {
-    helper_win2ksp4 i386/new/winhttp.dl_
-    w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_TMP"/i386/new/winhttp.dl_
+    helper_win7sp1 x86_microsoft.windows.winhttp_31bf3856ad364e35_5.1.7601.17514_none_5ea69615819a23e4/winhttp.dll
+    w_try cp "$W_TMP/x86_microsoft.windows.winhttp_31bf3856ad364e35_5.1.7601.17514_none_5ea69615819a23e4/winhttp.dll" "$W_SYSTEM32_DLLS/winhttp.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft.windows.winhttp_31bf3856ad364e35_5.1.7601.17514_none_bac5319939f7951a/winhttp.dll
+        w_try cp "$W_TMP/amd64_microsoft.windows.winhttp_31bf3856ad364e35_5.1.7601.17514_none_bac5319939f7951a/winhttp.dll" "$W_SYSTEM64_DLLS/winhttp.dll"
+    fi
+
     w_override_dlls native,builtin winhttp
 }
 
@@ -17768,6 +17814,32 @@ w_metadata cfc=disable settings \
 load_cfc()
 {
     winetricks_set_wined3d_var CheckFloatConstants "$1"
+}
+#----------------------------------------------------------------
+# CSMT settings
+
+w_metadata csmt=on settings \
+    title="Enable Command Stream Multithreading"
+w_metadata csmt=off settings \
+    title="Disable Command Stream Multithreading (default)"
+
+load_csmt()
+{
+    case "$1" in
+        off) arg=0;;
+        on)  arg=1;;
+        *) w_die "illegal value $1 for csmt";;
+    esac
+
+    echo "Setting csmt to $arg"
+    cat > "$W_TMP"/set-csmt.reg <<_EOF_
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+"csmt"=dword:$arg
+
+_EOF_
+    w_try_regedit "$W_TMP"/set-csmt.reg
 }
 
 #----------------------------------------------------------------
