@@ -1,10 +1,21 @@
+lutris (0.4.9) zesty; urgency=medium
+
+  * Add option to auto-configure x360ce in Wine games based on plugged in
+    controllers
+  * Add support for batch files in Wine
+  * Fix FS-UAE path handling
+  * Fix regedit commands on newer Wine versions
+  * Fix local offline script installation
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 May 2017 00:06:56 -0700
+
 lutris (0.4.8) zesty; urgency=medium
 
   * Switch installer scripts to the REST API
   * Allow users to test installer drafts
   * Add cabextract as a dependency
   * Fix for processes crashing when the working directory doesn't exist
-  * Add $VERSION as a variable usable in scripts    
+  * Add $VERSION as a variable usable in scripts
 
  -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Apr 2017 16:06:38 -0700
 
