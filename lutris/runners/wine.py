@@ -49,6 +49,21 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
     os.remove(reg_path)
 
 
+def get_overrides_env(overrides):
+    if not overrides:
+        return ''
+    arr = []
+    for dll, value in overrides.items():
+        if not value:
+            value = ''
+        value = value.replace(' ', '')
+        value = value.replace('builtin', 'b')
+        value = value.replace('native', 'n')
+        value = value.replace('disabled', '')
+        arr.append(dll + '=' + value)
+    return ';'.join(arr)
+
+
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
     wineexec('regedit', args="/S '%s'" % (filename), wine_path=wine_path, prefix=prefix,
@@ -771,17 +786,10 @@ class wine(Runner):
             env['WINEPREFIX'] = self.prefix_path
 
         overrides = self.runner_config.get('overrides')
+        if self.runner_config.get('x360ce-path'):
+            overrides['xinput1_3'] = 'native,builtin'
         if overrides:
-            arr = []
-            for dll, value in overrides.items():
-                if not value:
-                    value = ''
-                value = value.replace(' ', '')
-                value = value.replace('builtin', 'b')
-                value = value.replace('native', 'n')
-                value = value.replace('disabled', '')
-                arr.append(dll + '=' + value)
-            env['WINEDLLOVERRIDES'] = ';'.join(arr)
+            env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
 
         return env
 
