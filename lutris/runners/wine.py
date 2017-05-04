@@ -455,11 +455,17 @@ class wine(Runner):
             },
             {
                 'option': 'xinput',
-                'label': 'Enable Xinput (experimental)',
+                'label': 'Enable Koku-Xinput (experimental, try using the x360 option instead)',
                 'type': 'bool',
                 'default': False,
                 'help': ("Preloads a library that enables Joypads on games\n"
                          "using XInput.")
+            },
+            {
+                'option': 'x360ce-path',
+                'label': "Path to the game's executable, for x360ce support",
+                'type:': 'directory_chooser',
+                'help': "Locate the path for the game's executable for x360 support"
             },
             {
                 'option': 'Desktop',
