@@ -89,7 +89,16 @@ class winesteam(wine.wine):
             'help': ("The architecture of the Windows environment.\n"
                      "32-bit is recommended unless running "
                      "a 64-bit only game.")
+        },
+        {
+            'option': 'nolaunch',
+            'type': 'bool',
+            'default': False,
+            'label': 'Do not launch game, only open Steam',
+            'help': ("Opens Steam with the current settings without running the game, "
+                     "useful if a game has several launch options.")
         }
+
     ]
 
     def __init__(self, config=None):
@@ -388,7 +397,9 @@ class winesteam(wine.wine):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
         command = self.launch_args
-        if not game_args:
+        if self.game_config.get('nolaunch'):
+            command.append('steam://open/games/details')
+        elif not game_args:
             command.append('steam://rungameid/%s' % self.appid)
         else:
             command.append('-applaunch')
