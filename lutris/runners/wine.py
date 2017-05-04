@@ -2,6 +2,7 @@ import os
 import time
 import shlex
 import subprocess
+from collections import OrderedDict
 
 from lutris import runtime
 from lutris import settings
@@ -52,7 +53,13 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 def get_overrides_env(overrides):
     if not overrides:
         return ''
-    arr = []
+    override_buckets = OrderedDict([
+        ('n,b', []),
+        ('b,n', []),
+        ('b', []),
+        ('n', []),
+        ('', [])
+    ])
     for dll, value in overrides.items():
         if not value:
             value = ''
@@ -60,8 +67,18 @@ def get_overrides_env(overrides):
         value = value.replace('builtin', 'b')
         value = value.replace('native', 'n')
         value = value.replace('disabled', '')
-        arr.append(dll + '=' + value)
-    return ';'.join(arr)
+        try:
+            override_buckets[value].append(dll)
+        except KeyError:
+            logger.error('Invalid override value %s', value)
+            continue
+
+    override_strings = []
+    for value, dlls in override_buckets.items():
+        if not dlls:
+            continue
+        override_strings.append("{}={}".format(','.join(sorted(dlls)), value))
+    return ';'.join(override_strings)
 
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
