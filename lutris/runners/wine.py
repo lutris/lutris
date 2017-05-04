@@ -51,6 +51,10 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
 
 def get_overrides_env(overrides):
+    """
+    Output a string of dll overrides usable with WINEDLLOVERRIDES
+    See: https://www.winehq.org/docs/wineusr-guide/x258#AEN309
+    """
     if not overrides:
         return ''
     override_buckets = OrderedDict([
