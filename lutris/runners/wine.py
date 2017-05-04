@@ -506,6 +506,13 @@ class wine(Runner):
                 'help': "Locate the path for the game's executable for x360 support"
             },
             {
+                'option': 'x360ce-dinput',
+                'label': 'x360ce dinput mode',
+                'type': 'bool',
+                'default': False,
+                'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
+            },
+            {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
                 'type': 'bool',
@@ -811,6 +818,8 @@ class wine(Runner):
         overrides = self.runner_config.get('overrides') or {}
         if self.runner_config.get('x360ce-path'):
             overrides['xinput1_3'] = 'native,builtin'
+            if self.runner_config.get('x360ce-dinput'):
+                overrides['dinput8'] = 'native,builtin'
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
 
@@ -841,10 +850,15 @@ class wine(Runner):
         if not os.path.isdir(x360ce_path):
             logger.error("%s is not a valid path for x360ce")
         xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
+        dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
         if not os.path.exists(xinput_dest_path):
-            dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
             xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
             shutil.copyfile(xinput1_3_path, xinput_dest_path)
+        if self.runner_config.get('x360ce-dinput') and self.wine_arch == 'win32':
+            dinput8_path = os.path.join(dll_path, 'dinput8.dll')
+            dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
+            shutil.copyfile(dinput8_path, dinput8_dest_path)
+
         x360ce_config = X360ce()
         x360ce_config.populate_controllers()
         x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
