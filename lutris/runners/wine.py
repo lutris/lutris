@@ -781,7 +781,7 @@ class wine(Runner):
                 value = value.replace('native', 'n')
                 value = value.replace('disabled', '')
                 arr.append(dll + '=' + value)
-            env['WINEDLLOVERRIDES'] = ','.join(arr)
+            env['WINEDLLOVERRIDES'] = ';'.join(arr)
 
         return env
 
