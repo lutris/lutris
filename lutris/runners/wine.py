@@ -1,6 +1,7 @@
 import os
 import time
 import shlex
+import shutil
 import subprocess
 from collections import OrderedDict
 
@@ -11,6 +12,7 @@ from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.wineprefix import WinePrefixManager
+from lutris.util.x360ce import X360ce
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -500,7 +502,7 @@ class wine(Runner):
             {
                 'option': 'x360ce-path',
                 'label': "Path to the game's executable, for x360ce support",
-                'type:': 'directory_chooser',
+                'type': 'directory_chooser',
                 'help': "Locate the path for the game's executable for x360 support"
             },
             {
@@ -806,7 +808,7 @@ class wine(Runner):
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
-        overrides = self.runner_config.get('overrides')
+        overrides = self.runner_config.get('overrides') or {}
         if self.runner_config.get('x360ce-path'):
             overrides['xinput1_3'] = 'native,builtin'
         if overrides:
@@ -835,6 +837,18 @@ class wine(Runner):
         if os.path.exists(xinput_path):
             return xinput_path
 
+    def setup_x360ce(self, x360ce_path):
+        if not os.path.isdir(x360ce_path):
+            logger.error("%s is not a valid path for x360ce")
+        xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
+        if not os.path.exists(xinput_dest_path):
+            dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
+            xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
+            shutil.copyfile(xinput1_3_path, xinput_dest_path)
+        x360ce_config = X360ce()
+        x360ce_config.populate_controllers()
+        x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
+
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get('args') or ''
@@ -852,6 +866,9 @@ class wine(Runner):
                 launch_info['ld_preload'] = self.get_xinput_path()
             else:
                 logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
+
+        if self.runner_config.get('x360ce-path'):
+            self.setup_x360ce(self.runner_config['x360ce-path'])
 
         command = [self.get_executable()]
         game_exe, _args = get_real_executable(game_exe)
