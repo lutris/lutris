@@ -111,20 +111,18 @@ class LutrisThread(threading.Thread):
             self.game_process = self.execute_process(self.command, env)
         if not self.game_process:
             return
-        for line in iter(self.game_process.stdout.readline, b''):
-            if not self.is_running:
-                break
-            try:
-                line = line.decode()
-            except UnicodeDecodeError:
-                line = ''
-            if not line:
-                continue
+
+        GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
+
+    def on_stdout_output(self, fd, condition):
+        line = fd.readline().decode(errors='replace')
+        if line:
             self.stdout += line
             if self.debug_output:
                 with contextlib.suppress(BlockingIOError):
                     sys.stdout.write(line)
                     sys.stdout.flush()
+        return True
 
     def run_in_terminal(self):
         """Write command in a script file and run it.
