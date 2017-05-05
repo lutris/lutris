@@ -565,5 +565,6 @@ class InstallerDialog(Gtk.Window):
         self.log_textview.show()
         scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
                                             child=self.log_textview)
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         scrolledwindow.show()
         self.widget_box.pack_end(scrolledwindow, True, True, 10)

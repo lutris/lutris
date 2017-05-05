@@ -338,8 +338,6 @@ class CommandsMixin(object):
     def _monitor_task(self, thread):
         if not thread.is_running:
             logger.debug("Thread QUIT")
-            self.parent.log_buffer = None
-            self.heartbeat = None
             self._iter_commands()
             return False
         return True

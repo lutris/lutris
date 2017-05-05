@@ -117,7 +117,7 @@ class LutrisThread(threading.Thread):
 
     def on_stdout_output(self, fd, condition):
         try:
-            line = fd.readline().decode(errors='replace')
+            line = fd.readline().decode('utf-8', errors='ignore')
         except ValueError:
             # fd might be closed
             line = None
