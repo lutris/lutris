@@ -20,6 +20,7 @@ from lutris.util import system
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
+MAX_CYCLES_WITHOUT_CHILDREN = 5
 # List of process names that are ignored by the process monitoring
 EXCLUDED_PROCESSES = (
     'lutris', 'python', 'python3',
@@ -51,7 +52,6 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
-        self.max_cycles_without_children = 15
         self.startup_time = time.time()
         self.monitoring_started = False
         self.daemon = True
@@ -257,7 +257,7 @@ class LutrisThread(threading.Thread):
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
         max_cycles_reached = (self.cycles_without_children >=
-                              self.max_cycles_without_children)
+                              MAX_CYCLES_WITHOUT_CHILDREN)
         if num_children == 0 or max_cycles_reached:
             if max_cycles_reached:
                 logger.debug('Maximum number of cycles without children reached')
