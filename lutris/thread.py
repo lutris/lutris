@@ -273,9 +273,8 @@ class LutrisThread(threading.Thread):
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
-            # FIXME Returning false breaks installers, but not returning false
-            # leaves the thread running endlessly when some games crashes.
-            # return False
+            self.is_running = False
+            return False
         return True
 
 
