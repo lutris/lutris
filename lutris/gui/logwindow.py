@@ -2,6 +2,23 @@ from gi.repository import Gtk
 from lutris.gui.widgets import Dialog
 
 
+class LogTextView(Gtk.TextView):
+    def __init__(self, buffer):
+        super(LogTextView, self).__init__()
+
+        self.set_buffer(buffer)
+        self.set_editable(False)
+        self.set_monospace(True)
+        self.set_left_margin(10)
+        self.set_wrap_mode(Gtk.WrapMode.CHAR)
+        self.get_style_context().add_class('lutris-logview')
+        self.connect("size-allocate", self.autoscroll)
+
+    def autoscroll(self, *args):
+        adj = self.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())
+
+
 class LogWindow(Dialog):
     def __init__(self, title, buffer, parent):
         super(LogWindow, self).__init__(title, parent, 0,
@@ -9,19 +26,9 @@ class LogWindow(Dialog):
         self.set_size_request(640, 480)
         self.grid = Gtk.Grid()
         self.buffer = buffer
-        self.logtextview = Gtk.TextView.new_with_buffer(self.buffer)
-        self.logtextview.set_editable(False)
-        self.logtextview.set_monospace(True)
-        self.logtextview.set_left_margin(10)
-        self.logtextview.set_wrap_mode(Gtk.WrapMode.CHAR)
-        self.logtextview.get_style_context().add_class('lutris-logview')
-        self.logtextview.connect("size-allocate", self.autoscroll)
+        self.logtextview = LogTextView(self.buffer)
 
         scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
                                             child=self.logtextview)
         self.vbox.add(scrolledwindow)
         self.show_all()
-
-    def autoscroll(self, *args):
-        adj = self.logtextview.get_vadjustment()
-        adj.set_value(adj.get_upper() - adj.get_page_size())
