@@ -12,6 +12,7 @@ from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
 from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
+from lutris.gui.logwindow import LogTextView
 from lutris.util import jobs
 from lutris.util import system
 from lutris.util.log import logger
@@ -32,6 +33,10 @@ class InstallerDialog(Gtk.Window):
         self.game_slug = game_slug
         self.installer_file = installer_file
         self.revision = revision
+
+        self.log_buffer = None
+        self.log_textview = None
+
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
@@ -549,6 +554,16 @@ class InstallerDialog(Gtk.Window):
         """Display a wait icon."""
         self.clean_widgets()
         spinner = Gtk.Spinner()
-        self.widget_box.pack_start(spinner, True, False, 10)
+        self.widget_box.pack_start(spinner, False, False, 10)
         spinner.show()
         spinner.start()
+
+    def add_log_textview(self):
+        if not self.log_buffer:
+            return
+        self.log_textview = LogTextView(self.log_buffer)
+        self.log_textview.show()
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
+                                            child=self.log_textview)
+        scrolledwindow.show()
+        self.widget_box.pack_end(scrolledwindow, True, True, 10)
