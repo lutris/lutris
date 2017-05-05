@@ -558,13 +558,13 @@ class InstallerDialog(Gtk.Window):
         spinner.show()
         spinner.start()
 
-    def add_log_textview(self):
-        if not self.log_buffer:
-            return
+    def attach_logger(self, thread):
+        self.log_buffer = Gtk.TextBuffer()
+        thread.log_buffer = self.log_buffer
         self.log_textview = LogTextView(self.log_buffer)
-        self.log_textview.show()
         scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
                                             child=self.log_textview)
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-        scrolledwindow.show()
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
+        scrolledwindow.show()
+        self.log_textview.show()

@@ -3,7 +3,7 @@ import os
 import shutil
 import shlex
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
 from lutris.installer.errors import ScriptingError
 
@@ -329,15 +329,12 @@ class CommandsMixin(object):
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(thread, LutrisThread):
             # Monitor thread and continue when task has executed
-            self.parent.log_buffer = Gtk.TextBuffer()
-            self.parent.add_log_textview()
-            thread.log_buffer = self.parent.log_buffer
+            GLib.idle_add(self.parent.attach_logger, thread)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
             return 'STOP'
 
     def _monitor_task(self, thread):
         if not thread.is_running:
-            logger.debug("Thread QUIT")
             self._iter_commands()
             return False
         return True
