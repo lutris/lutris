@@ -15,7 +15,13 @@ class LogWindow(Dialog):
         self.logtextview.set_left_margin(10)
         self.logtextview.set_wrap_mode(Gtk.WrapMode.CHAR)
         self.logtextview.get_style_context().add_class('lutris-logview')
+        self.logtextview.connect("size-allocate", self.autoscroll)
+
         scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
                                             child=self.logtextview)
         self.vbox.add(scrolledwindow)
         self.show_all()
+
+    def autoscroll(self, *args):
+        adj = self.logtextview.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())

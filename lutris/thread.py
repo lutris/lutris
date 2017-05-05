@@ -35,7 +35,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd=None, include_processes=[]):
+                 watch=True, cwd=None, include_processes=[], log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -57,6 +57,7 @@ class LutrisThread(threading.Thread):
         self.daemon = True
         self.error = None
         self.include_processes = include_processes
+        self.log_buffer = log_buffer
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -115,9 +116,15 @@ class LutrisThread(threading.Thread):
         GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
 
     def on_stdout_output(self, fd, condition):
-        line = fd.readline().decode(errors='replace')
+        try:
+            line = fd.readline().decode(errors='replace')
+        except ValueError:
+            # fd might be closed
+            line = None
         if line:
             self.stdout += line
+            if self.log_buffer:
+                self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
             if self.debug_output:
                 with contextlib.suppress(BlockingIOError):
                     sys.stdout.write(line)

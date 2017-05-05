@@ -604,7 +604,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             return
         log_title = u"Log for {}".format(self.running_game)
         log_window = LogWindow(title=log_title, buffer=self.running_game.log_buffer, parent=self)
-        log_window.buffer.set_text(self.running_game.game_log)
         log_window.run()
         log_window.destroy()
 

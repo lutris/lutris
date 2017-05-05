@@ -32,7 +32,6 @@ class Game(object):
         self.config = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.game_log = ''
         self.exit_main_loop = False
 
         game_data = pga.get_game_by_field(id, 'id')
@@ -314,7 +313,7 @@ class Game(object):
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner, env=env,
                                         rootpid=gameplay_info.get('rootpid'),
-                                        term=terminal)
+                                        term=terminal, log_buffer=self.log_buffer)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -369,7 +368,6 @@ class Game(object):
                                 self.game_thread.error)
             self.on_game_quit()
             return False
-        self.game_log = self.game_thread.stdout
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
