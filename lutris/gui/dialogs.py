@@ -154,6 +154,41 @@ class DownloadDialog(Gtk.Dialog):
             self.destroy()
 
 
+class InstallOrPlayDialog(Gtk.Dialog):
+    def __init__(self, game_name):
+        Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
+
+        self.action = None
+        self.action_confirmed = False
+
+        self.set_size_request(320, 120)
+        self.set_border_width(12)
+        vbox = Gtk.VBox(spacing=6)
+        self.get_content_area().add(vbox)
+
+        play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
+        play_button.connect('toggled', self.on_button_toggled, "play")
+        vbox.pack_start(play_button, False, False, 0)
+        install_button = Gtk.RadioButton.new_from_widget(play_button)
+        install_button.set_label("Install the game again")
+        install_button.connect('toggled', self.on_button_toggled, "install")
+        vbox.pack_start(install_button, False, False, 0)
+
+        confirm_button = Gtk.Button("OK")
+        confirm_button.connect('clicked', self.on_confirm)
+        vbox.pack_start(confirm_button, False, False, 0)
+
+        self.show_all()
+        self.run()
+
+    def on_button_toggled(self, button, action):
+        self.action = action
+
+    def on_confirm(self, button):
+        self.action_confirmed = True
+        self.destroy()
+
+
 class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
     def __init__(self, parent=None):

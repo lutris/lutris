@@ -29,11 +29,8 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.config import check_config
 from lutris.platforms import update_platforms
-from lutris.game import Game
-from lutris.gui.installgamedialog import InstallerDialog
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
-from lutris.runtime import RuntimeUpdater
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.log import logger
@@ -239,14 +236,21 @@ class Application(Gtk.Application):
                            pga.get_game_by_field(game_slug, 'installer_slug'))
 
             force_install = options.contains('reinstall') or bool(installer_info.get('revision'))
-            if db_game and db_game['installed'] and not force_install:
-                self._print(command_line, "Launching %s" % db_game['name'])
-                self.window.on_game_run(game_id=db_game['id'])
-            else:
-                self._print(command_line, "Installing %s" % game_slug or installer_file)
-                self.window.on_install_clicked(game_slug=game_slug,
-                                               installer_file=installer_file,
-                                               revision=revision)
+            if db_game and db_game['installed']:
+                game_name = db_game['name']
+                if not force_install:
+                    dlg = InstallOrPlayDialog(game_name)
+                    if not dlg.action_confirmed:
+                        return 0
+                    if dlg.action == 'play':
+                        logger.info("Launching %s" % game_name)
+                        self.window.on_game_run(game_id=db_game['id'])
+                        return 0
+            logger.info("Installing %s" % game_slug or installer_file)
+            self.window.on_install_clicked(game_slug=game_slug,
+                                           installer_file=installer_file,
+                                           revision=revision)
+
         return 0
 
     def print_game_list(self, command_line, game_list):
