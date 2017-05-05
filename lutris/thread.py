@@ -106,7 +106,7 @@ class LutrisThread(threading.Thread):
         env.update(self.env)
 
         if self.terminal and system.find_executable(self.terminal):
-            self.run_in_terminal()
+            self.game_process = self.run_in_terminal()
         else:
             self.terminal = False
             self.game_process = self.execute_process(self.command, env)
@@ -151,7 +151,7 @@ class LutrisThread(threading.Thread):
             ))
             os.chmod(file_path, 0o744)
 
-        self.game_process = self.execute_process([self.terminal, '-e', file_path])
+        return self.execute_process([self.terminal, '-e', file_path])
 
     def execute_process(self, command, env=None):
         try:
