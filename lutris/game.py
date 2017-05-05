@@ -4,7 +4,7 @@ import os
 import time
 import subprocess
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
 from lutris import pga, shortcuts
 from lutris import runtime
@@ -53,6 +53,8 @@ class Game(object):
         self.load_config()
         self.resolution_changed = False
         self.original_outputs = None
+        self.log_buffer = Gtk.TextBuffer()
+        self.log_buffer.create_tag("warning", foreground="red")
 
     def __repr__(self):
         return self.__unicode__()

@@ -603,8 +603,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             dialogs.ErrorDialog('No game log available', parent=self)
             return
         log_title = u"Log for {}".format(self.running_game)
-        log_window = LogWindow(log_title, self)
-        log_window.logtextview.set_text(self.running_game.game_log)
+        log_window = LogWindow(title=log_title, buffer=self.running_game.log_buffer, parent=self)
+        log_window.buffer.set_text(self.running_game.game_log)
         log_window.run()
         log_window.destroy()
 
