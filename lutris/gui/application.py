@@ -173,9 +173,13 @@ class Application(Gtk.Application):
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
 
+        # Set up logger
         if options.contains('debug'):
             logger.setLevel(logging.DEBUG)
 
+        # Text only commands
+
+        # List game
         if options.contains('list-games'):
             game_list = pga.get_games()
             if options.contains('installed'):
@@ -185,24 +189,28 @@ class Application(Gtk.Application):
             else:
                 self.print_game_list(command_line, game_list)
             return 0
+        # List Steam games
         elif options.contains('list-steam-games'):
             self.print_steam_list(command_line)
             return 0
+        # List Steam folders
         elif options.contains('list-steam-folders'):
             self.print_steam_folders(command_line)
             return 0
+
+        # Execute command in Lutris context
         elif options.contains('exec'):
             command = options.lookup_value('exec').get_string()
             self.execute_command(command)
             return 0
 
         game_slug = ''
+        installer_info = {}
         revision = None
         uri = options.lookup_value(GLib.OPTION_REMAINING)
         if uri:
             uri = uri.get_strv()
 
-        installer_info = {}
         if uri and len(uri):
             uri = uri[0]  # TODO: Support multiple
             installer_info = parse_installer_url(uri)
@@ -212,13 +220,17 @@ class Application(Gtk.Application):
             game_slug = installer_info['game_slug']
             revision = installer_info['revision']
 
+        installer_file = None
+        if options.contains('install'):
+            installer_file = options.lookup_value('install').get_string()
+            if not os.path.isfile(installer_file):
+                self._print(command_line, "No such file: %s" % installer_file)
+                return 1
+
+        # Graphical commands
+        self.activate()
+
         if game_slug or options.contains('install'):
-            installer_file = None
-            if options.contains('install'):
-                installer_file = options.lookup_value('install').get_string()
-                if not os.path.isfile(installer_file):
-                    self._print(command_line, "No such file: %s" % installer_file)
-                    return 1
 
             db_game = None
             if game_slug:
@@ -229,41 +241,12 @@ class Application(Gtk.Application):
             force_install = options.contains('reinstall') or bool(installer_info.get('revision'))
             if db_game and db_game['installed'] and not force_install:
                 self._print(command_line, "Launching %s" % db_game['name'])
-                if self.window:
-                    self.run_game(db_game['id'])
-                else:
-                    lutris_game = Game(db_game['id'])
-                    # FIXME: This is awful
-                    lutris_game.exit_main_loop = True
-                    lutris_game.play()
-                    try:
-                        GLib.MainLoop().run()
-                    except KeyboardInterrupt:
-                        lutris_game.stop()
+                self.window.on_game_run(game_id=db_game['id'])
             else:
                 self._print(command_line, "Installing %s" % game_slug or installer_file)
-                if self.window:
-                    self.window.on_install_clicked(game_slug=game_slug,
-                                                   installer_file=installer_file,
-                                                   revision=revision)
-                else:
-                    runtime_updater = RuntimeUpdater()
-                    runtime_updater.update()
-                    # FIXME: This should be a Gtk.Dialog child of LutrisWindow
-                    dialog = InstallerDialog(game_slug=game_slug,
-                                             installer_file=installer_file,
-                                             revision=revision)
-
-                    screen = dialog.props.screen
-                    Gtk.StyleContext.add_provider_for_screen(
-                        screen,
-                        self.css_provider,
-                        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-                    )
-                    self.add_window(dialog)
-            return 0
-
-        self.activate()
+                self.window.on_install_clicked(game_slug=game_slug,
+                                               installer_file=installer_file,
+                                               revision=revision)
         return 0
 
     def print_game_list(self, command_line, game_list):
@@ -310,7 +293,11 @@ class Application(Gtk.Application):
                     )
 
     def execute_command(self, command):
-        print("Running command '{}'".format(command))
+        """
+            Execute an arbitrary command in a Lutris context
+            with the runtime enabled and monitored by LutrisThread
+        """
+        logger.info("Running command '{}'".format(command))
         thread = exec_in_thread(command)
         try:
             GLib.MainLoop().run()
@@ -324,9 +311,6 @@ class Application(Gtk.Application):
                 self._print(command_line, path)
 
     def do_shutdown(self):
+        logger.info("Shutting down Lutris")
         Gtk.Application.do_shutdown(self)
-        if self.window:
-            self.window.destroy()
-
-    def run_game(self, game_id):
-        self.window.on_game_run(game_id=game_id)
+        self.window.destroy()
