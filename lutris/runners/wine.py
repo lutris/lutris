@@ -124,6 +124,7 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
     if not os.path.exists(os.path.join(prefix, 'user.reg')):
         logger.error('No user.reg found after prefix creation. '
                      'Prefix might not be valid')
+        return
     logger.info('%s Prefix created in %s', arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
