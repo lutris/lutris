@@ -76,7 +76,7 @@ class WineRegistry(object):
         self.reg_filename = reg_filename
         if reg_filename:
             if not os.path.exists(reg_filename):
-                logger.error("Unexisting registry %s")
+                logger.error("Unexisting registry %s", reg_filename)
             self.parse_reg_file(reg_filename)
 
     @property
