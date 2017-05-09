@@ -627,7 +627,8 @@ class wine(Runner):
                 'label': 'Output debugging info',
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
-                            ('Enabled', '')],
+                            ('Enabled', ''),
+                            ('Full', '+all')],
                 'default': '-all',
                 'advanced': True,
                 'help': ("Output debugging information in the game log "
