@@ -10072,7 +10072,7 @@ w_metadata opensymbol fonts \
     publisher="OpenOffice.org" \
     year="2016" \
     media="download" \
-    file1="fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u8_all.deb" \
+    file1="fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u9_all.deb" \
     installed_file1="$W_FONTSDIR_WIN/opens___.ttf"
 
 load_opensymbol()
@@ -10080,7 +10080,7 @@ load_opensymbol()
     # The OpenSymbol fonts are a replacement for the Windows Wingdings font from OpenOffice.org.
     # Need to w_download Debian since I can't find a standalone download from OpenOffice
     # Note: The source download package on debian is for _all_ of OpenOffice, which is 266 MB.
-    w_download http://security.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u8_all.deb 3b7ad433cf8944789be1f1b7cf14aed5c2f9dab26f04824eebea2a3a8544a777
+    w_download http://security.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u9_all.deb 11f272c3de3f2d891dfd067f467263ff361c08566a1a0ee5e5d64cbee459ee22
 
     w_try_cd "$W_TMP"
     w_try_ar "$W_CACHE/$W_PACKAGE/$file1" data.tar.xz
@@ -17974,7 +17974,7 @@ w_metadata windowmanagermanaged=y settings \
     title="Allow the window manager to control windows (default)"
 w_metadata windowmanagermanaged=n settings \
     title_uk="Не дозволяти менеджеру вікон керування вікнами" \
-    title="Prevent the window manager from controling windows"
+    title="Prevent the window manager from controlling windows"
 
 load_windowmanagermanaged()
 {
