@@ -30,13 +30,6 @@ class dolphin(Runner):
     ]
     runner_options = []
 
-    system_options_override = [
-        {
-            'option': 'disable_runtime',
-            'default': True,
-        }
-    ]
-
     def get_platform(self):
         selected_platform = self.game_config.get('platform')
         if selected_platform:
