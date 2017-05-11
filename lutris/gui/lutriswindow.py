@@ -16,9 +16,10 @@ from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import http
 from lutris.util import datapath
-from lutris.util import steam
+from lutris.util.steam import get_steamapps_paths, SteamWatcher
 
 from lutris.services import xdg
+from lutris.services import steam
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -149,9 +150,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Timers
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
-        steamapps_paths = steam.get_steamapps_paths(flat=True)
-        self.steam_watcher = steam.SteamWatcher(steamapps_paths,
-                                                self.on_steam_game_changed)
+        steamapps_paths = get_steamapps_paths(flat=True)
+        self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))

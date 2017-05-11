@@ -35,8 +35,8 @@ from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
-from lutris.util.steam import (AppManifest, get_appmanifests,
-                               get_steamapps_paths)
+from lutris.services.steam import (AppManifest, get_appmanifests,
+                                   get_steamapps_paths)
 
 from .lutriswindow import LutrisWindow
 
