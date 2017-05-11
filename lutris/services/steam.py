@@ -39,7 +39,7 @@ APP_STATE_FLAGS = [
 class AppManifest:
     def __init__(self, appmanifest_path):
         self.steamapps_path, filename = os.path.split(appmanifest_path)
-        self.steamid = re.findall(r'(\d+)', filename)[0]
+        self.steamid = re.findall(r'(\d+)', filename)[-1]
         if os.path.exists(appmanifest_path):
             with open(appmanifest_path, "r") as appmanifest_file:
                 self.appmanifest_data = vdf_parse(appmanifest_file, {})
@@ -193,8 +193,9 @@ def mark_as_installed(steamid, runner_name, game_info):
 
 
 def mark_as_uninstalled(game_info):
-    assert 'id' in game_info
-    assert 'name' in game_info
+    for key in ('id', 'name'):
+        if key not in game_info:
+            raise ValueError("Missing %s field in %s" % (key, game_info))
     logger.info('Setting %s as uninstalled' % game_info['name'])
     game_id = pga.add_or_update(
         id=game_info['id'],
@@ -204,50 +205,51 @@ def mark_as_uninstalled(game_info):
     return game_id
 
 
-def sync_with_lutris():
+def sync_appmanifest_state(appmanifest_path, name=None, slug=None):
+    try:
+        appmanifest = AppManifest(appmanifest_path)
+    except Exception:
+        logger.error("Unable to parse file %s", appmanifest_path)
+        return
+    if appmanifest.is_installed():
+        game_info = {
+            'name': name or appmanifest.name,
+            'slug': slug or appmanifest.slug,
+        }
+        runner_name = appmanifest.get_runner_name()
+        mark_as_installed(appmanifest.steamid, runner_name, game_info)
+
+
+def sync_with_lutris(platform='linux'):
     steamapps_paths = get_steamapps_paths()
-    steam_games_in_lutris = pga.get_steam_games()
+    steam_games_in_lutris = pga.get_steam_games()  # List of Lutris games with a steamid
     steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
-    seen_ids = set()
-    for platform in steamapps_paths:
-        for steamapps_path in steamapps_paths[platform]:
-            appmanifests = get_appmanifests(steamapps_path)
-            for appmanifest_file in appmanifests:
-                steamid = re.findall(r'(\d+)', appmanifest_file)[0]
-                seen_ids.add(steamid)
-                game_info = None
-                if steamid not in steamids_in_lutris and platform == 'linux':
-                    appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-                    try:
-                        appmanifest = AppManifest(appmanifest_path)
-                    except Exception:
-                        logger.error("Unable to parse file %s", appmanifest_path)
-                        continue
-                    if appmanifest.is_installed():
-                        game_info = {
-                            'name': appmanifest.name,
-                            'slug': appmanifest.slug,
-                        }
-                        mark_as_installed(steamid, 'steam', game_info)
-                else:
-                    for game in steam_games_in_lutris:
-                        if str(game['steamid']) == steamid and not game['installed']:
-                            game_info = game
-                            break
-                    if game_info:
-                        appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-                        try:
-                            appmanifest = AppManifest(appmanifest_path)
-                        except Exception:
-                            logger.error("Unable to parse file %s", appmanifest_path)
-                            continue
-                        if appmanifest.is_installed():
-                            runner_name = appmanifest.get_runner_name()
-                            mark_as_installed(steamid, runner_name, game_info)
+    seen_ids = set()  # Set of Steam appids seen while browsing AppManifests
+
+    for steamapps_path in steamapps_paths[platform]:
+        appmanifests = get_appmanifests(steamapps_path)
+        for appmanifest_file in appmanifests:
+            steamid = re.findall(r'(\d+)', appmanifest_file)[0]
+            seen_ids.add(steamid)
+            appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
+            if steamid not in steamids_in_lutris and platform == 'linux':
+                # New Steam game, not seen before in Lutris,
+                # only supports Linux games
+                sync_appmanifest_state(appmanifest_path)
+            else:
+                # Lookup previously installed Steam games
+                pga_entry = None
+                for game in steam_games_in_lutris:
+                    if str(game['steamid']) == steamid and not game['installed']:
+                        pga_entry = game
+                        break
+                if pga_entry:
+                    sync_appmanifest_state(appmanifest_path, name=pga_entry['name'], slug=pga_entry['slug'])
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:
         for game in steam_games_in_lutris:
+            runner = 'steam' if platform == 'linux' else 'winesteam'
             if str(game['steamid']) == steamid \
                and game['installed'] \
-               and game['runner'] in ('steam', 'winesteam'):
+               and game['runner'] == runner:
                 mark_as_uninstalled(game)
