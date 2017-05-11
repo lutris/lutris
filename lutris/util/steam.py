@@ -140,15 +140,6 @@ def get_appmanifests(steamapps_path):
             if re.match(r'^appmanifest_\d+.acf$', f)]
 
 
-def set_winesteam_directwrite(prefix_dir, wine_path, enable=True):
-    from lutris.runners import wine
-    # Since Wine 1.7.50, DirectWrite has been fixed
-    wine.set_regedit("HKEY_CURRENT_USER\Software\Valve\Steam",
-                     'DWriteEnable', '1' if enable else '0', 'REG_DWORD',
-                     wine_path=wine_path,
-                     prefix=prefix_dir)
-
-
 class SteamWatcher:
     def __init__(self, steamapps_paths, callback=None):
         self.monitors = []
