@@ -2,6 +2,7 @@
 """Module that actually runs the games."""
 import os
 import time
+import shlex
 import subprocess
 
 from gi.repository import GLib, Gtk
@@ -264,8 +265,8 @@ class Game(object):
             env['PULSE_LATENCY_MSEC'] = '60'
 
         prefix_command = system_config.get("prefix_command") or ''
-        if prefix_command.strip():
-            launch_arguments.insert(0, prefix_command)
+        if prefix_command:
+            launch_arguments = shlex.split(prefix_command) + launch_arguments
 
         single_cpu = system_config.get('single_cpu') or False
         if single_cpu:
