@@ -1,5 +1,6 @@
 import os
 import re
+from collections import defaultdict
 
 from lutris import pga
 from lutris.util.log import logger
@@ -112,27 +113,37 @@ def get_appmanifests(steamapps_path):
             if re.match(r'^appmanifest_\d+.acf$', f)]
 
 
-def get_steamapps_paths(flat=False):
+def get_steamapps_paths_for_platform(platform_name):
     from lutris.runners import winesteam, steam
+    runners = {
+        'linux': steam.steam,
+        'windows': winesteam.winesteam
+    }
+    runner = runners[platform_name]()
+    return runner.get_steamapps_dirs()
+
+
+def get_steamapps_paths(flat=False, platform=None):
+    base_platforms = ['linux', 'windows']
     if flat:
         steamapps_paths = []
     else:
-        steamapps_paths = {
-            'linux': [],
-            'windows': []
-        }
-    winesteam_runner = winesteam.winesteam()
-    steam_runner = steam.steam()
-    for folder in steam_runner.get_steamapps_dirs():
+        steamapps_paths = defaultdict(list)
+
+    if platform:
+        if platform not in base_platforms:
+            raise ValueError("Illegal value for Steam platform: %s" % platform)
+        platforms = [platform]
+    else:
+        platforms = base_platforms
+
+    for platform in platforms:
+        folders = get_steamapps_paths_for_platform(platform)
         if flat:
-            steamapps_paths.append(folder)
+            steamapps_paths += folders
         else:
-            steamapps_paths['linux'].append(folder)
-    for folder in winesteam_runner.get_steamapps_dirs():
-        if flat:
-            steamapps_paths.append(folder)
-        else:
-            steamapps_paths['windows'].append(folder)
+            steamapps_paths[platform] = folders
+
     return steamapps_paths
 
 
