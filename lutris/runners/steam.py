@@ -133,7 +133,7 @@ class steam(Runner):
             game_path = get_path_from_appmanifest(apps_path, self.appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", self.appid)
+        logger.info("Data path for SteamApp %s not found.", self.appid)
 
     @property
     def steam_data_dir(self):
@@ -180,7 +180,7 @@ class steam(Runner):
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", appid)
+        logger.info("Data path for SteamApp %s not found.", appid)
 
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
