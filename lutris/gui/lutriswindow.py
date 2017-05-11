@@ -17,7 +17,8 @@ from lutris.util.jobs import AsyncCall
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util import steam
-from lutris.util import desktopapps
+
+from lutris.services import xdg
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -80,7 +81,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Sync local lutris library with current Steam games and desktop games
         # before setting up game list and view
         steam.sync_with_lutris()
-        desktopapps.sync_with_lutris()
+        xdg.sync_with_lutris()
 
         # Window initialization
         self.game_list = pga.get_games()
