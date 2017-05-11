@@ -134,12 +134,6 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
     return state_log
 
 
-def get_appmanifests(steamapps_path):
-    """Return the list for all appmanifest files in a Steam library folder"""
-    return [f for f in os.listdir(steamapps_path)
-            if re.match(r'^appmanifest_\d+.acf$', f)]
-
-
 class SteamWatcher:
     def __init__(self, steamapps_paths, callback=None):
         self.monitors = []

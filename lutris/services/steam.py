@@ -3,7 +3,7 @@ import re
 
 from lutris import pga
 from lutris.util.log import logger
-from lutris.util.steam import get_appmanifests, vdf_parse
+from lutris.util.steam import vdf_parse
 from lutris.util.system import fix_path_case
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
@@ -104,6 +104,12 @@ class AppManifest:
             return 'steam'
         else:
             return 'winesteam'
+
+
+def get_appmanifests(steamapps_path):
+    """Return the list for all appmanifest files in a Steam library folder"""
+    return [f for f in os.listdir(steamapps_path)
+            if re.match(r'^appmanifest_\d+.acf$', f)]
 
 
 def get_steamapps_paths(flat=False):
