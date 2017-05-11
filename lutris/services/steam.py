@@ -3,7 +3,7 @@ import re
 
 from lutris import pga
 from lutris.util.log import logger
-from lutris.util.steam import get_steamapps_paths, get_appmanifests, vdf_parse
+from lutris.util.steam import get_appmanifests, vdf_parse
 from lutris.util.system import fix_path_case
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
@@ -104,6 +104,30 @@ class AppManifest:
             return 'steam'
         else:
             return 'winesteam'
+
+
+def get_steamapps_paths(flat=False):
+    from lutris.runners import winesteam, steam
+    if flat:
+        steamapps_paths = []
+    else:
+        steamapps_paths = {
+            'linux': [],
+            'windows': []
+        }
+    winesteam_runner = winesteam.winesteam()
+    steam_runner = steam.steam()
+    for folder in steam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['linux'].append(folder)
+    for folder in winesteam_runner.get_steamapps_dirs():
+        if flat:
+            steamapps_paths.append(folder)
+        else:
+            steamapps_paths['windows'].append(folder)
+    return steamapps_paths
 
 
 def get_appmanifest_from_appid(steamapps_path, appid):

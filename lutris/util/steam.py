@@ -140,30 +140,6 @@ def get_appmanifests(steamapps_path):
             if re.match(r'^appmanifest_\d+.acf$', f)]
 
 
-def get_steamapps_paths(flat=False):
-    from lutris.runners import winesteam, steam
-    if flat:
-        steamapps_paths = []
-    else:
-        steamapps_paths = {
-            'linux': [],
-            'windows': []
-        }
-    winesteam_runner = winesteam.winesteam()
-    steam_runner = steam.steam()
-    for folder in steam_runner.get_steamapps_dirs():
-        if flat:
-            steamapps_paths.append(folder)
-        else:
-            steamapps_paths['linux'].append(folder)
-    for folder in winesteam_runner.get_steamapps_dirs():
-        if flat:
-            steamapps_paths.append(folder)
-        else:
-            steamapps_paths['windows'].append(folder)
-    return steamapps_paths
-
-
 def set_winesteam_directwrite(prefix_dir, wine_path, enable=True):
     from lutris.runners import wine
     # Since Wine 1.7.50, DirectWrite has been fixed
