@@ -1,6 +1,6 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 from lutris.gui.widgets import get_runner_icon
 
 
@@ -10,7 +10,8 @@ class ServiceSyncRow(Gtk.HBox):
         super(ServiceSyncRow, self).__init__()
         self.set_spacing(20)
 
-        identifier, name = service
+        identifier = service.__name__.split('.')[-1]
+        name = service.NAME
 
         icon = get_runner_icon(identifier)
         self.pack_start(icon, False, False, 0)
@@ -29,6 +30,7 @@ class ServiceSyncRow(Gtk.HBox):
 
         sync_button = Gtk.Button("Sync")
         sync_button.set_tooltip_text("Sync now")
+        sync_button.connect('clicked', lambda w: GLib.idle_add(service.sync_with_lutris))
         actions.pack_start(sync_button, False, False, 0)
 
 

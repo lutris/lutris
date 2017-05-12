@@ -9,6 +9,7 @@ from lutris.util.system import fix_path_case
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
+NAME = 'Steam'
 
 APP_STATE_FLAGS = [
     "Invalid",

@@ -12,6 +12,8 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
+NAME = "Desktop games"
+
 IGNORED_GAMES = (
     "lutris", "mame", "dosbox", "playonlinux", "org.gnome.Games", "retroarch",
     "steam", "steam-runtime", "steam-valve", "steam-native", "PlayOnLinux",
