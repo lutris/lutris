@@ -18,11 +18,12 @@ from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
 
-from lutris.services import xdg, steam, winesteam
+from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
 from lutris.gui.logwindow import LogWindow
+from lutris.gui.sync import SyncServiceDialog
 from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
@@ -79,10 +80,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
 
         # Sync local lutris library with current Steam games and desktop games
-        # before setting up game list and view
-        steam.sync_with_lutris()
-        winesteam.sync_with_lutris()
-        xdg.sync_with_lutris()
+        for service in get_services_synced_at_startup():
+            service.sync_with_lutris()
 
         # Window initialization
         self.game_list = pga.get_games()
@@ -168,6 +167,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'disconnect': Action(self.on_disconnect),
             'connect': Action(self.on_connect),
             'synchronize': Action(lambda *x: self.sync_library()),
+            'sync-local': Action(lambda *x: self.open_sync_dialog()),
 
             'add-game': Action(self.on_add_game_button_clicked),
             'view-game-log': Action(self.on_view_game_log_activate),
@@ -354,6 +354,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.set_status("Syncing library")
         AsyncCall(sync_from_remote, update_gui)
+
+    def open_sync_dialog(self):
+        sync_dialog = SyncServiceDialog(parent=self)
+        sync_dialog.run()
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
