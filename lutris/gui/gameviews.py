@@ -386,7 +386,7 @@ class GameListView(Gtk.TreeView, GameView):
     def on_column_width_changed(self, col, *args):
         col_name = col.get_title()
         if col_name:
-            settings.write_setting(col_name + '_column_width',
+            settings.write_setting(col_name.replace(' ', '') + '_column_width',
                                    col.get_fixed_width(), 'list view')
 
 
