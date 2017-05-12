@@ -133,8 +133,14 @@ class Game(object):
             return
         self.platform = self.runner.get_platform()
 
-    def save(self):
-        self.config.save()
+    def save(self, metadata_only=False):
+        """
+        Save the game's config and metadata, if `metadata_only` is set to True,
+        do not save the config. This is useful when exiting the game since the
+        config might have changed and we don't want to override the changes.
+        """
+        if not metadata_only:
+            self.config.save()
         self.id = pga.add_or_update(
             name=self.name,
             runner=self.runner_name,
@@ -392,7 +398,7 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save()
+        self.save(metadata_only=True)
 
         os.chdir(os.path.expanduser('~'))
 
