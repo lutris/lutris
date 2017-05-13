@@ -26,7 +26,7 @@ setup(
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
     packages=['lutris', 'lutris.gui', 'lutris.util', 'lutris.runners',
-              'lutris.installer', 'lutris.migrations'],
+              'lutris.services', 'lutris.installer', 'lutris.migrations'],
     scripts=['bin/lutris'],
     data_files=data_files,
     install_requires=[
