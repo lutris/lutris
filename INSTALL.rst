@@ -26,6 +26,12 @@ THE DEVELOPERS. USE THAT METHOD AT YOUR OWN RISK. THE RECOMMENDED WAY OF
 INSTALLING LUTRIS IS WITH PROVIDED DISTRIBUTION PACKAGES. IF YOU WANT TO 
 USE THE DEVELOPMENT VERSION, JUST RUN IT FROM THE SOURCE DIR ITSELF.
 
+***********************************************************
+*                                                         *
+* **WARNING:** SERIOUSLY, DO ***NOT*** USE SETUP.PY!!!!!  *
+*                                                         *
+***********************************************************
+
 **Warning:** there is no way to cleanly uninstall programs installed with
 setup.py other than manuall deleting the created files. Prefer installing
 Lutris through distribution packages or run it directly from the source
