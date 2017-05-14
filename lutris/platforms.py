@@ -23,7 +23,7 @@ def update_platforms():
             continue
         game = Game(id=pga_game['id'])
         game.set_platform_from_runner()
-        game.save()
+        game.save(metadata_only=True)
 
 
 _init_platforms()
