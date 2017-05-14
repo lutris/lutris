@@ -850,7 +850,8 @@ class wine(Runner):
 
     def setup_x360ce(self, x360ce_path):
         if not os.path.isdir(x360ce_path):
-            logger.error("%s is not a valid path for x360ce")
+            logger.error("%s is not a valid path for x360ce", x360ce_path)
+            return
         xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
         dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
         if not os.path.exists(xinput_dest_path):
