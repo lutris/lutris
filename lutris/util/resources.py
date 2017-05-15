@@ -98,24 +98,36 @@ def parse_installer_url(url):
     """
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
     """
+    action = None
     try:
         parsed_url = urlparse(url, scheme="lutris")
     except:
         return False
     if parsed_url.scheme != "lutris":
         return False
-    game_slug = parsed_url.path
-    if not game_slug:
+    url_path = parsed_url.path
+    if not url_path:
         return False
     # urlparse can't parse if the path only contain numbers
     # workaround to remove the scheme manually:
-    if game_slug.startswith('lutris:'):
-        game_slug = game_slug[7:]
+    if url_path.startswith('lutris:'):
+        url_path = url_path[7:]
+
+    url_parts = url_path.split('/')
+    if len(url_parts) == 2:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+    elif len(url_parts) == 1:
+        game_slug = url_parts[0]
+    else:
+        raise ValueError('Invalid lutris url %s' % url)
+
     revision = None
     if parsed_url.query:
         query = dict(parse_qsl(parsed_url.query))
         revision = query.get('revision')
     return {
         'game_slug': game_slug,
-        'revision': revision
+        'revision': revision,
+        'action': action
     }
