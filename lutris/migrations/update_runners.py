@@ -10,7 +10,7 @@ def migrate():
             return
         if dirname in ['atari800', 'dgen', 'dolphin', 'dosbox', 'frotz', 'fs-uae',
                        'gens', 'hatari', 'jzintv', 'mame', 'mednafen', 'mess',
-                       'mupen64plus', 'nulldc', 'o2em', 'osmose', 'pcsxr',
+                       'mupen64plus', 'nulldc', 'o2em', 'osmose',
                        'reicast', 'ResidualVM', 'residualvm', 'scummvm',
                        'snes9x', 'stella', 'vice', 'virtualjaguar', 'zdoom']:
             shutil.rmtree(path)
