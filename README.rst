@@ -40,7 +40,6 @@ We currently support the following runners:
 * Snes9x
 * Mupen64Plus
 * Dolphin
-* PCSX-Reloaded
 * PCSX2
 * PPSSPP
 * Osmose
