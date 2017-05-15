@@ -201,25 +201,21 @@ class Application(Gtk.Application):
             self.execute_command(command)
             return 0
 
-        game_slug = ''
-        installer_info = {}
-        revision = None
-        uri = options.lookup_value(GLib.OPTION_REMAINING)
-        if uri:
-            uri = uri.get_strv()
-
-        if uri and len(uri):
-            uri = uri[0]  # TODO: Support multiple
-            installer_info = parse_installer_url(uri)
-            if installer_info is False:
-                self._print(command_line, '%s is not a valid URI' % uri)
-                return 1
-            game_slug = installer_info['game_slug']
-            revision = installer_info['revision']
+        try:
+            url = options.lookup_value(GLib.OPTION_REMAINING)
+            installer_info = self.get_lutris_action(url)
+        except ValueError:
+            self._print(command_line, '%s is not a valid URI' % url.get_strv())
+            return 1
+        print(installer_info)
+        game_slug = installer_info['game_slug']
+        action = installer_info['action']
+        revision = installer_info['revision']
 
         installer_file = None
         if options.contains('install'):
             installer_file = options.lookup_value('install').get_string()
+            action = 'install'
             if not os.path.isfile(installer_file):
                 self._print(command_line, "No such file: %s" % installer_file)
                 return 1
@@ -227,31 +223,69 @@ class Application(Gtk.Application):
         # Graphical commands
         self.activate()
 
-        if game_slug or options.contains('install'):
+        db_game = None
+        if game_slug:
+            if action == 'rungameid':
+                # Force db_game to use game id
+                db_game = pga.get_game_by_field(game_slug, 'id')
+            elif action == 'rungame':
+                # Force db_game to use game slug
+                db_game = pga.get_game_by_field(game_slug, 'slug')
+            elif action == 'install':
+                # Installers can use game or installer slugs
+                db_game = (pga.get_game_by_field(game_slug, 'slug') or
+                           pga.get_game_by_field(game_slug, 'installer_slug'))
 
-            db_game = None
-            if game_slug:
+            else:
+                # Dazed and confused, try anything that might works
                 db_game = (pga.get_game_by_field(game_slug, 'id') or
                            pga.get_game_by_field(game_slug, 'slug') or
                            pga.get_game_by_field(game_slug, 'installer_slug'))
 
-            force_install = options.contains('reinstall') or bool(installer_info.get('revision'))
+        if not action:
             if db_game and db_game['installed']:
-                game_name = db_game['name']
-                if not force_install:
-                    dlg = InstallOrPlayDialog(game_name)
-                    if not dlg.action_confirmed:
-                        return 0
-                    if dlg.action == 'play':
-                        logger.info("Launching %s" % game_name)
-                        self.window.on_game_run(game_id=db_game['id'])
-                        return 0
+                # Game found but no action provided, ask what to do
+                dlg = InstallOrPlayDialog(db_game['name'])
+                if not dlg.action_confirmed:
+                    action = None
+                if dlg.action == 'play':
+                    action = 'rungame'
+                elif dlg.action == 'install':
+                    action = 'install'
+            elif game_slug or installer_file:
+                # No game found, default to install if a game_slug or
+                # installer_file is provided
+                action = 'install'
+
+        print(action)
+
+        if action == 'install':
             logger.info("Installing %s" % game_slug or installer_file)
             self.window.on_install_clicked(game_slug=game_slug,
                                            installer_file=installer_file,
                                            revision=revision)
+        elif action in ('rungame', 'rungameid'):
+            logger.info("Launching %s" % db_game['name'])
+            self.window.on_game_run(game_id=db_game['id'])
 
         return 0
+
+    def get_lutris_action(self, url):
+        installer_info = {
+            'game_slug': None,
+            'revision': None,
+            'action': None
+        }
+
+        if url:
+            url = url.get_strv()
+
+        if url and len(url):
+            url = url[0]  # TODO: Support multiple
+            installer_info = parse_installer_url(url)
+            if installer_info is False:
+                raise ValueError
+        return installer_info
 
     def print_game_list(self, command_line, game_list):
         for game in game_list:

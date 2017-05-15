@@ -157,6 +157,7 @@ class DownloadDialog(Gtk.Dialog):
 class InstallOrPlayDialog(Gtk.Dialog):
     def __init__(self, game_name):
         Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
+        self.connect("delete-event", lambda *x: self.destroy())
 
         self.action = None
         self.action_confirmed = False
