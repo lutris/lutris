@@ -257,8 +257,6 @@ class Application(Gtk.Application):
                 # installer_file is provided
                 action = 'install'
 
-        print(action)
-
         if action == 'install':
             logger.info("Installing %s" % game_slug or installer_file)
             self.window.on_install_clicked(game_slug=game_slug,
