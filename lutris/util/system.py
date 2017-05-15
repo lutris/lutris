@@ -184,6 +184,8 @@ def remove_folder(path):
 
 
 def create_folder(path):
+    if not path:
+        return
     path = os.path.expanduser(path)
     if not os.path.exists(path):
         os.makedirs(path)

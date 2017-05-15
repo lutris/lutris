@@ -10,6 +10,7 @@ from gi.repository import Gio
 
 from lutris import pga, settings, sysoptions
 from lutris.runners import import_runner, InvalidRunner
+from lutris.util.system import path_exists, create_folder
 from lutris.util.log import logger
 
 
@@ -50,9 +51,7 @@ def check_config(force_wipe=False):
                    join(settings.CACHE_DIR, "installer"),
                    join(settings.CACHE_DIR, "tmp")]
     for directory in directories:
-        if not os.path.exists(directory):
-            logger.debug("creating directory %s" % directory)
-            os.makedirs(directory)
+        create_folder(directory)
 
     if force_wipe:
         os.remove(settings.PGA_DB)
@@ -67,7 +66,7 @@ def make_game_config_id(game_slug):
 
 def read_yaml_from_file(filename):
     """Read filename and return parsed yaml"""
-    if not filename or not os.path.exists(filename):
+    if not path_exists(filename):
         return {}
     try:
         content = open(filename, 'r').read()
@@ -239,9 +238,7 @@ class LutrisConfig(object):
 
     def remove(self, game=None):
         """Delete the configuration file from disk."""
-        if not self.game_config_path:
-            return
-        if os.path.exists(self.game_config_path):
+        if path_exists(self.game_config_path):
             os.remove(self.game_config_path)
             logger.debug("Removed config %s", self.game_config_path)
         else:
