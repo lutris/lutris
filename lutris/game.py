@@ -7,8 +7,9 @@ import subprocess
 
 from gi.repository import GLib, Gtk
 
-from lutris import pga, shortcuts
+from lutris import pga
 from lutris import runtime
+from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
@@ -125,7 +126,7 @@ class Game(object):
         else:
             pga.set_uninstalled(self.id)
         self.config.remove()
-        shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        xdg.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         return from_library
 
     def set_platform_from_runner(self):

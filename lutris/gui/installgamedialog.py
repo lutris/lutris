@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from gi.repository import Gtk, Pango
-import webbrowser
 import yaml
+import webbrowser
 
-from lutris import pga, settings, shortcuts
+from gi.repository import Gtk, Pango
+
+from lutris import pga, settings
+from lutris.services import xdg
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
@@ -509,10 +511,9 @@ class InstallerDialog(Gtk.Window):
         create_menu_shortcut = self.menu_shortcut_box.get_active()
 
         if create_desktop_shortcut:
-            shortcuts.create_launcher(game_slug, game_id, game_name,
-                                      desktop=True)
+            xdg.create_launcher(game_slug, game_id, game_name, desktop=True)
         if create_menu_shortcut:
-            shortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
+            xdg.create_launcher(game_slug, game_id, game_name, menu=True)
 
         settings.write_setting('create_desktop_shortcut',
                                create_desktop_shortcut)

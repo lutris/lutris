@@ -1,16 +1,23 @@
-"""Get games installed as desktop applications."""
+"""XDG applications service"""
 
 import os
+import stat
+import shutil
 import shlex
 import subprocess
 import re
 
-from gi.repository import Gio
+from textwrap import dedent
+
+from gi.repository import Gio, GLib
+
 from lutris import pga
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
+from lutris.settings import CACHE_DIR
+
 
 NAME = "Desktop games"
 
@@ -118,12 +125,16 @@ def sync_with_lutris():
                 mark_as_uninstalled(game)
 
 
+def iter_xdg_apps():
+    for app in Gio.AppInfo.get_all():
+        yield app
+
+
 def get_games():
     """Return the list of games stored in the XDG menu."""
     game_list = []
 
-    apps = Gio.AppInfo.get_all()
-    for app in apps:
+    for app in iter_xdg_apps():
         if app.get_nodisplay() or app.get_is_hidden():
             continue
 
@@ -171,3 +182,100 @@ def get_games():
             exe = system.find_executable(exe)
         game_list.append((app.get_display_name(), appid, exe, args))
     return game_list
+
+
+def get_xdg_basename(game_slug, game_id, legacy=False):
+    if legacy:
+        filename = "{}.desktop".format(game_slug)
+    else:
+        filename = "{}-{}.desktop".format(game_slug, game_id)
+    return filename
+
+
+def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
+    """Create a .desktop file."""
+    desktop_dir = (
+        GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    )
+    launcher_content = dedent(
+        """
+        [Desktop Entry]
+        Type=Application
+        Name={}
+        Icon={}
+        Exec=lutris lutris:{}
+        Categories=Game
+        """.format(game_name, 'lutris_{}'.format(game_slug), game_id)
+    )
+
+    launcher_filename = get_xdg_basename(game_slug, game_id, legacy=False)
+    tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
+    tmp_launcher = open(tmp_launcher_path, "w")
+    tmp_launcher.write(launcher_content)
+    tmp_launcher.close()
+    os.chmod(tmp_launcher_path, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC |
+             stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
+
+    if desktop:
+        shutil.copy(tmp_launcher_path,
+                    os.path.join(desktop_dir, launcher_filename))
+    if menu:
+        menu_path = os.path.join(GLib.get_user_data_dir(), 'applications')
+        shutil.copy(tmp_launcher_path,
+                    os.path.join(menu_path, launcher_filename))
+    os.remove(tmp_launcher_path)
+
+
+def get_launcher_path(game_slug, game_id):
+    """Return the path of a XDG game launcher.
+    When legacy is set, it will return the old path with only the slug,
+    otherwise it will return the path with slug + id
+    """
+    desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+
+    legacy_launcher_path = os.path.join(
+        desktop_dir, get_xdg_basename(game_slug, game_id, legacy=True)
+    )
+    # First check if legacy path exists, for backward compatibility
+    if system.path_exists(legacy_launcher_path):
+        return legacy_launcher_path
+    # Otherwise return new path, whether it exists or not
+    return os.path.join(
+        desktop_dir, get_xdg_basename(game_slug, game_id, legacy=False)
+    )
+
+
+def get_menu_launcher_path(game_slug, game_id):
+    """Return the path to a XDG menu launcher, prioritizing legacy paths if
+    they exist
+    """
+    menu_dir = os.path.join(GLib.get_user_data_dir(), 'applications')
+    menu_path = os.path.join(
+        menu_dir, get_xdg_basename(game_slug, game_id, legacy=True)
+    )
+    if system.path_exists(menu_path):
+        return menu_path
+    return os.path.join(
+        menu_dir, get_xdg_basename(game_slug, game_id, legacy=False)
+    )
+
+
+def desktop_launcher_exists(game_slug, game_id):
+    return system.path_exists(get_launcher_path(game_slug, game_id))
+
+
+def menu_launcher_exists(game_slug, game_id):
+    return system.path_exists(get_menu_launcher_path(game_slug, game_id))
+
+
+def remove_launcher(game_slug, game_id, desktop=False, menu=False):
+    """Remove existing .desktop file."""
+    if desktop:
+        launcher_path = get_launcher_path(game_slug, game_id)
+        if system.path_exists(launcher_path):
+            os.remove(launcher_path)
+
+    if menu:
+        menu_path = get_menu_launcher_path(game_slug, game_id)
+        if system.path_exists(menu_path):
+            os.remove(menu_path)

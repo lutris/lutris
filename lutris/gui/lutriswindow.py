@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
-from lutris import api, pga, settings, shortcuts
+from lutris import api, pga, settings
 from lutris.game import Game
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
@@ -18,7 +18,7 @@ from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
 
-from lutris.services import get_services_synced_at_startup, steam
+from lutris.services import get_services_synced_at_startup, steam, xdg
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
@@ -704,20 +704,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
         game = Game(self.view.selected_game)
-        shortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
+        xdg.create_launcher(game.slug, game.id, game.name, menu=True)
 
     def create_desktop_shortcut(self, *args):
         """Create a desktop launcher for the selected game."""
         game = Game(self.view.selected_game)
-        shortcuts.create_launcher(game.slug, game.id, game.name, desktop=True)
+        xdg.create_launcher(game.slug, game.id, game.name, desktop=True)
 
     def remove_menu_shortcut(self, *args):
         game = Game(self.view.selected_game)
-        shortcuts.remove_launcher(game.slug, game.id, menu=True)
+        xdg.remove_launcher(game.slug, game.id, menu=True)
 
     def remove_desktop_shortcut(self, *args):
         game = Game(self.view.selected_game)
-        shortcuts.remove_launcher(game.slug, game.id, desktop=True)
+        xdg.remove_launcher(game.slug, game.id, desktop=True)
 
     def on_sidebar_state_change(self, action, value):
         action.set_state(value)

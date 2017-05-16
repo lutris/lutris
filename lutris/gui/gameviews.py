@@ -10,8 +10,8 @@ from lutris import runners
 from lutris import pga, settings
 from lutris.gui.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
-from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util.log import logger
 
 (
@@ -499,19 +499,19 @@ class ContextualMenu(Gtk.Menu):
             'configure': not is_installed,
             'desktop-shortcut': (
                 not is_installed or
-                desktop_launcher_exists(game_slug, game_id)
+                xdg.desktop_launcher_exists(game_slug, game_id)
             ),
             'menu-shortcut': (
                 not is_installed or
-                menu_launcher_exists(game_slug, game_id)
+                xdg.menu_launcher_exists(game_slug, game_id)
             ),
             'rm-desktop-shortcut': (
                 not is_installed or
-                not desktop_launcher_exists(game_slug, game_id)
+                not xdg.desktop_launcher_exists(game_slug, game_id)
             ),
             'rm-menu-shortcut': (
                 not is_installed or
-                not menu_launcher_exists(game_slug, game_id)
+                not xdg.menu_launcher_exists(game_slug, game_id)
             ),
             'browse': not is_installed or runner_slug == 'browser',
         }
