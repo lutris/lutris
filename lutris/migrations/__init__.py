@@ -20,7 +20,8 @@ MIGRATIONS.append([
 ])
 
 MIGRATIONS.append([
-    'pcsxr_deprecation'
+    'pcsxr_deprecation',
+    'update_xdg_shortcuts',
 ])
 
 

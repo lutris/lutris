@@ -203,7 +203,7 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
         Type=Application
         Name={}
         Icon={}
-        Exec=lutris lutris:{}
+        Exec=lutris lutris:rungameid/{}
         Categories=Game
         """.format(game_name, 'lutris_{}'.format(game_slug), game_id)
     )

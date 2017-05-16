@@ -54,8 +54,6 @@ def db_insert(db_path, table, fields):
                 field_values
             )
         except sqlite3.IntegrityError:
-            print(columns)
-            print(field_values)
             raise
         inserted_id = cursor.lastrowid
     return inserted_id
