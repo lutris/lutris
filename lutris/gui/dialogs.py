@@ -6,6 +6,7 @@ from gi.repository import GLib, Gtk, Gdk, GObject
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets import DownloadProgressBox
 from lutris.util import datapath
+from lutris.util.log import logger
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -20,17 +21,22 @@ class GtkBuilderDialog(GObject.Object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
+
         self.builder.connect_signals(self)
         if parent:
             self.dialog.set_transient_for(parent)
         self.dialog.show_all()
+        self.dialog.connect("delete-event", lambda *x: x[0].destroy())
         self.initialize(**kwargs)
 
     def initialize(self, **kwargs):
         pass
 
     def on_close(self, *args):
-        self.dialog.destroy()
+        try:
+            self.dialog.destroy()
+        except:
+            logger.info("Tell strider that he can't write an about dialog")
 
     def on_response(self, widget, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
