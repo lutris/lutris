@@ -207,7 +207,6 @@ class Application(Gtk.Application):
         except ValueError:
             self._print(command_line, '%s is not a valid URI' % url.get_strv())
             return 1
-        print(installer_info)
         game_slug = installer_info['game_slug']
         action = installer_info['action']
         revision = installer_info['revision']
