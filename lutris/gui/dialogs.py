@@ -4,7 +4,7 @@ import os
 from gi.repository import GLib, Gtk, Gdk, GObject
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets import DownloadProgressBox
+from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
 from lutris.util.log import logger
 

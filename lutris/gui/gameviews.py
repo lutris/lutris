@@ -5,11 +5,14 @@ import time
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
-from lutris.game import Game
+from lutris import pga
 from lutris import runners
-from lutris import pga, settings
+from lutris import settings
+from lutris.game import Game
+
 from lutris.gui.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+
 from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger

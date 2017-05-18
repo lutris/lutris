@@ -7,10 +7,11 @@ from lutris.game import Game
 from lutris import gui
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.widgets import VBox, Dialog
+from lutris.gui.widgets.common import VBox
+from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 from lutris.util.strings import slugify
 from lutris.util import datapath
-from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550

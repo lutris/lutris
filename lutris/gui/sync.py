@@ -1,7 +1,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
-from lutris.gui.widgets import get_runner_icon
+from lutris.gui.widgets.utils import get_runner_icon
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 

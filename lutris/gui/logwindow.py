@@ -1,5 +1,5 @@
 from gi.repository import Gtk
-from lutris.gui.widgets import Dialog
+from lutris.gui.widgets.dialogs import Dialog
 
 
 class LogTextView(Gtk.TextView):

@@ -13,7 +13,8 @@ from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
-from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
+from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
 from lutris.util import jobs
 from lutris.util import system

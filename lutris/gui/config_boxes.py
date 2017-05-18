@@ -3,7 +3,7 @@ import os
 from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
-from lutris.gui.widgets import VBox, Label, FileChooserEntry, EditableGrid
+from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser

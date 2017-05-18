@@ -3,7 +3,7 @@ from gi.repository import Gtk, GObject, Gdk
 
 from lutris import runners
 from lutris import settings
-from lutris.gui.widgets import get_runner_icon
+from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
