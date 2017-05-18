@@ -214,6 +214,7 @@ class Application(Gtk.Application):
         installer_file = None
         if options.contains('install'):
             installer_file = options.lookup_value('install').get_string()
+            installer_file = os.path.abspath(installer_file)
             action = 'install'
             if not os.path.isfile(installer_file):
                 self._print(command_line, "No such file: %s" % installer_file)
