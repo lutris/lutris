@@ -55,7 +55,7 @@ class Application(Gtk.Application):
         self.css_provider = Gtk.CssProvider.new()
 
         try:
-            self.css_provider.load_from_path(os.path.join(datapath.get(), 'ui', 'log-window.css'))
+            self.css_provider.load_from_path(os.path.join(datapath.get(), 'ui', 'lutris.css'))
         except GLib.Error as e:
             logger.exception(e)
 
