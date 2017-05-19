@@ -2,39 +2,40 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-05-03 16:49+0100\n"
+"POT-Creation-Date: 2017-05-19 00:15-0400\n"
 "PO-Revision-Date: 2016-01-18 00:39+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: sv_SE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Last-Translator: \n"
-"Language-Team: \n"
 "X-Generator: Poedit 1.8.6\n"
 
-#: ../data/ui/AboutDialog.ui.h:1
+#: share/lutris/ui/about-dialog.ui:8
 msgid "About Lutris"
 msgstr "Om lutris"
 
-#: ../data/ui/AboutDialog.ui.h:2
-msgid "© 2010, 2012 Mathieu Comandon"
+#: share/lutris/ui/about-dialog.ui:16
+#, fuzzy
+msgid "© 2010, 2017 Mathieu Comandon"
 msgstr "© 2010, 2012 Mathieu Comandon"
 
-#: ../data/ui/AboutDialog.ui.h:3
+#: share/lutris/ui/about-dialog.ui:17
 msgid "Open Source Gaming Platform"
 msgstr "Öppen källkod spelplattform"
 
-#: ../data/ui/AboutDialog.ui.h:4
+#: share/lutris/ui/about-dialog.ui:19
 msgid "http://lutris.net"
 msgstr "http://lutris.net"
 
-#: ../data/ui/AboutDialog.ui.h:5
+#: share/lutris/ui/about-dialog.ui:20
 msgid ""
 "This program is free software: you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public License as published by\n"
@@ -43,141 +44,203 @@ msgid ""
 "\n"
 "This program is distributed in the hope that it will be useful,\n"
 "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
 "GNU General Public License for more details.\n"
 "\n"
 "You should have received a copy of the GNU General Public License\n"
-"along with this program. If not, see <http://www.gnu.org/licenses/>.\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
 
-#: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
+#: share/lutris/ui/dialog-lutris-login.ui:8
+#, fuzzy
+msgid "Connect to lutris.net"
+msgstr "http://lutris.net"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr ""
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr ""
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr ""
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr ""
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "This action will mark {game} as uninstalled."
+msgstr ""
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr ""
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+#, fuzzy
+msgid "Remove from my library"
+msgstr "Ta bort spelet från biblioteket"
+
+#: share/lutris/ui/lutris-window.ui:25
 msgid "Lutris"
 msgstr "Lutris"
 
-#: ../data/ui/LutrisWindow3.ui.h:2
-msgid "_File"
-msgstr "_Arkiv"
+#: share/lutris/ui/lutris-window.ui:45 share/lutris/ui/lutris-window.ui:46
+msgid "Browse games"
+msgstr ""
 
-#: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
-msgid "_Edit"
-msgstr "_Redigera"
-
-#: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
-msgid "_View"
-msgstr "_Granska"
-
-#: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
-msgid "_Help"
-msgstr "_Hjälp"
-
-#: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
-msgid "Add game"
-msgstr "Lägg till spel"
-
-#: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
-msgid "Play"
-msgstr "Spela"
-
-#: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
-msgid "Stop"
-msgstr "Sluta"
-
-#: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
-msgid "Remove"
-msgstr "Ta bort"
-
-#: ../data/ui/LutrisWindow.ui.h:2
-msgid "_Lutris"
-msgstr "_Lutris"
-
-#: ../data/ui/LutrisWindow.ui.h:3
-msgid "Connect"
-msgstr "Ansluta"
-
-#: ../data/ui/LutrisWindow.ui.h:4
-msgid "Install and configure runners"
-msgstr "Installera och konfigurera löpare"
-
-#: ../data/ui/LutrisWindow.ui.h:5
+#: share/lutris/ui/lutris-window.ui:59 share/lutris/ui/lutris-window.ui:60
 msgid "Manage runners"
 msgstr "Hantera löpare"
 
-#: ../data/ui/LutrisWindow.ui.h:6
-msgid "Import"
-msgstr "Importera"
-
-#: ../data/ui/LutrisWindow.ui.h:7
-msgid "Import games from ScummVM"
-msgstr "Importera spel från ScummVM"
-
-#: ../data/ui/LutrisWindow.ui.h:8
-msgid "ScummVM"
-msgstr "ScummVM"
-
-#: ../data/ui/LutrisWindow.ui.h:10
-msgid "configure the default options"
-msgstr "konfigurera standardalternativen"
-
-#: ../data/ui/LutrisWindow.ui.h:12
-msgid "Icons"
-msgstr "Ikoner"
-
-#: ../data/ui/LutrisWindow.ui.h:13
-msgid "List"
-msgstr "Lista"
-
-#: ../data/ui/LutrisWindow.ui.h:14
-msgid "_Game"
-msgstr "_Spel"
-
-#: ../data/ui/LutrisWindow.ui.h:15
-msgid "Start"
-msgstr "Starta"
-
-#: ../data/ui/LutrisWindow.ui.h:17
+#: share/lutris/ui/lutris-window.ui:73
 msgid "Play game"
 msgstr "Spela spel"
 
-#: ../data/ui/LutrisWindow.ui.h:19
+#: share/lutris/ui/lutris-window.ui:74
+msgid "Play"
+msgstr "Spela"
+
+#: share/lutris/ui/lutris-window.ui:87
 msgid "Stop game"
 msgstr "Stoppa spel"
 
-#: ../data/ui/LutrisWindow.ui.h:22
+#: share/lutris/ui/lutris-window.ui:88
+msgid "Stop"
+msgstr "Sluta"
+
+#: share/lutris/ui/lutris-window.ui:101
+msgid "Manually add a game"
+msgstr ""
+
+#: share/lutris/ui/lutris-window.ui:102
 msgid "Add Game"
 msgstr "Lägg till spel"
 
-#: ../data/ui/LutrisWindow.ui.h:23
+#: share/lutris/ui/lutris-window.ui:115
 msgid "Remove game from library"
 msgstr "Ta bort spelet från biblioteket"
 
-#: ../data/ui/LutrisWindow.ui.h:25
+#: share/lutris/ui/lutris-window.ui:116
+msgid "Remove"
+msgstr "Ta bort"
+
+#: share/lutris/ui/lutris-window.ui:146
 msgid "Filter the list of games"
 msgstr "Filtrera listan över spel"
 
-#: ../data/ui/AboutLutrisDialog.ui.h:1
-msgid ""
-"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
-"# This program is free software: you can redistribute it and/or modify it\n"
-"# under the terms of the GNU General Public License version 3, as published\n"
-"# by the Free Software Foundation.\n"
-"#\n"
-"# This program is distributed in the hope that it will be useful, but\n"
-"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
-"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
-"# PURPOSE. See the GNU General Public License for more details.\n"
-"#\n"
-"# You should have received a copy of the GNU General Public License along\n"
-"# with this program. If not, see <http://www.gnu.org/licenses/>.\n"
+#: share/lutris/ui/lutris-window.ui:169
+msgid "Grid view"
 msgstr ""
 
-#: ../data/ui/AboutLutrisDialog.ui.h:14
-msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com"
+#: share/lutris/ui/lutris-window.ui:188
+#, fuzzy
+msgid "List view"
+msgstr "Lista"
 
-#: ../data/ui/PreferencesLutrisDialog.ui.h:1
-msgid "gtk-cancel"
-msgstr "gtk-cancel"
+#: share/lutris/ui/lutris-window.ui:231
+#, fuzzy
+msgid "Welcome to Lutris"
+msgstr "Om lutris"
 
-#: ../data/ui/PreferencesLutrisDialog.ui.h:2
-msgid "gtk-ok"
-msgstr "gtk-ok"
+#: share/lutris/ui/lutris-window.ui:246
+msgid "There are no games currently installed, you can start adding some by:"
+msgstr ""
+
+#: share/lutris/ui/lutris-window.ui:257
+msgid "Browsing Lutris.net for games to install"
+msgstr ""
+
+#: share/lutris/ui/lutris-window.ui:273
+msgid "Connecting to your Lutris.net account to sync your library"
+msgstr ""
+
+#: share/lutris/ui/lutris-window.ui:290
+msgid "Manually adding a game installed on your hard drive"
+msgstr ""
+
+#: share/lutris/ui/lutris-window.ui:387
+#, fuzzy
+msgid "Not connected"
+msgstr "Ansluta"
+
+#: share/lutris/ui/dialog-client-update.ui:7
+msgid "Update available"
+msgstr ""
+
+#: share/lutris/ui/dialog-client-update.ui:20
+msgid "_Close"
+msgstr ""
+
+#: share/lutris/ui/dialog-client-update.ui:36
+msgid "C_heck it out"
+msgstr ""
+
+#: share/lutris/ui/dialog-client-update.ui:63
+msgid "A new version of Lutris is available!"
+msgstr ""
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr ""
+
+#: share/lutris/ui/dialog-pga-sources.ui:96
+msgid "    "
+msgstr ""
+
+#~ msgid "_File"
+#~ msgstr "_Arkiv"
+
+#~ msgid "_Edit"
+#~ msgstr "_Redigera"
+
+#~ msgid "_View"
+#~ msgstr "_Granska"
+
+#~ msgid "_Help"
+#~ msgstr "_Hjälp"
+
+#~ msgid "Add game"
+#~ msgstr "Lägg till spel"
+
+#~ msgid "_Lutris"
+#~ msgstr "_Lutris"
+
+#~ msgid "Install and configure runners"
+#~ msgstr "Installera och konfigurera löpare"
+
+#~ msgid "Import"
+#~ msgstr "Importera"
+
+#~ msgid "Import games from ScummVM"
+#~ msgstr "Importera spel från ScummVM"
+
+#~ msgid "ScummVM"
+#~ msgstr "ScummVM"
+
+#~ msgid "configure the default options"
+#~ msgstr "konfigurera standardalternativen"
+
+#~ msgid "Icons"
+#~ msgstr "Ikoner"
+
+#~ msgid "_Game"
+#~ msgstr "_Spel"
+
+#~ msgid "Start"
+#~ msgstr "Starta"
+
+#~ msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+#~ msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com"
+
+#~ msgid "gtk-cancel"
+#~ msgstr "gtk-cancel"
+
+#~ msgid "gtk-ok"
+#~ msgstr "gtk-ok"
