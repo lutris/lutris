@@ -1,0 +1,7 @@
+share/lutris/ui/about-dialog.ui
+share/lutris/ui/dialog-lutris-login.ui
+share/lutris/ui/dialog-uninstall-game.ui
+share/lutris/ui/lutris-window.ui
+share/lutris/ui/dialog-client-update.ui
+share/lutris/ui/dialog-pga-sources.ui
+share/lutris/ui/menus-traditional.ui
