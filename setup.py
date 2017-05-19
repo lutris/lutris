@@ -29,6 +29,7 @@ setup(
               'lutris.services', 'lutris.installer', 'lutris.migrations'],
     scripts=['bin/lutris'],
     data_files=data_files,
+    zip_safe=False,
     install_requires=[
         'PyYAML',
         'PyGObject',
