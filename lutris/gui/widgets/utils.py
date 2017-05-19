@@ -13,7 +13,6 @@ BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 ICON_SMALL_SIZE = (20, 20)
 
-DEFAULT_PADDING = 5
 DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 

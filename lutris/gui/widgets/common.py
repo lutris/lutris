@@ -6,8 +6,6 @@ from gi.repository import Gtk, GObject
 
 from lutris.util.system import reverse_expanduser
 
-DEFAULT_PADDING = 5
-
 
 class FileChooserEntry(Gtk.Box):
     def __init__(self, title='Select file', action=Gtk.FileChooserAction.OPEN,
@@ -100,7 +98,7 @@ class Label(Gtk.Label):
         """Custom init of label."""
         super(Label, self).__init__(label=message)
         self.set_alignment(0.1, 0.0)
-        self.set_padding(DEFAULT_PADDING, 0)
+        self.set_padding(5, 0)
         self.set_line_wrap(True)
 
 
