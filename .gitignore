@@ -18,3 +18,4 @@ lutris.e4p
 .coverage
 pga.db
 tests/coverage/*
+/po/lutris.pot
