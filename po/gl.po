@@ -1,7 +1,7 @@
 # Galician Lutris translation.
 # Copyright (C) 2016
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 #
 msgid ""
 msgstr ""
@@ -169,7 +169,7 @@ msgstr ""
 
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>""
+msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
