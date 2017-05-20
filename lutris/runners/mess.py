@@ -1,5 +1,6 @@
 import os
 from lutris import settings
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -84,8 +85,10 @@ class mess(Runner):
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
+            logger.warning("BIOS path provided in %s doesn't exist", rompath)
             rompath = os.path.join(settings.RUNNER_DIR, "mess/bios")
         if not os.path.exists(rompath):
+            logger.error("Couldn't find %s", rompath)
             return {'error': 'NO_BIOS'}
         machine = self.game_config.get('machine')
         if not machine:
