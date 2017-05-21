@@ -55,6 +55,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     status_box = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
+    zoom_adjustment = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -100,6 +101,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.maximize()
         self.init_template()
         self._init_actions()
+        self._bind_zoom_adjustment()
 
         # Set theme to dark if set in the settings
         self.set_dark_theme(self.use_dark_theme)
@@ -279,6 +281,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
         self.view.connect("remove-game", self.on_remove_game)
+
+    def _bind_zoom_adjustment(self):
+        SCALE = ('icon_small', 'icon', 'banner_small', 'banner')
+        self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
+        self.zoom_adjustment.connect('value-changed',
+                                     lambda adj: self._set_icon_type(SCALE[int(adj.props.value)]))
 
     @staticmethod
     def check_update():
@@ -715,9 +723,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if view_type != self.current_view_type:
             self.switch_view(view_type)
 
-    def on_icontype_state_change(self, action, value):
-        action.set_state(value)
-        self.icon_type = value.get_string()
+    def _set_icon_type(self, icon_type):
+        self.icon_type = icon_type
         if self.icon_type == self.game_store.icon_type:
             return
         if self.current_view_type == 'grid':
@@ -726,6 +733,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.write_setting('icon_type_listview', self.icon_type)
         self.game_store.set_icon_type(self.icon_type)
         self.switch_view(self.get_view_type())
+
+    def on_icontype_state_change(self, action, value):
+        action.set_state(value)
+        self._set_icon_type(value.get_string())
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
