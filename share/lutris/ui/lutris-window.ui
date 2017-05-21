@@ -98,33 +98,6 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkRevealer" id="search_revealer">
-            <property name="visible">1</property>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">1</property>
-                <property name="orientation">horizontal</property>
-                <style>
-                  <class name="searchbar"/>
-                </style>
-                <child>
-                  <object class="GtkSearchEntry" id="search_entry">
-                    <property name="visible">1</property>
-                    <property name="can_focus">1</property>
-                    <property name="hexpand">1</property>
-                    <property name="margin">5</property>
-                    <property name="width_chars">50</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="placeholder-text" translatable="yes">Filter the list of games</property>
-                    <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
           <object class="GtkBox" id="splash_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -242,18 +215,48 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="games_scrollwindow">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">etched-in</property>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkRevealer" id="search_revealer">
+                    <property name="visible">1</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">1</property>
+                        <property name="orientation">horizontal</property>
+                        <style>
+                          <class name="searchbar"/>
+                        </style>
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="visible">1</property>
+                            <property name="can_focus">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="margin">5</property>
+                            <property name="width_chars">50</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="placeholder-text" translatable="yes">Filter the list of games</property>
+                            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="games_scrollwindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="shadow_type">etched-in</property>
+                    <property name="vexpand">1</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </object>
                 </child>
               </object>
-              <packing>
-                <property name="resize">True</property>
-                <property name="shrink">True</property>
-              </packing>
             </child>
           </object>
           <packing>
