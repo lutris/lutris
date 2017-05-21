@@ -58,7 +58,7 @@ class ServiceSyncRow(Gtk.HBox):
 class SyncServiceDialog(Gtk.Dialog):
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, title="Import local games", parent=parent)
+        Gtk.Dialog.__init__(self, title="Import local games", parent=parent, use_header_bar=1)
         self.connect("delete-event", lambda *x: self.destroy())
         self.set_border_width(10)
         self.set_size_request(512, 0)
