@@ -59,11 +59,6 @@ class RunnersDialog(Gtk.Dialog):
         refresh_button.connect('clicked', self.on_refresh_clicked)
         buttons_box.pack_start(refresh_button, False, False, 10)
 
-        close_button = Gtk.Button("Close")
-        close_button.show()
-        close_button.connect('clicked', self.on_close_clicked)
-        buttons_box.pack_start(close_button, False, False, 0)
-
         # Signals
         self.connect('destroy', self.on_destroy)
         self.connect('configure-event', self.on_resize)
@@ -184,9 +179,6 @@ class RunnersDialog(Gtk.Dialog):
         for child in self.runner_listbox:
             child.destroy()
         self.populate_runners()
-
-    def on_close_clicked(self, widget):
-        self.destroy()
 
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():
