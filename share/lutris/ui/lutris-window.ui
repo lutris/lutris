@@ -27,6 +27,14 @@
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <signal name="size-allocate" handler="on_resize" swapped="no"/>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header_bar">
+        <property name="visible">1</property>
+        <property name="title" translatable="yes">Lutris</property>
+        <property name="has-subtitle">0</property>
+        <property name="show-close-button">1</property>
+      </object>
+    </child>
     <child>
       <object class="GtkBox" id="main_box">
         <property name="visible">True</property>
