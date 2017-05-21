@@ -151,12 +151,10 @@ class Application(Gtk.Application):
         self.add_accelerator('<Primary>q', 'app.quit')
 
         builder = Gtk.Builder.new_from_file(
-            os.path.join(datapath.get(), 'ui', 'menus-traditional.ui')
+            os.path.join(datapath.get(), 'ui', 'menus.ui')
         )
         appmenu = builder.get_object('app-menu')
         self.set_app_menu(appmenu)
-        menubar = builder.get_object('menubar')
-        self.set_menubar(menubar)
 
     def do_activate(self):
         if not self.window:

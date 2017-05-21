@@ -37,27 +37,4 @@
       </item>
     </section>
   </menu>
-  <menu id="menubar">
-    <submenu>
-      <attribute name="label">_Game</attribute>
-      <section>
-        <item>
-          <attribute name="label">_Play</attribute>
-          <attribute name="action">win.start-game</attribute>
-        </item>
-        <item>
-          <attribute name="label">_Stop</attribute>
-          <attribute name="action">win.stop-game</attribute>
-        </item>
-        <item>
-          <attribute name="label">_Add</attribute>
-          <attribute name="action">win.add-game</attribute>
-        </item>
-        <item>
-          <attribute name="label">_Remove</attribute>
-          <attribute name="action">win.remove-game</attribute>
-        </item>
-      </section>
-    </submenu>
-  </menu>
 </interface>
