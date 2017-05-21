@@ -33,6 +33,29 @@
         <property name="title" translatable="yes">Lutris</property>
         <property name="has-subtitle">0</property>
         <property name="show-close-button">1</property>
+        <child>
+          <object class="GtkToggleButton">
+            <property name="visible">1</property>
+            <property name="can-focus">1</property>
+            <property name="receives-default">1</property>
+            <signal name="toggled" handler="_on_search_toggle"/>
+            <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">1</property>
+                <property name="icon-name">edit-find-symbolic</property>
+              </object>
+            </child>
+            <child internal-child="accessible">
+              <object class="AtkObject">
+                <property name="AtkObject::accessible-description" translatable="yes">Search</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
       </object>
     </child>
     <child>
@@ -142,26 +165,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="search_area">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <child>
-                  <object class="GtkSearchEntry" id="search_entry">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="has_focus">True</property>
-                    <property name="width_chars">30</property>
-                    <property name="placeholder-text" translatable="yes">Filter the list of games</property>
-                    <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkToolItem" id="view_switcher_toolbutton">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -224,6 +227,33 @@
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
+        </child>
+        <child>
+          <object class="GtkRevealer" id="search_revealer">
+            <property name="visible">1</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="orientation">horizontal</property>
+                <style>
+                  <class name="searchbar"/>
+                </style>
+                <child>
+                  <object class="GtkSearchEntry" id="search_entry">
+                    <property name="visible">1</property>
+                    <property name="can_focus">1</property>
+                    <property name="hexpand">1</property>
+                    <property name="margin">5</property>
+                    <property name="width_chars">50</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="placeholder-text" translatable="yes">Filter the list of games</property>
+                    <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
         </child>
         <child>
           <object class="GtkBox" id="splash_box">
