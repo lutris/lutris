@@ -181,7 +181,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'remove-game': Action(self.on_remove_game, enabled=False),
 
             'preferences': Action(self.on_preferences_activate),
-            'manage-runners': Action(lambda *x: RunnersDialog()),
+            'manage-runners': Action(lambda *x: RunnersDialog(transient_for=self)),
             'about': Action(self.on_about_clicked),
 
             'show-installed-only': Action(self.on_show_installed_state_change, type='b',

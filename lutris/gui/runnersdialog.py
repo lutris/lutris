@@ -9,14 +9,14 @@ from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 
 
-class RunnersDialog(Gtk.Window):
+class RunnersDialog(Gtk.Dialog):
     """Dialog to manage the runners."""
     __gsignals__ = {
         "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self):
-        GObject.GObject.__init__(self)
+    def __init__(self, **kwargs):
+        super().__init__(use_header_bar=1, **kwargs)
 
         self.runner_labels = {}
 
@@ -27,15 +27,14 @@ class RunnersDialog(Gtk.Window):
         self.set_default_size(width, height)
         self.set_border_width(10)
         self.set_position(Gtk.WindowPosition.CENTER)
-        self.vbox = Gtk.VBox()
-        self.add(self.vbox)
+        self._vbox = self.get_content_area()
 
         # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.NEVER,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        self.vbox.pack_start(scrolled_window, True, True, 0)
+        self._vbox.pack_start(scrolled_window, True, True, 0)
         self.show_all()
 
         # Runner list
@@ -69,7 +68,7 @@ class RunnersDialog(Gtk.Window):
         self.connect('destroy', self.on_destroy)
         self.connect('configure-event', self.on_resize)
 
-        self.vbox.pack_start(buttons_box, False, False, 5)
+        self._vbox.pack_start(buttons_box, False, False, 5)
 
     @staticmethod
     def _listbox_header_func(row, before):
