@@ -58,17 +58,13 @@
                 <property name="visible">1</property>
                 <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
+                <property name="tooltip_text" translatable="yes">Search games</property>
                 <signal name="toggled" handler="_on_search_toggle"/>
                 <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">1</property>
                     <property name="icon-name">edit-find-symbolic</property>
-                  </object>
-                </child>
-                <child internal-child="accessible">
-                  <object class="AtkObject">
-                    <property name="AtkObject::accessible-description" translatable="yes">Search</property>
                   </object>
                 </child>
               </object>
@@ -78,17 +74,13 @@
                 <property name="visible">1</property>
                 <property name="can_focus">1</property>
                 <property name="receives_default">1</property>
+                <property name="tooltip_text" translatable="yes">View options</property>
                 <property name="popover">view_menu_widget</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">1</property>
                     <property name="icon_name">open-menu-symbolic</property>
                     <property name="icon_size">2</property>
-                  </object>
-                </child>
-                <child internal-child="accessible">
-                  <object class="AtkObject">
-                    <property name="AtkObject::accessible-description" translatable="yes">View options</property>
                   </object>
                 </child>
               </object>
