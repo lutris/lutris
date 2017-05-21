@@ -34,6 +34,23 @@
         <property name="has-subtitle">0</property>
         <property name="show-close-button">1</property>
         <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="can_focus">1</property>
+            <property name="tooltip_text" translatable="yes">Add game</property>
+            <property name="action-name">win.add-game</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">1</property>
+                <property name="icon-name">list-add-symbolic</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack-type">start</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkBox">
             <property name="visible">1</property>
             <child>
