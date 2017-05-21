@@ -133,7 +133,7 @@ class Application(Gtk.Application):
 
     def set_connect_state(self, connected):
         # We fiddle with the menu directly which is rather ugly
-        menu = self.get_menubar().get_item_link(0, 'submenu').get_item_link(0, 'section')
+        menu = self.get_app_menu().get_item_link(0, 'section')
         menu.remove(0)  # Assert that it is the very first item
         if connected:
             item = Gio.MenuItem.new('Disconnect', 'win.disconnect')
@@ -153,6 +153,8 @@ class Application(Gtk.Application):
         builder = Gtk.Builder.new_from_file(
             os.path.join(datapath.get(), 'ui', 'menus-traditional.ui')
         )
+        appmenu = builder.get_object('app-menu')
+        self.set_app_menu(appmenu)
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
 
