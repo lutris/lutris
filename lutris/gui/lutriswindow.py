@@ -53,6 +53,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
     statusbar = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
     status_box = GtkTemplate.Child()
+    search_revealer = GtkTemplate.Child()
+    search_entry = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -513,6 +515,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_search_entry_changed(self, widget):
         self.game_store.filter_text = widget.get_text()
         self.game_store.modelfilter.refilter()
+
+    @GtkTemplate.Callback
+    def _on_search_toggle(self, button):
+        active = button.props.active
+        self.search_revealer.set_reveal_child(active)
+        if not active:
+            self.search_entry.props.text = ''
+        else:
+            self.search_entry.grab_focus()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *args):
