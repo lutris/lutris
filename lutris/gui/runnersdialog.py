@@ -25,9 +25,9 @@ class RunnersDialog(Gtk.Dialog):
         height = int(settings.read_setting('runners_manager_height') or 500)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
-        self.set_border_width(10)
         self.set_position(Gtk.WindowPosition.CENTER)
         self._vbox = self.get_content_area()
+        self._header = self.get_header_bar()
 
         # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
@@ -46,18 +46,21 @@ class RunnersDialog(Gtk.Dialog):
 
         scrolled_window.add(self.runner_listbox)
 
-        # Bottom bar
+        # Header buttons
         buttons_box = Gtk.Box()
-        buttons_box.show()
-        open_runner_button = Gtk.Button("Open Runners Folder")
-        open_runner_button.show()
-        open_runner_button.connect('clicked', self.on_runner_open_clicked)
-        buttons_box.pack_start(open_runner_button, False, False, 0)
 
-        refresh_button = Gtk.Button("Refresh")
-        refresh_button.show()
+        refresh_button = Gtk.Button.new_from_icon_name('view-refresh-symbolic', Gtk.IconSize.BUTTON)
+        refresh_button.props.tooltip_text = 'Refresh runners'
         refresh_button.connect('clicked', self.on_refresh_clicked)
-        buttons_box.pack_start(refresh_button, False, False, 10)
+        buttons_box.add(refresh_button)
+
+        open_runner_button = Gtk.Button.new_from_icon_name('folder-symbolic', Gtk.IconSize.BUTTON)
+        open_runner_button.props.tooltip_text = 'Open Runners Folder'
+        open_runner_button.connect('clicked', self.on_runner_open_clicked)
+        buttons_box.add(open_runner_button)
+
+        self._header.add(buttons_box)
+        buttons_box.show_all()
 
         # Signals
         self.connect('destroy', self.on_destroy)
