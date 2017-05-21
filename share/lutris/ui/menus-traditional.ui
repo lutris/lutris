@@ -1,40 +1,43 @@
 <interface>
+  <menu id="app-menu">
+    <section>
+      <item>
+        <attribute name="label">Connect</attribute>
+        <attribute name="action">win.connect</attribute>
+      </item>
+      <item>
+        <attribute name="label">Register account</attribute>
+        <attribute name="action">win.register-account</attribute>
+      </item>
+      <item>
+        <attribute name="label">Synchronize library</attribute>
+        <attribute name="action">win.synchronize</attribute>
+      </item>
+      <item>
+        <attribute name="label">Import games</attribute>
+        <attribute name="action">win.sync-local</attribute>
+      </item>
+      <item>
+        <attribute name="label">Manage runners</attribute>
+        <attribute name="action">win.manage-runners</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">_Preferences</attribute>
+        <attribute name="action">win.preferences</attribute>
+      </item>
+      <item>
+        <attribute name="label">_About</attribute>
+        <attribute name="action">win.about</attribute>
+      </item>
+      <item>
+        <attribute name="label">_Quit</attribute>
+        <attribute name="action">app.quit</attribute>
+      </item>
+    </section>
+  </menu>
   <menu id="menubar">
-    <submenu>
-      <attribute name="label">_Lutris</attribute>
-      <section>
-        <item>
-          <attribute name="label">Connect</attribute>
-          <attribute name="action">win.connect</attribute>
-        </item>
-        <item>
-          <attribute name="label">Register account</attribute>
-          <attribute name="action">win.register-account</attribute>
-        </item>
-        <item>
-          <attribute name="label">Synchronize library</attribute>
-          <attribute name="action">win.synchronize</attribute>
-        </item>
-        <item>
-          <attribute name="label">Import games</attribute>
-          <attribute name="action">win.sync-local</attribute>
-        </item>
-        <item>
-          <attribute name="label">Manage runners</attribute>
-          <attribute name="action">win.manage-runners</attribute>
-        </item>
-      </section>
-      <section>
-        <item>
-          <attribute name="label">_Preferences</attribute>
-          <attribute name="action">win.preferences</attribute>
-        </item>
-        <item>
-          <attribute name="label">_Quit</attribute>
-          <attribute name="action">app.quit</attribute>
-        </item>
-      </section>
-    </submenu>
     <submenu>
       <attribute name="label">_Game</attribute>
       <section>
@@ -55,13 +58,6 @@
           <attribute name="action">win.remove-game</attribute>
         </item>
       </section>
-    </submenu>
-    <submenu>
-      <attribute name="label">_Help</attribute>
-      <item>
-        <attribute name="label">_About</attribute>
-        <attribute name="action">win.about</attribute>
-      </item>
     </submenu>
   </menu>
 </interface>
