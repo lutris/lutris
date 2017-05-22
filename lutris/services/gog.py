@@ -6,6 +6,7 @@ from lutris import settings
 from lutris.util.http import Request
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
+from lutris.gui.dialogs import WebConnectDialog
 
 
 NAME = "GOG"
@@ -29,6 +30,13 @@ class GogService:
         cookiejar = WebkitCookieJar(self.credentials_path)
         cookiejar.load()
         return cookiejar
+
+    def get_user_data(self):
+        url = 'https://embed.gog.com/userData.json'
+        cookies = self.load_cookies()
+        request = Request(url, cookies=cookies)
+        request.get()
+        return request.json
 
     def get_library(self):
         url = self.root_url + '/account/getFilteredProducts?mediaType=1'
@@ -57,5 +65,19 @@ class GogService:
             return False
 
 
-def connect():
-    pass
+def is_connected():
+    service = GogService()
+    user_data = service.get_user_data()
+    return user_data and 'username' in user_data
+
+
+def connect(parent=None):
+    service = GogService()
+    dialog = WebConnectDialog(service, parent)
+    dialog.run()
+
+
+def get_games():
+    service = GogService()
+    games = service.get_library()
+    print(games)
