@@ -1,6 +1,6 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import NoticeDialog
@@ -28,18 +28,25 @@ class ServiceSyncRow(Gtk.HBox):
         actions = Gtk.VBox()
         self.pack_start(actions, False, False, 0)
 
-        sync_switch = Gtk.Switch()
-        sync_switch.set_tooltip_text("Sync when Lutris starts")
-        sync_switch.props.valign = Gtk.Align.CENTER
-        sync_switch.connect('notify::active', self.on_switch_changed)
-        if read_setting('sync_at_startup', self.identifier) == 'True':
-            sync_switch.set_state(True)
-        actions.pack_start(sync_switch, False, False, 0)
+        if hasattr(service, "sync_with_lutris"):
+            sync_switch = Gtk.Switch()
+            sync_switch.set_tooltip_text("Sync when Lutris starts")
+            sync_switch.props.valign = Gtk.Align.CENTER
+            sync_switch.connect('notify::active', self.on_switch_changed)
+            if read_setting('sync_at_startup', self.identifier) == 'True':
+                sync_switch.set_state(True)
+            actions.pack_start(sync_switch, False, False, 0)
 
-        sync_button = Gtk.Button("Sync")
-        sync_button.set_tooltip_text("Sync now")
-        sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
-        actions.pack_start(sync_button, False, False, 0)
+            sync_button = Gtk.Button("Sync")
+            sync_button.set_tooltip_text("Sync now")
+            sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
+            actions.pack_start(sync_button, False, False, 0)
+
+        if hasattr(service, "connect"):
+            sync_button = Gtk.Button("Connect")
+            sync_button.set_tooltip_text("Connect to %s" % name)
+            sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect))
+            actions.pack_start(sync_button, False, False, 0)
 
     def on_sync_button_clicked(self, button, sync_method):
         AsyncCall(sync_method, callback=self.on_service_synced)
