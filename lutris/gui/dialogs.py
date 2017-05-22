@@ -363,10 +363,10 @@ class NoInstallerDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class PlatformConnectDialog(Dialog):
+class WebConnectDialog(Dialog):
     """Login form for external services"""
 
-    def __init__(self, service):
+    def __init__(self, service, parent=None):
 
         self.context = WebKit2.WebContext.new()
         WebKit2.CookieManager.set_persistent_storage(self.context.get_cookie_manager(),
@@ -374,7 +374,7 @@ class PlatformConnectDialog(Dialog):
                                                      WebKit2.CookiePersistentStorage(0))
         self.service = service
 
-        super(PlatformConnectDialog, self).__init__(title=service.name)
+        super(WebConnectDialog, self).__init__(title=service.name, parent=parent)
         self.set_border_width(0)
         self.set_default_size(390, 425)
 

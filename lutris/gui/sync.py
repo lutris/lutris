@@ -11,7 +11,7 @@ from lutris.util.jobs import AsyncCall
 
 class ServiceSyncRow(Gtk.HBox):
 
-    def __init__(self, service):
+    def __init__(self, service, dialog):
         super(ServiceSyncRow, self).__init__()
         self.set_spacing(20)
 
@@ -43,10 +43,15 @@ class ServiceSyncRow(Gtk.HBox):
             actions.pack_start(sync_button, False, False, 0)
 
         if hasattr(service, "connect"):
-            sync_button = Gtk.Button("Connect")
-            sync_button.set_tooltip_text("Connect to %s" % name)
-            sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect))
-            actions.pack_start(sync_button, False, False, 0)
+            if service.is_connected():
+                get_games_button = Gtk.Button("Get games")
+                get_games_button.connect('clicked', lambda w: GLib.idle_add(service.get_games))
+                actions.pack_start(get_games_button, False, False, 0)
+            else:
+                sync_button = Gtk.Button("Connect")
+                sync_button.set_tooltip_text("Connect to %s" % name)
+                sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect, dialog))
+                actions.pack_start(sync_button, False, False, 0)
 
     def on_sync_button_clicked(self, button, sync_method):
         AsyncCall(sync_method, callback=self.on_service_synced)
@@ -83,6 +88,6 @@ class SyncServiceDialog(Gtk.Dialog):
         box_outer.pack_start(separator, False, False, 0)
 
         for service in get_services():
-            sync_row = ServiceSyncRow(service)
+            sync_row = ServiceSyncRow(service, self)
             box_outer.pack_start(sync_row, False, True, 0)
         box_outer.show_all()
