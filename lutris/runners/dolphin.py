@@ -5,10 +5,10 @@ from lutris.runners.runner import Runner
 class dolphin(Runner):
     description = "Gamecube and Wii emulator"
     human_name = "Dolphin"
-    platforms = (
-        ('Nintendo', 'Gamecube'),
-        ('Nintendo', 'Wii'),
-    )
+    platforms = [
+        'Nintendo Gamecube',
+        'Nintendo Wii',
+    ]
     runnable_alone = True
     runner_executable = 'dolphin/dolphin-emu'
     game_options = [
@@ -30,20 +30,12 @@ class dolphin(Runner):
     ]
     runner_options = []
 
-    system_options_override = [
-        {
-            'option': 'disable_runtime',
-            'default': True,
-        }
-    ]
-
-    @property
-    def platform(self):
-        sel_platform = self.game_config.get('platform')
-        if sel_platform:
-            return self.platforms[int(sel_platform)]
+    def get_platform(self):
+        selected_platform = self.game_config.get('platform')
+        if selected_platform:
+            return self.platforms[int(selected_platform)]
         else:
-            return ('',)
+            return ''
 
     def play(self):
         iso = self.game_config.get('main_file') or ''

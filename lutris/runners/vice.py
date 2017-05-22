@@ -8,7 +8,14 @@ from lutris.runners.runner import Runner
 class vice(Runner):
     description = "Commodore Emulator"
     human_name = "Vice"
-    platforms = ('Commodore', '64')
+    platforms = [
+        'Commodore 64',
+        'Commodore 128',
+        'Commodore VIC20',
+        'Commodore PET',
+        'Commodore Plus/4',
+        'Commodore CBM II',
+    ]
 
     game_options = [{
         "option": "main_file",
@@ -70,11 +77,19 @@ class vice(Runner):
                 ("vic20", "vic20"),
                 ("PET", "pet"),
                 ("Plus/4", "plus4"),
-                ("CMB-II", "cbmii")
+                ("CBM-II", "cbmii")
             ],
             "default": "c64"
         }
     ]
+
+    def get_platform(self):
+        machine = self.game_config.get('machine')
+        if machine:
+            for index, choice in enumerate(self.machine_choices):
+                if choice[1] == machine:
+                    return self.platforms[index]
+        return ''
 
     def get_executable(self, machine=None):
         if not machine:
@@ -85,7 +100,7 @@ class vice(Runner):
             "vic20": "xvic",
             "pet": "xpet",
             "plus4": "xplus4",
-            "cmbii": "xcbm2"
+            "cbmii": "xcbm2"
         }
         try:
             executable = executables[machine]

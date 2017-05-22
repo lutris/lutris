@@ -8,8 +8,8 @@ from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
-                               get_default_acf, read_config, to_vdf)
+from lutris.util.steam import get_app_state_log, get_default_acf, read_config, to_vdf
+from lutris.services.steam import get_path_from_appmanifest
 
 
 def shutdown():
@@ -37,7 +37,7 @@ def is_running():
 class steam(Runner):
     description = "Runs Steam for Linux games"
     human_name = "Steam"
-    platforms = ('PC', 'Linux')
+    platforms = ['Linux']
     runnable_alone = True
     game_options = [
         {
@@ -133,7 +133,7 @@ class steam(Runner):
             game_path = get_path_from_appmanifest(apps_path, self.appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", self.appid)
+        logger.info("Data path for SteamApp %s not found.", self.appid)
 
     @property
     def steam_data_dir(self):
@@ -180,7 +180,7 @@ class steam(Runner):
             game_path = get_path_from_appmanifest(apps_path, appid)
             if game_path:
                 return game_path
-        logger.warning("Data path for SteamApp %s not found.", appid)
+        logger.info("Data path for SteamApp %s not found.", appid)
 
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""

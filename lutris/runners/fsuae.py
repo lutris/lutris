@@ -1,3 +1,4 @@
+import os
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 
@@ -5,17 +6,17 @@ from lutris.util.display import get_current_resolution
 class fsuae(Runner):
     human_name = "FS-UAE"
     description = "Amiga emulator"
-    platforms = (
-        ('Amiga', '500'),
-        ('Amiga', '500+'),
-        ('Amiga', '600'),
-        ('Amiga', '1000'),
-        ('Amiga', '1200'),
-        ('Amiga', '1200'),
-        ('Amiga', '4000'),
-        ('Amiga', 'CD32'),
-        ('Commodore', 'CDTV'),
-    )
+    platforms = [
+        'Amiga 500',
+        'Amiga 500+',
+        'Amiga 600',
+        'Amiga 1000',
+        'Amiga 1200',
+        'Amiga 1200',
+        'Amiga 4000',
+        'Amiga CD32',
+        'Commodore CDTV',
+    ]
     model_choices = [
         ("Amiga 500", 'A500'),
         ("Amiga 500+ with 1 MB chip RAM", 'A500+'),
@@ -89,14 +90,13 @@ class fsuae(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         model = self.runner_config.get('model')
         if model:
-            for i, m in enumerate(self.model_choices):
-                if m[1] == model:
-                    return self.platforms[i]
-        return ('',)
+            for index, machine in enumerate(self.model_choices):
+                if machine[1] == model:
+                    return self.platforms[index]
+        return ''
 
     def insert_floppies(self):
         disks = []
@@ -116,8 +116,12 @@ class fsuae(Runner):
         floppy_drives = []
         floppy_images = []
         for drive, disk in enumerate(disks):
-            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk))
-            floppy_images.append("--floppy_image_%d=%s" % (drive, disk))
+            if not os.path.isabs(disk):
+                disk_path = os.path.join(self.game_path, disk)
+            else:
+                disk_path = disk
+            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk_path))
+            floppy_images.append("--floppy_image_%d=%s" % (drive, disk_path))
         return floppy_drives + floppy_images
 
     def get_params(self):

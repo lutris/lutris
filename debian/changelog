@@ -1,3 +1,66 @@
+lutris (0.4.10) zesty; urgency=medium
+
+  * Remove PCSX-R runner
+  * Migrate PCSX-R games to use PCSX Rearmed on RetroArch
+  * Fix game config being overidden if edited while the game is running
+  * Fix Y Axis mapping for the Dual Shock 3 in X360CE
+  * Add dinput8 option for X360CE for games requiring it (Dead Space 2,
+    Darksiders, ...)
+  * Add dialog to optionally sync Steam and XDG desktop shortcuts at startup
+  * (Re)add ScummVM import
+  * Reenable Lutris runtime by default for Dolphin
+  * Update Winetricks (Fixes .NET 3.5 installation)
+  * Avoid a crash if Wine prefix is not created
+  * Update Wine and Steam icons
+  * Add support for lutris:rungame/... and lutris:install/... urls
+  * Always instanciate the client's window even when installing or launching
+    a game
+  * Stop Lutris process monitor instantly when all child processes have quit,
+    speeds up game installs and prevents zombie processes.
+  * Display real time console output in the game log dialog
+  * Display real time console output during game installations
+  * Add option to launch the Steam client instead of the game in Wine Steam
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 15 May 2017 22:08:13 -0700
+
+lutris (0.4.9) zesty; urgency=medium
+
+  * Add option to auto-configure x360ce in Wine games based on plugged in
+    controllers
+  * Add support for batch files in Wine
+  * Fix FS-UAE path handling
+  * Fix regedit commands on newer Wine versions
+  * Fix local offline script installation
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 May 2017 00:06:56 -0700
+
+lutris (0.4.8) zesty; urgency=medium
+
+  * Switch installer scripts to the REST API
+  * Allow users to test installer drafts
+  * Add cabextract as a dependency
+  * Fix for processes crashing when the working directory doesn't exist
+  * Add $VERSION as a variable usable in scripts
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 18 Apr 2017 16:06:38 -0700
+
+lutris (0.4.7.1) yakkety; urgency=medium
+
+  * Fix a bug with the platforms accessing the database before it's created
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 16:38:39 -0700
+
+lutris (0.4.7) yakkety; urgency=medium
+
+  * Add support for more libretro cores
+  * Revert main view to IconView instead of Flowbox, improving performance
+  * Persist game platforms to the database, improving performance
+  * Fix argument parsing for msi installers
+  * Use gzdoom instead of zdoom
+  * Misc bugfixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 09 Apr 2017 13:40:50 -0700
+
 lutris (0.4.6) yakkety; urgency=medium
 
   * Various UI fixes

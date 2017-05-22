@@ -1,5 +1,6 @@
 import os
 from lutris import settings
+from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
 
@@ -8,14 +9,14 @@ class mess(Runner):
     description = "Multi-system (consoles and computers) emulator"
     # TODO: A lot of platforms/machines are missing
     platforms = (
-        ('Amstrad', 'CPC 464'),
-        ('Amstrad', 'CPC 6128'),
-        ('Amstrad', 'GX4000'),
-        ('Apple', 'II'),
-        ('Apple', 'IIGS'),
-        ('Commodore', '64'),
-        ('Sinclair', 'ZX Spectrum'),
-        ('Sinclair', 'ZX Spectrum 128'),
+        'Amstrad CPC 464',
+        'Amstrad CPC 6128',
+        'Amstrad GX4000',
+        'Apple II',
+        'Apple IIGS',
+        'Commodore 64',
+        'Sinclair ZX Spectrum',
+        'Sinclair ZX Spectrum 128',
     )
     machine_choices = [
         ("Amstrad CPC 464", 'cpc464'),
@@ -69,14 +70,13 @@ class mess(Runner):
         }
     ]
 
-    @property
-    def platform(self):
+    def get_platform(self):
         machine = self.game_config.get('machine')
         if machine:
             for index, machine_choice in enumerate(self.machine_choices):
                 if machine_choice[1] == machine:
                     return self.platforms[index]
-        return ('',)
+        return ''
 
     @property
     def working_dir(self):
@@ -85,8 +85,10 @@ class mess(Runner):
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
         if not os.path.exists(rompath):
+            logger.warning("BIOS path provided in %s doesn't exist", rompath)
             rompath = os.path.join(settings.RUNNER_DIR, "mess/bios")
         if not os.path.exists(rompath):
+            logger.error("Couldn't find %s", rompath)
             return {'error': 'NO_BIOS'}
         machine = self.game_config.get('machine')
         if not machine:

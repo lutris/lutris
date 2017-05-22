@@ -13,8 +13,10 @@ from lutris.gui.dialogs import NoticeDialog
 class reicast(Runner):
     human_name = "Reicast"
     description = "Sega Dreamcast emulator"
-    platforms = ('Sega', 'Dreamcast')
+    platforms = ['Sega Dreamcast']
     runner_executable = 'reicast/reicast.elf'
+
+    joypads = None
 
     game_options = [{
         'option': 'iso',
@@ -27,8 +29,6 @@ class reicast(Runner):
     def __init__(self, config=None):
         super(reicast, self).__init__(config)
 
-        self._joypads = None
-
         self.runner_options = [
             {
                 'option': 'fullscreen',
@@ -40,28 +40,28 @@ class reicast(Runner):
                 'option': 'device_id_1',
                 'type': 'choice',
                 'label': 'Joypad 1',
-                'choices': self.get_joypads(),
+                'choices': self.get_joypads,
                 'default': '-1'
             },
             {
                 'option': 'device_id_2',
                 'type': 'choice',
                 'label': 'Joypad 2',
-                'choices': self.get_joypads(),
+                'choices': self.get_joypads,
                 'default': '-1'
             },
             {
                 'option': 'device_id_3',
                 'type': 'choice',
                 'label': 'Joypad 3',
-                'choices': self.get_joypads(),
+                'choices': self.get_joypads,
                 'default': '-1'
             },
             {
                 'option': 'device_id_4',
                 'type': 'choice',
                 'label': 'Joypad 4',
-                'choices': self.get_joypads(),
+                'choices': self.get_joypads,
                 'default': '-1'
             }
         ]
@@ -80,8 +80,8 @@ class reicast(Runner):
 
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""
-        if self._joypads:
-            return self._joypads
+        if self.joypads:
+            return self.joypads
         joypad_list = [('No joystick', '-1')]
         joypad_devices = joypad.get_joypads()
         name_counter = Counter([j[1] for j in joypad_devices])
@@ -99,7 +99,7 @@ class reicast(Runner):
             if index:
                 joy_name += " (%d)" % index
             joypad_list.append((joy_name, dev_id))
-        self._joypads = joypad_list
+        self.joypads = joypad_list
         return joypad_list
 
     def write_config(self, config):

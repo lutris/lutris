@@ -2,12 +2,14 @@
 """Module that actually runs the games."""
 import os
 import time
+import shlex
 import subprocess
 
-from gi.repository import GLib
+from gi.repository import GLib, Gtk
 
-from lutris import pga, shortcuts
+from lutris import pga
 from lutris import runtime
+from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
@@ -32,7 +34,6 @@ class Game(object):
         self.config = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.game_log = ''
         self.exit_main_loop = False
 
         game_data = pga.get_game_by_field(id, 'id')
@@ -40,6 +41,7 @@ class Game(object):
         self.runner_name = game_data.get('runner') or ''
         self.directory = game_data.get('directory') or ''
         self.name = game_data.get('name') or ''
+
         self.is_installed = bool(game_data.get('installed')) or False
         self.platform = game_data.get('platform') or ''
         self.year = game_data.get('year') or ''
@@ -52,6 +54,8 @@ class Game(object):
         self.load_config()
         self.resolution_changed = False
         self.original_outputs = None
+        self.log_buffer = Gtk.TextBuffer()
+        self.log_buffer.create_tag("warning", foreground="red")
 
     def __repr__(self):
         return self.__unicode__()
@@ -61,13 +65,6 @@ class Game(object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
-
-    def get_platform(self, string=True):
-        if not self.runner:
-            logger.warning("%s has no runner", self.__unicode__())
-            return
-
-        return self.runner.get_platform(string=string)
 
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
@@ -129,11 +126,22 @@ class Game(object):
         else:
             pga.set_uninstalled(self.id)
         self.config.remove()
-        shortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        xdg.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         return from_library
 
-    def save(self):
-        self.config.save()
+    def set_platform_from_runner(self):
+        if not self.runner:
+            return
+        self.platform = self.runner.get_platform()
+
+    def save(self, metadata_only=False):
+        """
+        Save the game's config and metadata, if `metadata_only` is set to True,
+        do not save the config. This is useful when exiting the game since the
+        config might have changed and we don't want to override the changes.
+        """
+        if not metadata_only:
+            self.config.save()
         self.id = pga.add_or_update(
             name=self.name,
             runner=self.runner_name,
@@ -203,7 +211,7 @@ class Game(object):
             if os.path.exists(path):
                 with open(path, "r") as f:
                     sdl_gamecontrollerconfig = f.read()
-            env['SDL_GAMECONTROLLERCONFIG']  = sdl_gamecontrollerconfig
+            env['SDL_GAMECONTROLLERCONFIG'] = sdl_gamecontrollerconfig
 
         sdl_video_fullscreen = system_config.get('sdl_video_fullscreen') or ''
         env['SDL_VIDEO_FULLSCREEN_DISPLAY'] = sdl_video_fullscreen
@@ -264,8 +272,8 @@ class Game(object):
             env['PULSE_LATENCY_MSEC'] = '60'
 
         prefix_command = system_config.get("prefix_command") or ''
-        if prefix_command.strip():
-            launch_arguments.insert(0, prefix_command)
+        if prefix_command:
+            launch_arguments = shlex.split(prefix_command) + launch_arguments
 
         single_cpu = system_config.get('single_cpu') or False
         if single_cpu:
@@ -313,7 +321,7 @@ class Game(object):
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner, env=env,
                                         rootpid=gameplay_info.get('rootpid'),
-                                        term=terminal)
+                                        term=terminal, log_buffer=self.log_buffer)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -368,7 +376,6 @@ class Game(object):
                                 self.game_thread.error)
             self.on_game_quit()
             return False
-        self.game_log = self.game_thread.stdout
         killswitch_engage = self.killswitch and \
             not os.path.exists(self.killswitch)
         if not self.game_thread.is_running or killswitch_engage:
@@ -392,7 +399,7 @@ class Game(object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save()
+        self.save(metadata_only=True)
 
         os.chdir(os.path.expanduser('~'))
 

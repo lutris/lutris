@@ -20,13 +20,14 @@ from lutris.util import system
 
 HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
+MAX_CYCLES_WITHOUT_CHILDREN = 5
 # List of process names that are ignored by the process monitoring
 EXCLUDED_PROCESSES = (
     'lutris', 'python', 'python3',
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
     'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
     'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
-    'control', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg'
+    'control', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg',
 )
 
 
@@ -35,7 +36,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd=None):
+                 watch=True, cwd=None, include_processes=[], log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -51,11 +52,13 @@ class LutrisThread(threading.Thread):
         self.stdout = ''
         self.attached_threads = []
         self.cycles_without_children = 0
-        self.max_cycles_without_children = 15
         self.startup_time = time.time()
         self.monitoring_started = False
         self.daemon = True
         self.error = None
+        self.include_processes = include_processes
+        self.log_buffer = log_buffer
+        self.stdout_monitor = None
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -104,26 +107,32 @@ class LutrisThread(threading.Thread):
         env.update(self.env)
 
         if self.terminal and system.find_executable(self.terminal):
-            self.run_in_terminal()
+            self.game_process = self.run_in_terminal()
         else:
             self.terminal = False
             self.game_process = self.execute_process(self.command, env)
         if not self.game_process:
             return
-        for line in iter(self.game_process.stdout.readline, b''):
-            if not self.is_running:
-                break
-            try:
-                line = line.decode()
-            except UnicodeDecodeError:
-                line = ''
-            if not line:
-                continue
+
+        self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
+
+    def on_stdout_output(self, fd, condition):
+        if not self.is_running:
+            return False
+        try:
+            line = fd.readline().decode('utf-8', errors='ignore')
+        except ValueError:
+            # fd might be closed
+            line = None
+        if line:
             self.stdout += line
+            if self.log_buffer:
+                self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
             if self.debug_output:
                 with contextlib.suppress(BlockingIOError):
                     sys.stdout.write(line)
                     sys.stdout.flush()
+        return True
 
     def run_in_terminal(self):
         """Write command in a script file and run it.
@@ -145,14 +154,17 @@ class LutrisThread(threading.Thread):
             ))
             os.chmod(file_path, 0o744)
 
-        self.game_process = self.execute_process([self.terminal, '-e', file_path])
+        return self.execute_process([self.terminal, '-e', file_path])
 
     def execute_process(self, command, env=None):
         try:
+            if self.cwd and not system.path_exists(self.cwd):
+                os.makedirs(self.cwd)
             return subprocess.Popen(command, bufsize=1,
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     cwd=self.cwd, env=env)
         except OSError as ex:
+            logger.error(ex)
             self.error = ex.strerror
 
     def iter_children(self, process, topdown=True, first=True):
@@ -224,10 +236,10 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             if child.pid in self.old_pids:
-                logger.debug("Excluding %s (not opened by thread)" % child.name)
+                logger.debug("Excluding %s (%s) (not opened by thread)" % (child.name, child.state))
                 continue
-            if child.name in EXCLUDED_PROCESSES:
-                logger.debug("Excluding %s from process monitor" % child.name)
+            if child.name in EXCLUDED_PROCESSES and child.name not in self.include_processes:
+                logger.debug("Excluding %s (%s) from process monitor" % (child.name, child.state))
                 continue
             num_watched_children += 1
             logger.debug("{}\t{}\t{}".format(child.pid,
@@ -248,7 +260,7 @@ class LutrisThread(threading.Thread):
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
         max_cycles_reached = (self.cycles_without_children >=
-                              self.max_cycles_without_children)
+                              MAX_CYCLES_WITHOUT_CHILDREN)
         if num_children == 0 or max_cycles_reached:
             if max_cycles_reached:
                 logger.debug('Maximum number of cycles without children reached')
@@ -260,13 +272,16 @@ class LutrisThread(threading.Thread):
             else:
                 logger.debug('Some processes are still active (%d)', num_children)
             self.return_code = self.game_process.returncode
+            if self.stdout_monitor:
+                GLib.source_remove(self.stdout_monitor)
             return False
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
-            # FIXME Returning false breaks installers, but not returning false
-            # leaves the thread running endlessly when some games crashes.
-            # return False
+            if self.stdout_monitor:
+                GLib.source_remove(self.stdout_monitor)
+            self.is_running = False
+            return False
         return True
 
 

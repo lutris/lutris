@@ -6,8 +6,10 @@ from gi.repository import WebKit2
 from gi.repository import GLib, Gtk, Gdk, GObject
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets import DownloadProgressBox, Dialog
+from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.widgets.dialogs import Dialog
 from lutris.util import datapath
+from lutris.util.log import logger
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -22,17 +24,22 @@ class GtkBuilderDialog(GObject.Object):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(ui_filename)
         self.dialog = self.builder.get_object(self.dialog_object)
+
         self.builder.connect_signals(self)
         if parent:
             self.dialog.set_transient_for(parent)
         self.dialog.show_all()
+        self.dialog.connect("delete-event", lambda *x: x[0].destroy())
         self.initialize(**kwargs)
 
     def initialize(self, **kwargs):
         pass
 
     def on_close(self, *args):
-        self.dialog.destroy()
+        try:
+            self.dialog.destroy()
+        except:
+            logger.info("Tell strider that he can't write an about dialog")
 
     def on_response(self, widget, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
@@ -154,6 +161,42 @@ class DownloadDialog(Gtk.Dialog):
         if response == Gtk.ResponseType.DELETE_EVENT:
             self.download_box.downloader.cancel()
             self.destroy()
+
+
+class InstallOrPlayDialog(Gtk.Dialog):
+    def __init__(self, game_name):
+        Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
+        self.connect("delete-event", lambda *x: self.destroy())
+
+        self.action = None
+        self.action_confirmed = False
+
+        self.set_size_request(320, 120)
+        self.set_border_width(12)
+        vbox = Gtk.VBox(spacing=6)
+        self.get_content_area().add(vbox)
+
+        play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
+        play_button.connect('toggled', self.on_button_toggled, "play")
+        vbox.pack_start(play_button, False, False, 0)
+        install_button = Gtk.RadioButton.new_from_widget(play_button)
+        install_button.set_label("Install the game again")
+        install_button.connect('toggled', self.on_button_toggled, "install")
+        vbox.pack_start(install_button, False, False, 0)
+
+        confirm_button = Gtk.Button("OK")
+        confirm_button.connect('clicked', self.on_confirm)
+        vbox.pack_start(confirm_button, False, False, 0)
+
+        self.show_all()
+        self.run()
+
+    def on_button_toggled(self, button, action):
+        self.action = action
+
+    def on_confirm(self, button):
+        self.action_confirmed = True
+        self.destroy()
 
 
 class RuntimeUpdateDialog(Gtk.Dialog):

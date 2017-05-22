@@ -1,6 +1,7 @@
 import os
 import re
 import concurrent.futures
+from urllib.parse import urlparse, parse_qsl
 
 from lutris import settings
 from lutris import api
@@ -49,7 +50,11 @@ def fetch_icons(game_slugs, callback=None):
             logger.error("No page found in %s", response['next'])
             break
         response = api.get_games(game_slugs=missing_media_slugs, page=page)
-        results += response.get('results', [])
+        if not response:
+            logger.warning("Unable to get response for page %s", page)
+            break
+        else:
+            results += response.get('results', [])
 
     banner_downloads = []
     icon_downloads = []
@@ -87,3 +92,42 @@ def download_media(url, dest, overwrite=False):
             return
     request = Request(url).get()
     request.write_to_file(dest)
+
+
+def parse_installer_url(url):
+    """
+    Parses `lutris:` urls, extracting any info necessary to install or run a game.
+    """
+    action = None
+    try:
+        parsed_url = urlparse(url, scheme="lutris")
+    except:
+        return False
+    if parsed_url.scheme != "lutris":
+        return False
+    url_path = parsed_url.path
+    if not url_path:
+        return False
+    # urlparse can't parse if the path only contain numbers
+    # workaround to remove the scheme manually:
+    if url_path.startswith('lutris:'):
+        url_path = url_path[7:]
+
+    url_parts = url_path.split('/')
+    if len(url_parts) == 2:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+    elif len(url_parts) == 1:
+        game_slug = url_parts[0]
+    else:
+        raise ValueError('Invalid lutris url %s' % url)
+
+    revision = None
+    if parsed_url.query:
+        query = dict(parse_qsl(parsed_url.query))
+        revision = query.get('revision')
+    return {
+        'game_slug': game_slug,
+        'revision': revision,
+        'action': action
+    }

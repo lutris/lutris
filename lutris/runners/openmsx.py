@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class openmsx(Runner):
     human_name = "openMSX"
     description = "MSX computer emulator"
-    platform = "MSX, MSX2, MSX2+, MSX turboR"
+    platforms = ["MSX, MSX2, MSX2+, MSX turboR"]
     game_options = [
         {
             "option": "main_file",

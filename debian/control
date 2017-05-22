@@ -22,7 +22,8 @@ Depends: ${misc:Depends},
  python3-yaml,
  python3-gi,
  gir1.2-gtk-3.0,
- psmisc
+ psmisc,
+ cabextract
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]

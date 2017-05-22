@@ -1,3 +1,4 @@
+import os
 from lutris.util import display
 from lutris.runners.runner import Runner
 
@@ -6,7 +7,7 @@ class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
     description = "ZDoom DOOM Game Engine"
     human_name = "ZDoom"
-    platforms = "PC"
+    platforms = ["Linux"]
     runner_executable = 'zdoom/zdoom'
     game_options = [
         {
@@ -69,6 +70,17 @@ class zdoom(Runner):
         # Run in the installed game's directory.
         return self.game_path
 
+    def get_executable(self):
+        executable = super(zdoom, self).get_executable()
+        executable_dir = os.path.dirname(executable)
+        if not os.path.exists(executable_dir):
+            return executable
+        if not os.path.exists(executable):
+            gzdoom_executable = os.path.join(executable_dir, 'gzdoom')
+            if os.path.exists(gzdoom_executable):
+                return gzdoom_executable
+        return executable
+
     def play(self):
         command = [self.get_executable()]
 
@@ -108,9 +120,19 @@ class zdoom(Runner):
             command.append(wad)
 
         # Append the pwad files to load, if provided.
-        pwads = self.game_config.get('files') or []
-        for pwad in pwads:
+        files = self.game_config.get('files') or []
+        pwads = [f for f in files if f.lower().endswith('.wad') or f.lower().endswith('.pk3')]
+        deh = [f for f in files if f.lower().endswith('.deh')]
+        bex = [f for f in files if f.lower().endswith('.bex')]
+        if deh:
+            command.append('-deh')
+            command.append(deh[0])
+        if bex:
+            command.append('-bex')
+            command.append(bex[0])
+        if pwads:
             command.append("-file")
-            command.append(pwad)
+            for pwad in pwads:
+                command.append(pwad)
 
         return {'command': command}

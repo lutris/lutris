@@ -2,7 +2,7 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 3
+MIGRATION_VERSION = 4
 
 MIGRATIONS = []
 
@@ -17,6 +17,11 @@ MIGRATIONS.append([
 
 MIGRATIONS.append([
     'update_runners',
+])
+
+MIGRATIONS.append([
+    'pcsxr_deprecation',
+    'update_xdg_shortcuts',
 ])
 
 

@@ -5,13 +5,16 @@ import time
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
-from lutris.game import Game
+from lutris import pga
 from lutris import runners
-from lutris import pga, settings
+from lutris import settings
+from lutris.game import Game
+
 from lutris.gui.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+
+from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
-from lutris.shortcuts import desktop_launcher_exists, menu_launcher_exists
 from lutris.util.log import logger
 
 (
@@ -23,10 +26,9 @@ from lutris.util.log import logger
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
-    COL_PLATFORM_HUMAN_NAME,
     COL_LASTPLAYED,
     COL_INSTALLED,
-) = list(range(11))
+) = list(range(10))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -57,7 +59,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.runner_names = {}
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -106,12 +108,9 @@ class GameStore(GObject.Object):
             if not self.filter_runner == runner:
                 return False
         if self.filter_platform:
-            platform = model.get_value(_iter, COL_PLATFORM).split(' / ')
-            if len(self.filter_platform) > len(platform):
+            platform = model.get_value(_iter, COL_PLATFORM)
+            if platform != self.filter_platform:
                 return False
-            for i, f in enumerate(self.filter_platform):
-                if f != platform[i]:
-                    return False
         return True
 
     def add_game_by_id(self, game_id):
@@ -131,7 +130,6 @@ class GameStore(GObject.Object):
         name = game['name'].replace('&', "&amp;")
         runner = None
         platform = ''
-        platform_name = ''
         runner_name = game['runner']
         runner_human_name = ''
         if runner_name:
@@ -144,9 +142,7 @@ class GameStore(GObject.Object):
                 runner = runners.import_runner(runner_name)
                 runner_human_name = runner.human_name
                 self.runner_names[runner_name] = runner_human_name
-            platform = game_inst.get_platform()
-            if platform:
-                platform_name = platform.replace(' / ', ' ')
+            platform = game_inst.platform
 
         lastplayed = ''
         if game['lastplayed']:
@@ -161,7 +157,6 @@ class GameStore(GObject.Object):
             runner_name,
             runner_human_name,
             platform,
-            platform_name,
             lastplayed,
             game['installed']
         ))
@@ -336,7 +331,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
 
-        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM_HUMAN_NAME)
+        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
         width = settings.read_setting('platform_column_width', 'list view')
         column.set_fixed_width(int(width) if width else 120)
         self.append_column(column)
@@ -394,12 +389,11 @@ class GameListView(Gtk.TreeView, GameView):
     def on_column_width_changed(self, col, *args):
         col_name = col.get_title()
         if col_name:
-            settings.write_setting(col_name + '_column_width',
+            settings.write_setting(col_name.replace(' ', '') + '_column_width',
                                    col.get_fixed_width(), 'list view')
 
 
 class GameGridView(Gtk.IconView, GameView):
-    """DEPRECATED: Remove in Lutris 0.4.1"""
     __gsignals__ = GameView.__gsignals__
 
     def __init__(self, store):
@@ -508,19 +502,19 @@ class ContextualMenu(Gtk.Menu):
             'configure': not is_installed,
             'desktop-shortcut': (
                 not is_installed or
-                desktop_launcher_exists(game_slug, game_id)
+                xdg.desktop_launcher_exists(game_slug, game_id)
             ),
             'menu-shortcut': (
                 not is_installed or
-                menu_launcher_exists(game_slug, game_id)
+                xdg.menu_launcher_exists(game_slug, game_id)
             ),
             'rm-desktop-shortcut': (
                 not is_installed or
-                not desktop_launcher_exists(game_slug, game_id)
+                not xdg.desktop_launcher_exists(game_slug, game_id)
             ),
             'rm-menu-shortcut': (
                 not is_installed or
-                not menu_launcher_exists(game_slug, game_id)
+                not xdg.menu_launcher_exists(game_slug, game_id)
             ),
             'browse': not is_installed or runner_slug == 'browser',
         }

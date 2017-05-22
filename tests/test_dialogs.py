@@ -93,6 +93,7 @@ class TestGameDialog(TestCase):
         add_button.clicked()
 
         pga_game = pga.get_game_by_field('test-game', 'slug')
+        self.assertTrue(pga_game)
         game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')
         game.remove(from_library=True)

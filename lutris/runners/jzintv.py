@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class jzintv(Runner):
     human_name = "jzIntv"
     description = "Intellivision Emulator"
-    platforms = "Intellivision"
+    platforms = ["Intellivision"]
     runner_executable = 'jzintv/bin/jzintv'
     game_options = [{
         'option': 'main_file',

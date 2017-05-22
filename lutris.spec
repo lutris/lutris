@@ -4,7 +4,7 @@
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
 Name:           lutris
-Version:        0.4.6
+Version:        0.4.10
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -21,11 +21,11 @@ BuildRequires:  python3-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
-Requires:       python3-gobject, python3-PyYAML
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  python3-gobject
-Requires:       python3-gobject, python3-PyYAML
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject
@@ -34,7 +34,7 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
-Requires:       python3-gobject, python3-PyYAML
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes
@@ -91,9 +91,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/glib-2.0/schemas/apps.%{name}.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
-%{_datadir}/pixmaps/%{name}.png
+%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/

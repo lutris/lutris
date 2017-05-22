@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
-from lutris import api, pga, settings, shortcuts
+from lutris import api, pga, settings
 from lutris.game import Game
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
@@ -16,12 +16,14 @@ from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 from lutris.util import http
 from lutris.util import datapath
-from lutris.util import steam
-from lutris.util import desktopapps
+from lutris.util.steam import SteamWatcher
+
+from lutris.services import get_services_synced_at_startup, steam, xdg
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarTreeView
 from lutris.gui.logwindow import LogWindow
+from lutris.gui.sync import SyncServiceDialog
 from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installgamedialog import InstallerDialog
@@ -29,7 +31,6 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
-from lutris.gui import flowbox
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
@@ -79,9 +80,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
 
         # Sync local lutris library with current Steam games and desktop games
-        # before setting up game list and view
-        steam.sync_with_lutris()
-        desktopapps.sync_with_lutris()
+        for service in get_services_synced_at_startup():
+            service.sync_with_lutris()
 
         # Window initialization
         self.game_list = pga.get_games()
@@ -150,8 +150,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Timers
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
         steamapps_paths = steam.get_steamapps_paths(flat=True)
-        self.steam_watcher = steam.SteamWatcher(steamapps_paths,
-                                                self.on_steam_game_changed)
+        self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
@@ -168,6 +167,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'disconnect': Action(self.on_disconnect),
             'connect': Action(self.on_connect),
             'synchronize': Action(lambda *x: self.sync_library()),
+            'sync-local': Action(lambda *x: self.open_sync_dialog()),
 
             'add-game': Action(self.on_add_game_button_clicked),
             'view-game-log': Action(self.on_view_game_log_activate),
@@ -190,7 +190,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'use-dark-theme': Action(self.on_dark_theme_state_change, type='b',
                                      default=self.use_dark_theme),
             'show-side-bar': Action(self.on_sidebar_state_change, type='b',
-                                    default=self.sidebar_visible),
+                                    default=self.sidebar_visible, accel='F9'),
         }
 
         self.actions = {}
@@ -217,9 +217,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def current_view_type(self):
-        return 'grid' \
-            if self.view.__class__.__name__ == "GameFlowBox" \
-            else 'list'
+        return 'grid' if isinstance(self.view, GameGridView) else 'list'
 
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
@@ -263,10 +261,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def get_view(self, view_type):
-        if view_type == 'grid' and flowbox.FLOWBOX_SUPPORTED:
-            return flowbox.GameFlowBox(self.game_list,
-                                       icon_type=self.icon_type,
-                                       filter_installed=self.filter_installed)
+        if view_type == 'grid':
+            return GameGridView(self.game_store)
         else:
             return GameListView(self.game_store)
 
@@ -296,8 +292,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @staticmethod
     def get_view_type():
-        if not flowbox.FLOWBOX_SUPPORTED:
-            return 'list'
         view_type = settings.read_setting('view_type')
         if view_type in ['grid', 'list']:
             return view_type
@@ -360,6 +354,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.set_status("Syncing library")
         AsyncCall(sync_from_remote, update_gui)
+
+    def open_sync_dialog(self):
+        sync_dialog = SyncServiceDialog(parent=self)
+        sync_dialog.run()
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
@@ -495,12 +493,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting(
             'filter_installed', setting_value
         )
-        if self.current_view_type == 'grid':
-            self.view.filter_installed = filter_installed
-            self.view.invalidate_filter()
-        else:
-            self.game_store.filter_installed = filter_installed
-            self.game_store.modelfilter.refilter()
+        self.game_store.filter_installed = filter_installed
+        self.game_store.modelfilter.refilter()
 
     @GtkTemplate.Callback
     def on_pga_menuitem_activate(self, *args):
@@ -508,12 +502,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
-        if self.current_view_type == 'grid':
-            self.view.filter_text = widget.get_text()
-            self.view.invalidate_filter()
-        else:
-            self.game_store.filter_text = widget.get_text()
-            self.game_store.modelfilter.refilter()
+        self.game_store.filter_text = widget.get_text()
+        self.game_store.modelfilter.refilter()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *args):
@@ -542,7 +532,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             game_slug = self.running_game.slug
             self.running_game = None
-            InstallerDialog(game_slug, self)
+            InstallerDialog(game_slug=game_slug, parent=self)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
@@ -551,21 +541,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.running_game.stop()
             self.actions['stop-game'].props.enabled = False
 
-    def on_install_clicked(self, *args, game_ref=None):
+    def on_install_clicked(self, *args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""
-        if not game_ref:
+        if not game_slug:
             game_id = self._get_current_game_id()
             game = pga.get_game_by_field(game_id, 'id')
-            game_ref = game.get('slug')
-            logger.debug("Installing game %s (%s)" % (game_ref, game_id))
-        if not game_ref:
+            game_slug = game.get('slug')
+            logger.debug("Installing game %s (%s)" % (game_slug, game_id))
+        if not game_slug:
             return
-        InstallerDialog(game_ref, self)
+        InstallerDialog(game_slug=game_slug,
+                        installer_file=installer_file,
+                        revision=revision,
+                        parent=self)
 
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
-        if type(self.view) is GameGridView:
+        if isinstance(self.view, GameGridView):
             is_double_click = time.time() - self.game_selection_time < 0.4
             is_same_game = self.view.selected_game == self.last_selected_game
             if is_double_click and is_same_game:
@@ -586,7 +579,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         game = Game(game_id)
         view.set_installed(game)
-        GLib.idle_add(self.sidebar_treeview.update)
+        self.sidebar_treeview.update()
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
 
@@ -601,7 +594,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_manually(self, widget, *args):
         def on_game_added(game):
             self.view.set_installed(game)
-            GLib.idle_add(self.sidebar_treeview.update)
+            self.sidebar_treeview.update()
 
         game = Game(self.view.selected_game)
         AddGameDialog(self,
@@ -615,8 +608,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             dialogs.ErrorDialog('No game log available', parent=self)
             return
         log_title = u"Log for {}".format(self.running_game)
-        log_window = LogWindow(log_title, self)
-        log_window.logtextview.set_text(self.running_game.game_log)
+        log_window = LogWindow(title=log_title, buffer=self.running_game.log_buffer, parent=self)
         log_window.run()
         log_window.destroy()
 
@@ -637,7 +629,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def do_add_game():
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
-            GLib.idle_add(self.sidebar_treeview.update)
+            self.sidebar_treeview.update()
             return False
 
         if async:
@@ -661,7 +653,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_id, is_installed=False)
-        GLib.idle_add(self.sidebar_treeview.update)
+        self.sidebar_treeview.update()
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
@@ -686,7 +678,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.remove_game(game_id)
             self.view.add_game_by_id(game_id)
             self.view.set_selected_game(game_id)
-            GLib.idle_add(self.sidebar_treeview.update)
+            self.sidebar_treeview.update()
 
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
@@ -712,20 +704,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
         game = Game(self.view.selected_game)
-        shortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
+        xdg.create_launcher(game.slug, game.id, game.name, menu=True)
 
     def create_desktop_shortcut(self, *args):
         """Create a desktop launcher for the selected game."""
         game = Game(self.view.selected_game)
-        shortcuts.create_launcher(game.slug, game.id, game.name, desktop=True)
+        xdg.create_launcher(game.slug, game.id, game.name, desktop=True)
 
     def remove_menu_shortcut(self, *args):
         game = Game(self.view.selected_game)
-        shortcuts.remove_launcher(game.slug, game.id, menu=True)
+        xdg.remove_launcher(game.slug, game.id, menu=True)
 
     def remove_desktop_shortcut(self, *args):
         game = Game(self.view.selected_game)
-        shortcuts.remove_launcher(game.slug, game.id, desktop=True)
+        xdg.remove_launcher(game.slug, game.id, desktop=True)
 
     def on_sidebar_state_change(self, action, value):
         action.set_state(value)
@@ -747,7 +739,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not slug:
             pass
         elif type == 'platforms':
-            selected_platform = slug.split(' / ')
+            selected_platform = slug
         elif type == 'runners':
             selected_runner = slug
         self.set_selected_filter(selected_runner, selected_platform)
@@ -755,11 +747,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
         self.selected_platform = platform
-        if self.current_view_type == 'grid':
-            self.view.filter_runner = self.selected_runner
-            self.view.filter_platform = self.selected_platform
-            self.view.invalidate_filter()
-        else:
-            self.game_store.filter_runner = self.selected_runner
-            self.game_store.filter_platform = self.selected_platform
-            self.game_store.modelfilter.refilter()
+        self.game_store.filter_runner = self.selected_runner
+        self.game_store.filter_platform = self.selected_platform
+        self.game_store.modelfilter.refilter()

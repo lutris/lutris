@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-from gi.repository import Gtk, Pango
-import webbrowser
 import yaml
+import webbrowser
 
-from lutris import pga, settings, shortcuts
+from gi.repository import Gtk, Pango
+
+from lutris import pga, settings
+from lutris.services import xdg
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
-from lutris.gui.widgets import DownloadProgressBox, FileChooserEntry
+from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.logwindow import LogTextView
 from lutris.util import jobs
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
@@ -22,13 +27,19 @@ class InstallerDialog(Gtk.Window):
     game_dir = None
     download_progress = None
 
-    def __init__(self, game_ref, parent=None):
+    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
         Gtk.Window.__init__(self)
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
-        self.game_ref = game_ref
+        self.game_slug = game_slug
+        self.installer_file = installer_file
+        self.revision = revision
+
+        self.log_buffer = None
+        self.log_textview = None
+
         # Dialog properties
         self.set_size_request(600, 480)
         self.set_default_size(600, 480)
@@ -105,14 +116,14 @@ class InstallerDialog(Gtk.Window):
     # ---------------------------
 
     def get_scripts(self):
-        if os.path.isfile(self.game_ref):
+        if system.path_exists(self.installer_file):
             # local script
-            logger.debug("Opening script: %s", self.game_ref)
-            scripts = yaml.safe_load(open(self.game_ref, 'r').read())
+            logger.debug("Opening script: %s", self.installer_file)
+            scripts = yaml.safe_load(open(self.installer_file, 'r').read())
             self.on_scripts_obtained(scripts)
         else:
             jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
-                           self.game_ref)
+                           self.game_slug, self.revision)
 
     def on_scripts_obtained(self, scripts, _error=None):
         if not scripts:
@@ -135,7 +146,7 @@ class InstallerDialog(Gtk.Window):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game_data = pga.get_game_by_field(self.game_ref, 'slug')
+            game_data = pga.get_game_by_field(self.game_slug, 'slug')
             game = Game(game_data['id'])
             AddGameDialog(
                 self.parent,
@@ -143,8 +154,7 @@ class InstallerDialog(Gtk.Window):
                 callback=lambda: self.notify_install_success(game_data['id'])
             )
         elif dlg.result == dlg.NEW_INSTALLER:
-            installer_url = settings.SITE_URL + "/games/%s/" % self.game_ref
-            webbrowser.open(installer_url)
+            webbrowser.open(settings.GAME_URL % self.game_slug)
 
     # ---------------------------
     # "Choose installer" stage
@@ -502,10 +512,9 @@ class InstallerDialog(Gtk.Window):
         create_menu_shortcut = self.menu_shortcut_box.get_active()
 
         if create_desktop_shortcut:
-            shortcuts.create_launcher(game_slug, game_id, game_name,
-                                      desktop=True)
+            xdg.create_launcher(game_slug, game_id, game_name, desktop=True)
         if create_menu_shortcut:
-            shortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
+            xdg.create_launcher(game_slug, game_id, game_name, menu=True)
 
         settings.write_setting('create_desktop_shortcut',
                                create_desktop_shortcut)
@@ -547,6 +556,17 @@ class InstallerDialog(Gtk.Window):
         """Display a wait icon."""
         self.clean_widgets()
         spinner = Gtk.Spinner()
-        self.widget_box.pack_start(spinner, True, False, 10)
+        self.widget_box.pack_start(spinner, False, False, 10)
         spinner.show()
         spinner.start()
+
+    def attach_logger(self, thread):
+        self.log_buffer = Gtk.TextBuffer()
+        thread.log_buffer = self.log_buffer
+        self.log_textview = LogTextView(self.log_buffer)
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
+                                            child=self.log_textview)
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        self.widget_box.pack_end(scrolledwindow, True, True, 10)
+        scrolledwindow.show()
+        self.log_textview.show()

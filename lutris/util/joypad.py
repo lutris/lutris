@@ -5,13 +5,20 @@ try:
 except ImportError:
     evdev = None
 
+from lutris.util.log import logger
+from lutris.util.gamecontrollerdb import GameControllerDB
+
+
+def get_devices():
+    if not evdev:
+        logger.warning("python3-evdev not installed, controller support not available")
+        return []
+    return [evdev.InputDevice(dev) for dev in evdev.list_devices()]
+
 
 def get_joypads():
     """Return a list of tuples with the device and the joypad name"""
-    if not evdev:
-        return []
-    device_names = evdev.list_devices()
-    return [(dev, evdev.InputDevice(dev).name) for dev in device_names]
+    return [(dev.fn, dev.name) for dev in get_devices()]
 
 
 def read_button(device):
@@ -38,3 +45,17 @@ def get_sdl_identifier(device_info):
                                     device_info.product,
                                     device_info.version)
     return binascii.hexlify(device_identifier).decode()
+
+
+def get_controller_mappings():
+    devices = get_devices()
+    controller_db = GameControllerDB()
+
+    controllers = []
+
+    for device in devices:
+        guid = get_sdl_identifier(device.info)
+        if guid in controller_db.controllers:
+            controllers.append((device, controller_db[guid]))
+
+    return controllers

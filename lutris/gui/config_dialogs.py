@@ -7,11 +7,11 @@ from lutris.game import Game
 from lutris import gui
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.widgets import VBox, Dialog
-from lutris.util.log import logger
+from lutris.gui.widgets.common import VBox
+from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 from lutris.util.strings import slugify
 from lutris.util import datapath
-from lutris.gui.widgets import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 
 DIALOG_WIDTH = 550
 DIALOG_HEIGHT = 550
@@ -246,7 +246,7 @@ class GameDialogCommon(object):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
             try:
-                self.game.runner = runners.import_runner(self.runner_name)
+                self.game.runner = runners.import_runner(self.runner_name)()
             except runners.InvalidRunner:
                 pass
             self.game_box = GameBox(self.lutris_config, self.game)
@@ -393,6 +393,7 @@ class GameDialogCommon(object):
         self.game.is_installed = True
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
+        self.game.set_platform_from_runner()
         self.game.save()
         self.destroy()
         self.saved = True

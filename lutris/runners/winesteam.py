@@ -12,8 +12,8 @@ from lutris.thread import LutrisThread
 from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam import (get_app_state_log, get_path_from_appmanifest,
-                               read_config)
+from lutris.util.steam import get_app_state_log, read_config
+from lutris.services.steam import get_path_from_appmanifest
 from lutris.util.wineregistry import WineRegistry
 
 # Redefine wine installer tasks
@@ -51,7 +51,7 @@ class winesteam(wine.wine):
     description = "Runs Steam for Windows games"
     multiple_versions = False
     human_name = "Wine Steam"
-    platform = ('PC', 'Windows')
+    platforms = ['Windows']
     runnable_alone = True
     depends_on = wine.wine
     game_options = [
@@ -89,7 +89,16 @@ class winesteam(wine.wine):
             'help': ("The architecture of the Windows environment.\n"
                      "32-bit is recommended unless running "
                      "a 64-bit only game.")
+        },
+        {
+            'option': 'nolaunch',
+            'type': 'bool',
+            'default': False,
+            'label': 'Do not launch game, only open Steam',
+            'help': ("Opens Steam with the current settings without running the game, "
+                     "useful if a game has several launch options.")
         }
+
     ]
 
     def __init__(self, config=None):
@@ -384,8 +393,13 @@ class winesteam(wine.wine):
         if self.runner_config.get('xinput'):
             launch_info['ld_preload'] = self.get_xinput_path()
 
+        if self.runner_config.get('x360ce-path'):
+            self.setup_x360ce(self.runner_config['x360ce-path'])
+
         command = self.launch_args
-        if not game_args:
+        if self.game_config.get('nolaunch'):
+            command.append('steam://open/games/details')
+        elif not game_args:
             command.append('steam://rungameid/%s' % self.appid)
         else:
             command.append('-applaunch')

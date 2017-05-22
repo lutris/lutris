@@ -87,10 +87,11 @@ class CommandsMixin(object):
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
         thread = LutrisThread(command, env=runtime.get_env(), term=terminal,
-                              cwd=self.target_path, watch=False)
-        self.abort_current_task = thread.killall
-        thread.run()
-        self.abort_current_task = None
+                              cwd=self.target_path)
+        thread.start()
+        GLib.idle_add(self.parent.attach_logger, thread)
+        self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+        return 'STOP'
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""
@@ -287,7 +288,7 @@ class CommandsMixin(object):
             # than the one for this installer
             runner_name, task_name = task_name.split('.')
         else:
-            runner_name = self.script["runner"]
+            runner_name = self.runner
         return runner_name, task_name
 
     def task(self, data):
@@ -329,14 +330,13 @@ class CommandsMixin(object):
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(thread, LutrisThread):
             # Monitor thread and continue when task has executed
+            GLib.idle_add(self.parent.attach_logger, thread)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
             return 'STOP'
 
     def _monitor_task(self, thread):
         if not thread.is_running:
-            logger.debug("Thread QUIT")
             self._iter_commands()
-            self.heartbeat = None
             return False
         return True
 

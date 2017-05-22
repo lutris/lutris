@@ -1,62 +1,29 @@
 """Generic platform functions."""
+from collections import defaultdict
 
 from lutris import pga
 from lutris import runners
 from lutris.game import Game
 
-# gets populated by load_platforms()
-__all__ = {}
+# gets populated by _init_platforms()
+__all__ = defaultdict(list)
 
 
-def load_platforms():
+def _init_platforms():
     for runner_name in runners.__all__:
         runner = runners.import_runner(runner_name)()
-        platforms = runner.platforms
-
-        # convert platforms into a 2D tuple
-        if type(platforms) is str:
-            platforms = (platforms,)
-        if (isinstance(platforms, tuple) or isinstance(platforms, list)) and not isinstance(platforms[0], tuple):
-            platforms = (platforms,)
-
-        for platform in platforms:
-            prefix = ''
-            for p in platform:
-                p = prefix + p
-                prefix = p + ' / '
-                if not __all__.get(p):
-                    __all__[p] = []
-                __all__.get(p).append(runner_name)
+        for platform in runner.platforms:
+            __all__[platform].append(runner_name)
 
 
-def get_active(sort=True):
-    """Return a list of platforms with games (strings)."""
-    active_platforms = []
-    stubs = set()
-    all_games = pga.get_games(filter_installed=True, select='id')
-    for game in all_games:
-        # load game info
-        game = Game(id=game.get('id'))
-        platform = game.get_platform(string=False)
-        if not platform:
+def update_platforms():
+    pga_games = pga.get_games(filter_installed=True)
+    for pga_game in pga_games:
+        if pga_game.get('platform') or not pga_game['runner']:
             continue
-        # convert to tuple if string
-        if isinstance(platform, str):
-            platform = (platform,)
-
-        stub = ' / '.join(platform[:-1])
-
-        prefix = ''
-        for p in platform:
-            p = prefix + p
-            prefix = p + ' / '
-        if p not in active_platforms:
-            active_platforms.append(p)
-            if stub in stubs and stub not in active_platforms:
-                active_platforms.append(stub)
-            stubs.add(stub)
-
-    return sorted(active_platforms) if sort else active_platforms
+        game = Game(id=pga_game['id'])
+        game.set_platform_from_runner()
+        game.save(metadata_only=True)
 
 
-load_platforms()
+_init_platforms()

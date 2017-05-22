@@ -3,7 +3,7 @@ from gi.repository import Gtk, GObject, Gdk
 
 from lutris import runners
 from lutris import settings
-from lutris.gui.widgets import get_runner_icon
+from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
@@ -59,6 +59,11 @@ class RunnersDialog(Gtk.Window):
         refresh_button.show()
         refresh_button.connect('clicked', self.on_refresh_clicked)
         buttons_box.pack_start(refresh_button, False, False, 10)
+        
+        close_button = Gtk.Button("Close")
+        close_button.show()
+        close_button.connect('clicked', self.on_close_clicked)
+        buttons_box.pack_start(close_button, False, False, 0)
 
         # Signals
         self.connect('destroy', self.on_destroy)
@@ -74,13 +79,7 @@ class RunnersDialog(Gtk.Window):
     def get_runner_hbox(self, runner_name):
         # Get runner details
         runner = runners.import_runner(runner_name)()
-        platform = runner.platforms
-        if (isinstance(platform, tuple) or isinstance(platform, list)) and isinstance(platform[0], tuple):
-            platform = map(lambda p: ' '.join(p), platform)
-            platform = sorted(list(set(platform)))
-            platform = ', '.join(platform)
-        if not isinstance(platform, str):
-            platform = ' '.join(platform)
+        platform = ', '.join(sorted(list(set(runner.platforms))))
         description = runner.description
 
         hbox = Gtk.HBox()
@@ -186,6 +185,9 @@ class RunnersDialog(Gtk.Window):
         for child in self.runner_listbox:
             child.destroy()
         self.populate_runners()
+        
+    def on_close_clicked(self, widget):
+        self.destroy()
 
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():

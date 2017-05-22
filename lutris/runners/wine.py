@@ -1,9 +1,9 @@
 import os
 import time
 import shlex
+import shutil
 import subprocess
-
-from textwrap import dedent
+from collections import OrderedDict
 
 from lutris import runtime
 from lutris import settings
@@ -12,6 +12,7 @@ from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.wineprefix import WinePrefixManager
+from lutris.util.x360ce import X360ce
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -43,15 +44,47 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
     }
     # Make temporary reg file
     reg_file = open(reg_path, "w")
-    reg_file.write(dedent(
-        """
-        REGEDIT4
-        [%s]
-        "%s"=%s
-        """ % (path, key, formatted_value[type])))
+    reg_file.write(
+        'REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type])
+    )
     reg_file.close()
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
+
+
+def get_overrides_env(overrides):
+    """
+    Output a string of dll overrides usable with WINEDLLOVERRIDES
+    See: https://www.winehq.org/docs/wineusr-guide/x258#AEN309
+    """
+    if not overrides:
+        return ''
+    override_buckets = OrderedDict([
+        ('n,b', []),
+        ('b,n', []),
+        ('b', []),
+        ('n', []),
+        ('', [])
+    ])
+    for dll, value in overrides.items():
+        if not value:
+            value = ''
+        value = value.replace(' ', '')
+        value = value.replace('builtin', 'b')
+        value = value.replace('native', 'n')
+        value = value.replace('disabled', '')
+        try:
+            override_buckets[value].append(dll)
+        except KeyError:
+            logger.error('Invalid override value %s', value)
+            continue
+
+    override_strings = []
+    for value, dlls in override_buckets.items():
+        if not dlls:
+            continue
+        override_strings.append("{}={}".format(','.join(sorted(dlls)), value))
+    return ';'.join(override_strings)
 
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
@@ -91,14 +124,34 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
     if not os.path.exists(os.path.join(prefix, 'user.reg')):
         logger.error('No user.reg found after prefix creation. '
                      'Prefix might not be valid')
+        return
     logger.info('%s Prefix created in %s', arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
-             working_dir=None, winetricks_wine='', blocking=False, config=None):
-    """Execute a Wine command."""
+             working_dir=None, winetricks_wine='', blocking=False,
+             config=None, include_processes=[]):
+    """
+    Execute a Wine command.
+
+    Args:
+        executable (str): wine program to run, pass None to run wine itself
+        args (str): program arguments
+        wine_path (str): path to the wine version to use
+        prefix (str): path to the wine prefix to use
+        arch (str): wine architecture of the prefix
+        working_dir (str): path to the working dir for the process
+        winetricks_wine (str): path to the wine version used by winetricks
+        blocking (bool): if true, do not run the process in a thread
+        config (LutrisConfig): LutrisConfig object for the process context
+        watch (list): list of process names to monitor (even when in a ignore list)
+
+    Returns:
+        Process results if the process is running in blocking mode or
+        LutrisThread instance otherwise.
+    """
     detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
     if arch not in ('win32', 'win64'):
@@ -109,10 +162,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    if executable.endswith(".msi"):
-        executable = 'msiexec /i "%s"' % executable
-    elif executable:
-        executable = '%s' % executable
+    executable, _args = get_real_executable(executable)
+    if _args:
+        args = '{} "{}"'.format(_args[0], _args[1])
 
     # Create prefix if necessary
     if not detected_arch:
@@ -140,7 +192,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if blocking:
         return system.execute(command, env=env, cwd=working_dir)
     else:
-        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir)
+        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir,
+                              include_processes=include_processes)
         thread.start()
         return thread
 
@@ -156,12 +209,12 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=
         winetricks_wine = wine().get_executable()
     args = app
     if str(silent).lower() in ('yes', 'on', 'true'):
-        args = "-q " + args
+        args = "--unattended " + args
     return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
                     wine_path=winetricks_path, arch=arch, args=args, config=config)
 
 
-def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True, config=None):
+def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -171,7 +224,8 @@ def winecfg(wine_path=None, prefix=None, arch='win32', blocking=True, config=Non
     logger.debug("winecfg: %s", winecfg_path)
 
     return wineexec(None, prefix=prefix, winetricks_wine=winecfg_path,
-                    wine_path=winecfg_path, arch=arch, config=config)
+                    wine_path=winecfg_path, arch=arch, config=config,
+                    include_processes=['winecfg.exe'])
 
 
 def joycpl(wine_path=None, prefix=None, config=None):
@@ -301,11 +355,28 @@ def support_legacy_version(version):
     return version
 
 
+def get_real_executable(windows_executable):
+    """Given a Windows executable, return the real program
+    capable of launching it along with necessary arguments."""
+    exec_name = windows_executable.lower()
+
+    if exec_name.endswith(".msi"):
+        return ('msiexec', ['/i', windows_executable])
+
+    if exec_name.endswith(".bat"):
+        return ('cmd', ['/C', windows_executable])
+
+    if exec_name.endswith(".lnk"):
+        return ('start', ['/unix', windows_executable])
+
+    return (windows_executable, [])
+
+
 # pylint: disable=C0103
 class wine(Runner):
     description = "Runs Windows games"
     human_name = "Wine"
-    platforms = ('PC', 'Windows')
+    platforms = ['Windows']
     multiple_versions = True
     game_options = [
         {
@@ -423,11 +494,24 @@ class wine(Runner):
             },
             {
                 'option': 'xinput',
-                'label': 'Enable Xinput (experimental)',
+                'label': 'Enable Koku-Xinput (experimental, try using the x360 option instead)',
                 'type': 'bool',
                 'default': False,
                 'help': ("Preloads a library that enables Joypads on games\n"
                          "using XInput.")
+            },
+            {
+                'option': 'x360ce-path',
+                'label': "Path to the game's executable, for x360ce support",
+                'type': 'directory_chooser',
+                'help': "Locate the path for the game's executable for x360 support"
+            },
+            {
+                'option': 'x360ce-dinput',
+                'label': 'x360ce dinput mode',
+                'type': 'bool',
+                'default': False,
+                'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
             },
             {
                 'option': 'Desktop',
@@ -485,9 +569,20 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
-                'help': ("This option ensures any pending drawing operations "
-                         "are submitted to the driver, but at a significant "
-                         "performance cost.")
+                'help': ("This option ensures any pending drawing operations are submitted to the driver, but at"
+                         " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
+                         " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead.""")
+            },
+            {
+                'option': 'UseGLSL',
+                'label': "Use GLSL",
+                'type': 'choice',
+                'choices': [('Enabled', 'enabled'),
+                            ('Disabled', 'disabled')],
+                'default': 'enabled',
+                'advanced': True,
+                'help': ("When set to \"disabled\", this disables the use of GLSL for shaders."
+                         "In general disabling GLSL is not recommended, only use this for debugging purposes.")
             },
             {
                 'option': 'RenderTargetLockMode',
@@ -532,7 +627,8 @@ class wine(Runner):
                 'label': 'Output debugging info',
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
-                            ('Enabled', '')],
+                            ('Enabled', ''),
+                            ('Full', '+all')],
                 'default': '-all',
                 'advanced': True,
                 'help': ("Output debugging information in the game log "
@@ -651,7 +747,7 @@ class wine(Runner):
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
-                arch=self.wine_arch, blocking=False, config=self)
+                arch=self.wine_arch, config=self)
 
     def run_regedit(self, *args):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
@@ -715,24 +811,19 @@ class wine(Runner):
             env = os.environ.copy()
         else:
             env = {}
-        env['WINEDEBUG'] = self.runner_config['show_debug']
+        env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
-        overrides = self.runner_config.get('overrides')
+        overrides = self.runner_config.get('overrides') or {}
+        if self.runner_config.get('x360ce-path'):
+            overrides['xinput1_3'] = 'native,builtin'
+            if self.runner_config.get('x360ce-dinput'):
+                overrides['dinput8'] = 'native,builtin'
         if overrides:
-            arr = []
-            for dll, value in overrides.items():
-                if not value:
-                    value = ''
-                value = value.replace(' ', '')
-                value = value.replace('builtin', 'b')
-                value = value.replace('native', 'n')
-                value = value.replace('disabled', '')
-                arr.append(dll + '=' + value)
-            env['WINEDLLOVERRIDES'] = ','.join(arr)
+            env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
 
         return env
 
@@ -745,7 +836,7 @@ class wine(Runner):
         if not exe.startswith('/'):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)
-        if self.wine_arch == 'win64':
+        if self.wine_arch == 'win64' and os.path.basename(exe) == 'wine':
             wine64 = exe + '64'
             pids_64 = system.get_pids_using_file(wine64)
             pids = pids | pids_64
@@ -756,6 +847,24 @@ class wine(Runner):
                                    'lib32/koku-xinput-wine/koku-xinput-wine.so')
         if os.path.exists(xinput_path):
             return xinput_path
+
+    def setup_x360ce(self, x360ce_path):
+        if not os.path.isdir(x360ce_path):
+            logger.error("%s is not a valid path for x360ce", x360ce_path)
+            return
+        xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
+        dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
+        if not os.path.exists(xinput_dest_path):
+            xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
+            shutil.copyfile(xinput1_3_path, xinput_dest_path)
+        if self.runner_config.get('x360ce-dinput') and self.wine_arch == 'win32':
+            dinput8_path = os.path.join(dll_path, 'dinput8.dll')
+            dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
+            shutil.copyfile(dinput8_path, dinput8_dest_path)
+
+        x360ce_config = X360ce()
+        x360ce_config.populate_controllers()
+        x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
 
     def play(self):
         game_exe = self.game_exe
@@ -775,14 +884,14 @@ class wine(Runner):
             else:
                 logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
 
+        if self.runner_config.get('x360ce-path'):
+            self.setup_x360ce(self.runner_config['x360ce-path'])
+
         command = [self.get_executable()]
-        if game_exe.endswith(".msi"):
-            command.append('msiexec')
-            command.append('/i')
-        if game_exe.endswith('.lnk'):
-            command.append('start')
-            command.append('/unix')
+        game_exe, _args = get_real_executable(game_exe)
         command.append(game_exe)
+        if _args:
+            command = command + _args
 
         if arguments:
             for arg in shlex.split(arguments):

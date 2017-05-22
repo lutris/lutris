@@ -6,25 +6,30 @@ from lutris.util.log import logger
 from lutris import settings
 
 
-def get_cores():
+def get_core_choices():
     # Don't forget to update self.platforms
     # The order has to be the same!
     return [
         ('4do (3DO)', '4do'),
+        ('DesmuME (Nintendo DS)', 'desmume'),
         ('FCEUmm (Nintendo Entertainment System)', 'fceumm'),
         ('Fuse (ZX Spectrum)', 'fuse'),
         ('Gambatte (Game Boy Color)', 'gambatte'),
         ('Genesis Plus GX (Sega Genesis)', 'genesis_plus_gx'),
         ('Handy (Atari Lynx)', 'handy'),
         ('Hatari (Atari ST/STE/TT/Falcon)', 'hatari'),
+        ('Mednafen GBA (Game Boy Advance)', 'mednafen_gba'),
         ('Mednafen NGP (SNK Neo Geo Pocket)', 'mednafen_ngp'),
         ('Mednafen PCE FAST (TurboGrafx-16)', 'mednafen_pce_fast'),
         ('Mednafen PCFX (NEC PC-FX)', 'mednafen_pcfx'),
+        ('Mednafen Saturn (Sega Saturn)', 'mednafen_saturn'),
         ('Mednafen SGX (NEC PC Engine SuperGrafx)', 'mednafen_supergrafx'),
         ('Mednafen WSWAN (Bandai WonderSwan)', 'mednafen_wswan'),
         ('Mednafen PSX (Sony Playstation)', 'mednafen_psx'),
         ('Mednafen PSX OpenGL (Sony Playstation)', 'mednafen_psx_hw'),
+        ('mGBA (Game Boy Advance)', 'mgba'),
         ('Mupen64Plus (Nintendo 64)', 'mupen64plus'),
+        ('Nestopia (Nintendo Entertainment System)', 'nestopia'),
         ('O2EM (Magnavox Odyssey²)', 'o2em'),
         ('PCSX Rearmed (Sony Playstation)', 'pcsx_rearmed'),
         ('PicoDrive (Sega Genesis)', 'picodrive'),
@@ -57,30 +62,35 @@ class libretro(Runner):
     human_name = "Libretro"
     description = "Multi system emulator"
     platforms = (
-        ('3DO',),
-        ('Nintendo', 'NES'),
-        ('Sinclair', 'ZX Spectrum'),
-        ('Nintendo', 'Game Boy Color'),
-        ('Sega', 'Genesis'),
-        ('Atari', 'Lynx'),
-        ('Atari', 'ST/STE/TT/Falcon'),
-        ('SNK', 'Neo Geo Pocket'),
-        ('NEC', 'PC Engine (TurboGrafx-16)'),
-        ('NEC', 'PC-FX'),
-        ('NEC', 'PC Engine (SuperGrafx)'),
-        ('Bandai', 'WonderSwan'),
-        ('Sony', 'PlayStation'),
-        ('Sony', 'PlayStation'),
-        ('Nintendo', 'N64'),
-        ('Magnavox', 'Odyssey²'),
-        ('Sony', 'PlayStation'),
-        ('Sega', 'Genesis'),
-        ('Sony', 'PlayStation Portable'),
-        ('Sega', 'Dreamcast'),
-        ('Nintendo', 'SNES'),
-        ('Sega', 'Saturn'),
-        ('Nintendo', 'Game Boy Advance'),
-        ('Nintendo', 'Game Boy Advance'),
+        '3DO',
+        'Nintendo DS',
+        'Nintendo NES',
+        'Sinclair ZX Spectrum',
+        'Nintendo Game Boy Color',
+        'Sega Genesis',
+        'Atari Lynx',
+        'Atari ST/STE/TT/Falcon',
+        'Nintendo Game Boy Advance',
+        'SNK Neo Geo Pocket',
+        'NEC PC Engine (TurboGrafx-16)',
+        'NEC PC-FX',
+        'Sega Saturn',
+        'NEC PC Engine (SuperGrafx)',
+        'Bandai WonderSwan',
+        'Sony PlayStation',
+        'Sony PlayStation',
+        'Nintendo Game Boy Advance',
+        'Nintendo N64',
+        'Nintendo NES',
+        'Magnavox Odyssey²',
+        'Sony PlayStation',
+        'Sega Genesis',
+        'Sony PlayStation Portable',
+        'Sega Dreamcast',
+        'Nintendo SNES',
+        'Sega Saturn',
+        'Nintendo Game Boy Advance',
+        'Nintendo Game Boy Advance',
     )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
@@ -95,7 +105,7 @@ class libretro(Runner):
             'option': 'core',
             'type': 'choice',
             'label': 'Core',
-            'choices': get_cores(),
+            'choices': get_core_choices(),
         }
     ]
 
@@ -114,15 +124,13 @@ class libretro(Runner):
         }
     ]
 
-    @property
-    def platform(self):
-        core = self.game_config.get('core')
-        if core:
-            cores = get_cores()
-            for i, c in enumerate(cores):
-                if c[1] == core:
-                    return self.platforms[i]
-        return ('',)
+    def get_platform(self):
+        game_core = self.game_config.get('core')
+        if game_core:
+            for index, core in enumerate(get_core_choices()):
+                if core[1] == game_core:
+                    return self.platforms[index]
+        return ''
 
     def get_core_path(self, core):
         return os.path.join(settings.RUNNER_DIR,
