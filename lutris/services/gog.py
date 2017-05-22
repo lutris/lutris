@@ -8,6 +8,9 @@ from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
 
 
+NAME = "GOG"
+
+
 class GogService:
     name = "GOG"
     root_url = 'https://www.gog.com'
@@ -52,3 +55,7 @@ class GogService:
         elif result != GnomeKeyring.Result.OK:
             # XXX
             return False
+
+
+def connect():
+    pass
