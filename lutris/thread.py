@@ -58,6 +58,7 @@ class LutrisThread(threading.Thread):
         self.error = None
         self.include_processes = include_processes
         self.log_buffer = log_buffer
+        self.stdout_monitor = None
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -113,9 +114,11 @@ class LutrisThread(threading.Thread):
         if not self.game_process:
             return
 
-        GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
+        self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
 
     def on_stdout_output(self, fd, condition):
+        if not self.is_running:
+            return False
         try:
             line = fd.readline().decode('utf-8', errors='ignore')
         except ValueError:
@@ -269,10 +272,14 @@ class LutrisThread(threading.Thread):
             else:
                 logger.debug('Some processes are still active (%d)', num_children)
             self.return_code = self.game_process.returncode
+            if self.stdout_monitor:
+                GLib.source_remove(self.stdout_monitor)
             return False
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
             self.game_process.wait()
+            if self.stdout_monitor:
+                GLib.source_remove(self.stdout_monitor)
             self.is_running = False
             return False
         return True
