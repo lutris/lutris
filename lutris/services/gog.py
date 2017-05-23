@@ -1,5 +1,7 @@
 import os
 import gi
+import time
+import json
 from urllib.parse import urlencode, urlparse, parse_qsl
 gi.require_version('GnomeKeyring', '1.0')
 from gi.repository import GnomeKeyring
@@ -24,6 +26,7 @@ class GogService:
 
     login_success_url = "https://www.gog.com/on_login_success"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
+    token_path = os.path.join(settings.CACHE_DIR, '.gog.token')
 
     @property
     def login_url(self):
@@ -35,23 +38,37 @@ class GogService:
         }
         return "https://auth.gog.com/auth?" + urlencode(params)
 
-    def request_token(self, url):
-        parsed_url = urlparse(url)
-        response_params = dict(parse_qsl(parsed_url.query))
-        if 'code' not in response_params:
-            logger.error("code not received from GOG")
-            return
+    def request_token(self, url="", refresh_token=""):
+        if refresh_token:
+            grant_type = 'refresh_token'
+            extra_params = {
+                'refresh_token': refresh_token
+            }
+        else:
+            grant_type = 'authorization_code'
+
+            parsed_url = urlparse(url)
+            response_params = dict(parse_qsl(parsed_url.query))
+            if 'code' not in response_params:
+                logger.error("code not received from GOG")
+                logger.error(response_params)
+                return
+            extra_params = {
+                'code': response_params['code'],
+                'redirect_uri': self.redirect_uri
+            }
         params = {
             'client_id': self.client_id,
             'client_secret': self.client_secret,
-            'grant_type': 'authorization_code',
-            'code': response_params['code'],
-            'redirect_uri': self.redirect_uri
+            'grant_type': grant_type,
         }
+        params.update(extra_params)
         url = "https://auth.gog.com/token?" + urlencode(params)
         request = Request(url)
         request.get()
-        return request.json
+        token = request.json
+        with open(self.token_path, "w") as token_file:
+            token_file.write(json.dumps(token))
 
     def load_cookies(self):
         if not os.path.exists(self.credentials_path):
@@ -61,9 +78,34 @@ class GogService:
         cookiejar.load()
         return cookiejar
 
+    def load_token(self):
+        if not os.path.exists(self.token_path):
+            raise RuntimeError("No GOG token available")
+        with open(self.token_path) as token_file:
+            token_content = json.loads(token_file.read())
+        return token_content
+
+    def get_token_age(self):
+        token_stat = os.stat(self.token_path)
+        token_modified = token_stat.st_mtime
+        return time.time() - token_modified
+
     def make_request(self, url):
         cookies = self.load_cookies()
         request = Request(url, cookies=cookies)
+        request.get()
+        return request.json
+
+    def make_api_request(self, url):
+        token = self.load_token()
+        if self.get_token_age() > 1600:
+            print("Refreshing token!")
+            self.request_token(refresh_token=token['refresh_token'])
+            token = self.load_token()
+        headers = {
+            'Authorization': 'Bearer ' + token['access_token']
+        }
+        request = Request(url, headers=headers)
         request.get()
         return request.json
 
@@ -83,7 +125,7 @@ class GogService:
         return self.make_request(url)
 
     def get_download_info(self, downlink):
-        return self.make_request(downlink)
+        return self.make_api_request(downlink)
 
     def store_credentials(self, username, password):
         # See
@@ -119,19 +161,19 @@ def connect(parent=None):
 
 def get_games():
     service = GogService()
-    #games = service.get_library()
-    #with open('gog-games.json', 'w') as games_file:
-    #    games_file.write(json.dumps(games, indent=2))
-    #
     game_details = service.get_game_details("1430740694")
+    done = False
     for installer in game_details['downloads']['installers']:
-        if installer['os'] == 'linux':
-            from pprint import pprint
-            pprint(installer)
-            # for file in installer['files']:
+        from pprint import pprint
+        pprint(installer)
+        for file in installer['files']:
+            if not done:
+                print(service.get_download_info(file['downlink']))
+                done = True
 
-            #     url = "https://www.gog.com/downlink/{}/{}".format(
-            #         game_details['slug'],
-            #         file['id']
-            #     )
-            #     print(service.get_download_info(url))
+                # url = "https://www.gog.com/downlink/{}/{}".format(
+                #     game_details['slug'],
+                #     file['id']
+                # )
+                # print(service.get_download_info(url))
+
