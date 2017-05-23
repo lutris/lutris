@@ -1,5 +1,6 @@
 import os
 import gi
+import json
 gi.require_version('GnomeKeyring', '1.0')
 from gi.repository import GnomeKeyring
 from lutris import settings
@@ -15,11 +16,13 @@ NAME = "GOG"
 class GogService:
     name = "GOG"
     root_url = 'https://www.gog.com'
+    api_url = 'https://api.gog.com'
+    client_id = "46899977096215655"
     login_url = ("https://login.gog.com/auth?"
-                 "client_id=46755278331571209"
+                 "client_id={}"
                  "&layout=default"
                  "&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success"
-                 "&response_type=code")
+                 "&response_type=code".format(client_id))
     login_success_url = "https://www.gog.com/on_login_success"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
 
@@ -31,19 +34,30 @@ class GogService:
         cookiejar.load()
         return cookiejar
 
-    def get_user_data(self):
-        url = 'https://embed.gog.com/userData.json'
+    def make_request(self, url):
         cookies = self.load_cookies()
         request = Request(url, cookies=cookies)
         request.get()
+        print(request.response_headers)
         return request.json
+
+    def get_user_data(self):
+        url = 'https://embed.gog.com/userData.json'
+        return self.make_request(url)
 
     def get_library(self):
         url = self.root_url + '/account/getFilteredProducts?mediaType=1'
-        cookies = self.load_cookies()
-        request = Request(url, cookies=cookies)
-        request.get()
-        return request.json
+        return self.make_request(url)
+
+    def get_game_details(self, product_id):
+        url = '{}/products/{}?expand=downloads'.format(
+            self.api_url,
+            product_id
+        )
+        return self.make_request(url)
+
+    def get_download_info(self, downlink):
+        return self.make_request(downlink)
 
     def store_credentials(self, username, password):
         # See
@@ -79,5 +93,16 @@ def connect(parent=None):
 
 def get_games():
     service = GogService()
-    games = service.get_library()
-    print(games)
+    #games = service.get_library()
+    #with open('gog-games.json', 'w') as games_file:
+    #    games_file.write(json.dumps(games, indent=2))
+    #
+    game_details = service.get_game_details("1207659142")
+    for installer in game_details['downloads']['installers']:
+        if installer['os'] == 'linux':
+            for file in installer['files']:
+                url = "https://www.gog.com/downlink/{}/{}".format(
+                    game_details['slug'],
+                    file['id']
+                )
+                print(service.get_download_info(url))
