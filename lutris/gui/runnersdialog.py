@@ -25,7 +25,6 @@ class RunnersDialog(Gtk.Dialog):
         height = int(settings.read_setting('runners_manager_height') or 500)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
-        self.set_position(Gtk.WindowPosition.CENTER)
         self._vbox = self.get_content_area()
         self._header = self.get_header_bar()
 
