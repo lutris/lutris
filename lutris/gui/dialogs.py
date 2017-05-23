@@ -15,7 +15,7 @@ from lutris.util.log import logger
 class GtkBuilderDialog(GObject.Object):
 
     def __init__(self, parent=None, **kwargs):
-        super(GtkBuilderDialog, self).__init__()
+        super().__init__()
         ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
         if not os.path.exists(ui_filename):
@@ -60,7 +60,7 @@ class AboutDialog(GtkBuilderDialog):
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
     def __init__(self, message, parent=None):
-        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -69,7 +69,7 @@ class NoticeDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
     def __init__(self, message, secondary=None, parent=None):
-        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary)
@@ -83,7 +83,7 @@ class QuestionDialog(Gtk.MessageDialog):
     NO = Gtk.ResponseType.NO
 
     def __init__(self, settings):
-        super(QuestionDialog, self).__init__(
+        super().__init__(
             message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.YES_NO
         )
@@ -96,7 +96,7 @@ class QuestionDialog(Gtk.MessageDialog):
 class DirectoryDialog(Gtk.FileChooserDialog):
     """Ask the user to select a directory."""
     def __init__(self, message, parent=None):
-        super(DirectoryDialog, self).__init__(
+        super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             buttons=('_Cancel', Gtk.ResponseType.CLOSE,
@@ -114,7 +114,7 @@ class FileDialog(Gtk.FileChooserDialog):
         self.filename = None
         if not message:
             message = "Please choose a file"
-        super(FileDialog, self).__init__(
+        super().__init__(
             message, None, Gtk.FileChooserAction.OPEN,
             ('_Cancel', Gtk.ResponseType.CANCEL,
              '_OK', Gtk.ResponseType.OK)
@@ -230,7 +230,7 @@ class PgaSourceDialog(GtkBuilderDialog):
     dialog_object = 'pga_dialog'
 
     def __init__(self):
-        super(PgaSourceDialog, self).__init__()
+        super().__init__()
 
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
@@ -300,7 +300,7 @@ class ClientLoginDialog(GtkBuilderDialog):
     }
 
     def __init__(self, parent):
-        super(ClientLoginDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parent = parent
         self.username_entry = self.builder.get_object('username_entry')

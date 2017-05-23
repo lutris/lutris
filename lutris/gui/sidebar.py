@@ -67,7 +67,7 @@ class SidebarListBox(Gtk.ListBox):
 
 class ContextualMenu(Gtk.Menu):
     def __init__(self):
-        super(ContextualMenu, self).__init__()
+        super().__init__()
 
     def add_menuitems(self, entries):
         for entry in entries:
@@ -97,8 +97,7 @@ class ContextualMenu(Gtk.Menu):
         self.add_menuitems(entries)
         self.show_all()
 
-        super(ContextualMenu, self).popup(None, None, None, None,
-                                          event.button, event.time)
+        super().popup(None, None, None, None, event.button, event.time)
 
     def on_configure_runner(self, *args):
         RunnerConfigDialog(self.runner, parent=self.parent_window)

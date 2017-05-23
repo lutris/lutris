@@ -9,7 +9,7 @@ from lutris.settings import read_setting, write_setting
 class ServiceSyncRow(Gtk.Box):
 
     def __init__(self, service, dialog):
-        super(ServiceSyncRow, self).__init__()
+        super().__init__()
         self.set_spacing(20)
 
         self.identifier = service.__name__.split('.')[-1]
@@ -58,7 +58,7 @@ class ServiceSyncRow(Gtk.Box):
 class SyncServiceDialog(Gtk.Dialog):
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, title="Import local games", parent=parent, use_header_bar=1)
+        super().__init__(title="Import local games", parent=parent, use_header_bar=1)
         self.connect("delete-event", lambda *x: self.destroy())
         self.set_border_width(10)
         self.set_size_request(512, 0)

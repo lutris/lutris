@@ -12,7 +12,7 @@ from lutris.util.system import reverse_expanduser
 class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
-        super(ConfigBox, self).__init__()
+        super().__init__()
         self.options = None
         self.game = game
 

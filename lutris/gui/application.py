@@ -44,9 +44,8 @@ from .lutriswindow import LutrisWindow
 
 class Application(Gtk.Application):
     def __init__(self):
-
-        Gtk.Application.__init__(self, application_id='net.lutris.Lutris',
-                                 flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        super().__init__(application_id='net.lutris.Lutris',
+                         flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
 
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
