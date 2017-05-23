@@ -34,6 +34,7 @@ class Request(object):
         self.headers = {
             'User-Agent': self.user_agent
         }
+        self.response_headers = None
         if not isinstance(headers, dict):
             raise TypeError('HTTP headers needs to be a dict ({})'.format(headers))
         self.headers.update(headers)
@@ -67,6 +68,7 @@ class Request(object):
             except AttributeError:
                 total_size = 0
 
+            self.response_headers = request.getheaders()
             chunks = []
             while 1:
                 if self.stop_request and self.stop_request.is_set():
