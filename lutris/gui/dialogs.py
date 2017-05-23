@@ -388,5 +388,6 @@ class WebConnectDialog(Dialog):
     def on_navigation(self, widget, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             uri = widget.get_uri()
-            if uri.startswith(self.service.login_success_url):
+            if uri.startswith(self.service.redirect_uri):
+                self.service.request_token(uri)
                 self.destroy()

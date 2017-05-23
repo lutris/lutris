@@ -1,6 +1,6 @@
 import os
 import gi
-import json
+from urllib.parse import urlencode, urlparse, parse_qsl
 gi.require_version('GnomeKeyring', '1.0')
 from gi.repository import GnomeKeyring
 from lutris import settings
@@ -17,14 +17,41 @@ class GogService:
     name = "GOG"
     root_url = 'https://www.gog.com'
     api_url = 'https://api.gog.com'
+
     client_id = "46899977096215655"
-    login_url = ("https://login.gog.com/auth?"
-                 "client_id={}"
-                 "&layout=default"
-                 "&redirect_uri=https%3A%2F%2Fwww.gog.com%2Fon_login_success"
-                 "&response_type=code".format(client_id))
+    client_secret = "9d85c43b1482497dbbce61f6e4aa173a433796eeae2ca8c5f6129f2dc4de46d9"
+    redirect_uri = "https://embed.gog.com/on_login_success?origin=client"
+
     login_success_url = "https://www.gog.com/on_login_success"
     credentials_path = os.path.join(settings.CACHE_DIR, '.gog.auth')
+
+    @property
+    def login_url(self):
+        params = {
+            'client_id': self.client_id,
+            'layout': 'client2',
+            'redirect_uri': self.redirect_uri,
+            'response_type': 'code'
+        }
+        return "https://auth.gog.com/auth?" + urlencode(params)
+
+    def request_token(self, url):
+        parsed_url = urlparse(url)
+        response_params = dict(parse_qsl(parsed_url.query))
+        if 'code' not in response_params:
+            logger.error("code not received from GOG")
+            return
+        params = {
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'grant_type': 'authorization_code',
+            'code': response_params['code'],
+            'redirect_uri': self.redirect_uri
+        }
+        url = "https://auth.gog.com/token?" + urlencode(params)
+        request = Request(url)
+        request.get()
+        return request.json
 
     def load_cookies(self):
         if not os.path.exists(self.credentials_path):
@@ -38,7 +65,6 @@ class GogService:
         cookies = self.load_cookies()
         request = Request(url, cookies=cookies)
         request.get()
-        print(request.response_headers)
         return request.json
 
     def get_user_data(self):
@@ -97,12 +123,15 @@ def get_games():
     #with open('gog-games.json', 'w') as games_file:
     #    games_file.write(json.dumps(games, indent=2))
     #
-    game_details = service.get_game_details("1207659142")
+    game_details = service.get_game_details("1430740694")
     for installer in game_details['downloads']['installers']:
         if installer['os'] == 'linux':
-            for file in installer['files']:
-                url = "https://www.gog.com/downlink/{}/{}".format(
-                    game_details['slug'],
-                    file['id']
-                )
-                print(service.get_download_info(url))
+            from pprint import pprint
+            pprint(installer)
+            # for file in installer['files']:
+
+            #     url = "https://www.gog.com/downlink/{}/{}".format(
+            #         game_details['slug'],
+            #         file['id']
+            #     )
+            #     print(service.get_download_info(url))
