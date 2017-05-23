@@ -424,7 +424,7 @@ class GameDialogCommon(object):
                 dest_path = datapath.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = 'png'
-            pixbuf = get_pixbuf(image_path, None, size)
+            pixbuf = get_pixbuf(image_path, size)
             pixbuf.savev(dest_path, file_format, [], [])
             self._set_image(image_type)
 
