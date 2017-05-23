@@ -59,7 +59,7 @@ class RunnersDialog(Gtk.Window):
         refresh_button.show()
         refresh_button.connect('clicked', self.on_refresh_clicked)
         buttons_box.pack_start(refresh_button, False, False, 10)
-        
+
         close_button = Gtk.Button("Close")
         close_button.show()
         close_button.connect('clicked', self.on_close_clicked)
@@ -185,7 +185,7 @@ class RunnersDialog(Gtk.Window):
         for child in self.runner_listbox:
             child.destroy()
         self.populate_runners()
-        
+
     def on_close_clicked(self, widget):
         self.destroy()
 
