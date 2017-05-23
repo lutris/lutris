@@ -50,7 +50,7 @@ class GameStore(GObject.Object):
     }
 
     def __init__(self, games, icon_type, filter_installed):
-        super(GameStore, self).__init__()
+        super().__init__()
         self.games = games
         self.icon_type = icon_type
         self.filter_installed = filter_installed
@@ -300,7 +300,7 @@ class GameListView(Gtk.TreeView, GameView):
     def __init__(self, store):
         self.game_store = store
         self.model = self.game_store.modelfilter.sort_new_with_model()
-        super(GameListView, self).__init__(self.model)
+        super().__init__(self.model)
         self.set_rules_hint(True)
 
         # Icon column
@@ -399,7 +399,7 @@ class GameGridView(Gtk.IconView, GameView):
     def __init__(self, store):
         self.game_store = store
         self.model = self.game_store.modelfilter
-        super(GameGridView, self).__init__(model=self.model)
+        super().__init__(model=self.model)
 
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
@@ -447,7 +447,7 @@ class GameGridView(Gtk.IconView, GameView):
 
 class ContextualMenu(Gtk.Menu):
     def __init__(self, main_entries):
-        super(ContextualMenu, self).__init__()
+        super().__init__()
         self.main_entries = main_entries
 
     def add_menuitems(self, entries):
@@ -525,5 +525,5 @@ class ContextualMenu(Gtk.Menu):
             visible = not hiding_condition.get(action)
             menuitem.set_visible(visible)
 
-        super(ContextualMenu, self).popup(None, None, None, None,
+        super().popup(None, None, None, None,
                                           event.button, event.time)

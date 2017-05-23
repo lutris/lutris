@@ -19,7 +19,7 @@ DIALOG_HEIGHT = 550
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
     def __init__(self):
-        super(SlugEntry, self).__init__()
+        super().__init__()
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
@@ -32,7 +32,7 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
 
 class NumberEntry(Gtk.Entry, Gtk.Editable):
     def __init__(self):
-        super(NumberEntry, self).__init__()
+        super().__init__()
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
@@ -446,7 +446,7 @@ class GameDialogCommon(object):
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
     def __init__(self, parent, game=None, runner=None, callback=None):
-        super(AddGameDialog, self).__init__("Add a new game", parent=parent)
+        super().__init__("Add a new game", parent=parent)
         self.game = game
         self.saved = False
 
@@ -478,7 +478,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
-        super(EditGameConfigDialog, self).__init__(
+        super().__init__(
             "Configure %s" % game.name,
             parent=parent
         )
@@ -500,7 +500,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runner config edit dialog."""
     def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
-        super(RunnerConfigDialog, self).__init__(
+        super().__init__(
             "Configure %s" % runner.human_name,
             parent=parent
         )
@@ -523,7 +523,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self, parent=None):
-        super(SystemConfigDialog, self).__init__("System preferences", parent=parent)
+        super().__init__("System preferences", parent=parent)
 
         self.game = None
         self.runner_name = None
