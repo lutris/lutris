@@ -3,7 +3,7 @@ from gi.repository import Gtk, GObject, GLib, Pango
 from lutris.downloader import Downloader
 
 
-class DownloadProgressBox(Gtk.VBox):
+class DownloadProgressBox(Gtk.Box):
     """Progress bar used to monitor a file download."""
     __gsignals__ = {
         'complete': (GObject.SignalFlags.RUN_LAST, None,
@@ -15,7 +15,7 @@ class DownloadProgressBox(Gtk.VBox):
     }
 
     def __init__(self, params, cancelable=True, downloader=None):
-        super(DownloadProgressBox, self).__init__()
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
         self.downloader = downloader
         self.url = params.get('url')

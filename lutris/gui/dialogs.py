@@ -173,7 +173,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
 
         self.set_size_request(320, 120)
         self.set_border_width(12)
-        vbox = Gtk.VBox(spacing=6)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
