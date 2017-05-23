@@ -78,7 +78,7 @@ class RunnersDialog(Gtk.Dialog):
         platform = ', '.join(sorted(list(set(runner.platforms))))
         description = runner.description
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         hbox.show()
         # Icon
         icon = get_runner_icon(runner_name)

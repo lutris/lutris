@@ -102,10 +102,13 @@ class Label(Gtk.Label):
         self.set_line_wrap(True)
 
 
-class VBox(Gtk.VBox):
-    def __init__(self):
-        GObject.GObject.__init__(self)
-        self.set_margin_top(20)
+class VBox(Gtk.Box):
+    def __init__(self, **kwargs):
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_top=20,
+            **kwargs
+        )
 
 
 class EditableGrid(Gtk.Grid):

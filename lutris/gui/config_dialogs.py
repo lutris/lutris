@@ -83,7 +83,7 @@ class GameDialogCommon(object):
         self._add_notebook_tab(info_sw, "Game info")
 
     def _get_name_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Name")
         box.pack_start(label, False, False, 20)
@@ -96,7 +96,7 @@ class GameDialogCommon(object):
         return box
 
     def _get_slug_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Identifier")
         box.pack_start(label, False, False, 20)
@@ -114,7 +114,7 @@ class GameDialogCommon(object):
         return box
 
     def _get_runner_box(self):
-        runner_box = Gtk.HBox()
+        runner_box = Gtk.Box()
         runner_label = Gtk.Label("Runner")
         runner_label.set_alignment(0.5, 0.5)
         self.runner_dropdown = self._get_runner_dropdown()
@@ -128,7 +128,7 @@ class GameDialogCommon(object):
         return runner_box
 
     def _get_banner_box(self):
-        banner_box = Gtk.HBox()
+        banner_box = Gtk.Box()
         banner_label = Gtk.Label("Banner")
         banner_label.set_alignment(0.5, 0.5)
         self.banner_button = Gtk.Button()
@@ -161,7 +161,7 @@ class GameDialogCommon(object):
         return banner_box
 
     def _get_year_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Release year")
         box.pack_start(label, False, False, 20)
@@ -288,7 +288,7 @@ class GameDialogCommon(object):
         self.action_area.pack_start(checkbox, False, False, 5)
 
         # Buttons
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         cancel_button = Gtk.Button(label="Cancel")
         cancel_button.connect("clicked", self.on_cancel_clicked)
         hbox.pack_start(cancel_button, True, True, 10)

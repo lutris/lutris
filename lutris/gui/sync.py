@@ -6,7 +6,7 @@ from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 
 
-class ServiceSyncRow(Gtk.HBox):
+class ServiceSyncRow(Gtk.Box):
 
     def __init__(self, service, dialog):
         super(ServiceSyncRow, self).__init__()
@@ -22,7 +22,7 @@ class ServiceSyncRow(Gtk.HBox):
         label.set_markup("<b>{}</b>".format(name))
         self.pack_start(label, True, True, 0)
 
-        actions = Gtk.VBox()
+        actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
