@@ -14,7 +14,7 @@ NAME = "GOG"
 
 class GogService:
     name = "GOG"
-    root_url = 'https://www.gog.com'
+    embed_url = 'https://embed.gog.com'
     api_url = 'https://api.gog.com'
 
     client_id = "46899977096215655"
@@ -95,8 +95,7 @@ class GogService:
 
     def make_api_request(self, url):
         token = self.load_token()
-        if self.get_token_age() > 1600:
-            print("Refreshing token!")
+        if self.get_token_age() > 2600:
             self.request_token(refresh_token=token['refresh_token'])
             token = self.load_token()
         headers = {
@@ -108,18 +107,29 @@ class GogService:
 
     def get_user_data(self):
         url = 'https://embed.gog.com/userData.json'
+        return self.make_api_request(url)
+
+    def get_library(self, page=None, search=None):
+        params = {
+            'mediaType': '1'
+        }
+        if page:
+            params['page'] = page
+        if search:
+            params['search'] = search
+        url = self.embed_url + '/account/getFilteredProducts?' + urlencode(params)
         return self.make_request(url)
 
-    def get_library(self):
-        url = self.root_url + '/account/getFilteredProducts?mediaType=1'
-        return self.make_request(url)
+    def get_games_list(self):
+        url = self.api_url + '/products'
+        return self.make_api_request(url)
 
     def get_game_details(self, product_id):
         url = '{}/products/{}?expand=downloads'.format(
             self.api_url,
             product_id
         )
-        return self.make_request(url)
+        return self.make_api_request(url)
 
     def get_download_info(self, downlink):
         return self.make_api_request(downlink)
@@ -139,6 +149,11 @@ def connect(parent=None):
 
 def get_games():
     service = GogService()
+
+    game_list = service.get_library()
+    print(json.dumps(game_list, indent=2))
+    return
+
     game_details = service.get_game_details("1430740694")
     done = False
     for installer in game_details['downloads']['installers']:
@@ -154,4 +169,3 @@ def get_games():
                 #     file['id']
                 # )
                 # print(service.get_download_info(url))
-
