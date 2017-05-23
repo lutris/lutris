@@ -21,7 +21,7 @@ from lutris.util.steam import SteamWatcher
 from lutris.services import get_services_synced_at_startup, steam, xdg
 
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarTreeView
+from lutris.gui.sidebar import SidebarListBox
 from lutris.gui.logwindow import LogWindow
 from lutris.gui.sync import SyncServiceDialog
 from lutris.gui.gi_composites import GtkTemplate
@@ -46,7 +46,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     splash_box = GtkTemplate.Child()
     connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
-    sidebar_paned = GtkTemplate.Child()
+    sidebar_revealer = GtkTemplate.Child()
     sidebar_viewport = GtkTemplate.Child()
     statusbar = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
@@ -132,15 +132,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        self.sidebar_treeview = SidebarTreeView()
-        self.sidebar_treeview.connect('cursor-changed', self.on_sidebar_changed)
-        self.sidebar_viewport.add(self.sidebar_treeview)
-        self.sidebar_treeview.show()
+        self.sidebar_listbox = SidebarListBox()
+        self.sidebar_listbox.connect('selected-rows-changed', self.on_sidebar_changed)
+        self.sidebar_viewport.add(self.sidebar_listbox)
 
         self.game_store.fill_store(self.game_list)
         self.switch_splash_screen()
 
-        self.show_sidebar()
+        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
         self.update_runtime()
 
         # Connect account and/or sync
@@ -322,11 +321,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def switch_splash_screen(self):
         if len(self.game_list) == 0:
             self.splash_box.show()
-            self.sidebar_paned.hide()
+            self.sidebar_revealer.set_reveal_child(False)
             self.games_scrollwindow.hide()
         else:
             self.splash_box.hide()
-            self.sidebar_paned.show()
+            self.sidebar_revealer.set_reveal_child(True)
             self.games_scrollwindow.show()
 
     def switch_view(self, view_type):
@@ -598,7 +597,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         game = Game(game_id)
         view.set_installed(game)
-        self.sidebar_treeview.update()
+        self.sidebar_listbox.update()
         GLib.idle_add(resources.fetch_icons,
                       [game.slug], self.on_image_downloaded)
 
@@ -613,7 +612,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_manually(self, widget, *args):
         def on_game_added(game):
             self.view.set_installed(game)
-            self.sidebar_treeview.update()
+            self.sidebar_listbox.update()
 
         game = Game(self.view.selected_game)
         AddGameDialog(self,
@@ -648,7 +647,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def do_add_game():
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen()
-            self.sidebar_treeview.update()
+            self.sidebar_listbox.update()
             return False
 
         if async:
@@ -672,7 +671,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             GLib.idle_add(do_remove_game)
         else:
             self.view.update_image(game_id, is_installed=False)
-        self.sidebar_treeview.update()
+        self.sidebar_listbox.update()
 
     def on_browse_files(self, widget):
         game = Game(self.view.selected_game)
@@ -697,7 +696,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.remove_game(game_id)
             self.view.add_game_by_id(game_id)
             self.view.set_selected_game(game_id)
-            self.sidebar_treeview.update()
+            self.sidebar_listbox.update()
 
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
@@ -748,23 +747,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.write_setting('sidebar_visible', 'true')
         else:
             settings.write_setting('sidebar_visible', 'false')
-        self.show_sidebar()
-
-    def show_sidebar(self):
-        width = 180 if self.sidebar_visible else 0
-        self.sidebar_paned.set_position(width)
+        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
 
     def on_sidebar_changed(self, widget):
-        type, slug = widget.get_selected_filter()
-        selected_runner = None
-        selected_platform = None
-        if not slug:
-            pass
-        elif type == 'platforms':
-            selected_platform = slug
-        elif type == 'runners':
-            selected_runner = slug
-        self.set_selected_filter(selected_runner, selected_platform)
+        row = widget.get_selected_row()
+        self.set_selected_filter(row.runner, None)
 
     def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
