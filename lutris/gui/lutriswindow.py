@@ -56,6 +56,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
+    no_results_overlay = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -360,7 +361,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 # bypass that limitation, divide the query in chunks
                 page_size = 999
                 added_games = chain.from_iterable([
-                    pga.get_games_where(id__in=list(added_ids)[p * page_size:p * page_size + page_size])
+                    pga.get_games_where(
+                        id__in=list(added_ids)[p * page_size:p * page_size + page_size]
+                    )
                     for p in range(math.ceil(len(added_ids) / page_size))
                 ])
                 self.game_list += added_games
@@ -500,6 +503,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback when preferences is activated."""
         SystemConfigDialog(parent=self)
 
+    def invalidate_game_filter(self):
+        self.game_store.modelfilter.refilter()
+        self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
+
     def on_show_installed_state_change(self, action, value):
         action.set_state(value)
         filter_installed = value.get_boolean()
@@ -512,7 +519,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'filter_installed', setting_value
         )
         self.game_store.filter_installed = filter_installed
-        self.game_store.modelfilter.refilter()
+        self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def on_pga_menuitem_activate(self, *args):
@@ -521,7 +528,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
         self.game_store.filter_text = widget.get_text()
-        self.game_store.modelfilter.refilter()
+        self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def _on_search_toggle(self, button):
@@ -771,17 +778,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
         self.selected_platform = platform
-<<<<<<< HEAD
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
         self.game_store.modelfilter.refilter()
-=======
-        if self.current_view_type == 'grid':
-            self.view.filter_runner = self.selected_runner
-            self.view.filter_platform = self.selected_platform
-            self.view.invalidate_filter()
-        else:
-            self.game_store.filter_runner = self.selected_runner
-            self.game_store.filter_platform = self.selected_platform
-            self.game_store.modelfilter.refilter()
->>>>>>> Preselect selected runner when adding games (Fixes #408)
+        self.invalidate_game_filter()

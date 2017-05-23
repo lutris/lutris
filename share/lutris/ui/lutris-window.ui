@@ -248,12 +248,58 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="games_scrollwindow">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="vexpand">1</property>
+                  <object class="GtkOverlay">
+                    <property name="visible">1</property>
                     <child>
-                      <placeholder/>
+                      <object class="GtkScrolledWindow" id="games_scrollwindow">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="vexpand">1</property>
+                      </object>
+                    </child>
+                    <child type="overlay">
+                      <object class="GtkGrid" id="no_results_overlay">
+                        <property name="visible">0</property>
+                        <property name="row_spacing">12</property>
+                        <property name="hexpand">1</property>
+                        <property name="vexpand">1</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="icon-name">edit-find-symbolic</property>
+                            <property name="pixel-size">72</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">No Games Found</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                              <attribute name="scale" value="1.44"/>
+                            </attributes>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="pass-through">1</property>
+                      </packing>
                     </child>
                   </object>
                 </child>
