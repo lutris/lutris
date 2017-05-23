@@ -1,7 +1,4 @@
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gio, GLib
-
+from gi.repository import Gtk, GLib, Gio
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
