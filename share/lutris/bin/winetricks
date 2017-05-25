@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20170327-next
+WINETRICKS_VERSION=20170517-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -152,7 +152,7 @@ WINETRICKS_VERSION=20170327-next
 # - If winetricks has helped you out, then please consider donating to the FSF/EFF as a thank you:
 #   * EFF - https://supporters.eff.org/donate/button
 #   * FSF - https://my.fsf.org/donate
-# - Donations towards electricity bill and developer beer fund can be sent via Paypal to above address.
+# - Donations towards electricity bill and developer beer fund can be sent via Bitcoin to 18euSAZztpZ9wcN6xZS3vtNnE1azf8niDk
 # - I try to actively respond to bugs and pull requests on GitHub:
 # - Bugs: https://github.com/Winetricks/winetricks/issues/new
 # - Pull Requests: https://github.com/Winetricks/winetricks/pulls
@@ -200,6 +200,7 @@ w_askpermission()
     then
         case $LANG in
         uk*) w_die "Операція скасована." ;;
+        pl*) w_die "Anulowano operację, opuszczanie." ;;
         *) w_die "Operation cancelled, quitting." ;;
         esac
         exec false
@@ -323,7 +324,7 @@ w_package_warn_win64()
 {
     if [ "$W_ARCH" = "win64" ]
     then
-        w_die "This package may not fully work on a 64-bit installation. 32-bit prefixes may work better."
+        w_warn "This package may not fully work on a 64-bit installation. 32-bit prefixes may work better."
     fi
 }
 
@@ -363,15 +364,21 @@ w_try_7z()
 {
     # $1 - directory to extract to
     # $2 - file to extract
+    # $3 .. $n - files to extract from the archive
+
+    destdir="$1"
+    filename="$2"
+    shift 2
+
     # Not always installed, use Windows 7-Zip as a fallback:
     if test -x "$(which 7z 2>/dev/null)"
     then
-        w_try 7z x "$2" -o"$1"
+        w_try 7z x "$filename" -o"$destdir" "$@"
     else
         w_warn "Cannot find 7z.  Using Windows 7-Zip instead. (You can avoid this by installing 7z, e.g. 'sudo apt-get install p7zip-full' or 'sudo yum install p7zip p7zip-plugins')."
         WINETRICKS_OPT_SHAREDPREFIX=1 w_call 7zip
         # errors out if there is a space between -o and path
-        w_try "$WINE" "$W_PROGRAMS_X86_WIN\\7-Zip\\7z.exe" x "$(w_pathconv -w "$2")" -o"$(w_pathconv -w "$1")"
+        w_try "$WINE" "$W_PROGRAMS_X86_WIN\\7-Zip\\7z.exe" x "$(w_pathconv -w "$filename")" -o"$(w_pathconv -w "$destdir")" "$@"
     fi
 }
 
@@ -1825,17 +1832,65 @@ w_override_all_dlls()
 {
     # Disable all known native Microsoft DLLs in favor of Wine's built-in ones
     # Generated with:
-    # find ~/wine-git/dlls -maxdepth 1 -type d -print | sed 's,.*/,,' | sort | fmt -50 | sed 's/$/ \\/'
+    # find ./dlls -maxdepth 1 -type d ! -iname "*.dll16" ! -iname "*.drv*" ! -iname "*.ds" ! -iname "*.exe*" ! -iname "*.tlb" ! -iname "*.vxd" -print | sed \
+    #   -e '/^.*\/adsiid$/ d' \
+    #   -e '/^.*\/advapi32$/ d' \
+    #   -e '/^.*\/capi2032$/ d' \
+    #   -e '/^.*\/dbghelp$/ d' \
+    #   -e '/^.*\/ddraw$/ d' \
+    #   -e '/^.*\/dlls$/ d' \
+    #   -e '/^.*\/dxerr8$/ d' \
+    #   -e '/^.*\/dxerr9$/ d' \
+    #   -e '/^.*\/dxguid$/ d' \
+    #   -e '/^.*\/gdi32$/ d' \
+    #   -e '/^.*\/glu32$/ d' \
+    #   -e '/^.*\/icmp$/ d' \
+    #   -e '/^.*\/iphlpapi$/ d' \
+    #   -e '/^.*\/kernel32$/ d' \
+    #   -e '/^.*\/mountmgr.sys$/ d' \
+    #   -e '/^.*\/mswsock$/ d' \
+    #   -e '/^.*\/ntdll$/ d' \
+    #   -e '/^.*\/opengl32$/ d' \
+    #   -e '/^.*\/strmbase$/ d' \
+    #   -e '/^.*\/strmiids$/ d' \
+    #   -e '/^.*\/twain_32$/ d' \
+    #   -e '/^.*\/unicows$/ d' \
+    #   -e '/^.*\/user32$/ d' \
+    #   -e '/^.*\/uuid$/ d' \
+    #   -e '/^.*\/vdmdbg$/ d' \
+    #   -e '/^.*\/w32skrnl$/ d' \
+    #   -e '/^.*\/winecrt0$/ d' \
+    #   -e '/^.*\/wined3d$/ d' \
+    #   -e '/^.*\/winemp3.acm$/ d' \
+    #   -e '/^.*\/wineqtdecoder$/ d' \
+    #   -e '/^.*\/winmm$/ d' \
+    #   -e '/^.*\/wintab32$/ d' \
+    #   -e '/^.*\/wnaspi32$/ d' \
+    #   -e '/^.*\/wow32$/ d' \
+    #   -e '/^.*\/ws2_32$/ d' \
+    #   -e '/^.*\/wsock32$/ d' \
+    #   -e 's,.*/,        ,' | sort | fmt -63 | sed 's/$/ \\/'
     #
-    # 2015/09/28: Last list update
+    # 2017/04/30: Last list update (wine-2.7)
     w_override_dlls builtin \
-        acledit aclui activeds actxprxy adsiid advapi32 \
-        advpack amstream api-ms-win-core-com-l1-1-0 \
+        acledit aclui activeds actxprxy advpack \
+        amstream api-ms-win-appmodel-identity-l1-1-0 \
+        api-ms-win-appmodel-runtime-l1-1-1 \
+        api-ms-win-core-apiquery-l1-1-0 \
+        api-ms-win-core-appcompat-l1-1-1 \
+        api-ms-win-core-appinit-l1-1-0 \
+        api-ms-win-core-atoms-l1-1-0 \
+        api-ms-win-core-bem-l1-1-0 api-ms-win-core-com-l1-1-0 \
+        api-ms-win-core-com-l1-1-1 \
+        api-ms-win-core-com-private-l1-1-0 \
         api-ms-win-core-console-l1-1-0 \
+        api-ms-win-core-console-l2-1-0 \
         api-ms-win-core-datetime-l1-1-0 \
         api-ms-win-core-datetime-l1-1-1 \
         api-ms-win-core-debug-l1-1-0 \
         api-ms-win-core-debug-l1-1-1 \
+        api-ms-win-core-delayload-l1-1-0 \
+        api-ms-win-core-delayload-l1-1-1 \
         api-ms-win-core-errorhandling-l1-1-0 \
         api-ms-win-core-errorhandling-l1-1-1 \
         api-ms-win-core-errorhandling-l1-1-2 \
@@ -1843,6 +1898,7 @@ w_override_all_dlls()
         api-ms-win-core-fibers-l1-1-1 \
         api-ms-win-core-file-l1-1-0 \
         api-ms-win-core-file-l1-2-0 \
+        api-ms-win-core-file-l1-2-1 \
         api-ms-win-core-file-l2-1-0 \
         api-ms-win-core-file-l2-1-1 \
         api-ms-win-core-handle-l1-1-0 \
@@ -1851,19 +1907,33 @@ w_override_all_dlls()
         api-ms-win-core-heap-obsolete-l1-1-0 \
         api-ms-win-core-interlocked-l1-1-0 \
         api-ms-win-core-interlocked-l1-2-0 \
-        api-ms-win-core-io-l1-1-1 \
+        api-ms-win-core-io-l1-1-0 api-ms-win-core-io-l1-1-1 \
+        api-ms-win-core-job-l1-1-0 api-ms-win-core-job-l2-1-0 \
         api-ms-win-core-kernel32-legacy-l1-1-0 \
+        api-ms-win-core-kernel32-legacy-l1-1-1 \
+        api-ms-win-core-kernel32-private-l1-1-1 \
         api-ms-win-core-libraryloader-l1-1-0 \
         api-ms-win-core-libraryloader-l1-1-1 \
+        api-ms-win-core-libraryloader-l1-2-0 \
+        api-ms-win-core-libraryloader-l1-2-2 \
+        api-ms-win-core-localization-l1-1-0 \
         api-ms-win-core-localization-l1-2-0 \
         api-ms-win-core-localization-l1-2-1 \
+        api-ms-win-core-localization-l2-1-0 \
         api-ms-win-core-localization-obsolete-l1-1-0 \
+        api-ms-win-core-localization-obsolete-l1-2-0 \
+        api-ms-win-core-localization-private-l1-1-0 \
         api-ms-win-core-localregistry-l1-1-0 \
         api-ms-win-core-memory-l1-1-0 \
         api-ms-win-core-memory-l1-1-1 \
+        api-ms-win-core-memory-l1-1-2 \
         api-ms-win-core-misc-l1-1-0 \
         api-ms-win-core-namedpipe-l1-1-0 \
         api-ms-win-core-namedpipe-l1-2-0 \
+        api-ms-win-core-namespace-l1-1-0 \
+        api-ms-win-core-normalization-l1-1-0 \
+        api-ms-win-core-path-l1-1-0 \
+        api-ms-win-core-privateprofile-l1-1-1 \
         api-ms-win-core-processenvironment-l1-1-0 \
         api-ms-win-core-processenvironment-l1-2-0 \
         api-ms-win-core-processthreads-l1-1-0 \
@@ -1871,24 +1941,46 @@ w_override_all_dlls()
         api-ms-win-core-processthreads-l1-1-2 \
         api-ms-win-core-profile-l1-1-0 \
         api-ms-win-core-psapi-l1-1-0 \
+        api-ms-win-core-psapi-obsolete-l1-1-0 \
+        api-ms-win-core-quirks-l1-1-0 \
+        api-ms-win-core-realtime-l1-1-0 \
         api-ms-win-core-registry-l1-1-0 \
+        api-ms-win-core-registry-l2-1-0 \
+        api-ms-win-core-registryuserspecific-l1-1-0 \
         api-ms-win-core-rtlsupport-l1-1-0 \
         api-ms-win-core-rtlsupport-l1-2-0 \
         api-ms-win-core-shlwapi-legacy-l1-1-0 \
+        api-ms-win-core-shlwapi-obsolete-l1-1-0 \
+        api-ms-win-core-sidebyside-l1-1-0 \
+        api-ms-win-core-stringansi-l1-1-0 \
         api-ms-win-core-string-l1-1-0 \
+        api-ms-win-core-string-l2-1-0 \
+        api-ms-win-core-string-obsolete-l1-1-0 \
         api-ms-win-core-synch-l1-1-0 \
         api-ms-win-core-synch-l1-2-0 \
         api-ms-win-core-sysinfo-l1-1-0 \
         api-ms-win-core-sysinfo-l1-2-0 \
         api-ms-win-core-sysinfo-l1-2-1 \
+        api-ms-win-core-threadpool-l1-1-0 \
+        api-ms-win-core-threadpool-l1-2-0 \
         api-ms-win-core-threadpool-legacy-l1-1-0 \
+        api-ms-win-core-threadpool-private-l1-1-0 \
         api-ms-win-core-timezone-l1-1-0 \
-        api-ms-win-core-url-l1-1-0 \
-        api-ms-win-core-util-l1-1-0 \
+        api-ms-win-core-toolhelp-l1-1-0 \
+        api-ms-win-core-url-l1-1-0 api-ms-win-core-util-l1-1-0 \
+        api-ms-win-core-versionansi-l1-1-0 \
+        api-ms-win-core-version-l1-1-0 \
+        api-ms-win-core-version-private-l1-1-0 \
+        api-ms-win-core-windowserrorreporting-l1-1-0 \
         api-ms-win-core-winrt-error-l1-1-0 \
         api-ms-win-core-winrt-error-l1-1-1 \
+        api-ms-win-core-winrt-errorprivate-l1-1-1 \
         api-ms-win-core-winrt-l1-1-0 \
+        api-ms-win-core-winrt-registration-l1-1-0 \
+        api-ms-win-core-winrt-roparameterizediid-l1-1-0 \
         api-ms-win-core-winrt-string-l1-1-0 \
+        api-ms-win-core-wow64-l1-1-0 \
+        api-ms-win-core-xstate-l1-1-0 \
         api-ms-win-core-xstate-l2-1-0 \
         api-ms-win-crt-conio-l1-1-0 \
         api-ms-win-crt-convert-l1-1-0 \
@@ -1905,6 +1997,8 @@ w_override_all_dlls()
         api-ms-win-crt-string-l1-1-0 \
         api-ms-win-crt-time-l1-1-0 \
         api-ms-win-crt-utility-l1-1-0 \
+        api-ms-win-devices-config-l1-1-1 \
+        api-ms-win-devices-query-l1-1-1 \
         api-ms-win-downlevel-advapi32-l1-1-0 \
         api-ms-win-downlevel-advapi32-l2-1-0 \
         api-ms-win-downlevel-normaliz-l1-1-0 \
@@ -1914,114 +2008,126 @@ w_override_all_dlls()
         api-ms-win-downlevel-shlwapi-l2-1-0 \
         api-ms-win-downlevel-user32-l1-1-0 \
         api-ms-win-downlevel-version-l1-1-0 \
+        api-ms-win-dx-d3dkmt-l1-1-0 \
+        api-ms-win-eventing-classicprovider-l1-1-0 \
+        api-ms-win-eventing-consumer-l1-1-0 \
+        api-ms-win-eventing-controller-l1-1-0 \
         api-ms-win-eventing-provider-l1-1-0 \
+        api-ms-win-eventlog-legacy-l1-1-0 \
+        api-ms-win-mm-misc-l1-1-1 api-ms-win-mm-mme-l1-1-0 \
         api-ms-win-ntuser-dc-access-l1-1-0 \
+        api-ms-win-power-base-l1-1-0 \
+        api-ms-win-power-setting-l1-1-0 \
+        api-ms-win-rtcore-ntuser-private-l1-1-0 \
+        api-ms-win-security-audit-l1-1-1 \
         api-ms-win-security-base-l1-1-0 \
         api-ms-win-security-base-l1-2-0 \
+        api-ms-win-security-base-private-l1-1-1 \
+        api-ms-win-security-grouppolicy-l1-1-0 \
+        api-ms-win-security-lsalookup-l1-1-0 \
+        api-ms-win-security-lsalookup-l1-1-1 \
+        api-ms-win-security-lsalookup-l2-1-1 \
+        api-ms-win-security-lsapolicy-l1-1-0 \
         api-ms-win-security-sddl-l1-1-0 \
+        api-ms-win-security-systemfunctions-l1-1-0 \
+        api-ms-win-service-core-l1-1-0 \
         api-ms-win-service-core-l1-1-1 \
         api-ms-win-service-management-l1-1-0 \
-        api-ms-win-service-winsvc-l1-2-0 apphelp \
+        api-ms-win-service-management-l2-1-0 \
+        api-ms-win-service-private-l1-1-1 \
+        api-ms-win-service-winsvc-l1-1-0 \
+        api-ms-win-service-winsvc-l1-2-0 \
+        api-ms-win-shell-shellcom-l1-1-0 \
+        api-ms-win-shell-shellfolders-l1-1-0 apphelp \
         appwiz.cpl atl atl100 atl110 atl80 atl90 authz \
-        avicap32 avifil32 avifile.dll16 avrt bcrypt \
-        browseui cabinet capi2032 cards cfgmgr32 clusapi \
-        combase comcat comctl32 comdlg32 commdlg.dll16 \
-        comm.drv16 compobj.dll16 compstui comsvcs connect \
-        credui crtdll crypt32 cryptdlg cryptdll cryptext \
-        cryptnet cryptui ctapi32 ctl3d32 ctl3d.dll16 \
-        ctl3dv2.dll16 d2d1 d3d10 d3d10_1 d3d10core \
-        d3d11 d3d8 d3d9 d3dcompiler_33 d3dcompiler_34 \
-        d3dcompiler_35 d3dcompiler_36 d3dcompiler_37 \
-        d3dcompiler_38 d3dcompiler_39 d3dcompiler_40 \
-        d3dcompiler_41 d3dcompiler_42 d3dcompiler_43 \
-        d3dcompiler_46 d3dcompiler_47 d3dim d3drm \
-        d3dx10_33 d3dx10_34 d3dx10_35 d3dx10_36 d3dx10_37 \
-        d3dx10_38 d3dx10_39 d3dx10_40 d3dx10_41 d3dx10_42 \
-        d3dx10_43 d3dx11_42 d3dx11_43 d3dx9_24 d3dx9_25 \
-        d3dx9_26 d3dx9_27 d3dx9_28 d3dx9_29 d3dx9_30 \
-        d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 d3dx9_35 \
-        d3dx9_36 d3dx9_37 d3dx9_38 d3dx9_39 d3dx9_40 \
-        d3dx9_41 d3dx9_42 d3dx9_43 d3dxof davclnt \
-        dbgeng dbghelp dciman32 ddeml.dll16 ddraw \
-        ddrawex devenum dhcpcsvc difxapi dinput \
-        dinput8 dispdib.dll16 dispex display.drv16 \
-        dlls dmband dmcompos dmime dmloader dmscript \
-        dmstyle dmsynth dmusic dmusic32 dnsapi dplay \
-        dplayx dpnaddr dpnet dpnhpast dpnlobby dpvoice \
-        dpwsockx drmclien dsound dssenh dswave dwmapi \
-        dwrite dxdiagn dxerr8 dxerr9 dxgi dxguid dxva2 \
-        evr explorerframe ext-ms-win-gdi-devcaps-l1-1-0 \
-        faultrep fltlib fntcache fontsub fusion fwpuclnt \
-        gameux gdi32 gdi.exe16 gdiplus glu32 gphoto2.ds \
-        gpkcsp hal hhctrl.ocx hid hidclass.sys hlink \
-        hnetcfg httpapi iccvid icmp ieframe ifsmgr.vxd \
-        imaadp32.acm imagehlp imm32 imm.dll16 inetcomm \
-        inetcpl.cpl inetmib1 infosoft initpki inkobj \
-        inseng iphlpapi itircl itss joy.cpl jscript \
-        jsproxy kernel32 keyboard.drv16 krnl386.exe16 \
-        ksuser ktmw32 loadperf localspl localui lz32 \
-        lzexpand.dll16 mapi32 mapistub mciavi32 mcicda \
-        mciqtz32 mciseq mciwave mf mfplat mfreadwrite \
-        mgmtapi midimap mlang mmcndmgr mmdevapi \
-        mmdevldr.vxd mmsystem.dll16 monodebg.vxd \
-        mountmgr.sys mouse.drv16 mpr mprapi msacm32 \
-        msacm32.drv msacm.dll16 msadp32.acm msasn1 \
-        mscat32 mscms mscoree msctf msctfp msdaps \
-        msdmo msftedit msg711.acm msgsm32.acm mshtml \
-        mshtml.tlb msi msident msimg32 msimsg msimtf \
-        msisip msisys.ocx msls31 msnet32 mspatcha msrle32 \
-        msscript.ocx mssign32 mssip32 mstask msvcirt \
-        msvcm80 msvcm90 msvcp100 msvcp110 msvcp120 \
-        msvcp120_app msvcp60 msvcp70 msvcp71 msvcp80 \
-        msvcp90 msvcr100 msvcr110 msvcr120 msvcr120_app \
-        msvcr70 msvcr71 msvcr80 msvcr90 msvcrt msvcrt20 \
-        msvcrt40 msvcrtd msvfw32 msvidc32 msvideo.dll16 \
-        mswsock msxml msxml2 msxml3 msxml4 msxml6 \
-        nddeapi ndis.sys netapi32 netcfgx netprofm \
-        newdev normaliz npmshtml npptools ntdll ntdsapi \
-        ntoskrnl.exe ntprint objsel odbc32 odbccp32 \
-        odbccu32 ole2conv.dll16 ole2disp.dll16 ole2.dll16 \
-        ole2nls.dll16 ole2prox.dll16 ole2thk.dll16 \
-        ole32 oleacc oleaut32 olecli32 olecli.dll16 \
-        oledb32 oledlg olepro32 olesvr32 olesvr.dll16 \
-        olethk32 openal32 opencl opengl32 packager pdh \
-        photometadatahandler pidgen powrprof printui \
-        prntvpt propsys psapi pstorec qcap qedit qmgr \
-        qmgrprxy quartz query rasapi16.dll16 rasapi32 \
-        rasdlg regapi resutils riched20 riched32 \
-        rpcrt4 rsabase rsaenh rstrtmgr rtutils \
-        samlib sane.ds scarddlg sccbase schannel \
-        schedsvc scrrun scsiport.sys secur32 security \
-        sensapi serialui setupapi setupx.dll16 sfc \
-        sfc_os shdoclc shdocvw shell32 shell.dll16 \
-        shfolder shlwapi slbcsp slc snmpapi softpub \
-        sound.drv16 spoolss stdole2.tlb stdole32.tlb \
-        sti storage.dll16 stress.dll16 strmbase strmiids \
-        svrapi sxs system.drv16 t2embed tapi32 taskschd \
-        toolhelp.dll16 traffic twain_32 twain.dll16 \
-        typelib.dll16 ucrtbase unicows updspapi url \
-        urlmon usbd.sys user32 userenv user.exe16 usp10 \
-        uuid uxtheme vbscript vcomp vcomp100 vcomp110 \
-        vcomp90 vdhcp.vxd vdmdbg ver.dll16 version \
-        vmm.vxd vnbt.vxd vnetbios.vxd vssapi vtdapi.vxd \
-        vwin32.vxd w32skrnl w32sys.dll16 wbemdisp \
-        wbemprox webservices wer wevtapi wiaservc \
-        win32s16.dll16 win87em.dll16 winaspi.dll16 \
-        windebug.dll16 windowscodecs windowscodecsext \
-        winealsa.drv winecoreaudio.drv winecrt0 wined3d \
-        winegstreamer winejoystick.drv winemac.drv \
-        winemapi winemp3.acm wineoss.drv wineps16.drv16 \
-        wineps.drv wineqtdecoder winex11.drv wing32 \
-        wing.dll16 winhttp wininet winmm winnls32 \
-        winnls.dll16 winscard winsock.dll16 winspool.drv \
-        winsta wintab32 wintab.dll16 wintrust wlanapi \
-        wldap32 wmi wmiutils wmp wmvcore wnaspi32 wow32 \
-        wpcap ws2_32 wshom.ocx wsnmp32 wsock32 wtsapi32 \
-        wuapi wuaueng x3daudio1_1 x3daudio1_2 x3daudio1_3 \
+        avicap32 avifil32 avrt bcrypt bluetoothapis browseui \
+        bthprops.cpl cabinet cards cfgmgr32 clusapi combase \
+        comcat comctl32 comdlg32 compstui comsvcs concrt140 \
+        connect credui crtdll crypt32 cryptdlg cryptdll \
+        cryptext cryptnet cryptui ctapi32 ctl3d32 d2d1 d3d10 \
+        d3d10_1 d3d10core d3d11 d3d8 d3d9 d3dcompiler_33 \
+        d3dcompiler_34 d3dcompiler_35 d3dcompiler_36 \
+        d3dcompiler_37 d3dcompiler_38 d3dcompiler_39 \
+        d3dcompiler_40 d3dcompiler_41 d3dcompiler_42 \
+        d3dcompiler_43 d3dcompiler_46 d3dcompiler_47 d3dim \
+        d3drm d3dx10_33 d3dx10_34 d3dx10_35 d3dx10_36 \
+        d3dx10_37 d3dx10_38 d3dx10_39 d3dx10_40 d3dx10_41 \
+        d3dx10_42 d3dx10_43 d3dx11_42 d3dx11_43 d3dx9_24 \
+        d3dx9_25 d3dx9_26 d3dx9_27 d3dx9_28 d3dx9_29 d3dx9_30 \
+        d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 d3dx9_35 d3dx9_36 \
+        d3dx9_37 d3dx9_38 d3dx9_39 d3dx9_40 d3dx9_41 d3dx9_42 \
+        d3dx9_43 d3dxof davclnt dbgeng dciman32 ddrawex \
+        devenum dhcpcsvc difxapi dinput dinput8 dispex dmband \
+        dmcompos dmime dmloader dmscript dmstyle dmsynth \
+        dmusic dmusic32 dnsapi dplay dplayx dpnaddr dpnet \
+        dpnhpast dpnlobby dpvoice dpwsockx drmclien dsound \
+        dssenh dswave dwmapi dwrite dxdiagn dxgi dxva2 esent \
+        evr explorerframe ext-ms-win-domainjoin-netjoin-l1-1-0 \
+        ext-ms-win-gdi-dc-create-l1-1-1 \
+        ext-ms-win-gdi-dc-l1-2-0 ext-ms-win-gdi-devcaps-l1-1-0 \
+        ext-ms-win-gdi-draw-l1-1-1 \
+        ext-ms-win-gdi-render-l1-1-0 \
+        ext-ms-win-kernel32-package-current-l1-1-0 \
+        ext-ms-win-ntuser-message-l1-1-1 \
+        ext-ms-win-ntuser-private-l1-1-1 \
+        ext-ms-win-ntuser-rectangle-ext-l1-1-0 \
+        ext-ms-win-ntuser-uicontext-ext-l1-1-0 \
+        ext-ms-win-ntuser-window-l1-1-1 \
+        ext-ms-win-rtcore-gdi-object-l1-1-0 \
+        ext-ms-win-rtcore-gdi-rgn-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-dc-access-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-dpi-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-sysparams-l1-1-0 faultrep \
+        fltlib fltmgr.sys fntcache fontsub fusion fwpuclnt \
+        gameux gdiplus gpkcsp hal hhctrl.ocx hid hidclass.sys \
+        hlink hnetcfg httpapi iccvid ieframe imaadp32.acm \
+        imagehlp imm32 inetcomm inetcpl.cpl inetmib1 infosoft \
+        initpki inkobj inseng iprop irprops.cpl itircl itss \
+        joy.cpl jscript jsproxy kernelbase ksuser ktmw32 \
+        loadperf localspl localui lz32 mapi32 mapistub \
+        mciavi32 mcicda mciqtz32 mciseq mciwave mf mf3216 \
+        mfplat mfreadwrite mgmtapi midimap mlang mmcndmgr \
+        mmdevapi mpr mprapi msacm32 msadp32.acm msasn1 \
+        mscat32 mscms mscoree msctf msctfp msdaps msdelta \
+        msdmo msdrm msftedit msg711.acm msgsm32.acm mshtml \
+        msi msident msimg32 msimsg msimtf msisip msisys.ocx \
+        msls31 msnet32 mspatcha msports msrle32 msscript.ocx \
+        mssign32 mssip32 mstask msvcirt msvcm80 msvcm90 \
+        msvcp100 msvcp110 msvcp120 msvcp120_app msvcp140 \
+        msvcp60 msvcp70 msvcp71 msvcp80 msvcp90 msvcr100 \
+        msvcr110 msvcr120 msvcr120_app msvcr70 msvcr71 msvcr80 \
+        msvcr90 msvcrt msvcrt20 msvcrt40 msvcrtd msvfw32 \
+        msvidc32 msxml msxml2 msxml3 msxml4 msxml6 mtxdm \
+        ncrypt nddeapi ndis.sys netapi32 netcfgx netprofm \
+        newdev normaliz npmshtml npptools ntdsapi ntprint \
+        objsel odbc32 odbccp32 odbccu32 ole32 oleacc oleaut32 \
+        olecli32 oledb32 oledlg olepro32 olesvr32 olethk32 \
+        openal32 opencl packager pdh photometadatahandler \
+        pidgen powrprof printui prntvpt propsys psapi pstorec \
+        qcap qedit qmgr qmgrprxy quartz query rasapi32 rasdlg \
+        regapi resutils riched20 riched32 rpcrt4 rsabase \
+        rsaenh rstrtmgr rtutils samlib scarddlg sccbase \
+        schannel schedsvc scrobj scrrun scsiport.sys secur32 \
+        security sensapi serialui setupapi sfc sfc_os shdoclc \
+        shdocvw shell32 shfolder shlwapi slbcsp slc snmpapi \
+        softpub spoolss sspicli sti svrapi sxs t2embed tapi32 \
+        taskschd tdi.sys traffic ucrtbase uiautomationcore \
+        updspapi url urlmon usbd.sys userenv usp10 uxtheme \
+        vbscript vcomp vcomp100 vcomp110 vcomp120 vcomp140 \
+        vcomp90 vcruntime140 version virtdisk vssapi \
+        wbemdisp wbemprox webservices wer wevtapi wiaservc \
+        wimgapi windowscodecs windowscodecsext winebus.sys \
+        winegstreamer winehid.sys winemapi wing32 winhttp \
+        wininet winnls32 winscard winsta wintrust winusb \
+        wlanapi wldap32 wmasf wmi wmiutils wmp wmvcore wpc \
+        wpcap wsdapi wshom.ocx wsnmp32 wtsapi32 wuapi wuaueng \
+        x3daudio1_0 x3daudio1_1 x3daudio1_2 x3daudio1_3 \
         x3daudio1_4 x3daudio1_5 x3daudio1_6 x3daudio1_7 \
-        xapofx1_1 xapofx1_3 xapofx1_4 xapofx1_5 xaudio2_7 \
-        xaudio2_8 xinput1_1 xinput1_2 xinput1_3 xinput1_4 \
-        xinput9_1_0 xmllite xolehlp xpsprint xpssvcs \
+        xapofx1_1 xapofx1_2 xapofx1_3 xapofx1_4 xapofx1_5 \
+        xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 \
+        xaudio2_5 xaudio2_6 xaudio2_7 xaudio2_8 xaudio2_9 \
+        xinput1_1 xinput1_2 xinput1_3 xinput1_4 xinput9_1_0 \
+        xmllite xolehlp xpsprint xpssvcs \
 
         # blank line so you don't have to remove the extra trailing \
 }
@@ -2824,6 +2930,7 @@ winetricks_dl_url_to_stdout()
 winetricks_dl_warning() {
     case $LANG in
         ru*) _W_countrymsg="Скрипт определил, что ваш IP адрес принадлежит России. Если во время загрузки файлов вы увидите ошибки несоответствия сертификата, перезапустите скрипт с опцией '--torify' или скачайте файлы вручную, например, используя VPN." ;;
+        pl*) _W_countrymsg="Wykryto, że twój adres IP należy do Rosji. W wypadku problemów z pobieraniem, uruchom z parametrem '--torify' lub pobierz plik manualnie, np. z użyciem VPN." ;;
         *)  _W_countrymsg="Your IP address has been determined to belong to Russia. If you encounter a certificate error while downloading, please relaunch with the '--torify' option, or download files manually, for instance using VPN." ;;
     esac
 
@@ -2905,7 +3012,7 @@ winetricks_latest_version_check()
     latest_version="$(winetricks_dl_url_to_stdout https://raw.githubusercontent.com/Winetricks/winetricks/master/files/LATEST)"
 
     # Check that $latest_version is an actual number in case github is down
-    if ! echo "${latest_version}" | grep -E "[0-9]{8}" || [ -z "${latest_version}" ] ; then
+    if ! echo "${latest_version}" | grep -q -E "[0-9]{8}" || [ -z "${latest_version}" ] ; then
         w_warn "Github down? version '${latest_version}' doesn't appear to be a valid version"
     fi
 
@@ -3070,6 +3177,18 @@ winetricks_prefixmenu()
          _W_msg_showbroken1="Defekte Programme anzeigen (z.B. solche mit DRM Problemen)"
          _W_msg_help="Hilfe anzeigen"
          ;;
+    pl*) _W_msg_title="Winetricks - wybierz prefiks Wine"
+         _W_msg_body='Co chcesz zrobić?'
+         _W_msg_apps='Zainstalować aplikację'
+         _W_msg_games='Zainstalować grę'
+         _W_msg_benchmarks='Zainstalować program sprawdzający wydajność komputera'
+         _W_msg_default="Wybrać domyślny prefiks Wine"
+         _W_msg_unattended0="Wyłącz cichą instalację"
+         _W_msg_unattended1="Włącz cichą instalację"
+         _W_msg_showbroken0="Ukrywaj uszkodzone aplikacje (np. z problemami z DRM)"
+         _W_msg_showbroken1="Pokazuj uszkodzone aplikacje (np. z problemami z DRM)"
+         _W_msg_help="Wyświetl pomoc"
+         ;;
     *)   _W_msg_title="Winetricks - choose a wineprefix"
          _W_msg_body='What do you want to do?'
          _W_msg_apps='Install an application'
@@ -3129,6 +3248,7 @@ winetricks_prefixmenu()
             zh_CN*) printf %s " FALSE prefix='$p' '选择管理 $_W_msg_name' " ;;
             zh_TW*|zh_HK*) printf %s " FALSE prefix='$p' '選擇管理 $_W_msg_name' " ;;
             de*) printf %s " FALSE prefix='$p' '$_W_msg_name auswählen' " ;;
+            pl*) printf %s " FALSE prefix='$p' 'Wybierz $_W_msg_name' " ;;
             *) printf %s " FALSE prefix='$p' 'Select $_W_msg_name' " ;;
             esac
             done >> "$WINETRICKS_WORKDIR"/zenity.sh
@@ -3204,17 +3324,17 @@ winetricks_mainmenu()
          _W_msg_annihilate="ALLE DATEIEN UND PROGRAMME IN DIESEM WINEPREFIX Löschen"
          ;;
     pl*) _W_msg_title="Winetricks - obecny prefiks to \"$WINEPREFIX\""
-         _W_msg_body='What would you like to do to this wineprefix?'
-         _W_msg_dlls="Zainstaluj Windowsową bibliotekę DLL lub komponent"
-         _W_msg_fonts='Zainstaluj czcionkę'
-         _W_msg_settings='Zmień ustawienia'
-         _W_msg_winecfg='Uruchom winecfg'
-         _W_msg_regedit='Uruchom regedit'
-         _W_msg_taskmgr='Uruchom taskmgr'
-         _W_msg_uninstaller='Run uninstaller'
-         _W_msg_shell='Uruchom powłokę wiersza poleceń (dla debugowania)'
-         _W_msg_folder='Przeglądaj pliki'
-         _W_msg_annihilate="Usuń WSZYSTKIE DANE I APLIKACJE WEWNĄTRZ TEGO WINEPREFIXA"
+         _W_msg_body='Co chcesz zrobić w tym prefiksie?'
+         _W_msg_dlls="Zainstalować windowsową bibliotekę DLL lub komponent"
+         _W_msg_fonts='Zainstalować czcionkę'
+         _W_msg_settings='Zmienić ustawienia'
+         _W_msg_winecfg='Uruchomić winecfg'
+         _W_msg_regedit='Uruchomić edytor rejestru'
+         _W_msg_taskmgr='Uruchomić menedżer zadań'
+         _W_msg_uninstaller='Uruchomić program odinstalowujący'
+         _W_msg_shell='Uruchomić powłokę wiersza poleceń (dla debugowania)'
+         _W_msg_folder='Przeglądać pliki'
+         _W_msg_annihilate="Usuńąć WSZYSTKIE DANE I APLIKACJE WEWNĄTRZ TEGO PREFIKSU WINE"
          ;;
     ru*) _W_msg_title="Winetricks - текущий путь для wine (wineprefix) \"$WINEPREFIX\""
          _W_msg_body='Что вы хотите сделать с этим wineprefix?'
@@ -3346,7 +3466,7 @@ winetricks_settings_menu()
          _W_msg_body='Welche Einstellungen möchten Sie ändern?'
          ;;
     pl*) _W_msg_title="Winetricks - obecny prefiks to \"$WINEPREFIX\""
-         _W_msg_body='Which settings would you like to change?'
+         _W_msg_body='Jakie ustawienia chcesz zmienić?'
          ;;
     ru*) _W_msg_title="Winetricks - текущий путь wine (wineprefix) \"$WINEPREFIX\""
          _W_msg_body='Какие настройки вы хотите изменить?'
@@ -3587,7 +3707,7 @@ winetricks_showmenu()
                 --list \
                 --checklist \
                 --column '' \
-                --column Paczka \
+                --column Pakiet \
                 --column Nazwa \
                 --column Wydawca \
                 --column Rok \
@@ -4171,7 +4291,7 @@ winetricks_cache_iso()
             case $LANG in
             da*)  w_warn "Forkert disk [$_W_volname] indsat. Indsæt venligst disken [$_W_expected_volname]" ;;
             de*)  w_warn "Falsche Disk [$_W_volname] eingelegt. Bitte legen Sie Disk [$_W_expected_volname] ein!" ;;
-            pl*)  w_warn "Włożono zły dysk [$_W_volname]. Proszę włożyć dysk [$_W_expected_volname]" ;;
+            pl*)  w_warn "Umieszczono zły dysk [$_W_volname]. Proszę włożyć dysk [$_W_expected_volname]" ;;
             ru*)  w_warn "Неверный диск [$_W_volname]. Пожалуйста, вставьте диск [$_W_expected_volname]" ;;
             uk*)  w_warn "Неправильний диск [$_W_volname]. Будь ласка, вставте диск [$_W_expected_volname]" ;;
             zh_CN*)    w_warn " [$_W_volname] 光盘插入错误，请插入光盘 [$_W_expected_volname]" ;;
@@ -4553,15 +4673,17 @@ winetricks_set_wineprefix()
     esac
 
     W_COMMONFILES_X86_WIN="$(w_expand_env CommonProgramFiles)"
+    W_COMMONFILES_WIN="$(w_expand_env CommonProgramW6432)"
 
     # CommonProgramW6432 is only defined on win64, not win32 arches
-    W_COMMONFILES_WIN="$(w_expand_env CommonProgramW6432)"
-    W_COMMONFILES_WIN="${W_COMMONFILES_WIN:-$W_COMMONFILES_X86_WIN}"
+    # win32: %CommonProgramW6432%
+    # win64: 'C:\Program Files\Common Files'
+    if [ -z "$W_COMMONFILES_WIN" ] || [ "$W_COMMONFILES_WIN" = "%CommonProgramW6432%" ] ; then
+        W_COMMONFILES_WIN="$W_COMMONFILES_X86_WIN"
+    fi
 
-    W_WINDIR_UNIX="$W_DRIVE_C/windows"
-
-    # FIXME: move that tr into w_pathconv, if it's still needed?
     W_PROGRAMS_UNIX="$(w_pathconv -u "$W_PROGRAMS_WIN")"
+    W_WINDIR_UNIX="$W_DRIVE_C/windows"
 
     # 64-bit Windows has a second directory for program files
     W_PROGRAMS_X86_WIN="${W_PROGRAMS_WIN} (x86)"
@@ -4618,6 +4740,7 @@ winetricks_annihilate_wineprefix()
 
     case $LANG in
     uk*) w_askpermission "Бажаєте видалити '$WINEPREFIX'?" ;;
+    pl*) w_askpermission "Czy na pewno chcesz usunąć prefiks $WINEPREFIX i wszystkie jego elementy?" ;;
     *) w_askpermission "Delete $WINEPREFIX, its apps, icons, and menu items?" ;;
     esac
     rm -rf "$WINEPREFIX"
@@ -5030,22 +5153,25 @@ helper_directx_Jun2010()
     DIRECTX_NAME=directx_Jun2010_redist.exe
 }
 
-# Filelist at ./misc/filelists/directx-feb2010.txt
+# Filelist at ./misc/filelists/directx-jun2010.txt
 helper_d3dx9_xx()
 {
     dllname=d3dx9_$1
 
-    helper_directx_dl
+    helper_directx_Jun2010
 
     # Even kinder, less invasive directx - only extract and override d3dx9_xx.dll
     w_try_cabextract -d "$W_TMP" -L -F "*$dllname*x86*" "$W_CACHE"/directx9/$DIRECTX_NAME
+
     for x in "$W_TMP"/*.cab
     do
       w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "$dllname.dll" "$x"
     done
+
     if test "$W_ARCH" = "win64"
     then
         w_try_cabextract -d "$W_TMP" -L -F "*$dllname*x64*" "$W_CACHE"/directx9/$DIRECTX_NAME
+
         for x in "$W_TMP"/*x64.cab
         do
             w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F "$dllname.dll" "$x"
@@ -5055,13 +5181,28 @@ helper_d3dx9_xx()
     w_override_dlls native "$dllname"
 }
 
+# Filelist at ./misc/filelists/vb6sp6.txt
+helper_vb6sp6()
+{
+    # $1 - directory to extract to
+    # $2 .. $n - files to extract from the archive
+
+    destdir="$1"
+    shift
+
+    w_download_to vb6sp6 https://download.microsoft.com/download/5/6/3/5635D6A9-885E-4C80-A2E7-8A7F4488FBF1/VB60SP6-KB2708437-x86-ENU.msi 350602b2e084b39c97d1394c8594b18e41ef622315d4a9635c5e8ea6aa977b5e
+    w_try_7z "$destdir" "$W_CACHE"/vb6sp6/VB60SP6-KB2708437-x86-ENU.msi "$@"
+}
+
 # Filelist at ./misc/filelists/win2ksp4.txt
 helper_win2ksp4()
 {
     filename=$1
 
-    # https://www.microsoft.com/en-us/download/details.aspx?id=4127
-    w_download_to win2ksp4 https://download.microsoft.com/download/E/6/A/E6A04295-D2A8-40D0-A0C5-241BFECD095E/W2KSP4_EN.EXE 167bb78d4adc957cc39fb4902517e1f32b1e62092353be5f8fb9ee647642de7e
+    # Originally at https://www.microsoft.com/en-us/download/details.aspx?id=4127
+    # Mirror list at http://www.filewatcher.com/m/w2ksp4_en.exe.135477136-0.html
+    # The rename from w2ksp4_en.exe to W2KSP4_EN.EXE avoids users having to redownload for a file rename
+    w_download_to win2ksp4 ftp://ftp.twaren.net/pub/cpatch/msupdate/win2000/en/w2ksp4_en.exe 167bb78d4adc957cc39fb4902517e1f32b1e62092353be5f8fb9ee647642de7e W2KSP4_EN.EXE
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/win2ksp4/W2KSP4_EN.EXE
 }
 
@@ -5132,21 +5273,23 @@ load_adobeair()
 w_metadata amstream dlls \
     title="MS amstream.dll" \
     publisher="Microsoft" \
-    year="2010" \
+    year="2011" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/amstream.dll"
 
 load_amstream()
 {
-    helper_directx_dl
-    mkdir "$W_CACHE"/amstream   # kludge so test -f $file1 works
+    helper_win7sp1 x86_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_0f58f1e53efca91e/amstream.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_0f58f1e53efca91e/amstream.dll" "$W_SYSTEM32_DLLS/amstream.dll"
 
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'amstream.dll' "$W_TMP/dxnt.cab"
-    w_try_regsvr amstream.dll
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_6b778d68f75a1a54/amstream.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_6b778d68f75a1a54/amstream.dll" "$W_SYSTEM64_DLLS/amstream.dll"
+    fi
 
-    w_override_dlls native amstream
+    w_override_dlls native,builtin amstream
 }
 
 #----------------------------------------------------------------
@@ -5277,27 +5420,17 @@ load_comctl32()
 w_metadata comctl32ocx dlls \
     title="MS comctl32.ocx and mscomctl.ocx, comctl32 wrappers for VB6" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="VisualBasic6-KB896559-v1-ENU.exe" \
-    file2="mscomct2.cab" \
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/mscomctl.ocx"
 
 load_comctl32ocx()
 {
-    # https://www.microsoft.com/en-us/download/details.aspx?id=10019
-    w_download https://download.microsoft.com/download/3/a/5/3a5925ac-e779-4b1c-bb01-af67dc2f96fc/VisualBasic6-KB896559-v1-ENU.exe c4d43fe4aea782d7d6c08c038778fe3635c7bae1b93fb1a7740c6644aabf567e
-    # More ActiveX controls. See https://support.microsoft.com/kb/297381
-    w_download http://activex.microsoft.com/controls/vb6/mscomct2.cab a2efa44a8caff106c8101bd62eff8ed61732182afb8bc57e0ae563135acd2e13
+    helper_vb6sp6 "$W_SYSTEM32_DLLS" comctl32.ocx mscomctl.ocx mscomct2.ocx
 
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/comctl32ocx/VisualBasic6-KB896559-v1-ENU.exe
-    w_try cp "$W_TMP"/mscomctl.ocx "$W_SYSTEM32_DLLS"/mscomctl.ocx
-    w_try cp "$W_TMP"/comctl32.ocx "$W_SYSTEM32_DLLS"/comctl32.ocx
     w_try_regsvr comctl32.ocx
     w_try_regsvr mscomctl.ocx
-
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/comctl32ocx/mscomct2.cab
-    w_try cp "$W_TMP"/mscomct2.ocx "$W_SYSTEM32_DLLS"/mscomct2.ocx
     w_try_regsvr mscomct2.ocx
 }
 
@@ -5306,17 +5439,15 @@ load_comctl32ocx()
 w_metadata comdlg32ocx dlls \
     title="Common Dialog ActiveX Control for VB6" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="ComDlg32.cab" \
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/comdlg32.ocx"
 
 load_comdlg32ocx()
 {
-    # By analogy with vb5 version in https://support.microsoft.com/kb/168917
-    w_download http://activex.microsoft.com/controls/vb6/ComDlg32.cab 6a445b34a1a6a0ab302beb1663377d86203594ee83e4e4ee0b5d72aaf47cad97
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE/comdlg32ocx/${file1}"
-    w_try cp "$W_TMP"/comdlg32.ocx "$W_SYSTEM32_DLLS"/comdlg32.ocx
+    helper_vb6sp6 "$W_TMP" ComDlg32.ocx
+    w_try mv "$W_TMP/ComDlg32.ocx" "$W_SYSTEM32_DLLS/comdlg32.ocx"
     w_try_regsvr comdlg32.ocx
 }
 
@@ -5457,12 +5588,42 @@ load_d3dx9()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_24 dlls \
+    title="MS d3dx9_24.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_24.dll"
+
+load_d3dx9_24()
+{
+    helper_d3dx9_xx 24
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_25 dlls \
+    title="MS d3dx9_25.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_25.dll"
+
+load_d3dx9_25()
+{
+    helper_d3dx9_xx 25
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_26 dlls \
     title="MS d3dx9_26.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_26.dll"
 
 load_d3dx9_26()
@@ -5472,12 +5633,27 @@ load_d3dx9_26()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_27 dlls \
+    title="MS d3dx9_27.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_27.dll"
+
+load_d3dx9_27()
+{
+    helper_d3dx9_xx 27
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_28 dlls \
     title="MS d3dx9_28.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_28.dll"
 
 load_d3dx9_28()
@@ -5487,12 +5663,42 @@ load_d3dx9_28()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_29 dlls \
+    title="MS d3dx9_29.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_29.dll"
+
+load_d3dx9_29()
+{
+    helper_d3dx9_xx 29
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_30 dlls \
+    title="MS d3dx9_30.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_30.dll"
+
+load_d3dx9_30()
+{
+    helper_d3dx9_xx 30
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_31 dlls \
     title="MS d3dx9_31.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_31.dll"
 
 load_d3dx9_31()
@@ -5502,12 +5708,57 @@ load_d3dx9_31()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_32 dlls \
+    title="MS d3dx9_32.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_32.dll"
+
+load_d3dx9_32()
+{
+    helper_d3dx9_xx 32
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_33 dlls \
+    title="MS d3dx9_33.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_33.dll"
+
+load_d3dx9_33()
+{
+    helper_d3dx9_xx 33
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_34 dlls \
+    title="MS d3dx9_34.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_34.dll"
+
+load_d3dx9_34()
+{
+    helper_d3dx9_xx 34
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_35 dlls \
     title="MS d3dx9_35.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_35.dll"
 
 load_d3dx9_35()
@@ -5522,7 +5773,7 @@ w_metadata d3dx9_36 dlls \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_36.dll"
 
 load_d3dx9_36()
@@ -5532,12 +5783,42 @@ load_d3dx9_36()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_37 dlls \
+    title="MS d3dx9_37.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_37.dll"
+
+load_d3dx9_37()
+{
+    helper_d3dx9_xx 37
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_38 dlls \
+    title="MS d3dx9_38.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_38.dll"
+
+load_d3dx9_38()
+{
+    helper_d3dx9_xx 38
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_39 dlls \
     title="MS d3dx9_39.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_39.dll"
 
 load_d3dx9_39()
@@ -5547,12 +5828,42 @@ load_d3dx9_39()
 
 #----------------------------------------------------------------
 
+w_metadata d3dx9_40 dlls \
+    title="MS d3dx9_40.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_40.dll"
+
+load_d3dx9_40()
+{
+    helper_d3dx9_xx 40
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dx9_41 dlls \
+    title="MS d3dx9_41.dll" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_41.dll"
+
+load_d3dx9_41()
+{
+    helper_d3dx9_xx 41
+}
+
+#----------------------------------------------------------------
+
 w_metadata d3dx9_42 dlls \
     title="MS d3dx9_42.dll" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx9_42.dll"
 
 load_d3dx9_42()
@@ -5572,25 +5883,7 @@ w_metadata d3dx9_43 dlls \
 
 load_d3dx9_43()
 {
-    dllname=d3dx9_43
-
-    helper_directx_Jun2010
-
-    w_try_cabextract -d "$W_TMP" -L -F "*$dllname*x86*" "$W_CACHE"/directx9/$DIRECTX_NAME
-    for x in "$W_TMP"/*.cab
-    do
-      w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "$dllname.dll" "$x"
-    done
-    if test "$W_ARCH" = "win64"
-    then
-        w_try_cabextract -d "$W_TMP" -L -F "*$dllname*x64*" "$W_CACHE"/directx9/$DIRECTX_NAME
-        for x in "$W_TMP"/*x64.cab
-        do
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F "$dllname.dll" "$x"
-        done
-    fi
-
-    w_override_dlls native $dllname
+    helper_d3dx9_xx 43
 }
 
 #----------------------------------------------------------------
@@ -5927,6 +6220,7 @@ load_directx9()
     # list down as soon as we can.
 
     # Setting Windows version to win2k apparently crashes the installer on OS X.
+    # FIXME: seems this didn't get migrated to Github?
     # See https://code.google.com/p/winezeug/issues/detail?id=71
     w_set_winver winxp
 
@@ -6927,8 +7221,8 @@ load_dotnet462()
     if w_workaround_wine_bug 42170 "Running un-official repacked .NET 4.6.2 setup until the official version is fixed."
     then
         # Un-official slim version. See http://repacks.net/forum/viewtopic.php?t=7
-        w_download http://repacks.net/uploads/dotNetFx462_Full_x86_x64_Slim.exe 8f03c8a9b2f4666c3707abe2d70145f200cb2f0f3b792626e64d167d1ad0565f
         file_package="dotNetFx462_Full_x86_x64_Slim.exe"
+        w_download https://www.dropbox.com/s/1bdocgbate8hc8z/dotNetFx462_Full_x86_x64_Slim.exe?dl=1 8f03c8a9b2f4666c3707abe2d70145f200cb2f0f3b792626e64d167d1ad0565f $file_package
         unattended_args="/ai /gm2"
     else
         # Official version. See https://www.microsoft.com/en-us/download/details.aspx?id=53344
@@ -6991,18 +7285,23 @@ load_dotnet_verifier()
 w_metadata dxdiagn dlls \
     title="DirectX Diagnostic Library" \
     publisher="Microsoft" \
-    year="2010" \
+    year="2011" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/dxdiagn.dll"
 
 load_dxdiagn()
 {
-    helper_directx_dl
+    helper_win7sp1 x86_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_25cb021dbc0611db/dxdiagn.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_25cb021dbc0611db/dxdiagn.dll" "$W_SYSTEM32_DLLS/dxdiagn.dll"
 
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F dxdiagn.dll "$W_TMP/dxnt.cab"
-    w_override_dlls native dxdiagn
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_81e99da174638311/dxdiagn.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_81e99da174638311/dxdiagn.dll" "$W_SYSTEM64_DLLS/dxdiagn.dll"
+    fi
+
+    w_override_dlls native,builtin dxdiagn
 }
 
 #----------------------------------------------------------------
@@ -7262,14 +7561,16 @@ w_metadata gmdls dlls \
 
 load_gmdls()
 {
-    w_download_to directx8 https://download.microsoft.com/download/whistler/Update/8.1/W982KMeXP/EN-US/DX81Redist.exe 5ddc1a8e204381254dc5d65f406584787155983adf245a75000dcd0d2efb04c6
+    # Originally at https://download.microsoft.com/download/whistler/Update/8.1/W982KMeXP/EN-US/DX81Redist.exe
+    # Mirror list: http://www.filewatcher.com/m/DX81Redist.exe.25746272-0.html
+    w_download_to directx8 ftp://140.164.21.241/dati_server_win/a_ERALAB/Data/Software/Remote_Sensing/NI-1428/NI-IMAQ/v.3.1.1/NIIMAQ311/DirectX%208.1/DX81Redist.exe 5ddc1a8e204381254dc5d65f406584787155983adf245a75000dcd0d2efb04c6
 
     w_try_unzip "$W_TMP" "$W_CACHE"/directx8/DX81Redist.exe "*/*/DirectX.cab"
     w_try_cabextract -d "$W_TMP" -F gm16.dls "$W_TMP"/*/*/DirectX.cab
     w_try mv "$W_TMP"/gm16.dls "$W_SYSTEM32_DLLS"/drivers/gm.dls
     if test "$W_ARCH" = "win64"
     then
-        w_try w_try_cd "$W_SYSTEM64_DLLS"/drivers
+        w_try_cd "$W_SYSTEM64_DLLS"/drivers
         w_try ln -s ../../syswow64/drivers/gm.dls
     fi
 }
@@ -7416,6 +7717,60 @@ load_icodecs()
     # https://support.britannica.com/other/touchthesky/win/issues/TSTUw_150.htm
     # https://appdb.winehq.org/objectManager.php?sClass=version&iId=7091
     w_try_regsvr ir50_32.dll
+
+    # Apparently some codecs are missing, see https://github.com/Winetricks/winetricks/issues/302
+    # Download at https://www.moviecodec.com/download-codec-packs/indeo-codecs-legacy-package-31/
+    w_download http://s3.amazonaws.com/moviecodec/files/iv5setup.exe 51bec25488b5b94eb3ce49b0a117618c9526161fd0753817a7a724ce25ff0cad
+
+    w_ahk_do "
+        SetTitleMatchMode, 2
+        run iv5setup.exe
+        winwait, InstallShield Wizard
+        if ( w_opt_unattended > 0 ) {
+            sleep 1000
+            controlclick, Button2  ; Next
+            winwait, Welcome
+            controlclick, Button1  ; Next
+            winwait, Software License Agreement
+            sleep 1000
+            controlclick, Button2  ; Yes
+            winwait, Choose Destination
+            sleep 1000
+            controlclick, Button1  ; Next
+            winwait, Setup Type
+            sleep 1000
+            controlclick, ListBox1  ; Next
+            sleep 1000
+            Send C ; Custom
+            sleep 1000
+            controlclick, Button2  ; Next
+            winwait, Select Components
+            controlclick, ISAVIEWCMPTCLASS1 ; Component Selection
+            Send {Home}
+            Send {Down}  ;
+            Send {Down}  ; IV5 Directshow plugin (gives error about missing Ivfsrc.ax)
+            Send {Space} ; Disable it (directshow plugin)
+            Send {End}   ; Web browser (Netscape) plugin
+            sleep 1000
+            Send {Space} ; Disable it (web plugin)
+            sleep 1000
+            controlclick, Button3  ; Next
+            winwait, Question
+            sleep 1000
+            controlclick, Button2  ; No
+            winwait, Start Copying Files
+            sleep 1000
+            controlclick, Button1  ; No
+        }
+        winwait, Setup Complete
+        if ( w_opt_unattended > 0 ) {
+            sleep 1000
+            controlclick, Button4  ; Finish
+        }
+        winwaitclose
+        ; Dangling explorer window
+        winclose, Wine Explorer
+    "
 }
 
 #----------------------------------------------------------------
@@ -7608,7 +7963,7 @@ w_metadata mdx dlls \
 
 load_mdx()
 {
-    helper_directx_dl
+    helper_directx_Jun2010
 
     w_try_cd "$W_TMP"
 
@@ -7704,18 +8059,22 @@ load_mf()
 #----------------------------------------------------------------
 
 w_metadata mfc40 dlls \
-    title="MS mfc40 (Microsoft Foundation Classes from Visual C++ 4.0)" \
+    title="MS mfc40 (Microsoft Foundation Classes from win7sp1)" \
     publisher="Microsoft" \
     year="1999" \
     media="download" \
-    file1="mfc40.cab" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/mfc40.dll"
 
 load_mfc40()
 {
-    w_download http://activex.microsoft.com/controls/vc/mfc40.cab b15ffb8cbf99ddc63edf9bd5ee9d6c9dffdc851d7aec23670fb6d5af63d2287e
-    w_try_cabextract -d "$W_TMP" "$W_CACHE"/mfc40/mfc40.cab
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -F '*40.dll' "$W_TMP"/mfc40.exe
+    w_warn "mfc40 no longer installs msvcrt40.dll, only mfc40.dll/mfc40u.dll. Please file a bug if you have an application that needs native msvcrt40.dll."
+
+    helper_win7sp1 x86_microsoft-windows-mfc40_31bf3856ad364e35_6.1.7601.17514_none_5c06580240091047/mfc40.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-mfc40_31bf3856ad364e35_6.1.7601.17514_none_5c06580240091047/mfc40.dll" "$W_SYSTEM32_DLLS/mfc40.dll"
+
+    helper_win7sp1 x86_microsoft-windows-mfc40u_31bf3856ad364e35_6.1.7601.17514_none_f51a7bf0b3d25294/mfc40u.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-mfc40u_31bf3856ad364e35_6.1.7601.17514_none_f51a7bf0b3d25294/mfc40u.dll" "$W_SYSTEM32_DLLS/mfc40u.dll"
 }
 
 #----------------------------------------------------------------
@@ -7821,21 +8180,16 @@ load_msdxmocx()
 w_metadata msflxgrd dlls \
     title="MS FlexGrid Control (msflxgrd.ocx)" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="MsFlxGrd.cab" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/MSFLXGRD.OCX"
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/msflxgrd.ocx"
 
 load_msflxgrd()
 {
-    # https://msdn.microsoft.com/en-us/library/aa240864(VS.60).aspx
-    # 2015/11/09: Removed from Microsoft.com, archive.org has an older copy:
-    # 2015/11/09: a0d374293ab9556a6eb7705efbca533ad8f20e6b9cb55f14f1ec5bb55552ec8d
-    w_download http://activex.microsoft.com/controls/vb6/MsFlxGrd.cab a0d374293ab9556a6eb7705efbca533ad8f20e6b9cb55f14f1ec5bb55552ec8d
-
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE/msflxgrd/${file1}"
-    w_try cp -f "$W_TMP"/[Mm][Ss][Ff][Ll][Xx][Gg][Rr][Dd].[Oo][Cc][Xx] "$W_SYSTEM32_DLLS"
-    w_try_regsvr MSFLXGRD.OCX
+    helper_vb6sp6 "$W_TMP" MSFlxGrd.ocx
+    w_try mv "${W_TMP}/MSFlxGrd.ocx" "$W_SYSTEM32_DLLS/msflxgrd.ocx"
+    w_try_regsvr msflxgrd.ocx
 }
 
 #----------------------------------------------------------------
@@ -7843,21 +8197,16 @@ load_msflxgrd()
 w_metadata mshflxgd dlls \
     title="MS Hierarchical FlexGrid Control (mshflxgd.ocx)" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="MSHFLXGD.CAB" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/MSHFLXGD.OCX"
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/mshflxgd.ocx"
 
 load_mshflxgd()
 {
-    # https://msdn.microsoft.com/en-us/library/aa240864(VS.60).aspx
-    # 2015/11/09: Removed from Microsoft.com, archive.org has the original copy: ccff83fd24a0e6d7611050c8cafcb1aede608b6a3d096fb7476ce302e569479a
-
-    w_download http://activex.microsoft.com/controls/vb6/MSHFLXGD.CAB ccff83fd24a0e6d7611050c8cafcb1aede608b6a3d096fb7476ce302e569479a
-
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/mshflxgd/MSHFLXGD.CAB
-    w_try cp -f "$W_TMP"/[Mm][Ss][Hh][Ff][Ll][Xx][Gg][Dd].[Oo][Cc][Xx] "$W_SYSTEM32_DLLS"
-    w_try_regsvr MSHFLXGD.OCX
+    helper_vb6sp6 "$W_TMP" MShflxgd.ocx
+    w_try mv "${W_TMP}/MShflxgd.ocx" "$W_SYSTEM32_DLLS/mshflxgd.ocx"
+    w_try_regsvr mshflxgd.ocx
 }
 
 #----------------------------------------------------------------
@@ -7911,7 +8260,10 @@ w_metadata msls31 dlls \
 load_msls31()
 {
     # Needed by native RichEdit and Internet Explorer
-    w_download https://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b
+    # Originally at https://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe
+    # Mirror list at http://www.filewatcher.com/m/InstMsiW.exe.1822848-0.html
+    w_download ftp://ftp.hp.com/pub/softlib/software/msi/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b InstMsiW.exe
+
     w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msls31/InstMsiW.exe
     w_try cp -f "$W_TMP"/msls31.dll "$W_SYSTEM32_DLLS"
 }
@@ -7923,18 +8275,13 @@ w_metadata msmask dlls \
     publisher="Microsoft" \
     year="2009" \
     media="download" \
-    file1="MSMASK32.CAB" \
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/msmask32.ocx"
 
 load_msmask()
 {
-    # https://msdn.microsoft.com/en-us/library/11405hcf(VS.71).aspx
-    # https://bugs.winehq.org/show_bug.cgi?id=2934
-    # 2015/11/09: Removed from microsoft.com, archive.org has an older copy:
-    # 2015/11/09: 25e49bd2aa8f96ff3c1068fc0fa7ba87fe86d8d5999e3592919a4b03f0602d67
-    w_download http://activex.microsoft.com/controls/vb6/MSMASK32.CAB 25e49bd2aa8f96ff3c1068fc0fa7ba87fe86d8d5999e3592919a4b03f0602d67
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msmask/MSMASK32.CAB
-    w_try cp -f "$W_TMP"/[Mm][Ss][Mm][Aa][Ss][Kk]32.[Oo][Cc][Xx] "$W_SYSTEM32_DLLS"/msmask32.ocx
+    helper_vb6sp6 "$W_TMP" msmask32.ocx
+    w_try mv "${W_TMP}/msmask32.ocx" "$W_SYSTEM32_DLLS/msmask32.ocx"
     w_try_regsvr msmask32.ocx
 }
 
@@ -7974,10 +8321,10 @@ w_metadata msxml3 dlls \
 
 load_msxml3()
 {
-    # Service Pack 5
-    #w_download https://download.microsoft.com/download/a/5/e/a5e03798-2454-4d4b-89a3-4a47579891d8/msxml3.msi
     # Service Pack 7
-    w_download https://download.microsoft.com/download/8/8/8/888f34b7-4f54-4f06-8dac-fa29b19f33dd/msxml3.msi f9c678f8217e9d4f9647e8a1f6d89a7c26a57b9e9e00d39f7487493dd7b4e36c
+    # Originally at https://download.microsoft.com/download/8/8/8/888f34b7-4f54-4f06-8dac-fa29b19f33dd/msxml3.msi
+    # Mirror list: http://www.filewatcher.com/m/msxml3.msi.1070592-0.html
+    w_download ftp://support.danbit.dk/D/DVD-RW-USB2B/Driver/Installation/Data/Redist/msxml3.msi f9c678f8217e9d4f9647e8a1f6d89a7c26a57b9e9e00d39f7487493dd7b4e36c
 
     # It won't install on top of Wine's msxml3, which has a pretty high version number, so delete Wine's fake DLL
     rm "$W_SYSTEM32_DLLS"/msxml3.dll
@@ -8205,19 +8552,23 @@ load_openwatcom()
 w_metadata pdh dlls \
     title="MS pdh.dll (Performance Data Helper)" \
     publisher="Microsoft" \
-    year="2001" \
+    year="2011" \
     media="download" \
-    file1="pdhinst.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/pdh.dll"
 
 load_pdh()
 {
-    # https://support.microsoft.com/kb/284996
-    w_download https://download.microsoft.com/download/platformsdk/Redist/5.0.2195.2668/NT4/EN-US/pdhinst.exe 5506e34930badec5c27d4c325462530e4b06a4a9797a8f70089b39013b5dffae
+    helper_win7sp1 x86_microsoft-windows-p..rastructureconsumer_31bf3856ad364e35_6.1.7601.17514_none_b5e3f88a8eb425e8/pdh.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-p..rastructureconsumer_31bf3856ad364e35_6.1.7601.17514_none_b5e3f88a8eb425e8/pdh.dll" "$W_SYSTEM32_DLLS/pdh.dll"
 
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/pdh/pdhinst.exe
-    w_try_unzip "$W_TMP" "$W_TMP"/pdh.exe
-    w_try cp -f "$W_TMP"/x86/Pdh.Dll "$W_SYSTEM32_DLLS"/pdh.dll
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-p..rastructureconsumer_31bf3856ad364e35_6.1.7601.17514_none_1202940e4711971e/pdh.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-p..rastructureconsumer_31bf3856ad364e35_6.1.7601.17514_none_1202940e4711971e/pdh.dll" "$W_SYSTEM64_DLLS/pdh.dll"
+    fi
+
+    w_override_dlls native,builtin pdh
 }
 
 #----------------------------------------------------------------
@@ -8240,41 +8591,45 @@ load_physx()
 #----------------------------------------------------------------
 
 w_metadata pngfilt dlls \
-    title="pngfilt.dll (from ie5)" \
+    title="pngfilt.dll (from winxp)" \
     publisher="Microsoft" \
     year="2004" \
     media="download" \
-    file1="IE5.01sp4-KB871260-Windows2000sp4-x86-ENU.exe" \
+    file1="../winxpsp3/WindowsXP-KB936929-SP3-x86-ENU.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/pngfilt.dll"
 
 load_pngfilt()
 {
-    # https://www.microsoft.com/en-us/download/details.aspx?id=3907
-    w_download https://download.microsoft.com/download/5/0/c/50c42d0e-07a8-4a2b-befb-1a403bd0df96/IE5.01sp4-KB871260-Windows2000sp4-x86-ENU.exe eb1b90677ee969b278494c6180d906af37eda6d20f760dc395350a2da91eb631
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F pngfilt.dll "$W_CACHE"/pngfilt/IE5.01sp4-KB871260-Windows2000sp4-x86-ENU.exe
+    # Previously used https://www.microsoft.com/en-us/download/details.aspx?id=3907
+    # Now using winxp's dll
+
+    helper_winxpsp3 i386/pngfilt.dl_
+    w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_TMP"/i386/pngfilt.dl_
     w_try_regsvr pngfilt.dll
 }
 
 #----------------------------------------------------------------
 
 w_metadata qdvd dlls \
-    title="qdvd.dll (from DirectX 9 user redistributable)" \
+    title="qdvd.dll" \
     publisher="Microsoft" \
-    year="2010" \
+    year="2011" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/qdvd.dll"
 
 load_qdvd()
 {
-    helper_directx_dl
+    helper_win7sp1 x86_microsoft-windows-directshow-dvdsupport_31bf3856ad364e35_6.1.7601.17514_none_562994bd321aac67/qdvd.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-directshow-dvdsupport_31bf3856ad364e35_6.1.7601.17514_none_562994bd321aac67/qdvd.dll" "$W_SYSTEM32_DLLS/qdvd.dll"
 
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F qdvd.dll "$W_TMP/dxnt.cab"
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-directshow-dvdsupport_31bf3856ad364e35_6.1.7601.17514_none_b2483040ea781d9d/qdvd.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-directshow-dvdsupport_31bf3856ad364e35_6.1.7601.17514_none_b2483040ea781d9d/qdvd.dll" "$W_SYSTEM64_DLLS/qdvd.dll"
+    fi
 
-    w_try_regsvr qdvd.dll
-
-    w_override_dlls native qdvd
+    w_override_dlls native,builtin qdvd
 }
 
 #----------------------------------------------------------------
@@ -8418,7 +8773,7 @@ load_riched20()
     w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_TMP"/i386/riched20.dl_
     w_override_dlls native,builtin riched20
 
-    # https://code.google.com/p/winetricks/issues/detail?id=292
+    # https://github.com/Winetricks/winetricks/issues/292
     w_call msls31
 }
 
@@ -8443,8 +8798,14 @@ load_riched30()
     # only works with riched30, and recommends getting it by installing
     # msi 2, which just happens to come with riched30 version of riched20
     # (though not with a corresponding riched32, which might be a problem)
+
     # https://www.microsoft.com/en-us/download/details.aspx?id=21990
-    w_download https://download.microsoft.com/download/WindowsInstaller/Install/2.0/W9XMe/EN-US/InstMsiA.exe 536e4c8385d7d250fd5702a6868d1ed004692136eefad22252d0dac15f02563a
+    # Originally at https://download.microsoft.com/download/WindowsInstaller/Install/2.0/W9XMe/EN-US/InstMsiA.exe
+    # with sha256sum 536e4c8385d7d250fd5702a6868d1ed004692136eefad22252d0dac15f02563a
+    # Mirror list at http://www.filewatcher.com/m/InstMsiA.Exe.1707856-0.html
+    # But they all have a different sha256sum, 5ab8b82f578f09dbccf797754155e531b5996b532c1f19c531596ec07cc4b46d
+    w_download ftp://ftp.vim.org/vol/2/linux-asp/i386/beta/cpe/b29/Changed_Components/win/InstMsiA.Exe 5ab8b82f578f09dbccf797754155e531b5996b532c1f19c531596ec07cc4b46d InstMsiA.exe
+
     w_try_cabextract --directory="$W_TMP" "$W_CACHE"/riched30/InstMsiA.exe
     w_try cp -f "$W_TMP"/riched20.dll "$W_SYSTEM32_DLLS"
     w_try cp -f "$W_TMP"/msls31.dll "$W_SYSTEM32_DLLS"
@@ -8456,16 +8817,15 @@ load_riched30()
 w_metadata richtx32 dlls \
     title="MS Rich TextBox Control 6.0" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="richtx32.cab" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/RichTx32.Ocx"
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/richtx32.ocx"
 
 load_richtx32()
 {
-    w_download http://activex.microsoft.com/controls/vb6/richtx32.cab bb75c45af3e7428f1ee5380d33175aa9f36a6a84f5a2d74927a1dbf0d4b7f938
-    w_try_cabextract "$W_CACHE"/richtx32/richtx32.cab -d "$W_SYSTEM32_DLLS" -F RichTx32.ocx
-    w_try_regsvr RichTx32.ocx
+    helper_vb6sp6 "$W_SYSTEM32_DLLS" richtx32.ocx
+    w_try_regsvr richtx32.ocx
 }
 
 #----------------------------------------------------------------
@@ -8490,16 +8850,22 @@ load_sdl()
 w_metadata secur32 dlls \
     title="MS Security Support Provider Interface" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2011" \
     media="download" \
-    file1="Windows2000-KB959426-x86-ENU.EXE" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/secur32.dll"
 
 load_secur32()
 {
-    # https://www.microsoft.com/en-us/download/details.aspx?id=12784
-    w_download https://download.microsoft.com/download/6/9/5/69501788-B62F-44D8-933F-B6FAA576CA87/Windows2000-KB959426-x86-ENU.EXE a150e8b8fc68164eed18f214ee0726d9b7eb6c4726aab91decd12627b045d68b
-    w_try_cabextract "$W_CACHE"/secur32/Windows2000-KB959426-x86-ENU.EXE -d "$W_SYSTEM32_DLLS" -F secur32.dll
+    helper_win7sp1 x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll" "$W_SYSTEM32_DLLS/secur32.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_04709031736ac277/secur32.dll
+        w_try "$W_TMP/amd64_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_04709031736ac277/secur32.dll" "$W_SYSTEM64_DLLS/secur32.dll"
+    fi
+
     w_override_dlls native,builtin secur32
 }
 
@@ -8571,19 +8937,15 @@ load_speechsdk()
 w_metadata tabctl32 dlls \
     title="Microsoft Tabbed Dialog Control 6.0 (tabctl32.ocx)" \
     publisher="Microsoft" \
-    year="2009" \
+    year="2012" \
     media="download" \
-    file1="TABCTL32.CAB" \
+    file1="../vb6sp6/VB60SP6-KB2708437-x86-ENU.msi" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/tabctl32.ocx"
 
 load_tabctl32()
 {
-    # https://msdn.microsoft.com/en-us/library/aa240864(VS.60).aspx
-    # 2012/11: tabctl32
-    w_download http://activex.microsoft.com/controls/vb6/TABCTL32.CAB d2a7bdacf74de95146384578d0f08ccefb2defb0081b3d42d34fdcee7ea4cc68
-
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE/tabctl32/${file1}"
-    w_try cp -f "$W_TMP"/[Tt][Aa][Bb][Cc][Tt][Ll][3][2].[Oo][Cc][Xx] "$W_SYSTEM32_DLLS"
+    helper_vb6sp6 "$W_TMP" TabCtl32.ocx
+    w_try mv "${W_TMP}/TabCtl32.ocx" "$W_SYSTEM32_DLLS/tabctl32.ocx"
     w_try_regsvr tabctl32.ocx
 }
 
@@ -8608,20 +8970,24 @@ load_updspapi()
 #----------------------------------------------------------------
 
 w_metadata usp10 dlls \
-    title="Uniscribe 1.325 " \
+    title="Uniscribe" \
     publisher="Microsoft" \
-    year="2001" \
+    year="2011" \
     media="download" \
-    file1="../msi2/InstMsiA.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/usp10.dll"
 
 load_usp10()
 {
-    # https://en.wikipedia.org/wiki/Uniscribe
-    # https://www.microsoft.com/en-us/download/details.aspx?id=21990
-    w_download_to msi2 https://download.microsoft.com/download/WindowsInstaller/Install/2.0/W9XMe/EN-US/InstMsiA.exe 536e4c8385d7d250fd5702a6868d1ed004692136eefad22252d0dac15f02563a
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msi2/InstMsiA.exe
-    w_try cp -f "$W_TMP"/usp10.dll "$W_SYSTEM32_DLLS"
+    helper_win7sp1 x86_microsoft-windows-usp_31bf3856ad364e35_6.1.7601.17514_none_af01e2f9b6be7939/usp10.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-usp_31bf3856ad364e35_6.1.7601.17514_none_af01e2f9b6be7939/usp10.dll" "$W_SYSTEM32_DLLS/usp10.dll"
+
+    if [ "$W_ARCH" = "win64" ]
+    then
+        helper_win7sp1_x64 amd64_microsoft-windows-usp_31bf3856ad364e35_6.1.7601.17514_none_0b207e7d6f1bea6f/usp10.dll
+        w_try "$W_TMP/amd64_microsoft-windows-usp_31bf3856ad364e35_6.1.7601.17514_none_0b207e7d6f1bea6f/usp10.dll" "$W_SYSTEM64_DLLS/usp10.dll"
+    fi
+
     w_override_dlls native,builtin usp10
 }
 
@@ -8920,6 +9286,31 @@ load_vcrun2005()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_Q
+
+    if [ $W_ARCH = win64 ] ;then
+        w_download https://download.microsoft.com/download/9/1/4/914851c6-9141-443b-bdb4-8bad3a57bea9/vcredist_x64.exe bb9e8606e26c2b76984252182f7db0d6e9108b204b81d2a7b036c9b618c1f9f1
+
+        if w_workaround_wine_bug 30713 "Manually extracting the 64-bit dlls"
+        then
+            rm -f "$W_TMP"/*  # Avoid permission error
+            w_try_cabextract --directory="$W_TMP" vcredist_x64.exe
+            w_try_cabextract --directory="$W_TMP" "$W_TMP/VCREDI~2.EXE"
+            w_try_cabextract --directory="$W_TMP" "$W_TMP/vcredist.msi"
+
+            w_try cp "$W_TMP/ATL80.dll.837BF1EB_D770_94EB_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/atl80.dll"
+            w_try cp "$W_TMP/mfc80.dll.8731EA9C_B0D8_8F16_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/mfc80.dll"
+            w_try cp "$W_TMP/mfc80u.dll.8731EA9C_B0D8_8F16_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/mfc80u.dll"
+            w_try cp "$W_TMP/mfcm80.dll.8731EA9C_B0D8_8F16_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/mfcm80.dll"
+            w_try cp "$W_TMP/mfcm80u.dll.8731EA9C_B0D8_8F16_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/mfcm80u.dll"
+
+            w_try cp "$W_TMP/msvcm80.dll.844EFBA7_1C24_93B2_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/msvcm80.dll"
+            w_try cp "$W_TMP/msvcp80.dll.844EFBA7_1C24_93B2_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/msvcp80.dll"
+            w_try cp "$W_TMP/msvcr80.dll.844EFBA7_1C24_93B2_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/msvcr80.dll"
+            w_try cp "$W_TMP/vcomp.dll.09D44781_D142_FE32_FF1F_C8B3B9A1E18E" "$W_SYSTEM64_DLLS/vcomp80.dll"
+        else
+            w_try "$WINE" vcredist_x64.exe $W_UNATTENDED_SLASH_Q
+        fi
+    fi
 }
 
 #----------------------------------------------------------------
@@ -9473,7 +9864,7 @@ w_metadata xinput dlls \
 
 load_xinput()
 {
-    helper_directx_dl
+    helper_directx_Jun2010
 
     w_try_cabextract -d "$W_TMP" -L -F '*_xinput_*x86*' "$W_CACHE"/directx9/$DIRECTX_NAME
     for x in "$W_TMP"/*.cab
@@ -9973,9 +10364,12 @@ load_fontfix()
     # SDKSetup encountered an error: The type initializer for 'Microsoft.WizardFramework.WizardSettings' threw an exception
     # and WINEDEBUG=+relay,+seh shows an exception very quickly after
     # Call KERNEL32.CreateFileW(0c83b36c L"Z:\\USR\\SHARE\\FONTS\\TRUETYPE\\TTF-ORIYA-FONTS\\SAMYAK-ORIYA.TTF",80000000,00000001,00000000,00000003,00000080,00000000) ret=70d44091
-    if xlsfonts 2>/dev/null | grep -E -i "samyak.*oriya"
-    then
-        w_die "Please uninstall the Samyak/Oriya font, e.g. 'sudo dpkg -r ttf-oriya-fonts', then log out and log in again.  That font causes strange crashes in .net programs."
+    if [ -x "$(which xlsfonts 2>/dev/null)" ] ; then
+        if xlsfonts 2>/dev/null | grep -E -i "samyak.*oriya" ; then
+            w_die "Please uninstall the Samyak/Oriya font, e.g. 'sudo dpkg -r ttf-oriya-fonts', then log out and log in again.  That font causes strange crashes in .net programs."
+        fi
+    else
+        w_warn "xlsfonts not found. If you have (older versions of) Samyak/Oriya fonts installed, you may get crashes/bugs. If so, uninstall, the logout/login again to resolve."
     fi
 }
 
@@ -10101,19 +10495,20 @@ w_metadata tahoma fonts \
 
 load_tahoma()
 {
-    # The tahoma and tahomabd fonts are needed by e.g. Steam
+    # Formerly at https://download.microsoft.com/download/office97pro/fonts/1/w95/en-us/tahoma32.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=tahoma32.exe
+    w_download ftp://ftp.uevora.pt/pub/windows/Microsoft/Euro/Euro-Compatible%20Tahoma%20Font/tahoma32.exe 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
 
-    w_download https://download.microsoft.com/download/office97pro/fonts/1/w95/en-us/tahoma32.exe 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/tahoma/tahoma32.exe
-    w_try cp -f "$W_TMP"/Tahoma.TTF "$W_FONTSDIR_UNIX"/tahoma.ttf
-    w_try cp -f "$W_TMP"/Tahomabd.TTF "$W_FONTSDIR_UNIX"/tahomabd.ttf
+    w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/${W_PACKAGE}/${file1}"
+    w_try cp -f "${W_TMP}/Tahoma.TTF" "${W_FONTSDIR_UNIX}/tahoma.ttf"
+    w_try cp -f "${W_TMP}/Tahomabd.TTF" "${W_FONTSDIR_UNIX}/tahomabd.ttf"
 
-    # FIXME:  Wine seems to nuke the registry entries for Tahoma.  Why?  Font Xplorer always lists it as 'not installed'.
+    # FIXME: Wine seems to nuke the registry entries for Tahoma. Why? Font Xplorer always lists it as 'not installed'.
     w_register_font tahoma.ttf "Tahoma"
     w_register_font tahomabd.ttf "Tahoma Bold"
 
-    # ? does some app assume it can overwrite these, or is this a leftover from before we had install checks?
-    chmod +w "$W_FONTSDIR_UNIX"/tahoma*.ttf
+    # FIXME: ? does some app assume it can overwrite these, or is this a leftover from before we had install checks?
+    chmod +w "${W_FONTSDIR_UNIX}"/tahoma*.ttf
 }
 
 #----------------------------------------------------------------
@@ -10726,6 +11121,7 @@ load_ie6()
     w_set_winver win2k
 
     # Workaround https://bugs.winehq.org/show_bug.cgi?id=21009
+    # FIXME: seems this didn't get migrated to Github?
     # See also https://code.google.com/p/winezeug/issues/detail?id=78
     rm -f "$W_SYSTEM32_DLLS"/browseui.dll "$W_SYSTEM32_DLLS"/inseng.dll
 
@@ -10898,7 +11294,7 @@ w_metadata ie8 dlls \
 load_ie8()
 {
     # Bundled in Windows 7, so refuses to install. Works with XP:
-    w_call winxp
+    w_set_winver winxp
 
     # Unregister Wine IE
     if grep -q -i "wine placeholder" "$W_PROGRAMS_X86_UNIX/Internet Explorer/iexplore.exe"
@@ -10924,7 +11320,7 @@ load_ie8()
     then
         mv "$W_PROGRAMS_X86_UNIX/Internet Explorer/iexplore.exe" "$W_PROGRAMS_X86_UNIX/Internet Explorer/iexplore.exe.bak"
     fi
-    for dll in browseui.dll inseng.dll itircl itss jscript msctf mshtml shdoclc shdocvw shlwapi urlmon
+    for dll in browseui inseng itircl itss jscript msctf mshtml shdoclc shdocvw shlwapi urlmon
     do
         test -f "$W_SYSTEM32_DLLS"/$dll.dll &&
         mv "$W_SYSTEM32_DLLS"/$dll.dll "$W_SYSTEM32_DLLS"/$dll.dll.bak
@@ -18165,7 +18561,7 @@ load_native_mdac()
 {
     # Set those overrides globally so user programs get MDAC's ODBC
     # instead of Wine's unixodbc
-    w_override_dlls native,builtin odbc32 odbccp32 oledb32
+    w_override_dlls native,builtin mtxdm odbc32 odbccp32 oledb32
 }
 
 #----------------------------------------------------------------
@@ -18576,226 +18972,6 @@ load_bad()
     w_die "$W_PACKAGE failed!"
 }
 
-#---- Derived Metadata ----
-# Generated automatically by measuring time and space requirements of all verbs
-# size_MB includes size of virgin wineprefix, but not the cached installer
-case $WINETRICKS_OPT_VERBOSE in
-    2) set -x ;;
-    *) set +x ;;
-esac
-
-for data in \
-    3dmark03:size_MB=895,time_sec=149 \
-    3dmark05:size_MB=1255,time_sec=208 \
-    3dmark06:size_MB=2627,time_sec=461 \
-    3dmark2000:size_MB=165,time_sec=71 \
-    3dmark2001:size_MB=260,time_sec=141 \
-    7zip:size_MB=53,time_sec=9 \
-    abiword:size_MB=119,time_sec=15 \
-    adobeair:size_MB=132,time_sec=8 \
-    algodoo_demo:size_MB=165,time_sec=52 \
-    allcodecs:size_MB=48,time_sec=3 \
-    allfonts:size_MB=132,time_sec=114 \
-    amstream:size_MB=48,time_sec=2 \
-    aoe3_demo:size_MB=4472,time_sec=422 \
-    aoe_demo:size_MB=164,time_sec=35 \
-    art2kmin:size_MB=363,time_sec=36 \
-    atmlib:size_MB=454,time_sec=73 \
-    autohotkey:size_MB=53,time_sec=4 \
-    baekmuk:size_MB=138,time_sec=3 \
-    bioshock_demo:size_MB=7510,time_sec=1543 \
-    bladekitten_demo:size_MB=1444,time_sec=174 \
-    cjkfonts:size_MB=48,time_sec=4 \
-    cmake:size_MB=85,time_sec=8 \
-    cnc3_demo:size_MB=5244,time_sec=1022 \
-    cod4mw_demo:size_MB=5730,time_sec=1108 \
-    cod_demo:size_MB=574,time_sec=115 \
-    colorprofile:size_MB=47,time_sec=1 \
-    comctl32:size_MB=49,time_sec=1 \
-    comdlg32ocx:size_MB=49,time_sec=1 \
-    controlpad:size_MB=69,time_sec=4 \
-    corefonts:size_MB=62,time_sec=2 \
-    crypt32:size_MB=178,time_sec=71 \
-    crysis2:size_MB=8259,time_sec=1200 \
-    crysis2_demo_mp:size_MB=5259,time_sec=1473 \
-    d3dcompiler_43:size_MB=138,time_sec=51 \
-    d3dx10:size_MB=50,time_sec=4 \
-    d3dx11_43:size_MB=48,time_sec=1 \
-    d3dx9:size_MB=126,time_sec=3 \
-    d3dx9_26:size_MB=48,time_sec=2 \
-    d3dx9_28:size_MB=48,time_sec=1 \
-    d3dx9_31:size_MB=48,time_sec=2 \
-    d3dx9_35:size_MB=50,time_sec=2 \
-    d3dx9_36:size_MB=48,time_sec=1 \
-    d3dx9_42:size_MB=48,time_sec=1 \
-    d3dxof:size_MB=48,time_sec=2 \
-    dc2ba_demo:size_MB=209,time_sec=38 \
-    deadspace2:size_MB=12693,time_sec=720 \
-    devenum:size_MB=59,time_sec=2 \
-    diablo2:size_MB=2577,time_sec=37 \
-    dinput:size_MB=48,time_sec=1 \
-    dinput8:size_MB=61,time_sec=2 \
-    dirac:size_MB=50,time_sec=4 \
-    directmusic:size_MB=63,time_sec=4 \
-    directplay:size_MB=61,time_sec=3 \
-    directx9:size_MB=387,time_sec=12 \
-    dirt2_demo:size_MB=6241,time_sec=977 \
-    divinity2_demo:size_MB=2906,time_sec=2627 \
-    dmsynth:size_MB=57,time_sec=2 \
-    dotnet11:size_MB=94,time_sec=15 \
-    dotnet20:size_MB=360,time_sec=64 \
-    dotnet30:size_MB=645,time_sec=302 \
-    dotnet35:size_MB=1149,time_sec=445 \
-    dragonage:size_MB=23771,time_sec=673 \
-    dragonage2_demo:size_MB=4014,time_sec=1428 \
-    droid:size_MB=63,time_sec=8 \
-    dsound:size_MB=48,time_sec=1 \
-    dxdiag:size_MB=75,time_sec=6 \
-    dxdiagn:size_MB=48,time_sec=1 \
-    eufonts:size_MB=58,time_sec=2 \
-    eve:size_MB=5313,time_sec=1568 \
-    eve:size_MB=11215,time_sec=467 \
-    farmsim2011_demo:size_MB=48,time_sec=4 \
-    ffdshow:size_MB=53,time_sec=4 \
-    fifa11_demo:size_MB=4932,time_sec=845 \
-    flash:size_MB=57,time_sec=3 \
-    fontfix:size_MB=47,time_sec=0 \
-    fontxplorer:size_MB=51,time_sec=5 \
-    gdiplus:size_MB=50,time_sec=2 \
-    gfw:size_MB=211,time_sec=11 \
-    glut:size_MB=47,time_sec=1 \
-    gothic4_demo:size_MB=7719,time_sec=1402 \
-    guildwars:size_MB=224,time_sec=392 \
-    hegemony_demo:size_MB=1927,time_sec=315 \
-    hegemonygold_demo:size_MB=2339,time_sec=247 \
-    hon:size_MB=1536,time_sec=337 \
-    hphbp_demo:size_MB=2898,time_sec=556 \
-    icodecs:size_MB=60,time_sec=29 \
-    ie6:size_MB=340,time_sec=58 \
-    ie7:size_MB=181,time_sec=44 \
-    ie8:size_MB=202,time_sec=39 \
-    imvu:size_MB=194,time_sec=17 \
-    jet40:size_MB=54,time_sec=3 \
-    l3codecx:size_MB=60,time_sec=5 \
-    lhp_demo:size_MB=3200,time_sec=645 \
-    liberation:size_MB=50,time_sec=3 \
-    lucida:size_MB=51,time_sec=1 \
-    masseffect2_demo:size_MB=8291,time_sec=1397 \
-    mb_warband_demo:size_MB=1495,time_sec=35 \
-    mdac25:size_MB=97,time_sec=6 \
-    mdac27:size_MB=70,time_sec=3 \
-    mdac28:size_MB=75,time_sec=4 \
-    mfc40:size_MB=48,time_sec=0 \
-    mfc42:size_MB=47,time_sec=1 \
-    mingw:size_MB=132,time_sec=3 \
-    mozillabuild:size_MB=891,time_sec=26 \
-    mpc:size_MB=87,time_sec=2 \
-    msasn1:size_MB=178,time_sec=3 \
-    mshflxgd:size_MB=47,time_sec=0 \
-    msi2:size_MB=62,time_sec=4 \
-    msls31:size_MB=48,time_sec=0 \
-    msmask:size_MB=47,time_sec=0 \
-    mspaint:size_MB=49,time_sec=0 \
-    msscript:size_MB=48,time_sec=0 \
-    msxml3:size_MB=49,time_sec=1 \
-    msxml4:size_MB=55,time_sec=0 \
-    msxml6:size_MB=54,time_sec=1 \
-    nfsshift_demo:size_MB=4877,time_sec=157 \
-    ogg:size_MB=54,time_sec=1 \
-    opensymbol:size_MB=49,time_sec=1 \
-    openwatcom:size_MB=274,time_sec=12 \
-    osmos_demo:size_MB=67,time_sec=5 \
-    pdh:size_MB=48,time_sec=0 \
-    penpenxmas:size_MB=49,time_sec=6 \
-    physx:size_MB=213,time_sec=5 \
-    plantsvszombies:size_MB=156,time_sec=24 \
-    pngfilt:size_MB=49,time_sec=0 \
-    puzzleagent_demo:size_MB=495,time_sec=36 \
-    python26:size_MB=160,time_sec=9 \
-    quartz:size_MB=62,time_sec=3 \
-    quicktime72:size_MB=219,time_sec=9 \
-    quicktime76:size_MB=237,time_sec=6 \
-    rayman2_demo:size_MB=239,time_sec=146 \
-    riched20:size_MB=49,time_sec=0 \
-    riched30:size_MB=48,time_sec=0 \
-    richtx32:size_MB=48,time_sec=0 \
-    safari:size_MB=210,time_sec=4 \
-    sammax301_demo:size_MB=1419,time_sec=341 \
-    sammax304_demo:size_MB=1642,time_sec=88 \
-    secondlife:size_MB=266,time_sec=24 \
-    secur32:size_MB=47,time_sec=0 \
-    shockwave:size_MB=134,time_sec=6 \
-    sims3:size_MB=12884,time_sec=584 \
-    sketchup:size_MB=319,time_sec=15 \
-    starcraft2_demo:size_MB=5241,time_sec=211 \
-    tahoma:size_MB=48,time_sec=0 \
-    takao:size_MB=176,time_sec=3 \
-    tmnationsforever:size_MB=1871,time_sec=116 \
-    uff:size_MB=47,time_sec=0 \
-    unifont:size_MB=51,time_sec=0 \
-    usp10:size_MB=50,time_sec=0 \
-    ut3:size_MB=7355,time_sec=426 \
-    utorrent:size_MB=48,time_sec=1 \
-    vb2run:size_MB=48,time_sec=0 \
-    vb3run:size_MB=47,time_sec=0 \
-    vb4run:size_MB=49,time_sec=0 \
-    vb5run:size_MB=49,time_sec=0 \
-    vb6run:size_MB=50,time_sec=1 \
-    vc2005express:size_MB=1614,time_sec=173 \
-    vc2005trial:size_MB=7156,time_sec=53 \
-    vcrun2003:size_MB=47,time_sec=0 \
-    vcrun2005:size_MB=60,time_sec=2 \
-    vcrun2008:size_MB=60,time_sec=2 \
-    vcrun2010:size_MB=71,time_sec=7 \
-    vcrun6:size_MB=51,time_sec=0 \
-    vcrun6sp6:size_MB=109,time_sec=2 \
-    vjrun20:size_MB=319,time_sec=57 \
-    vlc:size_MB=221,time_sec=7 \
-    wenquanyi:size_MB=50,time_sec=0 \
-    windowscodecs:size_MB=53,time_sec=2 \
-    winhttp:size_MB=49,time_sec=0 \
-    wininet:size_MB=47,time_sec=0 \
-    wme9:size_MB=136,time_sec=5 \
-    wmi:size_MB=62,time_sec=12 \
-    wmp10:size_MB=161,time_sec=7 \
-    wmp9:size_MB=143,time_sec=12 \
-    wog:size_MB=124,time_sec=5 \
-    wsh56js:size_MB=45,time_sec=0 \
-    xact:size_MB=60,time_sec=6 \
-    xinput:size_MB=47,time_sec=2 \
-    xmllite:size_MB=50,time_sec=4 \
-    xvid:size_MB=54,time_sec=2 \
-    zootycoon2_demo:size_MB=299,time_sec=32 \
-
-do
-    cmd=${data%%:*}
-    file="$(echo "$WINETRICKS_METADATA"/*/$cmd.vars)"
-    if test -f "$file"
-    then
-        case $data in
-        *size_MB*)
-            size_MB=${data##*size_MB=}       # remove anything before value
-            size_MB=${size_MB%%,*}           # remove anything after value
-            echo size_MB=$size_MB >> "$file"
-            ;;
-        esac
-
-        case $data in
-        *time_sec*)
-            time_sec=${data##*time_sec=}
-            time_sec=${time_sec%%,*}
-            echo time_sec=$time_sec >> "$file"
-        esac
-    fi
-    unset size_MB time_sec
-done
-
-# Restore verbosity:
-case $WINETRICKS_OPT_VERBOSE in
-    1|2) set -x ;;
-    *) set +x ;;
-esac
-
 #---- Main Program ----
 
 winetricks_stats_save()
@@ -18826,6 +19002,12 @@ winetricks_stats_init()
                 question="Möchten Sie die Winetricks Entwicklung unterstützen indem Sie Winetricks Statistiken übermitteln lassen?  Sie können die Übermittlung jederzeit mit 'winetricks --optout' ausschalten"
                 thanks="Danke! Sie bekommen diese Frage nicht mehr gestellt.  Sie können die Übermittlung jederzeit mit 'winetricks --optout' wieder ausschalten"
                 declined="OK, Winetricks wird *keine* Statistiken übermitteln.  Sie bekommen diese Frage nicht mehr gestellt."
+                ;;
+            pl*)
+                title="Jednorazowe pytanie dotyczące pomocy w rozwoju Winetricks"
+                question="Czy chcesz pomóc w rozwoju Winetricks pozwalając na wysyłanie statystyk przez program? Możesz wyłączyć tą opcję w każdej chwili z użyciem komendy 'winetricks --optout'."
+                thanks="Dziękujemy!  Nie otrzymasz już tego pytania.  Pamiętaj, ze możesz wyłączyć tą opcję komendą 'winetricks --optout'"
+                declined="OK, Winetricks *nie* będzie wysyłać statystyk.  Nie otrzymasz już tego pytania."
                 ;;
             *)
                 title="One-time question about helping Winetricks development"
@@ -18974,7 +19156,7 @@ execute_command()
 
     # Hard-coded verbs
     main) WINETRICKS_CURMENU=main ;;
-    help) w_open_webpage https://code.google.com/archive/p/winetricks/wikis ;;
+    help) w_open_webpage https://github.com/Winetricks/winetricks/wiki ;;
     list) winetricks_list_all ;;
     list-cached) winetricks_list_cached ;;
     list-download) winetricks_list_download ;;
