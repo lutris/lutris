@@ -317,6 +317,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return settings.GAME_VIEW
 
     def do_key_press_event(self, event):
+        if event.keyval == Gdk.KEY_Escape:
+            self.search_toggle.set_active(False)
+            return Gdk.EVENT_STOP
+
         # Probably not ideal for non-english, but we want to limit
         # which keys actually start searching
         if (not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z or
