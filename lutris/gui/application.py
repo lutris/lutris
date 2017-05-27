@@ -56,6 +56,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.help_overlay = None
         self.css_provider = Gtk.CssProvider.new()
 
         try:
@@ -145,9 +146,23 @@ class Application(Gtk.Application):
         appmenu = builder.get_object('app-menu')
         self.set_app_menu(appmenu)
 
+        if Gtk.get_major_version() > 3 or Gtk.get_minor_version() >= 20:
+            builder = Gtk.Builder.new_from_file(
+                os.path.join(datapath.get(), 'ui', 'help-overlay.ui')
+            )
+            self.help_overlay = builder.get_object('help_overlay')
+
+            it = appmenu.iterate_item_links(appmenu.get_n_items() - 1)
+            assert(it.next())
+            last_section = it.get_value()
+            shortcuts_item = Gio.MenuItem.new(_('Keyboard Shortcuts'), 'win.show-help-overlay')
+            last_section.prepend_item(shortcuts_item)
+
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
+            if hasattr(self.window, 'set_help_overlay'):
+                self.window.set_help_overlay(self.help_overlay)
             screen = self.window.props.screen
             Gtk.StyleContext.add_provider_for_screen(
                 screen,
