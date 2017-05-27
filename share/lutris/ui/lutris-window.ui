@@ -52,11 +52,11 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkMenuButton">
                 <property name="visible">1</property>
                 <property name="can_focus">1</property>
                 <property name="tooltip_text" translatable="yes">Add game</property>
-                <property name="action-name">win.add-game</property>
+                <property name="popover">add_popover</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">1</property>
@@ -371,6 +371,36 @@
       </object>
     </child>
   </template>
+  <object class="GtkPopoverMenu" id="add_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">140</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Add game</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.add-game</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Import games</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.sync-local</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkPopoverMenu" id="account_popover">
     <child>
       <object class="GtkBox">
