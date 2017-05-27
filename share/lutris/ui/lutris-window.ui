@@ -34,21 +34,38 @@
         <property name="has-subtitle">0</property>
         <property name="show-close-button">1</property>
         <child>
-          <object class="GtkButton">
+          <object class="GtkBox">
             <property name="visible">1</property>
-            <property name="can_focus">1</property>
-            <property name="tooltip_text" translatable="yes">Add game</property>
-            <property name="action-name">win.add-game</property>
+            <property name="spacing">6</property>
             <child>
-              <object class="GtkImage">
+              <object class="GtkMenuButton">
                 <property name="visible">1</property>
-                <property name="icon-name">list-add-symbolic</property>
+                <property name="can_focus">1</property>
+                <property name="tooltip_text" translatable="yes">Manage account</property>
+                <property name="popover">account_popover</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">avatar-default-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="tooltip_text" translatable="yes">Add game</property>
+                <property name="action-name">win.add-game</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">list-add-symbolic</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
-          <packing>
-            <property name="pack-type">start</property>
-          </packing>
         </child>
         <child>
           <object class="GtkBox">
@@ -351,56 +368,97 @@
             <property name="fill">True</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkBox" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="spacing">31</property>
-            <property name="homogeneous">True</property>
-            <child>
-              <object class="GtkBox" id="status_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">center</property>
-                <property name="orientation">vertical</property>
-                <property name="homogeneous">True</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="connection_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Not connected</property>
-                <property name="ellipsize">start</property>
-                <property name="xalign">1</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="padding">10</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
       </object>
     </child>
   </template>
+  <object class="GtkPopoverMenu" id="account_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">180</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton" id="connect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Login</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.connect</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="disconnect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.disconnect</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="connection_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes"></property>
+                    <property name="max-width-chars">20</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">application-exit-symbolic</property>
+                    <property name="pixel_size">16</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="register_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Register</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.register-account</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="sync_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.synchronize</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="sync_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes">Synchronize library</property>
+                    <property name="max-width-chars">18</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSpinner" id="sync_spinner">
+                    <property name="visible">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkPopoverMenu" id="view_menu_widget">
     <child>
       <object class="GtkBox">
