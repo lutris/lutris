@@ -409,6 +409,7 @@
         <property name="border_width">9</property>
         <property name="orientation">vertical</property>
         <property name="width_request">160</property>
+        <property name="spacing">6</property>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
@@ -461,8 +462,6 @@
             <property name="restrict_to_fill_level">0</property>
             <property name="hexpand">1</property>
             <property name="vexpand">1</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
             <marks>
               <mark value="0" position="bottom"/>
               <mark value="1" position="bottom"/>
@@ -476,8 +475,6 @@
             <property name="visible">1</property>
             <property name="can_focus">1</property>
             <property name="action-name">win.show-installed-only</property>
-            <property name="margin-top">3</property>
-            <property name="margin-bottom">3</property>
             <accelerator key="h" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
             <child>
               <object class="GtkLabel">
@@ -492,8 +489,6 @@
             <property name="visible">1</property>
             <property name="can_focus">1</property>
             <property name="action-name">win.use-dark-theme</property>
-            <property name="margin-top">3</property>
-            <property name="margin-bottom">3</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">1</property>
@@ -507,7 +502,6 @@
             <property name="visible">1</property>
             <property name="can_focus">1</property>
             <property name="action-name">win.show-side-bar</property>
-            <property name="margin-top">3</property>
             <accelerator key="f9" signal="clicked"/>
             <child>
               <object class="GtkLabel">
