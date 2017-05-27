@@ -94,7 +94,7 @@ class SidebarListBox(Gtk.ListBox):
             menu.popup(event, row.runner, self.get_toplevel())
         return Gdk.EVENT_STOP
 
-    def update(self):
+    def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()
