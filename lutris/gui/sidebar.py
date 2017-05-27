@@ -78,11 +78,17 @@ class SidebarListBox(Gtk.ListBox):
         self.show_all()
 
     def _filter_func(self, row):
-        if row is None or row.id is None:
+        if row is None:
             return True
         elif row.type == 'runner':
+            if row.id is None:
+                return True  # 'All'
             return row.id in self.installed_runners
         else:
+            if len(self.active_platforms) <= 1:
+                return False  # Hide useless filter
+            elif row.id is None:  # 'All'
+                return True
             return row.id in self.active_platforms
 
     def _header_func(self, row, before):
