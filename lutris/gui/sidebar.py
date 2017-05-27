@@ -33,7 +33,18 @@ class SidebarHeader(Gtk.Box):
     def __init__(self, name):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.get_style_context().add_class('sidebar-row')
-        self.add(Gtk.Label(halign=Gtk.Align.START, label=name))
+        label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, label=name)
+        if name == 'Runners':
+            box = Gtk.Box()
+            box.add(label)
+            btn = Gtk.Button.new_from_icon_name('emblem-system-symbolic',
+                                                Gtk.IconSize.MENU)
+            btn.props.action_name = 'win.manage-runners'
+            btn.props.relief = Gtk.ReliefStyle.NONE
+            box.add(btn)
+            self.add(box)
+        else:
+            self.add(label)
         self.add(Gtk.Separator())
         self.show_all()
 
