@@ -58,6 +58,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
     search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
     no_results_overlay = GtkTemplate.Child()
+    infobar_revealer = GtkTemplate.Child()
+    infobar_label = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -429,9 +431,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
                 self.actions['stop-game'].props.enabled = False
+                self.infobar_revealer.set_reveal_child(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
                 self.actions['stop-game'].props.enabled = True
+                self.infobar_label.props.label = '{} running'.format(name)
+                self.infobar_revealer.set_reveal_child(True)
         return True
 
     # ---------

@@ -249,6 +249,45 @@
                   </object>
                 </child>
                 <child>
+                  <object class="GtkRevealer" id="infobar_revealer">
+                    <property name="visible">1</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">1</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkLabel" id="infobar_label">
+                            <property name="visible">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">Game running</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">View logs</property>
+                            <property name="action-name">win.view-game-log</property>
+                            <property name="visible">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Stop</property>
+                            <property name="visible">1</property>
+                            <property name="action-name">win.stop-game</property>
+                            <style>
+                              <class name="destructive-action"/>
+                            </style>
+                          </object>
+                        </child>
+                        <style>
+                          <class name="infobar"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkOverlay">
                     <property name="visible">1</property>
                     <child>
@@ -469,52 +508,11 @@
             <property name="can_focus">1</property>
             <property name="action-name">win.show-side-bar</property>
             <property name="margin-top">3</property>
-            <property name="margin-bottom">3</property>
             <accelerator key="f9" signal="clicked"/>
             <child>
               <object class="GtkLabel">
                 <property name="visible">1</property>
                 <property name="label" translatable="yes">Show side panel</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkSeparator">
-            <property name="visible">1</property>
-            <property name="orientation">horizontal</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton">
-            <property name="visible">1</property>
-            <property name="can_focus">1</property>
-            <property name="relief">none</property>
-            <property name="action-name">win.stop-game</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">1</property>
-                <property name="halign">start</property>
-                <property name="use-underline">1</property>
-                <property name="label" translatable="yes">_Stop Current Game</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton">
-            <property name="visible">1</property>
-            <property name="can_focus">1</property>
-            <property name="relief">none</property>
-            <property name="action-name">win.view-game-log</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">1</property>
-                <property name="halign">start</property>
-                <property name="use-underline">1</property>
-                <property name="label" translatable="yes">View Last Games' _Logs</property>
               </object>
             </child>
           </object>
