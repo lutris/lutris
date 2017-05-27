@@ -53,6 +53,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     status_box = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
+    search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
     no_results_overlay = GtkTemplate.Child()
 
@@ -306,6 +307,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if view_type in ['grid', 'list']:
             return view_type
         return settings.GAME_VIEW
+
+    def do_key_press_event(self, event):
+        # Probably not ideal for non-english, but we want to limit
+        # which keys actually start searching
+        if (not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z or
+           event.state & Gdk.ModifierType.CONTROL_MASK or
+           event.state & Gdk.ModifierType.SHIFT_MASK or
+           event.state & Gdk.ModifierType.META_MASK or
+           self.search_entry.has_focus()):
+            return Gtk.ApplicationWindow.do_key_press_event(self, event)
+
+        self.search_toggle.set_active(True)
+        self.search_entry.grab_focus()
+        return self.search_entry.do_key_press_event(self.search_entry, event)
 
     def load_icon_type_from_settings(self, view_type):
         """Return the icon style depending on the type of view."""

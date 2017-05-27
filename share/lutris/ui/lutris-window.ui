@@ -54,7 +54,7 @@
           <object class="GtkBox">
             <property name="visible">1</property>
             <child>
-              <object class="GtkToggleButton">
+              <object class="GtkToggleButton" id="search_toggle">
                 <property name="visible">1</property>
                 <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
