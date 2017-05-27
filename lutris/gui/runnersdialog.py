@@ -46,7 +46,7 @@ class RunnersDialog(Gtk.Dialog):
         scrolled_window.add(self.runner_listbox)
 
         # Header buttons
-        buttons_box = Gtk.Box()
+        buttons_box = Gtk.Box(spacing=6)
 
         refresh_button = Gtk.Button.new_from_icon_name('view-refresh-symbolic', Gtk.IconSize.BUTTON)
         refresh_button.props.tooltip_text = 'Refresh runners'
