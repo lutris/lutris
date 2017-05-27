@@ -106,9 +106,9 @@ class SidebarListBox(Gtk.ListBox):
             return Gtk.ListBoxRow.do_button_press_event(self, event)
 
         self.select_row(row)
-        if row.runner:
+        if row.id and row.type == 'runner':
             menu = ContextualMenu()
-            menu.popup(event, row.runner, self.get_toplevel())
+            menu.popup(event, row.id, self.get_toplevel())
         return Gdk.EVENT_STOP
 
     def update(self, *args):
