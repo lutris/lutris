@@ -33,7 +33,9 @@ class SidebarHeader(Gtk.Box):
     def __init__(self, name):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.get_style_context().add_class('sidebar-header')
-        label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, label=name)
+        label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, use_markup=True,
+                          label='<b>{}</b>'.format(name))
+        label.get_style_context().add_class('dim-label')
         if name == 'Runners':
             box = Gtk.Box()
             box.add(label)
