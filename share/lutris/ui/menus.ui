@@ -2,10 +2,6 @@
   <menu id="app-menu">
     <section>
       <item>
-        <attribute name="label">Import games</attribute>
-        <attribute name="action">win.sync-local</attribute>
-      </item>
-      <item>
         <attribute name="label">Manage runners</attribute>
         <attribute name="action">win.manage-runners</attribute>
       </item>
