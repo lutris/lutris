@@ -497,7 +497,8 @@
         <property name="border_width">9</property>
         <property name="orientation">vertical</property>
         <property name="width_request">160</property>
-        <property name="spacing">6</property>
+        <property name="spacing">3</property>
+        <property name="homogeneous">1</property>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
