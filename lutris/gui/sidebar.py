@@ -15,10 +15,11 @@ LABEL = 3
 
 
 class SidebarRow(Gtk.ListBoxRow):
-    def __init__(self, runner, name, icon):
+    def __init__(self, id_, type_, name, icon):
         super().__init__()
         self.get_style_context().add_class('sidebar-row')
-        self.runner = runner
+        self.type = type_
+        self.id = id_
 
         box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
         icon = Gtk.Image.new_from_pixbuf(icon)
@@ -28,26 +29,59 @@ class SidebarRow(Gtk.ListBoxRow):
         self.add(box)
 
 
+class SidebarHeader(Gtk.Box):
+    def __init__(self, name):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        self.get_style_context().add_class('sidebar-row')
+        self.add(Gtk.Label(halign=Gtk.Align.START, label=name))
+        self.add(Gtk.Separator())
+        self.show_all()
+
+
 class SidebarListBox(Gtk.ListBox):
     def __init__(self):
         super().__init__()
         self.get_style_context().add_class('sidebar')
         self.installed_runners = []
+        self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
+        self.platforms = sorted(platforms.__all__)
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
-        all_row = SidebarRow(None, 'All Runners', None)
+        all_row = SidebarRow(None, 'runner', 'All', None)
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
             icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
             name = runners.import_runner(runner).human_name
-            self.add(SidebarRow(runner, name, icon))
+            self.add(SidebarRow(runner, 'runner', name, icon))
 
-        self.set_filter_func(lambda row: row.runner is None or row.runner in self.installed_runners)
+        self.add(SidebarRow(None, 'platform', 'All', None))
+        for platform in self.platforms:
+            self.add(SidebarRow(platform, 'platform', platform, None))
+
+        self.set_filter_func(self._filter_func)
+        self.set_header_func(self._header_func)
         self.update()
         self.show_all()
+
+    def _filter_func(self, row):
+        if row is None or row.id is None:
+            return True
+        elif row.type == 'runner':
+            return row.id in self.installed_runners
+        else:
+            return row.id in self.active_platforms
+
+    def _header_func(self, row, before):
+        if row.get_header():
+            return
+
+        if not before:
+            row.set_header(SidebarHeader('Runners'))
+        elif before.type == 'runner' and row.type == 'platform':
+            row.set_header(SidebarHeader('Platforms'))
 
     def do_button_press_event(self, event):
         row = self.get_row_at_y(event.y)
@@ -62,6 +96,7 @@ class SidebarListBox(Gtk.ListBox):
 
     def update(self):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
+        self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()
 
 

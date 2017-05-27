@@ -788,7 +788,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
-        self.set_selected_filter(row.runner, None)
+        if row.type == 'runner':
+            self.set_selected_filter(row.id, None)
+        else:
+            self.set_selected_filter(None, row.id)
 
     def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
