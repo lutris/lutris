@@ -353,7 +353,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.games_scrollwindow.hide()
         else:
             self.splash_box.hide()
-            self.sidebar_revealer.set_reveal_child(True)
+            self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
             self.games_scrollwindow.show()
 
     def switch_view(self, view_type):
