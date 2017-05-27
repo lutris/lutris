@@ -48,9 +48,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_viewport = GtkTemplate.Child()
-    statusbar = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
-    status_box = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
     search_toggle = GtkTemplate.Child()
@@ -58,6 +56,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
     no_results_overlay = GtkTemplate.Child()
     infobar_revealer = GtkTemplate.Child()
     infobar_label = GtkTemplate.Child()
+    connect_button = GtkTemplate.Child()
+    disconnect_button = GtkTemplate.Child()
+    register_button = GtkTemplate.Child()
+    sync_button = GtkTemplate.Child()
+    sync_label = GtkTemplate.Child()
+    sync_spinner = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -378,8 +382,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
+            self.sync_label.set_label('Synchronize library')
+            self.sync_spinner.props.active = False
+            self.sync_button.set_sensitive(True)
 
-        self.set_status("Syncing library")
+        self.sync_label.set_label('Synchronizing…')
+        self.sync_spinner.props.active = True
+        self.sync_button.set_sensitive(False)
         AsyncCall(sync_from_remote, update_gui)
 
     def open_sync_dialog(self):
@@ -394,35 +403,25 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if first_run:
             icons_sync = AsyncCall(self.sync_icons, callback=None)
             self.threads_stoppers.append(icons_sync.stop_request.set)
-            self.set_status("")
 
     def update_runtime(self):
-        self.runtime_updater.update(self.set_status)
+        # self.runtime_updater.update(self.set_status)  # TODO: Show this info?
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
         resources.fetch_icons([game['slug'] for game in self.game_list],
                               callback=self.on_image_downloaded)
 
-    def set_status(self, text):
-        for child_widget in self.status_box.get_children():
-            child_widget.destroy()
-        label = Gtk.Label(text)
-        label.show()
-        self.status_box.add(label)
-
     def refresh_status(self):
         """Refresh status bar."""
         if self.running_game:
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
-                self.set_status("Preparing to launch %s" % name)
+                pass
             elif self.running_game.state == self.running_game.STATE_STOPPED:
-                self.set_status("Game has quit")
                 self.actions['stop-game'].props.enabled = False
                 self.infobar_revealer.set_reveal_child(False)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
-                self.set_status("Playing %s" % name)
                 self.actions['stop-game'].props.enabled = True
                 self.infobar_label.props.label = '{} running'.format(name)
                 self.infobar_revealer.set_reveal_child(True)
@@ -464,13 +463,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions['synchronize'].props.enabled = False
 
     def toggle_connection(self, is_connected, username=None):
-        self.props.application.set_connect_state(is_connected)
+        self.connect_button.props.visible = not is_connected
+        self.register_button.props.visible = not is_connected
+        self.disconnect_button.props.visible = is_connected
+        self.sync_button.props.visible = is_connected
         if is_connected:
-            connection_status = username
-            logger.info('Connected to lutris.net as %s', connection_status)
-        else:
-            connection_status = "Not connected"
-        self.connection_label.set_text(connection_status)
+            self.connection_label.set_text(username)
+            logger.info('Connected to lutris.net as %s', username)
 
     @staticmethod
     def _open_browser(url):

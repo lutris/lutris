@@ -2,18 +2,6 @@
   <menu id="app-menu">
     <section>
       <item>
-        <attribute name="label">Connect</attribute>
-        <attribute name="action">win.connect</attribute>
-      </item>
-      <item>
-        <attribute name="label">Register account</attribute>
-        <attribute name="action">win.register-account</attribute>
-      </item>
-      <item>
-        <attribute name="label">Synchronize library</attribute>
-        <attribute name="action">win.synchronize</attribute>
-      </item>
-      <item>
         <attribute name="label">Import games</attribute>
         <attribute name="action">win.sync-local</attribute>
       </item>

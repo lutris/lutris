@@ -130,16 +130,6 @@ class Application(Gtk.Application):
                              _('uri to open'),
                              'URI')
 
-    def set_connect_state(self, connected):
-        # We fiddle with the menu directly which is rather ugly
-        menu = self.get_app_menu().get_item_link(0, 'section')
-        menu.remove(0)  # Assert that it is the very first item
-        if connected:
-            item = Gio.MenuItem.new('Disconnect', 'win.disconnect')
-        else:
-            item = Gio.MenuItem.new('Connect', 'win.connect')
-        menu.prepend_item(item)
-
     def do_startup(self):
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
