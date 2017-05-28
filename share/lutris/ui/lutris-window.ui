@@ -367,18 +367,29 @@
           <object class="GtkButton">
             <property name="visible">1</property>
             <property name="relief">none</property>
-            <property name="label" translatable="yes">Add game</property>
             <property name="xalign">0.0</property>
             <property name="action-name">win.add-game</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">_Add Game…</property>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="GtkButton">
             <property name="visible">1</property>
             <property name="relief">none</property>
-            <property name="label" translatable="yes">Import games</property>
-            <property name="xalign">0.0</property>
             <property name="action-name">win.sync-local</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">_Import Games…</property>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
@@ -453,7 +464,7 @@
                 <child>
                   <object class="GtkLabel" id="sync_label">
                     <property name="visible">1</property>
-                    <property name="label" translatable="yes">Synchronize library</property>
+                    <property name="label" translatable="yes">Synchronize Library</property>
                     <property name="max-width-chars">18</property>
                     <property name="ellipsize">end</property>
                     <property name="halign">start</property>
@@ -551,7 +562,8 @@
             <child>
               <object class="GtkLabel">
                 <property name="visible">1</property>
-                <property name="label" translatable="yes">Installed Games Only</property>
+                <property name="label" translatable="yes">_Installed Games Only</property>
+                <property name="use-underline">1</property>
               </object>
             </child>
           </object>
@@ -564,7 +576,8 @@
             <child>
               <object class="GtkLabel">
                 <property name="visible">1</property>
-                <property name="label" translatable="yes">Use dark theme</property>
+                <property name="label" translatable="yes">Use _Dark Theme</property>
+                <property name="use-underline">1</property>
               </object>
             </child>
           </object>
@@ -578,7 +591,8 @@
             <child>
               <object class="GtkLabel">
                 <property name="visible">1</property>
-                <property name="label" translatable="yes">Show side panel</property>
+                <property name="label" translatable="yes">Show _Side Panel</property>
+                <property name="use-underline">1</property>
               </object>
             </child>
           </object>
