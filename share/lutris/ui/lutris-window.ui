@@ -359,7 +359,7 @@
       </object>
     </child>
   </template>
-  <object class="GtkPopoverMenu" id="add_popover">
+  <object class="GtkPopover" id="add_popover">
     <child>
       <object class="GtkBox">
         <property name="visible">1</property>
@@ -389,7 +389,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkPopoverMenu" id="account_popover">
+  <object class="GtkPopover" id="account_popover">
     <child>
       <object class="GtkBox">
         <property name="visible">1</property>
@@ -477,7 +477,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkPopoverMenu" id="view_menu_widget">
+  <object class="GtkPopover" id="view_menu_widget">
     <child>
       <object class="GtkBox">
         <property name="visible">1</property>
