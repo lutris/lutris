@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.0 -->
 <interface>
-  <requires lib="gtk+" version="3.10"/>
-  <!-- interface-local-resource-path ../media -->
-  <object class="GtkRadioAction" id="radioaction1">
-    <property name="hide_if_empty">False</property>
-    <property name="draw_as_radio">True</property>
-  </object>
-  <object class="GtkListStore" id="sidebar_liststore"/>
+  <requires lib="gtk+" version="3.14"/>
   <object class="GtkImage" id="view_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
