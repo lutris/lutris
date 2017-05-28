@@ -28,7 +28,7 @@ class InstallerDialog(Gtk.Window):
     download_progress = None
 
     def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
-        Gtk.Window.__init__(self)
+        super().__init__()
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
@@ -46,7 +46,7 @@ class InstallerDialog(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
 
-        self.vbox = Gtk.VBox()
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
 
         # Default signals
@@ -65,9 +65,11 @@ class InstallerDialog(Gtk.Window):
         self.vbox.pack_start(self.status_label, False, False, 15)
 
         # Main widget box
-        self.widget_box = Gtk.VBox()
-        self.widget_box.set_margin_right(25)
-        self.widget_box.set_margin_left(25)
+        self.widget_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_right=25,
+            margin_left=25,
+        )
         self.vbox.pack_start(self.widget_box, True, True, 15)
 
         self.location_entry = None
@@ -77,7 +79,7 @@ class InstallerDialog(Gtk.Window):
 
         # Buttons
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
-        self.action_buttons = Gtk.HBox()
+        self.action_buttons = Gtk.Box()
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
@@ -163,7 +165,7 @@ class InstallerDialog(Gtk.Window):
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.title_label.set_markup('<b>Select which version to install</b>')
-        self.installer_choice_box = Gtk.VBox()
+        self.installer_choice_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.installer_choice = 0
         radio_group = None
 

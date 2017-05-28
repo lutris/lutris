@@ -173,7 +173,7 @@ class _GtkTemplate(object):
             class Foo(Gtk.Box):
 
                 def __init__(self):
-                    super(Foo, self).__init__()
+                    super().__init__()
                     self.init_template()
 
         The 'ui' parameter can either be a file path or a GResource resource

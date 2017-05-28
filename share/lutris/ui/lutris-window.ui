@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.0 -->
 <interface>
-  <requires lib="gtk+" version="3.10"/>
-  <!-- interface-local-resource-path ../media -->
-  <object class="GtkRadioAction" id="radioaction1">
-    <property name="hide_if_empty">False</property>
-    <property name="draw_as_radio">True</property>
-  </object>
-  <object class="GtkListStore" id="sidebar_liststore"/>
+  <requires lib="gtk+" version="3.14"/>
   <object class="GtkImage" id="view_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -27,203 +21,99 @@
     <property name="icon_name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <signal name="size-allocate" handler="on_resize" swapped="no"/>
-    <child>
-      <object class="GtkBox" id="main_box">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="header_bar">
+        <property name="visible">1</property>
+        <property name="title" translatable="yes">Lutris</property>
+        <property name="has-subtitle">0</property>
+        <property name="show-close-button">1</property>
         <child>
-          <object class="GtkToolbar" id="lutris_toolbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="toolbar_style">icons</property>
-            <property name="icon_size">4</property>
+          <object class="GtkBox">
+            <property name="visible">1</property>
+            <property name="spacing">6</property>
             <child>
-              <object class="GtkToolButton" id="games_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Browse games</property>
-                <property name="label" translatable="yes">Browse games</property>
-                <property name="icon_name">applications-games</property>
-                <property name="action-name">win.browse-games</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="runners_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Manage runners</property>
-                <property name="label" translatable="yes">Manage runners</property>
-                <property name="icon_name">system-run</property>
-                <property name="action-name">win.manage-runners</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Play game</property>
-                <property name="label" translatable="yes">Play</property>
-                <property name="icon_name">media-playback-start</property>
-                <property name="action-name">win.start-game</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Stop game</property>
-                <property name="label" translatable="yes">Stop</property>
-                <property name="icon_name">media-playback-stop</property>
-                <property name="action-name">win.stop-game</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="add_game_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Manually add a game</property>
-                <property name="label" translatable="yes">Add Game</property>
-                <property name="icon_name">list-add</property>
-                <property name="action-name">win.add-game</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Remove game from library</property>
-                <property name="label" translatable="yes">Remove</property>
-                <property name="icon_name">edit-delete</property>
-                <property name="action-name">win.remove-game</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSeparatorToolItem" id="toolbutton1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="draw">False</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolItem" id="search_area">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
+              <object class="GtkMenuButton">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="tooltip_text" translatable="yes">Manage account</property>
+                <property name="popover">account_popover</property>
                 <child>
-                  <object class="GtkSearchEntry" id="search_entry">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="has_focus">True</property>
-                    <property name="width_chars">30</property>
-                    <property name="placeholder-text" translatable="yes">Filter the list of games</property>
-                    <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">avatar-default-symbolic</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkToolItem" id="view_switcher_toolbutton">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
+              <object class="GtkMenuButton">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="tooltip_text" translatable="yes">Add game</property>
+                <property name="popover">add_popover</property>
                 <child>
-                  <object class="GtkBox" id="view_switcher_box">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkToggleButton">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="tooltip_text" translatable="yes">Grid view</property>
-                        <property name="image">view_grid_symbolic</property>
-                        <property name="xalign">0.5</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">False</property>
-                        <property name="action-name">win.view-type</property>
-                        <property name="action-target">'grid'</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="tooltip_text" translatable="yes">List view</property>
-                        <property name="image">view_list_symbolic</property>
-                        <property name="xalign">0.5</property>
-                        <property name="active">True</property>
-                        <property name="draw_indicator">False</property>
-                        <property name="action-name">win.view-type</property>
-                        <property name="action-target">'list'</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <style>
-                      <class name="linked"/>
-                    </style>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">list-add-symbolic</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">1</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkToggleButton" id="search_toggle">
+                <property name="visible">1</property>
+                <property name="can-focus">1</property>
+                <property name="receives-default">1</property>
+                <property name="tooltip_text" translatable="yes">Search games</property>
+                <signal name="toggled" handler="_on_search_toggle"/>
+                <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">edit-find-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuButton" id="view_menu_btn">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="receives_default">1</property>
+                <property name="tooltip_text" translatable="yes">View options</property>
+                <property name="popover">view_menu_widget</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon_name">open-menu-symbolic</property>
+                    <property name="icon_size">2</property>
+                  </object>
+                </child>
+              </object>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="pack-type">end</property>
           </packing>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkStack">
+        <property name="visible">1</property>
         <child>
           <object class="GtkBox" id="splash_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
             <property name="spacing">10</property>
-            <property name="baseline_position">top</property>
+            <property name="valign">center</property>
             <child>
               <object class="GtkLabel" id="title_label">
                 <property name="visible">True</property>
@@ -303,106 +193,404 @@
               </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="padding">40</property>
-            <property name="position">2</property>
-          </packing>
         </child>
         <child>
-          <object class="GtkPaned" id="sidebar_paned">
+          <object class="GtkBox" id="main_box">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow1">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+              <object class="GtkRevealer" id="sidebar_revealer">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="hexpand">0</property>
+                <property name="transition-type">slide-right</property>
                 <child>
-                  <object class="GtkViewport" id="sidebar_viewport">
+                  <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar-policy">never</property>
                     <child>
-                      <placeholder/>
+                      <object class="GtkViewport" id="sidebar_viewport">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
                     </child>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="resize">False</property>
-                <property name="shrink">True</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="games_scrollwindow">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">etched-in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="resize">True</property>
-                <property name="shrink">True</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkBox" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">10</property>
-            <property name="margin_right">10</property>
-            <property name="spacing">31</property>
-            <property name="homogeneous">True</property>
-            <child>
-              <object class="GtkBox" id="status_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="halign">center</property>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="hexpand">1</property>
                 <property name="orientation">vertical</property>
-                <property name="homogeneous">True</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkRevealer" id="search_revealer">
+                    <property name="visible">1</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">1</property>
+                        <property name="orientation">horizontal</property>
+                        <style>
+                          <class name="searchbar"/>
+                        </style>
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="visible">1</property>
+                            <property name="can_focus">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="margin">5</property>
+                            <property name="width_chars">50</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="placeholder-text" translatable="yes">Filter the list of games</property>
+                            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkRevealer" id="infobar_revealer">
+                    <property name="visible">1</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">1</property>
+                        <property name="spacing">6</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <child>
+                          <object class="GtkLabel" id="infobar_label">
+                            <property name="visible">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">Game running</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">View logs</property>
+                            <property name="action-name">win.view-game-log</property>
+                            <property name="visible">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Stop</property>
+                            <property name="visible">1</property>
+                            <property name="action-name">win.stop-game</property>
+                            <style>
+                              <class name="destructive-action"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkOverlay">
+                    <property name="visible">1</property>
+                    <child>
+                      <object class="GtkScrolledWindow" id="games_scrollwindow">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="vexpand">1</property>
+                      </object>
+                    </child>
+                    <child type="overlay">
+                      <object class="GtkGrid" id="no_results_overlay">
+                        <property name="visible">0</property>
+                        <property name="row_spacing">12</property>
+                        <property name="hexpand">1</property>
+                        <property name="vexpand">1</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="icon-name">edit-find-symbolic</property>
+                            <property name="pixel-size">72</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">No Games Found</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                              <attribute name="scale" value="1.44"/>
+                            </attributes>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="pass-through">1</property>
+                      </packing>
+                    </child>
+                  </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="connection_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Not connected</property>
-                <property name="ellipsize">start</property>
-                <property name="xalign">1</property>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="padding">10</property>
-            <property name="position">4</property>
-          </packing>
         </child>
       </object>
     </child>
   </template>
+  <object class="GtkPopover" id="add_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">140</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Add game</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.add-game</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Import games</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.sync-local</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="account_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">180</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton" id="connect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Login</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.connect</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="disconnect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.disconnect</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="connection_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes"></property>
+                    <property name="max-width-chars">20</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">application-exit-symbolic</property>
+                    <property name="pixel_size">16</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="register_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Register</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.register-account</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="sync_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.synchronize</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="sync_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes">Synchronize library</property>
+                    <property name="max-width-chars">18</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSpinner" id="sync_spinner">
+                    <property name="visible">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="view_menu_widget">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">160</property>
+        <property name="spacing">3</property>
+        <property name="homogeneous">1</property>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkToggleButton">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">Grid view</property>
+                <property name="image">view_grid_symbolic</property>
+                <property name="draw_indicator">False</property>
+                <property name="action-name">win.view-type</property>
+                <property name="action-target">'grid'</property>
+                <property name="xalign">0.5</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="tooltip_text" translatable="yes">List view</property>
+                <property name="image">view_list_symbolic</property>
+                <property name="xalign">0.5</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <property name="draw_indicator">False</property>
+                <property name="action-name">win.view-type</property>
+                <property name="action-target">'list'</property>
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+              </object>
+            </child>
+            <style>
+              <class name="linked"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScale">
+            <property name="visible">1</property>
+            <property name="can_focus">True</property>
+            <property name="draw_value">0</property>
+            <property name="has_origin">False</property>
+            <property name="adjustment">zoom_adjustment</property>
+            <property name="round_digits">0</property>
+            <property name="restrict_to_fill_level">0</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <marks>
+              <mark value="0" position="bottom"/>
+              <mark value="1" position="bottom"/>
+              <mark value="2" position="bottom"/>
+              <mark value="3" position="bottom"/>
+            </marks>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton">
+            <property name="visible">1</property>
+            <property name="can_focus">1</property>
+            <property name="action-name">win.show-installed-only</property>
+            <accelerator key="h" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">Installed Games Only</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton">
+            <property name="visible">1</property>
+            <property name="can_focus">1</property>
+            <property name="action-name">win.use-dark-theme</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">Use dark theme</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton">
+            <property name="visible">1</property>
+            <property name="can_focus">1</property>
+            <property name="action-name">win.show-side-bar</property>
+            <accelerator key="f9" signal="clicked"/>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">Show side panel</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkAdjustment" id="zoom_adjustment">
+    <property name="lower">0</property>
+    <property name="upper">3</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+    <property name="value">1</property>
+  </object>
 </interface>

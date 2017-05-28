@@ -7,3 +7,7 @@
   color: rgb(47, 47, 47);
   background-color: rgb(255, 199, 116);
 }
+
+.sidebar-header button {
+  padding: 0;
+}

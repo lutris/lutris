@@ -12,12 +12,12 @@ from lutris.util.system import reverse_expanduser
 class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
-        super(ConfigBox, self).__init__()
+        super().__init__()
         self.options = None
         self.game = game
 
     def generate_top_info_box(self, text):
-        help_box = Gtk.HBox()
+        help_box = Gtk.Box()
         help_box.set_margin_left(15)
         help_box.set_margin_right(15)
         help_box.set_margin_bottom(5)
@@ -66,12 +66,12 @@ class ConfigBox(VBox):
             if callable(option.get('condition')):
                 option['condition'] = option['condition']()
 
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             hbox.set_margin_left(20)
-            self.wrapper = Gtk.HBox()
+            self.wrapper = Gtk.Box()
             self.wrapper.set_spacing(20)
 
-            placeholder = Gtk.HBox()
+            placeholder = Gtk.Box()
             placeholder.set_size_request(32, 32)
             hbox.pack_end(placeholder, False, False, 5)
 
@@ -364,7 +364,7 @@ class ConfigBox(VBox):
     # Multiple file selector
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         """Generate a multiple file selector."""
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ':')
         label.set_halign(Gtk.Align.START)
         button = Gtk.Button('Add files')
@@ -450,7 +450,7 @@ class ConfigBox(VBox):
         label = Label(text)
         label.set_use_markup(True)
         label.set_max_width_chars(60)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         hbox.pack_start(label, False, False, 0)
         hbox.show_all()
         tooltip.set_custom(hbox)

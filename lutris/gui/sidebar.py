@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GdkPixbuf, GObject
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 
 from lutris import runners
 from lutris import platforms
@@ -14,124 +14,112 @@ ICON = 2
 LABEL = 3
 
 
-class SidebarTreeView(Gtk.TreeView):
+class SidebarRow(Gtk.ListBoxRow):
+    def __init__(self, id_, type_, name, icon):
+        super().__init__()
+        self.type = type_
+        self.id = id_
+
+        box = Gtk.Box(spacing=6, margin_start=12, margin_top=6, margin_bottom=6, margin_end=12)
+        if icon:
+            icon = Gtk.Image.new_from_pixbuf(icon)
+            box.add(icon)
+        label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True)
+        box.add(label)
+        self.add(box)
+
+
+class SidebarHeader(Gtk.Box):
+    def __init__(self, name):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        self.get_style_context().add_class('sidebar-header')
+        label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, use_markup=True,
+                          label='<b>{}</b>'.format(name))
+        label.get_style_context().add_class('dim-label')
+        box = Gtk.Box(margin_start=12, margin_top=6, margin_bottom=6)
+        box.add(label)
+        self.add(box)
+        if name == 'Runners':
+            btn = Gtk.Button.new_from_icon_name('emblem-system-symbolic',
+                                                Gtk.IconSize.MENU)
+            btn.props.action_name = 'win.manage-runners'
+            btn.props.relief = Gtk.ReliefStyle.NONE
+            box.add(btn)
+        self.add(Gtk.Separator())
+        self.show_all()
+
+
+class SidebarListBox(Gtk.ListBox):
     def __init__(self):
-        super(SidebarTreeView, self).__init__()
+        super().__init__()
+        self.get_style_context().add_class('sidebar')
         self.installed_runners = []
-        self.active_platforms = []
-
-        self.model = Gtk.TreeStore(str, str, GdkPixbuf.Pixbuf, str)
-        self.model_filter = self.model.filter_new()
-        self.model_filter.set_visible_func(self.filter_rule)
-        self.set_model(self.model_filter)
-
-        column = Gtk.TreeViewColumn("Runners")
-        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-
-        # Type
-        type_renderer = Gtk.CellRendererText()
-        type_renderer.set_visible(False)
-        column.pack_start(type_renderer, True)
-        column.add_attribute(type_renderer, "text", TYPE)
-
-        # Runner slug
-        text_renderer = Gtk.CellRendererText()
-        text_renderer.set_visible(False)
-        column.pack_start(text_renderer, True)
-        column.add_attribute(text_renderer, "text", SLUG)
-
-        # Icon
-        icon_renderer = Gtk.CellRendererPixbuf()
-        icon_renderer.set_property('width', 20)
-        column.pack_start(icon_renderer, False)
-        column.add_attribute(icon_renderer, "pixbuf", ICON)
-
-        # Label
-        text_renderer2 = Gtk.CellRendererText()
-        column.pack_start(text_renderer2, True)
-        column.add_attribute(text_renderer2, "text", LABEL)
-
-        self.append_column(column)
-        self.set_headers_visible(False)
-        self.set_fixed_height_mode(True)
-
-        self.get_selection().set_mode(Gtk.SelectionMode.BROWSE)
-
-        self.connect('button-press-event', self.popup_contextual_menu)
-        GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
-
+        self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
-        self.platform_node = None
-        self.load_runners()
-        self.load_platforms()
-        self.update()
-        self.expand_all()
 
-    def load_runners(self):
-        """Append runners to the model."""
-        self.runner_node = self.model.append(None, ['runners', '', None, "All runners"])
-        for slug in self.runners:
-            self.add_runner(slug)
+        GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
-    def add_runner(self, slug):
-        name = runners.import_runner(slug).human_name
-        icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
-        self.model.append(self.runner_node, ['runners', slug, icon, name])
+        all_row = SidebarRow(None, 'runner', 'All', None)
+        self.add(all_row)
+        self.select_row(all_row)
+        for runner in self.runners:
+            icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
+            name = runners.import_runner(runner).human_name
+            self.add(SidebarRow(runner, 'runner', name, icon))
 
-    def load_platforms(self):
-        """Update platforms in the model."""
-        self.platform_node = self.model.append(None, ['platforms', '', None, "All platforms"])
+        self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            self.add_platform(platform)
+            self.add(SidebarRow(platform, 'platform', platform, None))
 
-    def add_platform(self, name):
-        self.model.append(self.platform_node, ['platforms', name, None, name])
+        self.set_filter_func(self._filter_func)
+        self.set_header_func(self._header_func)
+        self.update()
+        self.show_all()
 
-    def get_selected_filter(self):
-        """Return the selected runner's name."""
-        selection = self.get_selection()
-        if not selection:
-            return
-        model, iter = selection.get_selected()
-        if not iter:
-            return
-        type = model.get_value(iter, TYPE)
-        slug = model.get_value(iter, SLUG)
-        return (type, slug)
-
-    def filter_rule(self, model, iter, data):
-        if not model[iter][0]:
-            return False
-        if (model[iter][0] == 'runners' or model[iter][0] == 'platforms') and model[iter][1] == '':
+    def _filter_func(self, row):
+        if row is None:
             return True
-        return (model[iter][0] == 'runners' and model[iter][1] in self.installed_runners) or \
-               (model[iter][0] == 'platforms' and model[iter][1] in self.active_platforms)
+        elif row.type == 'runner':
+            if row.id is None:
+                return True  # 'All'
+            return row.id in self.installed_runners
+        else:
+            if len(self.active_platforms) <= 1:
+                return False  # Hide useless filter
+            elif row.id is None:  # 'All'
+                return True
+            return row.id in self.active_platforms
+
+    def _header_func(self, row, before):
+        if row.get_header():
+            return
+
+        if not before:
+            row.set_header(SidebarHeader('Runners'))
+        elif before.type == 'runner' and row.type == 'platform':
+            row.set_header(SidebarHeader('Platforms'))
+
+    def do_button_press_event(self, event):
+        row = self.get_row_at_y(event.y)
+        if not event.triggers_context_menu() or not row:
+            return Gtk.ListBoxRow.do_button_press_event(self, event)
+
+        self.select_row(row)
+        if row.id and row.type == 'runner':
+            menu = ContextualMenu()
+            menu.popup(event, row.id, self.get_toplevel())
+        return Gdk.EVENT_STOP
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
-        self.model_filter.refilter()
-        self.expand_all()
-        # Return False here because this method is called with GLib.idle_add
-        return False
-
-    def popup_contextual_menu(self, view, event):
-        if event.button != 3:
-            return
-        view.current_path = view.get_path_at_pos(event.x, event.y)
-        if view.current_path:
-            view.set_cursor(view.current_path[0])
-            type, slug = self.get_selected_filter()
-            if type != 'runners' or not slug or slug not in self.runners:
-                return
-            menu = ContextualMenu()
-            menu.popup(event, slug, self.get_toplevel())
+        self.invalidate_filter()
 
 
 class ContextualMenu(Gtk.Menu):
     def __init__(self):
-        super(ContextualMenu, self).__init__()
+        super().__init__()
 
     def add_menuitems(self, entries):
         for entry in entries:
@@ -161,8 +149,7 @@ class ContextualMenu(Gtk.Menu):
         self.add_menuitems(entries)
         self.show_all()
 
-        super(ContextualMenu, self).popup(None, None, None, None,
-                                          event.button, event.time)
+        super().popup(None, None, None, None, event.button, event.time)
 
     def on_configure_runner(self, *args):
         RunnerConfigDialog(self.runner, parent=self.parent_window)

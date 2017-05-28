@@ -4,7 +4,7 @@ from lutris.gui.widgets.dialogs import Dialog
 
 class LogTextView(Gtk.TextView):
     def __init__(self, buffer):
-        super(LogTextView, self).__init__()
+        super().__init__()
 
         self.set_buffer(buffer)
         self.set_editable(False)
@@ -21,8 +21,8 @@ class LogTextView(Gtk.TextView):
 
 class LogWindow(Dialog):
     def __init__(self, title, buffer, parent):
-        super(LogWindow, self).__init__(title, parent, 0,
-                                        ('_OK', Gtk.ResponseType.OK))
+        super().__init__(title, parent, 0,
+                         ('_OK', Gtk.ResponseType.OK))
         self.set_size_request(640, 480)
         self.grid = Gtk.Grid()
         self.buffer = buffer

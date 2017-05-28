@@ -11,7 +11,7 @@ class FileChooserEntry(Gtk.Box):
     def __init__(self, title='Select file', action=Gtk.FileChooserAction.OPEN,
                  default_path=None):
         """Widget with text entry and button to select file or folder."""
-        super(FileChooserEntry, self).__init__()
+        super().__init__()
 
         self.entry = Gtk.Entry()
         if default_path:
@@ -96,16 +96,19 @@ class Label(Gtk.Label):
     """Standardised label for config vboxes."""
     def __init__(self, message=None):
         """Custom init of label."""
-        super(Label, self).__init__(label=message)
+        super().__init__(label=message)
         self.set_alignment(0.1, 0.0)
         self.set_padding(5, 0)
         self.set_line_wrap(True)
 
 
-class VBox(Gtk.VBox):
-    def __init__(self):
-        GObject.GObject.__init__(self)
-        self.set_margin_top(20)
+class VBox(Gtk.Box):
+    def __init__(self, **kwargs):
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_top=20,
+            **kwargs
+        )
 
 
 class EditableGrid(Gtk.Grid):
@@ -115,7 +118,7 @@ class EditableGrid(Gtk.Grid):
 
     def __init__(self, data, columns):
         self.columns = columns
-        super(EditableGrid, self).__init__()
+        super().__init__()
         self.set_column_homogeneous(True)
         self.set_row_homogeneous(True)
         self.set_row_spacing(10)

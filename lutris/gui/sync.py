@@ -1,15 +1,13 @@
-import gi
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 
 
-class ServiceSyncRow(Gtk.HBox):
+class ServiceSyncRow(Gtk.Box):
 
     def __init__(self, service, dialog):
-        super(ServiceSyncRow, self).__init__()
+        super().__init__()
         self.set_spacing(20)
 
         self.identifier = service.__name__.split('.')[-1]
@@ -22,7 +20,7 @@ class ServiceSyncRow(Gtk.HBox):
         label.set_markup("<b>{}</b>".format(name))
         self.pack_start(label, True, True, 0)
 
-        actions = Gtk.VBox()
+        actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
@@ -58,7 +56,7 @@ class ServiceSyncRow(Gtk.HBox):
 class SyncServiceDialog(Gtk.Dialog):
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, title="Import local games", parent=parent)
+        super().__init__(title="Import local games", parent=parent, use_header_bar=1)
         self.connect("delete-event", lambda *x: self.destroy())
         self.set_border_width(10)
         self.set_size_request(512, 0)
