@@ -17,13 +17,13 @@ LABEL = 3
 class SidebarRow(Gtk.ListBoxRow):
     def __init__(self, id_, type_, name, icon):
         super().__init__()
-        self.get_style_context().add_class('sidebar-row')
         self.type = type_
         self.id = id_
 
-        box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
-        icon = Gtk.Image.new_from_pixbuf(icon)
-        box.add(icon)
+        box = Gtk.Box(spacing=6, margin_start=12, margin_top=6, margin_bottom=6, margin_end=12)
+        if icon:
+            icon = Gtk.Image.new_from_pixbuf(icon)
+            box.add(icon)
         label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True)
         box.add(label)
         self.add(box)
@@ -36,17 +36,15 @@ class SidebarHeader(Gtk.Box):
         label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, use_markup=True,
                           label='<b>{}</b>'.format(name))
         label.get_style_context().add_class('dim-label')
+        box = Gtk.Box(margin_start=12, margin_top=6, margin_bottom=6)
+        box.add(label)
+        self.add(box)
         if name == 'Runners':
-            box = Gtk.Box()
-            box.add(label)
             btn = Gtk.Button.new_from_icon_name('emblem-system-symbolic',
                                                 Gtk.IconSize.MENU)
             btn.props.action_name = 'win.manage-runners'
             btn.props.relief = Gtk.ReliefStyle.NONE
             box.add(btn)
-            self.add(box)
-        else:
-            self.add(label)
         self.add(Gtk.Separator())
         self.show_all()
 
