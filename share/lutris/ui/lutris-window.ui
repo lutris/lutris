@@ -119,7 +119,7 @@
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
             <property name="spacing">10</property>
-            <property name="baseline_position">top</property>
+            <property name="valign">center</property>
             <child>
               <object class="GtkLabel" id="title_label">
                 <property name="visible">True</property>
