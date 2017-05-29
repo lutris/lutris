@@ -68,6 +68,7 @@ class Request(object):
                 total_size = 0
 
             self.response_headers = request.getheaders()
+            self.status_code = request.getcode()
             chunks = []
             while 1:
                 if self.stop_request and self.stop_request.is_set():
@@ -105,7 +106,12 @@ class Request(object):
     @property
     def json(self):
         if self.content:
-            return json.loads(self.text)
+            try:
+                return json.loads(self.text)
+            except json.decoder.JSONDecodeError:
+                raise ValueError("Invalid response ({}:{}): {}".format(
+                    self.url, self.status_code, self.text[:80]
+                ))
 
     @property
     def text(self):
