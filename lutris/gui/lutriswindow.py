@@ -325,6 +325,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
            event.state & Gdk.ModifierType.CONTROL_MASK or
            event.state & Gdk.ModifierType.SHIFT_MASK or
            event.state & Gdk.ModifierType.META_MASK or
+           event.state & Gdk.ModifierType.MOD1_MASK or
            self.search_entry.has_focus()):
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
