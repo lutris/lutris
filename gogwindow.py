@@ -8,14 +8,36 @@ from lutris.services.gog import GogService
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 
 ICON_CACHE = os.path.expanduser("~/.cache/lutris/gog-cache/")
 
 
 class GogWindow(Gtk.Window):
+    title = "GOG Downloader"
+
     def __init__(self):
-        super(GogWindow, self).__init__(title="GOG Downloader")
+        super(GogWindow, self).__init__(title=self.title)
+
+        headerbar = Gtk.HeaderBar()
+        headerbar.set_title(self.title)
+        headerbar.set_show_close_button(True)
+
+        user_button = Gtk.MenuButton()
+        headerbar.pack_end(user_button)
+        icon = Gio.ThemedIcon(name="avatar-default-symbolic")
+        image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+        user_button.add(image)
+
+        popover = Gtk.Popover.new(user_button)
+        popover_box = Gtk.Box(Gtk.Orientation.HORIZONTAL)
+        login_button = Gtk.Button("Login")
+        popover_box.add(login_button)
+        logout_button = Gtk.Button("Logout")
+        popover_box.add(logout_button)
+        popover.add(popover_box)
+
+        self.set_titlebar(headerbar)
 
         self.set_size_request(450, 300)
 
