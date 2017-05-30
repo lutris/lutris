@@ -151,7 +151,7 @@ Here's what to expect from the future versions of lutris:
   private storage, allowing you to reinstall them on all your devices)
 * Game saves sync
 * Community features (friends list, chat, multiplayer game scheduling)
-* Controller configuration GUI (with xboxdrv / joy2key support)
+* Controller configuration GUI (with xboxdrv support)
 
 Come with us!
 =============

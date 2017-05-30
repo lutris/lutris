@@ -326,33 +326,13 @@ class Game(object):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
         self.state = self.STATE_RUNNING
-        if 'joy2key' in gameplay_info:
-            self.joy2key(gameplay_info['joy2key'])
+
+        # xboxdrv setup
         xboxdrv_config = system_config.get('xboxdrv')
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
-        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
-    def joy2key(self, config):
-        """Run a joy2key thread."""
-        if not system.find_executable('joy2key'):
-            logger.error("joy2key is not installed")
-            return
-        win = "grep %s" % config['window']
-        if 'notwindow' in config:
-            win += ' | grep -v %s' % config['notwindow']
-        wid = "xwininfo -root -tree | %s | awk '{print $1}'" % win
-        buttons = config['buttons']
-        axis = "Left Right Up Down"
-        rcfile = os.path.expanduser("~/.joy2keyrc")
-        rc_option = '-rcfile %s' % rcfile if os.path.exists(rcfile) else ''
-        command = "sleep 5 "
-        command += "&& joy2key $(%s) -X %s -buttons %s -axis %s" % (
-            wid, rc_option, buttons, axis
-        )
-        joy2key_thread = LutrisThread(command)
-        self.game_thread.attach_thread(joy2key_thread)
-        joy2key_thread.start()
+        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def xboxdrv_start(self, config):
         command = [
