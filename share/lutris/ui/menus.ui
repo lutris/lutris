@@ -11,6 +11,8 @@
         <attribute name="label">_Preferences</attribute>
         <attribute name="action">win.preferences</attribute>
       </item>
+    </section>
+    <section>
       <item>
         <attribute name="label">_About</attribute>
         <attribute name="action">win.about</attribute>
