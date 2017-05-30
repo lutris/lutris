@@ -111,6 +111,9 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
         wine_path = wine().get_executable()
 
     wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
+    if not os.path.exist(wineboot_path):
+        logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
+        return
 
     env = {
         'WINEARCH': arch,
