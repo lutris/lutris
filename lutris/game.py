@@ -317,11 +317,16 @@ class Game(object):
         env["LD_LIBRARY_PATH"] = ld_library_path
 
         # /Env vars
+        monitoring_disabled = system_config.get('disable_monitoring')
+        process_watch = not monitoring_disabled
 
         self.game_thread = LutrisThread(launch_arguments,
-                                        runner=self.runner, env=env,
+                                        runner=self.runner,
+                                        env=env,
                                         rootpid=gameplay_info.get('rootpid'),
-                                        term=terminal, log_buffer=self.log_buffer)
+                                        watch=process_watch,
+                                        term=terminal,
+                                        log_buffer=self.log_buffer)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -332,7 +337,10 @@ class Game(object):
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
 
-        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        if monitoring_disabled:
+            logger.info("Process monitoring disabled")
+        else:
+            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def xboxdrv_start(self, config):
         command = [
