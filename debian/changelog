@@ -1,3 +1,9 @@
+lutris (0.4.11.1) zesty; urgency=medium
+
+  * Fix typo in wineboot check
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 30 May 2017 15:43:07 -0700
+
 lutris (0.4.11) zesty; urgency=medium
 
   * Add system option to disable process monitoring
