@@ -212,17 +212,16 @@ def add_game(name, **game_data):
 
 
 def add_games_bulk(games):
-    """Add a list of games to the PGA database.
-
-    The dicts must have an identical set of keys.
-
-    :type games: list of dicts
     """
-    inserted_ids = []
-    for game in games:
-        inserted_id = sql.db_insert(PGA_DB, "games", game)
-        inserted_ids.append(inserted_id)
-    return inserted_ids
+        Add a list of games to the PGA database.
+        The dicts must have an identical set of keys.
+
+        Args:
+            games (list): list of games in dict format
+        Returns:
+            list: List of inserted game ids
+    """
+    return [sql.db_insert(PGA_DB, "games", game) for game in games]
 
 
 def add_or_update(**params):
