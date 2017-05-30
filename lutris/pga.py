@@ -2,6 +2,7 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+from itertools import chain
 
 from lutris.util.strings import slugify
 from lutris.util.log import logger
@@ -159,6 +160,7 @@ def get_games_where(**conditions):
             Special values for field names can be used:
                 <field>__isnull will return rows where `field` is NULL if the value is True
                 <field>__not will invert the condition using `!=` instead of `=`
+                <field>__in will match rows for every value of `value`, which should be an iterable
 
         Returns:
             list: Rows matching the query
@@ -176,24 +178,27 @@ def get_games_where(**conditions):
             if extra_condition == 'not':
                 condition_fields.append("{} != ?".format(field))
                 condition_values.append(value)
+            if extra_condition == 'in':
+                if not hasattr(value, '__iter__'):
+                    raise ValueError("Value should be an iterable (%s given)" % value)
+                condition_fields.append('{{}} in ({})'.format(
+                    ', '.join('?' * len(value))
+                ))
+                condition_values = list(chain(condition_values, value))
         else:
             condition_fields.append("{} = ?".format(field))
             condition_values.append(value)
     query += " AND ".join(condition_fields)
-    print(query)
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
 
-def get_game_by_field(value, field='slug', all=False):
+def get_game_by_field(value, field='slug'):
     """Query a game based on a database field"""
     if field not in ('slug', 'installer_slug', 'id', 'configpath', 'steamid'):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(PGA_DB, "games", condition=(field, value))
     if game_result:
-        if all:
-            return game_result
-        else:
-            return game_result[0]
+        return game_result[0]
     return {}
 
 

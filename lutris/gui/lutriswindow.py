@@ -222,7 +222,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
         runner_name = appmanifest.get_runner_name()
-        games = pga.get_game_by_field(appmanifest.steamid, field='steamid', all=True)
+        games = pga.get_games_where(steamid=appmanifest.steamid)
         if operation == Gio.FileMonitorEvent.DELETED:
             for game in games:
                 if game['runner'] == runner_name:
@@ -344,7 +344,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def update_gui(result, error):
             if result:
                 added_ids, updated_ids = result
-                added_games = pga.get_game_by_field(added_ids, 'id', all=True)
+                added_games = pga.get_games_where(id__in=added_ids)
                 self.game_list += added_games
                 self.view.populate_games(added_games)
                 self.switch_splash_screen()
@@ -585,7 +585,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_image_downloaded(self, game_slugs):
         for game_slug in game_slugs:
-            games = pga.get_game_by_field(game_slug, field='slug', all=True)
+            games = pga.get_games_where(slug=game_slug)
             for game in games:
                 game = Game(game['id'])
                 is_installed = game.is_installed

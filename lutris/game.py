@@ -116,7 +116,7 @@ class Game(object):
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
-        existing_games = pga.get_game_by_field(self.slug, 'slug', all=True)
+        existing_games = pga.get_games_where(slug=self.slug)
         if len(existing_games) > 1:
             from_library = True
 
