@@ -7720,7 +7720,7 @@ load_icodecs()
 
     # Apparently some codecs are missing, see https://github.com/Winetricks/winetricks/issues/302
     # Download at https://www.moviecodec.com/download-codec-packs/indeo-codecs-legacy-package-31/
-    w_download http://s3.amazonaws.com/moviecodec/files/iv5setup.exe 51bec25488b5b94eb3ce49b0a117618c9526161fd0753817a7a724ce25ff0cad
+    w_download https://s3.amazonaws.com/moviecodec/files/iv5setup.exe 51bec25488b5b94eb3ce49b0a117618c9526161fd0753817a7a724ce25ff0cad
 
     w_ahk_do "
         SetTitleMatchMode, 2
@@ -7769,6 +7769,8 @@ load_icodecs()
         }
         winwaitclose
         ; Dangling explorer window
+        winwait, Wine Explorer
+        sleep 1000
         winclose, Wine Explorer
     "
 }
@@ -8583,7 +8585,7 @@ w_metadata physx dlls \
 
 load_physx()
 {
-    w_download http://uk.download.nvidia.com/Windows/9.14.0702/PhysX-9.14.0702-SystemSoftware.msi 0a022e28accf5851be9d6577487cdcd3d3a3e2a8a21a64456b72b415c217f03c
+    w_download https://uk.download.nvidia.com/Windows/9.14.0702/PhysX-9.14.0702-SystemSoftware.msi 0a022e28accf5851be9d6577487cdcd3d3a3e2a8a21a64456b72b415c217f03c
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" msiexec /i PhysX-9.14.0702-SystemSoftware.msi $W_UNATTENDED_SLASH_Q
 }
@@ -11727,7 +11729,7 @@ w_metadata protectionid apps \
 
 load_protectionid()
 {
-    w_download_manual "http://pid.gamecopyworld.com/" ProtectionId.685.December.2016.rar 27a84d740c9fb96cc866438a2b5cd4afc350affc8b7a0122c28c651af3559aea
+    w_download_manual "https://pid.gamecopyworld.com/" ProtectionId.685.December.2016.rar 27a84d740c9fb96cc866438a2b5cd4afc350affc8b7a0122c28c651af3559aea
     w_try_cd "$W_SYSTEM32_DLLS"
     w_try_unrar "${W_CACHE}/${W_PACKAGE}/${file1}"
 
@@ -12901,7 +12903,7 @@ w_metadata aoe3_demo games \
 load_aoe3_demo()
 {
 
-    w_download http://http.download.nvidia.com/downloads/nZone/demos/aoe3trial.exe 4ef69289dfa0817ec14942d85ef597835a9d2b09e1506c60b9938b20daa274ad
+    w_download https://http.download.nvidia.com/downloads/nZone/demos/aoe3trial.exe 4ef69289dfa0817ec14942d85ef597835a9d2b09e1506c60b9938b20daa274ad
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
@@ -13178,7 +13180,7 @@ w_metadata bioshock_demo games \
 
 load_bioshock_demo()
 {
-    w_download http://us.download.nvidia.com/downloads/nZone/demos/nzd_BioShockPC.zip 36f73251c0c1c6f4b6a83af9b6e44c642b4fce127c2c28cb6d2b25bc95baa934
+    w_download https://us.download.nvidia.com/downloads/nZone/demos/nzd_BioShockPC.zip 36f73251c0c1c6f4b6a83af9b6e44c642b4fce127c2c28cb6d2b25bc95baa934
 
     w_info "Unzipping demo, installer will start in about 30 seconds."
     w_try unzip "$W_CACHE/$W_PACKAGE/nzd_BioShockPC.zip" -d "$W_TMP/$W_PACKAGE"
@@ -14720,7 +14722,7 @@ w_metadata eve games \
 load_eve()
 {
     # https://community.eveonline.com/support/download/
-    w_download http://binaries.eveonline.com/EveLauncher-1104888.exe d1d66ea0a0e4a476a926307dcdb3d7b5e777d7cff7feb172ce7779dac9fdae8f
+    w_download https://binaries.eveonline.com/EveLauncher-1104888.exe d1d66ea0a0e4a476a926307dcdb3d7b5e777d7cff7feb172ce7779dac9fdae8f
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
