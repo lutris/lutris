@@ -62,7 +62,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="view_header_box">
             <property name="visible">1</property>
             <property name="spacing">6</property>
             <child>
