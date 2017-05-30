@@ -4,7 +4,7 @@ import os
 import time
 from collections import namedtuple
 
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, Gdk, GLib, Gio, GObject
 
 from lutris import api, pga, settings
 from lutris.game import Game
@@ -43,6 +43,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     __gtype_name__ = 'LutrisWindow'
 
     main_box = GtkTemplate.Child()
+    view_header_box = GtkTemplate.Child()
     splash_box = GtkTemplate.Child()
     connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
@@ -108,6 +109,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.init_template()
         self._init_actions()
         self._bind_zoom_adjustment()
+
+        self.main_box.bind_property('visible', self.view_header_box, 'visible',
+                                    GObject.BindingFlags.SYNC_CREATE)
 
         # Set theme to dark if set in the settings
         self.set_dark_theme(self.use_dark_theme)
