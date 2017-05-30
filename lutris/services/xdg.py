@@ -20,6 +20,7 @@ from lutris.settings import CACHE_DIR
 
 
 NAME = "Desktop games"
+INSTALLER_SLUG = 'desktopapp'
 
 IGNORED_GAMES = (
     "lutris", "mame", "dosbox", "playonlinux", "org.gnome.Games", "retroarch",
@@ -80,30 +81,17 @@ def mark_as_uninstalled(game_info):
 
 
 def sync_with_lutris():
-    apps = get_games()
-    desktop_games_in_lutris = pga.get_games_where(runner='linux', installer_slug='desktopapp')
+    desktop_games_in_lutris = pga.get_games_where(runner='linux', installer_slug=INSTALLER_SLUG)
     slugs_in_lutris = set([str(game['slug']) for game in desktop_games_in_lutris])
-
     seen_slugs = set()
-    for app in apps:
-        game_info = None
-        name = app[0]
-        appid = app[1]
-        slug = slugify(name)
 
-        # if it fails to get slug from the name
-        if not slug:
-            slug = slugify(appid)
-
-        if not name or not slug or not appid:
-            logger.error("Failed to load desktop game "
-                         "\"" + str(name) + "\" "
-                         "(app: " + str(appid) + ", slug: " + slug + ")")
+    for name, appid, exe, args in get_games():
+        slug = slugify(name) or slugify(appid)
+        if not all([name, slug, appid]):
+            logger.error("Failed to load desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
             continue
         else:
-            logger.debug("Found desktop game "
-                         "\"" + str(name) + "\" "
-                         "(app: " + str(appid) + ", slug: " + slug + ")")
+            logger.info("Found desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
 
         seen_slugs.add(slug)
 
@@ -111,10 +99,10 @@ def sync_with_lutris():
             game_info = {
                 'name': name,
                 'slug': slug,
-                'config_path': slug + '-desktopapp',
-                'installer_slug': 'desktopapp',
-                'exe': app[2],
-                'args': app[3]
+                'config_path': slug + '-' + INSTALLER_SLUG,
+                'installer_slug': INSTALLER_SLUG,
+                'exe': exe,
+                'args': args
             }
             mark_as_installed(appid, 'linux', game_info)
 
