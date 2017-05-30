@@ -7,6 +7,7 @@ from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
 NAME = "ScummVM"
+INSTALLER_SLUG = 'system-scummvm'
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
 
 
@@ -35,10 +36,10 @@ def mark_as_installed(scummvm_id, name, path):
     return game_id
 
 
-def sync_with_lutris():
+def get_scummvm_games():
     if not os.path.exists(SCUMMVM_CONFIG_FILE):
         logger.info("No ScummVM config found")
-        return
+        return []
     config = ConfigParser()
     config.read(SCUMMVM_CONFIG_FILE)
     config_sections = config.sections()
@@ -48,4 +49,9 @@ def sync_with_lutris():
         scummvm_id = section
         name = re.split(' \(.*\)$', config[section]["description"])[0]
         path = config[section]['path']
+        yield (scummvm_id, name, path)
+
+
+def sync_with_lutris():
+    for scummvm_id, name, path in get_scummvm_games():
         mark_as_installed(scummvm_id, name, path)
