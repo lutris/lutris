@@ -69,21 +69,19 @@ def mark_as_installed(appid, runner_name, game_info):
 
 
 def mark_as_uninstalled(game_info):
-    assert 'id' in game_info
-    assert 'name' in game_info
-    logger.info('Setting %s as uninstalled' % game_info['name'])
-    game_id = pga.add_or_update(
+    logger.info('Uninstalling %s' % game_info['name'])
+    return pga.add_or_update(
         id=game_info['id'],
-        runner='',
         installed=0
     )
-    return game_id
 
 
 def sync_with_lutris():
-    desktop_games_map = {
+    desktop_games = {
         game['slug']: game
-        for game in pga.get_games_where(runner='linux', installer_slug=INSTALLER_SLUG)
+        for game in pga.get_games_where(runner='linux',
+                                        installer_slug=INSTALLER_SLUG,
+                                        installed=1)
     }
     seen = set()
 
@@ -96,7 +94,7 @@ def sync_with_lutris():
             logger.info("Found desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
         seen.add(slug)
 
-        if slug not in desktop_games_map.keys():
+        if slug not in desktop_games.keys():
             game_info = {
                 'name': name,
                 'slug': slug,
@@ -107,8 +105,8 @@ def sync_with_lutris():
             }
             mark_as_installed(appid, 'linux', game_info)
 
-    for slug in set(desktop_games_map.keys()).difference(seen):
-        mark_as_uninstalled(desktop_games_map[slug])
+    for slug in set(desktop_games.keys()).difference(seen):
+        mark_as_uninstalled(desktop_games[slug])
 
 
 def iter_xdg_apps():

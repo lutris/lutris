@@ -19,6 +19,7 @@ def mark_as_installed(scummvm_id, name, path):
     game_id = pga.add_or_update(
         name=name,
         runner='scummvm',
+        installer_slug=INSTALLER_SLUG,
         slug=slug,
         installed=1,
         configpath=config_id,
@@ -34,6 +35,14 @@ def mark_as_installed(scummvm_id, name, path):
     })
     config.save()
     return game_id
+
+
+def mark_as_uninstalled(game_info):
+    logger.info("Uninstalling %s", game_info['name'])
+    return pga.add_or_update(
+        id=game_info['id'],
+        installed=0
+    )
 
 
 def get_scummvm_games():
@@ -53,5 +62,18 @@ def get_scummvm_games():
 
 
 def sync_with_lutris():
+    scummvm_games = {
+        game['slug']: game
+        for game in pga.get_games_where(runner='scummvm',
+                                        installer_slug=INSTALLER_SLUG,
+                                        installed=1)
+    }
+    seen = set()
+
     for scummvm_id, name, path in get_scummvm_games():
-        mark_as_installed(scummvm_id, name, path)
+        slug = slugify(name)
+        seen.add(slug)
+        if slug not in scummvm_games.keys():
+            mark_as_installed(scummvm_id, name, path)
+    for slug in set(scummvm_games.keys()).difference(seen):
+        mark_as_uninstalled(scummvm_games[slug])

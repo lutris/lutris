@@ -166,7 +166,7 @@ def get_games_where(**conditions):
             list: Rows matching the query
 
     """
-    query = "select * from games where "
+    query = "select * from games"
     condition_fields = []
     condition_values = []
     for field, value in conditions.items():
@@ -181,14 +181,22 @@ def get_games_where(**conditions):
             if extra_condition == 'in':
                 if not hasattr(value, '__iter__'):
                     raise ValueError("Value should be an iterable (%s given)" % value)
-                condition_fields.append('{{}} in ({})'.format(
-                    ', '.join('?' * len(value))
-                ))
-                condition_values = list(chain(condition_values, value))
+                if value:
+                    condition = "{}" + " in ({})".format(
+                        ', '.join('?' * len(value))
+                    )
+                    condition_fields.append(condition)
+                    condition_values = list(chain(condition_values, value))
         else:
             condition_fields.append("{} = ?".format(field))
             condition_values.append(value)
-    query += " AND ".join(condition_fields)
+    condition = " AND ".join(condition_fields)
+    if condition:
+        query = " WHERE ".join((query, condition))
+    else:
+        # FIXME: Inspect and document why we should return an empty list when
+        # no condition is present.
+        return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
 
