@@ -81,7 +81,7 @@ def mark_as_uninstalled(game_info):
 
 def sync_with_lutris():
     apps = get_games()
-    desktop_games_in_lutris = pga.get_desktop_games()
+    desktop_games_in_lutris = pga.get_games_where(runner='linux', installer_slug='desktopapp')
     slugs_in_lutris = set([str(game['slug']) for game in desktop_games_in_lutris])
 
     seen_slugs = set()

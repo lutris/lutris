@@ -223,7 +223,7 @@ def sync_appmanifest_state(appmanifest_path, name=None, slug=None):
 
 def sync_with_lutris(platform='linux'):
     steamapps_paths = get_steamapps_paths()
-    steam_games_in_lutris = pga.get_steam_games()  # List of Lutris games with a steamid
+    steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not='')
     steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
     seen_ids = set()  # Set of Steam appids seen while browsing AppManifests
 

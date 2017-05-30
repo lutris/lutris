@@ -150,15 +150,38 @@ def get_game_ids():
     return [game['id'] for game in games]
 
 
-def get_steam_games():
-    """Return the games with a SteamID"""
-    query = "select * from games where steamid is not null and steamid != ''"
-    return sql.db_query(PGA_DB, query)
+def get_games_where(**conditions):
+    """
+        Query games table based on conditions
 
+        Args:
+            conditions (dict): named arguments with each field matches its desired value.
+            Special values for field names can be used:
+                <field>__isnull will return rows where `field` is NULL if the value is True
+                <field>__not will invert the condition using `!=` instead of `=`
 
-def get_desktop_games():
-    query = "select * from games where runner = 'linux' and installer_slug = 'desktopapp'"
-    return sql.db_query(PGA_DB, query)
+        Returns:
+            list: Rows matching the query
+
+    """
+    query = "select * from games where "
+    condition_fields = []
+    condition_values = []
+    for field, value in conditions.items():
+        field, *extra_conditions = field.split('__')
+        if extra_conditions:
+            extra_condition = extra_conditions[0]
+            if extra_condition == 'isnull':
+                condition_fields.append('{} is {} null'.format(field, '' if value else 'not'))
+            if extra_condition == 'not':
+                condition_fields.append("{} != ?".format(field))
+                condition_values.append(value)
+        else:
+            condition_fields.append("{} = ?".format(field))
+            condition_values.append(value)
+    query += " AND ".join(condition_fields)
+    print(query)
+    return sql.db_query(PGA_DB, query, tuple(condition_values))
 
 
 def get_game_by_field(value, field='slug', all=False):
