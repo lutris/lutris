@@ -207,8 +207,7 @@ def add_game(name, **game_data):
     game_data['name'] = name
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
-    inserted_id = sql.db_insert(PGA_DB, "games", game_data)
-    return inserted_id
+    return sql.db_insert(PGA_DB, "games", game_data)
 
 
 def add_games_bulk(games):
