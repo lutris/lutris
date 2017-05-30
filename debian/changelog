@@ -1,3 +1,14 @@
+lutris (0.4.11) zesty; urgency=medium
+
+  * Add system option to disable process monitoring
+  * Finish ScummVM game importing
+  * Fix path resolution for local installer scripts
+  * Fix 'execute' installer command not being monitored
+  * Fix I/O watch hogging a CPU core after game quits
+  * Code cleanup
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 30 May 2017 13:36:41 -0700
+
 lutris (0.4.10) zesty; urgency=medium
 
   * Remove PCSX-R runner
