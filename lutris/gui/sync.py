@@ -1,9 +1,12 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
+
 from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
+from lutris.util.jobs import AsyncCall
 
 
 class ServiceSyncRow(Gtk.HBox):
@@ -35,8 +38,14 @@ class ServiceSyncRow(Gtk.HBox):
 
         sync_button = Gtk.Button("Sync")
         sync_button.set_tooltip_text("Sync now")
-        sync_button.connect('clicked', lambda w: GLib.idle_add(service.sync_with_lutris))
+        sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
         actions.pack_start(sync_button, False, False, 0)
+
+    def on_sync_button_clicked(self, button, sync_method):
+        AsyncCall(sync_method, callback=self.on_service_synced)
+
+    def on_service_synced(self, caller, data):
+        NoticeDialog("Games synced", parent=self.get_toplevel())
 
     def on_switch_changed(self, switch, data):
         state = switch.get_active()
