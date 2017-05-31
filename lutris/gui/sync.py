@@ -1,6 +1,6 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import NoticeDialog
@@ -45,7 +45,11 @@ class ServiceSyncRow(Gtk.HBox):
         AsyncCall(sync_method, callback=self.on_service_synced)
 
     def on_service_synced(self, caller, data):
-        NoticeDialog("Games synced", parent=self.get_toplevel())
+        parent = self.get_toplevel()
+        if not isinstance(parent, Gtk.Window):
+            # The sync dialog may have closed
+            parent = Gio.Application.get_default().props.active_window
+        NoticeDialog("Games synced", parent=parent)
 
     def on_switch_changed(self, switch, data):
         state = switch.get_active()
