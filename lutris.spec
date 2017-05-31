@@ -3,6 +3,8 @@
 %{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
+%global appid net.lutris.Lutris
+
 Name:           lutris
 Version:        0.4.12
 Release:        2%{?dist}
@@ -66,12 +68,12 @@ on Linux.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{name} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Network FileTransfer
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{name}.desktop
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %endif
 
 %if 0%{?suse_version} >= 1140
@@ -90,15 +92,13 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %files
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
-%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
+%{_datadir}/appdata/%{appid}.appdata.xml
+%{_datadir}/applications/%{appid}.desktop
+%{_datadir}/icons/hicolor/scalable/apps/%{appid}.svg
+%{_datadir}/icons/hicolor/48x48/apps/%{appid}.png
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
-
-%dir
-%{_datadir}/appdata/
 
 %changelog
 * Tue Nov 29 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.3
