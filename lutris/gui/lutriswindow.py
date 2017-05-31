@@ -43,12 +43,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     __gtype_name__ = 'LutrisWindow'
 
     main_box = GtkTemplate.Child()
-    view_header_box = GtkTemplate.Child()
     splash_box = GtkTemplate.Child()
     connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
-    sidebar_viewport = GtkTemplate.Child()
+    sidebar_listbox = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
@@ -110,9 +109,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self._init_actions()
         self._bind_zoom_adjustment()
 
-        self.main_box.bind_property('visible', self.view_header_box, 'visible',
-                                    GObject.BindingFlags.SYNC_CREATE)
-
         # Set theme to dark if set in the settings
         self.set_dark_theme(self.use_dark_theme)
 
@@ -144,10 +140,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.contextual_menu = self.menu
 
         # Sidebar
-        self.sidebar_listbox = SidebarListBox()
-        self.sidebar_listbox.connect('selected-rows-changed', self.on_sidebar_changed)
-        self.sidebar_viewport.add(self.sidebar_listbox)
-
         self.game_store.fill_store(self.game_list)
         self.switch_splash_screen()
 

@@ -62,8 +62,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox" id="view_header_box">
-            <property name="visible">1</property>
+          <object class="GtkBox">
+            <property name="visible" bind-source="main_box" bind-property="visible" bind-flags="sync-create"/>
             <property name="spacing">6</property>
             <child>
               <object class="GtkToggleButton" id="search_toggle">
@@ -210,9 +210,16 @@
                     <property name="can_focus">True</property>
                     <property name="hscrollbar-policy">never</property>
                     <child>
-                      <object class="GtkViewport" id="sidebar_viewport">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                      <object class="GtkViewport">
+                        <property name="visible">1</property>
+                        <property name="can_focus">1</property>
+                        <child>
+                          <object class="LutrisSidebar" id="sidebar_listbox">
+                            <property name="visible">1</property>
+                            <property name="can_focus">1</property>
+                            <signal name="selected-rows-changed" handler="on_sidebar_changed"/>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
