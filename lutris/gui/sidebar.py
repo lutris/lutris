@@ -50,6 +50,8 @@ class SidebarHeader(Gtk.Box):
 
 
 class SidebarListBox(Gtk.ListBox):
+    __gtype_name__ = 'LutrisSidebar'
+
     def __init__(self):
         super().__init__()
         self.get_style_context().add_class('sidebar')
