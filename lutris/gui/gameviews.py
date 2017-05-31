@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import functools
 
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -124,9 +125,19 @@ class GameStore(GObject.Object):
             ))
         self.add_game(game)
 
+    def _on_pixbuf_for_id(self, id_, pixbuf):
+        for row in self.store:
+            if row[COL_ID] == id_:
+                row[COL_ICON] = pixbuf
+                self.emit('icons-changed', self.icon_type)  # Obsolete, only for GridView
+                break
+        else:
+            logger.debug('Got pixbuf for unknown id {}'.format(id_))
+
     def add_game(self, game):
-        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
-                                     game['installed'])
+        get_pixbuf_for_game(game['slug'], self.icon_type,
+                            functools.partial(self._on_pixbuf_for_id, game['id']),
+                            game['installed'])
         name = game['name'].replace('&', "&amp;")
         runner = None
         platform = ''
@@ -152,7 +163,7 @@ class GameStore(GObject.Object):
             game['id'],
             game['slug'],
             name,
-            pixbuf,
+            None,
             str(game['year'] or ''),
             runner_name,
             runner_human_name,
@@ -165,10 +176,11 @@ class GameStore(GObject.Object):
         if icon_type != self.icon_type:
             self.icon_type = icon_type
             for row in self.store:
-                row[COL_ICON] = get_pixbuf_for_game(
-                    row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
+                get_pixbuf_for_game(
+                    row[COL_SLUG], icon_type,
+                    functools.partial(self._on_pixbuf_for_id, row[COL_ID]),
+                    is_installed=row[COL_INSTALLED]
                 )
-            self.emit('icons-changed', icon_type)  # Obsolete, only for GridView
 
 
 class GameView(object):
@@ -252,19 +264,26 @@ class GameView(object):
             row[COL_YEAR] = str(game['year'])
             self.update_image(game['id'], row[COL_INSTALLED])
 
+    def _on_update_image(self, id_, pixbuf):
+        row = self.get_row_by_id(id_)
+        if row:
+            row[COL_ICON] = pixbuf
+        else:
+            logger.debug('Got pixbuf for unknown id {}'.format(id_))
+
+        if type(self) is GameGridView:
+            GLib.idle_add(self.queue_draw)
+
     def update_image(self, game_id, is_installed=False):
         """Update game icon."""
         row = self.get_row_by_id(game_id)
         if row:
             game_slug = row[COL_SLUG]
-            # get_pixbuf_for_game.cache_clear()
-            game_pixbuf = get_pixbuf_for_game(game_slug,
-                                              self.game_store.icon_type,
-                                              is_installed)
-            row[COL_ICON] = game_pixbuf
             row[COL_INSTALLED] = is_installed
-            if type(self) is GameGridView:
-                GLib.idle_add(self.queue_draw)
+            get_pixbuf_for_game(game_slug,
+                                self.game_store.icon_type,
+                                functools.partial(self._on_update_image, row[COL_ID]),
+                                is_installed)
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -526,4 +545,4 @@ class ContextualMenu(Gtk.Menu):
             menuitem.set_visible(visible)
 
         super().popup(None, None, None, None,
-                                          event.button, event.time)
+                      event.button, event.time)

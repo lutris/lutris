@@ -1,5 +1,6 @@
 import os
-from gi.repository import GdkPixbuf, GLib, Gtk
+import threading
+from gi.repository import GdkPixbuf, GLib, Gtk, Gio
 
 from lutris.util.log import logger
 from lutris.util import datapath
@@ -24,19 +25,24 @@ IMAGE_SIZES = {
 }
 
 
-def get_pixbuf(image, size, fallback=None):
+def get_pixbuf(image, size, callback, fallback=None):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
-    x, y = size
-    if not os.path.exists(image):
-        image = fallback
-    try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, x, y)
-    except GLib.GError:
-        if fallback:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, x, y)
-        else:
-            raise
-    return pixbuf
+
+    def read_file(image):
+        x, y = size
+        if not os.path.exists(image):
+            image = fallback
+        try:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, x, y)
+        except GLib.GError:
+            if fallback:
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, x, y)
+            else:
+                raise
+        GLib.idle_add(callback, pixbuf)
+
+    thread = threading.Thread(target=read_file, args=(image,))
+    thread.start()
 
 
 def get_runner_icon(runner_name, format='image', size=None):
@@ -49,6 +55,7 @@ def get_runner_icon(runner_name, format='image', size=None):
         icon = Gtk.Image()
         icon.set_from_file(icon_path)
     elif format == 'pixbuf' and size:
+        return None  # FIXME
         icon = get_pixbuf(icon_path, size)
     else:
         raise ValueError("Invalid arguments")
@@ -66,7 +73,7 @@ def get_overlay(size):
     return transparent_pixbuf
 
 
-def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
+def get_pixbuf_for_game(game_slug, icon_type, callback, is_installed=True):
     if icon_type in ("banner", "banner_small"):
         default_icon_path = DEFAULT_BANNER
         icon_path = datapath.get_banner_path(game_slug)
@@ -79,12 +86,12 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
 
     size = IMAGE_SIZES[icon_type]
 
-    pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
-    if not is_installed:
+    def on_not_installed_pixbuf(pixbuf):
         transparent_pixbuf = get_overlay(size).copy()
+        # TODO: Composite off main thread?
         pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
-        return transparent_pixbuf
-    return pixbuf
+        callback(transparent_pixbuf)
 
-
+    finish_callback = on_not_installed_pixbuf if not is_installed else callback
+    get_pixbuf(icon_path, size, finish_callback, fallback=default_icon_path)

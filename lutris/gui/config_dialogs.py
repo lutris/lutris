@@ -177,7 +177,7 @@ class GameDialogCommon(object):
         assert image_format in ('banner', 'icon')
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ''
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
+        # image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
         if image_format == 'banner':
             self.banner_button.set_image(image)
         else:
@@ -186,7 +186,7 @@ class GameDialogCommon(object):
     def _set_icon_image(self):
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ''
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, 'banner'))
+        # image.set_from_pixbuf(get_pixbuf_for_game(game_slug, 'banner'))
         self.banner_button.set_image(image)
 
     def _get_runner_dropdown(self):
@@ -424,7 +424,7 @@ class GameDialogCommon(object):
                 dest_path = datapath.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = 'png'
-            pixbuf = get_pixbuf(image_path, size)
+            pixbuf = None  # get_pixbuf(image_path, size)
             pixbuf.savev(dest_path, file_format, [], [])
             self._set_image(image_type)
 
