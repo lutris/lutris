@@ -1,7 +1,7 @@
 from lutris import pga
 from lutris.util.log import logger
 from gi.repository import Gtk, Gdk, GObject, GLib
-from lutris.gui.widgets import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.game import Game
 
 try:
@@ -44,11 +44,14 @@ class GameItem(Gtk.VBox):
         eventbox.add(self.image)
         return eventbox
 
-    def set_image_pixbuf(self):
-        pixbuf = get_pixbuf_for_game(self.slug,
-                                     self.icon_type,
-                                     self.installed)
+    def _on_got_image(self, pixbuf):
         self.image.set_from_pixbuf(pixbuf)
+
+    def set_image_pixbuf(self):
+        get_pixbuf_for_game(self.slug,
+                            self.icon_type,
+                            self._on_got_image,
+                            self.installed)
 
     def get_label(self):
         self.label = Gtk.Label(self.name)
