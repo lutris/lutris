@@ -31,6 +31,7 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
+from lutris.gui import flowbox
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
@@ -224,7 +225,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def current_view_type(self):
-        return 'grid' if isinstance(self.view, GameGridView) else 'list'
+        return 'grid' \
+            if self.view.__class__.__name__ == "GameFlowBox" \
+            else 'list'
 
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
@@ -268,8 +271,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def get_view(self, view_type):
-        if view_type == 'grid':
-            return GameGridView(self.game_store)
+        if view_type == 'grid' and flowbox.FLOWBOX_SUPPORTED:
+            return flowbox.GameFlowBox(self.game_list,
+                                       icon_type=self.icon_type,
+                                       filter_installed=self.filter_installed)
         else:
             return GameListView(self.game_store)
 
@@ -305,6 +310,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @staticmethod
     def get_view_type():
+        if not flowbox.FLOWBOX_SUPPORTED:
+            return 'list'
         view_type = settings.read_setting('view_type')
         if view_type in ['grid', 'list']:
             return view_type
@@ -525,8 +532,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting(
             'filter_installed', setting_value
         )
-        self.game_store.filter_installed = filter_installed
-        self.invalidate_game_filter()
+
+        if self.current_view_type == 'grid':
+            self.view.filter_installed = filter_installed
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_installed = filter_installed
+            self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def on_pga_menuitem_activate(self, *args):
@@ -534,8 +546,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
-        self.game_store.filter_text = widget.get_text()
-        self.invalidate_game_filter()
+        if self.current_view_type == 'grid':
+            self.view.filter_text = widget.get_text()
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_text = widget.get_text()
+            self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def _on_search_toggle(self, button):
@@ -599,7 +615,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
-        if isinstance(self.view, GameGridView):
+        if type(self.view) is GameGridView:
             is_double_click = time.time() - self.game_selection_time < 0.4
             is_same_game = self.view.selected_game == self.last_selected_game
             if is_double_click and is_same_game:
@@ -784,6 +800,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_selected_filter(self, runner, platform):
         self.selected_runner = runner
         self.selected_platform = platform
-        self.game_store.filter_runner = self.selected_runner
-        self.game_store.filter_platform = self.selected_platform
-        self.invalidate_game_filter()
+
+        if self.current_view_type == 'grid':
+            self.view.filter_runner = self.selected_runner
+            self.view.filter_platform = self.selected_platform
+            self.view.invalidate_filter()
+        else:
+            self.game_store.filter_runner = self.selected_runner
+            self.game_store.filter_platform = self.selected_platform
+            self.invalidate_game_filter()
