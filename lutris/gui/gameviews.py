@@ -129,7 +129,6 @@ class GameStore(GObject.Object):
         for row in self.store:
             if row[COL_ID] == id_:
                 row[COL_ICON] = pixbuf
-                self.emit('icons-changed', self.icon_type)  # Obsolete, only for GridView
                 break
         else:
             logger.debug('Got pixbuf for unknown id {}'.format(id_))
@@ -270,9 +269,6 @@ class GameView(object):
             row[COL_ICON] = pixbuf
         else:
             logger.debug('Got pixbuf for unknown id {}'.format(id_))
-
-        if type(self) is GameGridView:
-            GLib.idle_add(self.queue_draw)
 
     def update_image(self, game_id, is_installed=False):
         """Update game icon."""

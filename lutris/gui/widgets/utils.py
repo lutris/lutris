@@ -25,7 +25,7 @@ IMAGE_SIZES = {
 }
 
 
-def get_pixbuf(image, size, callback, fallback=None):
+def get_pixbuf(image, size, callback, fallback=None, transparent=False):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
 
     def read_file(image):
@@ -39,7 +39,12 @@ def get_pixbuf(image, size, callback, fallback=None):
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, x, y)
             else:
                 raise
-        GLib.idle_add(callback, pixbuf)
+        if transparent:
+            transparent_pixbuf = get_overlay(size).copy()
+            pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
+                             0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
+            pixbuf = transparent_pixbuf
+        GLib.idle_add(callback, pixbuf, priority=GLib.PRIORITY_LOW)
 
     thread = threading.Thread(target=read_file, args=(image,))
     thread.start()
@@ -85,13 +90,4 @@ def get_pixbuf_for_game(game_slug, icon_type, callback, is_installed=True):
         return
 
     size = IMAGE_SIZES[icon_type]
-
-    def on_not_installed_pixbuf(pixbuf):
-        transparent_pixbuf = get_overlay(size).copy()
-        # TODO: Composite off main thread?
-        pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
-                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
-        callback(transparent_pixbuf)
-
-    finish_callback = on_not_installed_pixbuf if not is_installed else callback
-    get_pixbuf(icon_path, size, finish_callback, fallback=default_icon_path)
+    get_pixbuf(icon_path, size, callback, fallback=default_icon_path, transparent=is_installed)
