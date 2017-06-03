@@ -82,7 +82,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkMenuButton" id="view_menu_btn">
+              <object class="GtkMenuButton">
                 <property name="visible">1</property>
                 <property name="can_focus">1</property>
                 <property name="receives_default">1</property>
@@ -115,7 +115,7 @@
             <property name="spacing">10</property>
             <property name="valign">center</property>
             <child>
-              <object class="GtkLabel" id="title_label">
+              <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Welcome to Lutris</property>
@@ -130,7 +130,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label1">
+              <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">There are no games currently installed, you can start adding some by:</property>
@@ -143,7 +143,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLinkButton" id="website_link">
+              <object class="GtkLinkButton">
                 <property name="label" translatable="yes">Browsing Lutris.net for games to install</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -176,7 +176,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLinkButton" id="add_game_link">
+              <object class="GtkLinkButton">
                 <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
