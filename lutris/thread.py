@@ -87,8 +87,6 @@ class LutrisThread(threading.Thread):
         """Run the thread."""
         logger.debug("Command env: " + self.env_string)
         logger.debug("Running command: " + self.command_string)
-        if self.watch:
-            GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
 
         # Store provided environment variables so they can be used by future
         # processes.
@@ -114,7 +112,9 @@ class LutrisThread(threading.Thread):
         if not self.game_process:
             return
 
-        self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
+        if self.watch:
+            GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
+            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
 
     def on_stdout_output(self, fd, condition):
         if not self.is_running:
