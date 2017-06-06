@@ -125,6 +125,7 @@ class GogService:
         return self.make_api_request(url)
 
     def get_game_details(self, product_id):
+        logger.info("Getting game details for %s", product_id)
         url = '{}/products/{}?expand=downloads'.format(
             self.api_url,
             product_id
@@ -132,6 +133,7 @@ class GogService:
         return self.make_api_request(url)
 
     def get_download_info(self, downlink):
+        logger.info("Getting download info for %s", downlink)
         return self.make_api_request(downlink)
 
 
