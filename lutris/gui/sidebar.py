@@ -64,7 +64,7 @@ class SidebarRow(Gtk.ListBoxRow):
         RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
 
     def do_state_flags_changed(self, previous_flags):
-        if self.id is not None:
+        if self.id is not None and self.type == 'runner':
             flags = self.get_state_flags()
             if flags & Gtk.StateFlags.PRELIGHT or flags & Gtk.StateFlags.SELECTED:
                 if self.btn_box is None:
