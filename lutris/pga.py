@@ -2,6 +2,7 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+from itertools import chain
 
 from lutris.util.strings import slugify
 from lutris.util.log import logger
@@ -150,27 +151,62 @@ def get_game_ids():
     return [game['id'] for game in games]
 
 
-def get_steam_games():
-    """Return the games with a SteamID"""
-    query = "select * from games where steamid is not null and steamid != ''"
-    return sql.db_query(PGA_DB, query)
+def get_games_where(**conditions):
+    """
+        Query games table based on conditions
+
+        Args:
+            conditions (dict): named arguments with each field matches its desired value.
+            Special values for field names can be used:
+                <field>__isnull will return rows where `field` is NULL if the value is True
+                <field>__not will invert the condition using `!=` instead of `=`
+                <field>__in will match rows for every value of `value`, which should be an iterable
+
+        Returns:
+            list: Rows matching the query
+
+    """
+    query = "select * from games"
+    condition_fields = []
+    condition_values = []
+    for field, value in conditions.items():
+        field, *extra_conditions = field.split('__')
+        if extra_conditions:
+            extra_condition = extra_conditions[0]
+            if extra_condition == 'isnull':
+                condition_fields.append('{} is {} null'.format(field, '' if value else 'not'))
+            if extra_condition == 'not':
+                condition_fields.append("{} != ?".format(field))
+                condition_values.append(value)
+            if extra_condition == 'in':
+                if not hasattr(value, '__iter__'):
+                    raise ValueError("Value should be an iterable (%s given)" % value)
+                if value:
+                    condition = "{}" + " in ({})".format(
+                        ', '.join('?' * len(value))
+                    )
+                    condition_fields.append(condition)
+                    condition_values = list(chain(condition_values, value))
+        else:
+            condition_fields.append("{} = ?".format(field))
+            condition_values.append(value)
+    condition = " AND ".join(condition_fields)
+    if condition:
+        query = " WHERE ".join((query, condition))
+    else:
+        # FIXME: Inspect and document why we should return an empty list when
+        # no condition is present.
+        return []
+    return sql.db_query(PGA_DB, query, tuple(condition_values))
 
 
-def get_desktop_games():
-    query = "select * from games where runner = 'linux' and installer_slug = 'desktopapp'"
-    return sql.db_query(PGA_DB, query)
-
-
-def get_game_by_field(value, field='slug', all=False):
+def get_game_by_field(value, field='slug'):
     """Query a game based on a database field"""
     if field not in ('slug', 'installer_slug', 'id', 'configpath', 'steamid'):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(PGA_DB, "games", condition=(field, value))
     if game_result:
-        if all:
-            return game_result
-        else:
-            return game_result[0]
+        return game_result[0]
     return {}
 
 
@@ -179,22 +215,20 @@ def add_game(name, **game_data):
     game_data['name'] = name
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
-    inserted_id = sql.db_insert(PGA_DB, "games", game_data)
-    return inserted_id
+    return sql.db_insert(PGA_DB, "games", game_data)
 
 
 def add_games_bulk(games):
-    """Add a list of games to the PGA database.
-
-    The dicts must have an identical set of keys.
-
-    :type games: list of dicts
     """
-    inserted_ids = []
-    for game in games:
-        inserted_id = sql.db_insert(PGA_DB, "games", game)
-        inserted_ids.append(inserted_id)
-    return inserted_ids
+        Add a list of games to the PGA database.
+        The dicts must have an identical set of keys.
+
+        Args:
+            games (list): list of games in dict format
+        Returns:
+            list: List of inserted game ids
+    """
+    return [sql.db_insert(PGA_DB, "games", game) for game in games]
 
 
 def add_or_update(**params):

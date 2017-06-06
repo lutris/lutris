@@ -1,7 +1,9 @@
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gio
 from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
+from lutris.util.jobs import AsyncCall
 
 
 class ServiceSyncRow(Gtk.Box):
@@ -47,6 +49,16 @@ class ServiceSyncRow(Gtk.Box):
                 sync_button.set_tooltip_text("Connect to %s" % name)
                 sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect, dialog))
                 actions.pack_start(sync_button, False, False, 0)
+
+    def on_sync_button_clicked(self, button, sync_method):
+        AsyncCall(sync_method, callback=self.on_service_synced)
+
+    def on_service_synced(self, caller, data):
+        parent = self.get_toplevel()
+        if not isinstance(parent, Gtk.Window):
+            # The sync dialog may have closed
+            parent = Gio.Application.get_default().props.active_window
+        NoticeDialog("Games synced", parent=parent)
 
     def on_switch_changed(self, switch, data):
         state = switch.get_active()

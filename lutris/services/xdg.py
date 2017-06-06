@@ -20,6 +20,7 @@ from lutris.settings import CACHE_DIR
 
 
 NAME = "Desktop games"
+INSTALLER_SLUG = 'desktopapp'
 
 IGNORED_GAMES = (
     "lutris", "mame", "dosbox", "playonlinux", "org.gnome.Games", "retroarch",
@@ -68,61 +69,44 @@ def mark_as_installed(appid, runner_name, game_info):
 
 
 def mark_as_uninstalled(game_info):
-    assert 'id' in game_info
-    assert 'name' in game_info
-    logger.info('Setting %s as uninstalled' % game_info['name'])
-    game_id = pga.add_or_update(
+    logger.info('Uninstalling %s' % game_info['name'])
+    return pga.add_or_update(
         id=game_info['id'],
-        runner='',
         installed=0
     )
-    return game_id
 
 
 def sync_with_lutris():
-    apps = get_games()
-    desktop_games_in_lutris = pga.get_desktop_games()
-    slugs_in_lutris = set([str(game['slug']) for game in desktop_games_in_lutris])
+    desktop_games = {
+        game['slug']: game
+        for game in pga.get_games_where(runner='linux',
+                                        installer_slug=INSTALLER_SLUG,
+                                        installed=1)
+    }
+    seen = set()
 
-    seen_slugs = set()
-    for app in apps:
-        game_info = None
-        name = app[0]
-        appid = app[1]
-        slug = slugify(name)
-
-        # if it fails to get slug from the name
-        if not slug:
-            slug = slugify(appid)
-
-        if not name or not slug or not appid:
-            logger.error("Failed to load desktop game "
-                         "\"" + str(name) + "\" "
-                         "(app: " + str(appid) + ", slug: " + slug + ")")
+    for name, appid, exe, args in get_games():
+        slug = slugify(name) or slugify(appid)
+        if not all([name, slug, appid]):
+            logger.error("Failed to load desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
             continue
         else:
-            logger.debug("Found desktop game "
-                         "\"" + str(name) + "\" "
-                         "(app: " + str(appid) + ", slug: " + slug + ")")
+            logger.info("Found desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
+        seen.add(slug)
 
-        seen_slugs.add(slug)
-
-        if slug not in slugs_in_lutris:
+        if slug not in desktop_games.keys():
             game_info = {
                 'name': name,
                 'slug': slug,
-                'config_path': slug + '-desktopapp',
-                'installer_slug': 'desktopapp',
-                'exe': app[2],
-                'args': app[3]
+                'config_path': slug + '-' + INSTALLER_SLUG,
+                'installer_slug': INSTALLER_SLUG,
+                'exe': exe,
+                'args': args
             }
             mark_as_installed(appid, 'linux', game_info)
 
-    unavailable_slugs = slugs_in_lutris.difference(seen_slugs)
-    for slug in unavailable_slugs:
-        for game in desktop_games_in_lutris:
-            if game['slug'] == slug:
-                mark_as_uninstalled(game)
+    for slug in set(desktop_games.keys()).difference(seen):
+        mark_as_uninstalled(desktop_games[slug])
 
 
 def iter_xdg_apps():

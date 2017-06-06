@@ -7,6 +7,7 @@ from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
 NAME = "ScummVM"
+INSTALLER_SLUG = 'system-scummvm'
 SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
 
 
@@ -18,6 +19,7 @@ def mark_as_installed(scummvm_id, name, path):
     game_id = pga.add_or_update(
         name=name,
         runner='scummvm',
+        installer_slug=INSTALLER_SLUG,
         slug=slug,
         installed=1,
         configpath=config_id,
@@ -35,10 +37,18 @@ def mark_as_installed(scummvm_id, name, path):
     return game_id
 
 
-def sync_with_lutris():
+def mark_as_uninstalled(game_info):
+    logger.info("Uninstalling %s", game_info['name'])
+    return pga.add_or_update(
+        id=game_info['id'],
+        installed=0
+    )
+
+
+def get_scummvm_games():
     if not os.path.exists(SCUMMVM_CONFIG_FILE):
         logger.info("No ScummVM config found")
-        return
+        return []
     config = ConfigParser()
     config.read(SCUMMVM_CONFIG_FILE)
     config_sections = config.sections()
@@ -48,4 +58,22 @@ def sync_with_lutris():
         scummvm_id = section
         name = re.split(' \(.*\)$', config[section]["description"])[0]
         path = config[section]['path']
-        mark_as_installed(scummvm_id, name, path)
+        yield (scummvm_id, name, path)
+
+
+def sync_with_lutris():
+    scummvm_games = {
+        game['slug']: game
+        for game in pga.get_games_where(runner='scummvm',
+                                        installer_slug=INSTALLER_SLUG,
+                                        installed=1)
+    }
+    seen = set()
+
+    for scummvm_id, name, path in get_scummvm_games():
+        slug = slugify(name)
+        seen.add(slug)
+        if slug not in scummvm_games.keys():
+            mark_as_installed(scummvm_id, name, path)
+    for slug in set(scummvm_games.keys()).difference(seen):
+        mark_as_uninstalled(scummvm_games[slug])

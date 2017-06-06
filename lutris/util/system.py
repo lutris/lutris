@@ -30,6 +30,7 @@ TERMINAL_CANDIDATES = [
     'st',
     'terminology',
     'termite',
+    'tilix',
     'wterm',
     'yuakuake',
 ]
