@@ -46,7 +46,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     splash_box = GtkTemplate.Child()
     connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
-    sidebar_revealer = GtkTemplate.Child()
+    sidebar_sw = GtkTemplate.Child()
     sidebar_listbox = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
@@ -143,7 +143,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.fill_store(self.game_list)
         self.switch_splash_screen()
 
-        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        self.sidebar_sw.props.visible = self.sidebar_visible
         self.update_runtime()
 
         # Connect account and/or sync
@@ -770,7 +770,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.write_setting('sidebar_visible', 'true')
         else:
             settings.write_setting('sidebar_visible', 'false')
-        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        self.sidebar_sw.props.visible = self.sidebar_visible
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()

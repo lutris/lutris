@@ -195,37 +195,32 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox" id="main_box">
+          <object class="GtkPaned" id="main_box">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkRevealer" id="sidebar_revealer">
-                <property name="visible">1</property>
-                <property name="can_focus">1</property>
-                <property name="hexpand">0</property>
-                <property name="transition-type">slide-right</property>
+              <object class="GtkScrolledWindow" id="sidebar_sw">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar-policy">never</property>
+                <property name="width-request">200</property>
                 <child>
-                  <object class="GtkScrolledWindow">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar-policy">never</property>
+                  <object class="GtkViewport">
+                    <property name="visible">1</property>
+                    <property name="can_focus">1</property>
                     <child>
-                      <object class="GtkViewport">
+                      <object class="LutrisSidebar" id="sidebar_listbox">
                         <property name="visible">1</property>
                         <property name="can_focus">1</property>
-                        <child>
-                          <object class="LutrisSidebar" id="sidebar_listbox">
-                            <property name="visible">1</property>
-                            <property name="can_focus">1</property>
-                            <property name="width-request">200</property>
-                            <signal name="selected-rows-changed" handler="on_sidebar_changed"/>
-                          </object>
-                        </child>
+                        <signal name="selected-rows-changed" handler="on_sidebar_changed"/>
                       </object>
                     </child>
                   </object>
                 </child>
               </object>
+              <packing>
+                <property name="shrink">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkBox">
