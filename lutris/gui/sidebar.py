@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners
 from lutris import platforms
@@ -19,14 +19,63 @@ class SidebarRow(Gtk.ListBoxRow):
         super().__init__()
         self.type = type_
         self.id = id_
+        self.btn_box = None
 
-        box = Gtk.Box(spacing=6, margin_start=12, margin_top=6, margin_bottom=6, margin_end=12)
+        self.box = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
         if icon:
             icon = Gtk.Image.new_from_pixbuf(icon)
-            box.add(icon)
-        label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True)
-        box.add(label)
-        self.add(box)
+            self.box.add(icon)
+        label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True,
+                          margin_top=6, margin_bottom=6,
+                          ellipsize=Pango.EllipsizeMode.END)
+        self.box.add(label)
+
+        self.add(self.box)
+
+    def _create_button_box(self):
+        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER,
+                               homogeneous=True)
+
+        # Creation is delayed because only installed runners can be imported
+        # and all visible boxes should be installed.
+        self.runner = runners.import_runner(self.id)()
+        entries = []
+        if self.runner.multiple_versions:
+            entries.append(('system-software-install-symbolic', 'Manage Versions',
+                            self.on_manage_versions))
+        if self.runner.runnable_alone:
+            entries.append(('media-playback-start-symbolic', 'Run', self.runner.run))
+        entries.append(('emblem-system-symbolic', 'Configure', self.on_configure_runner))
+        for entry in entries:
+            btn = Gtk.Button(tooltip_text=entry[1],
+                             relief=Gtk.ReliefStyle.NONE,
+                             visible=True)
+            image = Gtk.Image.new_from_icon_name(entry[0], Gtk.IconSize.MENU)
+            image.show()
+            btn.add(image)
+            btn.connect('clicked', entry[2])
+            btn.get_style_context().add_class('sidebar-button')
+            self.btn_box.add(btn)
+
+        self.box.add(self.btn_box)
+
+    def on_configure_runner(self, *args):
+        RunnerConfigDialog(self.runner, parent=self.get_toplevel())
+
+    def on_manage_versions(self, *args):
+        dlg_title = "Manage %s versions" % self.runner.name
+        RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
+
+    def do_state_flags_changed(self, previous_flags):
+        if self.id is not None and self.type == 'runner':
+            flags = self.get_state_flags()
+            if flags & Gtk.StateFlags.PRELIGHT or flags & Gtk.StateFlags.SELECTED:
+                if self.btn_box is None:
+                    self._create_button_box()
+                self.btn_box.show()
+            elif self.btn_box is not None and self.btn_box.get_visible():
+                self.btn_box.hide()
+        Gtk.ListBoxRow.do_state_flags_changed(self, previous_flags)
 
 
 class SidebarHeader(Gtk.Box):
@@ -36,7 +85,7 @@ class SidebarHeader(Gtk.Box):
         label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, use_markup=True,
                           label='<b>{}</b>'.format(name))
         label.get_style_context().add_class('dim-label')
-        box = Gtk.Box(margin_start=12, margin_top=6, margin_bottom=6)
+        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
         if name == 'Runners':
@@ -44,6 +93,7 @@ class SidebarHeader(Gtk.Box):
                                                 Gtk.IconSize.MENU)
             btn.props.action_name = 'win.manage-runners'
             btn.props.relief = Gtk.ReliefStyle.NONE
+            btn.get_style_context().add_class('sidebar-button')
             box.add(btn)
         self.add(Gtk.Separator())
         self.show_all()
@@ -102,60 +152,7 @@ class SidebarListBox(Gtk.ListBox):
         elif before.type == 'runner' and row.type == 'platform':
             row.set_header(SidebarHeader('Platforms'))
 
-    def do_button_press_event(self, event):
-        row = self.get_row_at_y(event.y)
-        if not event.triggers_context_menu() or not row:
-            return Gtk.ListBoxRow.do_button_press_event(self, event)
-
-        self.select_row(row)
-        if row.id and row.type == 'runner':
-            menu = ContextualMenu()
-            menu.popup(event, row.id, self.get_toplevel())
-        return Gdk.EVENT_STOP
-
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()
-
-
-class ContextualMenu(Gtk.Menu):
-    def __init__(self):
-        super().__init__()
-
-    def add_menuitems(self, entries):
-        for entry in entries:
-            name = entry[0]
-            label = entry[1]
-            action = Gtk.Action(name=name, label=label)
-            action.connect('activate', entry[2])
-            menuitem = action.create_menu_item()
-            menuitem.action_id = name
-            self.append(menuitem)
-
-    def popup(self, event, runner_slug, parent_window):
-        self.runner = runners.import_runner(runner_slug)()
-        self.parent_window = parent_window
-
-        # Clear existing menu
-        for item in self.get_children():
-            self.remove(item)
-
-        # Add items
-        entries = [('configure', 'Configure', self.on_configure_runner)]
-        if self.runner.multiple_versions:
-            entries.append(('versions', 'Manage versions',
-                            self.on_manage_versions))
-        if self.runner.runnable_alone:
-            entries.append(('run', 'Run', self.runner.run))
-        self.add_menuitems(entries)
-        self.show_all()
-
-        super().popup(None, None, None, None, event.button, event.time)
-
-    def on_configure_runner(self, *args):
-        RunnerConfigDialog(self.runner, parent=self.parent_window)
-
-    def on_manage_versions(self, *args):
-        dlg_title = "Manage %s versions" % self.runner.name
-        RunnerInstallDialog(dlg_title, self.parent_window, self.runner.name)

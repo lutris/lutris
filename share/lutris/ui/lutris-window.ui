@@ -217,6 +217,7 @@
                           <object class="LutrisSidebar" id="sidebar_listbox">
                             <property name="visible">1</property>
                             <property name="can_focus">1</property>
+                            <property name="width-request">250</property>
                             <signal name="selected-rows-changed" handler="on_sidebar_changed"/>
                           </object>
                         </child>
