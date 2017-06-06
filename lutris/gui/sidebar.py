@@ -21,7 +21,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.id = id_
         self.btn_box = None
 
-        self.box = Gtk.Box(spacing=6, margin_start=12, margin_end=6)
+        self.box = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
         if icon:
             icon = Gtk.Image.new_from_pixbuf(icon)
             self.box.add(icon)
@@ -82,7 +82,7 @@ class SidebarHeader(Gtk.Box):
         label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, use_markup=True,
                           label='<b>{}</b>'.format(name))
         label.get_style_context().add_class('dim-label')
-        box = Gtk.Box(margin_start=12, margin_top=6, margin_bottom=6, margin_right=6)
+        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
         if name == 'Runners':
