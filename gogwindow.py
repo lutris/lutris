@@ -1,8 +1,10 @@
 import os
 import gi
 import signal
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from lutris.util.http import Request
+from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.services.gog import GogService
 
@@ -11,6 +13,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gio
 
 ICON_CACHE = os.path.expanduser("~/.cache/lutris/gog-cache/")
+
+logger.setLevel(logging.DEBUG)
 
 
 class GogWindow(Gtk.Window):
@@ -131,7 +135,14 @@ class GogWindow(Gtk.Window):
     def on_installer_combo_changed(self, combo, installer):
         dialog = combo.get_parent().get_parent()
         dialog.destroy()
-        print(installer)
+        for game_file in installer.get('files', []):
+            downlink = game_file.get("downlink")
+            if not downlink:
+                logger.error("No download information for %s", installer)
+                continue
+
+            download_info = self.gog_service.get_download_info(downlink)
+            print(download_info)
 
 
 if __name__ == '__main__':
