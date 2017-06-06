@@ -54,6 +54,7 @@ class SidebarRow(Gtk.ListBoxRow):
             image.show()
             btn.add(image)
             btn.connect('clicked', entry[2])
+            btn.get_style_context().add_class('sidebar-button')
             self.btn_box.add(btn)
 
         self.box.add(self.btn_box)
@@ -92,6 +93,7 @@ class SidebarHeader(Gtk.Box):
                                                 Gtk.IconSize.MENU)
             btn.props.action_name = 'win.manage-runners'
             btn.props.relief = Gtk.ReliefStyle.NONE
+            btn.get_style_context().add_class('sidebar-button')
             box.add(btn)
         self.add(Gtk.Separator())
         self.show_all()
