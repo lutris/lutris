@@ -134,7 +134,12 @@ class GogService:
 
     def get_download_info(self, downlink):
         logger.info("Getting download info for %s", downlink)
-        return self.make_api_request(downlink)
+        response = self.make_api_request(downlink)
+        for field in ('checksum', 'downlink'):
+            field_url = response[field]
+            parsed = urlparse(field_url)
+            response[field + '_filename'] = os.path.basename(parsed.path)
+        return response
 
 
 def is_connected():

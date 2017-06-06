@@ -3,6 +3,7 @@ import gi
 import signal
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from lutris.gui.dialogs import DownloadDialog
 from lutris.util.http import Request
 from lutris.util.log import logger
 from lutris.util import datapath
@@ -13,6 +14,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gio
 
 ICON_CACHE = os.path.expanduser("~/.cache/lutris/gog-cache/")
+DEST_PATH = os.path.expanduser("~/GOG Files")
 
 logger.setLevel(logging.DEBUG)
 
@@ -115,13 +117,15 @@ class GogWindow(Gtk.Window):
     def on_download_clicked(self, widget, game):
         game_details = self.gog_service.get_game_details(game['id'])
         installer_liststore = Gtk.ListStore(str, str)
-        for installer in game_details['downloads']['installers']:
+        installers = game_details['downloads']['installers']
+        for index, installer in enumerate(installers):
             installer_liststore.append(
                 (installer['id'], "{} ({}, {})".format(installer['name'], installer['language_full'], installer['os']))
             )
 
         installer_combo = Gtk.ComboBox.new_with_model(installer_liststore)
-        installer_combo.connect("changed", self.on_installer_combo_changed, installer)
+        installer_combo.set_id_column(0)
+        installer_combo.connect("changed", self.on_installer_combo_changed, installers)
         renderer_text = Gtk.CellRendererText()
         installer_combo.pack_start(renderer_text, True)
         installer_combo.add_attribute(renderer_text, "text", 1)
@@ -132,9 +136,14 @@ class GogWindow(Gtk.Window):
         dialog.show_all()
         dialog.run()
 
-    def on_installer_combo_changed(self, combo, installer):
+    def on_installer_combo_changed(self, combo, installers):
+        selected_installer_id = combo.get_active_id()
+        logger.debug("Downloading installer %s", selected_installer_id)
         dialog = combo.get_parent().get_parent()
         dialog.destroy()
+        for installer in installers:
+            if installer['id'] == selected_installer_id:
+                break
         for game_file in installer.get('files', []):
             downlink = game_file.get("downlink")
             if not downlink:
@@ -142,7 +151,11 @@ class GogWindow(Gtk.Window):
                 continue
 
             download_info = self.gog_service.get_download_info(downlink)
-            print(download_info)
+            for field in ('checksum', 'downlink'):
+                url = download_info[field]
+                checksum_path = os.path.join(DEST_PATH, download_info[field + '_filename'])
+                dlg = DownloadDialog(url, checksum_path)
+                dlg.run()
 
 
 if __name__ == '__main__':
