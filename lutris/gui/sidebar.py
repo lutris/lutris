@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
+from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners
 from lutris import platforms
@@ -26,13 +26,15 @@ class SidebarRow(Gtk.ListBoxRow):
             icon = Gtk.Image.new_from_pixbuf(icon)
             self.box.add(icon)
         label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True,
-                          margin_top=6, margin_bottom=6)
+                          margin_top=6, margin_bottom=6,
+                          ellipsize=Pango.EllipsizeMode.END)
         self.box.add(label)
 
         self.add(self.box)
 
     def _create_button_box(self):
-        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER)
+        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER,
+                               homogeneous=True)
 
         # Creation is delayed because only installed runners can be imported
         # and all visible boxes should be installed.
