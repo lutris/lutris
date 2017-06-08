@@ -2,8 +2,7 @@
 
 import time
 
-from gi.repository import Gtk, Gdk, GObject, Pango, GLib
-from gi.repository.GdkPixbuf import Pixbuf
+from gi.repository import Gtk, Gdk, GObject, Pango
 
 from lutris import pga
 from lutris import runners
@@ -11,7 +10,9 @@ from lutris import settings
 from lutris.game import Game
 
 from lutris.gui.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
+from .widgets.utils import get_icon_path_for_game, get_pixbuf_for_game, get_pixbuf, \
+                           BANNER_SIZE, BANNER_SMALL_SIZE, IMAGE_SIZES
+from .gobject_thread_pool import ThreadPool
 
 from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
@@ -21,14 +22,13 @@ from lutris.util.log import logger
     COL_ID,
     COL_SLUG,
     COL_NAME,
-    COL_ICON,
     COL_YEAR,
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
     COL_LASTPLAYED,
     COL_INSTALLED,
-) = list(range(10))
+) = list(range(9))
 
 
 def sort_func(store, a_iter, b_iter, _user_data):
@@ -44,9 +44,31 @@ def sort_func(store, a_iter, b_iter, _user_data):
         return 0
 
 
+ICON_CACHE = {}
+FALLBACK_PIXBUF = None
+FALLBACK_BLACK = Gdk.RGBA(red=0.0, green=0.0, blue=0.0, alpha=1.0)
+
+
+def _get_default_icon():
+    global FALLBACK_PIXBUF
+    if FALLBACK_PIXBUF is None:
+        info = Gtk.IconTheme.get_default().lookup_icon('content-loading-symbolic', 24, 0)
+        # TODO: Get colors from current theme
+        FALLBACK_PIXBUF, was_symbolic = info.load_symbolic(FALLBACK_BLACK, FALLBACK_BLACK,
+                                                           FALLBACK_BLACK, FALLBACK_BLACK)
+    return FALLBACK_PIXBUF
+
+
+def _get_pixbuf_data(layout, cell, model, iter_):
+    try:
+        cell.props.pixbuf = ICON_CACHE[model[iter_][COL_SLUG]]
+    except KeyError:
+        cell.props.pixbuf = _get_default_icon()
+
+
 class GameStore(GObject.Object):
     __gsignals__ = {
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,))
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, ())
     }
 
     def __init__(self, games, icon_type, filter_installed):
@@ -58,8 +80,9 @@ class GameStore(GObject.Object):
         self.filter_runner = None
         self.filter_platform = None
         self.runner_names = {}
+        self.thread_pool = ThreadPool(self._get_game_pixbuf, self._on_got_pixbufs)
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, str, str, str, str, str, bool)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -69,7 +92,19 @@ class GameStore(GObject.Object):
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
 
-    def fill_store(self, games):
+    def _get_game_pixbuf(self, data):
+        """Note this is ran in a thread"""
+        paths, slug, size, is_installed = data
+        image, fallback = paths
+        return (slug, get_pixbuf(image, size, fallback, is_installed))
+
+    def _on_got_pixbufs(self, data):
+        for d in data:
+            slug, pixbuf = d
+            ICON_CACHE[slug] = pixbuf
+        self.emit('icons-changed')
+
+    def fill_store(self, games, icon_only=False):
         """Fill the model asynchronously and in steps.
 
         Each iteration on `loader` adds a batch of games to the model as a low
@@ -77,21 +112,14 @@ class GameStore(GObject.Object):
         This is an optimization to avoid having to wait for all games to be
         loaded in the model before the list is drawn on the window.
         """
-        loader = self._fill_store_generator(games)
-        GLib.idle_add(loader.__next__)
-
-    def _fill_store_generator(self, games, batch=100):
-        """Generator to fill the model in batches."""
-        n = 0
+        needed_icons = []
         for game in games:
-            self.add_game(game)
-            # Yield to GTK main loop once in a while
-            n += 1
-            if (n % batch) == 0:
-                # Returning True to GLib.idle_add makes it run the callback
-                # again. (Yeah, the GTK doc isn't clear about this feature :)
-                yield True
-        yield False
+            if not icon_only:
+                self.add_game(game, get_icon=False)
+            paths = get_icon_path_for_game(game['slug'], self.icon_type)
+            needed_icons.append((paths, game['slug'], IMAGE_SIZES[self.icon_type],
+                                 game['installed']))
+        self.thread_pool.queue_work(needed_icons)
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
@@ -124,9 +152,7 @@ class GameStore(GObject.Object):
             ))
         self.add_game(game)
 
-    def add_game(self, game):
-        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
-                                     game['installed'])
+    def add_game(self, game, get_icon=True):
         name = game['name'].replace('&', "&amp;")
         runner = None
         platform = ''
@@ -152,7 +178,6 @@ class GameStore(GObject.Object):
             game['id'],
             game['slug'],
             name,
-            pixbuf,
             str(game['year'] or ''),
             runner_name,
             runner_human_name,
@@ -160,15 +185,24 @@ class GameStore(GObject.Object):
             lastplayed,
             game['installed']
         ))
+        if get_icon is True:
+            paths = get_icon_path_for_game(game['slug'], self.icon_type)
+            self.thread_pool.queue_work((
+                (paths, game['slug'], IMAGE_SIZES[self.icon_type], game['installed'])
+            ))
 
     def set_icon_type(self, icon_type):
+        global ICON_CACHE
         if icon_type != self.icon_type:
+            ICON_CACHE = {}
+            self.thread_pool.clear_work()
             self.icon_type = icon_type
+            needed_icons = []
             for row in self.store:
-                row[COL_ICON] = get_pixbuf_for_game(
-                    row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
-                )
-            self.emit('icons-changed', icon_type)  # Obsolete, only for GridView
+                slug = row[COL_SLUG]
+                paths = get_icon_path_for_game(slug, self.icon_type)
+                needed_icons.append((paths, slug, IMAGE_SIZES[self.icon_type], row[COL_INSTALLED]))
+            self.thread_pool.queue_work(needed_icons)
 
 
 class GameView(object):
@@ -261,10 +295,9 @@ class GameView(object):
             game_pixbuf = get_pixbuf_for_game(game_slug,
                                               self.game_store.icon_type,
                                               is_installed)
-            row[COL_ICON] = game_pixbuf
+            ICON_CACHE[game_slug] = game_pixbuf
             row[COL_INSTALLED] = is_installed
-            if type(self) is GameGridView:
-                GLib.idle_add(self.queue_draw)
+            self.emit('icons-changed')
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -302,12 +335,13 @@ class GameListView(Gtk.TreeView, GameView):
         self.model = self.game_store.modelfilter.sort_new_with_model()
         super().__init__(self.model)
         self.set_rules_hint(True)
+        
+        store.connect('icons-changed', self.on_icons_changed)
 
         # Icon column
-        image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
-        column.set_reorderable(True)
-        self.append_column(column)
+        cell_width, cell_height = IMAGE_SIZES[store.icon_type]
+        image_cell = Gtk.CellRendererPixbuf(width=cell_width, height=cell_height)
+        self.insert_column_with_data_func(0, "", image_cell, _get_pixbuf_data)
 
         # Text columns
         default_text_cell = self.set_text_cell()
@@ -392,6 +426,9 @@ class GameListView(Gtk.TreeView, GameView):
             settings.write_setting(col_name.replace(' ', '') + '_column_width',
                                    col.get_fixed_width(), 'list view')
 
+    def on_icons_changed(self, store):
+        self.queue_draw()
+
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
@@ -399,14 +436,19 @@ class GameGridView(Gtk.IconView, GameView):
     def __init__(self, store):
         self.game_store = store
         self.model = self.game_store.modelfilter
-        super().__init__(model=self.model)
+        super().__init__(
+            model=self.model,
+            item_padding=1,
+            column_spacing=1,
+        )
 
-        self.set_column_spacing(1)
-        self.set_pixbuf_column(COL_ICON)
-        self.set_item_padding(1)
-        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner"
-                           else BANNER_SMALL_SIZE[0])
-        self.cell_renderer = GridViewCellRendererText(self.cell_width)
+        cell_height = IMAGE_SIZES[store.icon_type][1]
+        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0])
+        pixbuf_renderer = Gtk.CellRendererPixbuf(width=self.cell_width, height=cell_height)
+        self.pack_start(pixbuf_renderer, True)
+        self.props.cell_area.set_cell_data_func(pixbuf_renderer, _get_pixbuf_data)
+
+        self.cell_renderer = GridViewCellRendererText(min(self.cell_width, 80))
         self.pack_end(self.cell_renderer, False)
         self.add_attribute(self.cell_renderer, 'markup', COL_NAME)
 
@@ -437,11 +479,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.selected_game = self.get_selected_game()
         self.emit("game-selected")
 
-    def on_icons_changed(self, store, icon_type):
-        width = (BANNER_SIZE[0] if icon_type == "banner"
-                 else BANNER_SMALL_SIZE[0])
-        self.set_item_width(width)
-        self.cell_renderer.props.width = width
+    def on_icons_changed(self, store):
         self.queue_draw()
 
 

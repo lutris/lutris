@@ -24,7 +24,7 @@ IMAGE_SIZES = {
 }
 
 
-def get_pixbuf(image, size, fallback=None):
+def get_pixbuf(image, size, fallback=None, is_installed=True):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
     x, y = size
     if not os.path.exists(image):
@@ -36,6 +36,11 @@ def get_pixbuf(image, size, fallback=None):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, x, y)
         else:
             raise
+    if not is_installed:
+        transparent_pixbuf = get_overlay(size).copy()
+        pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
+                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
+        return transparent_pixbuf
     return pixbuf
 
 
@@ -66,7 +71,7 @@ def get_overlay(size):
     return transparent_pixbuf
 
 
-def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
+def get_icon_path_for_game(game_slug, icon_type):
     if icon_type in ("banner", "banner_small"):
         default_icon_path = DEFAULT_BANNER
         icon_path = datapath.get_banner_path(game_slug)
@@ -75,16 +80,16 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
         icon_path = datapath.get_icon_path(game_slug)
     else:
         logger.error("Invalid icon type '%s'", icon_type)
+        return None, None
+
+    return icon_path, default_icon_path
+
+
+def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
+    icon_path, default_icon_path = get_icon_path_for_game(game_slug, icon_type)
+    if default_icon_path is None:
         return
 
     size = IMAGE_SIZES[icon_type]
-
-    pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
-    if not is_installed:
-        transparent_pixbuf = get_overlay(size).copy()
-        pixbuf.composite(transparent_pixbuf, 0, 0, size[0], size[1],
-                         0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
-        return transparent_pixbuf
+    pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path, is_installed=is_installed)
     return pixbuf
-
-
