@@ -11,7 +11,7 @@ from lutris.util.log import logger
 
 
 class Request(object):
-    def __init__(self, url, timeout=5, stop_request=None,
+    def __init__(self, url, timeout=30, stop_request=None,
                  thread_queue=None, headers={}):
 
         if not url:
