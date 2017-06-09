@@ -6,7 +6,9 @@ from lutris import pga
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.widgets.utils import get_icon
+
+from pprint import pprint
 
 TYPE = 0
 SLUG = 1
@@ -116,13 +118,14 @@ class SidebarListBox(Gtk.ListBox):
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
-            icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
+            icon = get_icon(runner, format='pixbuf', size=(16, 16))
             name = runners.import_runner(runner).human_name
             self.add(SidebarRow(runner, 'runner', name, icon))
 
         self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            self.add(SidebarRow(platform, 'platform', platform, None))
+            icon = get_icon(platform, format='pixbuf', size=(16, 16), icon_type='platform')
+            self.add(SidebarRow(platform, 'platform', platform, icon))
 
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)

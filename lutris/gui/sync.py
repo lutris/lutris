@@ -1,5 +1,5 @@
 from gi.repository import Gtk, GLib, Gio
-from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.widgets.utils import get_icon
 from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
@@ -15,7 +15,7 @@ class ServiceSyncRow(Gtk.Box):
         self.identifier = service.__name__.split('.')[-1]
         name = service.NAME
 
-        icon = get_runner_icon(self.identifier)
+        icon = get_icon(self.identifier)
         self.pack_start(icon, False, False, 0)
 
         label = Gtk.Label(xalign=0)

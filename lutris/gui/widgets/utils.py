@@ -39,11 +39,19 @@ def get_pixbuf(image, size, fallback=None):
     return pixbuf
 
 
-def get_runner_icon(runner_name, format='image', size=None):
-    icon_path = os.path.join(datapath.get(), 'media/runner_icons',
-                             runner_name + '.png')
+def get_icon(icon_name, format='image', size=None, icon_type='runner'):
+    """Return an icon based on the given name, format, size and type.
+
+    Keyword arguments:
+    icon_name -- The name of the icon to retrieve
+    format -- The format of the icon, which should be either 'image' or 'pixbuf' (default 'image')
+    size -- The size for the desired image (default None)
+    icon_type -- Retrieve either a 'runner' or 'platform' icon (default 'runner')
+    """
+    filename = icon_name.lower().replace(' ', '') + '.png'
+    icon_path = os.path.join(datapath.get(), 'media/' + icon_type + '_icons', filename)
     if not os.path.exists(icon_path):
-        logger.error("Unable to find icon '%s'", icon_path)
+        # The icon doesn't exist, so return nothing.
         return
     if format == 'image':
         icon = Gtk.Image()
