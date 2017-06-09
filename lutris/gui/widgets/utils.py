@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from gi.repository import GdkPixbuf, GLib, Gtk
 
 from lutris.util.log import logger
@@ -60,6 +61,7 @@ def get_runner_icon(runner_name, format='image', size=None):
     return icon
 
 
+@lru_cache(maxsize=4)
 def get_overlay(size):
     x, y = size
     transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
