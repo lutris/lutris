@@ -62,6 +62,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_button = GtkTemplate.Child()
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
+    game_actionbar = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.runtime_updater = RuntimeUpdater()
@@ -610,6 +611,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         sensitive = True if self.view.selected_game else False
         self.actions['start-game'].props.enabled = sensitive
         self.actions['remove-game'].props.enabled = sensitive
+        self.game_actionbar.props.visible = sensitive
 
     def on_game_installed(self, view, game_id):
         if type(game_id) != int:
