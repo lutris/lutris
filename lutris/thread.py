@@ -18,9 +18,9 @@ from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util import system
 
-HEARTBEAT_DELAY = 1500  # Number of milliseconds between each heartbeat
+HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
-MAX_CYCLES_WITHOUT_CHILDREN = 5
+MAX_CYCLES_WITHOUT_CHILDREN = 20
 # List of process names that are ignored by the process monitoring
 EXCLUDED_PROCESSES = (
     'lutris', 'python', 'python3',
