@@ -8,6 +8,7 @@ import shlex
 import threading
 import subprocess
 import contextlib
+from collections import defaultdict
 
 from gi.repository import GLib
 from textwrap import dedent
@@ -226,6 +227,7 @@ class LutrisThread(threading.Thread):
         num_watched_children = 0
         terminated_children = 0
         passed_terminal_procs = False
+        processes = defaultdict(list)
         for child in self.iter_children(process):
             # Exclude terminal processes
             if self.terminal:
@@ -236,17 +238,20 @@ class LutrisThread(threading.Thread):
 
             num_children += 1
             if child.pid in self.old_pids:
-                logger.debug("Excluding %s (%s) (not opened by thread)" % (child.name, child.state))
+                processes['external'].append(str(child))
                 continue
             if child.name in EXCLUDED_PROCESSES and child.name not in self.include_processes:
-                logger.debug("Excluding %s (%s) from process monitor" % (child.name, child.state))
+                processes['excluded'].append(str(child))
                 continue
             num_watched_children += 1
-            logger.debug("{}\t{}\t{}".format(child.pid,
-                                             child.state,
-                                             child.name))
+            processes['monitored'].append(str(child))
             if child.state == 'Z':
                 terminated_children += 1
+
+        logger.debug("Processes: " + " | ".join([
+            "{}: {}".format(key, ', '.join(processes[key]))
+            for key in processes if processes[key]
+        ]))
 
         if num_watched_children > 0 and not self.monitoring_started:
             self.monitoring_started = True
