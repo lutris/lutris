@@ -1,8 +1,10 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
+import math
 import time
 from collections import namedtuple
+from itertools import chain
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
@@ -344,7 +346,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def update_gui(result, error):
             if result:
                 added_ids, updated_ids = result
-                added_games = pga.get_games_where(id__in=added_ids)
+                page_size = 999
+                added_games = chain([
+                    pga.get_games_where(id__in=added_ids[p * page_size:p * page_size + page_size])
+                    for p in range(math.ceil(len(added_ids) / page_size))
+                ])
                 self.game_list += added_games
                 self.view.populate_games(added_games)
                 self.switch_splash_screen()
