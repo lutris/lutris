@@ -347,7 +347,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             if result:
                 added_ids, updated_ids = result
                 page_size = 999
-                added_games = chain([
+                added_games = chain.from_iterable([
                     pga.get_games_where(id__in=list(added_ids)[p * page_size:p * page_size + page_size])
                     for p in range(math.ceil(len(added_ids) / page_size))
                 ])
