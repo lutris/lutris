@@ -348,7 +348,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 added_ids, updated_ids = result
                 page_size = 999
                 added_games = chain([
-                    pga.get_games_where(id__in=added_ids[p * page_size:p * page_size + page_size])
+                    pga.get_games_where(id__in=list(added_ids)[p * page_size:p * page_size + page_size])
                     for p in range(math.ceil(len(added_ids) / page_size))
                 ])
                 self.game_list += added_games
