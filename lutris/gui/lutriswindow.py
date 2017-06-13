@@ -346,6 +346,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def update_gui(result, error):
             if result:
                 added_ids, updated_ids = result
+
+                # sqlite limits the number of query parameters to 999, to
+                # bypass that limitation, divide the query in chunks
                 page_size = 999
                 added_games = chain.from_iterable([
                     pga.get_games_where(id__in=list(added_ids)[p * page_size:p * page_size + page_size])
