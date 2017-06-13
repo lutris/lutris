@@ -182,10 +182,9 @@ def get_games_where(**conditions):
                 if not hasattr(value, '__iter__'):
                     raise ValueError("Value should be an iterable (%s given)" % value)
                 if value:
-                    condition = "{}" + " in ({})".format(
-                        ', '.join('?' * len(value))
-                    )
-                    condition_fields.append(condition)
+                    condition_fields.append("{} in ({})".format(
+                        field, ', '.join('?' * len(value)) or ""
+                    ))
                     condition_values = list(chain(condition_values, value))
         else:
             condition_fields.append("{} = ?".format(field))
