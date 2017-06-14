@@ -1,3 +1,16 @@
+lutris (0.4.12) zesty; urgency=medium
+
+  * Increase process monitor delay
+  * Increase HTTP requests timeouts
+  * Disable stdout logger for unmonitored processes
+  * Display error when downloaded file doesn't resolve to a filename
+  * Add support for symlinks in tar archives
+  * Fix sqlite query error when syncing games
+  * Fix installation of local scripts
+  * Catch errors while reading Steam VDF files
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 13 Jun 2017 20:46:18 -0700
+
 lutris (0.4.11.1) zesty; urgency=medium
 
   * Fix typo in wineboot check
