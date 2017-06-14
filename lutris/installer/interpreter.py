@@ -5,6 +5,7 @@ import time
 import yaml
 import shutil
 import platform
+import json
 
 from gi.repository import GLib
 
@@ -66,6 +67,8 @@ class ScriptInterpreter(CommandsMixin):
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
+
+        self.script_pretty = json.dumps(self.script, indent=4)
 
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
