@@ -74,7 +74,7 @@ def read_config(steam_data_dir):
     try:
         config = config['InstallConfigStore']['Software']['Valve']['Steam']
     except KeyError as e:
-        logger.debug("Steam config empty: %s" % e)
+        logger.error("Steam config %s is empty: %s", config_filename, e)
         return
     else:
         return config
