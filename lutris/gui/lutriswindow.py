@@ -563,7 +563,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game_id = self._get_current_game_id()
             game = pga.get_game_by_field(game_id, 'id')
             game_slug = game.get('slug')
-        if not game_slug:
+        if not game_slug and not installer_file:
             return
         InstallerDialog(game_slug=game_slug,
                         installer_file=installer_file,
