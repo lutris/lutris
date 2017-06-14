@@ -552,11 +552,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_install_clicked(self, *args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""
-        if not game_slug:
+
+        installer_desc = game_slug if game_slug else installer_file
+        if revision:
+            installer_desc += " (%s)" % revision
+        logger.info("Installing %s" % installer_desc)
+
+        if not game_slug and not installer_file:
+            # Install the currently selected game in the UI
             game_id = self._get_current_game_id()
             game = pga.get_game_by_field(game_id, 'id')
             game_slug = game.get('slug')
-            logger.debug("Installing game %s (%s)" % (game_slug, game_id))
         if not game_slug:
             return
         InstallerDialog(game_slug=game_slug,
