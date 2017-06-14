@@ -2,11 +2,6 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
   <object class="GtkDialog" id="script_viewer">
     <property name="width_request">450</property>
     <property name="height_request">350</property>
@@ -53,18 +48,11 @@
           </packing>
         </child>
         <child>
-          <object class="GtkScrolledWindow">
+          <object class="GtkTextView" id="installer_source">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
-            <child>
-              <object class="GtkTextView" id="installer_source">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="editable">False</property>
-                <property name="monospace">True</property>
-              </object>
-            </child>
+            <property name="editable">False</property>
+            <property name="monospace">True</property>
           </object>
           <packing>
             <property name="expand">True</property>
