@@ -54,8 +54,9 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
     # Set up environment
     existing_env = os.environ.copy()
     if env:
-        existing_env.update(env)
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
+        env = {k: v for k, v in env.items() if v is not None}
+        existing_env.update(env)
 
     if not quiet:
         logger.debug("Executing %s", ' '.join(command))
