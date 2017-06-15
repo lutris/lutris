@@ -74,8 +74,8 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
                                           stdout=subprocess.PIPE,
                                           stderr=stderr_handler,
                                           env=existing_env, cwd=cwd).communicate()
-    except OSError as ex:
-        logger.error('Could not run command %s: %s', command, ex)
+    except (OSError, TypeError) as ex:
+        logger.error('Could not run command %s (env: %s): %s', command, env, ex)
         return
     finally:
         if stderr_needs_closing:
