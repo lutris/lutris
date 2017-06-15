@@ -358,3 +358,18 @@ class NoInstallerDialog(Gtk.MessageDialog):
                          "Close", self.EXIT)
         self.result = self.run()
         self.destroy()
+
+class InstallerSourceDialog(GtkBuilderDialog):
+    glade_file = "script-dialog.ui"
+    dialog_object = "script_viewer"
+
+    def __init__(self, installer_source):
+        super(InstallerSourceDialog, self).__init__()
+
+        installer_source_box = self.builder.get_object("installer_source")
+        installer_source_buffer = Gtk.TextBuffer()
+        installer_source_buffer.set_text(installer_source)
+        installer_source_box.set_buffer(installer_source_buffer)
+        close_button = self.builder.get_object("close_button")
+        close_button.connect('clicked', self.on_close)
+
