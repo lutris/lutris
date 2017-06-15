@@ -47,7 +47,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
     if not command:
         logger.error("No executable provided!")
         return
-    if os.path.isabs(command) and not path_exists(command):
+    if os.path.isabs(command[0]) and not path_exists(command[0]):
         logger.error("No executable found in %s" % command)
         return
 
