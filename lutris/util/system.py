@@ -42,10 +42,21 @@ is_64bit = sys.maxsize > 2**32
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
     """Execute a system command and return its results."""
+
+    # Check if the executable exists
+    if not command:
+        logger.error("No executable provided!")
+        return
+    if os.path.isabs(command) and not path_exists(command):
+        logger.error("No executable found in %s" % command)
+        return
+
+    # Set up environment
     existing_env = os.environ.copy()
     if env:
         existing_env.update(env)
         logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
+
     if not quiet:
         logger.debug("Executing %s", ' '.join(command))
 
