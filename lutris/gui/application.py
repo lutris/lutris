@@ -353,4 +353,5 @@ class Application(Gtk.Application):
     def do_shutdown(self):
         logger.info("Shutting down Lutris")
         Gtk.Application.do_shutdown(self)
-        self.window.destroy()
+        if self.window:
+            self.window.destroy()
