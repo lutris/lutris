@@ -8,6 +8,7 @@ from gi.repository import GLib, Gtk, Gdk, GObject
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.logwindow import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
 
@@ -404,10 +405,11 @@ class InstallerSourceDialog(Gtk.Dialog):
         self.scrolled_window.set_hexpand(True)
         self.scrolled_window.set_vexpand(True)
 
-        source_box = Gtk.TextView()
-        source_box.set_editable(False)
-        source_buffer = source_box.get_buffer()
+        source_buffer = Gtk.TextBuffer()
         source_buffer.set_text(code)
+
+        source_box = LogTextView(source_buffer)
+        source_box.disconnect_by_func(source_box.autoscroll)
 
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
@@ -420,3 +422,6 @@ class InstallerSourceDialog(Gtk.Dialog):
 
     def on_close(self, *args):
         self.destroy()
+
+    def noop(self, *args):
+        pass
