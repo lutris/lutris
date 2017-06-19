@@ -26,6 +26,9 @@ Examples:
     files:
     - file1: http://site.com/gamesetup.exe
     - file2: "N/A:Select the game's setup file"
+    - file3:
+        url: http://site.com/url-that-doesnt-resolve-to-a-proper-filename
+        filename: actual_local_filename.zip
 
 
 If the game makes use of (Windows) Steam data, the value should be
