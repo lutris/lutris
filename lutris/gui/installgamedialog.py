@@ -12,7 +12,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
@@ -89,6 +89,7 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
+        self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
@@ -530,6 +531,14 @@ class InstallerDialog(Gtk.Window):
         if self.interpreter:
             self.interpreter.revert()
         self.destroy()
+
+
+    # -------------
+    # View source
+    # -------------
+
+    def on_source_clicked(self, *args):
+        InstallerSourceDialog(self.interpreter.script_pretty, self.interpreter.game_name, self)
 
     # -------------
     # Utility stuff
