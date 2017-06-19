@@ -12,7 +12,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
@@ -28,7 +28,7 @@ class InstallerDialog(Gtk.Window):
     download_progress = None
 
     def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
-        super().__init__()
+        Gtk.Window.__init__(self)
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
@@ -46,7 +46,7 @@ class InstallerDialog(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.vbox = Gtk.VBox()
         self.add(self.vbox)
 
         # Default signals
@@ -65,11 +65,9 @@ class InstallerDialog(Gtk.Window):
         self.vbox.pack_start(self.status_label, False, False, 15)
 
         # Main widget box
-        self.widget_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            margin_right=25,
-            margin_left=25,
-        )
+        self.widget_box = Gtk.VBox()
+        self.widget_box.set_margin_right(25)
+        self.widget_box.set_margin_left(25)
         self.vbox.pack_start(self.widget_box, True, True, 15)
 
         self.location_entry = None
@@ -79,7 +77,7 @@ class InstallerDialog(Gtk.Window):
 
         # Buttons
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
-        self.action_buttons = Gtk.Box()
+        self.action_buttons = Gtk.HBox()
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
@@ -89,7 +87,6 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
-        self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
@@ -140,7 +137,6 @@ class InstallerDialog(Gtk.Window):
         self.show_all()
         self.close_button.hide()
         self.play_button.hide()
-        self.source_button.hide()
         self.install_button.hide()
         self.eject_button.hide()
 
@@ -167,7 +163,7 @@ class InstallerDialog(Gtk.Window):
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.title_label.set_markup('<b>Select which version to install</b>')
-        self.installer_choice_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.installer_choice_box = Gtk.VBox()
         self.installer_choice = 0
         radio_group = None
 
@@ -264,7 +260,6 @@ class InstallerDialog(Gtk.Window):
         self.continue_button.hide()
         self.install_button.grab_focus()
         self.install_button.show()
-        self.source_button.show()
 
     def on_target_changed(self, text_entry):
         """Set the installation target for the game."""
@@ -457,7 +452,6 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
-        self.source_button.hide()
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
@@ -534,14 +528,6 @@ class InstallerDialog(Gtk.Window):
         if self.interpreter:
             self.interpreter.revert()
         self.destroy()
-
-
-    # -------------
-    # View source
-    # -------------
-
-    def on_source_clicked(self, *args):
-        InstallerSourceDialog(self.interpreter.script_pretty, self.interpreter.game_name, self)
 
     # -------------
     # Utility stuff
