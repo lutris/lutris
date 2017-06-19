@@ -140,6 +140,7 @@ class InstallerDialog(Gtk.Window):
         self.show_all()
         self.close_button.hide()
         self.play_button.hide()
+        self.source_button.hide()
         self.install_button.hide()
         self.eject_button.hide()
 
@@ -263,6 +264,7 @@ class InstallerDialog(Gtk.Window):
         self.continue_button.hide()
         self.install_button.grab_focus()
         self.install_button.show()
+        self.source_button.show()
 
     def on_target_changed(self, text_entry):
         """Set the installation target for the game."""
@@ -455,6 +457,7 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
+        self.source_button.hide()
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
