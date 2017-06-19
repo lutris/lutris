@@ -8,6 +8,8 @@ import platform
 
 from gi.repository import GLib
 
+from json import dumps
+
 from lutris import pga
 from lutris import settings
 from lutris.game import Game
@@ -66,7 +68,9 @@ class ScriptInterpreter(CommandsMixin):
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
-
+        
+        self.script_pretty = dumps(self.script, indent=4)
+        
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
 
