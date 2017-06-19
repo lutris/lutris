@@ -422,6 +422,3 @@ class InstallerSourceDialog(Gtk.Dialog):
 
     def on_close(self, *args):
         self.destroy()
-
-    def noop(self, *args):
-        pass
