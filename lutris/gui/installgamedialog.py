@@ -12,7 +12,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
@@ -88,6 +88,7 @@ class InstallerDialog(Gtk.Window):
         self.action_buttons.add(self.cancel_button)
 
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
+        self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
         self.play_button = self.add_button("_Launch game", self.launch_game)
@@ -138,6 +139,7 @@ class InstallerDialog(Gtk.Window):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
+        self.source_button.hide()
         self.eject_button.hide()
 
         self.choose_installer()
@@ -258,6 +260,7 @@ class InstallerDialog(Gtk.Window):
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
+        self.source_button.show()
         self.install_button.grab_focus()
         self.install_button.show()
 
@@ -284,6 +287,7 @@ class InstallerDialog(Gtk.Window):
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
         button.hide()
+        self.source_button.hide()
         self.interpreter.check_runner_install()
 
     def ask_user_for_file(self, message):
@@ -452,6 +456,7 @@ class InstallerDialog(Gtk.Window):
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
+        self.source_button.hide()
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
@@ -528,6 +533,13 @@ class InstallerDialog(Gtk.Window):
         if self.interpreter:
             self.interpreter.revert()
         self.destroy()
+    
+    # -------------
+    # View Source
+    # -------------
+
+    def on_source_clicked(self, _button):
+        InstallerSourceDialog(self.interpreter.script_pretty, self.interpreter.game_name, self)
 
     # -------------
     # Utility stuff
