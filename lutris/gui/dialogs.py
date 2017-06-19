@@ -408,8 +408,7 @@ class InstallerSourceDialog(Gtk.Dialog):
         source_buffer = Gtk.TextBuffer()
         source_buffer.set_text(code)
 
-        source_box = LogTextView(source_buffer)
-        source_box.disconnect_by_func(source_box.autoscroll)
+        source_box = LogTextView(source_buffer, autoscroll=False)
 
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
