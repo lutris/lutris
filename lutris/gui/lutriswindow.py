@@ -803,5 +803,4 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.selected_platform = platform
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
-        self.game_store.modelfilter.refilter()
         self.invalidate_game_filter()
