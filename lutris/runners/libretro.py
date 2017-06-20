@@ -39,6 +39,7 @@ def get_core_choices():
         ('Yabause (Sega Saturn)', 'yabause'),
         ('VBA Next (Game Boy Advance)', 'vba_next'),
         ('VBA-M (Game Boy Advance)', 'vbam'),
+		('VICE (Commodore 64)', 'vice_x64'),
     ]
 
 
@@ -91,6 +92,7 @@ class libretro(Runner):
         'Sega Saturn',
         'Nintendo Game Boy Advance',
         'Nintendo Game Boy Advance',
+		'Commodore 64',
     )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
