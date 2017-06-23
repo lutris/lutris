@@ -24,9 +24,16 @@ class SidebarRow(Gtk.ListBoxRow):
         self.btn_box = None
 
         self.box = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
+
+        # Construct the left column icon space.
         if icon:
             icon = Gtk.Image.new_from_pixbuf(icon)
             self.box.add(icon)
+        else:
+            # Place a spacer if there is no loaded icon.
+            icon = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
+            self.box.add(icon)
+
         label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True,
                           margin_top=6, margin_bottom=6,
                           ellipsize=Pango.EllipsizeMode.END)
