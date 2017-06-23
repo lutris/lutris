@@ -8,8 +8,6 @@ from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.widgets.utils import get_icon
 
-from pprint import pprint
-
 TYPE = 0
 SLUG = 1
 ICON = 2
