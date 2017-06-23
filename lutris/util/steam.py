@@ -1,5 +1,4 @@
 import os
-import re
 import time
 
 from gi.repository import GLib, Gio
@@ -25,7 +24,11 @@ def vdf_parse(steam_config_file, config):
     """Parse a Steam config file and return the contents as a dict."""
     line = " "
     while line:
-        line = steam_config_file.readline()
+        try:
+            line = steam_config_file.readline()
+        except UnicodeDecodeError:
+            logger.error("Error while reading Steam VDF file %s. Returning %s", steam_config_file, config)
+            return config
         if not line or line.strip() == "}":
             return config
         line_elements = line.strip().split("\"")
@@ -71,7 +74,7 @@ def read_config(steam_data_dir):
     try:
         config = config['InstallConfigStore']['Software']['Valve']['Steam']
     except KeyError as e:
-        logger.debug("Steam config empty: %s" % e)
+        logger.error("Steam config %s is empty: %s", config_filename, e)
         return
     else:
         return config

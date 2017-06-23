@@ -5351,15 +5351,18 @@ w_metadata cabinet dlls \
     publisher="Microsoft" \
     year="2002" \
     media="download" \
-    file1="mdac_typ.exe" \
+    file1="MDAC_TYP.EXE" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/cabinet.dll"
 
 load_cabinet()
 {
     # https://www.microsoft.com/downloads/en/details.aspx?FamilyId=9AD000F2-CAE7-493D-B0F3-AE36C570ADE8&displaylang=en
-    w_download https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE/cabinet/$file1"
-    w_try cp "$W_TMP"/cabinet.dll "$W_SYSTEM32_DLLS"/cabinet.dll
+    # Originally at: https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe
+    # Mirror list: http://www.filewatcher.com/m/MDAC_TYP.EXE.5389224-0.html (5.14 MB MDAC_TYP.EXE)
+    w_download ftp://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
+
+    w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/${W_PACKAGE}/${file1}"
+    w_try cp "${W_TMP}/cabinet.dll" "${W_SYSTEM32_DLLS}/cabinet.dll"
 
     w_override_dlls native,builtin cabinet
 }
@@ -5376,7 +5379,9 @@ w_metadata cmd dlls \
 
 load_cmd()
 {
-    w_download https://download.microsoft.com/download/8/d/c/8dc79965-dfbc-4b25-9546-e23bc4b791c6/Q811493_W2K_SP4_X86_EN.exe b5574b3516a724c2cba0d864162a3d1d684db1cf30de8db4b0e0ea6a1f6f1480
+    # Originally at: https://download.microsoft.com/download/8/d/c/8dc79965-dfbc-4b25-9546-e23bc4b791c6/Q811493_W2K_SP4_X86_EN.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=Q811493_W2K_SP4_X86_EN.exe
+    w_download ftp://ftp.fu-berlin.de/pc/security/ms-patches/win2000/Security_Bulletins/Q811493_W2K_SP4_X86_EN.exe b5574b3516a724c2cba0d864162a3d1d684db1cf30de8db4b0e0ea6a1f6f1480
     w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_CACHE/$W_PACKAGE/$file1" -F cmd.exe
 
     w_override_dlls native,builtin cmd.exe
@@ -7913,22 +7918,22 @@ w_metadata mdac27 dlls \
     publisher="Microsoft" \
     year="2006" \
     media="download" \
-    file1="mdac_typ.exe" \
+    file1="MDAC_TYP.EXE" \
     installed_file1="$W_COMMONFILES_X86_WIN/System/ADO/msado26.tlb"
 
 load_mdac27()
 {
-    if test $W_ARCH = win64
-    then
-        w_die "Installer doesn't support 64-bit architecture."
-    fi
+    w_package_unsupported_win64
 
     # https://www.microsoft.com/downloads/en/details.aspx?FamilyId=9AD000F2-CAE7-493D-B0F3-AE36C570ADE8&displaylang=en
-    w_download https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
+    # Originally at: https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe
+    # Mirror list: http://www.filewatcher.com/m/MDAC_TYP.EXE.5389224-0.html (5.14 MB MDAC_TYP.EXE)
+    w_download ftp://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
+
     load_native_mdac
     w_set_winver nt40
-    w_try_cd "$W_CACHE"/"$W_PACKAGE"
-    w_try "$WINE" mdac_typ.exe ${W_OPT_UNATTENDED:+ /q /C:"setup $W_UNATTENDED_SLASH_QNT"}
+    w_try_cd "${W_CACHE}/${W_PACKAGE}"
+    w_try "$WINE" "${file1}" ${W_OPT_UNATTENDED:+ /q /C:"setup $W_UNATTENDED_SLASH_QNT"}
     w_unset_winver
 }
 
@@ -8243,9 +8248,11 @@ load_msscript()
 {
     # https://msdn.microsoft.com/scripting/scriptcontrol/x86/sct10en.exe
     # https://www.microsoft.com/en-us/download/details.aspx?id=1949
-    w_download https://download.microsoft.com/download/d/2/a/d2a7430c-6d5b-48e9-96c4-3c751be7bffe/sct10en.exe 9b6730c3070f252f5051e0cf6b99523b66730599d795a607efd40b7fb0e11efb
+    # Originally at: https://download.microsoft.com/download/d/2/a/d2a7430c-6d5b-48e9-96c4-3c751be7bffe/sct10en.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=sct10en.exe (make sure you get the 196.98KB version)
+    w_download ftp://beorn.sftcomp.ru/support/gpb/V7/WS/sct10en.exe 9b6730c3070f252f5051e0cf6b99523b66730599d795a607efd40b7fb0e11efb
 
-    w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msscript/sct10en.exe
+    w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/${W_PACKAGE}/${file1}"
     w_try cp -f "$W_TMP"/msscript.ocx "$W_SYSTEM32_DLLS"
     w_try_regsvr msscript.ocx
 }
@@ -9692,14 +9699,13 @@ w_metadata wmi dlls \
 
 load_wmi()
 {
-    if test $W_ARCH = win64
-    then
-        w_die "Installer doesn't support 64-bit architecture."
-    fi
+    w_package_unsupported_win64
 
     # WMI for NT4.0 need validation: https://www.microsoft.com/en-us/download/details.aspx?id=7665
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=16510
-    w_download https://download.microsoft.com/download/platformsdk/wmi9x/1.5/W9X/EN-US/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
+    # Originally at: https://download.microsoft.com/download/platformsdk/wmi9x/1.5/W9X/EN-US/wmi9x.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=wmi9x.exe
+    w_download ftp://59.124.141.94/Sharpdesk/Redist/Enu/WMI/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
 
     w_set_winver win98
     w_override_dlls native,builtin wbemprox wmiutils
@@ -9774,7 +9780,9 @@ load_wsh56vb()
 {
     # This installs VBScript 5.6 (but not JScript)
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=8495
-    w_download https://download.microsoft.com/download/IE60/Patch/Q318089/W9XNT4Me/EN-US/vbs56men.exe 792a36d629e01cb474a434761e8cd33211c19ff84f5aa52f0d41111e054ecaac
+    # Originally at: https://download.microsoft.com/download/IE60/Patch/Q318089/W9XNT4Me/EN-US/vbs56men.exe
+    # Mirror list: ftp://ftp.uni-rostock.de/pub/tools/microsoft/ServicePacks/IE/us/vbs56men.exe
+    w_download ftp://ftp.uni-rostock.de/pub/tools/microsoft/ServicePacks/IE/us/vbs56men.exe 792a36d629e01cb474a434761e8cd33211c19ff84f5aa52f0d41111e054ecaac
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_override_dlls native,builtin vbscript
@@ -11475,7 +11483,10 @@ load_mspaint()
     then
         w_call mfc42
     fi
-    w_download https://download.microsoft.com/download/0/A/4/0A40DF5C-2BAE-4C63-802A-84C33B34AC98/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
+
+    # Originally at: https://download.microsoft.com/download/0/A/4/0A40DF5C-2BAE-4C63-802A-84C33B34AC98/WindowsXP-KB978706-x86-ENU.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=WindowsXP-KB978706-x86-ENU.exe
+    w_download ftp://cbvk.cz/programy_pro_knihovny/update-pack/Windows%20XP%20x86%20ENU/Security%20Updates/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
     w_try $WINE "$W_CACHE"/mspaint/WindowsXP-KB978706-x86-ENU.exe /q /x:"$W_TMP"/WindowsXP-KB978706-x86-ENU
     w_try cp -f "$W_TMP"/WindowsXP-KB978706-x86-ENU/SP3GDR/mspaint.exe "$W_WINDIR_UNIX"/mspaint.exe
 }
@@ -11749,10 +11760,7 @@ w_metadata psdk2003 apps \
 
 load_psdk2003()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_die "Installer doesn't support 64-bit architecture."
-    fi
+    w_package_unsupported_win64
 
     w_call mfc42
 
@@ -12268,7 +12276,9 @@ w_metadata vc2010express apps \
 
 load_vc2010express()
 {
-    w_download https://download.microsoft.com/download/1/E/5/1E5F1C0A-0D5B-426A-A603-1798B951DDAE/VS2010Express1.iso a9d5dcdf55e539a06547a8ebbc63d55dc167113e09ee9e42096ab9098313039b
+    # Originally at: https://download.microsoft.com/download/1/E/5/1E5F1C0A-0D5B-426A-A603-1798B951DDAE/VS2010Express1.iso
+    # Mirror list at: http://www.filewatcher.com/_/?q=VS2010Express1.iso
+    w_download ftp://www.daba.lv/pub/Programmeeshana/VisualStudio/VS2010Express1.iso a9d5dcdf55e539a06547a8ebbc63d55dc167113e09ee9e42096ab9098313039b
 
     # Unpack ISO
     w_try_7z "$W_TMP" "$W_CACHE"/vc2010express/VS2010Express1.iso
@@ -12380,12 +12390,12 @@ w_metadata wme9 apps \
 
 load_wme9()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_die "Installer doesn't support 64-bit architecture."
-    fi
+    w_package_unsupported_win64
+
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=17792
-    w_download https://download.microsoft.com/download/8/1/f/81f9402f-efdd-439d-b2a4-089563199d47/WMEncoder.exe 19d1610d12b51c969f64703c4d3a76aae30dee526bae715381b5f3369f717d76
+    # Formerly at: https://download.microsoft.com/download/8/1/f/81f9402f-efdd-439d-b2a4-089563199d47/WMEncoder.exe
+    # Mirror list: http://www.filewatcher.com/_/?q=WMEncoder.exe
+    w_download ftp://ftp.upmost.com.tw/pub/UPMOST/CD-ISO/V30I/Extra/WMEncoder/Media%20Encoder%209/ENG/WMEncoder.exe 19d1610d12b51c969f64703c4d3a76aae30dee526bae715381b5f3369f717d76
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" WMEncoder.exe $W_UNATTENDED_SLASH_Q
@@ -12422,10 +12432,7 @@ load_wmp9()
     # Not really expected to work well yet; see
     # https://appdb.winehq.org/appview.php?versionId=1449
 
-    if [ $W_ARCH = win64 ]
-    then
-        w_die "Installer doesn't support 64-bit architecture."
-    fi
+    w_package_unsupported_win64
 
     w_call wsh57
 
@@ -12464,10 +12471,7 @@ w_metadata wmp10 dlls \
 
 load_wmp10()
 {
-    if [ $W_ARCH = win64 ]
-    then
-        w_die "Installer doesn't support 64-bit architecture. Use a 32-bit WINEPREFIX instead."
-    fi
+    w_package_unsupported_win64
 
     # FIXME: what versions of Windows are really bundled with wmp10?
     w_skip_windows wmp10 && return
@@ -15368,42 +15372,6 @@ load_hphbp_demo()
 
 #----------------------------------------------------------------
 
-w_metadata imvu games \
-    title="IMVU - Instant Messaging Virtual Universe" \
-    publisher="IMVU" \
-    year="2004" \
-    media="download" \
-    file1="InstallIMVU_465.0_st_c.exe" \
-    installed_exe1="c:/users/$LOGNAME/Application Data/IMVUClient/IMVUClient.exe"
-
-load_imvu()
-{
-    w_download http://static-akm.imvu.com/imvufiles/installers/InstallIMVU_465.0_st_c.exe 4c54b65308cc6bb832cbc3ed3b82701a23cbae5a67f07d6c1d6bdc84b6b2cbe4
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        SetWinDelay 500
-        Run, $file1
-        if ( w_opt_unattended > 0 ) {
-            WinWait,IMVU Setup, IMVU Extension
-            ControlClick Button4 ; Don't install extension
-            Sleep 500
-            ControlClick Button2 ; Finish
-            ; There's no way to tell it not to launch
-            WinWait,IMVU Login, chrome
-            Click, Left, 29, 230  ; Uncheck [run on startup]
-            Sleep 500
-            Click, Left, 416, 11  ; Click X on window decoration to close
-            Sleep 500
-            WinKill,IMVU Login, chrome ; and then close harshly, just in case?
-        }
-        winwaitclose
-    "
-}
-
-#----------------------------------------------------------------
-
 w_metadata kotor1 games \
     title="Star Wars: Knights of the Old Republic" \
     publisher="LucasArts" \
@@ -17797,42 +17765,6 @@ load_wog()
             send {Enter}
         }
         winwaitclose, World of Goo Setup
-        "
-}
-
-#----------------------------------------------------------------
-
-w_metadata zootycoon2_demo games \
-    title="Zoo Tycoon 2 demo" \
-    publisher="Microsoft" \
-    year="2004" \
-    media="download" \
-    file1="Zoo2Trial.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Microsoft Games/Zoo Tycoon 2 Trial Version/zt2demoretail.exe"
-
-load_zootycoon2_demo()
-{
-    w_download "https://download.microsoft.com/download/9/f/6/9f6a95f0-f34a-4312-9749-77b81d3de245/Zoo2Trial.exe" d50e9c8bd8fd70d920f312dbe1b520688a5c6ae1352a6cbf2cfa5fc2036d0c5d
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        ; Uses winwaitactive, because the windows appear and immediately after another window
-        ; gets in the way, then disappears after a second or so
-        SetTitleMatchMode, 2
-        run Zoo2Trial.exe
-        winwaitclose, APPMESSAGE
-        winwaitactive, Zoo Tycoon 2 Trial, AUTORUN
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            controlclick, CButtonClassName1, Zoo Tycoon 2 Trial, AUTORUN
-            winwaitclose, APPMESSAGE
-            winwaitactive, Zoo Tycoon 2 Trial, INSTALLTYPE
-            ; 1 second was not enough.
-            sleep 3000
-            controlclick, CButtonClassName1, Zoo Tycoon 2 Trial, INSTALLTYPE
-        }
-        winwaitactive, Zoo Tycoon 2 Trial, COMPLETE
-        winclose, Zoo Tycoon 2 Trial, COMPLETE
         "
 }
 

@@ -35,6 +35,8 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         opener, mode = tarfile.open, 'r:gz'
     elif path.endswith('.tar.xz') or path.endswith('.txz') or extractor == 'txz':
         opener, mode = tarfile.open, 'r:xz'
+    elif path.endswith('.tar') or extractor == 'tar':
+        opener, mode = tarfile.open, 'r:'
     elif path.endswith('.gz') or extractor == 'gzip':
         decompress_gz(path, to_directory)
         return

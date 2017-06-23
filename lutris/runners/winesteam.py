@@ -54,6 +54,7 @@ class winesteam(wine.wine):
     platforms = ['Windows']
     runnable_alone = True
     depends_on = wine.wine
+    default_arch = 'win32'
     game_options = [
         {
             'option': 'appid',
@@ -326,23 +327,29 @@ class winesteam(wine.wine):
         if steamapps_paths:
             return steamapps_paths[0]
 
-    def create_prefix(self, prefix_dir, arch='win32'):
+    def create_prefix(self, prefix_dir, arch=None):
         logger.debug("Creating default winesteam prefix")
+        if not arch:
+            arch = self.default_arch
         wine_path = self.get_executable()
 
         if not os.path.exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
 
-    def get_default_prefix(self, arch='win32'):
+    def get_default_prefix(self, arch=None):
         """Return the default prefix' path."""
+        if not arch:
+            arch = self.default_arch
         path = 'winesteam/prefix'
         if arch == 'win64':
             path += '64'
         return os.path.join(settings.RUNNER_DIR, path)
 
-    def get_or_create_default_prefix(self, arch='win32'):
+    def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
+        if not arch:
+            arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
         if not os.path.exists(prefix):
             self.create_prefix(prefix, arch=arch)

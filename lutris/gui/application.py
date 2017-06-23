@@ -267,7 +267,6 @@ class Application(Gtk.Application):
                 action = 'install'
 
         if action == 'install':
-            logger.info("Installing %s" % game_slug or installer_file)
             self.window.on_install_clicked(game_slug=game_slug,
                                            installer_file=installer_file,
                                            revision=revision)
@@ -358,4 +357,5 @@ class Application(Gtk.Application):
     def do_shutdown(self):
         logger.info("Shutting down Lutris")
         Gtk.Application.do_shutdown(self)
-        self.window.destroy()
+        if self.window:
+            self.window.destroy()

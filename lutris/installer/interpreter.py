@@ -8,6 +8,8 @@ import platform
 
 from gi.repository import GLib
 
+from json import dumps
+
 from lutris import pga
 from lutris import settings
 from lutris.game import Game
@@ -66,7 +68,9 @@ class ScriptInterpreter(CommandsMixin):
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
-
+        
+        self.script_pretty = dumps(self.script, indent=4)
+        
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
 
@@ -254,13 +258,14 @@ class ScriptInterpreter(CommandsMixin):
         else:
             file_uri = game_file[file_id]
             filename = os.path.basename(file_uri)
+        if not filename:
+            raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
             self._download_steam_data(file_uri, file_id)
             return
-        logger.debug("Fetching [%s]: %s" % (file_id, file_uri))
 
         # Check for file availability in PGA
         pga_uri = pga.check_for_file(self.game_slug, file_id)
@@ -269,6 +274,8 @@ class ScriptInterpreter(CommandsMixin):
 
         # Setup destination path
         dest_file = os.path.join(self.cache_path, filename)
+
+        logger.debug("Downloading [%s]: %s to %s", file_id, file_uri, dest_file)
 
         if file_uri.startswith("N/A"):
             # Ask the user where the file is located

@@ -181,11 +181,12 @@ def get_games_where(**conditions):
             if extra_condition == 'in':
                 if not hasattr(value, '__iter__'):
                     raise ValueError("Value should be an iterable (%s given)" % value)
+                if len(value) > 999:
+                    raise ValueError("SQLite limnited to a maximum of 999 parameters.")
                 if value:
-                    condition = "{}" + " in ({})".format(
-                        ', '.join('?' * len(value))
-                    )
-                    condition_fields.append(condition)
+                    condition_fields.append("{} in ({})".format(
+                        field, ', '.join('?' * len(value)) or ""
+                    ))
                     condition_values = list(chain(condition_values, value))
         else:
             condition_fields.append("{} = ?".format(field))

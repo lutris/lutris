@@ -36,7 +36,7 @@ class ServiceSyncRow(Gtk.Box):
 
             sync_button = Gtk.Button("Sync")
             sync_button.set_tooltip_text("Sync now")
-            sync_button.connect('clicked', lambda w: GLib.idle_add(service.sync_with_lutris))
+            sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
             actions.pack_start(sync_button, False, False, 0)
 
         if hasattr(service, "connect"):

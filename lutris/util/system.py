@@ -41,13 +41,38 @@ is_64bit = sys.maxsize > 2**32
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
-    """Execute a system command and return its results."""
-    existing_env = os.environ.copy()
-    if env:
-        existing_env.update(env)
-        logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
+    """
+        Execute a system command and return its results.
+
+        Params:
+            command (list): A list containing an executable and its parameters
+            env (dict): Dict of values to add to the current environment
+            cwd (str): Working directory
+            log_errors (bool): Pipe stderr to stdout (might cause slowdowns)
+            quiet (bool): Do not display log messages
+
+        Returns:
+            str: stdout output
+    """
+
+    # Check if the executable exists
+    if not command:
+        logger.error("No executable provided!")
+        return
+    if os.path.isabs(command[0]) and not path_exists(command[0]):
+        logger.error("No executable found in %s" % command)
+        return
+
     if not quiet:
         logger.debug("Executing %s", ' '.join(command))
+
+    # Set up environment
+    existing_env = os.environ.copy()
+    if env:
+        if not quiet:
+            logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
+        env = {k: v for k, v in env.items() if v is not None}
+        existing_env.update(env)
 
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
@@ -63,8 +88,8 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
                                           stdout=subprocess.PIPE,
                                           stderr=stderr_handler,
                                           env=existing_env, cwd=cwd).communicate()
-    except OSError as ex:
-        logger.error('Could not run command %s: %s', command, ex)
+    except (OSError, TypeError) as ex:
+        logger.error('Could not run command %s (env: %s): %s', command, env, ex)
         return
     finally:
         if stderr_needs_closing:

@@ -8,6 +8,7 @@ from gi.repository import GLib, Gtk, Gdk, GObject
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.logwindow import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
 
@@ -391,3 +392,33 @@ class WebConnectDialog(Dialog):
             if uri.startswith(self.service.redirect_uri):
                 self.service.request_token(uri)
                 self.destroy()
+
+
+class InstallerSourceDialog(Gtk.Dialog):
+    """Show install script source"""
+
+    def __init__(self, code, name, parent):
+        Gtk.Dialog.__init__(self, "Install script for {}".format(name), parent=parent)
+        self.set_size_request(500, 350)
+        self.set_border_width(0)
+
+        self.scrolled_window = Gtk.ScrolledWindow()
+        self.scrolled_window.set_hexpand(True)
+        self.scrolled_window.set_vexpand(True)
+
+        source_buffer = Gtk.TextBuffer()
+        source_buffer.set_text(code)
+
+        source_box = LogTextView(source_buffer, autoscroll=False)
+
+        self.get_content_area().add(self.scrolled_window)
+        self.scrolled_window.add(source_box)
+
+        close_button = Gtk.Button("OK")
+        close_button.connect('clicked', self.on_close)
+        self.get_content_area().add(close_button)
+
+        self.show_all()
+
+    def on_close(self, *args):
+        self.destroy()

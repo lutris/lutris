@@ -1,8 +1,10 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
+import math
 import time
 from collections import namedtuple
+from itertools import chain
 
 from gi.repository import Gtk, Gdk, GLib, Gio, GObject
 
@@ -374,7 +376,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def update_gui(result, error):
             if result:
                 added_ids, updated_ids = result
-                added_games = pga.get_games_where(id__in=added_ids)
+
+                # sqlite limits the number of query parameters to 999, to
+                # bypass that limitation, divide the query in chunks
+                page_size = 999
+                added_games = chain.from_iterable([
+                    pga.get_games_where(
+                        id__in=list(added_ids)[p * page_size:p * page_size + page_size]
+                    )
+                    for p in range(math.ceil(len(added_ids) / page_size))
+                ])
                 self.game_list += added_games
                 self.view.populate_games(added_games)
                 self.switch_splash_screen()
@@ -584,12 +595,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_install_clicked(self, *args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""
-        if not game_slug:
+
+        installer_desc = game_slug if game_slug else installer_file
+        if revision:
+            installer_desc += " (%s)" % revision
+        logger.info("Installing %s" % installer_desc)
+
+        if not game_slug and not installer_file:
+            # Install the currently selected game in the UI
             game_id = self._get_current_game_id()
             game = pga.get_game_by_field(game_id, 'id')
             game_slug = game.get('slug')
-            logger.debug("Installing game %s (%s)" % (game_slug, game_id))
-        if not game_slug:
+        if not game_slug and not installer_file:
             return
         InstallerDialog(game_slug=game_slug,
                         installer_file=installer_file,

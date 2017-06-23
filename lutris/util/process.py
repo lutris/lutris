@@ -20,6 +20,9 @@ class Process(object):
     def __repr__(self):
         return "Process {}".format(self.pid)
 
+    def __str__(self):
+        return "{} ({}:{})".format(self.name, self.pid, self.state)
+
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
         if not os.path.exists(stat_filename):
