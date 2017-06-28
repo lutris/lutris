@@ -11,6 +11,7 @@ def get_core_choices():
     # The order has to be the same!
     return [
         ('4do (3DO)', '4do'),
+        ('CrocoDS (Amstrad CPC)', 'crocods'),
         ('DesmuME (Nintendo DS)', 'desmume'),
         ('FCEUmm (Nintendo Entertainment System)', 'fceumm'),
         ('Fuse (ZX Spectrum)', 'fuse'),
@@ -66,6 +67,7 @@ class libretro(Runner):
     description = "Multi system emulator"
     platforms = (
         '3DO',
+        'Amstrad CPC',
         'Nintendo DS',
         'Nintendo NES',
         'Sinclair ZX Spectrum',
