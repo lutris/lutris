@@ -30,16 +30,18 @@ def get_core_choices():
         ('mGBA (Game Boy Advance)', 'mgba'),
         ('Mupen64Plus (Nintendo 64)', 'mupen64plus'),
         ('Nestopia (Nintendo Entertainment System)', 'nestopia'),
+        ('Neko Project 2 (NEC PC-98)', 'nekop2'),
         ('O2EM (Magnavox Odyssey²)', 'o2em'),
         ('PCSX Rearmed (Sony Playstation)', 'pcsx_rearmed'),
         ('PicoDrive (Sega Genesis)', 'picodrive'),
+        ('Portable SHARP X68000 Emulator (SHARP X68000)', 'px68k'),
         ('PPSSPP (PlayStation Portable)', 'ppsspp'),
         ('Reicast (Sega Dreamcast)', 'reicast'),
         ('Snes9x (Super Nintendo)', 'snes9x'),
         ('Yabause (Sega Saturn)', 'yabause'),
         ('VBA Next (Game Boy Advance)', 'vba_next'),
         ('VBA-M (Game Boy Advance)', 'vbam'),
-		('VICE (Commodore 64)', 'vice_x64'),
+	('VICE (Commodore 64)', 'vice_x64'),
     ]
 
 
@@ -83,16 +85,18 @@ class libretro(Runner):
         'Nintendo Game Boy Advance',
         'Nintendo N64',
         'Nintendo NES',
+        'NEC PC-98',
         'Magnavox Odyssey²',
         'Sony PlayStation',
         'Sega Genesis',
+        'Sharp X68000',
         'Sony PlayStation Portable',
         'Sega Dreamcast',
         'Nintendo SNES',
         'Sega Saturn',
         'Nintendo Game Boy Advance',
         'Nintendo Game Boy Advance',
-		'Commodore 64',
+	'Commodore 64',
     )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
