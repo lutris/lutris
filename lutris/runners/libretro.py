@@ -14,7 +14,7 @@ def get_core_choices():
         ('Citra (Nintendo 3DS)', 'citra'),
         ('CrocoDS (Amstrad CPC)', 'crocods'),
         ('DesmuME (Nintendo DS)', 'desmume'),
-        ('Dolphin (Nintendo Wii)', 'dolphin'),
+        ('Dolphin (Nintendo Wii/Gamecube)', 'dolphin'),
         ('FCEUmm (Nintendo Entertainment System)', 'fceumm'),
         ('Fuse (ZX Spectrum)', 'fuse'),
         ('Gambatte (Game Boy Color)', 'gambatte'),
