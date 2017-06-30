@@ -11,8 +11,10 @@ def get_core_choices():
     # The order has to be the same!
     return [
         ('4do (3DO)', '4do'),
+        ('Citra (Nintendo 3DS)', 'citra'),
         ('CrocoDS (Amstrad CPC)', 'crocods'),
         ('DesmuME (Nintendo DS)', 'desmume'),
+        ('Dolphin (Nintendo Wii)', 'dolphin'),
         ('FCEUmm (Nintendo Entertainment System)', 'fceumm'),
         ('Fuse (ZX Spectrum)', 'fuse'),
         ('Gambatte (Game Boy Color)', 'gambatte'),
@@ -37,6 +39,7 @@ def get_core_choices():
         ('PicoDrive (Sega Genesis)', 'picodrive'),
         ('Portable SHARP X68000 Emulator (SHARP X68000)', 'px68k'),
         ('PPSSPP (PlayStation Portable)', 'ppsspp'),
+        ('Redream (Sega Dreamcast)', 'redream'),
         ('Reicast (Sega Dreamcast)', 'reicast'),
         ('Snes9x (Super Nintendo)', 'snes9x'),
         ('Yabause (Sega Saturn)', 'yabause'),
@@ -67,8 +70,10 @@ class libretro(Runner):
     description = "Multi system emulator"
     platforms = (
         '3DO',
+        'Nintendo 3DS',
         'Amstrad CPC',
         'Nintendo DS',
+        'Nintendo Wii',
         'Nintendo NES',
         'Sinclair ZX Spectrum',
         'Nintendo Game Boy Color',
@@ -93,6 +98,7 @@ class libretro(Runner):
         'Sega Genesis',
         'Sharp X68000',
         'Sony PlayStation Portable',
+        'Sega Dreamcast',
         'Sega Dreamcast',
         'Nintendo SNES',
         'Sega Saturn',
