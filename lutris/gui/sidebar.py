@@ -6,7 +6,7 @@ from lutris import pga
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.widgets.utils import get_icon
 
 TYPE = 0
 SLUG = 1
@@ -22,9 +22,16 @@ class SidebarRow(Gtk.ListBoxRow):
         self.btn_box = None
 
         self.box = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
+
+        # Construct the left column icon space.
         if icon:
             icon = Gtk.Image.new_from_pixbuf(icon)
             self.box.add(icon)
+        else:
+            # Place a spacer if there is no loaded icon.
+            icon = Gtk.Box(spacing=6, margin_start=9, margin_end=9)
+            self.box.add(icon)
+
         label = Gtk.Label(label=name, halign=Gtk.Align.START, hexpand=True,
                           margin_top=6, margin_bottom=6,
                           ellipsize=Pango.EllipsizeMode.END)
@@ -116,13 +123,14 @@ class SidebarListBox(Gtk.ListBox):
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
-            icon = get_runner_icon(runner, format='pixbuf', size=(16, 16))
+            icon = get_icon(runner, format='pixbuf', size=(16, 16))
             name = runners.import_runner(runner).human_name
             self.add(SidebarRow(runner, 'runner', name, icon))
 
         self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            self.add(SidebarRow(platform, 'platform', platform, None))
+            icon = get_icon(platform, format='pixbuf', size=(16, 16), icon_type='platform')
+            self.add(SidebarRow(platform, 'platform', platform, icon))
 
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)

@@ -3,7 +3,7 @@ from gi.repository import Gtk, GObject, Gdk
 
 from lutris import runners
 from lutris import settings
-from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.widgets.utils import get_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
@@ -81,7 +81,7 @@ class RunnersDialog(Gtk.Dialog):
         hbox = Gtk.Box()
         hbox.show()
         # Icon
-        icon = get_runner_icon(runner_name)
+        icon = get_icon(runner_name)
         icon.show()
         icon.set_alignment(0.5, 0.1)
         hbox.pack_start(icon, False, False, 10)

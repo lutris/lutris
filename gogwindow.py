@@ -59,7 +59,7 @@ class GogWindow(Gtk.Window):
 
         for platform in game['worksOn']:
             if game['worksOn'][platform]:
-                icon_path = os.path.join(datapath.get(), 'media/platforms/{}.png'.format(platform.lower()))
+                icon_path = os.path.join(datapath.get(), 'media/platform_icons/{}.png'.format(platform.lower()))
                 icon_box.pack_start(Gtk.Image.new_from_file(icon_path), False, False, 2)
 
         install_button = Gtk.Button.new_from_icon_name("browser-download", Gtk.IconSize.BUTTON)
