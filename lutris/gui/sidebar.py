@@ -1,8 +1,10 @@
+import os
 from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners
 from lutris import platforms
 from lutris import pga
+from lutris.util import datapath
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
@@ -25,7 +27,6 @@ class SidebarRow(Gtk.ListBoxRow):
 
         # Construct the left column icon space.
         if icon:
-            icon = Gtk.Image.new_from_pixbuf(icon)
             self.box.add(icon)
         else:
             # Place a spacer if there is no loaded icon.
@@ -119,17 +120,25 @@ class SidebarListBox(Gtk.ListBox):
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
+        # TODO: This should be in a more logical location
+        icon_theme = Gtk.IconTheme.get_default()
+        local_theme_path = os.path.join(datapath.get(), 'icons')
+        if local_theme_path not in icon_theme.get_search_path():
+            icon_theme.prepend_search_path(local_theme_path)
+
         all_row = SidebarRow(None, 'runner', 'All', None)
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
-            icon = get_icon(runner, format='pixbuf', size=(16, 16))
+            icon = Gtk.Image.new_from_icon_name(runner.lower().replace(' ', '') + '-symbolic',
+                                                Gtk.IconSize.MENU)
             name = runners.import_runner(runner).human_name
             self.add(SidebarRow(runner, 'runner', name, icon))
 
         self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            icon = get_icon(platform, format='pixbuf', size=(16, 16), icon_type='platform')
+            icon = Gtk.Image.new_from_icon_name(runner.lower().replace(' ', '') + '-platform-symbolic',
+                                                Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, 'platform', platform, icon))
 
         self.set_filter_func(self._filter_func)
