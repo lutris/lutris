@@ -219,7 +219,7 @@ class LutrisThread(threading.Thread):
 
     def watch_children(self):
         """Poke at the running process(es)."""
-        if not self.game_process:
+        if not self.game_process or not self.is_running:
             logger.error('No game process available')
             return False
         process = Process(self.rootpid)
@@ -254,6 +254,7 @@ class LutrisThread(threading.Thread):
         ]))
 
         if num_watched_children > 0 and not self.monitoring_started:
+            logger.debug("Start process monitoring")
             self.monitoring_started = True
 
         if self.runner and hasattr(self.runner, 'watch_game_process'):
@@ -264,6 +265,11 @@ class LutrisThread(threading.Thread):
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
+                logger.debug("Cycles without children: %s", self.cycles_without_children)
+            else:
+                logger.debug("Warming up…")
+        else:
+            self.cycles_without_children = 0
         max_cycles_reached = (self.cycles_without_children >=
                               MAX_CYCLES_WITHOUT_CHILDREN)
         if num_children == 0 or max_cycles_reached:
