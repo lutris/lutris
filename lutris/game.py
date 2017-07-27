@@ -348,7 +348,7 @@ class Game(object):
             "--dbus", "session", "--silent"
         ] + config.split()
         logger.debug("[xboxdrv] %s", ' '.join(command))
-        self.xboxdrv_thread = LutrisThread(command)
+        self.xboxdrv_thread = LutrisThread(command, include_processes=['xboxdrv'])
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
