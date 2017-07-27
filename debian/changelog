@@ -1,3 +1,13 @@
+lutris (0.4.13) zesty; urgency=medium
+
+  * Add new libretro cores
+  * Stop process monitoring as soon as process stops
+  * Default 'reset_desktop' option to False
+  * Make calling executables more robust
+  * Fix xboxdrv not being monitored properly
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jul 2017 19:12:21 -0700
+
 lutris (0.4.12) zesty; urgency=medium
 
   * Increase process monitor delay
