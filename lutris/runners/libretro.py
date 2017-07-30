@@ -11,6 +11,8 @@ def get_core_choices():
     # The order has to be the same!
     return [
         ('4do (3DO)', '4do'),
+        ('atari800 (Atari 800/5200)', 'atari800'),
+        ('Caprice32 (Amstrad CPC)', 'cap32'),
         ('Citra (Nintendo 3DS)', 'citra'),
         ('CrocoDS (Amstrad CPC)', 'crocods'),
         ('DesmuME (Nintendo DS)', 'desmume'),
@@ -49,7 +51,11 @@ def get_core_choices():
         ('Yabause (Sega Saturn)', 'yabause'),
         ('VBA Next (Game Boy Advance)', 'vba_next'),
         ('VBA-M (Game Boy Advance)', 'vbam'),
-	('VICE (Commodore 64)', 'vice_x64'),
+        ('VICE (Commodore 128)', 'vice_x128'),
+        ('VICE (Commodore 16/Plus/4)', 'vice_xplus4'),
+        ('VICE (Commodore 64)', 'vice_x64'),
+        ('VICE (Commodore VIC-20)', 'vice_xvic'),
+    ]
     ]
 
 
@@ -74,6 +80,8 @@ class libretro(Runner):
     description = "Multi system emulator"
     platforms = (
         '3DO',
+        'Atari 800/5200',
+        'Amstrad CPC',
         'Nintendo 3DS',
         'Amstrad CPC',
         'Nintendo DS',
@@ -112,7 +120,10 @@ class libretro(Runner):
         'Sega Saturn',
         'Nintendo Game Boy Advance',
         'Nintendo Game Boy Advance',
-	'Commodore 64',
+        'Commodore 128',
+        'Commodore 16/Plus/4',
+        'Commodore 64',
+        'Commodore VIC-20',
     )
     runnable_alone = True
     runner_executable = 'retroarch/retroarch'
