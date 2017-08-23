@@ -60,6 +60,7 @@ class LutrisThread(threading.Thread):
         self.include_processes = include_processes
         self.log_buffer = log_buffer
         self.stdout_monitor = None
+        self.monitored_processes = None  # Keep a copy of the monitored processes to allow comparisons
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -212,10 +213,13 @@ class LutrisThread(threading.Thread):
         self.killall()
 
     def killall(self):
+        """Kill every remaining child process"""
+        killed_processes = []
         for process in self.iter_children(Process(self.rootpid),
                                           topdown=False):
-            logger.debug("Killing process %s", process)
+            killed_processes.append(str(process))
             process.kill()
+        logger.debug("Killed processes: %s", ', '.join(killed_processes))
 
     def watch_children(self):
         """Poke at the running process(es)."""
@@ -248,10 +252,12 @@ class LutrisThread(threading.Thread):
             if child.state == 'Z':
                 terminated_children += 1
 
-        logger.debug("Processes: " + " | ".join([
-            "{}: {}".format(key, ', '.join(processes[key]))
-            for key in processes if processes[key]
-        ]))
+        if processes != self.monitored_processes:
+            self.monitored_processes = processes
+            logger.debug("Processes: " + " | ".join([
+                "{}: {}".format(key, ', '.join(processes[key]))
+                for key in processes if processes[key]
+            ]))
 
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
@@ -266,8 +272,6 @@ class LutrisThread(threading.Thread):
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
                 logger.debug("Cycles without children: %s", self.cycles_without_children)
-            else:
-                logger.debug("Warming up…")
         else:
             self.cycles_without_children = 0
         max_cycles_reached = (self.cycles_without_children >=

@@ -287,7 +287,7 @@ def get_pids_using_file(path):
         logger.warning("fuser not available, please install psmisc")
         return set([])
     else:
-        fuser_output = execute([fuser_path, path])
+        fuser_output = execute([fuser_path, path], quiet=True)
         return set(fuser_output.split())
 
 
