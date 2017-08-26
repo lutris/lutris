@@ -10,7 +10,7 @@ from lutris import runners
 from lutris import settings
 from lutris.game import Game
 
-from lutris.gui.cellrenderers import GridViewCellRendererText
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
 
 from lutris.services import xdg
