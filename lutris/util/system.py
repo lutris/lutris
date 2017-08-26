@@ -113,7 +113,7 @@ def get_md5_hash(filename):
 
 
 def find_executable(exec_name, quiet=False):
-    if not exec_name:
+    if not exec_name and not quiet:
         raise ValueError("find_executable: exec_name required")
     return shutil.which(exec_name)
 

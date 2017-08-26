@@ -27,7 +27,7 @@ EXCLUDED_PROCESSES = (
     'lutris', 'python', 'python3',
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
     'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
-    'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
+    'SteamService.exe', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
     'control', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg',
 )
 
@@ -37,7 +37,7 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd=None, include_processes=[], log_buffer=None):
+                 watch=True, cwd=None, include_processes=[], exclude_processes=[], log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.env = env
@@ -58,6 +58,7 @@ class LutrisThread(threading.Thread):
         self.daemon = True
         self.error = None
         self.include_processes = include_processes
+        self.exclude_processes = exclude_processes
         self.log_buffer = log_buffer
         self.stdout_monitor = None
         self.monitored_processes = None  # Keep a copy of the monitored processes to allow comparisons
@@ -244,7 +245,11 @@ class LutrisThread(threading.Thread):
             if child.pid in self.old_pids:
                 processes['external'].append(str(child))
                 continue
-            if child.name in EXCLUDED_PROCESSES and child.name not in self.include_processes:
+
+            if (child.name and
+                (child.name in EXCLUDED_PROCESSES or
+                 child.name in self.exclude_processes) and
+               child.name not in self.include_processes):
                 processes['excluded'].append(str(child))
                 continue
             num_watched_children += 1
