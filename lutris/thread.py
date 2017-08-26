@@ -219,7 +219,8 @@ class LutrisThread(threading.Thread):
                                           topdown=False):
             killed_processes.append(str(process))
             process.kill()
-        logger.debug("Killed processes: %s", ', '.join(killed_processes))
+        if killed_processes:
+            logger.debug("Killed processes: %s", ', '.join(killed_processes))
 
     def watch_children(self):
         """Poke at the running process(es)."""
