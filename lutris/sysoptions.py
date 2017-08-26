@@ -144,6 +144,23 @@ system_options = [
                  "execution command.")
     },
     {
+        'option': 'include_processes',
+        'type': 'string',
+        'label': 'Include processes',
+        'advanced': True,
+        'help': ('What processes to include in process monitoring. '
+                 'This is to override the built-in exclude list. Space-separated list.')
+    },
+    {
+        'option': 'exclude_processes',
+        'type': 'string',
+        'label': 'Exclude processes',
+        'advanced': True,
+        'help': ('What processes to exclude in process monitoring. '
+                 'For example background processes that stick around '
+                 'after the game has been closed. Space-separated list.')
+    },
+    {
         'option': 'single_cpu',
         'type': 'bool',
         'label': 'Restrict to single core',
@@ -211,7 +228,7 @@ system_options = [
         'label': 'xboxdrv config',
         'advanced': True,
         'condition': system.find_executable('xboxdrv'),
-        'help': ("Command line options for xboxdrv, a driver for XBOX 360"
+        'help': ("Command line options for xboxdrv, a driver for XBOX 360 "
                  "controllers. Requires the xboxdrv package installed.")
     },
     {
@@ -219,7 +236,7 @@ system_options = [
         'type': 'string',
         'label': 'SDL2 gamepad mapping',
         'advanced': True,
-        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom"
+        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
                  "gamecontrollerdb.txt file containing mappings.")
     },
     {
@@ -240,6 +257,7 @@ system_options = [
         'option': 'xephyr_resolution',
         'type': 'string',
         'label': 'Xephyr resolution',
+        'advanced': True,
         'help': 'Screen resolution of the Xephyr server'
     },
 ]
