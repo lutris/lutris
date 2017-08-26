@@ -7,6 +7,32 @@ from gi.repository import Gtk, GObject
 from lutris.util.system import reverse_expanduser
 
 
+class SlugEntry(Gtk.Entry, Gtk.Editable):
+    def __init__(self):
+        super(SlugEntry, self).__init__()
+
+    def do_insert_text(self, new_text, length, position):
+        """Filter inserted characters to only accept alphanumeric and dashes"""
+        new_text = ''.join([c for c in new_text if c.isalnum() or c == '-']).lower()
+        if new_text:
+            self.get_buffer().insert_text(position, new_text, length)
+            return position + length
+        return position
+
+
+class NumberEntry(Gtk.Entry, Gtk.Editable):
+    def __init__(self):
+        super(NumberEntry, self).__init__()
+
+    def do_insert_text(self, new_text, length, position):
+        """Filter inserted characters to only accept numbers"""
+        new_text = ''.join([c for c in new_text if c.isnumeric()])
+        if new_text:
+            self.get_buffer().insert_text(position, new_text, length)
+            return position + length
+        return position
+
+
 class FileChooserEntry(Gtk.Box):
     def __init__(self, title='Select file', action=Gtk.FileChooserAction.OPEN,
                  default_path=None):
