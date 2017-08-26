@@ -2,6 +2,8 @@
 Writing installers
 ==================
 
+See an example installer at the end of this document.
+
 Fetching required files
 =======================
 
@@ -51,7 +53,7 @@ directly but make the installer extract it from an archive or something, you
 can reference the rom with the ``main_file`` parameter.
 Example: ``main_file: game.rom``
 
-For browser games, specify the game's URL with ``main_file``.
+For web games, specify the game's URL (or filename) with ``main_file``.
 Example: ``main_file: http://www...``
 
 Presetting game parameters
@@ -63,19 +65,50 @@ parameters depend on the runner:
 *   linux: ``args`` (optional command arguments), ``working_dir``
     (optional working directory, defaults to the exe's dir).
 
-*   wine:  ``args``, ``prefix`` (optional Wine prefix), ``working_dir`` (optional
+*   wine:  ``args``, ``arch`` (optional WINEARCH), ``prefix`` (optional Wine prefix), ``working_dir`` (optional
     working directory, defaults to the exe's dir).
 
 *   winesteam: ``args``, ``prefix`` (optional Wine prefix).
 
-Example:
+Example (Windows game):
 
 ::
 
     game:
-        exe: drive_c/Game/game.exe
-        prefix: $GAMEDIR
-        args: -arg
+      exe: drive_c/Game/game.exe
+      prefix: $GAMEDIR
+      args: -arg
+
+Runner configuration
+--------------------
+
+The runner can be preconfigured from the installer.
+The name of the directive is the slug name of the runner,
+for example ``wine``. Available parameters depend on the runner.
+The best way to set this is to add the game to Lutris, tweak the
+runner config and then copy it from ``.config/lutris/games/<game name and id>.yml``.
+
+Example for Wine (set wine version for this installer):
+
+::
+
+    wine:
+      version: overwatch-2.15-x86_64
+
+System configuration
+--------------------
+
+The ``system`` directive lets you preset the system config for the game.
+
+Example (setting some environment variables):
+
+::
+
+    system:
+      env:
+        __GL_SHADER_DISK_CACHE: '1'
+        __GL_THREADED_OPTIMIZATIONS: '1'
+        mesa_glthread: 'true'
 
 Mods and add-ons
 ----------------
@@ -207,7 +240,7 @@ reference a ``file id`` or a path, ``args`` to add command arguments,
 to set the directory to execute the command in (defaults to the install path).
 The command is executed within the Lutris Runtime (resolving most shared
 library dependencies). The file is made executable if necessary, no need to run
-chmodx before.
+chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being watched), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in exclude list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
 
 Example:
 
@@ -217,14 +250,42 @@ Example:
         args: --argh
         file: $great-id
         terminal: true
+        env:
+          key: value
+
+You can use the ``command`` parameter instead of ``file`` and ``args``. This
+lets you run bash/shell commands easier. ``bash`` is used and is added to ``include_processes`` internally.
+
+Example:
+
+::
+
+    - execute:
+        command: 'echo Hello World! | cat'
+
+Writing files
+-------------
+
+Writing text files
+~~~~~~~~~~~~~~~~~~
+
+Create or overwrite a file with the ``write_file`` directive. Use the ``file`` (an absolute path or a ``file id``) and ``content`` parameters.
+
+Example:
+
+::
+
+    - write_file:
+        file: $GAMEDIR/myfile.txt
+        content: 'This is the contents of the file.'
 
 Writing into an INI type config file
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Modify or create a config file with the ``write_config`` directive. A config file
 is a text file composed of key=value (or key: value) lines grouped under
 [sections]. Use the ``file`` (an absolute path or a ``file id``), ``section``,
-``key`` and ``value`` parameters. Not that the file is entirely rewritten and
+``key`` and ``value`` parameters. Note that the file is entirely rewritten and
 comments are left out; Make sure to compare the initial and resulting file
 to spot any potential parsing issues.
 
@@ -233,11 +294,37 @@ Example:
 ::
 
     - write_config:
-        file: $GAMEDIR/game.ini
+        file: $GAMEDIR/myfile.ini
         section: Engine
         key: Renderer
         value: OpenGL
 
+Writing into a JSON type file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Modify or create a JSON file with the ``write_json`` directive.
+Use the ``file`` (an absolute path or a ``file id``) and ``data`` parameters.
+Note that the file is entirely rewritten; Make sure to compare the initial
+and resulting file to spot any potential parsing issues. You can set the optional parameter ``merge`` to ``false`` if you want to overwrite the JSON file instead of updating it.
+
+Example:
+
+::
+
+    - write_json:
+        file: $GAMEDIR/myfile.json
+        data:
+          Sound:
+            Enabled: 'false'
+
+This writes (or updates) a file with the following content:
+::
+
+    {
+      "Sound": {
+        "Enabled": "false"
+      }
+    }
 
 Running a task provided by a runner
 -----------------------------------
@@ -269,7 +356,9 @@ Currently, the following tasks are implemented:
 *   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
-    ``working_dir`` (optional working directory).
+    ``arch`` (optional WINEARCH), ``working_dir`` (optional working directory),
+    ``exclude_processes`` (optional space-separated list of processes to exclude from
+    being watched), ``env`` (optional environment variables), ``overrides`` (optional dll overrides).
 
     Example:
 
@@ -282,7 +371,7 @@ Currently, the following tasks are implemented:
             args: --windowed
 
 *   wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
-    ``prefix`` is an optional WINEPREFIX path.
+    ``prefix`` is an optional WINEPREFIX path. You can run many tricks at once by adding more to the ``app`` parameter (space-separated).
 
     By default Winetricks will run in silent mode but that can cause issues
     with some components such as XNA. In such cases, you can provide the
@@ -379,10 +468,49 @@ Trying the installer locally
 ============================
 
 If needed (i.e. you didn't download the installer first from the website), add
-the ``runner`` and ``name`` directives. The value for ``runner`` must be the
-slug name for the runner. (E.g. winesteam for Steam Windows.)
-Save your script in a file and use the following command in a terminal:
-``lutris -i /path/to/file``
+the ``name``, ``game_slug``, ``slug`` and ``runner`` directives. The value for
+``runner`` must be the slug name for the runner. (E.g. winesteam for Steam Windows.)
+You can also add ``version``, ``description`` and ``notes`` to the installer file.
+Under ``script``, add ``files``, ``installer``, ``game`` and other installer
+directives. See below for an example.
+Save your script in a .yaml file and use the following command in a terminal:
+``lutris -i /path/to/file.yaml``
+
+Example Linux game:
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: linux
+
+    script:
+      game:
+        exe: $GAMEDIR/mygame
+        args: --some-arg
+
+      files:
+      - myfile: http://example.com/mygame.zip
+
+      installer:
+      - chmodx: $GAMEDIR/mygame
+
+When submitting the installer script to lutris.net, only copy the script part. Remove the two space indentation:
+
+::
+
+    game:
+      exe: $GAMEDIR/mygame
+      args: --some-arg
+
+    files:
+    - myfile: http://example.com
+
+    installer:
+    - chmodx: $GAMEDIR/mygame
+
 
 
 Calling the online installer

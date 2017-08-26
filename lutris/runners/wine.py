@@ -135,7 +135,8 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_wine='', blocking=False,
-             config=None, include_processes=[]):
+             config=None, include_processes=[], exclude_processes=[],
+             disable_runtime=False, env={}, overrides=None):
     """
     Execute a Wine command.
 
@@ -174,34 +175,42 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch)
 
-    env = {
+    wineenv = {
         'WINEARCH': arch
     }
     if winetricks_wine:
-        env['WINE'] = winetricks_wine
+        wineenv['WINE'] = winetricks_wine
     else:
-        env['WINE'] = wine_path
+        wineenv['WINE'] = wine_path
     if prefix:
-        env['WINEPREFIX'] = prefix
+        wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if not wine_config.system_config['disable_runtime'] and not runtime.is_disabled():
-        env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+    if (not wine_config.system_config['disable_runtime'] and
+            not runtime.is_disabled() and not disable_runtime):
+        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+
+    if overrides:
+        wineenv['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
+
+    wineenv.update(env)
 
     command = [wine_path]
     if executable:
         command.append(executable)
     command += shlex.split(args)
     if blocking:
-        return system.execute(command, env=env, cwd=working_dir)
+        return system.execute(command, env=wineenv, cwd=working_dir)
     else:
-        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir,
-                              include_processes=include_processes)
+        thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
+                              include_processes=include_processes,
+                              exclude_processes=exclude_processes)
         thread.start()
         return thread
 
 
-def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=None):
+def winetricks(app, prefix=None, arch=None, silent=True,
+               wine_path=None, config=None, disable_runtime=False):
     """Execute winetricks."""
     winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
     if arch not in ('win32', 'win64'):
@@ -214,7 +223,8 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "--unattended " + args
     return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
-                    wine_path=winetricks_path, arch=arch, args=args, config=config)
+                    wine_path=winetricks_path, arch=arch, args=args,
+                    config=config, disable_runtime=disable_runtime)
 
 
 def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
@@ -760,7 +770,7 @@ class wine(Runner):
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
 
     def run_winetricks(self, *args):
-        winetricks('', prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
+        winetricks('', prefix=self.prefix_path, wine_path=self.get_executable(), config=self, disable_runtime=True)
 
     def run_joycpl(self, *args):
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
