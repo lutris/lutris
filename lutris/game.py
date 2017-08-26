@@ -316,6 +316,9 @@ class Game(object):
             ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
         env["LD_LIBRARY_PATH"] = ld_library_path
 
+        include_processes = system_config.get('include_processes', '').split(' ')
+        exclude_processes = system_config.get('exclude_processes', '').split(' ')
+
         # /Env vars
         monitoring_disabled = system_config.get('disable_monitoring')
         process_watch = not monitoring_disabled
@@ -326,7 +329,9 @@ class Game(object):
                                         rootpid=gameplay_info.get('rootpid'),
                                         watch=process_watch,
                                         term=terminal,
-                                        log_buffer=self.log_buffer)
+                                        log_buffer=self.log_buffer,
+                                        include_processes=include_processes,
+                                        exclude_processes=exclude_processes)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
