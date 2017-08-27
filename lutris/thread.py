@@ -24,13 +24,13 @@ HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
 MAX_CYCLES_WITHOUT_CHILDREN = 20
 # List of process names that are ignored by the process monitoring
-EXCLUDED_PROCESSES = (
+EXCLUDED_PROCESSES = [
     'lutris', 'python', 'python3',
     'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
     'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
-    'SteamService.exe', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
+    'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
     'control', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg',
-)
+]
 
 
 class LutrisThread(threading.Thread):
@@ -58,8 +58,9 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
-        self.include_processes = include_processes
-        self.exclude_processes = exclude_processes
+        # process names from /proc only contain 15 characters
+        self.include_processes = [x[0:15] for x in include_processes]
+        self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
         self.monitored_processes = None  # Keep a copy of the monitored processes to allow comparisons
@@ -248,9 +249,7 @@ class LutrisThread(threading.Thread):
                 processes['external'].append(str(child))
                 continue
 
-            if (child.name and
-                (child.name in EXCLUDED_PROCESSES or
-                 child.name in self.exclude_processes) and
+            if (child.name and child.name in self.exclude_processes and
                child.name not in self.include_processes):
                 processes['excluded'].append(str(child))
                 continue
