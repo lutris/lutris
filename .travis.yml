@@ -12,6 +12,6 @@ before_install:
 install:
   - pip install --upgrade pip
   - sudo apt-get -qq update
-  - sudo apt-get install -y python3-yaml python3-gi gir1.2-gtk-3.0 psmisc gir1.2-glib-2.0 libgirepository1.0-dev
+  - sudo apt-get install -y python3-yaml python3-psutil python3-gi gir1.2-gtk-3.0 psmisc gir1.2-glib-2.0 libgirepository1.0-dev
 script: nosetests
 
