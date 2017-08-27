@@ -149,7 +149,9 @@ system_options = [
         'label': 'Include processes',
         'advanced': True,
         'help': ('What processes to include in process monitoring. '
-                 'This is to override the built-in exclude list. Space-separated list.')
+                 'This is to override the built-in exclude list.\n'
+                 'Space-separated list, processes including spaces '
+                 'can be wrapped in quotation marks.')
     },
     {
         'option': 'exclude_processes',
@@ -158,7 +160,9 @@ system_options = [
         'advanced': True,
         'help': ('What processes to exclude in process monitoring. '
                  'For example background processes that stick around '
-                 'after the game has been closed. Space-separated list.')
+                 'after the game has been closed.\n'
+                 'Space-separated list, processes including spaces '
+                 'can be wrapped in quotation marks.')
     },
     {
         'option': 'single_cpu',

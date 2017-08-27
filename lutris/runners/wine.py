@@ -881,7 +881,7 @@ class wine(Runner):
 
     def play(self):
         game_exe = self.game_exe
-        arguments = self.game_config.get('args') or ''
+        arguments = self.game_config.get('args', '')
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
