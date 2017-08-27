@@ -8,7 +8,8 @@ Lutris should work on any Gnome system, the following depencies should be
 installed:
 
     * python > 3.4
-    * python-yaml
+    * python3-yaml
+    * python3-psutil
     * PyGobject
     * libsoup-gnome
 
