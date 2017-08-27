@@ -4,6 +4,7 @@ import os
 import time
 import shlex
 import subprocess
+import psutil
 
 from lutris import settings
 from lutris.gui.dialogs import DownloadDialog
@@ -37,7 +38,7 @@ def is_running():
     if pid:
         # If process is defunct, don't consider it as running
         process = Process(pid)
-        return process.state != 'Z'
+        return process.state != psutil.STATUS_ZOMBIE
     else:
         return False
 

@@ -6,6 +6,7 @@ import string
 import subprocess
 import sys
 import traceback
+import psutil
 
 from lutris.util.log import logger
 
@@ -137,7 +138,7 @@ def get_pid(program, multiple=False):
 
 def get_all_pids():
     """Return all pids of currently running processes"""
-    return [int(pid) for pid in os.listdir('/proc') if pid.isdigit()]
+    return psutil.pids()
 
 
 def kill_pid(pid):
@@ -146,18 +147,15 @@ def kill_pid(pid):
     except ValueError:
         logger.error("Invalid pid %s")
         return
-    execute(['kill', '-9', pid])
+    psutil.Process(pid).kill()
 
 
 def get_command_line(pid):
     """Return command line used to run the process `pid`."""
-    cmdline = None
-    cmdline_path = '/proc/{}/cmdline'.format(pid)
-    if os.path.exists(cmdline_path):
-        with open(cmdline_path) as cmdline_file:
-            cmdline = cmdline_file.read()
-            cmdline = cmdline.replace('\x00', ' ')
-    return cmdline
+    try:
+        return psutil.Process(pid).cmdline()
+    except:
+        pass
 
 
 def python_identifier(string):
