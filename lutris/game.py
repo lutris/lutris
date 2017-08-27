@@ -315,11 +315,11 @@ class Game(object):
                 ld_library_path = '$LD_LIBRARY_PATH'
             ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
         env["LD_LIBRARY_PATH"] = ld_library_path
-
-        include_processes = system_config.get('include_processes', '').split(' ')
-        exclude_processes = system_config.get('exclude_processes', '').split(' ')
-
         # /Env vars
+
+        include_processes = shlex.split(system_config.get('include_processes', ''))
+        exclude_processes = shlex.split(system_config.get('exclude_processes', ''))
+
         monitoring_disabled = system_config.get('disable_monitoring')
         process_watch = not monitoring_disabled
 

@@ -95,8 +95,8 @@ class CommandsMixin(object):
                 v = userenv[key]
                 userenv[key] = self._get_file(v) or self._substitute(v)
             env.update(userenv)
-            include_processes = data.get('include_processes', '').split(' ')
-            exclude_processes = data.get('exclude_processes', '').split(' ')
+            include_processes = shlex.split(data.get('include_processes', ''))
+            exclude_processes = shlex.split(data.get('exclude_processes', ''))
         elif isinstance(data, str):
             command = data
             include_processes = []
