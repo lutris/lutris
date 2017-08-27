@@ -468,9 +468,9 @@ Trying the installer locally
 ============================
 
 If needed (i.e. you didn't download the installer first from the website), add
-the ``name``, ``game_slug``, ``slug`` and ``runner`` directives. The value for
-``runner`` must be the slug name for the runner. (E.g. winesteam for Steam Windows.)
-You can also add ``version``, ``description`` and ``notes`` to the installer file.
+the ``name``, ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
+The value for ``runner`` must be the slug name for the runner.
+(E.g. winesteam for Steam Windows.)
 Under ``script``, add ``files``, ``installer``, ``game`` and other installer
 directives. See below for an example.
 Save your script in a .yaml file and use the following command in a terminal:
