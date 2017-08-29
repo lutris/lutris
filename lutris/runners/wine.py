@@ -165,7 +165,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    executable, _args = get_real_executable(executable)
+    executable, _args, working_dir = get_real_executable(executable, working_dir)
     if _args:
         args = '{} "{}"'.format(_args[0], _args[1])
 
@@ -358,21 +358,25 @@ def support_legacy_version(version):
     return version
 
 
-def get_real_executable(windows_executable):
+def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
+
     exec_name = windows_executable.lower()
 
     if exec_name.endswith(".msi"):
-        return ('msiexec', ['/i', windows_executable])
+        return ('msiexec', ['/i', windows_executable], working_dir)
 
     if exec_name.endswith(".bat"):
-        return ('cmd', ['/C', windows_executable])
+        if not working_dir or os.path.dirname(windows_executable) == working_dir:
+            working_dir = os.path.dirname(windows_executable) or None
+            windows_executable = os.path.basename(windows_executable)
+        return ('cmd', ['/C', windows_executable], working_dir)
 
     if exec_name.endswith(".lnk"):
-        return ('start', ['/unix', windows_executable])
+        return ('start', ['/unix', windows_executable], working_dir)
 
-    return (windows_executable, [])
+    return (windows_executable, [], working_dir)
 
 
 # pylint: disable=C0103
@@ -891,7 +895,8 @@ class wine(Runner):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
         command = [self.get_executable()]
-        game_exe, _args = get_real_executable(game_exe)
+
+        game_exe, _args, working_dir = get_real_executable(game_exe, self.working_dir)
         command.append(game_exe)
         if _args:
             command = command + _args
