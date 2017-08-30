@@ -58,6 +58,10 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
+        if isinstance(include_processes, str):
+            include_processes = shlex.split(include_processes)
+        if isinstance(exclude_processes, str):
+            exclude_processes = shlex.split(exclude_processes)
         # process names from /proc only contain 15 characters
         self.include_processes = [x[0:15] for x in include_processes]
         self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
