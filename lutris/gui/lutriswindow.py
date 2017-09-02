@@ -170,7 +170,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 lambda *x: self._open_browser('https://lutris.net/games/')
             ),
             'register-account': Action(
-                lambda *x: self._open_browser('https://lutris.net/user/register')
+                lambda *x: self._open_browser('https://lutris.net/user/register/')
             ),
 
             'disconnect': Action(self.on_disconnect),
