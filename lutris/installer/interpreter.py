@@ -41,6 +41,9 @@ def fetch_script(game_slug, revision=None):
     request = Request(installer_url)
     request.get()
     response = request.json
+    if response is None:
+        raise RuntimeError("Couldn't get installer at %s" % installer_url)
+
     if key:
         return response[key]
     else:
