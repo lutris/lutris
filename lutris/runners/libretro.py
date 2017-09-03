@@ -56,7 +56,6 @@ def get_core_choices():
         ('VICE (Commodore 64)', 'vice_x64'),
         ('VICE (Commodore VIC-20)', 'vice_xvic'),
     ]
-    ]
 
 
 def get_default_config_path():
