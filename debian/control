@@ -20,7 +20,6 @@ Architecture: any
 Depends: ${misc:Depends},
  ${python3:Depends},
  python3-yaml,
- python3-psutil,
  python3-gi,
  gir1.2-gtk-3.0,
  psmisc,

@@ -21,11 +21,11 @@ BuildRequires:  python3-devel
 
 %if 0%{?fedora_version}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
-Requires:       python3-gobject, python3-PyYAML, python3-psutil, cabextract
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?rhel_version} || 0%{?centos_version}
 BuildRequires:  python3-gobject
-Requires:       python3-gobject, python3-PyYAML, python3-psutil, cabextract
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject
@@ -34,7 +34,7 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
-Requires:       python3-gobject, python3-PyYAML, python3-psutil, cabextract
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes
