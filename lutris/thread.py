@@ -8,7 +8,6 @@ import shlex
 import threading
 import subprocess
 import contextlib
-import psutil
 from collections import defaultdict
 
 from gi.repository import GLib
@@ -259,7 +258,7 @@ class LutrisThread(threading.Thread):
                 continue
             num_watched_children += 1
             processes['monitored'].append(str(child))
-            if child.state == psutil.STATUS_ZOMBIE:
+            if child.state == 'Z':
                 terminated_children += 1
 
         if processes != self.monitored_processes:
