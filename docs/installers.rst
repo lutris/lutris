@@ -413,6 +413,16 @@ Currently, the following tasks are implemented:
         prefix: $GAMEDIR
         filename: myregfile
 
+* wine / winesteam: ``winekill`` Stops processes running in Wine prefix
+
+  Example
+
+  ::
+
+    - task:
+        name: winekill
+        prefix: $GAMEDIR
+
 *   dosbox: ``dosexec`` Runs dosbox. Parameters are ``executable`` (optional
     ``file ID`` or path to executable), ``config_file``
     (optional ``file ID`` or path to .conf file), ``args`` (optional command
