@@ -98,7 +98,8 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
              prefix=prefix, arch=arch, blocking=True)
 
 
-def create_prefix(prefix, wine_path=None, arch='win32'):
+def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
+                  install_gecko=None, install_mono=None):
     """Create a new Wine prefix."""
     logger.debug("Creating a %s prefix in %s", arch, prefix)
 
@@ -115,11 +116,18 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
         logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
         return
 
-    env = {
+    if install_gecko is 'False':
+        overrides['mshtml'] = 'disabled'
+    if install_mono is 'False':
+        overrides['mscoree'] = 'disabled'
+
+    wineenv = {
         'WINEARCH': arch,
-        'WINEPREFIX': prefix
+        'WINEPREFIX': prefix,
+        'WINEDLLOVERRIDES': get_overrides_env(overrides)
     }
-    system.execute([wineboot_path], env=env)
+
+    system.execute([wineboot_path], env=wineenv)
     for i in range(20):
         time.sleep(.25)
         if os.path.exists(os.path.join(prefix, 'user.reg')):
@@ -131,6 +139,25 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
     logger.info('%s Prefix created in %s', arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
+
+
+def winekill(prefix, arch='win32', wine_path=None):
+    """Kill processes in Wine prefix."""
+    logger.debug("Killing processes in Wine prefix %s", prefix)
+    if not wine_path:
+        wine_path = wine().get_executable()
+    wine_root = os.path.dirname(wine_path)
+    env = {
+        'WINEARCH': arch,
+        'WINEPREFIX': prefix
+    }
+    command = [os.path.join(wine_root, "wineserver"), "-k"]
+    logger.debug("Killing all wine processes: %s" % command)
+    try:
+        proc = subprocess.Popen(command, env=env)
+        proc.wait()
+    except OSError:
+        logger.exception('Could not terminate wineserver %s', command)
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
