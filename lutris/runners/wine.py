@@ -946,6 +946,7 @@ class wine(Runner):
 
     def stop(self):
         """The kill command runs wineserver -k."""
+        pids = self.get_pids()
         wine_path = self.get_executable()
         wine_root = os.path.dirname(wine_path)
         env = self.get_env()
@@ -957,6 +958,21 @@ class wine(Runner):
         except OSError:
             logger.exception('Could not terminate wineserver %s', command)
 
+        # Wineserver needs time to terminate processes
+        num_cycles = 0
+        while True:
+            num_cycles += 1
+            running_processes = [
+                pid for pid in pids
+                if os.path.exists("/proc/%s" % pid)
+            ]
+            if not running_processes:
+                break
+            if num_cycles > 75:
+                logger.warning("Some wine processes are still running: %s" % ', '.join(running_processes))
+                break
+            time.sleep(0.1)
+
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
         """Take a Windows path, return the corresponding Linux path."""
@@ -965,14 +981,14 @@ class wine(Runner):
 
         path = path.replace("\\\\", "/").replace('\\', '/')
 
-        if path[1] == ':': # absolute path
+        if path[1] == ':':  # absolute path
             drive = os.path.join(prefix_path, 'dosdevices', path[:2].lower())
-            if os.path.islink(drive): # Try to resolve the path
+            if os.path.islink(drive):  # Try to resolve the path
                 drive = os.readlink(drive)
             return os.path.join(drive, path[3:])
 
-        elif path[0] == '/': # drive-relative path. C is as good a guess as any..
+        elif path[0] == '/':  # drive-relative path. C is as good a guess as any..
             return os.path.join(prefix_path, 'drive_c', path[1:])
 
-        else: # Relative path
+        else:  # Relative path
             return path
