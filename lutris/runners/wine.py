@@ -13,6 +13,7 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
+from lutris.util.process import Process
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -141,23 +142,53 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     prefix_manager.setup_defaults()
 
 
-def winekill(prefix, arch='win32', wine_path=None):
+def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     """Kill processes in Wine prefix."""
-    logger.debug("Killing processes in Wine prefix %s", prefix)
+
+    initial_pids = initial_pids or []
+    for pid in initial_pids:
+        logger.debug(Process(pid))
+
     if not wine_path:
         wine_path = wine().get_executable()
     wine_root = os.path.dirname(wine_path)
-    env = {
-        'WINEARCH': arch,
-        'WINEPREFIX': prefix
-    }
+    if not env:
+        env = {
+            'WINEARCH': arch,
+            'WINEPREFIX': prefix
+        }
     command = [os.path.join(wine_root, "wineserver"), "-k"]
+
     logger.debug("Killing all wine processes: %s" % command)
-    try:
-        proc = subprocess.Popen(command, env=env)
-        proc.wait()
-    except OSError:
-        logger.exception('Could not terminate wineserver %s', command)
+    logger.debug("\tWine prefix: %s", prefix)
+    logger.debug("\tWine arch: %s", arch)
+    logger.debug("\tInitial pids: %s", initial_pids)
+
+    system.execute(command, env=env, quiet=True)
+
+    logger.debug("Waiting for wine processes to terminate")
+    # Wineserver needs time to terminate processes
+    num_cycles = 0
+    while True:
+        num_cycles += 1
+        running_processes = [
+            pid for pid in initial_pids
+            if os.path.exists("/proc/%s" % pid)
+        ]
+        logger.debug("running_processes: %s, cycles: %s",
+                     running_processes,
+                     num_cycles)
+
+        for pid in running_processes:
+            logger.debug(Process(pid))
+
+        if not running_processes:
+            logger.debug("Done in %s cycles", num_cycles)
+            break
+        if num_cycles > 300:
+            logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
+            break
+        time.sleep(0.1)
 
 
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
@@ -946,32 +977,11 @@ class wine(Runner):
 
     def stop(self):
         """The kill command runs wineserver -k."""
-        pids = self.get_pids()
-        wine_path = self.get_executable()
-        wine_root = os.path.dirname(wine_path)
-        env = self.get_env()
-        command = [os.path.join(wine_root, "wineserver"), "-k"]
-        logger.debug("Killing all wine processes: %s" % command)
-        try:
-            proc = subprocess.Popen(command, env=env)
-            proc.wait()
-        except OSError:
-            logger.exception('Could not terminate wineserver %s', command)
-
-        # Wineserver needs time to terminate processes
-        num_cycles = 0
-        while True:
-            num_cycles += 1
-            running_processes = [
-                pid for pid in pids
-                if os.path.exists("/proc/%s" % pid)
-            ]
-            if not running_processes:
-                break
-            if num_cycles > 75:
-                logger.warning("Some wine processes are still running: %s" % ', '.join(running_processes))
-                break
-            time.sleep(0.1)
+        winekill(self.prefix_path,
+                 arch=self.wine_arch,
+                 wine_path=self.get_executable(),
+                 env=self.get_env(),
+                 initial_pids=self.get_pids())
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
