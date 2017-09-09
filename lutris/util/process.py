@@ -1,6 +1,6 @@
 import os
-import signal
 from lutris.util.log import logger
+from lutris.util.system import kill_pid
 
 
 class InvalidPid(Exception):
@@ -108,8 +108,12 @@ class Process(object):
         cwd_path = '/proc/%d/cwd' % int(self.pid)
         return os.readlink(cwd_path)
 
-    def kill(self):
-        try:
-            os.kill(self.pid, signal.SIGKILL)
-        except OSError:
-            logger.error("Could not kill process %s", self.pid)
+    def kill(self, killed_processes=None):
+        if not killed_processes:
+            killed_processes = set()
+        for child_pid in reversed(sorted(self.get_thread_ids())):
+            child = Process(child_pid)
+            if child.pid not in killed_processes:
+                killed_processes.add(child.pid)
+                child.kill(killed_processes)
+        kill_pid(self.pid)
