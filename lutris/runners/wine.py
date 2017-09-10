@@ -175,17 +175,10 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
             pid for pid in initial_pids
             if os.path.exists("/proc/%s" % pid)
         ]
-        logger.debug("running_processes: %s, cycles: %s",
-                     running_processes,
-                     num_cycles)
-
-        for pid in running_processes:
-            logger.debug(Process(pid))
 
         if not running_processes:
-            logger.debug("Done in %s cycles", num_cycles)
             break
-        if num_cycles > 300:
+        if num_cycles > 20:
             logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
             break
         time.sleep(0.1)

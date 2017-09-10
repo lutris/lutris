@@ -9,6 +9,7 @@ import threading
 import subprocess
 import contextlib
 from collections import defaultdict
+from itertools import chain
 
 from gi.repository import GLib
 from textwrap import dedent
@@ -66,7 +67,7 @@ class LutrisThread(threading.Thread):
         self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
-        self.monitored_processes = None  # Keep a copy of the monitored processes to allow comparisons
+        self.monitored_processes = defaultdict(list)  # Keep a copy of the monitored processes to allow comparisons
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -228,11 +229,17 @@ class LutrisThread(threading.Thread):
         if killed_processes:
             logger.debug("Killed processes: %s", ', '.join(killed_processes))
 
-    def watch_children(self):
-        """Poke at the running process(es)."""
-        if not self.game_process or not self.is_running:
-            logger.error('No game process available')
-            return False
+    def is_zombie(self):
+        return all([
+            p.endswith('Z')
+            for p in chain(*[
+                self.monitored_processes[key]
+                for key in self.monitored_processes
+                if key != 'external'
+            ])
+        ])
+
+    def get_processes(self):
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0
@@ -260,6 +267,14 @@ class LutrisThread(threading.Thread):
             processes['monitored'].append(str(child))
             if child.state == 'Z':
                 terminated_children += 1
+        return processes, num_children, num_watched_children, terminated_children
+
+    def watch_children(self):
+        """Poke at the running process(es)."""
+        if not self.game_process or not self.is_running:
+            logger.error('No game process available')
+            return False
+        processes, num_children, num_watched_children, terminated_children = self.get_processes()
 
         if processes != self.monitored_processes:
             self.monitored_processes = processes
@@ -295,6 +310,9 @@ class LutrisThread(threading.Thread):
                 self.game_process.communicate()
             else:
                 logger.debug('Some processes are still active (%d)', num_children)
+                if self.is_zombie():
+                    logger.debug('Killing game process')
+                    self.game_process.kill()
             self.return_code = self.game_process.returncode
             if self.stdout_monitor:
                 GLib.source_remove(self.stdout_monitor)
