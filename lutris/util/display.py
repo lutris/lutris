@@ -23,10 +23,21 @@ def get_outputs():
         if parts[1] == 'connected':
             if len(parts) == 2:
                 continue
-            geom = parts[2] if parts[2] != 'primary' else parts[3]
+            if parts[2] != 'primary':
+                geom = parts[2]
+                rotate = parts[3]
+            else:
+                geom = parts[3]
+                rotate = parts[4]
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
-            outputs.append((parts[0], geom))
+            if rotate.startswith('('): # Screen not rotated, no need to include
+                outputs.append((parts[0], geom))
+            else:
+                geom_parts = geom.split('+')
+                x_y = geom_parts[0].split('x')
+                geom = "{}x{}+{}+{}".format(x_y[1],x_y[0],geom_parts[1],geom_parts[2])
+                outputs.append((parts[0], geom, rotate))
     return outputs
 
 
@@ -78,18 +89,27 @@ def change_resolution(resolution):
         else:
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
+        # do the first monitor again afterwards to avoid 0,0 offset reinitialization errors
+        resolution.append(resolution[0])
+
         for display in resolution:
             display_name = display[0]
             logger.debug("Switching to %s on %s", display[1], display[0])
             display_geom = display[1].split('+')
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
+            
+            if len(display) > 2:
+                rotation = display[2]
+            else:
+                rotation = "normal"
 
             subprocess.Popen([
                 "xrandr",
                 "--output", display_name,
                 "--mode", display_resolution,
-                "--pos", "{}x{}".format(position[0], position[1])
+                "--pos", "{}x{}".format(position[0], position[1]),
+                "--rotate", rotation
             ]).communicate()
 
 
