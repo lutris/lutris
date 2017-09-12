@@ -99,7 +99,8 @@ def change_resolution(resolution):
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
             
-            if len(display) > 2:
+            if len(display) > 2\
+                and display[2] in ('normal', 'left', 'right', 'inverted'):
                 rotation = display[2]
             else:
                 rotation = "normal"
