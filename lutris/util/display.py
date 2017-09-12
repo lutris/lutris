@@ -34,9 +34,10 @@ def get_outputs():
             if rotate.startswith('('): # Screen not rotated, no need to include
                 outputs.append((parts[0], geom, "normal"))
             else:
-                geom_parts = geom.split('+')
-                x_y = geom_parts[0].split('x')
-                geom = "{}x{}+{}+{}".format(x_y[1],x_y[0],geom_parts[1],geom_parts[2])
+                if rotate in ("left", "right"):
+                    geom_parts = geom.split('+')
+                    x_y = geom_parts[0].split('x')
+                    geom = "{}x{}+{}+{}".format(x_y[1],x_y[0],geom_parts[1],geom_parts[2])
                 outputs.append((parts[0], geom, rotate))
     return outputs
 
