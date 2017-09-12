@@ -194,7 +194,7 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
-        self.original_outputs = display.get_outputs()
+        self.original_outputs = sorted(display.get_outputs(), key=lambda e: e[0] == system_config.get('display'))
         gameplay_info = self.runner.play()
 
         env = {}
