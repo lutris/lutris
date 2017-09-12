@@ -90,9 +90,6 @@ def change_resolution(resolution):
         else:
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
-        # do the first monitor again afterwards to avoid 0,0 offset reinitialization errors
-        resolution.append(resolution[0])
-
         for display in resolution:
             display_name = display[0]
             logger.debug("Switching to %s on %s", display[1], display[0])
