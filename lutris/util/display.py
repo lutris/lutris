@@ -32,7 +32,7 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('): # Screen not rotated, no need to include
-                outputs.append((parts[0], geom))
+                outputs.append((parts[0], geom, "normal"))
             else:
                 geom_parts = geom.split('+')
                 x_y = geom_parts[0].split('x')
