@@ -146,7 +146,7 @@ are yet to be implemented!
 Here's what to expect from the future versions of lutris:
 
 * Integration with GOG and Humble Bundle
-* Integration with the TOSEC databse
+* Integration with the TOSEC database
 * Management of Personnal Game Archives (let you store your games files on
   private storage, allowing you to reinstall them on all your devices)
 * Game saves sync
@@ -162,7 +162,7 @@ pre-releases or simply chat with the developers?
 You can always reach us on:
 
 * IRC: #lutris on the Freenode servers
-* Github: http://github.com/lutris
+* Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
 * Email: contact@lutris.net
