@@ -428,3 +428,7 @@ class Game(object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog("<b>Error: A different Wine version is "
                                     "already using the same Wine prefix.</b>")
+
+    def notify_steam_game_changed(self, appmanifest):
+        logger.debug(appmanifest)
+        logger.debug(appmanifest.states)

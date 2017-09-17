@@ -39,11 +39,15 @@ APP_STATE_FLAGS = [
 
 class AppManifest:
     def __init__(self, appmanifest_path):
+        self.appmanifest_path = appmanifest_path
         self.steamapps_path, filename = os.path.split(appmanifest_path)
         self.steamid = re.findall(r'(\d+)', filename)[-1]
         if os.path.exists(appmanifest_path):
             with open(appmanifest_path, "r") as appmanifest_file:
                 self.appmanifest_data = vdf_parse(appmanifest_file, {})
+
+    def __repr__(self):
+        return "<AppManifest: %s>" % self.appmanifest_path
 
     @property
     def app_state(self):

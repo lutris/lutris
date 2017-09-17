@@ -146,8 +146,6 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
-    for pid in initial_pids:
-        logger.debug(Process(pid))
 
     if not wine_path:
         wine_path = wine().get_executable()
@@ -162,7 +160,8 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     logger.debug("Killing all wine processes: %s" % command)
     logger.debug("\tWine prefix: %s", prefix)
     logger.debug("\tWine arch: %s", arch)
-    logger.debug("\tInitial pids: %s", initial_pids)
+    if initial_pids:
+        logger.debug("\tInitial pids: %s", initial_pids)
 
     system.execute(command, env=env, quiet=True)
 
