@@ -924,7 +924,7 @@ class wine(Runner):
         if not os.path.exists(xinput_dest_path):
             xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
             shutil.copyfile(xinput1_3_path, xinput_dest_path)
-        if self.runner_config.get('x360ce-dinput') and self.wine_arch == 'win32':
+        if self.runner_config.get('x360ce-dinput'):
             dinput8_path = os.path.join(dll_path, 'dinput8.dll')
             dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
             shutil.copyfile(dinput8_path, dinput8_dest_path)
