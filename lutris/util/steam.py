@@ -31,6 +31,12 @@ def vdf_parse(steam_config_file, config):
             return config
         if not line or line.strip() == "}":
             return config
+        while not line.strip().endswith("\""):
+            nextline = steam_config_file.readline()
+            if not nextline:
+                break
+            line = line[:-1] + nextline
+
         line_elements = line.strip().split("\"")
         if len(line_elements) == 3:
             key = line_elements[1]
