@@ -1,7 +1,7 @@
 from lutris import pga
 from lutris.util.log import logger
 from gi.repository import Gtk, Gdk, GObject, GLib
-from lutris.gui.widgets import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.game import Game
 
 try:
