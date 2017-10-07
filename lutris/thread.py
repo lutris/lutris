@@ -123,9 +123,12 @@ class LutrisThread(threading.Thread):
 
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN, self.on_stdout_output)
+            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN | GLib.IO_HUP, self.on_stdout_output)
 
     def on_stdout_output(self, fd, condition):
+        if condition == GLib.IO_HUP:
+            self.stdout_monitor = None
+            return False
         if not self.is_running:
             return False
         try:
