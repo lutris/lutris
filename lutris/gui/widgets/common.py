@@ -14,10 +14,9 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
         new_text = ''.join([c for c in new_text if c.isalnum() or c == '-']).lower()
-        if new_text:
-            self.get_buffer().insert_text(position, new_text, length)
-            return position + length
-        return position
+        length = len(new_text)
+        self.get_buffer().insert_text(position, new_text, length)
+        return position + length
 
 
 class NumberEntry(Gtk.Entry, Gtk.Editable):
