@@ -56,6 +56,13 @@ class steam(Runner):
             'help': ("Command line arguments used when launching the game.\n"
                      "Ignored when Steam Big Picture mode is enabled.")
         },
+        {
+            'option': 'steamless_binary',
+            'type': 'file',
+            'label': 'Steamless binary',
+            'advanced': True,
+            'help': ("Steamless binary for running the game directly")
+        },
     ]
     runner_options = [
         {
@@ -84,6 +91,15 @@ class steam(Runner):
             'help': ("Launches Steam with STEAM_RUNTIME=0. "
                      "Make sure you disabled Lutris Runtime and "
                      "have the required libraries installed.")
+        },
+        {
+            'option': 'run_without_steam',
+            'type': 'string',
+            'label': 'Run without Steam (if possible)',
+            'type': 'bool',
+            'default': False,
+            'help': ("If a steamless binary is available launches the game "
+                     "directly instead of launching it through Steam")
         },
         {
             'option': 'args',
@@ -151,6 +167,15 @@ class steam(Runner):
 
     def get_executable(self):
         return system.find_executable('steam')
+
+    @property
+    def working_dir(self):
+        """Return the working directory to use when running the game."""
+        if self.runner_config['run_without_steam'] == True:
+            steamless_binary = self.game_config.get('steamless_binary')
+            if (os.path.isfile(steamless_binary)):
+                return os.path.dirname(steamless_binary)
+        return super().working_dir
 
     @property
     def launch_args(self):
@@ -260,19 +285,35 @@ class steam(Runner):
     def play(self):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
-
-        # Get current steam pid to act as the root pid instead of lutris
-        self.original_steampid = get_steam_pid()
-        command = self.launch_args
-
-        if self.runner_config.get('start_in_big_picture') or not game_args:
-            command.append('steam://rungameid/%s' % self.appid)
-        else:
-            command.append('-applaunch')
-            command.append(self.appid)
+        
+        steamless_binary = self.game_config.get('steamless_binary')
+        if self.runner_config['run_without_steam'] == True and steamless_binary:
+            # Start without steam
+            if not os.path.exists(steamless_binary):
+                return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
+            self.original_steampid = None
+            command = [steamless_binary]
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
+        else:
+            # Start through steam
+            
+            # Get current steam pid to act as the root pid instead of lutris
+            self.original_steampid = get_steam_pid()
+            command = self.launch_args
+            if game_args:
+                for arg in shlex.split(game_args):
+                    command.append(arg)
+    
+            if self.runner_config.get('start_in_big_picture') or not game_args:
+                command.append('steam://rungameid/%s' % self.appid)
+            else:
+                command.append('-applaunch')
+                command.append(self.appid)
+                if game_args:
+                    for arg in shlex.split(game_args):
+                        command.append(arg)
 
         return {
             'command': command,
