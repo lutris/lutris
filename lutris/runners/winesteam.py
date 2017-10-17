@@ -98,8 +98,14 @@ class winesteam(wine.wine):
             'label': 'Do not launch game, only open Steam',
             'help': ("Opens Steam with the current settings without running the game, "
                      "useful if a game has several launch options.")
-        }
-
+        },
+        {
+            'option': 'steamless_binary',
+            'type': 'file',
+            'label': 'Steamless binary',
+            'advanced': True,
+            'help': ("Steamless binary for running the game directly")
+        },
     ]
 
     def __init__(self, config=None):
@@ -130,6 +136,18 @@ class winesteam(wine.wine):
         )
         self.runner_options.insert(
             2,
+            {
+                'option': 'run_without_steam',
+                'type': 'string',
+                'label': 'Run without Steam (if possible)',
+                'type': 'bool',
+                'default': False,
+                'help': ("If a steamless binary is available launches the game "
+                         "directly instead of launching it through Steam")
+            },
+        )
+        self.runner_options.insert(
+            3,
             {
                 'option': 'args',
                 'type': 'string',
@@ -174,6 +192,10 @@ class winesteam(wine.wine):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        if self.runner_config['run_without_steam'] == True:
+            steamless_binary = self.game_config.get('steamless_binary')
+            if (os.path.isfile(steamless_binary)):
+                return os.path.dirname(steamless_binary)
         return os.path.expanduser("~/")
 
     @property
@@ -403,17 +425,34 @@ class winesteam(wine.wine):
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
-        command = self.launch_args
-        if self.game_config.get('nolaunch'):
-            command.append('steam://open/games/details')
-        elif not game_args:
-            command.append('steam://rungameid/%s' % self.appid)
-        else:
-            command.append('-applaunch')
-            command.append(self.appid)
+        steamless_binary = self.game_config.get('steamless_binary')
+        if self.runner_config['run_without_steam'] == True and steamless_binary:
+            # Start without steam
+            if not os.path.exists(steamless_binary):
+                return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
+            command = [self.get_executable()]
+            runner_args = self.runner_config.get('args') or ''
+            if runner_args:
+                for arg in shlex.split(runner_args):
+                    command.append(arg)
+            command.append(steamless_binary)
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
+            
+        else:
+            # Start through steam
+            command = self.launch_args
+            if self.game_config.get('nolaunch'):
+                command.append('steam://open/games/details')
+            elif not game_args:
+                command.append('steam://rungameid/%s' % self.appid)
+            else:
+                command.append('-applaunch')
+                command.append(self.appid)
+                if game_args:
+                    for arg in shlex.split(game_args):
+                        command.append(arg)
         launch_info['command'] = command
         return launch_info
 
