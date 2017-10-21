@@ -50,12 +50,13 @@ class Process(object):
 
     def get_children_pids_of_thread(self, tid):
         """Return pids of child processes opened by thread `tid` of process."""
-        children = []
         children_path = '/proc/{}/task/{}/children'.format(self.pid, tid)
-        if os.path.exists(children_path):
+        try:
             with open(children_path) as children_file:
-                children = children_file.read().strip().split()
-        return children
+                children_content = children_file.read()
+        except FileNotFoundError:
+            children_content = ''
+        return children_content.strip().split()
 
     def get_children(self):
         self.children = []
