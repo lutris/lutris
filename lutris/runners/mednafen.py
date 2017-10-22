@@ -230,7 +230,7 @@ class mednafen(Runner):
         layout = {
             'nes' : ['a','b','start','select','up','down','left','right'],
             'gb' : ['a','b','start','select','up','down','left','right'],
-            'gba' : ['a','b','soulder_r','shoulder_l','start','select','up','down','left', 'right'],
+            'gba' : ['a','b','shoulder_r','shoulder_l','start','select','up','down','left', 'right'],
             'pce' : ['i','ii','iii','iv','v','vi','run','select','up','down','left','right'],
             'ss' : ['a','b','c','x','y','z','ls','rs','start','up','down','left','right'],
             'gg' : ['button1','button2','start','up','down','left','right'],
