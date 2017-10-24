@@ -154,16 +154,18 @@ class mednafen(Runner):
         mapping = get_controller_mappings()[0][1]
 
         # Consrtuct a dictionary of button codes to parse to mendafen
-        # Joysticks and dpad codes based on the xbox controller
-        map_code = {'a':'','b':'','c':'','x':'','y':'','z':'','back':'','start':'',
-                'leftshoulder':'','rightshoulder':'','lefttrigger':'',
-                'righttrigger':'','leftstick':'','rightstick':'','select':'',
-                'shoulder_l':'','shoulder_r':'','i':'','ii':'','iii':'','iv':'',
-                'v':'','vi':'','run':'','ls':'','rs':'','fire1':'','fire2':'',
-                'option_1':'','option_2':'','cross':'','circle':'','square':'','triangle':'',
+        map_code = {'a':'','b':'','c':'','x':'','y':'','z':'','back':'',
+                'start':'','leftshoulder':'','rightshoulder':'',
+                'lefttrigger':'','righttrigger':'','leftstick':'',
+                'rightstick':'','select':'','shoulder_l':'','shoulder_r':'',
+                'i':'','ii':'','iii':'','iv':'','v':'','vi':'','run':'',
+                'ls':'','rs':'','fire1':'','fire2':'','option_1':'',
+                'option_2':'','cross':'','circle':'','square':'','triangle':'',
                 'r1':'','r2':'','l1':'','l2':'','option':'','l':'','r':'',
                 'right-x':'','right-y':'','left-x':'','left-y':'',
-                'up-x':'','up-y':'','down-x':'','down-y':'',
+                'up-x':'','up-y':'','down-x':'','down-y':'','up-l':'',
+                'up-r':'','down-l':'','down-r':'','left-l':'','left-r':'',
+                'right-l':'','right-r':'',
                 'lstick_up':'0000c001',
                 'lstick_down':'00008001',
                 'lstick_right':'00008000',
@@ -184,87 +186,106 @@ class mednafen(Runner):
                 map_code[button] = '000000'+bttn_id[1:].zfill(2)
 
         # Duplicate button names that are emulated in mednanfen
-        map_code['up'] = map_code['dpup']
-        map_code['down'] = map_code['dpdown']
-        map_code['left'] = map_code['dpleft']
-        map_code['right'] = map_code['dpright']
-        map_code['select'] = map_code['back']
-        map_code['shoulder_r'] = map_code['rightshoulder']
-        map_code['shoulder_l'] = map_code['leftshoulder']
-        map_code['i'] = map_code['b']
-        map_code['ii'] = map_code['a']
-        map_code['iii'] = map_code['leftshoulder']
-        map_code['iv'] = map_code['y']
-        map_code['v'] = map_code['x']
-        map_code['vi'] = map_code['rightshoulder']
-        map_code['run'] = map_code['start']
-        map_code['ls'] = map_code['leftshoulder']
-        map_code['rs'] = map_code['rightshoulder']
-        map_code['c'] = map_code['righttrigger']
-        map_code['z'] = map_code['lefttrigger']
-        map_code['fire1'] = map_code['a']
-        map_code['fire2'] = map_code['b']
-        map_code['option_1'] = map_code['x']
-        map_code['option_2'] = map_code['y']
-        map_code['r1'] = map_code['rightshoulder']
-        map_code['r2'] = map_code['righttrigger']
-        map_code['l1'] = map_code['leftshoulder']
-        map_code['l2'] = map_code['lefttrigger']
-        map_code['cross'] = map_code['a']
-        map_code['circle'] = map_code['b']
-        map_code['square'] = map_code['x']
-        map_code['triangle'] = map_code['y']
-        map_code['option'] = map_code['select']
-        map_code['l'] = map_code['leftshoulder']
-        map_code['r'] = map_code['rightshoulder']
-        map_code['right-x'] = map_code['dpright']
-        map_code['left-x'] = map_code['dpleft']
-        map_code['up-x'] = map_code['dpup']
-        map_code['down-x'] = map_code['dpdown']
-        map_code['right-y'] = map_code['lstick_right']
-        map_code['left-y'] = map_code['lstick_left']
-        map_code['up-y'] = map_code['lstick_up']
-        map_code['down-y'] = map_code['lstick_down']
+        map_code['up'] = map_code['dpup']       #
+        map_code['down'] = map_code['dpdown']   #
+        map_code['left'] = map_code['dpleft']   # Multiple systems
+        map_code['right'] = map_code['dpright'] #
+        map_code['select'] = map_code['back']   #
+        map_code['shoulder_r'] = map_code['rightshoulder'] #GBA
+        map_code['shoulder_l'] = map_code['leftshoulder']  #
+        map_code['i'] = map_code['b']              #
+        map_code['ii'] = map_code['a']             #
+        map_code['iii'] = map_code['leftshoulder'] #
+        map_code['iv'] = map_code['y']             # PCEngine and PCFX
+        map_code['v'] = map_code['x']              #
+        map_code['vi'] = map_code['rightshoulder'] #
+        map_code['run'] = map_code['start']        #
+        map_code['ls'] = map_code['leftshoulder']    #
+        map_code['rs'] = map_code['rightshoulder']   # Saturn
+        map_code['c'] = map_code['righttrigger']     #
+        map_code['z'] = map_code['lefttrigger']      #
+        map_code['fire1'] = map_code['a']    # Master System
+        map_code['fire2'] = map_code['b']    #
+        map_code['option_1'] = map_code['x']   # Lynx
+        map_code['option_2'] = map_code['y']   #
+        map_code['r1'] = map_code['rightshoulder']  #
+        map_code['r2'] = map_code['righttrigger']   #
+        map_code['l1'] = map_code['leftshoulder']   #
+        map_code['l2'] = map_code['lefttrigger']    # PlayStation
+        map_code['cross'] = map_code['a']           #
+        map_code['circle'] = map_code['b']          #
+        map_code['square'] = map_code['x']          #
+        map_code['triangle'] = map_code['y']        #
+        map_code['option'] = map_code['select']  # NeoGeo pocket
+        map_code['l'] = map_code['leftshoulder']   # SNES
+        map_code['r'] = map_code['rightshoulder']  # 
+        map_code['right-x'] = map_code['dpright']      #
+        map_code['left-x'] = map_code['dpleft']        #
+        map_code['up-x'] = map_code['dpup']            #
+        map_code['down-x'] = map_code['dpdown']        # Wonder Swan
+        map_code['right-y'] = map_code['lstick_right'] #
+        map_code['left-y'] = map_code['lstick_left']   #
+        map_code['up-y'] = map_code['lstick_up']       #
+        map_code['down-y'] = map_code['lstick_down']   #
+        map_code['up-l'] = map_code['dpup']              #
+        map_code['down-l'] = map_code['dpdown']          #
+        map_code['left-l'] = map_code['dpleft']          #
+        map_code['right-l'] = map_code['dpright']        #
+        map_code['up-r'] = map_code['rstick_up']         #
+        map_code['down-r'] = map_code['rstick_down']     # Virtual boy
+        map_code['left-r'] = map_code['rstick_left']     #
+        map_code['right-r'] = map_code['rstick_right']   #
+        map_code['lt'] = map_code['leftshoulder']        #
+        map_code['rt'] = map_code['rightshoulder']       #
 
         # Define which buttons to use for each machine
         layout = {
             'nes' : ['a','b','start','select','up','down','left','right'],
             'gb' : ['a','b','start','select','up','down','left','right'],
-            'gba' : ['a','b','shoulder_r','shoulder_l','start','select','up','down','left', 'right'],
-            'pce' : ['i','ii','iii','iv','v','vi','run','select','up','down','left','right'],
-            'ss' : ['a','b','c','x','y','z','ls','rs','start','up','down','left','right'],
+            'gba' : ['a','b','shoulder_r','shoulder_l','start','select',
+                     'up','down','left', 'right'],
+            'pce' : ['i','ii','iii','iv','v','vi','run','select','up','down',
+                     'left','right'],
+            'ss' : ['a','b','c','x','y','z','ls','rs','start','up','down',
+                    'left','right'],
             'gg' : ['button1','button2','start','up','down','left','right'],
-            'md' : ['a','b','c','x','y','z','start','up','down','left','right'],
+            'md' : ['a','b','c','x','y','z','start','up','down','left',
+                    'right'],
             'sms' : ['fire1','fire2','up','down','left','right'],
-            'lynx' : ['a','b','option_1','option_2','up','down','left','right'],
+            'lynx' : ['a','b','option_1','option_2','up','down','left',
+                      'right'],
             'psx' : ['cross','circle','square','triangle','l1','l2','r1','r2',
                      'start','select','lstick_up','lstick_down','lstick_right',
-                     'lstick_left','rstick_up','rstick_down','rstick_left','rstick_right',
-                     'up','down','left','right'],
-            'pcfx' : ['i','ii','iii','iv','v','vi','run','select','up','down','left','right'],
+                     'lstick_left','rstick_up','rstick_down','rstick_left',
+                     'rstick_right','up','down','left','right'],
+            'pcfx' : ['i','ii','iii','iv','v','vi','run','select','up','down',
+                      'left','right'],
             'ngp' : ['a','b','option','up','down','left','right'],
-            'snes' : ['a','b','x','y','l','r','start','select','up','down','left','right'],
-            'wswan' : ['a','b','right-x','right-y','left-x','left-y','up-x','up-y',
-                       'down-x','down-y','start']
+            'snes' : ['a','b','x','y','l','r','start','select','up','down',
+                      'left','right'],
+            'wswan' : ['a','b','right-x','right-y','left-x','left-y','up-x',
+                       'up-y','down-x','down-y','start'],
+            'vb' : ['up-l','down-l','left-l','right-l','up-r','down-r',
+                    'left-r','right-r','a','b','lt','rt']
         }
         # Select a the gamepad type
         controls = []
-        if machine in ['gg','lynx','wswan','gb','gba']:
+        if machine in ['gg','lynx','wswan','gb','gba','vb']:
             gamepad = 'builtin.gamepad'
         elif machine in ['md']:
-            gamepad = 'gamepad6'
+            gamepad = 'port1.gamepad6'
             controls.append('-md.input.port1')
             controls.append('gamepad6')
         elif machine in ['psx']:
-            gamepad = 'dualshock'
+            gamepad = 'port1.dualshock'
             controls.append('-psx.input.port1')
             controls.append('dualshock')
         else:
-            gamepad = 'gamepad'
+            gamepad = 'port1.gamepad'
 
         # Construct the controlls options
         for button in layout[machine]:
-            controls.append("-{}.input.port1.{}.{}".format(machine,gamepad,button)) 
+            controls.append("-{}.input.{}.{}".format(machine,gamepad,button)) 
             controls.append("joystick {} {}".format(joy_ids[0],map_code[button]))
         return controls
 
