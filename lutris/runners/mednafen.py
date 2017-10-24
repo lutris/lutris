@@ -218,7 +218,7 @@ class mednafen(Runner):
         map_code['triangle'] = map_code['y']        #
         map_code['option'] = map_code['select']  # NeoGeo pocket
         map_code['l'] = map_code['leftshoulder']   # SNES
-        map_code['r'] = map_code['rightshoulder']  # 
+        map_code['r'] = map_code['rightshoulder']  #
         map_code['right-x'] = map_code['dpright']      #
         map_code['left-x'] = map_code['dpleft']        #
         map_code['up-x'] = map_code['dpup']            #
