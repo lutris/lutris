@@ -342,7 +342,7 @@ Currently, the following tasks are implemented:
     specified path. The other wine/winesteam directives below include the
     creation of the prefix, so in most cases you won't need to use the
     create_prefix command. Parameters are ``prefix`` (the path), ``arch``
-    (optional architecture of the prefix, default: win32).
+    (optional architecture of the prefix, default: win32), ``overrides`` (optional dll overrides)..
 
     Example:
 
@@ -356,7 +356,7 @@ Currently, the following tasks are implemented:
 *   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
-    ``arch`` (optional WINEARCH), ``working_dir`` (optional working directory),
+    ``arch`` (optional WINEARCH, required when you created win64 prefix), ``working_dir`` (optional working directory),
     ``exclude_processes`` (optional space-separated list of processes to exclude from
     being watched), ``env`` (optional environment variables), ``overrides`` (optional dll overrides).
 
@@ -386,10 +386,60 @@ Currently, the following tasks are implemented:
             prefix: $GAMEDIR
             app: nt40
 
+*   wine / winesteam: ``winecfg`` runs execute winecfg in your ``prefix`` argument. Parameters are
+    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix),
+    ``config`` (dunno what is is).
+
+    example:
+
+    ::
+
+        - task:
+            name: winecfg
+            prefix: $GAMEDIR
+            config: config-file
+            arch: win64
+
+*   wine / winesteam: ``joycpl`` runs joycpl in your ``prefix`` argument. Parameters are
+    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix).
+
+    example:
+
+    ::
+
+        - task:
+            name: joypl
+            prefix: $GAMEDIR
+            arch: win64
+
+*   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. parameters are
+    ``prefix`` (optional wineprefix path).
+
+    example:
+
+    ::
+
+        - task:
+            name: eject_disc
+            prefix: $GAMEDIR
+
+*   wine / winesteam: ``disable_desktop_integration`` remove links to user directories in a ``prefix`` argument. parameters are
+    ``prefix`` (wineprefix path).
+
+    example:
+
+    ::
+
+        - task:
+            name: eject_disc
+            prefix: $GAMEDIR
+
+
 *   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
     ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
-    (optional WINEPREFIX).
+    (optional WINEPREFIX), ``arch``
+    (optional architecture of the prefix, required when you created win64 prefix).
 
     Example:
 
@@ -402,9 +452,29 @@ Currently, the following tasks are implemented:
             key: SuppressAutoRun
             value: '00000000'
             type: REG_DWORD
+            arch: win64
+
+*   wine / winesteam: ``delete_registry_key`` Deletes registry key in the Windows registry. Parameters
+    are ``key``, ``prefix``
+    (optional WINEPREFIX), ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
+
+    Example:
+
+    ::
+
+        - task:
+            name: set_regedit
+            prefix: $GAMEDIR
+            path: HKEY_CURRENT_USER\Software\Valve\Steam
+            key: SuppressAutoRun
+            value: '00000000'
+            type: REG_DWORD
+            arch: win64
 
 * wine / winesteam: ``set_regedit_file`` Apply a regedit file to the
-  registry
+  registry, Parameters are ``filename`` (regfile name),
+  ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
+
 
   Example::
 
@@ -412,8 +482,11 @@ Currently, the following tasks are implemented:
         name: set_regedit_file
         prefix: $GAMEDIR
         filename: myregfile
+        arch: win64
 
-* wine / winesteam: ``winekill`` Stops processes running in Wine prefix
+* wine / winesteam: ``winekill`` Stops processes running in Wine prefix. Parameters
+  are ``prefix`` (optional WINEPREFIX), 
+  ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
 
   Example
 
@@ -422,6 +495,7 @@ Currently, the following tasks are implemented:
     - task:
         name: winekill
         prefix: $GAMEDIR
+        arch: win64
 
 *   dosbox: ``dosexec`` Runs dosbox. Parameters are ``executable`` (optional
     ``file ID`` or path to executable), ``config_file``
