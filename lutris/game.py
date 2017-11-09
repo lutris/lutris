@@ -369,8 +369,9 @@ class Game(object):
                                 self.game_thread.error)
             self.on_game_quit()
             return False
-        killswitch_engage = self.killswitch and \
-            not os.path.exists(self.killswitch)
+        killswitch_engage = (
+            self.killswitch and not os.path.exists(self.killswitch)
+        )
         if not self.game_thread.is_running or killswitch_engage:
             logger.debug("Game thread stopped")
             self.on_game_quit()
@@ -378,16 +379,18 @@ class Game(object):
         return True
 
     def stop(self):
-        self.state = self.STATE_STOPPED
         if self.runner.system_config.get('xboxdrv'):
+            log.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None, killall=True)
+        self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
+            log.debug("Game thread still running, stopping it (state: %s)", self.state)
             self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
