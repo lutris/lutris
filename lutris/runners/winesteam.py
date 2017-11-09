@@ -434,8 +434,11 @@ class winesteam(wine.wine):
         logger.debug("Stopping all winesteam processes")
         super(winesteam, self).stop()
 
+    def killall_on_exit(self):
+        return bool(self.runner_config.get('quit_steam_on_exit'))
+
     def stop(self):
-        if self.runner_config.get('quit_steam_on_exit'):
+        if self.killall_on_exit():
             logger.debug("Game configured to stop Steam on exit")
             self.shutdown()
 

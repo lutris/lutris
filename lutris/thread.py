@@ -221,12 +221,13 @@ class LutrisThread(threading.Thread):
             self.stop_func()
         self.restore_environment()
         self.is_running = False
-        if not killall:
-            return
-        self.killall()
+
+        if killall:
+            self.killall()
 
     def killall(self):
         """Kill every remaining child process"""
+        logger.debug("Killing all remaining processes")
         killed_processes = []
         for process in self.iter_children(Process(self.rootpid),
                                           topdown=False):
@@ -311,6 +312,7 @@ class LutrisThread(threading.Thread):
             self.cycles_without_children = 0
         max_cycles_reached = (self.cycles_without_children >=
                               MAX_CYCLES_WITHOUT_CHILDREN)
+
         if num_children == 0 or max_cycles_reached:
             if max_cycles_reached:
                 logger.debug('Maximum number of cycles without children reached')
@@ -328,9 +330,14 @@ class LutrisThread(threading.Thread):
             if self.stdout_monitor:
                 GLib.source_remove(self.stdout_monitor)
             return False
+
         if terminated_children and terminated_children == num_watched_children:
-            logger.debug("All children terminated")
-            self.game_process.wait(2)
+            logger.debug("Waiting for processes to exit")
+            try:
+                self.game_process.wait(2)
+            except subprocess.TimeoutExpired:
+                logger.warning("Processes are still running")
+                return True
             if self.stdout_monitor:
                 logger.debug("Removing stdout monitor")
                 GLib.source_remove(self.stdout_monitor)

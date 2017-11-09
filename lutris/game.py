@@ -295,6 +295,7 @@ class Game(object):
         # Env vars
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
+
         system_env = system_config.get('env') or {}
         env.update(system_env)
 
@@ -369,6 +370,9 @@ class Game(object):
                                 self.game_thread.error)
             self.on_game_quit()
             return False
+
+        # The killswitch file should be set to a device (ie. /dev/input/js0)
+        # When that device is unplugged, the game is forced to quit.
         killswitch_engage = (
             self.killswitch and not os.path.exists(self.killswitch)
         )
@@ -383,14 +387,14 @@ class Game(object):
             log.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None, killall=True)
+            jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
         self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
-            log.debug("Game thread still running, stopping it (state: %s)", self.state)
+            logger.debug("Game thread still running, stopping it (state: %s)", self.state)
             self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
