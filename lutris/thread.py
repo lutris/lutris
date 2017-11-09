@@ -72,14 +72,7 @@ class LutrisThread(threading.Thread):
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
 
-        if cwd:
-            self.cwd = cwd
-        elif self.runner:
-            self.cwd = runner.working_dir
-        else:
-            self.cwd = '/tmp'
-        self.cwd = os.path.expanduser(self.cwd)
-
+        self.cwd = self.set_cwd(cwd)
         self.env_string = ''
         for (k, v) in self.env.items():
             self.env_string += '%s="%s" ' % (k, v)
@@ -87,6 +80,11 @@ class LutrisThread(threading.Thread):
         self.command_string = ' '.join(
             ['"%s"' % token for token in self.command]
         )
+
+    def set_cwd(self, cwd):
+        if not cwd:
+            cwd = self.runner.working_dir if self.runner else '/tmp'
+        return os.path.expanduser(cwd)
 
     def attach_thread(self, thread):
         """Attach child process that need to be killed on game exit."""
@@ -203,12 +201,8 @@ class LutrisThread(threading.Thread):
     def set_stop_command(self, func):
         self.stop_func = func
 
-    def stop(self, killall=False):
-        for thread in self.attached_threads:
-            logger.debug("Stopping thread %s", thread)
-            thread.stop()
-        if hasattr(self, 'stop_func'):
-            self.stop_func()
+    def restore_environment(self):
+        logger.debug("Restoring environment")
         for key in self.original_env:
             if self.original_env[key] is None:
                 try:
@@ -217,6 +211,15 @@ class LutrisThread(threading.Thread):
                     pass
             else:
                 os.environ[key] = self.original_env[key]
+        self.original_env = {}
+
+    def stop(self, killall=False):
+        for thread in self.attached_threads:
+            logger.debug("Stopping thread %s", thread)
+            thread.stop()
+        if hasattr(self, 'stop_func'):
+            self.stop_func()
+        self.restore_environment()
         self.is_running = False
         if not killall:
             return
@@ -327,10 +330,13 @@ class LutrisThread(threading.Thread):
             return False
         if terminated_children and terminated_children == num_watched_children:
             logger.debug("All children terminated")
-            self.game_process.wait()
+            self.game_process.wait(2)
             if self.stdout_monitor:
+                logger.debug("Removing stdout monitor")
                 GLib.source_remove(self.stdout_monitor)
+            logger.debug("Thread is no longer running")
             self.is_running = False
+            self.restore_environment()
             return False
         return True
 
