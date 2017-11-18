@@ -174,7 +174,7 @@ class LutrisThread(threading.Thread):
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     cwd=self.cwd, env=env)
         except OSError as ex:
-            logger.error(ex)
+            logger.exception("Failed to execute %s: %s", ' '.join(command), ex)
             self.error = ex.strerror
 
     def iter_children(self, process, topdown=True, first=True):
