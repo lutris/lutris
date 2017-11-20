@@ -41,6 +41,10 @@ def get_output_list():
     return choices
 
 
+def get_dri_prime():
+    return len(display.get_providers()) > 1
+
+
 system_options = [
     {
         'option': 'game_path',
@@ -78,6 +82,17 @@ system_options = [
         'help': ("If you have installed the primus package, selecting this "
                  "option will run the game with the primusrun command, "
                  "activating your NVIDIA graphic chip for high 3D "
+                 "performance.")
+    },
+    {
+        'option': 'dri_prime',
+        'type': 'bool',
+        'default': False,
+        'condition': get_dri_prime,
+        'label': 'Use PRIME (hybrid graphics on laptops)',
+        'help': ("If you have open source graphic drivers (Mesa), selecting this "
+                 "option will run the game with the 'DRI_PRIME=1' environment variable, "
+                 "activating your discrete graphic chip for high 3D "
                  "performance.")
     },
     {

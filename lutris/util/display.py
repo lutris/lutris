@@ -115,3 +115,31 @@ def change_resolution(resolution):
 def restore_gamma():
     """Restores gamma to a normal level."""
     subprocess.Popen(["xgamma", "-gamma", "1.0"])
+
+
+def get_xrandr_version():
+    """Return the major and minor version of XRandR utility"""
+    pattern = "version"
+    xrandr_output = subprocess.Popen(["xrandr", "--version"],
+                                     stdout=subprocess.PIPE).communicate()[0].decode()
+    position = xrandr_output.find(pattern) + len(pattern)
+    version_str = xrandr_output[position:].strip().split(".")
+    version = { "major" : int(version_str[0]), "minor" : int(version_str[1]) }
+    return version
+
+def get_providers():
+    """Return the list of available graphic cards"""
+    pattern = "name:"
+    providers = list()
+    version = get_xrandr_version()
+
+    if version["major"] == 1 and version["minor"] >= 4:
+        xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
+                                         stdout=subprocess.PIPE).communicate()[0].decode()
+        for line in xrandr_output.split("\n"):
+            if line.find("Provider ") != 0:
+                continue
+            position = line.find(pattern) + len(pattern)
+            providers.append(line[position:].strip())
+
+    return providers
