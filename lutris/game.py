@@ -302,6 +302,12 @@ class Game(object):
         ld_preload = gameplay_info.get('ld_preload') or ''
         env["LD_PRELOAD"] = ld_preload
 
+        dri_prime = system_config.get('dri_prime')
+        if dri_prime:
+            env["DRI_PRIME"] = "1"
+        else:
+            env["DRI_PRIME"] = "0"
+
         # Runtime management
         ld_library_path = ""
         if self.runner.use_runtime():
