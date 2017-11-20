@@ -27,7 +27,7 @@ msgstr "© 2010, 2012 Mathieu Comandon"
 
 #: ../data/ui/AboutDialog.ui.h:3
 msgid "Open Source Gaming Platform"
-msgstr "Herní platforma s otevřeným zdrojem"
+msgstr "Otevřená herní platforma"
 
 #: ../data/ui/AboutDialog.ui.h:4
 msgid "http://lutris.net"
@@ -95,7 +95,7 @@ msgstr "Připojit"
 
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr "INstalovat a nastavit spouštěče"
+msgstr "Instalovat a nastavit spouštěče"
 
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
