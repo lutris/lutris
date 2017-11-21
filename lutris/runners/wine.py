@@ -560,14 +560,6 @@ class wine(Runner):
                          'selected "Custom" as the Wine version.')
             },
             {
-                'option': 'xinput',
-                'label': 'Enable Koku-Xinput (experimental, try using the x360 option instead)',
-                'type': 'bool',
-                'default': False,
-                'help': ("Preloads a library that enables Joypads on games\n"
-                         "using XInput.")
-            },
-            {
                 'option': 'x360ce-path',
                 'label': "Path to the game's executable, for x360ce support",
                 'type': 'directory_chooser',
@@ -909,12 +901,6 @@ class wine(Runner):
             pids = pids | pids_64
         return pids
 
-    def get_xinput_path(self):
-        xinput_path = os.path.join(settings.RUNTIME_DIR,
-                                   'lib32/koku-xinput-wine/koku-xinput-wine.so')
-        if os.path.exists(xinput_path):
-            return xinput_path
-
     def setup_x360ce(self, x360ce_path):
         if not os.path.isdir(x360ce_path):
             logger.error("%s is not a valid path for x360ce", x360ce_path)
@@ -942,14 +928,6 @@ class wine(Runner):
 
         launch_info = {}
         launch_info['env'] = self.get_env(full=False)
-
-        if self.runner_config.get('xinput'):
-            xinput_path = self.get_xinput_path()
-            if xinput_path:
-                logger.debug('Preloading %s', xinput_path)
-                launch_info['ld_preload'] = self.get_xinput_path()
-            else:
-                logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
