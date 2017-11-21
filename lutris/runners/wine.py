@@ -13,7 +13,6 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
-from lutris.util.process import Process
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -567,10 +566,24 @@ class wine(Runner):
             },
             {
                 'option': 'x360ce-dinput',
-                'label': 'x360ce dinput mode',
+                'label': 'x360ce dinput 8 mode',
                 'type': 'bool',
                 'default': False,
                 'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
+            },
+            {
+                'option': 'x360ce-xinput9',
+                'label': 'x360ce xinput 9.1.0 mode',
+                'type': 'bool',
+                'default': False,
+                'help': "Configure x360ce with xinput9_1_0.dll, required for some newer games"
+            },
+            {
+                'option': 'dumbxinputemu',
+                'label': 'Use Dumb xinput Emulator (experimental)',
+                'type': 'bool',
+                'default': False,
+                'help': "Use the dlls from kozec/dumbxinputemu"
             },
             {
                 'option': 'Desktop',
@@ -878,9 +891,11 @@ class wine(Runner):
 
         overrides = self.runner_config.get('overrides') or {}
         if self.runner_config.get('x360ce-path'):
-            overrides['xinput1_3'] = 'native,builtin'
+            overrides['xinput1_3'] = 'native'
+            if self.runner_config.get('x360ce-xinput9'):
+                overrides['xinput9_1_0'] = 'native'
             if self.runner_config.get('x360ce-dinput'):
-                overrides['dinput8'] = 'native,builtin'
+                overrides['dinput8'] = 'native'
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
 
@@ -905,19 +920,27 @@ class wine(Runner):
         if not os.path.isdir(x360ce_path):
             logger.error("%s is not a valid path for x360ce", x360ce_path)
             return
-        xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
-        dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
-        if not os.path.exists(xinput_dest_path):
-            xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
-            shutil.copyfile(xinput1_3_path, xinput_dest_path)
-        if self.runner_config.get('x360ce-dinput'):
-            dinput8_path = os.path.join(dll_path, 'dinput8.dll')
-            dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
-            shutil.copyfile(dinput8_path, dinput8_dest_path)
+        mode = 'dumbxinputemu' if self.runner_config.get('dumbxinputemu') else 'x360ce'
+        dll_files = ['xinput1_3.dll']
+        if self.runner_config.get('x360ce-xinput9'):
+            dll_files.append('xinput9_1_0.dll')
 
-        x360ce_config = X360ce()
-        x360ce_config.populate_controllers()
-        x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
+        for dll_file in dll_files:
+            xinput_dest_path = os.path.join(x360ce_path, dll_file)
+            dll_path = os.path.join(datapath.get(), 'controllers/{}-{}'.format(mode, self.wine_arch))
+            if not os.path.exists(xinput_dest_path):
+                source_file = dll_file if mode == 'dumbxinputemu' else 'xinput1_3.dll'
+                shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
+
+        if mode == 'x360ce':
+            if self.runner_config.get('x360ce-dinput'):
+                dinput8_path = os.path.join(dll_path, 'dinput8.dll')
+                dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
+                shutil.copyfile(dinput8_path, dinput8_dest_path)
+
+            x360ce_config = X360ce()
+            x360ce_config.populate_controllers()
+            x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
 
     def play(self):
         game_exe = self.game_exe
