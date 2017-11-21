@@ -31,13 +31,13 @@ def get_outputs():
                 rotate = parts[4]
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
-            if rotate.startswith('('): # Screen not rotated, no need to include
+            if rotate.startswith('('):  # Screen not rotated, no need to include
                 outputs.append((parts[0], geom, "normal"))
             else:
                 if rotate in ("left", "right"):
                     geom_parts = geom.split('+')
                     x_y = geom_parts[0].split('x')
-                    geom = "{}x{}+{}+{}".format(x_y[1],x_y[0],geom_parts[1],geom_parts[2])
+                    geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
                 outputs.append((parts[0], geom, rotate))
     return outputs
 
@@ -96,9 +96,11 @@ def change_resolution(resolution):
             display_geom = display[1].split('+')
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
-            
-            if len(display) > 2\
-                and display[2] in ('normal', 'left', 'right', 'inverted'):
+
+            if (
+                len(display) > 2 and
+                display[2] in ('normal', 'left', 'right', 'inverted')
+            ):
                 rotation = display[2]
             else:
                 rotation = "normal"
@@ -124,8 +126,12 @@ def get_xrandr_version():
                                      stdout=subprocess.PIPE).communicate()[0].decode()
     position = xrandr_output.find(pattern) + len(pattern)
     version_str = xrandr_output[position:].strip().split(".")
-    version = { "major" : int(version_str[0]), "minor" : int(version_str[1]) }
-    return version
+    try:
+        return {"major": int(version_str[0]), "minor": int(version_str[1])}
+    except ValueError:
+        logger.error("Can't find version in: %s", xrandr_output)
+        return {"major": 0, "minor": 0}
+
 
 def get_providers():
     """Return the list of available graphic cards"""
