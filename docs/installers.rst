@@ -356,7 +356,8 @@ Currently, the following tasks are implemented:
 *   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
-    ``arch`` (optional WINEARCH, required when you created win64 prefix), ``working_dir`` (optional working directory),
+    ``arch`` (optional WINEARCH, required when you created win64 prefix), ``blocking`` (if true, do not run the process in a thread), ``working_dir`` (optional working directory), ``include_processes``  (optional space-separated list of processes to include to
+    being watched)
     ``exclude_processes`` (optional space-separated list of processes to exclude from
     being watched), ``env`` (optional environment variables), ``overrides`` (optional dll overrides).
 
