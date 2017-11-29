@@ -535,7 +535,7 @@ Example:
 ::
 
     - input_menu:
-        description: Choose the game's language:
+        description: "Choose the game's language:"
         id: LANG
         options:
         - en: English
