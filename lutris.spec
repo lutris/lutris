@@ -28,13 +28,13 @@ BuildRequires:  python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?suse_version}
-BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject-Gdk
+BuildRequires:  python3-gobject, python3-setuptools
 BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
-Requires:       python3-gobject, python3-gobject-Gdk, python3-PyYAML, cabextract
+Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?fedora_version} || 0%{?suse_version}
 BuildRequires: fdupes
