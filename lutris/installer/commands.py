@@ -386,7 +386,7 @@ class CommandsMixin(object):
         mode = params.get('mode', 'w')
 
         with open(file, mode) as f:
-            f.write(params['file'])
+            f.write(params['content'])
 
     def write_json(self, params):
         """Write data into a json file."""
