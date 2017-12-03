@@ -397,9 +397,6 @@ class winesteam(wine.wine):
         launch_info = {}
         launch_info['env'] = self.get_env(full=False)
 
-        if self.runner_config.get('xinput'):
-            launch_info['ld_preload'] = self.get_xinput_path()
-
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
