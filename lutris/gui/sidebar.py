@@ -62,7 +62,6 @@ class SidebarRow(Gtk.ListBoxRow):
             image.show()
             btn.add(image)
             btn.connect('clicked', entry[2])
-            btn.get_style_context().add_class('sidebar-button')
             self.btn_box.add(btn)
 
         self.box.add(self.btn_box)
@@ -137,7 +136,7 @@ class SidebarListBox(Gtk.ListBox):
 
         self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            icon = Gtk.Image.new_from_icon_name(runner.lower().replace(' ', '') + '-platform-symbolic',
+            icon = Gtk.Image.new_from_icon_name(platform.lower().replace(' ', '') + '-platform-symbolic',
                                                 Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, 'platform', platform, icon))
 
