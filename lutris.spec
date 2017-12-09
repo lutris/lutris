@@ -28,7 +28,7 @@ BuildRequires:  python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
 %if 0%{?suse_version}
-BuildRequires:  python3-gobject, python3-setuptools
+BuildRequires:  python3-gobject, python3-setuptools, typelib-1_0-Gtk-3_0
 BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
