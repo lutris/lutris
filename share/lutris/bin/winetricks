@@ -2741,14 +2741,25 @@ w_call()
     w_try w_do_call "$@"
 }
 
+w_backup_reg_file()
+{
+    W_reg_file=$1
+
+    w_get_sha256sum "$W_reg_file"
+
+    w_try cp "$W_reg_file" "$W_TMP_EARLY/_reg_$(echo "$_W_gotsha256sum" | cut -c1-8)"_$$.reg
+
+    unset W_reg_file _W_gotsha256sum
+}
+
 w_register_font()
 {
-    file=$1
+    W_file=$1
     shift
-    font=$1
+    W_font=$1
 
-    case "$file" in
-        *.TTF|*.ttf) font="$font (TrueType)";;
+    case "$W_file" in
+        *.TTF|*.ttf) W_font="$W_font (TrueType)";;
     esac
 
     # Kludge: use _r to avoid \r expansion in w_try
@@ -2756,23 +2767,25 @@ w_register_font()
 REGEDIT4
 
 [HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts]
-"$font"="$file"
+"$W_font"="$W_file"
 _EOF_
     # too verbose
     w_try_regedit "$W_TMP_WIN"\\_register-font.reg
     # shellcheck disable=SC1037
-    cp "$W_TMP"/*.reg "$W_TMP_EARLY"/_reg$$.reg
+    w_backup_reg_file "$W_TMP"/_register-font.reg
 
     # Wine also updates the win9x fonts key, so let's do that, too
     cat > "$W_TMP"/_register-font.reg <<_EOF_
 REGEDIT4
 
 [HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Fonts]
-"$font"="$file"
+"$W_font"="$W_file"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\_register-font.reg
     # shellcheck disable=SC1037
-    cp "$W_TMP"/*.reg "$W_TMP_EARLY"/_reg$$-2.reg
+    w_backup_reg_file "$W_TMP"/_register-font.reg
+
+    unset W_file W_font
 }
 
 w_register_font_replacement()
@@ -2788,6 +2801,9 @@ REGEDIT4
 "$_W_alias"="$_W_font"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\_register-font-replacements.reg
+
+    w_backup_reg_file "$W_TMP"/_register-font-replacements.reg
+
     unset _W_alias _W_font
 }
 
@@ -4743,6 +4759,11 @@ winetricks_init()
         USERNAME="$LOGNAME"
     fi
 
+    # Running Wine as root is (generally) bad, mmkay?
+    if [ "$(id -u)" = 0 ]; then
+        w_warn "Running Wine/winetricks as root is highly discouraged. See https://wiki.winehq.org/FAQ#Should_I_run_Wine_as_root.3F"
+    fi
+
     # Ephemeral files for this run
     WINETRICKS_WORKDIR="$W_TMP_EARLY/w.$LOGNAME.$$"
     test "$W_OPT_NOCLEAN" = 1 || rm -rf "$WINETRICKS_WORKDIR"
@@ -6309,7 +6330,7 @@ w_metadata dxsdk_jun2010 dlls \
 
 load_dxsdk_jun2010()
 {
-    w_download https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe 11a0ddeb293040f8b99eeb1bdf6197ae1b26fdb74c036e5717d8e45db9c1576e
+    w_download https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe 9f818a977c32b254af5d649a4cec269ed8762f8a49ae67a9f01101a7237ae61a
 
     # Without dotnet20, install aborts halfway through
     w_call dotnet20
@@ -7252,7 +7273,7 @@ load_dotnet_verifier()
     # 2016/10/26: sha256sum 1daf4b1b27669b65f613e17814da3c8342d3bfa9520a65a880c58d6a2a6e32b5, adds .NET Framework 4.6.{1,2} support
     # 2017/06/12: sha256sum , adds .NET Framework 4.7 support
 
-    w_download https://msdnshared.blob.core.windows.net/media/2017/05/netfx_setupverifier_new.zip 22c596a13f0822871a01346d2f5736a3b230e1f6cb8ea429aba844d52adc568a
+    w_download https://msdnshared.blob.core.windows.net/media/2017/11/netfx_setupverifier_new.zip 310a0341fbe68f5b8601f2d8deef5d05ca6bce50df03912df391bc843794ef60
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try_unzip "$W_SYSTEM32_DLLS" netfx_setupverifier_new.zip netfx_setupverifier.exe
@@ -10256,6 +10277,7 @@ load_eufonts()
     w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/eufonts/EUupdate.EXE
     w_try cp -f "$W_TMP"/*.ttf "$W_FONTSDIR_UNIX"
 
+    w_register_font ArialBd.ttf "Arial Bold"
     w_register_font ArialBI.ttf "Arial Bold Italic"
     w_register_font ArialI.ttf "Arial Italic"
     w_register_font Arial.ttf "Arial"
@@ -11205,7 +11227,7 @@ load_ie6()
     status=$?
     case $status in
         0|194) ;;
-        *) w_die ie6 installation failed
+        *) w_die ie6 installation failed;;
     esac
 
     # Work around DLL registration bug until ierunonce/RunOnce/wineboot is fixed
@@ -18586,6 +18608,7 @@ REGEDIT4
 "VideoMemorySize"="$size"
 
 _EOF_
+    ;;
     esac
     w_try_regedit "$W_TMP_WIN"\\set-video.reg
 }
@@ -18787,6 +18810,9 @@ winetricks_stats_save()
 {
     # Save opt-in status
     if test "$WINETRICKS_STATS_REPORT"; then
+        if test ! -d "$W_CACHE"; then
+            mkdir -p "$W_CACHE"
+        fi
         echo "$WINETRICKS_STATS_REPORT" > "$W_CACHE"/track_usage
     fi
 }
@@ -18841,11 +18867,10 @@ winetricks_stats_init()
                     $WINETRICKS_GUI --info --text "$declined"
                     WINETRICKS_STATS_REPORT=0
                 fi
-                echo $WINETRICKS_STATS_REPORT > "$W_CACHE"/track_usage
+                winetricks_stats_save
                 ;;
         esac
     fi
-    winetricks_stats_save
 }
 
 # Retrieve a short string with the operating system name and version
