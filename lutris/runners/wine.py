@@ -700,7 +700,8 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
                             ('Enabled', ''),
-                            ('Full', '+all')],
+                            ('Show FPS', '+fps'),
+                            ('Full (CAUTION: Will cause MASSIVE slowdown)', '+all')],
                 'default': '-all',
                 'advanced': True,
                 'help': ("Output debugging information in the game log "
