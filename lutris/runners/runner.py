@@ -103,7 +103,7 @@ class Runner:
         """Return the path to open with the Browse Files action."""
         for key in self.game_config:
             if key in ['exe', 'main_file', 'rom', 'disk', 'iso']:
-                path = os.path.dirname(self.game_config.get(key))
+                path = os.path.dirname(self.game_config.get(key) or '')
                 if not os.path.isabs(path):
                     path = os.path.join(self.game_path, path)
                 return path
@@ -122,6 +122,9 @@ class Runner:
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return os.path.expanduser("~/")
+
+    def killall_on_exit(self):
+        return True
 
     def get_platform(self):
         return self.platforms[0]

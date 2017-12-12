@@ -41,6 +41,10 @@ def get_output_list():
     return choices
 
 
+def get_dri_prime():
+    return len(display.get_providers()) > 1
+
+
 system_options = [
     {
         'option': 'game_path',
@@ -78,6 +82,17 @@ system_options = [
         'help': ("If you have installed the primus package, selecting this "
                  "option will run the game with the primusrun command, "
                  "activating your NVIDIA graphic chip for high 3D "
+                 "performance.")
+    },
+    {
+        'option': 'dri_prime',
+        'type': 'bool',
+        'default': False,
+        'condition': get_dri_prime,
+        'label': 'Use PRIME (hybrid graphics on laptops)',
+        'help': ("If you have open source graphic drivers (Mesa), selecting this "
+                 "option will run the game with the 'DRI_PRIME=1' environment variable, "
+                 "activating your discrete graphic chip for high 3D "
                  "performance.")
     },
     {
@@ -142,6 +157,27 @@ system_options = [
         'advanced': True,
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
+    },
+    {
+        'option': 'include_processes',
+        'type': 'string',
+        'label': 'Include processes',
+        'advanced': True,
+        'help': ('What processes to include in process monitoring. '
+                 'This is to override the built-in exclude list.\n'
+                 'Space-separated list, processes including spaces '
+                 'can be wrapped in quotation marks.')
+    },
+    {
+        'option': 'exclude_processes',
+        'type': 'string',
+        'label': 'Exclude processes',
+        'advanced': True,
+        'help': ('What processes to exclude in process monitoring. '
+                 'For example background processes that stick around '
+                 'after the game has been closed.\n'
+                 'Space-separated list, processes including spaces '
+                 'can be wrapped in quotation marks.')
     },
     {
         'option': 'single_cpu',
@@ -211,7 +247,7 @@ system_options = [
         'label': 'xboxdrv config',
         'advanced': True,
         'condition': system.find_executable('xboxdrv'),
-        'help': ("Command line options for xboxdrv, a driver for XBOX 360"
+        'help': ("Command line options for xboxdrv, a driver for XBOX 360 "
                  "controllers. Requires the xboxdrv package installed.")
     },
     {
@@ -219,7 +255,7 @@ system_options = [
         'type': 'string',
         'label': 'SDL2 gamepad mapping',
         'advanced': True,
-        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom"
+        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
                  "gamecontrollerdb.txt file containing mappings.")
     },
     {
@@ -240,6 +276,7 @@ system_options = [
         'option': 'xephyr_resolution',
         'type': 'string',
         'label': 'Xephyr resolution',
+        'advanced': True,
         'help': 'Screen resolution of the Xephyr server'
     },
 ]

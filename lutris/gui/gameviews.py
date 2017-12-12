@@ -10,11 +10,10 @@ from lutris import runners
 from lutris import settings
 from lutris.game import Game
 
-from lutris.gui.cellrenderers import GridViewCellRendererText
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SMALL_SIZE
 
 from lutris.services import xdg
-from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 
 (
@@ -125,8 +124,6 @@ class GameStore(GObject.Object):
         self.add_game(game)
 
     def add_game(self, game):
-        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
-                                     game['installed'])
         name = game['name'].replace('&', "&amp;")
         runner = None
         platform = ''
@@ -139,15 +136,21 @@ class GameStore(GObject.Object):
             if runner_name in self.runner_names:
                 runner_human_name = self.runner_names[runner_name]
             else:
-                runner = runners.import_runner(runner_name)
-                runner_human_name = runner.human_name
-                self.runner_names[runner_name] = runner_human_name
+                try:
+                    runner = runners.import_runner(runner_name)
+                except runners.InvalidRunner:
+                    game['installed'] = False
+                else:
+                    runner_human_name = runner.human_name
+                    self.runner_names[runner_name] = runner_human_name
             platform = game_inst.platform
 
         lastplayed = ''
         if game['lastplayed']:
             lastplayed = time.strftime("%c", time.localtime(game['lastplayed']))
 
+        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
+                                     game['installed'])
         self.store.append((
             game['id'],
             game['slug'],
@@ -483,8 +486,8 @@ class ContextualMenu(Gtk.Menu):
         if runner_slug:
             game = game or Game(game_id)
             try:
-                runner = import_runner(runner_slug)(game.config)
-            except InvalidRunner:
+                runner = runners.import_runner(runner_slug)(game.config)
+            except runners.InvalidRunner:
                 runner_entries = None
             else:
                 runner_entries = runner.context_menu_entries

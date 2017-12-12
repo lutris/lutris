@@ -230,6 +230,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_steam_game_changed(self, operation, path):
         appmanifest = steam.AppManifest(path)
+        if self.running_game and 'steam' in self.running_game.runner_name:
+            self.running_game.notify_steam_game_changed(appmanifest)
+
         runner_name = appmanifest.get_runner_name()
         games = pga.get_games_where(steamid=appmanifest.steamid)
         if operation == Gio.FileMonitorEvent.DELETED:

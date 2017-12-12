@@ -1,6 +1,6 @@
 import os
-import signal
 from lutris.util.log import logger
+from lutris.util.system import kill_pid
 
 
 class InvalidPid(Exception):
@@ -50,12 +50,13 @@ class Process(object):
 
     def get_children_pids_of_thread(self, tid):
         """Return pids of child processes opened by thread `tid` of process."""
-        children = []
         children_path = '/proc/{}/task/{}/children'.format(self.pid, tid)
-        if os.path.exists(children_path):
+        try:
             with open(children_path) as children_file:
-                children = children_file.read().strip().split()
-        return children
+                children_content = children_file.read()
+        except FileNotFoundError:
+            children_content = ''
+        return children_content.strip().split()
 
     def get_children(self):
         self.children = []
@@ -108,8 +109,12 @@ class Process(object):
         cwd_path = '/proc/%d/cwd' % int(self.pid)
         return os.readlink(cwd_path)
 
-    def kill(self):
-        try:
-            os.kill(self.pid, signal.SIGKILL)
-        except OSError:
-            logger.error("Could not kill process %s", self.pid)
+    def kill(self, killed_processes=None):
+        if not killed_processes:
+            killed_processes = set()
+        for child_pid in reversed(sorted(self.get_thread_ids())):
+            child = Process(child_pid)
+            if child.pid not in killed_processes:
+                killed_processes.add(child.pid)
+                child.kill(killed_processes)
+        kill_pid(self.pid)

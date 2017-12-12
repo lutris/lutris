@@ -43,6 +43,9 @@ def fetch_script(game_slug, revision=None):
     request = Request(installer_url)
     request.get()
     response = request.json
+    if response is None:
+        raise RuntimeError("Couldn't get installer at %s" % installer_url)
+
     if key:
         return response[key]
     else:
@@ -258,14 +261,14 @@ class ScriptInterpreter(CommandsMixin):
         else:
             file_uri = game_file[file_id]
             filename = os.path.basename(file_uri)
-        if not filename:
-            raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
             self._download_steam_data(file_uri, file_id)
             return
+        if not filename:
+            raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
 
         # Check for file availability in PGA
         pga_uri = pga.check_for_file(self.game_slug, file_id)

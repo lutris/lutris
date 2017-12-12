@@ -1,7 +1,9 @@
 import multiprocessing
 import os
+import stat
 import shutil
 import shlex
+import json
 
 from gi.repository import GLib
 
@@ -11,6 +13,7 @@ from lutris import runtime
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
+from lutris.util import selective_merge
 
 from lutris.runners import wine, import_task
 from lutris.thread import LutrisThread
@@ -49,32 +52,59 @@ class CommandsMixin(object):
 
     def chmodx(self, filename):
         filename = self._substitute(filename)
-        os.popen('chmod +x "%s"' % filename)
+        st = os.stat(filename)
+        os.chmod(filename, st.st_mode | stat.S_IEXEC)
 
     def execute(self, data):
         """Run an executable file."""
         args = []
         terminal = None
         working_dir = None
+        env = {}
         if isinstance(data, dict):
-            self._check_required_params('file', data, 'execute')
-            file_ref = data['file']
+            if 'command' not in data and 'file' not in data:
+                raise ScriptingError('Parameter file or command is mandatory '
+                                     'for the execute command', data)
+            elif 'command' in data and 'file' in data:
+                raise ScriptingError('Parameters file and command can\'t be '
+                                     'used at the same time for the execute '
+                                     'command', data)
+            file_ref = data.get('file', '')
+            command = data.get('command', '')
             args_string = data.get('args', '')
             for arg in shlex.split(args_string):
                 args.append(self._substitute(arg))
             terminal = data.get('terminal')
             working_dir = data.get('working_dir')
+            if not data.get('disable_runtime', False):
+                env.update(runtime.get_env())
+            userenv = data.get('env', {})
+            for key in userenv:
+                v = userenv[key]
+                userenv[key] = self._get_file(v) or self._substitute(v)
+            env.update(userenv)
+            include_processes = shlex.split(data.get('include_processes', ''))
+            exclude_processes = shlex.split(data.get('exclude_processes', ''))
+        elif isinstance(data, str):
+            command = data
+            include_processes = []
+            exclude_processes = []
         else:
-            file_ref = data
+            raise ScriptingError('No parameters supplied to execute command.', data)
 
-        # Determine whether 'file' value is a file id or a path
-        exec_path = self._get_file(file_ref) or self._substitute(file_ref)
+        if command:
+            command = command.strip()
+            command = self._get_file(command) or self._substitute(command)
+            file_ref = 'bash'
+            args = ['-c', command]
+            include_processes.append('bash')
+        else:
+            # Determine whether 'file' value is a file id or a path
+            file_ref = self._get_file(file_ref) or self._substitute(file_ref)
+
+        exec_path = system.find_executable(file_ref)
         if not exec_path:
-            raise ScriptingError("Unable to find file %s" % file_ref,
-                                 file_ref)
-        if not os.path.exists(exec_path):
-            raise ScriptingError("Unable to find required executable",
-                                 exec_path)
+            raise ScriptingError("Unable to find executable %s" % file_ref)
         if not os.access(exec_path, os.X_OK):
             self.chmodx(exec_path)
 
@@ -86,8 +116,9 @@ class CommandsMixin(object):
 
         command = [exec_path] + args
         logger.debug("Executing %s" % command)
-        thread = LutrisThread(command, env=runtime.get_env(), term=terminal,
-                              cwd=self.target_path)
+        thread = LutrisThread(command, env=env, term=terminal, cwd=working_dir,
+                              include_processes=include_processes,
+                              exclude_processes=exclude_processes)
         thread.start()
         GLib.idle_add(self.parent.attach_logger, thread)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
@@ -340,16 +371,61 @@ class CommandsMixin(object):
             return False
         return True
 
+    def write_file(self, params):
+        """Write text to a file."""
+        self._check_required_params(['file', 'content'], params, 'write_file')
+
+        # Get file
+        file = self._get_file(params['file']) or self._substitute(params['file'])
+
+        # Create dir if necessary
+        basedir = os.path.dirname(file)
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+
+        mode = params.get('mode', 'w')
+
+        with open(file, mode) as f:
+            f.write(params['content'])
+
+    def write_json(self, params):
+        """Write data into a json file."""
+        self._check_required_params(['file', 'data'], params, 'write_json')
+
+        # Get file
+        file = self._get_file(params['file']) or self._substitute(params['file'])
+
+        # Create dir if necessary
+        basedir = os.path.dirname(file)
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
+
+        merge = params.get('merge', True)
+
+        with open(file, 'a+') as f:
+            pass
+
+        with open(file, 'r+' if merge else 'w') as f:
+            data = {}
+            if merge:
+                try:
+                    data = json.load(f)
+                except ValueError:
+                    pass
+
+            data = selective_merge(data, params.get('data', {}))
+            f.seek(0)
+            f.write(json.dumps(data, indent=2))
+
     def write_config(self, params):
         """Write a key-value pair into an INI type config file."""
         self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'write_config')
         # Get file
-        config_file = self._get_file(params['file'])
-        if not config_file:
-            config_file = self._substitute(params['file'])
+        config_file = (self._get_file(params['file']) or
+                       self._substitute(params['file']))
 
-        # Create it if necessary
+        # Create dir if necessary
         basedir = os.path.dirname(config_file)
         if not os.path.exists(basedir):
             os.makedirs(basedir)

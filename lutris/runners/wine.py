@@ -55,7 +55,7 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 def get_overrides_env(overrides):
     """
     Output a string of dll overrides usable with WINEDLLOVERRIDES
-    See: https://www.winehq.org/docs/wineusr-guide/x258#AEN309
+    See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
     """
     if not overrides:
         return ''
@@ -98,7 +98,8 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
              prefix=prefix, arch=arch, blocking=True)
 
 
-def create_prefix(prefix, wine_path=None, arch='win32'):
+def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
+                  install_gecko=None, install_mono=None):
     """Create a new Wine prefix."""
     logger.debug("Creating a %s prefix in %s", arch, prefix)
 
@@ -115,11 +116,18 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
         logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
         return
 
-    env = {
+    if install_gecko is 'False':
+        overrides['mshtml'] = 'disabled'
+    if install_mono is 'False':
+        overrides['mscoree'] = 'disabled'
+
+    wineenv = {
         'WINEARCH': arch,
-        'WINEPREFIX': prefix
+        'WINEPREFIX': prefix,
+        'WINEDLLOVERRIDES': get_overrides_env(overrides)
     }
-    system.execute([wineboot_path], env=env)
+
+    system.execute([wineboot_path], env=wineenv)
     for i in range(20):
         time.sleep(.25)
         if os.path.exists(os.path.join(prefix, 'user.reg')):
@@ -133,9 +141,51 @@ def create_prefix(prefix, wine_path=None, arch='win32'):
     prefix_manager.setup_defaults()
 
 
+def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
+    """Kill processes in Wine prefix."""
+
+    initial_pids = initial_pids or []
+
+    if not wine_path:
+        wine_path = wine().get_executable()
+    wine_root = os.path.dirname(wine_path)
+    if not env:
+        env = {
+            'WINEARCH': arch,
+            'WINEPREFIX': prefix
+        }
+    command = [os.path.join(wine_root, "wineserver"), "-k"]
+
+    logger.debug("Killing all wine processes: %s" % command)
+    logger.debug("\tWine prefix: %s", prefix)
+    logger.debug("\tWine arch: %s", arch)
+    if initial_pids:
+        logger.debug("\tInitial pids: %s", initial_pids)
+
+    system.execute(command, env=env, quiet=True)
+
+    logger.debug("Waiting for wine processes to terminate")
+    # Wineserver needs time to terminate processes
+    num_cycles = 0
+    while True:
+        num_cycles += 1
+        running_processes = [
+            pid for pid in initial_pids
+            if os.path.exists("/proc/%s" % pid)
+        ]
+
+        if not running_processes:
+            break
+        if num_cycles > 20:
+            logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
+            break
+        time.sleep(0.1)
+
+
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_wine='', blocking=False,
-             config=None, include_processes=[]):
+             config=None, include_processes=[], exclude_processes=[],
+             disable_runtime=False, env={}, overrides=None):
     """
     Execute a Wine command.
 
@@ -165,7 +215,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    executable, _args = get_real_executable(executable)
+    executable, _args, working_dir = get_real_executable(executable, working_dir)
     if _args:
         args = '{} "{}"'.format(_args[0], _args[1])
 
@@ -174,34 +224,42 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch)
 
-    env = {
+    wineenv = {
         'WINEARCH': arch
     }
     if winetricks_wine:
-        env['WINE'] = winetricks_wine
+        wineenv['WINE'] = winetricks_wine
     else:
-        env['WINE'] = wine_path
+        wineenv['WINE'] = wine_path
     if prefix:
-        env['WINEPREFIX'] = prefix
+        wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if not wine_config.system_config['disable_runtime'] and not runtime.is_disabled():
-        env['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+    if (not wine_config.system_config['disable_runtime'] and
+            not runtime.is_disabled() and not disable_runtime):
+        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+
+    if overrides:
+        wineenv['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
+
+    wineenv.update(env)
 
     command = [wine_path]
     if executable:
         command.append(executable)
     command += shlex.split(args)
     if blocking:
-        return system.execute(command, env=env, cwd=working_dir)
+        return system.execute(command, env=wineenv, cwd=working_dir)
     else:
-        thread = LutrisThread(command, runner=wine(), env=env, cwd=working_dir,
-                              include_processes=include_processes)
+        thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
+                              include_processes=include_processes,
+                              exclude_processes=exclude_processes)
         thread.start()
         return thread
 
 
-def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=None):
+def winetricks(app, prefix=None, arch=None, silent=True,
+               wine_path=None, config=None, disable_runtime=False):
     """Execute winetricks."""
     winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
     if arch not in ('win32', 'win64'):
@@ -214,7 +272,8 @@ def winetricks(app, prefix=None, arch=None, silent=True, wine_path=None, config=
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "--unattended " + args
     return wineexec(None, prefix=prefix, winetricks_wine=winetricks_wine,
-                    wine_path=winetricks_path, arch=arch, args=args, config=config)
+                    wine_path=winetricks_path, arch=arch, args=args,
+                    config=config, disable_runtime=disable_runtime)
 
 
 def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
@@ -358,21 +417,25 @@ def support_legacy_version(version):
     return version
 
 
-def get_real_executable(windows_executable):
+def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
+
     exec_name = windows_executable.lower()
 
     if exec_name.endswith(".msi"):
-        return ('msiexec', ['/i', windows_executable])
+        return ('msiexec', ['/i', windows_executable], working_dir)
 
     if exec_name.endswith(".bat"):
-        return ('cmd', ['/C', windows_executable])
+        if not working_dir or os.path.dirname(windows_executable) == working_dir:
+            working_dir = os.path.dirname(windows_executable) or None
+            windows_executable = os.path.basename(windows_executable)
+        return ('cmd', ['/C', windows_executable], working_dir)
 
     if exec_name.endswith(".lnk"):
-        return ('start', ['/unix', windows_executable])
+        return ('start', ['/unix', windows_executable], working_dir)
 
-    return (windows_executable, [])
+    return (windows_executable, [], working_dir)
 
 
 # pylint: disable=C0103
@@ -496,14 +559,6 @@ class wine(Runner):
                          'selected "Custom" as the Wine version.')
             },
             {
-                'option': 'xinput',
-                'label': 'Enable Koku-Xinput (experimental, try using the x360 option instead)',
-                'type': 'bool',
-                'default': False,
-                'help': ("Preloads a library that enables Joypads on games\n"
-                         "using XInput.")
-            },
-            {
                 'option': 'x360ce-path',
                 'label': "Path to the game's executable, for x360ce support",
                 'type': 'directory_chooser',
@@ -511,10 +566,24 @@ class wine(Runner):
             },
             {
                 'option': 'x360ce-dinput',
-                'label': 'x360ce dinput mode',
+                'label': 'x360ce dinput 8 mode',
                 'type': 'bool',
                 'default': False,
                 'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
+            },
+            {
+                'option': 'x360ce-xinput9',
+                'label': 'x360ce xinput 9.1.0 mode',
+                'type': 'bool',
+                'default': False,
+                'help': "Configure x360ce with xinput9_1_0.dll, required for some newer games"
+            },
+            {
+                'option': 'dumbxinputemu',
+                'label': 'Use Dumb xinput Emulator (experimental)',
+                'type': 'bool',
+                'default': False,
+                'help': "Use the dlls from kozec/dumbxinputemu"
             },
             {
                 'option': 'Desktop',
@@ -631,7 +700,8 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
                             ('Enabled', ''),
-                            ('Full', '+all')],
+                            ('Show FPS', '+fps'),
+                            ('Full (CAUTION: Will cause MASSIVE slowdown)', '+all')],
                 'default': '-all',
                 'advanced': True,
                 'help': ("Output debugging information in the game log "
@@ -822,9 +892,11 @@ class wine(Runner):
 
         overrides = self.runner_config.get('overrides') or {}
         if self.runner_config.get('x360ce-path'):
-            overrides['xinput1_3'] = 'native,builtin'
+            overrides['xinput1_3'] = 'native'
+            if self.runner_config.get('x360ce-xinput9'):
+                overrides['xinput9_1_0'] = 'native'
             if self.runner_config.get('x360ce-dinput'):
-                overrides['dinput8'] = 'native,builtin'
+                overrides['dinput8'] = 'native'
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
 
@@ -845,33 +917,35 @@ class wine(Runner):
             pids = pids | pids_64
         return pids
 
-    def get_xinput_path(self):
-        xinput_path = os.path.join(settings.RUNTIME_DIR,
-                                   'lib32/koku-xinput-wine/koku-xinput-wine.so')
-        if os.path.exists(xinput_path):
-            return xinput_path
-
     def setup_x360ce(self, x360ce_path):
         if not os.path.isdir(x360ce_path):
             logger.error("%s is not a valid path for x360ce", x360ce_path)
             return
-        xinput_dest_path = os.path.join(x360ce_path, 'xinput1_3.dll')
-        dll_path = os.path.join(datapath.get(), 'controllers/x360ce-{}'.format(self.wine_arch))
-        if not os.path.exists(xinput_dest_path):
-            xinput1_3_path = os.path.join(dll_path, 'xinput1_3.dll')
-            shutil.copyfile(xinput1_3_path, xinput_dest_path)
-        if self.runner_config.get('x360ce-dinput') and self.wine_arch == 'win32':
-            dinput8_path = os.path.join(dll_path, 'dinput8.dll')
-            dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
-            shutil.copyfile(dinput8_path, dinput8_dest_path)
+        mode = 'dumbxinputemu' if self.runner_config.get('dumbxinputemu') else 'x360ce'
+        dll_files = ['xinput1_3.dll']
+        if self.runner_config.get('x360ce-xinput9'):
+            dll_files.append('xinput9_1_0.dll')
 
-        x360ce_config = X360ce()
-        x360ce_config.populate_controllers()
-        x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
+        for dll_file in dll_files:
+            xinput_dest_path = os.path.join(x360ce_path, dll_file)
+            dll_path = os.path.join(datapath.get(), 'controllers/{}-{}'.format(mode, self.wine_arch))
+            if not os.path.exists(xinput_dest_path):
+                source_file = dll_file if mode == 'dumbxinputemu' else 'xinput1_3.dll'
+                shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
+
+        if mode == 'x360ce':
+            if self.runner_config.get('x360ce-dinput'):
+                dinput8_path = os.path.join(dll_path, 'dinput8.dll')
+                dinput8_dest_path = os.path.join(x360ce_path, 'dinput8.dll')
+                shutil.copyfile(dinput8_path, dinput8_dest_path)
+
+            x360ce_config = X360ce()
+            x360ce_config.populate_controllers()
+            x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
 
     def play(self):
         game_exe = self.game_exe
-        arguments = self.game_config.get('args') or ''
+        arguments = self.game_config.get('args', '')
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
@@ -879,19 +953,12 @@ class wine(Runner):
         launch_info = {}
         launch_info['env'] = self.get_env(full=False)
 
-        if self.runner_config.get('xinput'):
-            xinput_path = self.get_xinput_path()
-            if xinput_path:
-                logger.debug('Preloading %s', xinput_path)
-                launch_info['ld_preload'] = self.get_xinput_path()
-            else:
-                logger.error('Missing koku-xinput-wine.so, Xinput won\'t be enabled')
-
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
         command = [self.get_executable()]
-        game_exe, _args = get_real_executable(game_exe)
+
+        game_exe, _args, working_dir = get_real_executable(game_exe, self.working_dir)
         command.append(game_exe)
         if _args:
             command = command + _args
@@ -904,26 +971,28 @@ class wine(Runner):
 
     def stop(self):
         """The kill command runs wineserver -k."""
-        wine_path = self.get_executable()
-        wine_root = os.path.dirname(wine_path)
-        env = self.get_env()
-        command = [os.path.join(wine_root, "wineserver"), "-k"]
-        logger.debug("Killing all wine processes: %s" % command)
-        try:
-            proc = subprocess.Popen(command, env=env)
-            proc.wait()
-        except OSError:
-            logger.exception('Could not terminate wineserver %s', command)
+        winekill(self.prefix_path,
+                 arch=self.wine_arch,
+                 wine_path=self.get_executable(),
+                 env=self.get_env(),
+                 initial_pids=self.get_pids())
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
         """Take a Windows path, return the corresponding Linux path."""
+        if not prefix_path:
+            prefix_path = os.path.expanduser("~/.wine")
+
         path = path.replace("\\\\", "/").replace('\\', '/')
-        if path.startswith('C'):
-            if not prefix_path:
-                prefix_path = os.path.expanduser("~/.wine")
-            path = os.path.join(prefix_path, 'drive_c', path[3:])
-        elif path[1] == ':':
-            # Trim Windows path
-            path = path[2:]
-        return path
+
+        if path[1] == ':':  # absolute path
+            drive = os.path.join(prefix_path, 'dosdevices', path[:2].lower())
+            if os.path.islink(drive):  # Try to resolve the path
+                drive = os.readlink(drive)
+            return os.path.join(drive, path[3:])
+
+        elif path[0] == '/':  # drive-relative path. C is as good a guess as any..
+            return os.path.join(prefix_path, 'drive_c', path[1:])
+
+        else:  # Relative path
+            return path

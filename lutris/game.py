@@ -194,7 +194,7 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
-        self.original_outputs = display.get_outputs()
+        self.original_outputs = sorted(display.get_outputs(), key=lambda e: e[0] == system_config.get('display'))
         gameplay_info = self.runner.play()
 
         env = {}
@@ -295,11 +295,18 @@ class Game(object):
         # Env vars
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
+
         system_env = system_config.get('env') or {}
         env.update(system_env)
 
         ld_preload = gameplay_info.get('ld_preload') or ''
         env["LD_PRELOAD"] = ld_preload
+
+        dri_prime = system_config.get('dri_prime')
+        if dri_prime:
+            env["DRI_PRIME"] = "1"
+        else:
+            env["DRI_PRIME"] = "0"
 
         # Runtime management
         ld_library_path = ""
@@ -315,8 +322,11 @@ class Game(object):
                 ld_library_path = '$LD_LIBRARY_PATH'
             ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
         env["LD_LIBRARY_PATH"] = ld_library_path
-
         # /Env vars
+
+        include_processes = shlex.split(system_config.get('include_processes', ''))
+        exclude_processes = shlex.split(system_config.get('exclude_processes', ''))
+
         monitoring_disabled = system_config.get('disable_monitoring')
         process_watch = not monitoring_disabled
 
@@ -326,7 +336,9 @@ class Game(object):
                                         rootpid=gameplay_info.get('rootpid'),
                                         watch=process_watch,
                                         term=terminal,
-                                        log_buffer=self.log_buffer)
+                                        log_buffer=self.log_buffer,
+                                        include_processes=include_processes,
+                                        exclude_processes=exclude_processes)
         if hasattr(self.runner, 'stop'):
             self.game_thread.set_stop_command(self.runner.stop)
         self.game_thread.start()
@@ -348,7 +360,7 @@ class Game(object):
             "--dbus", "session", "--silent"
         ] + config.split()
         logger.debug("[xboxdrv] %s", ' '.join(command))
-        self.xboxdrv_thread = LutrisThread(command)
+        self.xboxdrv_thread = LutrisThread(command, include_processes=['xboxdrv'])
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
@@ -364,8 +376,12 @@ class Game(object):
                                 self.game_thread.error)
             self.on_game_quit()
             return False
-        killswitch_engage = self.killswitch and \
-            not os.path.exists(self.killswitch)
+
+        # The killswitch file should be set to a device (ie. /dev/input/js0)
+        # When that device is unplugged, the game is forced to quit.
+        killswitch_engage = (
+            self.killswitch and not os.path.exists(self.killswitch)
+        )
         if not self.game_thread.is_running or killswitch_engage:
             logger.debug("Game thread stopped")
             self.on_game_quit()
@@ -373,16 +389,18 @@ class Game(object):
         return True
 
     def stop(self):
-        self.state = self.STATE_STOPPED
         if self.runner.system_config.get('xboxdrv'):
+            log.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None, killall=True)
+            jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
+        self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
+            logger.debug("Game thread still running, stopping it (state: %s)", self.state)
             self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
@@ -423,3 +441,7 @@ class Game(object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog("<b>Error: A different Wine version is "
                                     "already using the same Wine prefix.</b>")
+
+    def notify_steam_game_changed(self, appmanifest):
+        logger.debug(appmanifest)
+        logger.debug(appmanifest.states)

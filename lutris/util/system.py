@@ -1,4 +1,5 @@
 import hashlib
+import signal
 import os
 import re
 import shutil
@@ -142,11 +143,14 @@ def get_all_pids():
 
 def kill_pid(pid):
     try:
-        int(pid)
+        pid = int(pid)
     except ValueError:
         logger.error("Invalid pid %s")
         return
-    execute(['kill', '-9', pid])
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except OSError:
+        logger.error("Could not kill process %s", pid)
 
 
 def get_command_line(pid):
@@ -287,7 +291,7 @@ def get_pids_using_file(path):
         logger.warning("fuser not available, please install psmisc")
         return set([])
     else:
-        fuser_output = execute([fuser_path, path])
+        fuser_output = execute([fuser_path, path], quiet=True)
         return set(fuser_output.split())
 
 

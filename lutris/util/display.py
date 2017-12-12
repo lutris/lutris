@@ -23,10 +23,22 @@ def get_outputs():
         if parts[1] == 'connected':
             if len(parts) == 2:
                 continue
-            geom = parts[2] if parts[2] != 'primary' else parts[3]
+            if parts[2] != 'primary':
+                geom = parts[2]
+                rotate = parts[3]
+            else:
+                geom = parts[3]
+                rotate = parts[4]
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
-            outputs.append((parts[0], geom))
+            if rotate.startswith('('):  # Screen not rotated, no need to include
+                outputs.append((parts[0], geom, "normal"))
+            else:
+                if rotate in ("left", "right"):
+                    geom_parts = geom.split('+')
+                    x_y = geom_parts[0].split('x')
+                    geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
+                outputs.append((parts[0], geom, rotate))
     return outputs
 
 
@@ -85,14 +97,55 @@ def change_resolution(resolution):
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
 
+            if (
+                len(display) > 2 and
+                display[2] in ('normal', 'left', 'right', 'inverted')
+            ):
+                rotation = display[2]
+            else:
+                rotation = "normal"
+
             subprocess.Popen([
                 "xrandr",
                 "--output", display_name,
                 "--mode", display_resolution,
-                "--pos", "{}x{}".format(position[0], position[1])
+                "--pos", "{}x{}".format(position[0], position[1]),
+                "--rotate", rotation
             ]).communicate()
 
 
 def restore_gamma():
     """Restores gamma to a normal level."""
     subprocess.Popen(["xgamma", "-gamma", "1.0"])
+
+
+def get_xrandr_version():
+    """Return the major and minor version of XRandR utility"""
+    pattern = "version"
+    xrandr_output = subprocess.Popen(["xrandr", "--version"],
+                                     stdout=subprocess.PIPE).communicate()[0].decode()
+    position = xrandr_output.find(pattern) + len(pattern)
+    version_str = xrandr_output[position:].strip().split(".")
+    try:
+        return {"major": int(version_str[0]), "minor": int(version_str[1])}
+    except ValueError:
+        logger.error("Can't find version in: %s", xrandr_output)
+        return {"major": 0, "minor": 0}
+
+
+def get_providers():
+    """Return the list of available graphic cards"""
+    pattern = "name:"
+    providers = list()
+    version = get_xrandr_version()
+
+    if version["major"] == 1 and version["minor"] >= 4:
+        xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
+                                         stdout=subprocess.PIPE).communicate()[0].decode()
+        for line in xrandr_output.split("\n"):
+            if line.find("Provider ") != 0:
+                continue
+            position = line.find(pattern) + len(pattern)
+            providers.append(line[position:].strip())
+
+    return providers

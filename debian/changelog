@@ -1,3 +1,31 @@
+lutris (0.4.14) artful; urgency=medium
+
+  * Add option to include and exclude processes from monitoring in installers
+    and during gameplay.
+  * Add winekill installer task
+  * Fix lutris eating 100% CPU after game quits
+  * Fix the way wine games quit
+  * Fix Wine Steam being killed on game exit even if the option is disabled
+  * Add support for 64bit dinput8.dll for x360ce
+  * Add support for dumbxinputemu as a x360ce alternative
+  * Add option to enable xinput9_1_0.dll in x360ce
+  * Deprecate koku-xinput option
+  * Add system option to enable DRI_PRIME
+  * Add more platforms to Mednafen
+  * Better controller support for Mednafen
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 21 Nov 2017 20:48:38 -0800
+
+lutris (0.4.13) zesty; urgency=medium
+
+  * Add new libretro cores
+  * Stop process monitoring as soon as process stops
+  * Default 'reset_desktop' option to False
+  * Make calling executables more robust
+  * Fix xboxdrv not being monitored properly
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jul 2017 19:12:21 -0700
+
 lutris (0.4.12) zesty; urgency=medium
 
   * Increase process monitor delay

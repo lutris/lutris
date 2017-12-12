@@ -7,40 +7,14 @@ from lutris.game import Game
 from lutris import gui
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.widgets.common import VBox
+from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 from lutris.util.strings import slugify
 from lutris.util import datapath
 
-DIALOG_WIDTH = 550
-DIALOG_HEIGHT = 550
-
-
-class SlugEntry(Gtk.Entry, Gtk.Editable):
-    def __init__(self):
-        super().__init__()
-
-    def do_insert_text(self, new_text, length, position):
-        """Filter inserted characters to only accept alphanumeric and dashes"""
-        new_text = ''.join([c for c in new_text if c.isalnum() or c == '-']).lower()
-        if new_text:
-            self.get_buffer().insert_text(position, new_text, length)
-            return position + length
-        return position
-
-
-class NumberEntry(Gtk.Entry, Gtk.Editable):
-    def __init__(self):
-        super().__init__()
-
-    def do_insert_text(self, new_text, length, position):
-        """Filter inserted characters to only accept numbers"""
-        new_text = ''.join([c for c in new_text if c.isnumeric()])
-        if new_text:
-            self.get_buffer().insert_text(position, new_text, length)
-            return position + length
-        return position
+DIALOG_WIDTH = 780
+DIALOG_HEIGHT = 560
 
 
 class GameDialogCommon(object):
