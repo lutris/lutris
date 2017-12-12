@@ -3,6 +3,7 @@ import time
 import json
 from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
+from lutris.services import AuthenticationError
 from lutris.util.http import Request
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
@@ -77,7 +78,7 @@ class GogService:
 
     def load_token(self):
         if not os.path.exists(self.token_path):
-            raise RuntimeError("No GOG token available")
+            raise AuthenticationError("No GOG token available")
         with open(self.token_path) as token_file:
             token_content = json.loads(token_file.read())
         return token_content
@@ -94,7 +95,10 @@ class GogService:
         return request.json
 
     def make_api_request(self, url):
-        token = self.load_token()
+        try:
+            token = self.load_token()
+        except AuthenticationError:
+            return
         if self.get_token_age() > 2600:
             self.request_token(refresh_token=token['refresh_token'])
             token = self.load_token()
