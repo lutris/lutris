@@ -220,7 +220,7 @@ class winesteam(wine.wine):
         """Return Steam exe's path"""
         custom_path = self.runner_config.get('steam_path') or ''
         if custom_path:
-            custom_path = os.path.join(custom_path, 'Steam.exe')
+            custom_path = os.path.expanduser(os.path.join(custom_path, 'Steam.exe'))
             if os.path.exists(custom_path):
                 return custom_path
 
