@@ -327,11 +327,11 @@ class InstallerDialog(Gtk.Window):
             return
         self.interpreter.file_selected(file_path)
 
-    def start_download(self, file_uri, dest_file, callback=None, data=None):
+    def start_download(self, file_uri, dest_file, callback=None, data=None, referer=None):
         self.clean_widgets()
         logger.debug("Downloading %s to %s", file_uri, dest_file)
         self.download_progress = DownloadProgressBox(
-            {'url': file_uri, 'dest': dest_file}, cancelable=True
+            {'url': file_uri, 'dest': dest_file, 'referer': referer}, cancelable=True
         )
         self.download_progress.cancel_button.hide()
         callback = callback or self.on_download_complete

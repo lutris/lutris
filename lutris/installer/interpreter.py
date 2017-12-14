@@ -254,15 +254,19 @@ class ScriptInterpreter(CommandsMixin):
         if isinstance(game_file[file_id], dict):
             filename = game_file[file_id]['filename']
             file_uri = game_file[file_id]['url']
+            referer = game_file[file_id].get('referer')
         else:
             file_uri = game_file[file_id]
             filename = os.path.basename(file_uri)
+            referer = None
+
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
             self._download_steam_data(file_uri, file_id)
             return
+
         if not filename:
             raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
 
@@ -293,7 +297,7 @@ class ScriptInterpreter(CommandsMixin):
         # Change parent's status
         self.parent.set_status('')
         self.game_files[file_id] = dest_file
-        self.parent.start_download(file_uri, dest_file)
+        self.parent.start_download(file_uri, dest_file, referer=referer)
 
     def _download_steam_data(self, file_uri, file_id):
         """Download the game files from Steam to use them outside of Steam.
@@ -766,9 +770,11 @@ class ScriptInterpreter(CommandsMixin):
         data_path = self._get_steam_game_path(runner_class)
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
-        logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id']] = \
-            os.path.join(data_path, self.steam_data['steam_rel_path'])
+        self.game_files[self.steam_data['file_id']] = os.path.abspath(
+            os.path.join(
+                data_path, self.steam_data['steam_rel_path']
+            )
+        )
         self.iter_game_files()
 
     def eject_wine_disc(self):

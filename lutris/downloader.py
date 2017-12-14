@@ -19,10 +19,11 @@ class Downloader():
      ERROR,
      COMPLETED) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False):
+    def __init__(self, url, dest, overwrite=False, referer=None):
         self.url = url
         self.dest = dest
         self.overwrite = overwrite
+        self.referer = referer
         self.stop_request = None
 
         # Read these after a check_progress()
@@ -102,7 +103,12 @@ class Downloader():
         self.file_pointer.close()
 
     def async_download(self, url, queue, stop_request=None):
-        request = http.Request(url, stop_request=stop_request,
+        headers = {}
+        if self.referer:
+            headers['Referer'] = self.referer
+        request = http.Request(url,
+                               stop_request=stop_request,
+                               headers=headers,
                                thread_queue=queue)
         return request.get()
 
