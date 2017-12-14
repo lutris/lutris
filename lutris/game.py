@@ -194,7 +194,10 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
-        self.original_outputs = sorted(display.get_outputs(), key=lambda e: e[0] == system_config.get('display'))
+        self.original_outputs = sorted(
+            display.get_outputs(),
+            key=lambda e: e[0] == system_config.get('display')
+        )
         gameplay_info = self.runner.play()
 
         env = {}
@@ -273,7 +276,7 @@ class Game(object):
 
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command:
-            launch_arguments = shlex.split(prefix_command) + launch_arguments
+            launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
 
         single_cpu = system_config.get('single_cpu') or False
         if single_cpu:
@@ -390,7 +393,7 @@ class Game(object):
 
     def stop(self):
         if self.runner.system_config.get('xboxdrv'):
-            log.debug("Stopping xboxdrv")
+            logger.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
