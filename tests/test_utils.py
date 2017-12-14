@@ -150,3 +150,9 @@ class TestUnpackDependencies(TestCase):
         string = ', , , ,, ,,,,quake,  quake-1,quake-steam | quake-gog|quake-humble |||| , |, | ,|,| ,  '
         dependencies = strings.unpack_dependencies(string)
         self.assertEqual(dependencies, ['quake', 'quake-1', ('quake-steam', 'quake-gog', 'quake-humble')])
+
+
+class TestSubstitute(TestCase):
+    def test_can_sub_game_files_with_dashes_in_key(self):
+        replacements = {'steam-data': '/tmp'}
+        self.assertEqual(system.substitute('--path=$steam-data', replacements), '--path=/tmp')
