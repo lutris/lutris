@@ -31,10 +31,6 @@ class jzintv(Runner):
             "type": "bool",
             "label": "Fullscreen"
         },
-        # Adds the resoluton menu chooser
-        # jzintv has some resolution presets with the command -z
-        # going from -z0 to -z7. Some details on those presets
-        # are unknown and just speculated
         {
             "option": "resolution",
             "type": "choice",
@@ -49,19 +45,14 @@ class jzintv(Runner):
                 ("1600 x 1200", "6")
             )
         }
-        ############################################################
     ]
 
     def play(self):
         """Run Intellivision game"""
         arguments = [self.get_executable()]
-        
-        # Treatment of the choosen resolution
         selected_resolution = self.runner_config.get("resolution")
         if selected_resolution:
             arguments = arguments + ["-z%s" % selected_resolution]
-        #####################################
-        
         if self.runner_config.get("fullscreen"):
             arguments = arguments + ["-f"]
         bios_path = self.runner_config.get("bios_path", '')
