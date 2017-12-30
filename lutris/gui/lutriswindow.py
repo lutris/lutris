@@ -6,7 +6,7 @@ import time
 from collections import namedtuple
 from itertools import chain
 
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, GLib, Gio
 
 from lutris import api, pga, settings
 from lutris.game import Game
@@ -16,6 +16,8 @@ from lutris.runtime import RuntimeUpdater
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
+from lutris.util.system import open_uri
+
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
@@ -160,10 +162,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         actions = {
             'browse-games': Action(
-                lambda *x: self._open_browser('https://lutris.net/games/')
+                lambda *x: open_uri('https://lutris.net/games/')
             ),
             'register-account': Action(
-                lambda *x: self._open_browser('https://lutris.net/user/register/')
+                lambda *x: open_uri('https://lutris.net/user/register/')
             ),
 
             'disconnect': Action(self.on_disconnect),
@@ -454,10 +456,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             connection_status = "Not connected"
         self.connection_label.set_text(connection_status)
 
-    @staticmethod
-    def _open_browser(url):
-        Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
-
     @GtkTemplate.Callback
     def on_resize(self, widget, *args):
         """Size-allocate signal.
@@ -677,7 +675,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game = Game(self.view.selected_game)
         path = game.get_browse_dir()
         if path and os.path.exists(path):
-            Gtk.show_uri(None, 'file://' + path, Gdk.CURRENT_TIME)
+            open_uri('file://' + path)
         else:
             dialogs.NoticeDialog(
                 "Can't open %s \nThe folder doesn't exist." % path
@@ -685,7 +683,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_view_game(self, widget):
         game = Game(self.view.selected_game)
-        self._open_browser('https://lutris.net/games/' + game.slug)
+        open_uri('https://lutris.net/games/' + game.slug)
 
     def on_edit_game_configuration(self, widget):
         """Edit game preferences."""
