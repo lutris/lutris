@@ -276,6 +276,9 @@ You can also use the optional parameter ``mode`` to specify a file write mode.
 Valid values for ``mode`` include ``w`` (the default, to write to a new file)
 or ``a`` to append data to an existing file.
 
+Refer to the YAML documentation for reference on how to including multiline
+documents and quotes.
+
 Example:
 
 ::
