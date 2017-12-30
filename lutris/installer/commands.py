@@ -26,8 +26,9 @@ class CommandsMixin(object):
         raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
 
     def _get_runner_version(self):
-        if self.script.get('wine'):
-            return wine.support_legacy_version(self.script['wine'].get('version'))
+        if self.runner in ('wine', 'winesteam'):
+            if self.script.get(self.runner):
+                return wine.support_legacy_version(self.script[self.runner].get('version'))
         if self.runner == 'libretro':
             return self.script['game']['core']
 
