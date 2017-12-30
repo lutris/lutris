@@ -41,6 +41,7 @@ class LutrisThread(threading.Thread):
                  watch=True, cwd=None, include_processes=[], exclude_processes=[], log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
+        self.ready_state = True
         self.env = env
         self.original_env = {}
         self.command = command
@@ -286,6 +287,11 @@ class LutrisThread(threading.Thread):
         if not self.game_process or not self.is_running:
             logger.error('No game process available')
             return False
+
+        if not self.ready_state:
+            self.cycles_without_children = 0
+            return True
+
         processes, num_children, num_watched_children, terminated_children = self.get_processes()
 
         if processes != self.monitored_processes:
