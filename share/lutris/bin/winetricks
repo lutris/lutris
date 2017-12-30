@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20171018-next
+WINETRICKS_VERSION=20171222-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -514,6 +514,52 @@ w_try_unzip()
     w_try "$WINE" "$W_PROGRAMS_X86_WIN\\7-Zip\\7z.exe" x "$(w_pathconv -w "$zipfile")" -o"$(w_pathconv -w "$destdir")" "$@"
 }
 
+# Copy font files matching a glob pattern from source directory to destination directory.
+# Also remove any file in the destination directory that has the same name as
+# any of the files that we're trying to copy, but with different case letters.
+# Note: it converts font file names to lower case to avoid inconsistencies due to paths
+#       being case-insensitive under Wine.
+w_try_cp_font_files()
+{
+    # $1 - source directory
+    # $2 - destination directory
+    # $3 - optional font file glob pattern (default: "*.ttf")
+
+    _W_src_dir="$1"
+    _W_dest_dir="$2"
+    _W_pattern="$3"
+    shift 2
+
+    if test ! -d "$_W_src_dir"; then
+        w_die "bug: missing source dir"
+    fi
+
+    if test ! -d "$_W_dest_dir"; then
+        w_die "bug: missing destination dir"
+    fi
+
+    if test -z "$_W_pattern"; then
+        _W_pattern="*.ttf"
+    fi
+
+    _W_src_files=$(find "$_W_src_dir" -maxdepth 1 -type f -iname "$_W_pattern")
+
+    for _W_src_file in $_W_src_files; do
+        # Extract the file name and lower case it
+        _W_file_name=$(basename "$_W_src_file" | tr "[:upper:]" "[:lower:]")
+
+        # Remove any existing font files that might have the same name, but with different case characters
+        find "$_W_dest_dir" -maxdepth 1 -type f -iname "$_W_file_name" -exec rm '{}' ';'
+
+        w_try cp -f "$_W_src_file" "$_W_dest_dir/$_W_file_name"
+    done
+
+    # Wait for Wine to add the new font to the registry under HKCU\Software\Wine\Fonts\Cache
+    w_wineserver -w
+
+    unset _W_src_files _W_dest_dir _W_src_file _W_file_name
+}
+
 w_read_key()
 {
     if test ! "$W_OPT_UNATTENDED"; then
@@ -663,7 +709,7 @@ w_get_shatype() {
 
     # tr -d " " is for FreeBSD/OS X/Solaris return a leading space:
     # See https://stackoverflow.com/questions/30927590/wc-on-osx-return-includes-spaces/30927885#30927885
-    _W_sum_length="$(echo "$_W_sum" | tr -d "\n" | wc -c | tr -d " ")"
+    _W_sum_length="$(echo "$_W_sum" | tr -d "\\n" | wc -c | tr -d " ")"
     case "$_W_sum_length" in
         0) _W_shatype="none" ;;
         40) _W_shatype="sha1" ;;
@@ -1843,7 +1889,7 @@ Usage: 'w_override_dlls mode[,mode] dll ...'." ;;
     cat > "$W_TMP"/override-dll.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\DllOverrides]
+[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]
 _EOF_
     while test "$1" != ""
     do
@@ -1860,7 +1906,7 @@ w_override_no_dlls()
 {
     w_skip_windows override && return
 
-    "$WINE" regedit /d 'HKEY_CURRENT_USER\Software\Wine\DllOverrides'
+    "$WINE" regedit /d 'HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides'
 }
 
 w_override_all_dlls()
@@ -2227,15 +2273,15 @@ w_set_winver()
 
     # First, delete any lingering version info, otherwise it may conflict:
     (
-    "$WINE" reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion" /v SubVersionNumber /f || true
-    "$WINE" reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion" /v VersionNumber /f || true
-    "$WINE" reg delete "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v CSDVersion /f || true
-    "$WINE" reg delete "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v CurrentBuildNumber /f || true
-    "$WINE" reg delete "HKLM\Software\Microsoft\Windows NT\CurrentVersion" /v CurrentVersion /f || true
-    "$WINE" reg delete "HKLM\System\CurrentControlSet\Control\ProductOptions" /v ProductType /f || true
-    "$WINE" reg delete "HKLM\System\CurrentControlSet\Control\ServiceCurrent" /v OS /f || true
-    "$WINE" reg delete "HKLM\System\CurrentControlSet\Control\Windows" /v CSDVersion /f || true
-    "$WINE" reg delete "HKCU\Software\Wine" /v Version /f || true
+    "$WINE" reg delete "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion" /v SubVersionNumber /f || true
+    "$WINE" reg delete "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion" /v VersionNumber /f || true
+    "$WINE" reg delete "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion" /v CSDVersion /f || true
+    "$WINE" reg delete "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion" /v CurrentBuildNumber /f || true
+    "$WINE" reg delete "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion" /v CurrentVersion /f || true
+    "$WINE" reg delete "HKLM\\System\\CurrentControlSet\\Control\\ProductOptions" /v ProductType /f || true
+    "$WINE" reg delete "HKLM\\System\\CurrentControlSet\\Control\\ServiceCurrent" /v OS /f || true
+    "$WINE" reg delete "HKLM\\System\\CurrentControlSet\\Control\\Windows" /v CSDVersion /f || true
+    "$WINE" reg delete "HKCU\\Software\\Wine" /v Version /f || true
     "$WINE" reg delete "HKLM\\System\\CurrentControlSet\\Control\\ProductOptions" /v ProductType /f || true
     ) > /dev/null 2>&1
 
@@ -2245,7 +2291,7 @@ w_set_winver()
             cat > "$W_TMP"/set-winver.reg <<_EOF_
 REGEDIT4
 
-[HKEY_USERS\S-1-5-4\Software\Wine]
+[HKEY_USERS\\S-1-5-4\\Software\\Wine]
 "Version"="win31"
 
 _EOF_
@@ -2259,7 +2305,7 @@ _EOF_
             cat > "$W_TMP"/set-winver.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion]
 "ProductName"="Microsoft Windows 95"
 "SubVersionNumber"=""
 "VersionNumber"="4.0.950"
@@ -2275,7 +2321,7 @@ _EOF_
             cat > "$W_TMP"/set-winver.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion]
 "ProductName"="Microsoft Windows 98"
 "SubVersionNumber"=" A "
 "VersionNumber"="4.10.2222"
@@ -2291,18 +2337,18 @@ _EOF_
             cat > "$W_TMP"/set-winver.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion]
 "CSDVersion"="Service Pack 6a"
 "CurrentBuildNumber"="1381"
 "CurrentVersion"="4.0"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ProductOptions]
+[HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\ProductOptions]
 "ProductType"="WinNT"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ServiceCurrent]
+[HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\ServiceCurrent]
 "OS"="Windows_NT"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Windows]
+[HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Windows]
 "CSDVersion"=dword:00000600
 
 _EOF_
@@ -2379,12 +2425,12 @@ _EOF_
     cat > "$W_TMP"/set-winver.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion]
 "CSDVersion"="$csdversion"
 "CurrentBuildNumber"="$currentbuildnumber"
 "CurrentVersion"="$currentversion"
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Windows]
+[HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Windows]
 "CSDVersion"=$csdversion_hex
 
 _EOF_
@@ -2440,7 +2486,7 @@ w_compare_wine_version()
         *) w_die "Unsupported comparison. Only -ge and -le are supported" ;;
     esac
 
-    _pos_current_wine="$(printf "%s\n%s\n%s" "${known_wine_val1}" "${_wine_version_stripped}" "${known_wine_val2}" | sort -t. -k 1,1n -k 2,2n -k 3,3n | grep -n "^${_wine_version_stripped}\$" | cut -d : -f1)"
+    _pos_current_wine="$(printf "%s\\n%s\\n%s" "${known_wine_val1}" "${_wine_version_stripped}" "${known_wine_val2}" | sort -t. -k 1,1n -k 2,2n -k 3,3n | grep -n "^${_wine_version_stripped}\$" | cut -d : -f1)"
     if [ "$_pos_current_wine" = "$_expected_pos_current_wine" ] ; then
         #echo "true: known_wine_version=$2, comparison=$1, stripped wine=$_wine_version_stripped, expected_pos=$_expected_pos_known, pos_known=$_pos_known_wine"
         #echo "Wine version comparison is true"
@@ -2602,7 +2648,7 @@ w_conflicts()
 {
     for x in $2
     do
-        if grep -qw "$x" "$WINEPREFIX/winetricks.log"; then
+        if grep -qw "$x" "$WINEPREFIX/winetricks.log" 2>/dev/null; then
             w_die "error: $1 conflicts with $x, which is already installed."
         fi
     done
@@ -2758,15 +2804,15 @@ w_register_font()
     shift
     W_font=$1
 
-    case "$W_file" in
-        *.TTF|*.ttf) W_font="$W_font (TrueType)";;
+    case $(echo "$W_file" | tr "[:upper:]" "[:lower:]") in
+        *.ttf|*.ttc) W_font="$W_font (TrueType)";;
     esac
 
     # Kludge: use _r to avoid \r expansion in w_try
     cat > "$W_TMP"/_register-font.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts]
 "$W_font"="$W_file"
 _EOF_
     # too verbose
@@ -2778,7 +2824,7 @@ _EOF_
     cat > "$W_TMP"/_register-font.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Fonts]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Fonts]
 "$W_font"="$W_file"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\_register-font.reg
@@ -2797,7 +2843,7 @@ w_register_font_replacement()
     cat > "$W_TMP"/_register-font-replacements.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Fonts\Replacements]
+[HKEY_CURRENT_USER\\Software\\Wine\\Fonts\\Replacements]
 "$_W_alias"="$_W_font"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\_register-font-replacements.reg
@@ -3099,7 +3145,9 @@ winetricks_get_prefix_var()
     (
         # shellcheck disable=SC1090
         . "$W_PREFIXES_ROOT/$p/wrapper.cfg"
+
         # The cryptic sed is there to turn ' into '\''
+        # shellcheck disable=SC1117
         eval echo \$ww_"$1" | sed "s/'/'\\\''/"
     )
 }
@@ -3912,6 +3960,12 @@ winetricks_is_installed()
         return 1  # not installed
     fi
 
+    # Test if the verb has been executed before
+    if ! grep -qw "$1" "$WINEPREFIX/winetricks.log" 2>/dev/null; then
+        unset _W_file
+        return 1  # not installed
+    fi
+
     case "$W_PLATFORM" in
         windows_cmd|wine_cmd)
             # On Windows, there's no wineprefix, just check if file's there
@@ -3949,8 +4003,7 @@ winetricks_is_installed()
             fi
             ;;
     esac
-    unset _W_file _W_prefix  # leak _W_file_unix for caller.  Is this wise?
-    unset _W_IFS _W_file_
+    unset _W_file _W_prefix _W_IFS  # leak _W_file_unix for caller. Is this wise?
     return 1  # not installed
 }
 
@@ -4059,9 +4112,9 @@ winetricks_list_all()
         test "$flags" && flags="[$flags]"
 
         if ! test "$year" && ! test "$publisher"; then
-            printf "%-24s %s %s\n" "$code" "$title" "$flags"
+            printf "%-24s %s %s\\n" "$code" "$title" "$flags"
         else
-            printf "%-24s %s (%s, %s) %s\n" "$code" "$title" "$publisher" "$year" "$flags"
+            printf "%-24s %s (%s, %s) %s\\n" "$code" "$title" "$publisher" "$year" "$flags"
         fi
         )
     done
@@ -7486,7 +7539,7 @@ load_glidewrapper()
         cat > "$W_TMP"/disable-browser.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\WineBrowser]
+[HKEY_CURRENT_USER\\Software\\Wine\\WineBrowser]
 "Browsers"=""
 
 _EOF_
@@ -7498,7 +7551,7 @@ _EOF_
     w_try "$WINE" "$file1" ${W_OPT_UNATTENDED:+ /S}
 
     if test ${W_OPT_UNATTENDED}; then
-        "$WINE" reg delete "HKEY_CURRENT_USER\Software\Wine\WineBrowser" /v Browsers /f || true
+        "$WINE" reg delete "HKEY_CURRENT_USER\\Software\\Wine\\WineBrowser" /v Browsers /f || true
     fi
 }
 
@@ -8003,34 +8056,34 @@ load_mdx()
     cat > "$W_TMP"/asmfolders.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2902.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2902.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2902.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2903.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2903.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2903.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2904.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2904.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2904.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2905.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2905.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2905.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2906.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2906.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2906.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2907.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2907.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2907.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2908.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2908.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2908.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2909.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2909.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2909.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2910.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2910.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2910.0\\\\"
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\.NETFramework\AssemblyFolders\DX_1.0.2911.0]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\.NETFramework\\AssemblyFolders\\DX_1.0.2911.0]
 @="C:\\\\windows\\\\Microsoft.NET\\\\DirectX for Managed Code\\\\1.0.2911.0\\\\"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\asmfolders.reg
@@ -8766,11 +8819,11 @@ load_remove_mono()
 
     # FIXME: verify on pristine Windows XP:
     if w_workaround_wine_bug 34803; then
-        "${WINE_ARCH}" reg delete 'HKLM\Software\Microsoft\.NETFramework\v2.0.50727\SBSDisabled' /f
+        "${WINE_ARCH}" reg delete 'HKLM\\Software\\Microsoft\\.NETFramework\\v2.0.50727\\SBSDisabled' /f
     fi
 
     "${WINE_ARCH}" reg delete "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v3.5" /f || true
-    "${WINE_ARCH}" reg delete "HKLM\Software\Microsoft\NET Framework Setup\NDP\v4" /f || true
+    "${WINE_ARCH}" reg delete "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4" /f || true
 
     w_try rm -f "$W_WINDIR_UNIX/system32/mscoree.dll"
 }
@@ -8919,7 +8972,8 @@ load_shockwave() {
     # 2017/03/12: 39715a84b1d85347066fbf89a3af9f5e612b59402093b055cd423bd30a7f637d
     # 2017/03/15: 58f2152bf726d52f08fb41f904c62ff00fdf748c8ce413e8c8547da3a21922ba
     # 2017/08/03: bebebaef1644a994179a2e491ce3f55599d768f7c6019729f21e7029b1845b9c
-    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi bebebaef1644a994179a2e491ce3f55599d768f7c6019729f21e7029b1845b9c
+    # 2017/12/12: 0a9813ac55a8718440518dc2f5f410a3a065b422fe0618c073bfc631b9abf12c
+    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi 0a9813ac55a8718440518dc2f5f410a3a065b422fe0618c073bfc631b9abf12c
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" msiexec /i sw_lic_full_installer.msi $W_UNATTENDED_SLASH_Q
@@ -9832,7 +9886,7 @@ load_wmv9vcm()
     # Register codec:
     cat > "$W_TMP"/tmp.reg <<_EOF_
 REGEDIT4
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Drivers32]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Drivers32]
 "vidc.WMV3"="wmv9vcm.dll"
 
 _EOF_
@@ -10043,11 +10097,11 @@ load_baekmuk()
 {
     # See http://kldp.net/projects/baekmuk for project page
     # Need to download from Debian as the project page has unique captcha tokens per visitor
-    w_download http://http.debian.net/debian/pool/main/f/fonts-baekmuk/fonts-baekmuk_2.2.orig.tar.gz 08ab7dffb55d5887cc942ce370f5e33b756a55fbb4eaf0b90f244070e8d51882
+    w_download "http://http.debian.net/debian/pool/main/f/fonts-baekmuk/fonts-baekmuk_2.2.orig.tar.gz" 08ab7dffb55d5887cc942ce370f5e33b756a55fbb4eaf0b90f244070e8d51882
 
     w_try_cd "$W_TMP"
-    tar zxvf "$W_CACHE/$W_PACKAGE/$file1" baekmuk-ttf-2.2/ttf
-    w_try mv baekmuk-ttf-2.2/ttf/*.ttf "$W_FONTSDIR_UNIX"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1" baekmuk-ttf-2.2/ttf
+    w_try_cp_font_files baekmuk-ttf-2.2/ttf/ "$W_FONTSDIR_UNIX"
     w_register_font batang.ttf "Baekmuk Batang"
     w_register_font gulim.ttf "Baekmuk Gulim"
     w_register_font dotum.ttf "Baekmuk Dotum"
@@ -10072,6 +10126,29 @@ load_cjkfonts()
 
 #----------------------------------------------------------------
 
+w_metadata calibri fonts \
+    title="MS Calibri font" \
+    publisher="Microsoft" \
+    year="2007" \
+    media="download" \
+    file1="PowerPointViewer.exe" \
+    installed_file1="$W_FONTSDIR_WIN/calibri.ttf"
+
+load_calibri()
+{
+    # https://www.microsoft.com/en-us/download/details.aspx?id=13
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CALIBRI*.TTF" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CALIBRI*.TTF"
+    w_register_font calibri.ttf "Calibri"
+    w_register_font calibrib.ttf "Calibri Bold"
+    w_register_font calibrii.ttf "Calibri Italic"
+    w_register_font calibriz.ttf "Calibri Bold Italic"
+}
+
+#----------------------------------------------------------------
+
 w_metadata cambria fonts \
     title="MS Cambria font" \
     publisher="Microsoft" \
@@ -10083,10 +10160,11 @@ w_metadata cambria fonts \
 load_cambria()
 {
     # https://www.microsoft.com/en-us/download/details.aspx?id=13
-    w_download_to consolas https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
-    w_try_cabextract -d "$W_TMP" -L -F ppviewer.cab "$W_CACHE"/consolas/PowerPointViewer.exe
-    w_try_cabextract -d "$W_FONTSDIR_UNIX" -L -F 'CAMBRIA*.TT*' "$W_TMP"/ppviewer.cab
-    w_register_font cambria.ttc "Cambria"
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CAMBRIA*.TT*" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CAMBRIA*.TT*"
+    w_register_font cambria.ttc "Cambria & Cambria Math"
     w_register_font cambriab.ttf "Cambria Bold"
     w_register_font cambriai.ttf "Cambria Italic"
     w_register_font cambriaz.ttf "Cambria Bold Italic"
@@ -10094,24 +10172,25 @@ load_cambria()
 
 #----------------------------------------------------------------
 
-w_metadata constantia fonts \
-    title="MS Constantia font" \
+w_metadata candara fonts \
+    title="MS Candara font" \
     publisher="Microsoft" \
     year="2009" \
     media="download" \
     file1="PowerPointViewer.exe" \
-    installed_file1="$W_FONTSDIR_WIN/constan.ttf"
+    installed_file1="$W_FONTSDIR_WIN/candara.ttf"
 
-load_constantia()
+load_candara()
 {
     # https://www.microsoft.com/en-us/download/details.aspx?id=13
-    w_download_to consolas https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
-    w_try_cabextract -d "$W_TMP" -L -F ppviewer.cab "$W_CACHE"/consolas/PowerPointViewer.exe
-    w_try_cabextract -d "$W_FONTSDIR_UNIX" -L -F 'CONSTAN*.TTF' "$W_TMP"/ppviewer.cab
-    w_register_font constan.ttf "Constantia"
-    w_register_font constanb.ttf "Constantia Bold"
-    w_register_font constani.ttf "Constantia Italic"
-    w_register_font constanz.ttf "Constantia Bold Italic"
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CANDARA*.TTF" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CANDARA*.TTF"
+    w_register_font candara.ttf "Candara"
+    w_register_font candarab.ttf "Candara Bold"
+    w_register_font candarai.ttf "Candara Italic"
+    w_register_font candaraz.ttf "Candara Bold Italic"
 }
 
 #----------------------------------------------------------------
@@ -10127,13 +10206,100 @@ w_metadata consolas fonts \
 load_consolas()
 {
     # https://www.microsoft.com/en-us/download/details.aspx?id=13
-    w_download https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
-    w_try_cabextract -d "$W_TMP" -L -F ppviewer.cab "$W_CACHE"/consolas/PowerPointViewer.exe
-    w_try_cabextract -d "$W_FONTSDIR_UNIX" -L -F 'CONSOL*.TTF' "$W_TMP"/ppviewer.cab
-    w_register_font consola.ttf "Consoleas"
-    w_register_font consolab.ttf "Consoleas Bold"
-    w_register_font consolai.ttf "Consoleas Italic"
-    w_register_font consolaz.ttf "Consoleas Bold Italic"
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CONSOLA*.TTF" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CONSOLA*.TTF"
+    w_register_font consola.ttf "Consolas"
+    w_register_font consolab.ttf "Consolas Bold"
+    w_register_font consolai.ttf "Consolas Italic"
+    w_register_font consolaz.ttf "Consolas Bold Italic"
+}
+
+#----------------------------------------------------------------
+
+w_metadata constantia fonts \
+    title="MS Constantia font" \
+    publisher="Microsoft" \
+    year="2009" \
+    media="download" \
+    file1="PowerPointViewer.exe" \
+    installed_file1="$W_FONTSDIR_WIN/constan.ttf"
+
+load_constantia()
+{
+    # https://www.microsoft.com/en-us/download/details.aspx?id=13
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CONSTAN*.TTF" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CONSTAN*.TTF"
+    w_register_font constan.ttf "Constantia"
+    w_register_font constanb.ttf "Constantia Bold"
+    w_register_font constani.ttf "Constantia Italic"
+    w_register_font constanz.ttf "Constantia Bold Italic"
+}
+
+#----------------------------------------------------------------
+
+w_metadata corbel fonts \
+    title="MS Corbel font" \
+    publisher="Microsoft" \
+    year="2009" \
+    media="download" \
+    file1="PowerPointViewer.exe" \
+    installed_file1="$W_FONTSDIR_WIN/corbel.ttf"
+
+load_corbel()
+{
+    # https://www.microsoft.com/en-us/download/details.aspx?id=13
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "CORBEL*.TTF" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "CORBEL*.TTF"
+    w_register_font corbel.ttf "Corbel"
+    w_register_font corbelb.ttf "Corbel Bold"
+    w_register_font corbeli.ttf "Corbel Italic"
+    w_register_font corbelz.ttf "Corbel Bold Italic"
+}
+
+#----------------------------------------------------------------
+
+w_metadata meiryo fonts \
+    title="MS Meiryo font" \
+    publisher="Microsoft" \
+    year="2009" \
+    media="download" \
+    file1="PowerPointViewer.exe" \
+    installed_file1="$W_FONTSDIR_WIN/meiryo.ttc"
+
+load_meiryo()
+{
+    # https://www.microsoft.com/en-us/download/details.aspx?id=13
+    w_download_to PowerPointViewer "https://download.microsoft.com/download/E/6/7/E675FFFC-2A6D-4AB0-B3EB-27C9F8C8F696/PowerPointViewer.exe" 249473568eba7a1e4f95498acba594e0f42e6581add4dead70c1dfb908a09423
+    w_try_cabextract -d "$W_TMP" -F "ppviewer.cab" "$W_CACHE/PowerPointViewer/$file1"
+    w_try_cabextract -d "$W_TMP" -F "MEIRYO*.TTC" "$W_TMP/ppviewer.cab"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "MEIRYO*.TTC"
+    w_register_font meiryo.ttc "Meiryo & Meiryo Italic & Meiryo UI & Meiryo UI Italic"
+    w_register_font meiryob.ttc "Meiryo Bold & Meiryo Bold Italic & Meiryo UI Bold & Meiryo UI Bold Italic"
+}
+
+#----------------------------------------------------------------
+
+w_metadata pptfonts fonts \
+    title="All MS PowerPoint Viewer fonts" \
+    publisher="various" \
+    date="2007-2009" \
+    media="download"
+
+load_pptfonts()
+{
+    w_call calibri
+    w_call cambria
+    w_call candara
+    w_call consolas
+    w_call constantia
+    w_call corbel
+    w_call meiryo
 }
 
 #----------------------------------------------------------------
@@ -10144,85 +10310,84 @@ w_metadata corefonts fonts \
     year="2008" \
     media="download" \
     file1="arial32.exe" \
-    installed_file1="$W_FONTSDIR_WIN/Arial.TTF"
+    installed_file1="$W_FONTSDIR_WIN/arial.ttf"
 
 load_corefonts()
 {
-    # FIXME: why is this commented out? Should be removed or enabled.
-    w_download https://mirrors.kernel.org/gentoo/distfiles/arial32.exe 85297a4d146e9c87ac6f74822734bdee5f4b2a722d7eaa584b7f2cbf76f478f6
-    w_download https://mirrors.kernel.org/gentoo/distfiles/arialb32.exe a425f0ffb6a1a5ede5b979ed6177f4f4f4fdef6ae7c302a7b7720ef332fec0a8
-    w_download https://mirrors.kernel.org/gentoo/distfiles/comic32.exe 9c6df3feefde26d4e41d4a4fe5db2a89f9123a772594d7f59afd062625cd204e
-    w_download https://mirrors.kernel.org/gentoo/distfiles/courie32.exe bb511d861655dde879ae552eb86b134d6fae67cb58502e6ff73ec5d9151f3384
-    w_download https://mirrors.kernel.org/gentoo/distfiles/georgi32.exe 2c2c7dcda6606ea5cf08918fb7cd3f3359e9e84338dc690013f20cd42e930301
-    w_download https://mirrors.kernel.org/gentoo/distfiles/impact32.exe 6061ef3b7401d9642f5dfdb5f2b376aa14663f6275e60a51207ad4facf2fccfb
-    w_download https://mirrors.kernel.org/gentoo/distfiles/times32.exe db56595ec6ef5d3de5c24994f001f03b2a13e37cee27bc25c58f6f43e8f807ab
-    w_download https://mirrors.kernel.org/gentoo/distfiles/trebuc32.exe 5a690d9bb8510be1b8b4fe49f1f2319651fe51bbe54775ddddd8ef0bd07fdac9
-    w_download https://mirrors.kernel.org/gentoo/distfiles/verdan32.exe c1cb61255e363166794e47664e2f21af8e3a26cb6346eb8d2ae2fa85dd5aad96
-    w_download https://mirrors.kernel.org/gentoo/distfiles/webdin32.exe 64595b5abc1080fba8610c5c34fab5863408e806aafe84653ca8575bed17d75a
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/arial32.exe" 85297a4d146e9c87ac6f74822734bdee5f4b2a722d7eaa584b7f2cbf76f478f6
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/arialb32.exe" a425f0ffb6a1a5ede5b979ed6177f4f4f4fdef6ae7c302a7b7720ef332fec0a8
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/comic32.exe" 9c6df3feefde26d4e41d4a4fe5db2a89f9123a772594d7f59afd062625cd204e
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/courie32.exe" bb511d861655dde879ae552eb86b134d6fae67cb58502e6ff73ec5d9151f3384
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/georgi32.exe" 2c2c7dcda6606ea5cf08918fb7cd3f3359e9e84338dc690013f20cd42e930301
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/impact32.exe" 6061ef3b7401d9642f5dfdb5f2b376aa14663f6275e60a51207ad4facf2fccfb
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/times32.exe" db56595ec6ef5d3de5c24994f001f03b2a13e37cee27bc25c58f6f43e8f807ab
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/trebuc32.exe" 5a690d9bb8510be1b8b4fe49f1f2319651fe51bbe54775ddddd8ef0bd07fdac9
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/verdan32.exe" c1cb61255e363166794e47664e2f21af8e3a26cb6346eb8d2ae2fa85dd5aad96
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/webdin32.exe" 64595b5abc1080fba8610c5c34fab5863408e806aafe84653ca8575bed17d75a
 
     # Natively installed versions of these fonts will cause the installers
     # to exit silently. Because there are apps out there that depend on the
     # files being present in the Windows font directory we use cabextract
     # to obtain the files and register the fonts by hand.
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/arial32.exe
-    w_try cp -f "$W_TMP"/Arial*.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Arial.TTF "Arial"
-    w_register_font Arialbd.TTF "Arial Bold"
-    w_register_font Arialbi.TTF "Arial Bold Italic"
-    w_register_font Ariali.TTF "Arial Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/arial32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Arial*.TTF"
+    w_register_font arialbd.ttf "Arial Bold"
+    w_register_font arialbi.ttf "Arial Bold Italic"
+    w_register_font ariali.ttf "Arial Italic"
+    w_register_font arial.ttf "Arial"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/arialb32.exe
-    w_try cp -f "$W_TMP"/AriBlk.TTF "$W_FONTSDIR_UNIX"
-    w_register_font AriBlk.TTF "Arial Black"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/arialb32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "AriBlk.TTF"
+    w_register_font ariblk.ttf "Arial Black"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/comic32.exe
-    w_try cp -f "$W_TMP"/Comic*.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Comic.TTF "Comic Sans MS"
-    w_register_font Comicbd.TTF "Comic Sans MS Bold"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/comic32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Comic*.TTF"
+    w_register_font comicbd.ttf "Comic Sans MS Bold"
+    w_register_font comic.ttf "Comic Sans MS"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/courie32.exe
-    w_try cp -f "$W_TMP"/cour*.ttf "$W_FONTSDIR_UNIX"
-    w_register_font Cour.TTF "Courier New"
-    w_register_font CourBD.TTF "Courier New Bold"
-    w_register_font CourBI.TTF "Courier New Bold Italic"
-    w_register_font Couri.TTF "Courier New Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/courie32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "cour*.ttf"
+    w_register_font courbd.ttf "Courier New Bold"
+    w_register_font courbi.ttf "Courier New Bold Italic"
+    w_register_font couri.ttf "Courier New Italic"
+    w_register_font cour.ttf "Courier New"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/georgi32.exe
-    w_try cp -f "$W_TMP"/Georgia*.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Georgia.TTF "Georgia"
-    w_register_font Georgiab.TTF "Georgia Bold"
-    w_register_font Georgiaz.TTF "Georgia Bold Italic"
-    w_register_font Georgiai.TTF "Georgia Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/georgi32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Georgia*.TTF"
+    w_register_font georgiab.ttf "Georgia Bold"
+    w_register_font georgiai.ttf "Georgia Italic"
+    w_register_font georgia.ttf "Georgia"
+    w_register_font georgiaz.ttf "Georgia Bold Italic"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/impact32.exe
-    w_try cp -f "$W_TMP"/Impact.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Impact.TTF "Impact"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/impact32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Impact.TTF"
+    w_register_font impact.ttf "Impact"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/times32.exe
-    w_try cp -f "$W_TMP"/Times*.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Times.TTF "Times New Roman"
-    w_register_font Timesbd.TTF "Times New Roman Bold"
-    w_register_font Timesbi.TTF "Times New Roman Bold Italic"
-    w_register_font Timesi.TTF "Times New Roman Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/times32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Times*.TTF"
+    w_register_font timesbd.ttf "Times New Roman Bold"
+    w_register_font timesbi.ttf "Times New Roman Bold Italic"
+    w_register_font timesi.ttf "Times New Roman Italic"
+    w_register_font times.ttf "Times New Roman"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/trebuc32.exe
-    w_try cp -f "$W_TMP"/[tT]rebuc*.ttf "$W_FONTSDIR_UNIX"
-    w_register_font Trebuc.TTF "Trebucet MS"
-    w_register_font Trebucbd.TTF "Trebucet MS Bold"
-    w_register_font Trebucbi.TTF "Trebucet MS Bold Italic"
-    w_register_font Trebucit.TTF "Trebucet MS Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/trebuc32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "[tT]rebuc*.ttf"
+    w_register_font trebucbd.ttf "Trebuchet MS Bold"
+    w_register_font trebucbi.ttf "Trebuchet MS Bold Italic"
+    w_register_font trebucit.ttf "Trebuchet MS Italic"
+    w_register_font trebuc.ttf "Trebuchet MS"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/verdan32.exe
-    w_try cp -f "$W_TMP"/Verdana*.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Verdana.TTF "Verdana"
-    w_register_font Verdanab.TTF "Verdana Bold"
-    w_register_font Verdanaz.TTF "Verdana Bold Italic"
-    w_register_font Verdanai.TTF "Verdana Italic"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/verdan32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Verdana*.TTF"
+    w_register_font verdanab.ttf "Verdana Bold"
+    w_register_font verdanai.ttf "Verdana Italic"
+    w_register_font verdana.ttf "Verdana"
+    w_register_font verdanaz.ttf "Verdana Bold Italic"
 
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/corefonts/webdin32.exe
-    w_try cp -f "$W_TMP"/Webdings.TTF "$W_FONTSDIR_UNIX"
-    w_register_font Webdings.TTF "Webdings"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/webdin32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Webdings.TTF"
+    w_register_font webdings.ttf "Webdings"
 }
 
 #----------------------------------------------------------------
@@ -10233,12 +10398,12 @@ w_metadata droid fonts \
     year="2009" \
     media="download" \
     file1="DroidSans-Bold.ttf" \
-    installed_file1="$W_FONTSDIR_WIN/DroidSans-Bold.ttf"
+    installed_file1="$W_FONTSDIR_WIN/droidsans-bold.ttf"
 
 do_droid() {
-    w_download "${DROID_URL}${1}?raw=true" "${3}"  "${1}"
-    w_try cp -f "$W_CACHE/droid/$1" "$W_FONTSDIR_UNIX"
-    w_register_font "$1" "$2"
+    w_download "${_W_droid_url}${1}?raw=true" "$3"  "$1"
+    w_try_cp_font_files "$W_CACHE/droid" "$W_FONTSDIR_UNIX" "$1"
+    w_register_font "$(echo "$1" | tr "[:upper:]" "[:lower:]")" "$2"
 }
 
 load_droid()
@@ -10247,7 +10412,7 @@ load_droid()
     # Old URL was http://android.git.kernel.org/?p=platform/frameworks/base.git;a=blob_plain;f=data/fonts/'
     # Then it was https://github.com/android/platform_frameworks_base/blob/master/data/fonts/
     # but the fonts are no longer in master. Using an older commit instead:
-    DROID_URL='https://github.com/android/platform_frameworks_base/blob/feef9887e8f8eb6f64fc1b4552c02efb5755cdc1/data/fonts/'
+    _W_droid_url="https://github.com/android/platform_frameworks_base/blob/feef9887e8f8eb6f64fc1b4552c02efb5755cdc1/data/fonts/"
 
     do_droid DroidSans-Bold.ttf        "Droid Sans Bold"         2f529a3e60c007979d95d29794c3660694217fb882429fb33919d2245fe969e9
     do_droid DroidSansFallback.ttf     "Droid Sans Fallback"     05d71b179ef97b82cf1bb91cef290c600a510f77f39b4964359e3ef88378c79d
@@ -10258,6 +10423,8 @@ load_droid()
     do_droid DroidSerif-Bold.ttf       "Droid Serif Bold"        d28533eed8368f047eb5f57a88a91ba2ffc8b69a2dec5e50fe3f0c11ae3f4d8e
     do_droid DroidSerif-Italic.ttf     "Droid Serif Italic"      8a55a4823886234792991dd304dfa1fa120ae99483ec6c2255597d7d913b9a55
     do_droid DroidSerif-Regular.ttf    "Droid Serif"             22aea9471bea5bce1ec3bf7136c84f075b3d11cf09dffdc3dba05e570094cbde
+
+    unset _W_droid_url
 }
 
 #----------------------------------------------------------------
@@ -10273,26 +10440,26 @@ w_metadata eufonts fonts \
 load_eufonts()
 {
     # https://www.microsoft.com/en-us/download/details.aspx?id=16083
-    w_download https://download.microsoft.com/download/a/1/8/a180e21e-9c2b-4b54-9c32-bf7fd7429970/EUupdate.EXE 464dd2cd5f09f489f9ac86ea7790b7b8548fc4e46d9f889b68d2cdce47e09ea8
-    w_try_cabextract -q --directory="$W_TMP" "$W_CACHE"/eufonts/EUupdate.EXE
-    w_try cp -f "$W_TMP"/*.ttf "$W_FONTSDIR_UNIX"
+    w_download "https://download.microsoft.com/download/a/1/8/a180e21e-9c2b-4b54-9c32-bf7fd7429970/EUupdate.EXE" 464dd2cd5f09f489f9ac86ea7790b7b8548fc4e46d9f889b68d2cdce47e09ea8
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/eufonts/EUupdate.EXE
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX"
 
-    w_register_font ArialBd.ttf "Arial Bold"
-    w_register_font ArialBI.ttf "Arial Bold Italic"
-    w_register_font ArialI.ttf "Arial Italic"
-    w_register_font Arial.ttf "Arial"
-    w_register_font TimesBd.ttf "Times New Roman Bold"
-    w_register_font TimesBI.ttf "Times New Roman Bold Italic"
-    w_register_font TimesI.ttf "Times New Roman Italic"
-    w_register_font Times.ttf "Times New Roman"
-    w_register_font trebucbd.ttf "Trebuchet Bold"
-    w_register_font trebucbi.ttf "Trebuchet Bold Italic"
-    w_register_font trebucit.ttf "Trebuchet Italic"
-    w_register_font trebuc.ttf "Trebuchet"
-    w_register_font Verdanab.ttf "Verdana Bold"
-    w_register_font Verdanai.ttf "Verdana Italian"
-    w_register_font Verdana.ttf "Verdana"
-    w_register_font Verdanaz.ttf "Verdana Bold Italic"
+    w_register_font arialbd.ttf "Arial Bold"
+    w_register_font arialbi.ttf "Arial Bold Italic"
+    w_register_font ariali.ttf "Arial Italic"
+    w_register_font arial.ttf "Arial"
+    w_register_font timesbd.ttf "Times New Roman Bold"
+    w_register_font timesbi.ttf "Times New Roman Bold Italic"
+    w_register_font timesi.ttf "Times New Roman Italic"
+    w_register_font times.ttf "Times New Roman"
+    w_register_font trebucbd.ttf "Trebuchet MS Bold"
+    w_register_font trebucbi.ttf "Trebuchet MS Bold Italic"
+    w_register_font trebucit.ttf "Trebuchet MS Italic"
+    w_register_font trebuc.ttf "Trebuchet MS"
+    w_register_font verdanab.ttf "Verdana Bold"
+    w_register_font verdanai.ttf "Verdana Italian"
+    w_register_font verdana.ttf "Verdana"
+    w_register_font verdanaz.ttf "Verdana Bold Italic"
 }
 
 #----------------------------------------------------------------
@@ -10448,7 +10615,7 @@ load_fontfix()
             w_die "Please uninstall the Samyak/Oriya font, e.g. 'sudo dpkg -r ttf-oriya-fonts', then log out and log in again.  That font causes strange crashes in .net programs."
         fi
     else
-        w_warn "xlsfonts not found. If you have (older versions of) Samyak/Oriya fonts installed, you may get crashes/bugs. If so, uninstall, the logout/login again to resolve."
+        w_warn "xlsfonts not found. If you have (older versions of) Samyak/Oriya fonts installed, you may get crashes/bugs. If so, uninstall, then logout/login again to resolve."
     fi
 }
 
@@ -10465,12 +10632,11 @@ w_metadata ipamona fonts \
 
 load_ipamona()
 {
-    w_download "http://www.geocities.jp/ipa_mona/$file1" ab77beea3b051abf606cd8cd3badf6cb24141ef145c60f508fcfef1e3852bb9d
+    w_download "http://www.geocities.jp/ipa_mona/opfc-ModuleHP-1.1.1_withIPAMonaFonts-1.0.8.tar.gz" ab77beea3b051abf606cd8cd3badf6cb24141ef145c60f508fcfef1e3852bb9d
 
     w_try_cd "$W_TMP"
-
-    gunzip -dc "$W_CACHE/$W_PACKAGE/$file1" | tar -xf -
-    w_try mv ./*IPAMonaFonts*/fonts/*.ttf "$W_FONTSDIR_UNIX"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1" "${file1%.tar.gz}/fonts"
+    w_try_cp_font_files "${file1%.tar.gz}/fonts" "$W_FONTSDIR_UNIX"
 
     w_register_font ipagui-mona.ttf "IPAMonaUIGothic"
     w_register_font ipag-mona.ttf "IPAMonaGothic"
@@ -10482,34 +10648,41 @@ load_ipamona()
 #----------------------------------------------------------------
 
 w_metadata liberation fonts \
-    title="Red Hat Liberation fonts (Sans, Serif, Mono)" \
+    title="Red Hat Liberation fonts (Mono, Sans, SansNarrow, Serif)" \
     publisher="Red Hat" \
     year="2008" \
     media="download" \
     file1="liberation-fonts-ttf-1.07.4.tar.gz" \
-    installed_file1="$W_FONTSDIR_WIN/LiberationMono-BoldItalic.ttf"
+    installed_file1="$W_FONTSDIR_WIN/liberationmono-bolditalic.ttf"
 
 load_liberation()
 {
     # https://pagure.io/liberation-fonts
-    w_download https://releases.pagure.org/liberation-fonts/liberation-fonts-ttf-1.07.4.tar.gz 61a7e2b6742a43c73e8762cdfeaf6dfcf9abdd2cfa0b099a9854d69bc4cfee5c
-    w_try_cd "$W_TMP"
-    # FIXME: w_try doesn't work here, presumably because of the pipe?
-    gunzip -dc "$W_CACHE/$W_PACKAGE/$file1" | tar -xf -
-    w_try mv liberation-fonts-ttf-1.07.4/*.ttf "$W_FONTSDIR_UNIX"
+    w_download "https://releases.pagure.org/liberation-fonts/liberation-fonts-ttf-1.07.4.tar.gz" 61a7e2b6742a43c73e8762cdfeaf6dfcf9abdd2cfa0b099a9854d69bc4cfee5c
 
-    w_register_font LiberationMono-BoldItalic.ttf "LiberationMono-BoldItalic"
-    w_register_font LiberationMono-Bold.ttf "LiberationMono-Bold"
-    w_register_font LiberationMono-Italic.ttf "LiberationMono-Italic"
-    w_register_font LiberationMono-Regular.ttf "LiberationMono-Regular"
-    w_register_font LiberationSans-BoldItalic.ttf "LiberationSans-BoldItalic"
-    w_register_font LiberationSans-Bold.ttf "LiberationSans-Bold"
-    w_register_font LiberationSans-Italic.ttf "LiberationSans-Italic"
-    w_register_font LiberationSans-Regular.ttf "LiberationSans-Regular"
-    w_register_font LiberationSerif-BoldItalic.ttf "LiberationSerif-BoldItalic"
-    w_register_font LiberationSerif-Bold.ttf "LiberationSerif-Bold"
-    w_register_font LiberationSerif-Italic.ttf "LiberationSerif-Italic"
-    w_register_font LiberationSerif-Regular.ttf "LiberationSerif-Regular"
+    w_try_cd "$W_TMP"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1"
+    w_try_cp_font_files "${file1%.tar.gz}" "$W_FONTSDIR_UNIX"
+
+    w_register_font liberationmono-bolditalic.ttf "Liberation Mono Bold Italic"
+    w_register_font liberationmono-bold.ttf "Liberation Mono Bold"
+    w_register_font liberationmono-italic.ttf "Liberation Mono Italic"
+    w_register_font liberationmono-regular.ttf "Liberation Mono"
+
+    w_register_font liberationsans-bolditalic.ttf "Liberation Sans Bold Italic"
+    w_register_font liberationsans-bold.ttf "Liberation Sans Bold"
+    w_register_font liberationsans-italic.ttf "Liberation Sans Italic"
+    w_register_font liberationsans-regular.ttf "Liberation Sans"
+
+    w_register_font liberationsansnarrow-bolditalic.ttf "Liberation Sans Narrow Bold Italic"
+    w_register_font liberationsansnarrow-bold.ttf "Liberation Sans Narrow Bold"
+    w_register_font liberationsansnarrow-italic.ttf "Liberation Sans Narrow Italic"
+    w_register_font liberationsansnarrow-regular.ttf "Liberation Sans Narrow"
+
+    w_register_font liberationserif-bolditalic.ttf "Liberation Serif Bold Italic"
+    w_register_font liberationserif-bold.ttf "Liberation Serif Bold"
+    w_register_font liberationserif-italic.ttf "Liberation Serif Italic"
+    w_register_font liberationserif-regular.ttf "Liberation Serif"
 }
 
 #----------------------------------------------------------------
@@ -10524,8 +10697,9 @@ w_metadata lucida fonts \
 
 load_lucida()
 {
-    w_download ftp://ftp.fu-berlin.de/pc/security/ms-patches/winnt/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
-    w_try_cabextract -d "$W_FONTSDIR_UNIX" -L -F 'lucon.ttf' "$W_CACHE"/lucida/eurofixi.exe
+    w_download "ftp://ftp.fu-berlin.de/pc/security/ms-patches/winnt/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe" 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
+    w_try_cabextract -d "$W_TMP" -F "lucon.ttf" "$W_CACHE"/lucida/eurofixi.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX"
     w_register_font lucon.ttf "Lucida Console"
 }
 
@@ -10544,12 +10718,12 @@ load_opensymbol()
     # The OpenSymbol fonts are a replacement for the Windows Wingdings font from OpenOffice.org.
     # Need to w_download Debian since I can't find a standalone download from OpenOffice
     # Note: The source download package on debian is for _all_ of OpenOffice, which is 266 MB.
-    w_download http://security.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u9_all.deb 11f272c3de3f2d891dfd067f467263ff361c08566a1a0ee5e5d64cbee459ee22
+    w_download "http://security.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u9_all.deb" 11f272c3de3f2d891dfd067f467263ff361c08566a1a0ee5e5d64cbee459ee22
 
     w_try_cd "$W_TMP"
     w_try_ar "$W_CACHE/$W_PACKAGE/$file1" data.tar.xz
-    w_try tar Jvxf "$W_TMP/data.tar.xz" ./usr/share/fonts/truetype/openoffice/opens___.ttf
-    w_try mv "$W_TMP/usr/share/fonts/truetype/openoffice/opens___.ttf" "$W_FONTSDIR_UNIX"
+    w_try tar -Jxf "$W_TMP/data.tar.xz" ./usr/share/fonts/truetype/openoffice/opens___.ttf
+    w_try_cp_font_files "usr/share/fonts/truetype/openoffice" "$W_FONTSDIR_UNIX"
     w_register_font opens___.ttf "OpenSymbol"
 }
 
@@ -10567,18 +10741,13 @@ load_tahoma()
 {
     # Formerly at https://download.microsoft.com/download/office97pro/fonts/1/w95/en-us/tahoma32.exe
     # Mirror list: http://www.filewatcher.com/_/?q=tahoma32.exe
-    w_download ftp://ftp.uevora.pt/pub/windows/Microsoft/Euro/Euro-Compatible%20Tahoma%20Font/tahoma32.exe 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
+    w_download "ftp://ftp.uevora.pt/pub/windows/Microsoft/Euro/Euro-Compatible%20Tahoma%20Font/tahoma32.exe" 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
 
-    w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/${W_PACKAGE}/${file1}"
-    w_try cp -f "${W_TMP}/Tahoma.TTF" "${W_FONTSDIR_UNIX}/tahoma.ttf"
-    w_try cp -f "${W_TMP}/Tahomabd.TTF" "${W_FONTSDIR_UNIX}/tahomabd.ttf"
+    w_try_cabextract -d "$W_TMP" "$W_CACHE/$W_PACKAGE/$file1"
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "*.TTF"
 
-    # FIXME: Wine seems to nuke the registry entries for Tahoma. Why? Font Xplorer always lists it as 'not installed'.
     w_register_font tahoma.ttf "Tahoma"
     w_register_font tahomabd.ttf "Tahoma Bold"
-
-    # FIXME: ? does some app assume it can overwrite these, or is this a leftover from before we had install checks?
-    chmod +w "${W_FONTSDIR_UNIX}"/tahoma*.ttf
 }
 
 #----------------------------------------------------------------
@@ -10589,23 +10758,22 @@ w_metadata takao fonts \
     year="2010" \
     media="download" \
     file1="takao-fonts-ttf-003.02.01.zip" \
-    installed_file1="$W_FONTSDIR_WIN/TakaoGothic.ttf"
+    installed_file1="$W_FONTSDIR_WIN/takaogothic.ttf"
 
 load_takao()
 {
-    # The Takao font provides Japanese glyphs.  May also be needed with fakejapanese function above.
+    # The Takao font provides Japanese glyphs. May also be needed with fakejapanese function above.
     # See https://launchpad.net/takao-fonts for project page
-    w_download https://launchpad.net/takao-fonts/trunk/003.02.01/+download/takao-fonts-ttf-003.02.01.zip 2f526a16c7931958f560697d494d8304949b3ce0aef246fb0c727fbbcc39089e
-    cp -f "$W_CACHE"/takao/takao-fonts-ttf-003.02.01.zip "$W_TMP"
-    w_try_unzip "$W_TMP" "$W_TMP"/takao-fonts-ttf-003.02.01.zip
-    w_try cp -f "$W_TMP"/takao-fonts-ttf-003.02.01/*.ttf "$W_FONTSDIR_UNIX"
+    w_download "https://launchpad.net/takao-fonts/trunk/003.02.01/+download/takao-fonts-ttf-003.02.01.zip" 2f526a16c7931958f560697d494d8304949b3ce0aef246fb0c727fbbcc39089e
+    w_try_unzip "$W_TMP" "$W_CACHE"/takao/takao-fonts-ttf-003.02.01.zip
+    w_try_cp_font_files "$W_TMP/takao-fonts-ttf-003.02.01" "$W_FONTSDIR_UNIX"
 
-    w_register_font TakaoGothic.ttf "TakaoGothic"
-    w_register_font TakaoPGothic.ttf "TakaoPGothic"
-    w_register_font TakaoMincho.ttf "TakaoMincho"
-    w_register_font TakaoPMincho.ttf "TakaoPMincho"
-    w_register_font TakaoExGothic.ttf "TakaoExGothic"
-    w_register_font TakaoExMincho.ttf "TakaoExMincho"
+    w_register_font takaogothic.ttf "TakaoGothic"
+    w_register_font takaopgothic.ttf "TakaoPGothic"
+    w_register_font takaomincho.ttf "TakaoMincho"
+    w_register_font takaopmincho.ttf "TakaoPMincho"
+    w_register_font takaoexgothic.ttf "TakaoExGothic"
+    w_register_font takaoexmincho.ttf "TakaoExMincho"
 }
 
 #----------------------------------------------------------------
@@ -10615,21 +10783,32 @@ w_metadata uff fonts \
     publisher="Ubuntu" \
     year="2010" \
     media="download" \
-    file1="ubuntu-font-family-0.70.1.zip" \
-    installed_file1="$W_FONTSDIR_WIN/Ubuntu-R.ttf" \
+    file1="ubuntu-font-family-0.83.zip" \
+    installed_file1="$W_FONTSDIR_WIN/ubuntu-r.ttf" \
     homepage="https://launchpad.net/ubuntu-font-family"
 
 load_uff()
 {
-    w_download http://font.ubuntu.com/download/ubuntu-font-family-0.70.1.zip c3737665b85e48664feabb8448957bdf17eab26cc320270f1641d9f98b7ea22e
-    w_try_cd "$W_TMP"
-    w_try_unzip . "$W_CACHE"/uff/ubuntu-font-family-0.70.1.zip
-    mv ubuntu-font-family-0.70.1/*.ttf "$W_FONTSDIR_UNIX"
+    w_download "https://assets.ubuntu.com/v1/fad7939b-ubuntu-font-family-0.83.zip" 456d7d42797febd0d7d4cf1b782a2e03680bb4a5ee43cc9d06bda172bac05b42 ubuntu-font-family-0.83.zip
+    w_try_unzip "$W_TMP" "$W_CACHE/$W_PACKAGE/$file1"
 
-    w_register_font Ubuntu-R.ttf "Ubuntu"
-    w_register_font Ubuntu-I.ttf "Ubuntu Italic"
-    w_register_font Ubuntu-B.ttf "Ubuntu Bold"
-    w_register_font Ubuntu-BI.ttf "Ubuntu Bold Italic"
+    w_try_cp_font_files "$W_TMP/$(basename "${file1}" .zip)" "$W_FONTSDIR_UNIX"
+
+    w_register_font ubuntu-bi.ttf "Ubuntu Bold Italic"
+    w_register_font ubuntu-b.ttf "Ubuntu Bold"
+    w_register_font ubuntu-c.ttf "Ubuntu Condensed"
+    w_register_font ubuntu-i.ttf "Ubuntu Italic"
+    w_register_font ubuntu-li.ttf "Ubuntu Light Italic"
+    w_register_font ubuntu-l.ttf "Ubuntu Light"
+    w_register_font ubuntu-mi.ttf "Ubuntu Medium Italic"
+    w_register_font ubuntumono-bi.ttf "Ubuntu Mono Bold Italic"
+    w_register_font ubuntumono-b.ttf "Ubuntu Mono Bold"
+    w_register_font ubuntumono-ri.ttf "Ubuntu Mono Italic"
+    w_register_font ubuntumono-r.ttf "Ubuntu Mono"
+    w_register_font ubuntu-m.ttf "Ubuntu Medium"
+    w_register_font ubuntu-ri.ttf "Ubuntu Italic"
+    w_register_font ubuntu-r.ttf "Ubuntu"
+
 }
 
 #----------------------------------------------------------------
@@ -10640,22 +10819,19 @@ w_metadata vlgothic fonts \
     year="2014" \
     media="download" \
     file1="VLGothic-20141206.tar.xz" \
-    installed_file1="$W_FONTSDIR_WIN/VL-Gothic-Regular.ttf" \
+    installed_file1="$W_FONTSDIR_WIN/vl-gothic-regular.ttf" \
     homepage="https://ja.osdn.net/projects/vlgothic"
 
 load_vlgothic()
 {
-    # $homepage is already assigned in w_do_call(), and works as expected:
-    # shellcheck disable=SC2154
-    w_download "$homepage/downloads/62375/$file1" 982040db2f9cb73d7c6ab7d9d163f2ed46d1180f330c9ba2fae303649bf8102d
+    w_download "https://ja.osdn.net/projects/vlgothic/downloads/62375/VLGothic-20141206.tar.xz" 982040db2f9cb73d7c6ab7d9d163f2ed46d1180f330c9ba2fae303649bf8102d
 
     w_try_cd "$W_TMP"
+    w_try tar -Jxf "$W_CACHE/vlgothic/VLGothic-20141206.tar.xz"
+    w_try_cp_font_files "$W_TMP/VLGothic" "$W_FONTSDIR_UNIX"
 
-    unxz -dc "$W_CACHE/$W_PACKAGE/$file1" | tar -xf -
-    w_try mv ./VLGothic/*.ttf "$W_FONTSDIR_UNIX"
-
-    w_register_font VL-Gothic-Regular.ttf "VL Gothic"
-    w_register_font VL-PGothic-Regular.ttf "VL PGothic"
+    w_register_font vl-gothic-regular.ttf "VL Gothic"
+    w_register_font vl-pgothic-regular.ttf "VL PGothic"
 }
 
 #----------------------------------------------------------------
@@ -10672,10 +10848,11 @@ load_wenquanyi()
 {
     # See http://wenq.org/enindex.cgi
     # Donate at http://wenq.org/enindex.cgi?Download(en)#MicroHei_Beta if you want to help support free CJK font development
-    w_download $WINETRICKS_SOURCEFORGE/wqy/wqy-microhei-0.2.0-beta.tar.gz 2802ac8023aa36a66ea6e7445854e3a078d377ffff42169341bd237871f7213e
-    w_try_cd "$W_TMP/"
-    gunzip -dc "$W_CACHE/wenquanyi/wqy-microhei-0.2.0-beta.tar.gz" | tar -xf -
-    w_try mv wqy-microhei/wqy-microhei.ttc "$W_FONTSDIR_UNIX"
+    w_download "https://downloads.sourceforge.net/wqy/wqy-microhei-0.2.0-beta.tar.gz" 2802ac8023aa36a66ea6e7445854e3a078d377ffff42169341bd237871f7213e
+    w_try_cd "$W_TMP"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1"
+    w_try_cp_font_files "$W_TMP/wqy-microhei" "$W_FONTSDIR_UNIX" "*.ttc"
+
     w_register_font wqy-microhei.ttc "WenQuanYi Micro Hei"
 }
 
@@ -10693,10 +10870,12 @@ load_unifont()
 {
     # The GNU Unifont provides glyphs for just about everything in common language.  It is intended for multilingual usage.
     # See http://unifoundry.com/unifont.html for project page
-    w_download http://unifoundry.com/unifont-5.1.20080907.zip 6ec1176f83769072b09de2bc1fff68ec5d802183304756a372e2419236f5b5ba
-    cp -f "$W_CACHE"/unifont/unifont-5.1.20080907.zip "$W_TMP"
-    w_try_unzip "$W_TMP" "$W_TMP"/unifont-5.1.20080907.zip
-    w_try cp -f "$W_TMP"/unifont-5.1.20080907.ttf "$W_FONTSDIR_UNIX/unifont.ttf"
+    w_download "http://unifoundry.com/unifont-5.1.20080907.zip" 6ec1176f83769072b09de2bc1fff68ec5d802183304756a372e2419236f5b5ba
+    w_try_unzip "$W_TMP" "$W_CACHE/$W_PACKAGE/unifont-5.1.20080907.zip"
+
+    w_try mv -f "$W_TMP/unifont-5.1.20080907.ttf" "$W_TMP/unifont.ttf"
+
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX"
 
     w_register_font unifont.ttf "Unifont"
     w_register_font_replacement "Arial Unicode MS" "Unifont"
@@ -11453,7 +11632,7 @@ load_ie8()
         cat > "$W_TMP"/set-tabprocgrowth.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Main]
+[HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\Main]
 "TabProcGrowth"=dword:00000000
 
 _EOF_
@@ -11872,14 +12051,14 @@ load_psdkwin7()
         cat > "$W_TMP"/set-psdk7.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows]
 "CurrentVersion"="v7.0"
-"CurrentInstallFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.0\\\"
+"CurrentInstallFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.0\\\\"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0]
-"InstallationFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.0\\\"
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows\\v7.0]
+"InstallationFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.0\\\\"
 "ProductVersion"="7.0.7600.16385.40715"
 "ProductName"="Microsoft Windows SDK for Windows 7 (7.0.7600.16385.40715)"
 _EOF_
@@ -11920,30 +12099,30 @@ load_psdkwin71()
         cat > "$W_TMP"/set-psdk71.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs]
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows]
 "CurrentVersion"="v7.1"
-"CurrentInstallFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.1\\\"
+"CurrentInstallFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.1\\\\"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1]
-"InstallationFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.1\\\"
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows\\v7.1]
+"InstallationFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.1\\\\"
 "ProductVersion"="7.0.7600.0.30514"
 "ProductName"="Microsoft Windows SDK for Windows 7 (7.0.7600.0.30514)"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1\WinSDKBuild]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows\\v7.1\\WinSDKBuild]
 "ComponentName"="Microsoft Windows SDK Headers and Libraries"
-"InstallationFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.1\\\"
+"InstallationFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.1\\\\"
 "ProductVersion"="7.0.7600.0.30514"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1\WinSDKTools]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows\\v7.1\\WinSDKTools]
 "ComponentName"="Microsoft Windows SDK Headers and Libraries"
-"InstallationFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.1\\\bin\\\"
+"InstallationFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.1\\\\bin\\\\"
 "ProductVersion"="7.0.7600.0.30514"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1\WinSDKWin32Tools]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Microsoft SDKs\\Windows\\v7.1\\WinSDKWin32Tools]
 "ComponentName"="Microsoft Windows SDK Utilities for Win32 Development"
-"InstallationFolder"="C:\\\Program Files\\\Microsoft SDKs\\\Windows\\\v7.1\\\bin\\\"
+"InstallationFolder"="C:\\\\Program Files\\\\Microsoft SDKs\\\\Windows\\\\v7.1\\\\bin\\\\"
 "ProductVersion"="7.0.7600.0.30514"
 _EOF_
         w_try_regedit "$W_TMP_WIN"\\set-psdk71.reg
@@ -12538,8 +12717,8 @@ load_wmp10()
     w_try "$WINE" MP10Setup.exe $W_UNATTENDED_SLASH_Q
 
     # Disable WMP's services, since they depend on unimplemented stuff, they trigger the GUI debugger several times
-    w_try_regedit /D "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Cdr4_2K"
-    w_try_regedit /D "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Cdralw2k"
+    w_try_regedit /D "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\Cdr4_2K"
+    w_try_regedit /D "HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Services\\Cdralw2k"
 
     load_wm9codecs
 
@@ -14851,7 +15030,7 @@ load_fable_tlc()
     cat > "$W_TMP/${W_PACKAGE}.reg" <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\D3BE9C3CAF4226447B48E06CAACF2DDD\InstallProperties]
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products\\D3BE9C3CAF4226447B48E06CAACF2DDD\\InstallProperties]
 "InstallSource"="D:\\"
 
 _EOF_
@@ -14861,7 +15040,7 @@ _EOF_
     cat > "$W_TMP/${W_PACKAGE}.reg" <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Microsoft\Microsoft Games\Fable TLC]
+[HKEY_CURRENT_USER\\Software\\Microsoft\\Microsoft Games\\Fable TLC]
 "FIRSTRUN"=dword:00000001
 
 _EOF_
@@ -17900,7 +18079,7 @@ winetricks_set_wined3d_var()
     cat > "$W_TMP"/set-wined3d.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+[HKEY_CURRENT_USER\\Software\\Wine\\Direct3D]
 "$1"="$arg"
 
 _EOF_
@@ -18051,7 +18230,7 @@ load_csmt()
     cat > "$W_TMP"/set-csmt.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+[HKEY_CURRENT_USER\\Software\\Wine\\Direct3D]
 "csmt"=dword:$arg
 
 _EOF_
@@ -18102,7 +18281,7 @@ load_mwo()
     cat > "$W_TMP"/set-mwo.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\DirectInput]
+[HKEY_CURRENT_USER\\Software\\Wine\\DirectInput]
 "MouseWarpOverride"="$arg"
 
 _EOF_
@@ -18125,7 +18304,7 @@ load_macdriver()
     cat > "$W_TMP"/set-mac.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Drivers]
+[HKEY_CURRENT_USER\\Software\\Wine\\Drivers]
 "Graphics"="$arg"
 
 _EOF_
@@ -18153,7 +18332,7 @@ load_grabfullscreen()
     cat > "$W_TMP"/set-gfs.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\X11 Driver]
+[HKEY_CURRENT_USER\\Software\\Wine\\X11 Driver]
 "GrabFullscreen"="$arg"
 
 _EOF_
@@ -18178,7 +18357,7 @@ load_windowmanagerdecorated()
     cat > "$W_TMP"/set-wmd.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\X11 Driver]
+[HKEY_CURRENT_USER\\Software\\Wine\\X11 Driver]
 "Decorated"="$arg"
 
 _EOF_
@@ -18203,7 +18382,7 @@ load_windowmanagermanaged()
     cat > "$W_TMP"/set-wmm.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\X11 Driver]
+[HKEY_CURRENT_USER\\Software\\Wine\\X11 Driver]
 "Managed"="$arg"
 
 _EOF_
@@ -18258,7 +18437,7 @@ load_fontsmooth()
     cat > "$W_TMP"/fontsmooth.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Control Panel\Desktop]
+[HKEY_CURRENT_USER\\Control Panel\\Desktop]
 "FontSmoothing"="$FontSmoothing"
 "FontSmoothingGamma"=dword:00000578
 "FontSmoothingOrientation"=dword:0000000$FontSmoothingOrientation
@@ -18311,7 +18490,7 @@ load_heapcheck()
     cat > "$W_TMP"/heapcheck.reg <<_EOF_
 REGEDIT4
 
-[HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager]
+[HKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manager]
 "GlobalFlag"=dword:00200030
 
 _EOF_
@@ -18347,7 +18526,7 @@ load_hidewineexports()
     cat > "$W_TMP"/set-wineexports.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine]
+[HKEY_CURRENT_USER\\Software\\Wine]
 "HideWineExports"=$_W_registry_value
 
 _EOF_
@@ -18357,8 +18536,8 @@ _EOF_
 #----------------------------------------------------------------
 
 w_metadata hosts settings \
-    title_uk="Додати порожні файли у C:\windows\system32\drivers\etc\{hosts,services}" \
-    title="Add empty C:\windows\system32\drivers\etc\{hosts,services} files"
+    title_uk="Додати порожні файли у C:\\windows\\system32\\drivers\\etc\\{hosts,services}" \
+    title="Add empty C:\\windows\\system32\\drivers\\etc\\{hosts,services} files"
 
 load_hosts()
 {
@@ -18411,7 +18590,7 @@ load_nocrashdialog()
     cat > "$W_TMP"/crashdialog.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\WineDbg]
+[HKEY_CURRENT_USER\\Software\\Wine\\WineDbg]
 "ShowCrashDialog"=dword:00000000
 
 _EOF_
@@ -18478,7 +18657,7 @@ load_sandbox()
     # Disable unixfs
     # Unfortunately, when you run with a different version of Wine, Wine will recreate this key.
     # See https://bugs.winehq.org/show_bug.cgi?id=22450
-    "$WINE" regedit /d 'HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\Namespace\{9D20AAE8-0625-44B0-9CA7-71889C2254D9}'
+    "$WINE" regedit /d 'HKEY_LOCAL_MACHINE\\Software\\Microsoft\Windows\CurrentVersion\Explorer\Desktop\Namespace\{9D20AAE8-0625-44B0-9CA7-71889C2254D9}'
 
     # Disable recreation of the above key - or any updating of the registry - when running with a newer version of Wine.
     echo disable > "$WINEPREFIX/.update-timestamp"
@@ -18508,7 +18687,7 @@ load_sound()
     cat > "$W_TMP"/set-sound.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Drivers]
+[HKEY_CURRENT_USER\\Software\\Wine\\Drivers]
 "Audio"="$1"
 
 _EOF_
@@ -18544,9 +18723,9 @@ load_vd()
         cat > "$W_TMP"/vd.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Explorer]
+[HKEY_CURRENT_USER\\Software\\Wine\\Explorer]
 "Desktop"=-
-[HKEY_CURRENT_USER\Software\Wine\Explorer\Desktops]
+[HKEY_CURRENT_USER\\Software\\Wine\\Explorer\\Desktops]
 "Default"=-
 
 _EOF_
@@ -18555,9 +18734,9 @@ _EOF_
         cat > "$W_TMP"/vd.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Explorer]
+[HKEY_CURRENT_USER\\Software\\Wine\\Explorer]
 "Desktop"="Default"
-[HKEY_CURRENT_USER\Software\Wine\Explorer\Desktops]
+[HKEY_CURRENT_USER\\Software\\Wine\\Explorer\\Desktops]
 "Default"="$size"
 
 _EOF_
@@ -18595,7 +18774,7 @@ load_videomemorysize()
     cat > "$W_TMP"/set-video.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+[HKEY_CURRENT_USER\\Software\\Wine\\Direct3D]
 "VideoMemorySize"=-
 
 _EOF_
@@ -18604,7 +18783,7 @@ _EOF_
     cat > "$W_TMP"/set-video.reg <<_EOF_
 REGEDIT4
 
-[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+[HKEY_CURRENT_USER\\Software\\Wine\\Direct3D]
 "VideoMemorySize"="$size"
 
 _EOF_
@@ -18849,7 +19028,7 @@ winetricks_stats_init()
                     ;;
                 uk*)
                     title="Допомога в розробці Winetricks"
-                    question="Ви хочете допомогти в розробці Winetricks дозволивши звітувати статистику?\nВи можете в будь-який час вимкнути цю опцію за допомогою команди 'winetricks --optout'"
+                    question="Ви хочете допомогти в розробці Winetricks дозволивши звітувати статистику?\\nВи можете в будь-який час вимкнути цю опцію за допомогою команди 'winetricks --optout'"
                     thanks="Дякуємо! Ви більше не отримуватиме це питання знову. Пам'ятайте, що ви можете будь-коли вимкнути звітність за допомогою команди 'winetricks --optout'"
                     declined="Надсилання звітності Winetricks вимкнено. Ви більше не отримуватиме це питання знову."
                     ;;
