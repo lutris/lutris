@@ -384,9 +384,11 @@ class CommandsMixin(object):
             os.makedirs(basedir)
 
         mode = params.get('mode', 'w')
+        if not mode.startswith(('a', 'w')):
+            raise ScriptingError("Wrong value for write_file mode: '%s'" % mode)
 
         with open(file, mode) as f:
-            f.write(params['content'])
+            f.write(self._substitute(params['content']))
 
     def write_json(self, params):
         """Write data into a json file."""

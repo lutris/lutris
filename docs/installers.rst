@@ -269,7 +269,12 @@ Writing files
 Writing text files
 ~~~~~~~~~~~~~~~~~~
 
-Create or overwrite a file with the ``write_file`` directive. Use the ``file`` (an absolute path or a ``file id``) and ``content`` parameters.
+Create or overwrite a file with the ``write_file`` directive. Use the ``file``
+(an absolute path or a ``file id``) and ``content`` parameters.
+
+You can also use the optional parameter ``mode`` to specify a file write mode.
+Valid values for ``mode`` include ``w`` (the default, to write to a new file)
+or ``a`` to append data to an existing file.
 
 Example:
 
@@ -486,7 +491,7 @@ Currently, the following tasks are implemented:
         arch: win64
 
 * wine / winesteam: ``winekill`` Stops processes running in Wine prefix. Parameters
-  are ``prefix`` (optional WINEPREFIX), 
+  are ``prefix`` (optional WINEPREFIX),
   ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
 
   Example
