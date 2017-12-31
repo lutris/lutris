@@ -586,6 +586,15 @@ class wine(Runner):
                 'help': "Use the dlls from kozec/dumbxinputemu"
             },
             {
+                'option': 'xinput-arch',
+                'label': 'Xinput architecture',
+                'type': 'choice',
+                'choices': [('Same as wine prefix', ''),
+                            ('32 bit', 'win32'),
+                            ('64 bit', 'win64')],
+                'default': ''
+            },
+            {
                 'option': 'Desktop',
                 'label': 'Windowed (virtual desktop)',
                 'type': 'bool',
@@ -928,7 +937,8 @@ class wine(Runner):
 
         for dll_file in dll_files:
             xinput_dest_path = os.path.join(x360ce_path, dll_file)
-            dll_path = os.path.join(datapath.get(), 'controllers/{}-{}'.format(mode, self.wine_arch))
+            xinput_arch = self.runner_config.get('xinput-arch') or self.wine_arch
+            dll_path = os.path.join(datapath.get(), 'controllers/{}-{}'.format(mode, xinput_arch))
             if not os.path.exists(xinput_dest_path):
                 source_file = dll_file if mode == 'dumbxinputemu' else 'xinput1_3.dll'
                 shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
