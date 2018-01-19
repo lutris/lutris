@@ -29,7 +29,7 @@ class ServiceSyncRow(Gtk.HBox):
         self.pack_start(actions, False, False, 0)
 
         sync_switch = Gtk.Switch()
-        sync_switch.set_tooltip_text("Sync when Lutris starts")
+        sync_switch.set_tooltip_text(_("Sync when Lutris starts"))
         sync_switch.props.valign = Gtk.Align.CENTER
         sync_switch.connect('notify::active', self.on_switch_changed)
         if read_setting('sync_at_startup', self.identifier) == 'True':
@@ -49,7 +49,7 @@ class ServiceSyncRow(Gtk.HBox):
         if not isinstance(parent, Gtk.Window):
             # The sync dialog may have closed
             parent = Gio.Application.get_default().props.active_window
-        NoticeDialog("Games synced", parent=parent)
+        NoticeDialog(_("Games synced"), parent=parent)
 
     def on_switch_changed(self, switch, data):
         state = switch.get_active()
@@ -59,7 +59,7 @@ class ServiceSyncRow(Gtk.HBox):
 class SyncServiceDialog(Gtk.Dialog):
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, title="Import local games", parent=parent)
+        Gtk.Dialog.__init__(self, title=_("Import local games"), parent=parent)
         self.connect("delete-event", lambda *x: self.destroy())
         self.set_border_width(10)
         self.set_size_request(512, 0)
@@ -68,8 +68,8 @@ class SyncServiceDialog(Gtk.Dialog):
         self.get_content_area().add(box_outer)
 
         description_label = Gtk.Label()
-        description_label.set_markup("You can import games from local game sources, \n"
-                                     "you can also choose to sync everytime Lutris starts")
+        description_label.set_markup(_("You can import games from local game sources, \n"
+                                     "you can also choose to sync everytime Lutris starts"))
         box_outer.pack_start(description_label, False, False, 5)
 
         separator = Gtk.Separator()

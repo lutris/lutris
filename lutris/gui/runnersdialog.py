@@ -21,7 +21,7 @@ class RunnersDialog(Gtk.Window):
 
         self.runner_labels = {}
 
-        self.set_title("Manage runners")
+        self.set_title(_("Manage runners"))
         width = int(settings.read_setting('runners_manager_width') or 700)
         height = int(settings.read_setting('runners_manager_height') or 500)
         self.dialog_size = (width, height)
@@ -51,17 +51,17 @@ class RunnersDialog(Gtk.Window):
         # Bottom bar
         buttons_box = Gtk.Box()
         buttons_box.show()
-        open_runner_button = Gtk.Button("Open Runners Folder")
+        open_runner_button = Gtk.Button(_("Open Runners Folder"))
         open_runner_button.show()
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
         buttons_box.pack_start(open_runner_button, False, False, 0)
 
-        refresh_button = Gtk.Button("Refresh")
+        refresh_button = Gtk.Button(_("Refresh"))
         refresh_button.show()
         refresh_button.connect('clicked', self.on_refresh_clicked)
         buttons_box.pack_start(refresh_button, False, False, 10)
 
-        close_button = Gtk.Button("Close")
+        close_button = Gtk.Button(_("Close"))
         close_button.show()
         close_button.connect('clicked', self.on_close_clicked)
         buttons_box.pack_start(close_button, False, False, 0)
@@ -110,21 +110,21 @@ class RunnersDialog(Gtk.Window):
         hbox.pack_start(runner_label, True, True, 5)
 
         # Buttons
-        self.versions_button = Gtk.Button("Manage versions")
+        self.versions_button = Gtk.Button(_("Manage versions"))
         self.versions_button.set_size_request(120, 30)
         self.versions_button.set_valign(Gtk.Align.CENTER)
         self.versions_button.connect("clicked", self.on_versions_clicked,
                                      runner, runner_label)
         hbox.pack_start(self.versions_button, False, False, 5)
 
-        self.install_button = Gtk.Button("Install")
+        self.install_button = Gtk.Button(_("Install"))
         self.install_button.set_size_request(80, 30)
         self.install_button.set_valign(Gtk.Align.CENTER)
         self.install_button.connect("clicked", self.on_install_clicked, runner,
                                     runner_label)
         hbox.pack_start(self.install_button, False, False, 5)
 
-        self.configure_button = Gtk.Button("Configure")
+        self.configure_button = Gtk.Button(_("Configure"))
         self.configure_button.set_size_request(90, 30)
         self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.connect("clicked", self.on_configure_clicked,

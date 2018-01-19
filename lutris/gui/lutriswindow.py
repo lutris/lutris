@@ -111,22 +111,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Contextual menu
         main_entries = [
-            ('play', "Play", self.on_game_run),
-            ('install', "Install", self.on_install_clicked),
-            ('add', "Add manually", self.on_add_manually),
-            ('configure', "Configure", self.on_edit_game_configuration),
-            ('browse', "Browse files", self.on_browse_files),
-            ('desktop-shortcut', "Create desktop shortcut",
+            ('play', _("Play"), self.on_game_run),
+            ('install', _("Install"), self.on_install_clicked),
+            ('add', _("Add manually"), self.on_add_manually),
+            ('configure', _("Configure"), self.on_edit_game_configuration),
+            ('browse', _("Browse files"), self.on_browse_files),
+            ('desktop-shortcut', _("Create desktop shortcut"),
              self.create_desktop_shortcut),
-            ('rm-desktop-shortcut', "Delete desktop shortcut",
+            ('rm-desktop-shortcut', _("Delete desktop shortcut"),
              self.remove_desktop_shortcut),
-            ('menu-shortcut', "Create application menu shortcut",
+            ('menu-shortcut', _("Create application menu shortcut"),
              self.create_menu_shortcut),
-            ('rm-menu-shortcut', "Delete application menu shortcut",
+            ('rm-menu-shortcut', _("Delete application menu shortcut"),
              self.remove_menu_shortcut),
-            ('install_more', "Install (add) another version", self.on_install_clicked),
-            ('remove', "Remove", self.on_remove_game),
-            ('view', "View on Lutris.net", self.on_view_game),
+            ('install_more', _("Install (add) another version"), self.on_install_clicked),
+            ('remove', _("Remove"), self.on_remove_game),
+            ('view', _("View on Lutris.net"), self.on_view_game),
         ]
         self.menu = ContextualMenu(main_entries)
         self.view.contextual_menu = self.menu
@@ -403,12 +403,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.running_game:
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
-                self.set_status("Preparing to launch %s" % name)
+                label_launch = _("Preparing to launch ") + name
+                self.set_status(label_launch)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
-                self.set_status("Game has quit")
+                self.set_status(_("Game has quit"))
                 self.actions['stop-game'].props.enabled = False
             elif self.running_game.state == self.running_game.STATE_RUNNING:
-                self.set_status("Playing %s" % name)
+                label_running = _("Playing ") + name
+                self.set_status(label_running)
                 self.actions['stop-game'].props.enabled = True
         return True
 

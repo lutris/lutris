@@ -36,7 +36,7 @@ class CellRendererButton(Gtk.CellRenderer):
         context = widget.get_style_context()
         context.save()
         context.add_class(Gtk.STYLE_CLASS_BUTTON)
-        self.layout.set_markup("Install")
+        self.layout.set_markup(_("Install"))
         (x, y, w, h) = self.do_get_size(widget, cell_area)
         h -= 4
         # Gtk.render_background(context, cr, x, y, w, h)

@@ -18,7 +18,7 @@ DIALOG_HEIGHT = 560
 
 
 class GameDialogCommon(object):
-    no_runner_label = "Select a runner in the Game Info tab"
+    no_runner_label = _("Select a runner in the Game Info tab")
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -59,7 +59,7 @@ class GameDialogCommon(object):
     def _get_name_box(self):
         box = Gtk.HBox()
 
-        label = Gtk.Label(label="Name")
+        label = Gtk.Label(label=_("Name"))
         box.pack_start(label, False, False, 20)
 
         self.name_entry = Gtk.Entry()
@@ -72,7 +72,7 @@ class GameDialogCommon(object):
     def _get_slug_box(self):
         box = Gtk.HBox()
 
-        label = Gtk.Label(label="Identifier")
+        label = Gtk.Label(label=_("Identifier"))
         box.pack_start(label, False, False, 20)
 
         self.slug_entry = SlugEntry()
@@ -89,7 +89,7 @@ class GameDialogCommon(object):
 
     def _get_runner_box(self):
         runner_box = Gtk.HBox()
-        runner_label = Gtk.Label("Runner")
+        runner_label = Gtk.Label(_("Runner"))
         runner_label.set_alignment(0.5, 0.5)
         self.runner_dropdown = self._get_runner_dropdown()
         install_runners_btn = Gtk.Button(label="Install runners")
@@ -103,7 +103,7 @@ class GameDialogCommon(object):
 
     def _get_banner_box(self):
         banner_box = Gtk.HBox()
-        banner_label = Gtk.Label("Banner")
+        banner_label = Gtk.Label(_("Banner"))
         banner_label.set_alignment(0.5, 0.5)
         self.banner_button = Gtk.Button()
         self._set_image('banner')
@@ -112,7 +112,7 @@ class GameDialogCommon(object):
         reset_banner_button = Gtk.Button.new_from_icon_name('edit-clear',
                                                             Gtk.IconSize.MENU)
         reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_banner_button.set_tooltip_text("Remove custom banner")
+        reset_banner_button.set_tooltip_text(_("Remove custom banner"))
         reset_banner_button.connect('clicked',
                                     self.on_custom_image_reset_clicked,
                                     'banner')
@@ -124,7 +124,7 @@ class GameDialogCommon(object):
         reset_icon_button = Gtk.Button.new_from_icon_name('edit-clear',
                                                           Gtk.IconSize.MENU)
         reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_icon_button.set_tooltip_text("Remove custom icon")
+        reset_icon_button.set_tooltip_text(_("Remove custom icon"))
         reset_icon_button.connect('clicked', self.on_custom_image_reset_clicked, 'icon')
 
         banner_box.pack_start(banner_label, False, False, 20)
@@ -137,7 +137,7 @@ class GameDialogCommon(object):
     def _get_year_box(self):
         box = Gtk.HBox()
 
-        label = Gtk.Label(label="Release year")
+        label = Gtk.Label(label=_("Release year"))
         box.pack_start(label, False, False, 20)
 
         self.year_entry = NumberEntry()
@@ -185,7 +185,7 @@ class GameDialogCommon(object):
     def _get_runner_liststore():
         """Build a ListStore with available runners."""
         runner_liststore = Gtk.ListStore(str, str)
-        runner_liststore.append(("Select a runner from the list", ""))
+        runner_liststore.append((_("Select a runner from the list"), ""))
         for runner in runners.get_installed():
             description = runner.description
             runner_liststore.append(
@@ -232,7 +232,7 @@ class GameDialogCommon(object):
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(game_sw, "Game options")
+        self._add_notebook_tab(game_sw, _("Game options"))
 
     def _build_runner_tab(self, config_level):
         if self.runner_name:
@@ -240,12 +240,12 @@ class GameDialogCommon(object):
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(runner_sw, "Runner options")
+        self._add_notebook_tab(runner_sw, _("Runner options"))
 
     def _build_system_tab(self, config_level):
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
-        self._add_notebook_tab(self.system_sw, "System options")
+        self._add_notebook_tab(self.system_sw, _("System options"))
 
     def _add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
@@ -254,7 +254,7 @@ class GameDialogCommon(object):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
 
         # Advanced settings checkbox
-        checkbox = Gtk.CheckButton(label="Show advanced options")
+        checkbox = Gtk.CheckButton(label=_("Show advanced options"))
         value = settings.read_setting('show_advanced_options')
         if value == 'True':
             checkbox.set_active(value)
@@ -263,11 +263,11 @@ class GameDialogCommon(object):
 
         # Buttons
         hbox = Gtk.HBox()
-        cancel_button = Gtk.Button(label="Cancel")
+        cancel_button = Gtk.Button(label=_("Cancel"))
         cancel_button.connect("clicked", self.on_cancel_clicked)
         hbox.pack_start(cancel_button, True, True, 10)
 
-        save_button = Gtk.Button(label="Save")
+        save_button = Gtk.Button(label=_("Save"))
         if callback2:
             save_button.connect("clicked", button_callback, callback2)
         else:
@@ -330,10 +330,10 @@ class GameDialogCommon(object):
     def is_valid(self):
         name = self.name_entry.get_text()
         if not self.runner_name:
-            ErrorDialog("Runner not provided")
+            ErrorDialog(_("Runner not provided"))
             return False
         if not name:
-            ErrorDialog("Please fill in the name")
+            ErrorDialog(_("Please fill in the name"))
             return False
         return True
 
@@ -375,7 +375,7 @@ class GameDialogCommon(object):
             callback()
 
     def on_custom_image_select(self, widget, image_type):
-        dialog = Gtk.FileChooserDialog("Please choose a custom image", self,
+        dialog = Gtk.FileChooserDialog(_("Please choose a custom image"), self,
                                        Gtk.FileChooserAction.OPEN,
                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                                         Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
@@ -420,7 +420,7 @@ class GameDialogCommon(object):
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
     def __init__(self, parent, game=None, runner=None, callback=None):
-        super(AddGameDialog, self).__init__("Add a new game", parent=parent)
+        super(AddGameDialog, self).__init__(_("Add a new game"), parent=parent)
         self.game = game
         self.saved = False
 
@@ -452,8 +452,9 @@ class AddGameDialog(Dialog, GameDialogCommon):
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
+        headline_game_config_dialog = _("Configure ") + game.name
         super(EditGameConfigDialog, self).__init__(
-            "Configure %s" % game.name,
+            headline_game_config_dialog,
             parent=parent
         )
         self.game = game
@@ -474,8 +475,9 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runner config edit dialog."""
     def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
+        headline_game_runner_dialog = _("Configure ") + runner.human_name
         super(RunnerConfigDialog, self).__init__(
-            "Configure %s" % runner.human_name,
+            headline_game_runner_dialog,
             parent=parent
         )
 
@@ -497,7 +499,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self, parent=None):
-        super(SystemConfigDialog, self).__init__("System preferences", parent=parent)
+        super(SystemConfigDialog, self).__init__(_("System preferences"), parent=parent)
 
         self.game = None
         self.runner_name = None

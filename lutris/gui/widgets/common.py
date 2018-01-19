@@ -168,7 +168,7 @@ class EditableGrid(Gtk.Grid):
         self.buttons.append(self.add_button)
         self.add_button.connect("clicked", self.on_add)
 
-        self.delete_button = Gtk.Button("Delete")
+        self.delete_button = Gtk.Button(_("Delete"))
         self.buttons.append(self.delete_button)
         self.delete_button.connect("clicked", self.on_delete)
 

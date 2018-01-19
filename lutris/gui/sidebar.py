@@ -25,7 +25,7 @@ class SidebarTreeView(Gtk.TreeView):
         self.model_filter.set_visible_func(self.filter_rule)
         self.set_model(self.model_filter)
 
-        column = Gtk.TreeViewColumn("Runners")
+        column = Gtk.TreeViewColumn(_("Runners"))
         column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
 
         # Type
@@ -152,12 +152,12 @@ class ContextualMenu(Gtk.Menu):
             self.remove(item)
 
         # Add items
-        entries = [('configure', 'Configure', self.on_configure_runner)]
+        entries = [('configure', _('Configure'), self.on_configure_runner)]
         if self.runner.multiple_versions:
-            entries.append(('versions', 'Manage versions',
+            entries.append(('versions', _('Manage versions'),
                             self.on_manage_versions))
         if self.runner.runnable_alone:
-            entries.append(('run', 'Run', self.runner.run))
+            entries.append(('run', _('Run'), self.runner.run))
         self.add_menuitems(entries)
         self.show_all()
 

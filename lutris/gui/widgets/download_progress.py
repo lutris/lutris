@@ -87,20 +87,21 @@ class DownloadProgressBox(Gtk.VBox):
         if self.downloader.state in [self.downloader.CANCELLED,
                                      self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
-            self._set_text("Download interrupted")
+            self._set_text(_("Download interrupted"))
             if self.downloader.state == self.downloader.CANCELLED:
                 self.emit('cancel', {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024
         progress_text = (
-            "%0.2f / %0.2fMB (%0.2fMB/s), %s remaining" % (
+            "%0.2f / %0.2fMB (%0.2fMB/s), %s " % (
                 float(self.downloader.downloaded_size) / megabytes,
                 float(self.downloader.full_size) / megabytes,
                 float(self.downloader.average_speed) / megabytes,
                 self.downloader.time_left
             )
         )
+        progress_text += _("remaining")
         self._set_text(progress_text)
         if self.downloader.state == self.downloader.COMPLETED:
             self.cancel_button.set_sensitive(False)

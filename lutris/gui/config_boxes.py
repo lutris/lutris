@@ -8,7 +8,6 @@ from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
 
-
 class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
@@ -87,8 +86,8 @@ class ConfigBox(VBox):
             reset_btn = Gtk.Button.new_from_icon_name('edit-clear',
                                                       Gtk.IconSize.MENU)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            reset_btn.set_tooltip_text("Reset option to global or "
-                                       "default config")
+            reset_btn.set_tooltip_text(_("Reset option to global or "
+                                       "default config"))
             reset_btn.connect('clicked', self.on_reset_button_clicked,
                               option, self.option_widget, self.wrapper)
 
@@ -101,11 +100,11 @@ class ConfigBox(VBox):
             helptext = option.get("help")
             if type(self.tooltip_default) is str:
                 helptext = helptext + '\n\n' if helptext else ''
-                helptext += "<b>Default</b>: " + self.tooltip_default
+                helptext += _("<b>Default</b>: ") + self.tooltip_default
             if value != default and option_key not in self.raw_config:
                 helptext = helptext + '\n\n' if helptext else ''
-                helptext += ("<i>(Italic indicates that this option is "
-                             "modified in a lower configuration level.)</i>")
+                helptext += (_("<i>(Italic indicates that this option is "
+                             "modified in a lower configuration level.)</i>"))
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect('query-tooltip', self.on_query_tooltip,
@@ -541,8 +540,8 @@ class RunnerBox(ConfigBox):
 
         if lutris_config.level == 'game':
             self.generate_top_info_box(
-                "If modified, these options supersede the same options from "
-                "the base runner configuration."
+                _("If modified, these options supersede the same options from "
+                "the base runner configuration.")
             )
         self.generate_widgets('runner')
 
@@ -560,14 +559,14 @@ class SystemBox(ConfigBox):
 
         if lutris_config.game_config_id and runner_slug:
             self.generate_top_info_box(
-                "If modified, these options supersede the same options from "
+                _("If modified, these options supersede the same options from "
                 "the base runner configuration, which themselves supersede "
-                "the global preferences."
+                "the global preferences.")
             )
         elif runner_slug:
             self.generate_top_info_box(
-                "If modified, these options supersede the same options from "
-                "the global preferences."
+                _("If modified, these options supersede the same options from "
+                "the global preferences.")
             )
 
         self.generate_widgets('system')

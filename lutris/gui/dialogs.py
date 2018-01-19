@@ -108,7 +108,7 @@ class FileDialog(Gtk.FileChooserDialog):
     def __init__(self, message=None, default_path=None):
         self.filename = None
         if not message:
-            message = "Please choose a file"
+            message = _("Please choose a file")
         super(FileDialog, self).__init__(
             message, None, Gtk.FileChooserAction.OPEN,
             ('_Cancel', Gtk.ResponseType.CANCEL,
@@ -160,7 +160,8 @@ class DownloadDialog(Gtk.Dialog):
 
 class InstallOrPlayDialog(Gtk.Dialog):
     def __init__(self, game_name):
-        Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
+        is_installed_message = game_name + _(" is already installed")
+        Gtk.Dialog.__init__(self, is_installed_message)
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.action = None
@@ -171,15 +172,15 @@ class InstallOrPlayDialog(Gtk.Dialog):
         vbox = Gtk.VBox(spacing=6)
         self.get_content_area().add(vbox)
 
-        play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
+        play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
         play_button.connect('toggled', self.on_button_toggled, "play")
         vbox.pack_start(play_button, False, False, 0)
         install_button = Gtk.RadioButton.new_from_widget(play_button)
-        install_button.set_label("Install the game again")
+        install_button.set_label(_("Install the game again"))
         install_button.connect('toggled', self.on_button_toggled, "install")
         vbox.pack_start(install_button, False, False, 0)
 
-        confirm_button = Gtk.Button("OK")
+        confirm_button = Gtk.Button(_("OK"))
         confirm_button.connect('clicked', self.on_confirm)
         vbox.pack_start(confirm_button, False, False, 0)
 
@@ -197,7 +198,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
 class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, "Runtime updating", parent=parent)
+        Gtk.Dialog.__init__(self, _("Runtime updating"), parent=parent)
         self.set_size_request(360, 104)
         self.set_border_width(12)
         progress_box = Gtk.Box()
@@ -258,7 +259,7 @@ class PgaSourceDialog(GtkBuilderDialog):
 
     def on_add_source_button_clicked(self, widget, data=None):
         chooser = Gtk.FileChooserDialog(
-            "Select directory", self.dialog,
+            _("Select directory"), self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
             ('_Cancel', Gtk.ResponseType.CANCEL,
              '_OK', Gtk.ResponseType.OK)
@@ -349,10 +350,10 @@ class NoInstallerDialog(Gtk.MessageDialog):
     def __init__(self, parent=None):
         Gtk.MessageDialog.__init__(self, parent, 0, Gtk.MessageType.ERROR,
                                    Gtk.ButtonsType.NONE,
-                                   "Unable to install the game")
-        self.format_secondary_text("No installer is available for this game")
-        self.add_buttons("Configure manually", self.MANUAL_CONF,
-                         "Write installer", self.NEW_INSTALLER,
-                         "Close", self.EXIT)
+                                   _("Unable to install the game"))
+        self.format_secondary_text(_("No installer is available for this game"))
+        self.add_buttons(_("Configure manually"), self.MANUAL_CONF,
+                         _("Write installer"), self.NEW_INSTALLER,
+                         _("Close"), self.EXIT)
         self.result = self.run()
         self.destroy()

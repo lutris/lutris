@@ -81,17 +81,17 @@ class InstallerDialog(Gtk.Window):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
-        self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
-        self.cancel_button.set_tooltip_text("Abort and revert the "
-                                            "installation")
+        self.cancel_button = Gtk.Button.new_with_mnemonic(_("C_ancel"))
+        self.cancel_button.set_tooltip_text(_("Abort and revert the "
+                                            "installation"))
         self.cancel_button.connect('clicked', self.on_cancel_clicked)
         self.action_buttons.add(self.cancel_button)
 
-        self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
-        self.install_button = self.add_button("_Install", self.on_install_clicked)
-        self.continue_button = self.add_button("_Continue")
-        self.play_button = self.add_button("_Launch game", self.launch_game)
-        self.close_button = self.add_button("_Close", self.close)
+        self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
+        self.install_button = self.add_button(_("_Install"), self.on_install_clicked)
+        self.continue_button = self.add_button(_("_Continue"))
+        self.play_button = self.add_button(_("_Launch game"), self.launch_game)
+        self.close_button = self.add_button(_("_Close"), self.close)
 
         self.continue_handler = None
 
@@ -162,7 +162,7 @@ class InstallerDialog(Gtk.Window):
 
     def choose_installer(self):
         """Stage where we choose an install script."""
-        self.title_label.set_markup('<b>Select which version to install</b>')
+        self.title_label.set_markup(_('<b>Select which version to install</b>'))
         self.installer_choice_box = Gtk.VBox()
         self.installer_choice = 0
         radio_group = None
@@ -243,18 +243,18 @@ class InstallerDialog(Gtk.Window):
     def select_install_folder(self):
         """Stage where we select the install directory."""
         if self.interpreter.creates_game_folder:
-            self.set_message("Select installation directory")
+            self.set_message(_("Select installation directory"))
             default_path = self.interpreter.get_default_target()
             self.set_path_chooser(self.on_target_changed, 'folder',
                                   default_path)
             self.non_empty_label = Gtk.Label()
             self.non_empty_label.set_markup(
-                "<b>Warning!</b> The selected path "
-                "contains files, installation might not work properly."
+                _("<b>Warning!</b> The selected path "
+                "contains files, installation might not work properly.")
             )
             self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
-            self.set_message("Click install to continue")
+            self.set_message(_("Click install to continue"))
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
@@ -365,13 +365,13 @@ class InstallerDialog(Gtk.Window):
         buttons_box.set_margin_bottom(40)
         self.widget_box.add(buttons_box)
 
-        autodetect_button = Gtk.Button(label='Autodetect')
+        autodetect_button = Gtk.Button(label=_('Autodetect'))
         autodetect_button.connect('clicked', callback, requires)
         autodetect_button.grab_focus()
         autodetect_button.show()
         buttons_box.pack_start(autodetect_button, True, True, 40)
 
-        browse_button = Gtk.Button(label='Browse…')
+        browse_button = Gtk.Button(label=_('Browse...'))
         callback_data = {
             'callback': callback,
             'requires': requires
@@ -381,7 +381,7 @@ class InstallerDialog(Gtk.Window):
         buttons_box.pack_start(browse_button, True, True, 40)
 
     def on_browse_clicked(self, widget, callback_data):
-        dialog = DirectoryDialog("Select the folder where the disc is mounted",
+        dialog = DirectoryDialog(_("Select the folder where the disc is mounted"),
                                  parent=self)
         folder = dialog.folder
         callback = callback_data['callback']
@@ -428,14 +428,14 @@ class InstallerDialog(Gtk.Window):
 
     def on_install_finished(self):
         """Actual game installation."""
-        self.status_label.set_text("Installation finished!")
+        self.status_label.set_text(_("Installation finished!"))
         self.notify_install_success()
         self.clean_widgets()
 
         # Shortcut checkboxes
-        self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut")
-        self.menu_shortcut_box = Gtk.CheckButton("Create application menu "
-                                                 "shortcut")
+        self.desktop_shortcut_box = Gtk.CheckButton(_("Create desktop shortcut"))
+        self.menu_shortcut_box = Gtk.CheckButton(_("Create application menu "
+                                                 "shortcut"))
         self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
         self.widget_box.pack_start(self.menu_shortcut_box, False, False, 5)
         self.widget_box.show_all()

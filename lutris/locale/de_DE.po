@@ -1,0 +1,444 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-01-19 18:45+0100\n"
+"PO-Revision-Date: 2018-01-19 19:28+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de_DE\n"
+
+#: gui/application.py:53
+msgid "Lutris"
+msgstr "Lutris"
+
+#: gui/application.py:72
+msgid "Show debug messages"
+msgstr "Fehlemeldungen anzeigen"
+
+#: gui/application.py:78
+msgid "Install a game from a yml file"
+msgstr "Aus einer yml-Datei installieren"
+
+#: gui/application.py:84
+msgid "Execute a program with the lutris runtime"
+msgstr "Ein Programm mit der Lutris-Laufzeitumgebung starten"
+
+#: gui/application.py:90
+msgid "List all games in database"
+msgstr "Liste alle Spiele in der Datenbank auf"
+
+#: gui/application.py:96
+msgid "Only list installed games"
+msgstr "Nur installierte Spiele anzeigen"
+
+#: gui/application.py:102
+msgid "List available Steam games"
+msgstr "Verfügbare Steam-Spiele anzeigen"
+
+#: gui/application.py:108
+msgid "List all known Steam library folders"
+msgstr "Zeige alle bekannten Steam-Bibliotheks-Ordner"
+
+#: gui/application.py:114
+msgid "Display the list of games in JSON format"
+msgstr "Spieleliste im JSON-Format anzeigen"
+
+#: gui/application.py:120
+msgid "Reinstall game"
+msgstr "Spiel neu installieren"
+
+#: gui/application.py:126
+msgid "uri to open"
+msgstr "Addresse zum öffnen"
+
+#: gui/config_boxes.py:89
+msgid "Reset option to global or default config"
+msgstr "Einstellung zur globalen oder Standardkonfiguration zurücksetzen"
+
+#: gui/config_boxes.py:103
+msgid "<b>Default</b>: "
+msgstr "<b>Standard</b>:"
+
+#: gui/config_boxes.py:106
+msgid ""
+"<i>(Italic indicates that this option is modified in a lower configuration "
+"level.)</i>"
+msgstr ""
+"<i>(Schrägschrift zeigt an, dass die Einstellung in einem niedrigeren "
+"Konfigurationslevel geändert wurde)</i>"
+
+#: gui/config_boxes.py:543
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration."
+msgstr ""
+"Bei Änderungen werden diegleichen Einstellungen der zugrundeliegenden "
+"Starterkonfiguration überschrieben."
+
+#: gui/config_boxes.py:562
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration, which themselves supersede the global preferences."
+msgstr ""
+"Bei Änderungen werden diegleichen Einstellungen der zugrundeliegenden "
+"Starterkonfiguration überschrieben, die wiederum selber die globalen "
+"Einstellungen überschreiben."
+
+#: gui/config_boxes.py:568
+msgid ""
+"If modified, these options supersede the same options from the global "
+"preferences."
+msgstr ""
+"Bei Änderung werden diegleichen Einstellungen der zugrundeliegenden "
+"globalen Einstellungen überschrieben."
+
+#: gui/config_dialogs.py:21
+msgid "Select a runner in the Game Info tab"
+msgstr "Wähle einen Starter aus dem Tab Spielinformationen"
+
+#: gui/config_dialogs.py:62 gui/gameviews.py:319
+msgid "Name"
+msgstr "Name"
+
+#: gui/config_dialogs.py:75
+msgid "Identifier"
+msgstr "Identifikator"
+
+#: gui/config_dialogs.py:92 gui/gameviews.py:331
+msgid "Runner"
+msgstr "Starter"
+
+#: gui/config_dialogs.py:106
+msgid "Banner"
+msgstr "Banner"
+
+#: gui/config_dialogs.py:115
+msgid "Remove custom banner"
+msgstr "Entferne angepassten Banner"
+
+#: gui/config_dialogs.py:127
+msgid "Remove custom icon"
+msgstr "Entferne angepasstes Logo"
+
+#: gui/config_dialogs.py:140
+msgid "Release year"
+msgstr "Veröffentlichungsjahr"
+
+#: gui/config_dialogs.py:188
+msgid "Select a runner from the list"
+msgstr "Wähle einen Starter aus der Liste"
+
+#: gui/config_dialogs.py:235
+msgid "Game options"
+msgstr "Einstellungen zum Spiel"
+
+#: gui/config_dialogs.py:243
+msgid "Runner options"
+msgstr "Starter-Einstellungen"
+
+#: gui/config_dialogs.py:248
+msgid "System options"
+msgstr "Systemeinstellungen"
+
+#: gui/config_dialogs.py:257
+msgid "Show advanced options"
+msgstr "Erweiterte Einstellungen anzeigen"
+
+#: gui/config_dialogs.py:266
+msgid "Cancel"
+msgstr "Abbruch"
+
+#: gui/config_dialogs.py:270
+msgid "Save"
+msgstr "Speichern"
+
+#: gui/config_dialogs.py:333
+msgid "Runner not provided"
+msgstr "Kein Starter verfügbar"
+
+#: gui/config_dialogs.py:336
+msgid "Please fill in the name"
+msgstr "Bitte den Namen angeben"
+
+#: gui/config_dialogs.py:378
+msgid "Please choose a custom image"
+msgstr "Bitte wähle ein eigenes Bild"
+
+#: gui/config_dialogs.py:423
+msgid "Add a new game"
+msgstr "Ein neues Spiel hinzufügen"
+
+#: gui/config_dialogs.py:455 gui/config_dialogs.py:478
+msgid "Configure "
+msgstr "Konfigurieren"
+
+#: gui/config_dialogs.py:502
+msgid "System preferences"
+msgstr "Systemeinstellungen"
+
+#: gui/dialogs.py:111
+msgid "Please choose a file"
+msgstr "Bitte wähle eine Datei"
+
+#: gui/dialogs.py:163
+msgid " is already installed"
+msgstr " ist bereits installiert"
+
+#: gui/dialogs.py:175
+msgid "Launch game"
+msgstr "Spiel starten"
+
+#: gui/dialogs.py:179
+msgid "Install the game again"
+msgstr "Spiel erneut installieren"
+
+#: gui/dialogs.py:183
+msgid "OK"
+msgstr "OK"
+
+#: gui/dialogs.py:201
+msgid "Runtime updating"
+msgstr "Aktualisiere Laufzeitumgebung"
+
+#: gui/dialogs.py:262
+msgid "Select directory"
+msgstr "Wähle ein Verzeichnis aus"
+
+#: gui/dialogs.py:353
+msgid "Unable to install the game"
+msgstr "Das Spiel konnte nicht installiert werden"
+
+#: gui/dialogs.py:354
+msgid "No installer is available for this game"
+msgstr "Für dieses Spiel gibt es keinen Installer"
+
+#: gui/dialogs.py:355
+msgid "Configure manually"
+msgstr "Manuell konfigurieren"
+
+#: gui/dialogs.py:356
+msgid "Write installer"
+msgstr "Installer schreiben"
+
+#: gui/dialogs.py:357 gui/runnersdialog.py:64
+msgid "Close"
+msgstr "Schließen"
+
+#: gui/gameviews.py:325
+msgid "Year"
+msgstr "Jahr"
+
+#: gui/gameviews.py:337
+msgid "Platform"
+msgstr "Plattform"
+
+#: gui/gameviews.py:343
+msgid "Last played"
+msgstr "Zuletzt gespielt"
+
+#: gui/installgamedialog.py:84
+msgid "C_ancel"
+msgstr "_Abbruch"
+
+#: gui/installgamedialog.py:85
+msgid "Abort and revert the installation"
+msgstr "Breche ab und entferne die Installation"
+
+#: gui/installgamedialog.py:90
+msgid "_Eject"
+msgstr "Ausw_erfen"
+
+#: gui/installgamedialog.py:91
+msgid "_Install"
+msgstr "_Installieren"
+
+#: gui/installgamedialog.py:92
+msgid "_Continue"
+msgstr "_Weiter"
+
+#: gui/installgamedialog.py:93
+msgid "_Launch game"
+msgstr "_Spiel starten"
+
+#: gui/installgamedialog.py:94
+msgid "_Close"
+msgstr "S_chließen"
+
+#: gui/installgamedialog.py:165
+msgid "<b>Select which version to install</b>"
+msgstr "<b>Bitte wählen Sie eine Version zum installieren aus</b>"
+
+#: gui/installgamedialog.py:246
+msgid "Select installation directory"
+msgstr "Wähle das Installationsverzeichnis"
+
+#: gui/installgamedialog.py:252
+msgid ""
+"<b>Warning!</b> The selected path contains files, installation might not "
+"work properly."
+msgstr ""
+"<b>Achtung!</b> Der gewählte Pfad enthält bereits Dateien. Die "
+"Installation könnte daher möglicherweise nicht funktionieren."
+
+#: gui/installgamedialog.py:257
+msgid "Click install to continue"
+msgstr "Klicken Sie auf installieren um fortzufahren"
+
+#: gui/installgamedialog.py:368
+msgid "Autodetect"
+msgstr "Automatisch erkennen"
+
+#: gui/installgamedialog.py:374
+msgid "Browseâ¦"
+msgstr "Browseâ¦"
+
+#: gui/installgamedialog.py:384
+msgid "Select the folder where the disc is mounted"
+msgstr "Bitte wählen Sie den Ordner aus in welchem die Disk eingebunden ist"
+
+#: gui/installgamedialog.py:431
+msgid "Installation finished!"
+msgstr "Installation beendet!"
+
+#: gui/installgamedialog.py:436 gui/lutriswindow.py:119
+msgid "Create desktop shortcut"
+msgstr "Ein Desktopsymbol anlegen"
+
+#: gui/installgamedialog.py:437 gui/lutriswindow.py:123
+msgid "Create application menu shortcut"
+msgstr "Einen Eintrag im Anwendungsmenü anlegen"
+
+#: gui/lutriswindow.py:114
+msgid "Play"
+msgstr "Spielen"
+
+#: gui/lutriswindow.py:115 gui/runnersdialog.py:120
+#: gui/widgets/cellrenderers.py:39
+msgid "Install"
+msgstr "Installieren"
+
+#: gui/lutriswindow.py:116
+msgid "Add manually"
+msgstr "Manuell hinzufügen"
+
+#: gui/lutriswindow.py:117 gui/runnersdialog.py:127 gui/sidebar.py:155
+msgid "Configure"
+msgstr "Konfigurieren"
+
+#: gui/lutriswindow.py:118
+msgid "Browse files"
+msgstr "Dateien ansehen"
+
+#: gui/lutriswindow.py:121
+msgid "Delete desktop shortcut"
+msgstr "Desktopsymbol entfernen"
+
+#: gui/lutriswindow.py:125
+msgid "Delete application menu shortcut"
+msgstr "Eintrag im Anwendungsmenü entfernen"
+
+#: gui/lutriswindow.py:127
+msgid "Install (add) another version"
+msgstr "Installiere (zusätzlich) eine andere Version"
+
+#: gui/lutriswindow.py:128
+msgid "Remove"
+msgstr "Entfernen"
+
+#: gui/lutriswindow.py:129
+msgid "View on Lutris.net"
+msgstr "Auf Lutris.net ansehen"
+
+#: gui/lutriswindow.py:406
+msgid "Preparing to launch "
+msgstr "Startvorbereitungen für "
+
+#: gui/lutriswindow.py:409
+msgid "Game has quit"
+msgstr "Spiel wurde beendet"
+
+#: gui/lutriswindow.py:412
+msgid "Playing "
+msgstr "Spiele "
+
+#: gui/runnersdialog.py:24
+msgid "Manage runners"
+msgstr "Starter verwalten"
+
+#: gui/runnersdialog.py:54
+msgid "Open Runners Folder"
+msgstr "Öffne das Starter-Verzeichnis"
+
+#: gui/runnersdialog.py:59
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+#: gui/runnersdialog.py:113 gui/sidebar.py:157
+msgid "Manage versions"
+msgstr "Versionen verwalten"
+
+#: gui/sidebar.py:28
+msgid "Runners"
+msgstr "Starter"
+
+#: gui/sidebar.py:160
+msgid "Run"
+msgstr "Starten"
+
+#: gui/sync.py:32
+msgid "Sync when Lutris starts"
+msgstr "Synchronsiere sobald Lutris startet"
+
+#: gui/sync.py:52
+msgid "Games synced"
+msgstr "Spielesammlung synchronisiert"
+
+#: gui/sync.py:62
+msgid "Import local games"
+msgstr "Lokale Spiele importieren"
+
+#: gui/sync.py:71
+msgid ""
+"You can import games from local game sources, \n"
+"you can also choose to sync everytime Lutris starts"
+msgstr ""
+"Sie können Spiele aus Ihren lokalen Quellen importieren. \n"
+"Ebenso können Sie auswählen, dass Lutris direkt beim Start synchronisiert"
+
+#: gui/uninstallgamedialog.py:85
+msgid ""
+"Are you sure you want to delete EVERYTHING under \n"
+"<b>"
+msgstr ""
+"Sind Sie sicher, dass Sie ALLES unter \n"
+"<b>"
+
+#: gui/uninstallgamedialog.py:87
+msgid ""
+"</b>?\n"
+" (This can't be undone)"
+msgstr ""
+"</b>?\n"
+" (Das kann nicht rückgängig gemacht werden)"
+
+#: gui/widgets/common.py:171
+msgid "Delete"
+msgstr "Löschen"
+
+#: gui/widgets/download_progress.py:90
+msgid "Download interrupted"
+msgstr "Download unterbrochen"
+
+#: gui/widgets/download_progress.py:104
+msgid "remaining"
+msgstr "übrig"
