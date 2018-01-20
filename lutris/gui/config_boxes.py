@@ -100,11 +100,14 @@ class ConfigBox(VBox):
             helptext = option.get("help")
             if type(self.tooltip_default) is str:
                 helptext = helptext + '\n\n' if helptext else ''
-                helptext += _("<b>Default</b>: ") + self.tooltip_default
+                helptext += "<b>" + _("Default") + "</b>: " + self.tooltip_default
             if value != default and option_key not in self.raw_config:
                 helptext = helptext + '\n\n' if helptext else ''
-                helptext += (_("<i>(Italic indicates that this option is "
-                             "modified in a lower configuration level.)</i>"))
+                helptext += "<i>"
+                helptext += (_("(Italic indicates that this option is "
+                             "modified in a lower configuration level.)"))
+                helptext += "</i>"
+
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect('query-tooltip', self.on_query_tooltip,

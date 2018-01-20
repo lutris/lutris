@@ -32,7 +32,9 @@ class RunnerInstallDialog(Dialog):
             ErrorDialog('Unable to get runner versions, check your internet connection',
                         parent=parent)
             return
-        label = Gtk.Label("%s version management" % self.runner_info['name'])
+        runner_name = self.runner_info['name']
+        version_management_label = runner_name + " " + _("version management")
+        label = Gtk.Label(version_management_label)
         self.vbox.add(label)
         self.runner_store = self.get_store()
         scrolled_window = Gtk.ScrolledWindow()

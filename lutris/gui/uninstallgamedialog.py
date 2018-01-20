@@ -82,9 +82,9 @@ class UninstallGameDialog(GtkBuilderDialog):
         if remove_contents and not hasattr(self.game.runner,
                                            'no_game_remove_warning'):
             game_dir = self.game.directory.replace('&', '&amp;')
-            question =  _("Are you sure you want to delete EVERYTHING under \n<b>")
+            question =  _("Are you sure you want to delete EVERYTHING under") + " \n<b>"
             question += game_dir
-            question += _("</b>?\n (This can't be undone)")
+            question += "</b>?\n " + _("(This can't be undone)")
 
             dlg = QuestionDialog({
                 'question': question,

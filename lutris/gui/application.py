@@ -19,6 +19,8 @@ import json
 import logging
 import os
 import signal
+import gettext
+from gettext import gettext as _
 
 import gi
 gi.require_version('Gdk', '3.0')
@@ -45,6 +47,9 @@ class Application(Gtk.Application):
 
         Gtk.Application.__init__(self, application_id='net.lutris.Lutris',
                                  flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+
+        gettext.bindtextdomain("lutris", "/usr/share/locale")
+        gettext.textdomain("lutris")
 
         check_config()
         migrate()

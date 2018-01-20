@@ -403,13 +403,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.running_game:
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
-                label_launch = _("Preparing to launch ") + name
+                label_launch = _("Preparing to launch") + " " + name
                 self.set_status(label_launch)
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status(_("Game has quit"))
                 self.actions['stop-game'].props.enabled = False
             elif self.running_game.state == self.running_game.STATE_RUNNING:
-                label_running = _("Playing ") + name
+                label_running = _("Playing") + " " + name
                 self.set_status(label_running)
                 self.actions['stop-game'].props.enabled = True
         return True

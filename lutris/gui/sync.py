@@ -68,8 +68,9 @@ class SyncServiceDialog(Gtk.Dialog):
         self.get_content_area().add(box_outer)
 
         description_label = Gtk.Label()
-        description_label.set_markup(_("You can import games from local game sources, \n"
-                                     "you can also choose to sync everytime Lutris starts"))
+        label_markup = _("You can import games from local game sources,") + " \n"
+        label_markup += _("you can also choose to sync everytime Lutris starts")
+        description_label.set_markup(label_markup)
         box_outer.pack_start(description_label, False, False, 5)
 
         separator = Gtk.Separator()
