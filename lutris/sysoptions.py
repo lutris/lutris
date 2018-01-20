@@ -49,7 +49,7 @@ system_options = [
     {
         'option': 'game_path',
         'type': 'directory_chooser',
-        'label': 'Main game folder',
+        'label': _('Main game folder'),
         'default': os.path.expanduser('~/Games'),
         'scope': ['runner', 'system'],
         'help': ("The main folder where you install your games.\n"
@@ -59,7 +59,7 @@ system_options = [
     {
         'option': 'reset_desktop',
         'type': 'bool',
-        'label': 'Restore to default resolution when game quits',
+        'label': _('Restore to default resolution when game quits'),
         'default': False,
         'help': ("Some games don't restore your screen resolution when \n"
                  "closed or when they crash. This is when this option comes \n"
@@ -69,7 +69,7 @@ system_options = [
         'option': 'restore_gamma',
         'type': 'bool',
         'default': False,
-        'label': 'Restore default gamma correction after game quits',
+        'label': _('Restore default gamma correction after game quits'),
         'help': ("Some games don't correctly restores gamma on exit, making "
                  "your display too bright. Select this option to correct it.")
     },
@@ -78,7 +78,7 @@ system_options = [
         'type': 'bool',
         'default': False,
         'condition': system.find_executable('primusrun'),
-        'label': 'Use primusrun (NVIDIA Optimus laptops)',
+        'label': _('Use primusrun (NVIDIA Optimus laptops)'),
         'help': ("If you have installed the primus package, selecting this "
                  "option will run the game with the primusrun command, "
                  "activating your NVIDIA graphic chip for high 3D "
@@ -89,7 +89,7 @@ system_options = [
         'type': 'bool',
         'default': False,
         'condition': get_dri_prime,
-        'label': 'Use PRIME (hybrid graphics on laptops)',
+        'label': _('Use PRIME (hybrid graphics on laptops)'),
         'help': ("If you have open source graphic drivers (Mesa), selecting this "
                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
                  "activating your discrete graphic chip for high 3D "
@@ -98,7 +98,7 @@ system_options = [
     {
         'option': 'sdl_video_fullscreen',
         'type': 'choice',
-        'label': 'Fullscreen SDL games to display',
+        'label': _('Fullscreen SDL games to display'),
         'choices': get_output_list,
         'default': 'off',
         'help': ("Hint SDL games to use a specific monitor when going fullscreen by "
@@ -107,7 +107,7 @@ system_options = [
     {
         'option': 'display',
         'type': 'choice',
-        'label': 'Turn off monitors except',
+        'label': _('Turn off monitors except'),
         'choices': get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
@@ -118,14 +118,14 @@ system_options = [
     {
         'option': 'resolution',
         'type': 'choice',
-        'label': 'Switch resolution to',
+        'label': _('Switch resolution to'),
         'choices': get_resolution_choices,
         'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },
     {
         'option': 'terminal',
-        'label': "Run in a terminal",
+        'label': _("Run in a terminal"),
         'type': 'bool',
         'default': False,
         'advanced': True,
@@ -133,7 +133,7 @@ system_options = [
     },
     {
         'option': 'terminal_app',
-        'label': "Terminal application",
+        'label': _("Terminal application"),
         'type': 'choice_with_entry',
         'choices': system.get_terminal_apps,
         'default': system.get_default_terminal(),
@@ -146,14 +146,14 @@ system_options = [
     {
         'option': 'env',
         'type': 'mapping',
-        'label': 'Environment variables',
+        'label': _('Environment variables'),
         'advanced': True,
-        'help': "Environment variables loaded at run time"
+        'help': _("Environment variables loaded at run time")
     },
     {
         'option': 'prefix_command',
         'type': 'string',
-        'label': 'Command prefix',
+        'label': _('Command prefix'),
         'advanced': True,
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
@@ -161,7 +161,7 @@ system_options = [
     {
         'option': 'include_processes',
         'type': 'string',
-        'label': 'Include processes',
+        'label': _('Include processes'),
         'advanced': True,
         'help': ('What processes to include in process monitoring. '
                  'This is to override the built-in exclude list.\n'
@@ -171,7 +171,7 @@ system_options = [
     {
         'option': 'exclude_processes',
         'type': 'string',
-        'label': 'Exclude processes',
+        'label': _('Exclude processes'),
         'advanced': True,
         'help': ('What processes to exclude in process monitoring. '
                  'For example background processes that stick around '
@@ -182,7 +182,7 @@ system_options = [
     {
         'option': 'single_cpu',
         'type': 'bool',
-        'label': 'Restrict to single core',
+        'label': _('Restrict to single core'),
         'advanced': True,
         'default': False,
         'help': "Restrict the game to a single CPU core."
@@ -190,7 +190,7 @@ system_options = [
     {
         'option': 'disable_runtime',
         'type': 'bool',
-        'label': 'Disable Lutris Runtime',
+        'label': _('Disable Lutris Runtime'),
         'default': False,
         'advanced': True,
         'help': ("The Lutris Runtime loads some libraries before running the "
@@ -199,7 +199,7 @@ system_options = [
     },
     {
         'option': 'disable_monitoring',
-        'label': "Disable process monitor",
+        'label': _("Disable process monitor"),
         'type': 'bool',
         'default': False,
         'advanced': True,
@@ -208,7 +208,7 @@ system_options = [
     {
         'option': 'reset_pulse',
         'type': 'bool',
-        'label': 'Reset PulseAudio',
+        'label': _('Reset PulseAudio'),
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
@@ -217,7 +217,7 @@ system_options = [
     {
         'option': 'pulse_latency',
         'type': 'bool',
-        'label': 'Reduce PulseAudio latency',
+        'label': _('Reduce PulseAudio latency'),
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
@@ -227,7 +227,7 @@ system_options = [
     {
         'option': 'use_us_layout',
         'type': 'bool',
-        'label': 'Switch to US keyboard layout',
+        'label': _('Switch to US keyboard layout'),
         'default': False,
         'advanced': True,
         'help': 'Switch to US keyboard qwerty layout while game is running'
@@ -235,7 +235,7 @@ system_options = [
     {
         'option': 'killswitch',
         'type': 'string',
-        'label': 'Killswitch file',
+        'label': _('Killswitch file'),
         'advanced': True,
         'help': ("Path to a file which will stop the game when deleted \n"
                  "(usually /dev/input/js0 to stop the game on joystick "
@@ -244,7 +244,7 @@ system_options = [
     {
         'option': 'xboxdrv',
         'type': 'string',
-        'label': 'xboxdrv config',
+        'label': _('xboxdrv config'),
         'advanced': True,
         'condition': system.find_executable('xboxdrv'),
         'help': ("Command line options for xboxdrv, a driver for XBOX 360 "
@@ -253,7 +253,7 @@ system_options = [
     {
         'option': 'sdl_gamecontrollerconfig',
         'type': 'string',
-        'label': 'SDL2 gamepad mapping',
+        'label': _('SDL2 gamepad mapping'),
         'advanced': True,
         'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
                  "gamecontrollerdb.txt file containing mappings.")
@@ -261,7 +261,7 @@ system_options = [
     {
         'option': 'xephyr',
         'type': 'choice',
-        'label': "Use Xephyr",
+        'label': _("Use Xephyr"),
         'type': 'choice',
         'choices': (
             ('Off', 'off'),
@@ -275,7 +275,7 @@ system_options = [
     {
         'option': 'xephyr_resolution',
         'type': 'string',
-        'label': 'Xephyr resolution',
+        'label': _('Xephyr resolution'),
         'advanced': True,
         'help': 'Screen resolution of the Xephyr server'
     },

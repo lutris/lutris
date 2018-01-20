@@ -72,13 +72,14 @@ class Game(object):
             message_text = message['text'].replace('&', '&amp;')
             dialogs.ErrorDialog(message_text)
         elif "RUNNER_NOT_INSTALLED" == message['error']:
-            dialogs.ErrorDialog('Error the runner is not installed')
+            dialogs.ErrorDialog(_('Error the runner is not installed'))
         elif "NO_BIOS" == message['error']:
-            dialogs.ErrorDialog("A bios file is required to run this game")
+            dialogs.ErrorDialog(_("A bios file is required to run this game"))
         elif "FILE_NOT_FOUND" == message['error']:
             filename = message['file']
             if filename:
-                message_text = "The file {} could not be found".format(
+                message_text = _("The file {} could not be found")
+                message_text = message_text.format(
                     filename.replace('&', '&amp;')
                 )
             else:
@@ -86,8 +87,9 @@ class Game(object):
             dialogs.ErrorDialog(message_text)
 
         elif "NOT_EXECUTABLE" == message['error']:
-            message_text = message['file'].replace('&', '&amp;')
-            dialogs.ErrorDialog("The file %s is not executable" % message_text)
+            filename = message['file'].replace('&', '&amp;')
+            message_text = _("The file {} is not executable")
+            dialogs.ErrorDialog(message_text.format(filename))
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
@@ -169,14 +171,15 @@ class Game(object):
                 logger.warning("Runtime updates: {}".format(
                     runtime_updater.current_updates)
                 )
-                dialogs.ErrorDialog("Runtime currently updating",
-                                    "Game might not work as expected")
+                message_head = _("Runtime currently updating")
+                message_body = _("Game might not work as expected")
+                dialogs.ErrorDialog(message_head, message_body)
         return True
 
     def play(self):
         """Launch the game."""
         if not self.runner:
-            dialogs.ErrorDialog("Invalid game configuration: Missing runner")
+            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
             self.state = self.STATE_STOPPED
             return
 
@@ -442,8 +445,10 @@ class Game(object):
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog("<b>Error: A different Wine version is "
-                                    "already using the same Wine prefix.</b>")
+                error_message  = "<b>" + _("Error: A different Wine version is")
+                error_message += " " + _("already using the same Wine prefix.") + "</b>"
+
+                dialogs.ErrorDialog(error_message)
 
     def notify_steam_game_changed(self, appmanifest):
         logger.debug("Steam game %s state has changed, new states: %s",
