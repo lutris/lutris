@@ -26,14 +26,29 @@ class atari800(Runner):
         "osb_rom": "a3e8d617c95d08031fe1b20d541434b2",
         "5200_rom": ""
     }
+
+    def get_long_help_msg(self,option):
+        help_messages = {}
+
+        # main_file
+        help_messages['main_file'] = _("The game data, commonly called a ROM image.") + " \n"
+        help_messages['main_file'] += _("Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ")
+        help_messages['main_file'] += _("and PRO.")
+
+        # bios_path
+        help_messages['bios_path'] += _("A folder containing the Atari 800 bios files.") + " \n"
+        help_messages['bios_path'] += _("They are provided by Lutris so you shouldn't have to") + " "
+        help_messages['bios_path'] += _("change this") + "\n"
+
+        return help_messages.get(option, "")
+
+
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image. \n"
-                     "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
-                     "and PRO.")
+            "label": _("ROM file"),
+            'help': get_long_help_msg('main_file')
         }
     ]
 
@@ -51,9 +66,7 @@ class atari800(Runner):
             "option": "bios_path",
             "type": "directory_chooser",
             "label": "Bios location",
-            'help': ("A folder containing the Atari 800 bios files.\n"
-                     "They are provided by Lutris so you shouldn't have to "
-                     "change this.")
+            'help': get_long_help_msg('bios_path')
         },
         {
             "option": "machine",
@@ -64,20 +77,20 @@ class atari800(Runner):
                         ("Emulate Atari 320 XE (Rambo)", "rambo"),
                         ("Emulate Atari 5200", "5200")],
             "default": "atari",
-            "label": "Machine"
+            "label": _("Machine")
         },
         {
             "option": "fullscreen",
             "type": "bool",
             "default": False,
-            "label": "Fullscreen"
+            "label": _("Fullscreen")
         },
         {
             "option": "resolution",
             "type": "choice",
             "choices": get_resolutions,
             "default": 'desktop',
-            "label": "Fullscreen resolution"
+            "label": _("Fullscreen resolution")
         }
     ]
 

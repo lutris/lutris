@@ -11,19 +11,19 @@ class ags(Runner):
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label': 'Game executable or directory'
+        'label': _('Game executable or directory')
     }]
     runner_options = [
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': True
         },
         {
             'option': 'filter',
             'type': 'choice',
-            'label': 'Graphics filter',
+            'label': _('Graphics filter'),
             'choices': [
                 ('None', 'none'),
                 ('Standard scaling', 'stdscale'),
