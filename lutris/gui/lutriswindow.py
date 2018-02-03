@@ -1,6 +1,8 @@
 """Main window for the Lutris interface."""
 # pylint: disable=E0611
 import os
+import stat
+import shutil
 import math
 import time
 from collections import namedtuple
@@ -35,6 +37,7 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
 )
+from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
@@ -82,6 +85,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
+
+        # Check if .desktop exists
+        if (not os.path.exists(settings.DESKTOP_FILE_PATH)):
+            dlg = QuestionDialog({
+                'question': "The desktop file does not exist. Do you want to add it?",
+                'title': "Add desktop file?",
+            })
+            if dlg.result == dlg.YES:
+                shutil.copy(
+                    os.path.join(datapath.get(), 'icons', 'hicolor', '48x48', 'apps', 'lutris.png'),
+                        settings.DESKTOP_ICON_PATH)
+                shutil.copy(
+                    os.path.join(datapath.get(), 'applications', 'lutris.desktop'),
+                        settings.DESKTOP_FILE_PATH)
+                st = os.stat(settings.DESKTOP_FILE_PATH)
+                os.chmod(settings.DESKTOP_FILE_PATH, st.st_mode | stat.S_IEXEC)
 
         # Sync local lutris library with current Steam games and desktop games
         for service in get_services_synced_at_startup():

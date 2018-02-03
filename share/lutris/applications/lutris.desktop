@@ -8,3 +8,4 @@ Icon=lutris
 Terminal=false
 Type=Application
 MimeType=x-scheme-handler/lutris;
+Name[en_US]=lutris
