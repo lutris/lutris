@@ -39,6 +39,7 @@ def fetch_icons(game_slugs, callback=None):
 
     results = api.get_games(game_slugs=missing_media_slugs)
 
+    new_icon = False
     banner_downloads = []
     icon_downloads = []
     updated_slugs = []
@@ -55,17 +56,24 @@ def fetch_icons(game_slugs, callback=None):
                 dest_path = get_icon_path(game['slug'], ICON)
                 icon_downloads.append((game['icon_url'], dest_path))
                 updated_slugs.append(game['slug'])
+                new_icon = True
 
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
 
     downloads = banner_downloads + icon_downloads
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        for url, dest_path in downloads:
-            executor.submit(download_media, url, dest_path)
+        futs = [executor.submit(download_media, url, dest_path)
+                for url, dest_path in downloads]
+        concurrent.futures.wait(futs)
+
+    if (new_icon):
+        udpate_desktop_icons()
 
     if updated_slugs and callback:
         callback(updated_slugs)
 
+def udpate_desktop_icons():
+    os.system("xdg-icon-resource forceupdate")
 
 def download_media(url, dest, overwrite=False):
     if os.path.exists(dest):
