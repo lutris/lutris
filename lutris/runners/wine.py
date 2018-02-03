@@ -139,7 +139,7 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     logger.info('%s Prefix created in %s', arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
-
+    self.sandbox(prefix_manager)
 
 def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     """Kill processes in Wine prefix."""
@@ -322,22 +322,6 @@ def detect_prefix_arch(directory=None):
             elif 'win32' in line:
                 return 'win32'
     logger.debug("Can't detect prefix arch for %s", directory)
-
-
-def disable_desktop_integration(prefix):
-    """Remove links to user directories in a prefix."""
-    if not prefix:
-        raise ValueError('Missing prefix')
-    user = os.getenv('USER')
-    user_dir = os.path.join(prefix, "drive_c/users/", user)
-    # Replace symlinks
-    if os.path.exists(user_dir):
-        for item in os.listdir(user_dir):
-            path = os.path.join(user_dir, item)
-            if os.path.islink(path):
-                os.unlink(path)
-                os.makedirs(path)
-
 
 def set_drive_path(prefix, letter, path):
     dosdevices_path = os.path.join(prefix, "dosdevices")
@@ -723,6 +707,21 @@ class wine(Runner):
                 'advanced': True,
                 'help': "Sets WINEDLLOVERRIDES when launching the game."
             },
+            {
+                'option': 'sandbox',
+                'type': 'bool',
+                'label': 'Create a sandbox for wine folders',
+                'default': True,
+                'help': ("Do not use $HOME for desktop integration folders.\n"
+                         "By default, it use the directories in the confined "
+                         "Windows environment.")
+            },
+            {
+                'option': 'sandbox_dir',
+                'type': 'directory_chooser',
+                'label': 'Sandbox directory',
+                'help': ("Custom directory for desktop integration folders.")
+            }
         ]
 
     @property
@@ -883,8 +882,8 @@ class wine(Runner):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
-        prefix_manager.setup_defaults()
         prefix_manager.configure_joypads()
+        self.sandbox(prefix_manager)
         self.set_regedit_keys()
         return True
 
@@ -952,6 +951,13 @@ class wine(Runner):
             x360ce_config = X360ce()
             x360ce_config.populate_controllers()
             x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
+
+    def sandbox(self, wine_prefix):
+        sandbox = self.runner_config.get('sandbox', True)
+
+        if (sandbox):
+            sandbox_dir = self.runner_config.get('sandbox_dir', None)
+            wine_prefix.desktop_integration(desktop_dir=sandbox_dir)
 
     def play(self):
         game_exe = self.game_exe
