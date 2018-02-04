@@ -94,7 +94,7 @@ def get_games(game_slugs=None, page=1):
 
     results = response_data.get('results', [])
     while response_data.get('next'):
-        page_match = re.search(r'page=(\d+)', response_data['next'])
+        page_match = research(r'page=(\d+)', response_data['next'])
         if page_match:
             page = page_match.group(1)
         else:
