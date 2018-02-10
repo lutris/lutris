@@ -37,10 +37,20 @@ class CommandsMixin(object):
         if type(params) is str:
             params = [params]
         for param in params:
-            if param not in command_data:
-                raise ScriptingError('The "%s" parameter is mandatory for '
-                                     'the %s command' % (param, command_name),
-                                     command_data)
+            if isinstance(param, tuple):
+                param_present = False
+                for key in param:
+                    if key in command_data:
+                        param_present = True
+                if not param_present:
+                    raise ScriptingError('One of %s parameter is mandatory for '
+                                         'the %s command' % (' or '.join(param), command_name),
+                                         command_data)
+            else:
+                if param not in command_data:
+                    raise ScriptingError('The %s parameter is mandatory for '
+                                         'the %s command' % (param, command_name),
+                                         command_data)
 
     def check_md5(self, data):
         self._check_required_params(['file', 'value'], data, 'check_md5')
@@ -127,8 +137,8 @@ class CommandsMixin(object):
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""
-        self._check_required_params('file', data, 'extract')
-        filename = self._get_file(data['file'])
+        self._check_required_params([('file', 'src')], data, 'extract')
+        filename = self._get_file(data.get('file', data.get('src')))
         if not filename:
             filename = self._substitute(data['file'])
 
