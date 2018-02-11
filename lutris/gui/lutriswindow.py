@@ -376,6 +376,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
+        SCALE = ('icon_small', 'icon', 'banner_small', 'banner')
+        self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
+
         settings.write_setting('view_type', view_type)
 
     def sync_library(self):
