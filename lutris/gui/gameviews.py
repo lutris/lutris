@@ -312,14 +312,15 @@ class GameListView(Gtk.TreeView, GameView):
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
+
         self.set_column(name_cell, "Name", COL_NAME, 200)
         self.set_column(default_text_cell, "Year", COL_YEAR, 60)
         self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
-        self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120)
-        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
-        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
+        self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120, sort_id=COL_LASTPLAYED)
+        # self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
+        self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120, sort_id=COL_INSTALLED_AT)
+        # self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -333,10 +334,10 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id, default_width):
+    def set_column(self, cell, header, column_id, default_width, sort_id=None):
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
-        column.set_sort_column_id(column_id)
+        column.set_sort_column_id(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
         width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
