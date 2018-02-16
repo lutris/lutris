@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import urllib.request
 import urllib.parse
@@ -100,7 +101,7 @@ def get_games(game_slugs=None, page=1):
         else:
             logger.error("No page found in %s", response_data['next'])
             break
-        page_result = api.get_games(game_slugs=missing_media_slugs, page=page)
+        page_result = get_games(game_slugs=game_slugs, page=page)
         if not page_result:
             logger.warning("Unable to get response for page %s", page)
             break
