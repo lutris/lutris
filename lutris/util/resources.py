@@ -1,7 +1,9 @@
 import os
 import re
+import shutil
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
+from gi.repository import GLib
 
 from lutris import settings
 from lutris import api
@@ -73,7 +75,13 @@ def fetch_icons(game_slugs, callback=None):
         callback(updated_slugs)
 
 def udpate_desktop_icons():
-    os.system("xdg-icon-resource forceupdate")
+    # Update Icon for GTK+ desktop manager
+    gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
+    if (gtk_update_icon_cache):
+        os.system("gtk-update-icon-cache -tf %s"
+        % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
+
+    # Other desktop manager cache command must be added here when needed
 
 def download_media(url, dest, overwrite=False):
     if os.path.exists(dest):
