@@ -17,7 +17,7 @@ __all__ = (
     # Sony
     "ppsspp", "pcsx2", "rpcs3",
     # Sega
-    "osmose", "dgen", "reicast",
+    "osmose", "dgen", "reicast", "redream",
     # Misc legacy systems
     "frotz", "jzintv", "o2em", "zdoom"
 )
