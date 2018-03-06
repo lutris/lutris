@@ -368,7 +368,7 @@ class winesteam(wine.wine):
 
     def get_default_prefix(self, arch=None):
         """Return the default prefix' path."""
-        return self.runner_config['default_%s_prefix' % arch or self.default_arch]
+        return self.runner_config['default_%s_prefix' % (arch or self.default_arch)]
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
