@@ -9,17 +9,7 @@ from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
-def is_disabled():
-    """Checks if runtime is disabled from an environment variable.
-    Returns True if LUTRIS_RUNTIME is set to a negative value,
-    False if any other value and None if LUTRIS_RUNTIME is not set.
-    """
-    env_runtime = os.getenv('LUTRIS_RUNTIME')
-    if env_runtime:
-        if env_runtime.lower() in ('0', 'off'):
-            return True
-        else:
-            return False
+RUNTIME_DISABLED = os.environ.get('LUTRIS_RUNTIME', '').lower() in ('0', 'off')
 
 
 class RuntimeUpdater:
@@ -37,7 +27,7 @@ class RuntimeUpdater:
         return time.gmtime(os.path.getctime(path))
 
     def update(self, status_updater=None):
-        if is_disabled():
+        if RUNTIME_DISABLED:
             logger.debug("Runtime disabled, not updating it.")
             return []
 
@@ -128,27 +118,28 @@ class RuntimeUpdater:
 
 def get_env():
     """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
-    if is_disabled():
-        return {}
-
-    steam_runtime_dir = os.path.join(RUNTIME_DIR, 'steam')
-    ld_library_path = ':'.join(get_paths()) + ':$LD_LIBRARY_PATH'
     return {
-        'STEAM_RUNTIME': steam_runtime_dir,
-        'LD_LIBRARY_PATH': ld_library_path
+        key: value for key, value in {
+            'STEAM_RUNTIME': os.path.join(RUNTIME_DIR, 'steam') if not RUNTIME_DISABLED else None,
+            'LD_LIBRARY_PATH': ':'.join(get_paths())
+        } if value
     }
 
 
 def get_paths():
     """Return a list of paths containing the runtime libraries."""
-    paths = [
-        "lib32",
-        "steam/i386/lib/i386-linux-gnu",
-        "steam/i386/lib",
-        "steam/i386/usr/lib/i386-linux-gnu",
-        "steam/i386/usr/lib"
-    ]
-    if system.is_64bit:
+    paths = []
+
+    if not RUNTIME_DISABLED:
+        paths += [
+            "lib32",
+            "steam/i386/lib/i386-linux-gnu",
+            "steam/i386/lib",
+            "steam/i386/usr/lib/i386-linux-gnu",
+            "steam/i386/usr/lib"
+        ]
+
+    if system.is_64bit and not RUNTIME_DISABLED:
         paths += [
             "lib64",
             "steam/amd64/lib/x86_64-linux-gnu",
@@ -156,4 +147,10 @@ def get_paths():
             "steam/amd64/usr/lib/x86_64-linux-gnu",
             "steam/amd64/usr/lib"
         ]
-    return [os.path.join(RUNTIME_DIR, path) for path in paths]
+
+    paths = [os.path.join(RUNTIME_DIR, path) for path in paths]
+
+    if os.environ.get('LD_LIBRARY_PATH'):
+        paths.append(os.environ['LD_LIBRARY_PATH'])
+
+    return paths

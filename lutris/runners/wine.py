@@ -113,7 +113,8 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
 
     wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
     if not system.path_exists(wineboot_path):
-        logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
+        logger.error("No wineboot executable found in %s, "
+                     "your wine installation is most likely broken", wine_path)
         return
 
     if install_gecko is 'False':
@@ -139,7 +140,7 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     logger.info('%s Prefix created in %s', arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
-    self.sandbox(prefix_manager)
+
 
 def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     """Kill processes in Wine prefix."""
@@ -177,7 +178,8 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         if not running_processes:
             break
         if num_cycles > 20:
-            logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
+            logger.warning("Some wine processes are still running: %s",
+                           ', '.join(running_processes))
             break
         time.sleep(0.1)
 
@@ -235,8 +237,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if (not wine_config.system_config['disable_runtime'] and
-            not runtime.is_disabled() and not disable_runtime):
+    if (
+            not runtime.RUNTIME_DISABLED and
+            not disable_runtime and
+            not wine_config.system_config['disable_runtime']
+    ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -322,6 +327,7 @@ def detect_prefix_arch(directory=None):
             elif 'win32' in line:
                 return 'win32'
     logger.debug("Can't detect prefix arch for %s", directory)
+
 
 def set_drive_path(prefix, letter, path):
     dosdevices_path = os.path.join(prefix, "dosdevices")
@@ -553,7 +559,7 @@ class wine(Runner):
                 'label': 'x360ce dinput 8 mode',
                 'type': 'bool',
                 'default': False,
-                'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
+                'help': "Configure x360ce with dinput8.dll, required for some games"
             },
             {
                 'option': 'x360ce-xinput9',
@@ -634,9 +640,13 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
-                'help': ("This option ensures any pending drawing operations are submitted to the driver, but at"
-                         " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
-                         " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead.""")
+                'help': (
+                    "This option ensures any pending drawing operations are "
+                    "submitted to the driver, but at a significant performance "
+                    "cost. Set to \"enabled\" to enable. This setting is deprecated "
+                    "since wine-2.6 and will likely be removed after wine-3.0. "
+                    "Use \"csmt\" instead."
+                )
             },
             {
                 'option': 'UseGLSL',
@@ -646,8 +656,11 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'enabled',
                 'advanced': True,
-                'help': ("When set to \"disabled\", this disables the use of GLSL for shaders."
-                         "In general disabling GLSL is not recommended, only use this for debugging purposes.")
+                'help': (
+                    "When set to \"disabled\", this disables the use of GLSL for shaders. "
+                    "In general disabling GLSL is not recommended, "
+                    "only use this for debugging purposes."
+                )
             },
             {
                 'option': 'RenderTargetLockMode',
