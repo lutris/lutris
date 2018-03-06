@@ -122,7 +122,7 @@ def get_env():
         key: value for key, value in {
             'STEAM_RUNTIME': os.path.join(RUNTIME_DIR, 'steam') if not RUNTIME_DISABLED else None,
             'LD_LIBRARY_PATH': ':'.join(get_paths())
-        } if value
+        }.items() if value
     }
 
 
