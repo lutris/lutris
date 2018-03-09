@@ -173,10 +173,15 @@ class CommandsMixin(object):
     def insert_disc(self, data):
         self._check_required_params('requires', data, 'insert_disc')
         requires = data.get('requires')
-        message_action = _("Insert or mount game disc and click Autodetect or") + "\n"
-        message_action +=_("use Browse if the disc is mounted on a non standard location.") + "\n\n"
-        message_info = _("Lutris is looking for a mounted disk drive or image") + " \n"
-        message_info += _("containing the following file or folder")
+        message_action = _(
+            "Insert or mount game disc and click Autodetect or"
+            "use Browse if the disc is mounted on a non standard location."
+            ""
+        )
+        message_info = _(
+            "Lutris is looking for a mounted disk drive or image"
+            "containing the following file or folder"
+       )
         message_info += ":\n<i>%s</i>" % requires
 
         message = data.get('message', message_action)

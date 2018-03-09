@@ -31,14 +31,18 @@ class atari800(Runner):
         help_messages = {}
 
         # main_file
-        help_messages['main_file'] = _("The game data, commonly called a ROM image.") + " \n"
-        help_messages['main_file'] += _("Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ")
-        help_messages['main_file'] += _("and PRO.")
+        help_messages['main_file'] = _(
+            "The game data, commonly called a ROM image."
+            "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ"
+            "and PRO."
+        )
 
         # bios_path
-        help_messages['bios_path'] += _("A folder containing the Atari 800 bios files.") + " \n"
-        help_messages['bios_path'] += _("They are provided by Lutris so you shouldn't have to") + " "
-        help_messages['bios_path'] += _("change this") + "\n"
+        help_messages['bios_path'] = _(
+            "A folder containing the Atari 800 bios files."
+            "They are provided by Lutris so you shouldn't have to"
+            "change this"
+        )
 
         return help_messages.get(option, "")
 
