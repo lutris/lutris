@@ -13,7 +13,7 @@ the ``installer`` section. The value can either be a string containing a URI
 pointing at the required file or a dictionary containing the ``filename`` and
 ``url`` keys. The ``url`` key is equivalent to passing only a string to the
 installer and the ``filename`` key will be used to give the local copy another
-name.
+name. If you need to set referer use ``referer`` key.
 
 If the game contains copyrighted files that cannot be redistributed, the value
 should begin with ``N/A``. When the installer encounter this value, it will
@@ -31,6 +31,7 @@ Examples:
     - file3:
         url: http://site.com/url-that-doesnt-resolve-to-a-proper-filename
         filename: actual_local_filename.zip
+        referer: www.mywebsite.com
 
 
 If the game makes use of (Windows) Steam data, the value should be
@@ -350,7 +351,7 @@ Currently, the following tasks are implemented:
     specified path. The other wine/winesteam directives below include the
     creation of the prefix, so in most cases you won't need to use the
     create_prefix command. Parameters are ``prefix`` (the path), ``arch``
-    (optional architecture of the prefix, default: win32), ``overrides`` (optional dll overrides)..
+    (optional architecture of the prefix, default: win32), ``overrides`` (optional dll overrides, format described later), ``install_gecko`` (optional variable to stop installing gecko), ``install_mono`` (optional variable to stop installing mono).
 
     Example:
 
@@ -561,7 +562,7 @@ Trying the installer locally
 ============================
 
 If needed (i.e. you didn't download the installer first from the website), add
-the ``name``, ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
+the ``name`` (if name contains : character surrond name with quotes), ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
 The value for ``runner`` must be the slug name for the runner.
 (E.g. winesteam for Steam Windows.)
 Under ``script``, add ``files``, ``installer``, ``game`` and other installer
@@ -583,12 +584,241 @@ Example Linux game:
       game:
         exe: $GAMEDIR/mygame
         args: --some-arg
+        working_dir: $GAMEDIR
 
       files:
       - myfile: http://example.com/mygame.zip
 
       installer:
       - chmodx: $GAMEDIR/mygame
+      system:
+        terminal: true
+        env:
+          SOMEENV: true
+
+Example wine game:
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: wine
+
+    script:
+      game:
+        exe: $GAMEDIR/mygame
+        args: --some-args
+        prefix: $GAMEDIR/prefix
+        arch: win64
+        working_dir: $GAMEDIR/prefix
+      files:
+      - installer: "N/A:Select the game's setup file"
+      installer:
+      - task: 
+        executable: installer
+        name: wineexec
+        prefix: $GAMEDIR/prefix
+        arch: win64
+      wine:
+        Desktop: true
+        WineDesktop: 1024x768
+        overrides:
+          ddraw.dll: n
+      system:
+        terminal: true
+        env:
+          WINEDLLOVERRIDES: d3d11=
+          SOMEENV: true
+
+Example gog wine game, some installer crash with with /SILENT or /VERYSILENT option (Cuphead and Star Wars: Battlefront II for example), (most options can be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline, there is undocumented gog option ``/nogui``, you need to use it when you use ``/silent`` and ``/suppressmsgboxes`` parameters):
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: wine
+
+    script:
+      game:
+        exe: $GAMEDIR/prefix/game/Game.exe
+        args: --some-arg
+        prefix: $GAMEDIR/prefix
+        arch: win64
+        working_dir: $GAMEDIR/prefix
+      files:
+      - installer: "N/A:Select the game's setup file"
+      installer:
+      - task:
+        args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
+        executable: installer
+        name: wineexec
+        prefix: $GAMEDIR/prefix
+        arch: win64
+      wine:
+        Desktop: true
+        WineDesktop: 1024x768
+        overrides:
+          ddraw.dll: n
+      system:
+        terminal: true
+        env:
+          WINEDLLOVERRIDES: d3d11=
+          SOMEENV: true
+
+
+Example gog wine game, alternative (requires innoextract):
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: wine
+
+    script:
+      game:
+        exe: $GAMEDIR/prefix/drive_c/Games/YourGame/game.exe
+        args: --some-arg
+        prefix: $GAMEDIR/prefix
+        arch: win64
+        working_dir: $GAMEDIR/prefix
+      files:
+      - installer: "N/A:Select the game's setup file"
+      installer:
+      - execute:
+          args: --gog -d "$CACHE" "$setup"
+          description: Extracting game data
+          file: innoextract
+      - move:
+          description: Extracting game data
+          dst: $GAMEDIR/drive_c/Games/YourGame
+          src: $CACHE/app
+      wine:
+        Desktop: true
+        WineDesktop: 1024x768
+        overrides:
+          ddraw.dll: n
+      system:
+        terminal: true
+        env:
+          WINEDLLOVERRIDES: d3d11=
+          SOMEENV: true
+
+
+Example gog linux game (mojosetup options found here https://www.reddit.com/r/linux_gaming/comments/42l258/fully_automated_gog_games_install_howto/):
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: linux
+
+    script:
+      game:
+        exe: $GAMEDIR/game.sh
+        args: --some-arg
+        working_dir: $GAMEDIR
+      files:
+      - installer: "N/A:Select the game's setup file"
+      installer:
+      - chmodx: installer
+      - execute:
+        executable: installer
+        description: Installing game, it will take a while...
+        args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
+      system:
+        terminal: true
+
+Example gog linux game, alternative (requires unzip):
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: linux
+
+    script:
+      game:
+        exe: Game/start.sh
+        args: --some-arg
+        working_dir: $GAMEDIR
+      files:
+      - installer: "N/A:Select the game's setup file"
+      installer:
+      - execute:
+        args: $installer -d "$GAMEDIR" "data/noarch/*"
+        description: Extracting game data, it will take a while...
+        file: unzip
+      - rename:
+        dst: $GAMEDIR/Game
+        src: $GAMEDIR/data/noarch
+      system:
+        terminal: true
+
+
+Example winesteam game:
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: winesteam
+
+    script:
+      game:
+        appid: 227300
+        args: --some-args
+        prefix: $GAMEDIR/prefix
+        arch: win64
+      installer:
+      - task:
+        description: Setting up wine prefix
+        name: create_prefix
+        prefix: $GAMEDIR/prefix
+        arch: win64
+
+      wine:
+        Desktop: true
+        WineDesktop: 1024x768
+        overrides:
+          ddraw.dll: n
+      system:
+        terminal: true
+        env:
+          WINEDLLOVERRIDES: d3d11=
+          SOMEENV: true
+
+Example steam linux game:
+
+::
+
+    name: My Game
+    game_slug: my-game
+    version: Installer
+    slug: my-game-installer
+    runner: winesteam
+
+    script:
+      game:
+        appid: 227300
+        args: --some-args
+      steam:
+        quit_steam_on_exit: true
+      system:
+        terminal: true
+        env:
+          SOMEENV: true
 
 When submitting the installer script to lutris.net, only copy the script part. Remove the two space indentation:
 
@@ -610,3 +840,149 @@ Calling the online installer
 ============================
 
 The installer can be called with the ``lutris:<game-slug>`` url scheme.
+
+Library override info
+======================
+
+Overrides option accepts this values:
+
+``n,b`` = Try native and fallback to builtin if native doesn't work
+
+``b,n`` = Try builtin and fallback to native if builtin doesn't work
+
+``b``   = Use buildin
+
+``n``   = Use native
+
+``disabled`` = Disable library
+
+Overrides format for ``create_prefix``, ``wineexec`` commands and for ``wine`` options section:
+
+::
+
+      overrides:
+        ddraw.dll: n
+        d3d9: disable
+        winegstreamer: builtin
+
+
+Override or set env
+===================
+
+Example:
+
+::
+
+     env:
+      WINEDLLOVERRIDES: d3d11=
+      SOMEENV: true
+
+
+Sysoptions
+==========
+
+**wine section:**
+
+``version`` (example: ``staging-2.21-x86_64``)
+
+``custom_wine_path`` (example: ``/usr/local/bin/wine``)
+
+``x360ce-path`` (example: ``$GAMEDIR``)
+
+``x360ce-dinput`` (example: ``true``)
+
+``x360ce-xinput9`` (example: ``true``)
+
+``dumbxinputemu`` (example: ``true``)
+
+``xinput-arch`` (example: ``win32`` or ``win64``)
+
+``Desktop`` (example: ``true``)
+
+``WineDesktop`` (example: ``1024x768``)
+
+``MouseWarpOverride`` (example: ``enable``, ``disable`` or ``force``)
+
+``OffscreenRenderingMode`` (example: ``fbo`` or ``backbuffer``)
+
+``StrictDrawOrdering`` (example: ``enabled`` or ``disabled``)
+
+``UseGLSL`` (example: ``enabled`` or ``disabled``)
+
+``RenderTargetLockMode`` (example: ``disabled``, ``readtex`` or ``readdraw``)
+
+``Audio`` (example: ``auto``, ``alsa``, ``oss`` or ``jack``)
+
+``ShowCrashDialog`` (example: ``true``)
+
+``show_debug`` (example: empty value, ``-all`` or ``+all``)
+
+``overrides`` (example: described above)
+
+**winesteam (wine section options available to winesteam runner) section:**
+
+``steam_path`` (example: ``Z:\home\user\Steam\Steam.exe``) 
+
+``quit_steam_on_exit`` (example: ``true``)
+
+``steamless_binary64`` (example: fallout64-nosteam)
+
+``steamless_binary`` (example: fallout-nosteam)
+
+``run_without_steam`` (example: ``true``)
+
+**steam section:**
+
+``steamless_binary64`` (example: fallout64-nosteam)
+
+``steamless_binary`` (example: fallout-nosteam)
+
+``run_without_steam`` (example: ``true``)
+
+``quit_steam_on_exit`` (example: ``true``)
+
+``start_in_big_picture`` (example: ``true``)
+
+``steam_native_runtime`` (example: ``false``)
+
+``args`` (example: ``-tcp -language "english"``)
+
+**system section:**
+
+``reset_desktop`` (example: ``true``)
+
+``restore_gamma`` (example: ``true``)
+
+``resolution`` (example: ``2560x1080``)
+
+``terminal`` (example: ``true``)
+
+``env`` (described above)
+
+``prefix_command`` (example: ``firejail --profile=/etc/firejail/steam.profile --``)
+
+``include_processes`` (example: ``Setup.exe``)
+
+``exclude_processes`` (example: ``unpack.exe``)
+
+``single_cpu`` (example: ``true``)
+
+``disable_runtime`` (example: ``true``)
+
+``disable_monitoring`` (example: ``true``)
+
+``reset_pulse`` (example: ``true``)
+
+``pulse_latency`` (example: ``true``)
+
+``use_us_layout`` (example: ``true``)
+
+``killswitch`` (example: ``/dev/input/js0``)
+
+``xboxdrv`` (example: ``--silent --type xbox360``)
+
+``sdl_gamecontrollerconfig`` (example: ``$HOME/gamecontrollerdb.txt``)
+
+``xephyr`` (example: offm ``8bpp`` or ``16bpp``)
+
+``xephyr_resolution`` (example: ``1024x768``)

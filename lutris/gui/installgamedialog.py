@@ -6,7 +6,7 @@ import webbrowser
 
 from gi.repository import Gtk, Pango
 
-from lutris import pga, settings
+from lutris import api, pga, settings
 from lutris.services import xdg
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
@@ -147,7 +147,27 @@ class InstallerDialog(Gtk.Window):
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
             game_data = pga.get_game_by_field(self.game_slug, 'slug')
-            game = Game(game_data['id'])
+
+            if game_data and 'slug' in game_data:
+                # Game data already exist locally.
+                game = Game(game_data['id'])
+            else:
+                # Try to load game data from remote.
+                games = api.get_games([self.game_slug])
+
+                if games and len(games) >= 1:
+                    remote_game = games[0]
+                    game_data = {
+                        'name': remote_game['name'],
+                        'slug': remote_game['slug'],
+                        'year': remote_game['year'],
+                        'updated': remote_game['updated'],
+                        'steamid': remote_game['steamid']
+                    }
+                    game = Game(pga.add_game(**game_data))
+                else:
+                    game = None
+
             AddGameDialog(
                 self.parent,
                 game=game,

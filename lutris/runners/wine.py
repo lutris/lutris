@@ -113,7 +113,8 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
 
     wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
     if not system.path_exists(wineboot_path):
-        logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
+        logger.error("No wineboot executable found in %s, "
+                     "your wine installation is most likely broken", wine_path)
         return
 
     if install_gecko is 'False':
@@ -177,7 +178,8 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         if not running_processes:
             break
         if num_cycles > 20:
-            logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
+            logger.warning("Some wine processes are still running: %s",
+                           ', '.join(running_processes))
             break
         time.sleep(0.1)
 
@@ -235,8 +237,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if (not wine_config.system_config['disable_runtime'] and
-            not runtime.is_disabled() and not disable_runtime):
+    if (
+            not runtime.RUNTIME_DISABLED and
+            not disable_runtime and
+            not wine_config.system_config['disable_runtime']
+    ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -322,21 +327,6 @@ def detect_prefix_arch(directory=None):
             elif 'win32' in line:
                 return 'win32'
     logger.debug("Can't detect prefix arch for %s", directory)
-
-
-def disable_desktop_integration(prefix):
-    """Remove links to user directories in a prefix."""
-    if not prefix:
-        raise ValueError('Missing prefix')
-    user = os.getenv('USER')
-    user_dir = os.path.join(prefix, "drive_c/users/", user)
-    # Replace symlinks
-    if os.path.exists(user_dir):
-        for item in os.listdir(user_dir):
-            path = os.path.join(user_dir, item)
-            if os.path.islink(path):
-                os.unlink(path)
-                os.makedirs(path)
 
 
 def set_drive_path(prefix, letter, path):
@@ -569,7 +559,7 @@ class wine(Runner):
                 'label': 'x360ce dinput 8 mode',
                 'type': 'bool',
                 'default': False,
-                'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
+                'help': "Configure x360ce with dinput8.dll, required for some games"
             },
             {
                 'option': 'x360ce-xinput9',
@@ -650,9 +640,13 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
-                'help': ("This option ensures any pending drawing operations are submitted to the driver, but at"
-                         " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
-                         " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead.""")
+                'help': (
+                    "This option ensures any pending drawing operations are "
+                    "submitted to the driver, but at a significant performance "
+                    "cost. Set to \"enabled\" to enable. This setting is deprecated "
+                    "since wine-2.6 and will likely be removed after wine-3.0. "
+                    "Use \"csmt\" instead."
+                )
             },
             {
                 'option': 'UseGLSL',
@@ -662,8 +656,11 @@ class wine(Runner):
                             ('Disabled', 'disabled')],
                 'default': 'enabled',
                 'advanced': True,
-                'help': ("When set to \"disabled\", this disables the use of GLSL for shaders."
-                         "In general disabling GLSL is not recommended, only use this for debugging purposes.")
+                'help': (
+                    "When set to \"disabled\", this disables the use of GLSL for shaders. "
+                    "In general disabling GLSL is not recommended, "
+                    "only use this for debugging purposes."
+                )
             },
             {
                 'option': 'RenderTargetLockMode',
@@ -723,6 +720,21 @@ class wine(Runner):
                 'advanced': True,
                 'help': "Sets WINEDLLOVERRIDES when launching the game."
             },
+            {
+                'option': 'sandbox',
+                'type': 'bool',
+                'label': 'Create a sandbox for wine folders',
+                'default': True,
+                'help': ("Do not use $HOME for desktop integration folders.\n"
+                         "By default, it use the directories in the confined "
+                         "Windows environment.")
+            },
+            {
+                'option': 'sandbox_dir',
+                'type': 'directory_chooser',
+                'label': 'Sandbox directory',
+                'help': ("Custom directory for desktop integration folders.")
+            }
         ]
 
     @property
@@ -883,8 +895,8 @@ class wine(Runner):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
-        prefix_manager.setup_defaults()
         prefix_manager.configure_joypads()
+        self.sandbox(prefix_manager)
         self.set_regedit_keys()
         return True
 
@@ -952,6 +964,13 @@ class wine(Runner):
             x360ce_config = X360ce()
             x360ce_config.populate_controllers()
             x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
+
+    def sandbox(self, wine_prefix):
+        sandbox = self.runner_config.get('sandbox', True)
+
+        if (sandbox):
+            sandbox_dir = self.runner_config.get('sandbox_dir', None)
+            wine_prefix.desktop_integration(desktop_dir=sandbox_dir)
 
     def play(self):
         game_exe = self.game_exe

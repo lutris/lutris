@@ -602,6 +602,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                       [game.slug], self.on_image_downloaded)
 
     def on_image_downloaded(self, game_slugs):
+        logger.debug("Updated images for %d games" % len(game_slugs))
+
         for game_slug in game_slugs:
             games = pga.get_games_where(slug=game_slug)
             for game in games:

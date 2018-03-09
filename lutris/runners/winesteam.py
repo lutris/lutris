@@ -112,8 +112,7 @@ class winesteam(wine.wine):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
-        self.runner_options.insert(
-            0,
+        winesteam_options = [
             {
                 'option': 'steam_path',
                 'type': 'directory_chooser',
@@ -123,9 +122,6 @@ class winesteam(wine.wine):
                          "installation into ~/.wine or will install it in "
                          "its own custom Wine prefix.")
             },
-        )
-        self.runner_options.insert(
-            1,
             {
                 'option': 'quit_steam_on_exit',
                 'label': "Stop Steam after game exits",
@@ -133,21 +129,14 @@ class winesteam(wine.wine):
                 'default': True,
                 'help': ("Shut down Steam after the game has quit.")
             },
-        )
-        self.runner_options.insert(
-            2,
             {
                 'option': 'run_without_steam',
-                'type': 'string',
                 'label': 'Run without Steam (if possible)',
                 'type': 'bool',
                 'default': False,
                 'help': ("If a steamless binary is available launches the game "
                          "directly instead of launching it through Steam")
             },
-        )
-        self.runner_options.insert(
-            3,
             {
                 'option': 'args',
                 'type': 'string',
@@ -156,7 +145,25 @@ class winesteam(wine.wine):
                 'help': ("Extra command line arguments used when "
                          "launching Steam")
             },
-        )
+            {
+                'option': 'default_win32_prefix',
+                'type': 'directory_chooser',
+                'label': 'Default Wine prefix (32bit)',
+                'default': os.path.join(settings.RUNNER_DIR, 'winesteam/prefix'),
+                'help': "Default prefix location for Steam (32 bit)",
+                'advanced': True
+            },
+            {
+                'option': 'default_win64_prefix',
+                'type': 'directory_chooser',
+                'label': 'Default Wine prefix (64bit)',
+                'default': os.path.join(settings.RUNNER_DIR, 'winesteam/prefix64'),
+                'help': "Default prefix location for Steam (64 bit)",
+                'advanced': True
+            },
+        ]
+        for option in reversed(winesteam_options):
+            self.runner_options.insert(0, option)
 
     def __repr__(self):
         return "Winesteam runner (%s)" % self.config
@@ -192,7 +199,7 @@ class winesteam(wine.wine):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.runner_config['run_without_steam'] == True:
+        if self.runner_config['run_without_steam']:
             steamless_binary = self.game_config.get('steamless_binary')
             if (os.path.isfile(steamless_binary)):
                 return os.path.dirname(steamless_binary)
@@ -361,12 +368,7 @@ class winesteam(wine.wine):
 
     def get_default_prefix(self, arch=None):
         """Return the default prefix' path."""
-        if not arch:
-            arch = self.default_arch
-        path = 'winesteam/prefix'
-        if arch == 'win64':
-            path += '64'
-        return os.path.join(settings.RUNNER_DIR, path)
+        return self.runner_config['default_%s_prefix' % (arch or self.default_arch)]
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
@@ -423,7 +425,7 @@ class winesteam(wine.wine):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
         steamless_binary = self.game_config.get('steamless_binary')
-        if self.runner_config['run_without_steam'] == True and steamless_binary:
+        if self.runner_config['run_without_steam'] and steamless_binary:
             # Start without steam
             if not os.path.exists(steamless_binary):
                 return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
@@ -436,7 +438,7 @@ class winesteam(wine.wine):
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
-            
+
         else:
             # Start through steam
             command = self.launch_args

@@ -11,7 +11,7 @@ from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
 from lutris.util.strings import slugify
-from lutris.util import datapath
+from lutris.util import datapath, resources
 
 DIALOG_WIDTH = 780
 DIALOG_HEIGHT = 560
@@ -401,6 +401,9 @@ class GameDialogCommon(object):
             pixbuf = get_pixbuf(image_path, None, size)
             pixbuf.savev(dest_path, file_format, [], [])
             self._set_image(image_type)
+
+            if image_type == 'icon':
+                resources.udpate_desktop_icons()
 
         dialog.destroy()
 

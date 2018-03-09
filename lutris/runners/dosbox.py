@@ -77,6 +77,14 @@ class dosbox(Runner):
             'help': ("Command line arguments used when launching "
                      "DOSBox")
         },
+        {
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": "Working directory",
+            'help': ("The location where the game is run from.\n"
+                     "By default, Lutris uses the directory of the "
+                     "executable.")
+        },
     ]
 
     scaler_modes = [
@@ -139,8 +147,12 @@ class dosbox(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return os.path.dirname(self.main_file) \
-            or super(dosbox, self).working_dir
+        option = self.game_config.get('working_dir')
+        if option:
+            return os.path.expanduser(option)
+        if self.main_file:
+            return os.path.dirname(self.main_file)
+        return super(dosbox, self).working_dir
 
     def play(self):
         main_file = self.main_file
@@ -173,6 +185,5 @@ class dosbox(Runner):
 
         if args:
             command.append(args)
-        # /Options
 
         return {'command': command}
