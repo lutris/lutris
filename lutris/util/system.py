@@ -18,6 +18,7 @@ TERMINAL_CANDIDATES = [
     'xfce4-terminal',
     'pantheon-terminal',
     'terminator',
+    'mate-terminal',
     'urxvt',
     'cool-retro-term',
     'Eterm',
