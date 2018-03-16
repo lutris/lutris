@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20171222-next
+WINETRICKS_VERSION=20180217-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -34,7 +34,8 @@ WINETRICKS_VERSION=20171222-next
 # - zenity is needed by the GUI, though it can limp along somewhat with kdialog/xmessage.
 # - xdg-open (if present) or open (for OS X) is used to open download pages
 #   for the user when downloads cannot be fully automated.
-# - sudo is used to mount .iso images if the user cached them with -k option.
+# - pkexec, sudo, or kdesu (gksu/gksudo/kdesudo are deprecated upstream but also still supported)
+#   are used to mount .iso images if the user cached them with -k option.
 # - perl is used to munge steam config files.
 # - torify is used with option "--torify" if sites are blocked in single countries.
 # On Ubuntu, the following lines can be used to install all the prerequisites:
@@ -310,6 +311,7 @@ w_package_unsupported_win64()
 {
     if [ "$W_ARCH" = "win64" ] ; then
         case $LANG in
+            pl*) w_die "Ten pakiet ($W_PACKAGE) nie działa z 64-bitową instalacją. Musisz użyć prefiksu utworzonego z WINEARCH=win32." ;;
             ru*) w_die "Данный пакет не работает в 64-битном окружении. Используйте префикс, созданный с помощью WINEARCH=win32." ;;
             *) w_die "This package ($W_PACKAGE) does not work on a 64-bit installation. You must use a prefix made with WINEARCH=win32." ;;
         esac
@@ -322,6 +324,7 @@ w_package_warn_win64()
 {
     if [ "$W_ARCH" = "win64" ] ; then
         case $LANG in
+            pl*) w_warn "Ten pakiet ($W_PACKAGE) może nie działać poprawnie z 64-bitową instalacją. Prefiks 32-bitowy może działąć lepiej." ;;
             ru*) w_warn "Данный пакет может работать не полностью в 64-битном окружении. 32-битные префиксы могут работать лучше." ;;
             *) w_warn "This package ($W_PACKAGE) may not fully work on a 64-bit installation. 32-bit prefixes may work better." ;;
         esac
@@ -356,6 +359,7 @@ w_try()
     status=$?
     if test $status -ne 0; then
         case $LANG in
+            pl*) w_die "Informacja: poelcenie $* zwróciło status $status. Przerywam." ;;
             ru*) w_die "Важно: команда $* вернула статус $status. Прерывание." ;;
             *) w_die "Note: command $* returned status $status. Aborting." ;;
         esac
@@ -729,6 +733,7 @@ w_verify_sha1sum()
     w_get_sha1sum "$_W_vs_file"
     if [ "$_W_gotsha1sum"x != "$_W_vs_wantsum"x ] ; then
         case $LANG in
+            pl*) w_die "Niezgodność sumy sha1sum! Zmień nazwę $_W_vs_file i spróbuj ponownie." ;;
             ru*) w_die "Контрольная сумма sha1sum не совпадает! Переименуйте файл $_W_vs_file и попробуйте еще раз." ;;
             *) w_die "sha1sum mismatch! Rename $_W_vs_file and try again." ;;
         esac
@@ -745,6 +750,7 @@ w_verify_sha256sum()
     w_get_sha256sum "$_W_vs_file"
     if [ "$_W_gotsha256sum"x != "$_W_vs_wantsum"x ] ; then
         case $LANG in
+            pl*) w_die "Niezgodność sumy sha256sum! Zmień nazwę $_W_vs_file i spróbuj ponownie." ;;
             ru*) w_die "Контрольная сумма sha256sum не совпадает! Переименуйте файл $_W_vs_file и попробуйте еще раз." ;;
             *) w_die "sha256sum mismatch! Rename $_W_vs_file and try again." ;;
         esac
@@ -794,6 +800,8 @@ winetricks_parse_wget_progress()
     # Parse a percentage, a size, and a time into $1, $2 and $3
     # then use them to create the output line.
     case $LANG in
+        pl*) perl -p -e \
+            '$| = 1; s/^.* +([0-9]+%) +([0-9,.]+[GMKB]) +([0-9hms,.]+).*$/\1\n# Pobieranie… \2 (\3)/' ;;
         ru*) perl -p -e \
             '$| = 1; s/^.* +([0-9]+%) +([0-9,.]+[GMKB]) +([0-9hms,.]+).*$/\1\n# Загрузка... \2 (\3)/' ;;
         *) perl -p -e \
@@ -1049,6 +1057,7 @@ w_download_to()
 
                 if test ! "$WINETRICKS_CONTINUE_DOWNLOAD" ; then
                     case $LANG in
+                        pl*) w_warn "Niezgodność sum kontrolnych dla $_W_cache/$_W_file, pobieram ponownie" ;;
                         ru*) w_warn "Контрольная сумма файла $_W_cache/$_W_file не совпадает, попытка повторной загрузки" ;;
                         *) w_warn "Checksum for $_W_cache/$_W_file did not match, retrying download" ;;
                     esac
@@ -1169,6 +1178,9 @@ w_download_to()
 
             w_try_cd "$_W_dl_olddir"
             unset _W_dl_olddir
+
+            # downloaded successfully, exit from loop
+            break
         elif test $tries = 2; then
             test -f "$_W_file" && rm "$_W_file"
             w_die "Downloading $_W_url failed"
@@ -1768,14 +1780,18 @@ w_umount()
         echo "Running $WINETRICKS_SUDO umount $W_ISO_MOUNT_ROOT"
 
         case "$WINETRICKS_SUDO" in
-            gksudo)
+            gksu*|kdesudo)
               # -l lazy unmount in case executable still running
               "$WINETRICKS_SUDO" "umount -l $W_ISO_MOUNT_ROOT"
               w_try "$WINETRICKS_SUDO" "rm -rf $W_ISO_MOUNT_ROOT"
               ;;
+            kdesu)
+              "$WINETRICKS_SUDO" -c "umount -l $W_ISO_MOUNT_ROOT"
+              w_try "$WINETRICKS_SUDO" -c "rm -rf $W_ISO_MOUNT_ROOT"
+              ;;
             *)
-              "$WINETRICKS_SUDO" "umount -l $W_ISO_MOUNT_ROOT"
-              w_try "$WINETRICKS_SUDO" "rm -rf $W_ISO_MOUNT_ROOT"
+              "$WINETRICKS_SUDO" umount -l "$W_ISO_MOUNT_ROOT"
+              w_try "$WINETRICKS_SUDO" rm -rf "$W_ISO_MOUNT_ROOT"
               ;;
         esac
 
@@ -1928,6 +1944,8 @@ w_override_all_dlls()
     #   -e '/^.*\/icmp$/ d' \
     #   -e '/^.*\/iphlpapi$/ d' \
     #   -e '/^.*\/kernel32$/ d' \
+    #   -e '/^.*\/l3codeca.acm$/ d' \
+    #   -e '/^.*\/mfuuid$/ d' \
     #   -e '/^.*\/mountmgr.sys$/ d' \
     #   -e '/^.*\/mswsock$/ d' \
     #   -e '/^.*\/ntdll$/ d' \
@@ -1952,11 +1970,12 @@ w_override_all_dlls()
     #   -e '/^.*\/wsock32$/ d' \
     #   -e 's,.*/,        ,' | sort | fmt -63 | sed 's/$/ \\/'
     #
-    # 2017-09-01: Last list update (wine-2.16)
+    # 2018-02-18: Last list update (wine-3.2)
     w_override_dlls builtin \
-        acledit aclui activeds actxprxy adsldpc advpack \
+        acledit aclui activeds actxprxy adsldp adsldpc advpack \
         amstream api-ms-win-appmodel-identity-l1-1-0 \
         api-ms-win-appmodel-runtime-l1-1-1 \
+        api-ms-win-appmodel-runtime-l1-1-2 \
         api-ms-win-core-apiquery-l1-1-0 \
         api-ms-win-core-appcompat-l1-1-1 \
         api-ms-win-core-appinit-l1-1-0 \
@@ -1976,16 +1995,20 @@ w_override_all_dlls()
         api-ms-win-core-errorhandling-l1-1-0 \
         api-ms-win-core-errorhandling-l1-1-1 \
         api-ms-win-core-errorhandling-l1-1-2 \
+        api-ms-win-core-errorhandling-l1-1-3 \
         api-ms-win-core-fibers-l1-1-0 \
         api-ms-win-core-fibers-l1-1-1 \
         api-ms-win-core-file-l1-1-0 \
         api-ms-win-core-file-l1-2-0 \
         api-ms-win-core-file-l1-2-1 \
+        api-ms-win-core-file-l1-2-2 \
         api-ms-win-core-file-l2-1-0 \
         api-ms-win-core-file-l2-1-1 \
+        api-ms-win-core-file-l2-1-2 \
         api-ms-win-core-handle-l1-1-0 \
         api-ms-win-core-heap-l1-1-0 \
         api-ms-win-core-heap-l1-2-0 \
+        api-ms-win-core-heap-l2-1-0 \
         api-ms-win-core-heap-obsolete-l1-1-0 \
         api-ms-win-core-interlocked-l1-1-0 \
         api-ms-win-core-interlocked-l1-2-0 \
@@ -1997,6 +2020,7 @@ w_override_all_dlls()
         api-ms-win-core-libraryloader-l1-1-0 \
         api-ms-win-core-libraryloader-l1-1-1 \
         api-ms-win-core-libraryloader-l1-2-0 \
+        api-ms-win-core-libraryloader-l1-2-1 \
         api-ms-win-core-libraryloader-l1-2-2 \
         api-ms-win-core-localization-l1-1-0 \
         api-ms-win-core-localization-l1-2-0 \
@@ -2004,6 +2028,7 @@ w_override_all_dlls()
         api-ms-win-core-localization-l2-1-0 \
         api-ms-win-core-localization-obsolete-l1-1-0 \
         api-ms-win-core-localization-obsolete-l1-2-0 \
+        api-ms-win-core-localization-obsolete-l1-3-0 \
         api-ms-win-core-localization-private-l1-1-0 \
         api-ms-win-core-localregistry-l1-1-0 \
         api-ms-win-core-memory-l1-1-0 \
@@ -2021,6 +2046,7 @@ w_override_all_dlls()
         api-ms-win-core-processthreads-l1-1-0 \
         api-ms-win-core-processthreads-l1-1-1 \
         api-ms-win-core-processthreads-l1-1-2 \
+        api-ms-win-core-processtopology-obsolete-l1-1-0 \
         api-ms-win-core-profile-l1-1-0 \
         api-ms-win-core-psapi-ansi-l1-1-0 \
         api-ms-win-core-psapi-l1-1-0 \
@@ -2034,13 +2060,17 @@ w_override_all_dlls()
         api-ms-win-core-rtlsupport-l1-2-0 \
         api-ms-win-core-shlwapi-legacy-l1-1-0 \
         api-ms-win-core-shlwapi-obsolete-l1-1-0 \
+        api-ms-win-core-shlwapi-obsolete-l1-2-0 \
+        api-ms-win-core-shutdown-l1-1-0 \
         api-ms-win-core-sidebyside-l1-1-0 \
         api-ms-win-core-stringansi-l1-1-0 \
         api-ms-win-core-string-l1-1-0 \
         api-ms-win-core-string-l2-1-0 \
         api-ms-win-core-string-obsolete-l1-1-0 \
+        api-ms-win-core-synch-ansi-l1-1-0 \
         api-ms-win-core-synch-l1-1-0 \
         api-ms-win-core-synch-l1-2-0 \
+        api-ms-win-core-synch-l1-2-1 \
         api-ms-win-core-sysinfo-l1-1-0 \
         api-ms-win-core-sysinfo-l1-2-0 \
         api-ms-win-core-sysinfo-l1-2-1 \
@@ -2053,6 +2083,7 @@ w_override_all_dlls()
         api-ms-win-core-url-l1-1-0 api-ms-win-core-util-l1-1-0 \
         api-ms-win-core-versionansi-l1-1-0 \
         api-ms-win-core-version-l1-1-0 \
+        api-ms-win-core-version-l1-1-1 \
         api-ms-win-core-version-private-l1-1-0 \
         api-ms-win-core-windowserrorreporting-l1-1-0 \
         api-ms-win-core-winrt-error-l1-1-0 \
@@ -2063,6 +2094,7 @@ w_override_all_dlls()
         api-ms-win-core-winrt-roparameterizediid-l1-1-0 \
         api-ms-win-core-winrt-string-l1-1-0 \
         api-ms-win-core-wow64-l1-1-0 \
+        api-ms-win-core-wow64-l1-1-1 \
         api-ms-win-core-xstate-l1-1-0 \
         api-ms-win-core-xstate-l2-1-0 \
         api-ms-win-crt-conio-l1-1-0 \
@@ -2098,9 +2130,12 @@ w_override_all_dlls()
         api-ms-win-eventing-legacy-l1-1-0 \
         api-ms-win-eventing-provider-l1-1-0 \
         api-ms-win-eventlog-legacy-l1-1-0 \
+        api-ms-win-mm-joystick-l1-1-0 \
         api-ms-win-mm-misc-l1-1-1 api-ms-win-mm-mme-l1-1-0 \
         api-ms-win-mm-time-l1-1-0 \
         api-ms-win-ntuser-dc-access-l1-1-0 \
+        api-ms-win-ntuser-rectangle-l1-1-0 \
+        api-ms-win-perf-legacy-l1-1-0 \
         api-ms-win-power-base-l1-1-0 \
         api-ms-win-power-setting-l1-1-0 \
         api-ms-win-rtcore-ntuser-private-l1-1-0 \
@@ -2113,6 +2148,7 @@ w_override_all_dlls()
         api-ms-win-security-grouppolicy-l1-1-0 \
         api-ms-win-security-lsalookup-l1-1-0 \
         api-ms-win-security-lsalookup-l1-1-1 \
+        api-ms-win-security-lsalookup-l2-1-0 \
         api-ms-win-security-lsalookup-l2-1-1 \
         api-ms-win-security-lsapolicy-l1-1-0 \
         api-ms-win-security-provider-l1-1-0 \
@@ -2125,15 +2161,16 @@ w_override_all_dlls()
         api-ms-win-service-private-l1-1-1 \
         api-ms-win-service-winsvc-l1-1-0 \
         api-ms-win-service-winsvc-l1-2-0 \
+        api-ms-win-shcore-scaling-l1-1-1 \
         api-ms-win-shell-shellcom-l1-1-0 \
         api-ms-win-shell-shellfolders-l1-1-0 apphelp \
         appwiz.cpl atl atl100 atl110 atl80 atl90 authz \
-        avicap32 avifil32 avrt bcrypt bluetoothapis \
-        browseui bthprops.cpl cabinet cards cfgmgr32 \
-        clusapi combase comcat comctl32 comdlg32 compstui \
-        comsvcs concrt140 connect credui crtdll crypt32 \
-        cryptdlg cryptdll cryptext cryptnet cryptui ctapi32 \
-        ctl3d32 d2d1 d3d10 d3d10_1 d3d10core d3d11 d3d8 \
+        avicap32 avifil32 avrt bcrypt bluetoothapis browseui \
+        bthprops.cpl cabinet cards cdosys cfgmgr32 clusapi \
+        combase comcat comctl32 comdlg32 compstui comsvcs \
+        concrt140 connect credui crtdll crypt32 cryptdlg \
+        cryptdll cryptext cryptnet cryptui ctapi32 ctl3d32 \
+        d2d1 d3d10 d3d10_1 d3d10core d3d11 d3d12 d3d8 \
         d3d9 d3dcompiler_33 d3dcompiler_34 d3dcompiler_35 \
         d3dcompiler_36 d3dcompiler_37 d3dcompiler_38 \
         d3dcompiler_39 d3dcompiler_40 d3dcompiler_41 \
@@ -2141,17 +2178,17 @@ w_override_all_dlls()
         d3dcompiler_47 d3dim d3drm d3dx10_33 d3dx10_34 \
         d3dx10_35 d3dx10_36 d3dx10_37 d3dx10_38 d3dx10_39 \
         d3dx10_40 d3dx10_41 d3dx10_42 d3dx10_43 d3dx11_42 \
-        d3dx11_43 d3dx9_24 d3dx9_25 d3dx9_26 d3dx9_27 d3dx9_28 \
-        d3dx9_29 d3dx9_30 d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 \
-        d3dx9_35 d3dx9_36 d3dx9_37 d3dx9_38 d3dx9_39 d3dx9_40 \
-        d3dx9_41 d3dx9_42 d3dx9_43 d3dxof davclnt dbgeng \
-        dciman32 ddrawex devenum dhcpcsvc difxapi dinput \
-        dinput8 dispex dmband dmcompos dmime dmloader \
-        dmscript dmstyle dmsynth dmusic dmusic32 dnsapi \
-        dplay dplayx dpnaddr dpnet dpnhpast dpnlobby \
+        d3dx11_43 d3dx9_24 d3dx9_25 d3dx9_26 d3dx9_27 \
+        d3dx9_28 d3dx9_29 d3dx9_30 d3dx9_31 d3dx9_32 d3dx9_33 \
+        d3dx9_34 d3dx9_35 d3dx9_36 d3dx9_37 d3dx9_38 d3dx9_39 \
+        d3dx9_40 d3dx9_41 d3dx9_42 d3dx9_43 d3dxof davclnt \
+        dbgeng dciman32 ddrawex devenum dhcpcsvc dhtmled.ocx \
+        difxapi dinput dinput8 dispex dmband dmcompos dmime \
+        dmloader dmscript dmstyle dmsynth dmusic dmusic32 \
+        dnsapi dplay dplayx dpnaddr dpnet dpnhpast dpnlobby \
         dpvoice dpwsockx drmclien dsound dsquery dssenh \
-        dswave dwmapi dwrite dxdiagn dxgi dxva2 esent evr \
-        explorerframe ext-ms-win-authz-context-l1-1-0 \
+        dswave dwmapi dwrite dx8vb dxdiagn dxgi dxva2 esent \
+        evr explorerframe ext-ms-win-authz-context-l1-1-0 \
         ext-ms-win-domainjoin-netjoin-l1-1-0 \
         ext-ms-win-gdi-dc-create-l1-1-1 \
         ext-ms-win-gdi-dc-l1-2-0 ext-ms-win-gdi-devcaps-l1-1-0 \
@@ -2178,8 +2215,8 @@ w_override_all_dlls()
         hnetcfg httpapi iccvid ieframe ieproxy imaadp32.acm \
         imagehlp imm32 inetcomm inetcpl.cpl inetmib1 infosoft \
         initpki inkobj inseng iprop irprops.cpl itircl itss \
-        joy.cpl jscript jsproxy kernelbase ksuser ktmw32 \
-        loadperf localspl localui lz32 mapi32 mapistub \
+        joy.cpl jscript jsproxy kerberos kernelbase ksuser \
+        ktmw32 loadperf localspl localui lz32 mapi32 mapistub \
         mciavi32 mcicda mciqtz32 mciseq mciwave mf mf3216 \
         mfplat mfreadwrite mgmtapi midimap mlang mmcndmgr \
         mmdevapi mpr mprapi msacm32 msadp32.acm msasn1 \
@@ -2198,19 +2235,20 @@ w_override_all_dlls()
         objsel odbc32 odbccp32 odbccu32 ole32 oleacc oleaut32 \
         olecli32 oledb32 oledlg olepro32 olesvr32 olethk32 \
         openal32 opencl packager pdh photometadatahandler \
-        pidgen powrprof printui prntvpt propsys psapi pstorec \
-        qcap qedit qmgr qmgrprxy quartz query rasapi32 rasdlg \
-        regapi resutils riched20 riched32 rpcrt4 rsabase \
-        rsaenh rstrtmgr rtutils samlib scarddlg sccbase \
-        schannel schedsvc scrobj scrrun scsiport.sys secur32 \
-        security sensapi serialui setupapi sfc sfc_os shdoclc \
-        shdocvw shell32 shfolder shlwapi slbcsp slc snmpapi \
-        softpub spoolss sspicli sti svrapi sxs t2embed tapi32 \
-        taskschd tdh tdi.sys traffic ucrtbase uiautomationcore \
-        uiribbon updspapi url urlmon usbd.sys userenv usp10 \
-        uxtheme vbscript vcomp vcomp100 vcomp110 vcomp120 \
-        vcomp140 vcomp90 vcruntime140 version virtdisk vssapi \
-        wbemdisp wbemprox webservices wer wevtapi wiaservc \
+        pidgen powrprof printui prntvpt propsys psapi \
+        pstorec qcap qedit qmgr qmgrprxy quartz query \
+        rasapi32 rasdlg regapi resutils riched20 riched32 \
+        rpcrt4 rsabase rsaenh rstrtmgr rtutils samlib sapi \
+        scarddlg sccbase schannel schedsvc scrobj scrrun \
+        scsiport.sys secur32 security sensapi serialui \
+        setupapi sfc sfc_os shcore shdoclc shdocvw shell32 \
+        shfolder shlwapi slbcsp slc snmpapi softpub spoolss \
+        sspicli sti svrapi sxs t2embed tapi32 taskschd tdh \
+        tdi.sys traffic ucrtbase uiautomationcore uiribbon \
+        updspapi url urlmon usbd.sys userenv usp10 uxtheme \
+        vbscript vcomp vcomp100 vcomp110 vcomp120 vcomp140 \
+        vcomp90 vcruntime140 version virtdisk vssapi wbemdisp \
+        wbemprox wdscore webservices wer wevtapi wiaservc \
         wimgapi windowscodecs windowscodecsext winebus.sys \
         winegstreamer winehid.sys winemapi wing32 winhttp \
         wininet winnls32 winscard winsta wintrust winusb \
@@ -2817,7 +2855,6 @@ REGEDIT4
 _EOF_
     # too verbose
     w_try_regedit "$W_TMP_WIN"\\_register-font.reg
-    # shellcheck disable=SC1037
     w_backup_reg_file "$W_TMP"/_register-font.reg
 
     # Wine also updates the win9x fonts key, so let's do that, too
@@ -2828,7 +2865,6 @@ REGEDIT4
 "$W_font"="$W_file"
 _EOF_
     w_try_regedit "$W_TMP_WIN"\\_register-font.reg
-    # shellcheck disable=SC1037
     w_backup_reg_file "$W_TMP"/_register-font.reg
 
     unset W_file W_font
@@ -3047,6 +3083,7 @@ winetricks_latest_version_check()
     # Check that $latest_version is an actual number in case github is down
     if ! echo "${latest_version}" | grep -q -E "[0-9]{8}" || [ -z "${latest_version}" ] ; then
         case $LANG in
+            pl*) w_warn "GitHub nie działa? Wersja '${latest_version}' nie wydaje się być prawdiłową wersją" ;;
             ru*) w_warn "Отсутствует подключение к Github? версия '${latest_version}' может быть неактуальной" ;;
             *) w_warn "Github down? version '${latest_version}' doesn't appear to be a valid version" ;;
         esac
@@ -3060,6 +3097,10 @@ winetricks_latest_version_check()
             winetricks_selfupdate
         else
             case $LANG in
+                pl*)
+                    w_warn "Korzystasz z winetricks-${WINETRICKS_VERSION}, a najnowszą wersją winetricks-${latest_version}!"
+                    w_warn "Zalecana jest aktualizacja z użyciem menedżera pakietów Twojej dystrybucji, --self-update lub ręczna aktualizacja."
+                    ;;
                 ru*)
                     w_warn "Запущен winetricks-${WINETRICKS_VERSION}, последняя версия winetricks-${latest_version}!"
                     w_warn "Вы можете ее обновить с помощью менеджера пакетов, --self-update или вручную."
@@ -3127,14 +3168,32 @@ winetricks_detect_sudo()
     fi
 
     if test x"$DISPLAY" != x""; then
-        if test -x "$(which gksudo 2>/dev/null)"; then
+        # This should be the default option because some of GUI sudo programs are unmaintained
+        # See https://github.com/Winetricks/winetricks/issues/912
+        if test -x "$(which pkexec 2>/dev/null)"; then
+            # Maintained and recommended, part of Polkit, desktop-independent
+            # Usage: pkexec command ...
+            WINETRICKS_SUDO=pkexec
+        # Austin said "gksu*/kdesu* should stay (at least for a while)" in Feb 2018
+        # See https://github.com/Winetricks/winetricks/pull/915#issuecomment-362984379
+        elif test -x "$(which gksudo 2>/dev/null)"; then
+            # Unmaintained [2009], part of gksu
+            # Usage: gksudo "command ..."
             WINETRICKS_SUDO=gksudo
         elif test -x "$(which kdesudo 2>/dev/null)"; then
+            # Unmaintained [2015] (latest is for KDE4, no KF5 version available)
+            # https://cgit.kde.org/kdesudo.git/
+            # Usage: kdesudo "command ..."
             WINETRICKS_SUDO=kdesudo
         # fall back to the su versions if sudo isn't available (Fedora, etc.):
         elif test -x "$(which gksu 2>/dev/null)"; then
+            # Unmaintained [2009]
+            # Usage: gksu "command ..."
             WINETRICKS_SUDO=gksu
         elif test -x "$(which kdesu 2>/dev/null)"; then
+            # Maintained, KF5 version available
+            # https://cgit.kde.org/kdesu.git/
+            # Usage: kdesu -c "command ..."
             WINETRICKS_SUDO=kdesu
         fi
     fi
@@ -3195,7 +3254,7 @@ winetricks_prefixmenu()
         zh_TW*|zh_HK*)   _W_msg_title="Windows 應用安裝向導 - 選取一個 wine 容器"
              _W_msg_body='君欲何為？'
              _W_msg_apps='安裝一個 windows 應用'
-             _W_msg_games='安裝一個游戲'
+             _W_msg_games='安裝一個遊戲'
              _W_msg_benchmarks='安裝一個基准測試軟體'
              _W_msg_default="選取預設的 wine 容器"
              _W_msg_unattended0="禁用靜默安裝"
@@ -4298,7 +4357,8 @@ winetricks_cache_iso()
     # Horrible hack for Gentoo - make sure we can read from the drive
     if ! test -r $WINETRICKS_DEV; then
         case "$WINETRICKS_SUDO" in
-            gksudo) $WINETRICKS_SUDO "chmod 666 $WINETRICKS_DEV" ;;
+            gksu*|kdesudo) $WINETRICKS_SUDO "chmod 666 $WINETRICKS_DEV" ;;
+            kdesu) $WINETRICKS_SUDO -c "chmod 666 $WINETRICKS_DEV" ;;
             *) $WINETRICKS_SUDO chmod 666 $WINETRICKS_DEV ;;
         esac
     fi
@@ -4446,10 +4506,15 @@ winetricks_mount_cached_iso()
         # Linux
         # FIXME: find a way to mount or copy from image without sudo
         _W_USERID=$(id -u)
+        # WINETRICKS_IMG may contain spaces and needs to be quoted
         case "$WINETRICKS_SUDO" in
-            gksudo)
+            gksu*|kdesudo)
               w_try $WINETRICKS_SUDO "mkdir -p $W_ISO_MOUNT_ROOT"
-              w_try $WINETRICKS_SUDO "mount -o ro,loop,uid=$_W_USERID,unhide $WINETRICKS_IMG $W_ISO_MOUNT_ROOT"
+              w_try $WINETRICKS_SUDO "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
+              ;;
+            kdesu)
+              w_try $WINETRICKS_SUDO -c "mkdir -p $W_ISO_MOUNT_ROOT"
+              w_try $WINETRICKS_SUDO -c "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
               ;;
             *)
               w_try $WINETRICKS_SUDO mkdir -p $W_ISO_MOUNT_ROOT
@@ -5300,9 +5365,9 @@ helper_win7sp1_x64()
 #---------------------------------------------------------
 
 w_metadata adobeair dlls \
-    title="Adobe AIR 20.x" \
+    title="Adobe AIR" \
     publisher="Adobe" \
-    year="2015" \
+    year="2017" \
     media="download" \
     file1="AdobeAIRInstaller.exe" \
     installed_file1="$W_COMMONFILES_X86_WIN/Adobe AIR/Versions/1.0/Adobe AIR.dll" \
@@ -5311,7 +5376,8 @@ w_metadata adobeair dlls \
 load_adobeair()
 {
     # 2017/03/14: 20.0.0.260 (strings 'Adobe AIR.dll' | grep 20\\. ) sha256sum 318770b9a18e59ca4a721a1f5c2b0235cffdbe77a043e99cb2af32074d61de45
-    w_download https://airdownload.adobe.com/air/win/download/20.0/AdobeAIRInstaller.exe 318770b9a18e59ca4a721a1f5c2b0235cffdbe77a043e99cb2af32074d61de45
+    # 2018/01/30: 28.0.0.127 (strings 'Adobe AIR.dll' | grep 28\\. ) sha256sum 9076489e273652089a4a53a1d38c6631e8b7477e39426a843e0273f25bfb109f
+    w_download https://airdownload.adobe.com/air/win/download/latest/AdobeAIRInstaller.exe 9076489e273652089a4a53a1d38c6631e8b7477e39426a843e0273f25bfb109f
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # See https://bugs.winehq.org/show_bug.cgi?id=43506
@@ -6178,45 +6244,30 @@ w_metadata directmusic dlls \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/dmusic.dll"
+    file1="../directx9/directx_feb2010_redist.exe"
 
 load_directmusic()
 {
 # Untested. Based off https://bugs.winehq.org/show_bug.cgi?id=4805 and https://bugs.winehq.org/show_bug.cgi?id=24911
 
+    w_warn "You can specify individual DirectMusic verbs instead. e.g. 'winetricks dmsynth dmusic'"
+
+    w_call devenum
+    w_call dmband
+    w_call dmcompos
+    w_call dmime
+    w_call dmloader
+    w_call dmscript
+    w_call dmstyle
+    w_call dmsynth
+    w_call dmusic
+    w_call dmusic32
     w_call dsound
+    w_call dswave
+    w_call quartz
 
-    helper_directx_dl
-
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'devenum.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmband.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmcompos.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmime.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmloader.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmscript.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmstyle.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmsynth.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmusic.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmusic32.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dswave.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'streamci.dll' "$W_TMP/dxnt.cab"
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'quartz.dll' "$W_TMP/dxnt.cab"
-
-    w_try_regsvr devenum.dll
-    w_try_regsvr dmband.dll
-    w_try_regsvr dmcompos.dll
-    w_try_regsvr dmime.dll
-    w_try_regsvr dmloader.dll
-    w_try_regsvr dmscript.dll
-    w_try_regsvr dmstyle.dll
-    w_try_regsvr dmsynth.dll
-    w_try_regsvr dmusic.dll
-    w_try_regsvr dswave.dll
-    w_try_regsvr quartz.dll
-
-    w_override_dlls native devenum dmband dmcompos dmime dmloader dmscript dmstyle dmsynth dmusic dmusic32 dswave streamci quartz
+    # FIXME: dxnt.cab doesn't contain this DLL. Is this really needed?
+    w_override_dlls native streamci
 }
 
 #----------------------------------------------------------------
@@ -6394,8 +6445,160 @@ load_dxsdk_jun2010()
 
 #----------------------------------------------------------------
 
+w_metadata dmusic32 dlls \
+    title="MS dmusic32.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2006" \
+    media="download" \
+    file1="../directx9/directx_apr2006_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmusic32.dll"
+
+load_dmusic32()
+{
+    w_download_to directx9 https://download.microsoft.com/download/3/9/7/3972f80c-5711-4e14-9483-959d48a2d03b/directx_apr2006_redist.exe dd8c3d401efe4561b67bd88475201b2f62f43cd23e4acc947bb34a659fa74952
+
+    w_try_cabextract -d "$W_TMP" -F DirectX.cab "$W_CACHE"/directx9/directx_apr2006_redist.exe
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F dmusic32.dll "$W_TMP"/DirectX.cab
+
+    w_override_dlls native dmusic32
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmband dlls \
+    title="MS dmband.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmband.dll"
+
+load_dmband()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmband.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmband.dll
+
+    w_override_dlls native dmband
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmcompos dlls \
+    title="MS dmcompos.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmcompos.dll"
+
+load_dmcompos()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmcompos.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmcompos.dll
+
+    w_override_dlls native dmcompos
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmime dlls \
+    title="MS dmime.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmime.dll"
+
+load_dmime()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmime.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmime.dll
+
+    w_override_dlls native dmime
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmloader dlls \
+    title="MS dmloader.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmloader.dll"
+
+load_dmloader()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmloader.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmloader.dll
+
+    w_override_dlls native dmloader
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmscript dlls \
+    title="MS dmscript.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmscript.dll"
+
+load_dmscript()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmscript.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmscript.dll
+
+    w_override_dlls native dmscript
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmstyle dlls \
+    title="MS dmstyle.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmstyle.dll"
+
+load_dmstyle()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmstyle.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmstyle.dll
+
+    w_override_dlls native dmstyle
+}
+
+#----------------------------------------------------------------
+
 w_metadata dmsynth dlls \
-    title="MS midi synthesizer from DirectX user redistributable" \
+    title="MS dmsynth.dll from DirectX user redistributable" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
@@ -6412,6 +6615,50 @@ load_dmsynth()
     w_try_regsvr dmsynth.dll
 
     w_override_dlls native dmsynth
+}
+
+#----------------------------------------------------------------
+
+w_metadata dmusic dlls \
+    title="MS dmusic.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dmusic.dll"
+
+load_dmusic()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dmusic.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dmusic.dll
+
+    w_override_dlls native dmusic
+}
+
+#----------------------------------------------------------------
+
+w_metadata dswave dlls \
+    title="MS dswave.dll from DirectX user redistributable" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dswave.dll"
+
+load_dswave()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dswave.dll' "$W_TMP/dxnt.cab"
+
+    w_try_regsvr dswave.dll
+
+    w_override_dlls native dswave
 }
 
 #----------------------------------------------------------------
@@ -7627,9 +7874,9 @@ load_gmdls()
 # um, codecs are kind of clustered here.  They probably deserve their own real category.
 
 w_metadata allcodecs dlls \
-    title="All codecs (dirac, ffdshow, icodecs, l3codecx, xvid) except wmp" \
+    title="All codecs (dirac, ffdshow, icodecs, cinepak, l3codecx, xvid) except wmp" \
     publisher="various" \
-    year="1998-2009" \
+    year="1995-2009" \
     media="download"
 
 load_allcodecs()
@@ -7638,6 +7885,7 @@ load_allcodecs()
     w_call l3codecx
     w_call ffdshow
     w_call icodecs
+    w_call cinepak
     w_call xvid
 }
 
@@ -7821,6 +8069,32 @@ load_icodecs()
         sleep 1000
         winclose, Wine Explorer
     "
+}
+
+#----------------------------------------------------------------
+
+w_metadata cinepak dlls \
+    title="Cinepak Codec" \
+    publisher="Radius" \
+    year="1995" \
+    media="download" \
+    file1="cvid32.zip" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/iccvid.dll" \
+    homepage="http://www.probo.com/cinepak.php"
+
+load_cinepak()
+{
+    w_download "http://www.probo.com/pub/cinepak/cvid32.zip" a41984a954fe77557f228fa8a95cdc05db22bf9ff5429fe4307fd6fc51e11969
+
+    if [ -f "$W_SYSTEM32_DLLS/iccvid.dll" ]; then
+        w_try rm -f "$W_SYSTEM32_DLLS/iccvid.dll"
+    fi
+
+    w_try_unzip "$W_SYSTEM32_DLLS" "${W_CACHE}/${W_PACKAGE}/${file1}" ICCVID.DLL
+
+    w_try mv -f "$W_SYSTEM32_DLLS/ICCVID.DLL" "$W_SYSTEM32_DLLS/iccvid.dll"
+
+    w_override_dlls native iccvid
 }
 
 #----------------------------------------------------------------
@@ -10120,6 +10394,7 @@ load_cjkfonts()
 {
     w_call fakechinese
     w_call fakejapanese
+    w_call fakejapanese_vlgothic
     w_call fakekorean
     w_call unifont
 }
@@ -10269,6 +10544,7 @@ w_metadata meiryo fonts \
     publisher="Microsoft" \
     year="2009" \
     media="download" \
+    conflicts="fakejapanese_vlgothic" \
     file1="PowerPointViewer.exe" \
     installed_file1="$W_FONTSDIR_WIN/meiryo.ttc"
 
@@ -10553,6 +10829,7 @@ load_fakejapanese_ipamona()
 w_metadata fakejapanese_vlgothic fonts \
     title="Creates aliases for Japanese Meiryo fonts using VLGothic fonts" \
     publisher="Project Vine / Daisuke Suzuki" \
+    conflicts="meiryo" \
     year="2014"
 
 load_fakejapanese_vlgothic()
@@ -10896,7 +11173,12 @@ load_allfonts()
     do
         cmd=$(basename "$file" .vars)
         case $cmd in
-            allfonts|cjkfonts) ;;
+            # "fake*" verbs need to be skipped because
+            # this "allfonts" verb is intended to only install real fonts and
+            # adding font replacements at the same time may invalidate the replacements
+            # "pptfonts" can be skipped because it only calls other verbs for installing fonts
+            # See https://github.com/Winetricks/winetricks/issues/899
+            allfonts|cjkfonts|fake*|pptfonts) ;;
             *) w_call "$cmd";;
         esac
     done
@@ -12671,8 +12953,9 @@ load_wmp9()
 
     # remove builtin placeholders to allow update
     rm -f "$W_SYSTEM32_DLLS"/wmvcore.dll "$W_SYSTEM32_DLLS"/wmp.dll
-    # need native wmp override to allow update and later checks to succeed
-    w_override_dlls native wmp
+    rm -f "$W_PROGRAMS_X86_UNIX/Windows Media Player/wmplayer.exe"
+    # need native overrides to allow update and later checks to succeed
+    w_override_dlls native l3codeca.acm wmp wmplayer.exe wmvcore
 
     # FIXME: should we override quartz?  Builtin crashes when you play
     # anything, but maybe that's bug 30557 and only affects new systems?
@@ -12711,6 +12994,12 @@ load_wmp10()
     w_download https://download.microsoft.com/download/1/2/a/12a31f29-2fa9-4f50-b95d-e45ef7013f87/MP10Setup.exe c1e71784c530035916aad5b09fa002abfbb7569b75208dd79351f29c6d197e03
 
     w_set_winver winxp
+
+    # remove builtin placeholders to allow update
+    rm -f "$W_SYSTEM32_DLLS"/wmvcore.dll "$W_SYSTEM32_DLLS"/wmp.dll
+    rm -f "$W_PROGRAMS_X86_UNIX/Windows Media Player/wmplayer.exe"
+    # need native overrides to allow update and later checks to succeed
+    w_override_dlls native l3codeca.acm wmp wmplayer.exe wmvcore
 
     # Crashes on exit, but otherwise ok; see https://bugs.winehq.org/show_bug.cgi?id=12633
     w_try_cd "$W_CACHE/$W_PACKAGE"
@@ -13808,7 +14097,7 @@ load_cod1()
             WinWait, Call of Duty, Start
             ControlClick Button1
         }
-        WinWait, Insert CD, Please insert the Call of Duty w_try_cd 2
+        WinWait, Insert CD, Please insert the Call of Duty cd 2
         "
 
     "$WINE" eject ${W_ISO_MOUNT_LETTER}:
@@ -13819,7 +14108,7 @@ load_cod1()
         if ( w_opt_unattended > 0 ) {
             Send {Enter}    ;continue installation
         }
-        WinWait, Insert CD, Please insert the Call of Duty w_try_cd 1
+        WinWait, Insert CD, Please insert the Call of Duty cd 1
     "
 
     "$WINE" eject ${W_ISO_MOUNT_LETTER}:
@@ -18391,7 +18680,6 @@ _EOF_
 
 #----------------------------------------------------------------
 # Other settings
-
 #----------------------------------------------------------------
 
 w_metadata alldlls=default settings \
@@ -18408,6 +18696,37 @@ load_alldlls()
         builtin) w_override_all_dlls ;;
     esac
 }
+
+#----------------------------------------------------------------
+
+w_metadata autostart_winedbg=enable settings \
+    title="Automatically launch winedbg when an unhandled exception occurs (default)"
+w_metadata autostart_winedbg=disable settings \
+    title="Prevent winedbg from launching when an unhandled exception occurs"
+
+load_autostart_winedbg()
+{
+    case "$arg" in
+        enable) _W_debugger_value="winedbg --auto %ld %ld";;
+        disable) _W_debugger_value="false";;
+        *) w_die "Unexpected argument '$arg'. Should be enable/disable";;
+    esac
+
+    echo "Setting HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug\\Debugger to '$arg'"
+    cat > "$W_TMP"/autostart_winedbg.reg <<_EOF_
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug]
+"Debugger"="${_W_debugger_value}"
+_EOF_
+
+    w_try_regedit "$W_TMP_WIN"\\autostart_winedbg.reg
+    w_backup_reg_file "$W_TMP"/autostart_winedbg.reg
+
+    unset _W_debugger_value
+}
+
+#----------------------------------------------------------------
 
 w_metadata fontsmooth=disable settings \
     title_uk="Вимкнути згладжування шрифту" \
