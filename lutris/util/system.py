@@ -33,6 +33,7 @@ TERMINAL_CANDIDATES = [
     'termite',
     'tilix',
     'wterm',
+    'kitty',
     'yuakuake',
 ]
 
