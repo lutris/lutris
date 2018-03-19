@@ -3,35 +3,35 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-11-09 21:49+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2018-03-19 11:58+0700\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Kukuh Syafaat <syafaatkukuh@gmail.com>\n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
-msgstr ""
+msgstr "Tentang Lutris"
 
 #: ../data/ui/AboutDialog.ui.h:2
 msgid "© 2010, 2012 Mathieu Comandon"
-msgstr ""
+msgstr "© 2010, 2012 Mathieu Comandon"
 
 #: ../data/ui/AboutDialog.ui.h:3
 msgid "Open Source Gaming Platform"
-msgstr ""
+msgstr "Platform Permainan Sumber Terbuka"
 
 #: ../data/ui/AboutDialog.ui.h:4
 msgid "http://lutris.net"
-msgstr ""
+msgstr "http://lutris.net"
 
 #: ../data/ui/AboutDialog.ui.h:5
 msgid ""
@@ -51,107 +51,107 @@ msgstr ""
 
 #: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
 msgid "Lutris"
-msgstr ""
+msgstr "Lutris"
 
 #: ../data/ui/LutrisWindow3.ui.h:2
 msgid "_File"
-msgstr ""
+msgstr "_Berkas"
 
 #: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
 msgid "_Edit"
-msgstr ""
+msgstr "_Sunting"
 
 #: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
 msgid "_View"
-msgstr ""
+msgstr "_Lihat"
 
 #: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
 msgid "_Help"
-msgstr ""
+msgstr "Ba_ntuan"
 
 #: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
 msgid "Add game"
-msgstr ""
+msgstr "Tambah permainan"
 
 #: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
 msgid "Play"
-msgstr ""
+msgstr "Mainkan"
 
 #: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
 msgid "Stop"
-msgstr ""
+msgstr "Berhenti"
 
 #: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: ../data/ui/LutrisWindow.ui.h:2
 msgid "_Lutris"
-msgstr ""
+msgstr "_Lutris"
 
 #: ../data/ui/LutrisWindow.ui.h:3
 msgid "Connect"
-msgstr ""
+msgstr "Sambung"
 
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr ""
+msgstr "Pasang dan konfigurasikan runner"
 
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
-msgstr ""
+msgstr "Kelola runner"
 
 #: ../data/ui/LutrisWindow.ui.h:6
 msgid "Import"
-msgstr ""
+msgstr "Impor"
 
 #: ../data/ui/LutrisWindow.ui.h:7
 msgid "Import games from ScummVM"
-msgstr ""
+msgstr "Impor permainan dari ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:8
 msgid "ScummVM"
-msgstr ""
+msgstr "ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:10
 msgid "configure the default options"
-msgstr ""
+msgstr "konfigurasikan opsi bawaan"
 
 #: ../data/ui/LutrisWindow.ui.h:12
 msgid "Icons"
-msgstr ""
+msgstr "Ikon"
 
 #: ../data/ui/LutrisWindow.ui.h:13
 msgid "List"
-msgstr ""
+msgstr "Daftar"
 
 #: ../data/ui/LutrisWindow.ui.h:14
 msgid "_Game"
-msgstr ""
+msgstr "_Permainan"
 
 #: ../data/ui/LutrisWindow.ui.h:15
 msgid "Start"
-msgstr ""
+msgstr "Mulai"
 
 #: ../data/ui/LutrisWindow.ui.h:17
 msgid "Play game"
-msgstr ""
+msgstr "Mainkan permainan"
 
 #: ../data/ui/LutrisWindow.ui.h:19
 msgid "Stop game"
-msgstr ""
+msgstr "Hentikan permainan"
 
 #: ../data/ui/LutrisWindow.ui.h:22
 msgid "Add Game"
-msgstr ""
+msgstr "Tambah Permainan"
 
 #: ../data/ui/LutrisWindow.ui.h:23
 msgid "Remove game from library"
-msgstr ""
+msgstr "Hapus permainan dari pustaka"
 
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
-msgstr ""
+msgstr "Saring daftar permainan"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:1
 msgid ""
@@ -171,12 +171,12 @@ msgstr ""
 
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr ""
+msgstr "Hak Cipta (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
-msgstr ""
+msgstr "gtk-cancel"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:2
 msgid "gtk-ok"
-msgstr ""
+msgstr "gtk-ok"
