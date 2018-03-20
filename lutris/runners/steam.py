@@ -102,6 +102,16 @@ class steam(Runner):
                 "have the required libraries installed."
             )
         },
+	{
+	    'option': 'lsi_steam',
+	    'label': "Start Steam with LSI",
+	    'type': 'bool',
+	    'default': False,
+	    'help': ("Launches steam with LSI patches enabled. "
+	             "Make sure Lutris Runtime is disabled and "
+	             "you have LSI installed. "
+	             "https://github.com/solus-project/linux-steam-integration")
+	},
         {
             'option': 'run_without_steam',
             'label': _('Run without Steam (if possible)'),
@@ -179,7 +189,10 @@ class steam(Runner):
                 return path.rstrip('sSteamAp')
 
     def get_executable(self):
-        return system.find_executable('steam')
+        if self.runner_config.get('lsi_steam') and system.find_executable('lsi-steam'):
+            return system.find_executable('lsi-steam')
+        else:
+            return system.find_executable('steam')
 
     @property
     def working_dir(self):
@@ -207,7 +220,7 @@ class steam(Runner):
     def get_env(self):
         env = {}
 
-        if self.runner_config.get('steam_native_runtime'):
+        if not self.runner_config.get('lsi_steam') and self.runner_config.get('steam_native_runtime'):
             env['STEAM_RUNTIME'] = '0'
 
         return env

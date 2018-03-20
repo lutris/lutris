@@ -186,7 +186,7 @@ class Runner:
 
     def use_runtime(self):
         disable_runtime = self.system_config.get('disable_runtime')
-        disable_runtime_by_env = runtime.is_disabled()
+        disable_runtime_by_env = runtime.RUNTIME_DISABLED
         if disable_runtime_by_env is True:
             disable_runtime = disable_runtime_by_env
         return not disable_runtime

@@ -113,7 +113,8 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
 
     wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
     if not system.path_exists(wineboot_path):
-        logger.error("No wineboot executable found in %s, your wine installation is most likely broken", wine_path)
+        logger.error("No wineboot executable found in %s, "
+                     "your wine installation is most likely broken", wine_path)
         return
 
     if install_gecko is 'False':
@@ -177,7 +178,8 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         if not running_processes:
             break
         if num_cycles > 20:
-            logger.warning("Some wine processes are still running: %s", ', '.join(running_processes))
+            logger.warning("Some wine processes are still running: %s",
+                           ', '.join(running_processes))
             break
         time.sleep(0.1)
 
@@ -235,8 +237,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if (not wine_config.system_config['disable_runtime'] and
-            not runtime.is_disabled() and not disable_runtime):
+    if (
+            not runtime.RUNTIME_DISABLED and
+            not disable_runtime and
+            not wine_config.system_config['disable_runtime']
+    ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -448,51 +453,43 @@ class wine(Runner):
         {
             'option': 'exe',
             'type': 'file',
-            'label': _('Executable'),
+            'label': 'Executable',
             'help': "The game's main EXE file"
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': _('Arguments'),
-            'help': _(
-                "Windows command line arguments used when launching "
-                "the game"
-            )
+            'label': 'Arguments',
+            'help': ("Windows command line arguments used when launching "
+                     "the game")
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": _("Working directory"),
-            'help': _(
-                "The location where the game is run from."
-                "By default, Lutris uses the directory of the "
-                "executable."
-            )
+            "label": "Working directory",
+            'help': ("The location where the game is run from.\n"
+                     "By default, Lutris uses the directory of the "
+                     "executable.")
         },
         {
             'option': 'prefix',
             'type': 'directory_chooser',
-            'label': _('Wine prefix'),
-            'help': _(
-                "The prefix (also named \"bottle\") used by Wine."
-                "It's a directory containing a set of files and "
-                "folders making up a confined Windows environment."
-            )
+            'label': 'Wine prefix',
+            'help': ("The prefix (also named \"bottle\") used by Wine.\n"
+                     "It's a directory containing a set of files and "
+                     "folders making up a confined Windows environment.")
         },
         {
             'option': 'arch',
             'type': 'choice',
-            'label': _('Prefix architecture'),
+            'label': 'Prefix architecture',
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
             'default': 'auto',
-            'help': (
-                "The architecture of the Windows environment."
-                "32-bit is recommended unless running "
-                "a 64-bit only game."
-            )
+            'help': ("The architecture of the Windows environment.\n"
+                     "32-bit is recommended unless running "
+                     "a 64-bit only game.")
         }
     ]
 
@@ -551,63 +548,51 @@ class wine(Runner):
         self.runner_options = [
             {
                 'option': 'version',
-                'label': _("Wine version"),
+                'label': "Wine version",
                 'type': 'choice',
                 'choices': get_wine_version_choices,
                 'default': get_default_version(),
-                'help': _(
-                    "The version of Wine used to launch the game."
-                    "Using the last version is generally recommended, "
-                    "but some games work better on older versions."
-                )
+                'help': ("The version of Wine used to launch the game.\n"
+                         "Using the last version is generally recommended, "
+                         "but some games work better on older versions.")
             },
             {
                 'option': 'custom_wine_path',
-                'label': _("Custom Wine executable"),
+                'label': "Custom Wine executable",
                 'type': 'file',
-                'help': _(
-                    'The Wine executable to be used if you have '
-                    'selected "Custom" as the Wine version.'
-                )
+                'help': ('The Wine executable to be used if you have '
+                         'selected "Custom" as the Wine version.')
             },
             {
                 'option': 'x360ce-path',
-                'label': _("Path to the game's executable, for x360ce support"),
+                'label': "Path to the game's executable, for x360ce support",
                 'type': 'directory_chooser',
-                'help': _(
-                    "Locate the path for the game's executable for x360 support"
-                )
+                'help': "Locate the path for the game's executable for x360 support"
             },
             {
                 'option': 'x360ce-dinput',
-                'label': _('x360ce dinput 8 mode'),
+                'label': 'x360ce dinput 8 mode',
                 'type': 'bool',
                 'default': False,
-                'help': _(
-                    "Configure x360ce with dinput8.dll, required for "
-                    "some games such as Darksiders 1"
-                )
+                'help': "Configure x360ce with dinput8.dll, required for some games such as Darksiders 1"
             },
             {
                 'option': 'x360ce-xinput9',
-                'label': _('x360ce xinput 9.1.0 mode'),
+                'label': 'x360ce xinput 9.1.0 mode',
                 'type': 'bool',
                 'default': False,
-                'help': _(
-                    "Configure x360ce with xinput9_1_0.dll, "
-                    "required for some newer games"
-                )
+                'help': "Configure x360ce with xinput9_1_0.dll, required for some newer games"
             },
             {
                 'option': 'dumbxinputemu',
-                'label': _('Use Dumb xinput Emulator (experimental)'),
+                'label': 'Use Dumb xinput Emulator (experimental)',
                 'type': 'bool',
                 'default': False,
-                'help': _("Use the dlls from kozec/dumbxinputemu")
+                'help': "Use the dlls from kozec/dumbxinputemu"
             },
             {
                 'option': 'xinput-arch',
-                'label': _('Xinput architecture'),
+                'label': 'Xinput architecture',
                 'type': 'choice',
                 'choices': [('Same as wine prefix', ''),
                             ('32 bit', 'win32'),
@@ -616,126 +601,116 @@ class wine(Runner):
             },
             {
                 'option': 'Desktop',
-                'label': _('Windowed (virtual desktop)'),
+                'label': 'Windowed (virtual desktop)',
                 'type': 'bool',
                 'default': False,
-                'help': _(
-                    "Run the whole Windows desktop in a window."
-                    "Otherwise, run it fullscreen."
-                    "This corresponds to Wine's Virtual Desktop option."
-                )
+                'help': ("Run the whole Windows desktop in a window.\n"
+                         "Otherwise, run it fullscreen.\n"
+                         "This corresponds to Wine's Virtual Desktop option.")
             },
             {
                 'option': 'WineDesktop',
-                'label': _('Virtual desktop resolution'),
+                'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
                 'choices': display.get_resolutions,
                 'default': '800x600',
-                'help': _("The size of the virtual desktop in pixels.")
+                'help': ("The size of the virtual desktop in pixels.")
             },
             {
                 'option': 'MouseWarpOverride',
-                'label': _('Mouse Warp Override'),
+                'label': 'Mouse Warp Override',
                 'type': 'choice',
                 'choices': [('Enable', 'enable'),
                             ('Disable', 'disable'),
                             ('Force', 'force')],
                 'default': 'enable',
                 'advanced': True,
-                'help': _(
-                    "Override the default mouse pointer warping behavior"
+                'help': (
+                    "Override the default mouse pointer warping behavior\n"
                     "<b>Enable</b>: (Wine default) warp the pointer when the "
-                    "mouse is exclusively acquired "
-                    "<b>Disable</b>: never warp the mouse pointer "
+                    "mouse is exclusively acquired \n"
+                    "<b>Disable</b>: never warp the mouse pointer \n"
                     "<b>Force</b>: always warp the pointer"
                 )
             },
             {
                 'option': 'OffscreenRenderingMode',
-                'label': _('Offscreen Rendering Mode'),
+                'label': 'Offscreen Rendering Mode',
                 'type': 'choice',
                 'choices': [('FBO', 'fbo'),
                             ('BackBuffer', 'backbuffer')],
                 'default': 'fbo',
                 'advanced': True,
-                'help': _(
-                    "Select the offscreen rendering implementation."
-                    "<b>FBO</b>: (Wine default) Use framebuffer objects "
-                    "for offscreen rendering "
-                    "<b>Backbuffer</b>: Render offscreen render targets "
-                    "in the backbuffer."
-                )
+                'help': ("Select the offscreen rendering implementation.\n"
+                         "<b>FBO</b>: (Wine default) Use framebuffer objects "
+                         "for offscreen rendering \n"
+                         "<b>Backbuffer</b>: Render offscreen render targets "
+                         "in the backbuffer.")
             },
             {
                 'option': 'StrictDrawOrdering',
-                'label': _("Strict Draw Ordering"),
+                'label': "Strict Draw Ordering",
                 'type': 'choice',
                 'choices': [('Enabled', 'enabled'),
                             ('Disabled', 'disabled')],
                 'default': 'disabled',
                 'advanced': True,
-                'help': (
-                    "This option ensures any pending drawing operations are submitted to the driver, but at"
-                    " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
-                    " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead."
-                )
+                'help': ("This option ensures any pending drawing operations are submitted to the driver, but at"
+                         " a significant performance cost. Set to \"enabled\" to enable. This setting is deprecated"
+                         " since wine-2.6 and will likely be removed after wine-3.0. Use \"csmt\" instead.""")
             },
             {
                 'option': 'UseGLSL',
-                'label': _("Use GLSL"),
+                'label': "Use GLSL",
                 'type': 'choice',
                 'choices': [('Enabled', 'enabled'),
                             ('Disabled', 'disabled')],
                 'default': 'enabled',
                 'advanced': True,
-                'help': _(
-                    "When set to \"disabled\", this disables the use of GLSL for shaders."
-                    "In general disabling GLSL is not recommended, only use this for debugging purposes."
-                )
+                'help': ("When set to \"disabled\", this disables the use of GLSL for shaders."
+                         "In general disabling GLSL is not recommended, only use this for debugging purposes.")
             },
             {
                 'option': 'RenderTargetLockMode',
-                'label': _('Render Target Lock Mode'),
+                'label': 'Render Target Lock Mode',
                 'type': 'choice',
                 'choices': [('Disabled', 'disabled'),
                             ('ReadTex', 'readtex'),
                             ('ReadDraw', 'readdraw')],
                 'default': 'readtex',
                 'advanced': True,
-                'help': _(
-                    "Select which mode is used for onscreen render targets:"
-                    "<b>Disabled</b>: Disables render target locking "
+                'help': (
+                    "Select which mode is used for onscreen render targets:\n"
+                    "<b>Disabled</b>: Disables render target locking \n"
                     "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
-                    "writes by drawing a textured quad "
+                    "writes by drawing a textured quad \n"
                     "<b>ReadDraw</b>: Uses glReadPixels for reading and "
                     "writing"
                 )
             },
             {
                 'option': 'Audio',
-                'label': _('Audio driver'),
+                'label': 'Audio driver',
                 'type': 'choice',
                 'choices': [('Auto', 'auto'),
                             ('Alsa', 'alsa'),
                             ('OSS', 'oss'),
                             ('Jack', 'jack')],
                 'default': 'auto',
-                'help': _(
-                    "Which audio backend to use."
-                    "By default, Wine automatically picks the right one "
-                    "for your system. Alsa is the default for modern"
-                    "Linux distributions."
-                )
+                'help': ("Which audio backend to use.\n"
+                         "By default, Wine automatically picks the right one "
+                         "for your system. Alsa is the default for modern"
+                         "Linux distributions.")
             },
             {
                 'option': 'ShowCrashDialog',
-                'label': _('Show crash dialogs'),
+                'label': 'Show crash dialogs',
                 'type': 'bool',
                 'default': False
             },
             {
                 'option': 'show_debug',
-                'label': _('Output debugging info'),
+                'label': 'Output debugging info',
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
                             ('Enabled', ''),
@@ -743,17 +718,15 @@ class wine(Runner):
                             ('Full (CAUTION: Will cause MASSIVE slowdown)', '+all')],
                 'default': '-all',
                 'advanced': True,
-                'help': _(
-                    "Output debugging information in the game log "
-                    "(might affect performance)"
-                )
+                'help': ("Output debugging information in the game log "
+                         "(might affect performance)")
             },
             {
                 'option': 'overrides',
                 'type': 'mapping',
-                'label': _('DLL overrides'),
+                'label': 'DLL overrides',
                 'advanced': True,
-                'help': _("Sets WINEDLLOVERRIDES when launching the game.")
+                'help': "Sets WINEDLLOVERRIDES when launching the game."
             },
         ]
 
@@ -853,7 +826,7 @@ class wine(Runner):
                         wine_path=wine_path, working_dir=working_dir, blocking=blocking)
 
     def run_wineexec(self, *args):
-        dlg = FileDialog(_("Select an EXE or MSI file"), default_path=self.game_path)
+        dlg = FileDialog("Select an EXE or MSI file", default_path=self.game_path)
         filename = dlg.filename
         if not filename:
             return

@@ -161,6 +161,24 @@ class vice(Runner):
         }
         return joydevs[machine]
 
+    def get_rom_args(self, machine, rom):
+        args = []
+
+        if rom.endswith('.crt'):
+            crt_option = {
+                'c64': "-cartcrt",
+                'c128': "-cartcrt",
+                'vic20': "-cartgeneric",
+                'pet': None,
+                'plus4': "-cart",
+                'cmbii': None,
+            }
+            if (crt_option[machine]):
+                args.append(crt_option[machine])
+
+        args.append(rom)
+        return args
+
     def play(self):
         machine = self.runner_config.get("machine")
 
@@ -196,7 +214,6 @@ class vice(Runner):
         if self.runner_config.get("joy"):
             for dev in range(self.get_joydevs(machine)):
                 params += ["-joydev{}".format(dev + 1), "4"]
-        if rom.endswith('.crt'):
-            params.append('-cartgeneric')
-        params.append(rom)
+
+        params.extend(self.get_rom_args(machine, rom))
         return {'command': params}

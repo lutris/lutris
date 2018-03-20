@@ -7,7 +7,7 @@ __all__ = (
     # Microsoft based
     "wine", "winesteam", "dosbox",
     # Multi-system
-    "mame", "mess", "mednafen", "scummvm", "residualvm", "libretro", "ags",
+    "mame", "mess", "mednafen", "scummvm", "residualvm", "libretro", "ags", "higan",
     # Commdore
     "fsuae", "vice",
     # Atari
@@ -15,9 +15,9 @@ __all__ = (
     # Nintendo
     "snes9x", "mupen64plus", "dolphin", "desmume", "citra",
     # Sony
-    "ppsspp", "pcsx2",
+    "ppsspp", "pcsx2", "rpcs3",
     # Sega
-    "osmose", "dgen", "reicast",
+    "osmose", "dgen", "reicast", "redream",
     # Misc legacy systems
     "frotz", "jzintv", "o2em", "zdoom"
 )

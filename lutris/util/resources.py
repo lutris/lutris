@@ -1,7 +1,9 @@
 import os
 import re
+import shutil
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
+from gi.repository import GLib
 
 from lutris import settings
 from lutris import api
@@ -37,25 +39,9 @@ def fetch_icons(game_slugs, callback=None):
     if not missing_media_slugs:
         return
 
-    response = api.get_games(game_slugs=missing_media_slugs)
-    if not response:
-        logger.warning('Unable to get games from API')
-        return
-    results = response['results']
-    while response.get('next'):
-        page_match = re.search(r'page=(\d+)', response['next'])
-        if page_match:
-            page = page_match.group(1)
-        else:
-            logger.error("No page found in %s", response['next'])
-            break
-        response = api.get_games(game_slugs=missing_media_slugs, page=page)
-        if not response:
-            logger.warning("Unable to get response for page %s", page)
-            break
-        else:
-            results += response.get('results', [])
+    results = api.get_games(game_slugs=missing_media_slugs)
 
+    new_icon = False
     banner_downloads = []
     icon_downloads = []
     updated_slugs = []
@@ -72,17 +58,30 @@ def fetch_icons(game_slugs, callback=None):
                 dest_path = get_icon_path(game['slug'], ICON)
                 icon_downloads.append((game['icon_url'], dest_path))
                 updated_slugs.append(game['slug'])
+                new_icon = True
 
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
 
     downloads = banner_downloads + icon_downloads
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        for url, dest_path in downloads:
-            executor.submit(download_media, url, dest_path)
+        futs = [executor.submit(download_media, url, dest_path)
+                for url, dest_path in downloads]
+        concurrent.futures.wait(futs)
+
+    if (new_icon):
+        udpate_desktop_icons()
 
     if updated_slugs and callback:
         callback(updated_slugs)
 
+def udpate_desktop_icons():
+    # Update Icon for GTK+ desktop manager
+    gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
+    if (gtk_update_icon_cache):
+        os.system("gtk-update-icon-cache -tf %s"
+        % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
+
+    # Other desktop manager cache command must be added here when needed
 
 def download_media(url, dest, overwrite=False):
     if os.path.exists(dest):
