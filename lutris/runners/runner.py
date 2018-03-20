@@ -197,9 +197,11 @@ class Runner:
         Return success of runner installation.
         """
         dialog = dialogs.QuestionDialog({
-            'question': ("The required runner is not installed.\n"
-                         "Do you wish to install it now?"),
-            'title': "Required runner unavailable"
+            'question': _(
+                            "The required runner is not installed."
+                            "Do you wish to install it now?"
+                        ),
+            'title': _("Required runner unavailable")
         })
         if Gtk.ResponseType.YES == dialog.result:
             if hasattr(self, 'get_version'):

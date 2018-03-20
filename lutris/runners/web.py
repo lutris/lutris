@@ -14,132 +14,144 @@ DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 
 class web(Runner):
     human_name = "Web"
-    description = "Runs web based games"
+    description = _("Runs web based games")
     platforms = ["Web"]
     game_options = [
         {
             "option": "main_file",
             "type": "string",
-            "label": "Full URL or HTML file path",
-            'help': ("The full address of the game's web page or path to a HTML file.")
+            "label": _("Full URL or HTML file path"),
+            'help': _(
+                "The full address of the game's web page or path to a HTML file."
+            )
         }
     ]
     runner_options = [
         {
             "option": "fullscreen",
-            "label": "Open in fullscreen",
+            "label": _("Open in fullscreen"),
             "type": "bool",
             "default": False,
-            'help': ("Launch the game in fullscreen.")
+            'help': _("Launch the game in fullscreen.")
         },
         {
             "option": "maximize_window",
-            "label": "Open window maximized",
+            "label": _("Open window maximized"),
             "type": "bool",
             "default": False,
-            'help': ("Maximizes the window when game starts.")
+            'help': _("Maximizes the window when game starts.")
         },
         {
             'option': 'window_size',
-            'label': 'Window size',
+            'label': _('Window size'),
             'type': 'choice_with_entry',
             'choices': ["640x480", "800x600", "1024x768",
                         "1280x720", "1280x1024", "1920x1080"],
             'default': '800x600',
-            'help': ("The initial size of the game window when not opened.")
+            'help': _("The initial size of the game window when not opened.")
         },
         {
             "option": "disable_resizing",
-            "label": "Disable window resizing (disables fullscreen and maximize)",
+            "label": _("Disable window resizing (disables fullscreen and maximize)"),
             "type": "bool",
             "default": False,
-            'help': ("You can't resize this window.")
+            'help': _("You can't resize this window.")
         },
         {
             "option": "frameless",
-            "label": "Borderless window",
+            "label": _("Borderless window"),
             "type": "bool",
             "default": False,
-            'help': ("The window has no borders/frame.")
+            'help': _("The window has no borders/frame.")
         },
         {
             "option": "disable_menu_bar",
-            "label": "Disable menu bar and default shortcuts",
+            "label": _("Disable menu bar and default shortcuts"),
             "type": "bool",
             "default": False,
-            'help': ("This also disables default keyboard shortcuts, "
-                     "like copy/paste and fullscreen toggling.")
+            'help': _(
+                "This also disables default keyboard shortcuts, "
+                "like copy/paste and fullscreen toggling."
+            )
         },
         {
             "option": "disable_scrolling",
-            "label": "Disable page scrolling and hide scrollbars",
+            "label": _("Disable page scrolling and hide scrollbars"),
             "type": "bool",
             "default": False,
-            'help': ("Disables scrolling on the page.")
+            'help': _("Disables scrolling on the page.")
         },
         {
             "option": "hide_cursor",
-            "label": "Hide mouse cursor",
+            "label": _("Hide mouse cursor"),
             "type": "bool",
             "default": False,
-            'help': ("Prevents the mouse cursor from showing "
-                     "when hovering above the window.")
+            'help': _(
+                "Prevents the mouse cursor from showing "
+                "when hovering above the window."
+            )
         },
         {
             'option': 'open_links',
-            'label': 'Open links in game window',
+            'label': _('Open links in game window'),
             'type': 'bool',
             'default': False,
-            'help': (
+            'help': _(
                 "Enable this option if you want clicked links to open inside the "
                 "game window. By default all links open in your default web browser."
             )
         },
         {
             "option": "remove_margin",
-            "label": "Remove default <body> margin & padding",
+            "label": _("Remove default <body> margin & padding"),
             "type": "bool",
             "default": False,
-            'help': ("Sets margin and padding to zero "
-                     "on &lt;html&gt; and &lt;body&gt; elements.")
+            'help': _(
+                "Sets margin and padding to zero "
+                "on &lt;html&gt; and &lt;body&gt; elements."
+            )
         },
         {
             "option": "enable_flash",
-            "label": "Enable Adobe Flash Player",
+            "label": _("Enable Adobe Flash Player"),
             "type": "bool",
             "default": False,
-            'help': ("Enable Adobe Flash Player.")
+            'help': _("Enable Adobe Flash Player.")
         },
         {
             "option": "devtools",
-            "label": "Debug with Developer Tools",
+            "label": _("Debug with Developer Tools"),
             "type": "bool",
             "default": False,
-            'help': ("Let's you debug the page."),
+            'help': _("Let's you debug the page."),
             'advanced': True
         },
         {
             'option': 'external_browser',
-            'label': 'Open in web browser (old behavior)',
+            'label': _('Open in web browser (old behavior)'),
             'type': 'bool',
             'default': False,
-            'help': ("Launch the game in a web browser.")
+            'help': _("Launch the game in a web browser.")
         },
         {
             'option': 'custom_browser_executable',
-            'label': "Custom web browser executable",
+            'label': _("Custom web browser executable"),
             'type': 'file',
-            'help': ('Select the executable of a browser on your system.\n'
-                     'If left blank, Lutris will launch your default browser (xdg-open).')
+            'help': _(
+                'Select the executable of a browser on your system.'
+                'If left blank, Lutris will launch your default browser (xdg-open).'
+            )
         },
         {
             'option': 'custom_browser_args',
-            'label': "Web browser arguments",
+            'label': _("Web browser arguments"),
             'type': 'string',
             'default': '"$GAME"',
-            'help': ('Command line arguments to pass to the executable.\n'
-                     '$GAME or $URL inserts the game url.\n\n'
-                     'For Chrome/Chromium app mode use: --app="$GAME"')
+            'help': _(
+                'Command line arguments to pass to the executable.'
+                '$GAME or $URL inserts the game url.'
+                'For Chrome/Chromium app mode use: --app="$GAME"'
+            )
         }
     ]
     system_options_override = [
@@ -164,17 +176,25 @@ class web(Runner):
         url = self.game_config.get('main_file')
         if not url:
             return {'error': 'CUSTOM',
-                    'text': ("The web address is empty, \n"
-                             "verify the game's configuration."), }
+                    'text': _(
+                        "The web address is empty,"
+                        "verify the game's configuration."
+                    ), }
 
         # check if it's an url or a file
         isUrl = urlparse(url).scheme is not ''
 
         if not isUrl:
             if not os.path.exists(url):
-                return {'error': 'CUSTOM',
-                        'text': ("The file " + url + " does not exist, \n"
-                                 "verify the game's configuration."), }
+                nourl_message = {
+                    'error': 'CUSTOM',
+                    'text': _(
+                        "The file {filepath} does not exist, "
+                        "verify the game's configuration."
+                    ).format(filepath=url),
+                }
+
+                return nourl_message
             url = 'file://' + url
 
         game_data = pga.get_game_by_field(self.config.game_config_id, 'configpath')

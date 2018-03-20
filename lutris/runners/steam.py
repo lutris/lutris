@@ -35,79 +35,92 @@ def is_running():
 
 
 class steam(Runner):
-    description = "Runs Steam for Linux games"
+    description = _("Runs Steam for Linux games")
     human_name = "Steam"
     platforms = ['Linux']
     runnable_alone = True
     game_options = [
         {
             "option": 'appid',
-            'label': "Application ID",
+            'label': _("Application ID"),
             "type": "string",
-            'help': ("The application ID can be retrieved from the game's "
-                     "page at steampowered.com. Example: 235320 is the "
-                     "app ID for <i>Original War</i> in: \n"
-                     "http://store.steampowered.com/app/<b>235320</b>/")
+            'help': _(
+                "The application ID can be retrieved from the game's "
+                "page at steampowered.com. Example: 235320 is the "
+                "app ID for <i>Original War</i> in:"
+                "http://store.steampowered.com/app/<b>235320</b>/"
+            )
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game.\n"
-                     "Ignored when Steam Big Picture mode is enabled.")
+            'label': _('Arguments'),
+            'help': _(
+                "Command line arguments used when launching the game."
+                "Ignored when Steam Big Picture mode is enabled."
+            )
         },
         {
             'option': 'steamless_binary',
             'type': 'file',
-            'label': 'Steamless binary',
+            'label': _('Steamless binary'),
             'advanced': True,
-            'help': ("Steamless binary for running the game directly")
+            'help': _("Steamless binary for running the game directly")
         },
     ]
     runner_options = [
         {
             'option': 'quit_steam_on_exit',
-            'label': "Stop Steam after game exits",
+            'label': _("Stop Steam after game exits"),
             'type': 'bool',
             'default': False,
-            'help': ("Shut down Steam after the game has quit\n"
-                     "(only if Steam was started by Lutris)")
+            'help': _(
+                "Shut down Steam after the game has quit"
+                "(only if Steam was started by Lutris)"
+            )
         },
         {
             'option': 'start_in_big_picture',
-            'label': "Start Steam in Big Picture mode",
+            'label': _("Start Steam in Big Picture mode"),
             'type': 'bool',
             'default': False,
-            'help': ("Launches Steam in Big Picture mode.\n"
-                     "Only works if Steam is not running or "
-                     "already running in Big Picture mode.\n"
-                     "Useful when playing with a Steam Controller.")
+            'help': _(
+                "Launches Steam in Big Picture mode."
+                "Only works if Steam is not running or "
+                "already running in Big Picture mode."
+                "Useful when playing with a Steam Controller."
+            )
         },
         {
             'option': 'steam_native_runtime',
-            'label': "Disable Steam Runtime (use native libraries)",
+            'label': _("Disable Steam Runtime (use native libraries)"),
             'type': 'bool',
             'default': False,
-            'help': ("Launches Steam with STEAM_RUNTIME=0. "
-                     "Make sure you disabled Lutris Runtime and "
-                     "have the required libraries installed.")
+            'help': _(
+                "Launches Steam with STEAM_RUNTIME=0. "
+                "Make sure you disabled Lutris Runtime and "
+                "have the required libraries installed."
+            )
         },
         {
             'option': 'run_without_steam',
-            'type': 'string',
-            'label': 'Run without Steam (if possible)',
+            'label': _('Run without Steam (if possible)'),
             'type': 'bool',
             'default': False,
-            'help': ("If a steamless binary is available launches the game "
-                     "directly instead of launching it through Steam")
+            'help': _(
+                "If a steamless binary is available launches the game "
+                "directly instead of launching it through Steam"
+            )
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Arguments',
+            'label': _('Arguments'),
             'advanced': True,
-            'help': ("Extra command line arguments used when "
-                     "launching Steam")
+            'help': _(
+                "Extra command line arguments used when "
+                "launching Steam"
+            )
         },
     ]
     system_options_override = [
@@ -234,12 +247,14 @@ class steam(Runner):
             return steamapps_paths[0]
 
     def install(self, version=None, downloader=None, callback=None):
-        raise NonInstallableRunnerError(
-            "Steam for Linux installation is not handled by Lutris.\n"
+        message = _(
+            "Steam for Linux installation is not handled by Lutris."
             "Please go to "
             "<a href='http://steampowered.com'>http://steampowered.com</a>"
             " or install Steam with the package provided by your distribution."
         )
+
+        raise NonInstallableRunnerError(message)
 
     def install_game(self, appid, generate_acf=False):
         logger.debug("Installing steam game %s", appid)

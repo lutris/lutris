@@ -52,26 +52,32 @@ system_options = [
         'label': _('Main game folder'),
         'default': os.path.expanduser('~/Games'),
         'scope': ['runner', 'system'],
-        'help': ("The main folder where you install your games.\n"
-                 "Lutris uses it to propose you a default path when you \n"
-                 "install a new game.")
+        'help': _(
+            "The main folder where you install your games."
+            "Lutris uses it to propose you a default path when you "
+            "install a new game."
+        )
     },
     {
         'option': 'reset_desktop',
         'type': 'bool',
         'label': _('Restore to default resolution when game quits'),
         'default': False,
-        'help': ("Some games don't restore your screen resolution when \n"
-                 "closed or when they crash. This is when this option comes \n"
-                 "into play to save your bacon.")
+        'help': _(
+            "Some games don't restore your screen resolution when "
+            "closed or when they crash. This is when this option comes "
+            "into play to save your bacon."
+        )
     },
     {
         'option': 'restore_gamma',
         'type': 'bool',
         'default': False,
         'label': _('Restore default gamma correction after game quits'),
-        'help': ("Some games don't correctly restores gamma on exit, making "
-                 "your display too bright. Select this option to correct it.")
+        'help': _(
+            "Some games don't correctly restores gamma on exit, making "
+            "your display too bright. Select this option to correct it."
+        )
     },
     {
         'option': 'primusrun',
@@ -79,10 +85,12 @@ system_options = [
         'default': False,
         'condition': system.find_executable('primusrun'),
         'label': _('Use primusrun (NVIDIA Optimus laptops)'),
-        'help': ("If you have installed the primus package, selecting this "
-                 "option will run the game with the primusrun command, "
-                 "activating your NVIDIA graphic chip for high 3D "
-                 "performance.")
+        'help': _(
+            "If you have installed the primus package, selecting this "
+            "option will run the game with the primusrun command, "
+            "activating your NVIDIA graphic chip for high 3D "
+            "performance."
+        )
     },
     {
         'option': 'dri_prime',
@@ -90,10 +98,12 @@ system_options = [
         'default': False,
         'condition': get_dri_prime,
         'label': _('Use PRIME (hybrid graphics on laptops)'),
-        'help': ("If you have open source graphic drivers (Mesa), selecting this "
-                 "option will run the game with the 'DRI_PRIME=1' environment variable, "
-                 "activating your discrete graphic chip for high 3D "
-                 "performance.")
+        'help': _(
+            "If you have open source graphic drivers (Mesa), selecting this "
+            "option will run the game with the 'DRI_PRIME=1' environment variable, "
+            "activating your discrete graphic chip for high 3D "
+            "performance."
+        )
     },
     {
         'option': 'sdl_video_fullscreen',
@@ -101,8 +111,10 @@ system_options = [
         'label': _('Fullscreen SDL games to display'),
         'choices': get_output_list,
         'default': 'off',
-        'help': ("Hint SDL games to use a specific monitor when going fullscreen by "
-                 "setting the SDL_VIDEO_FULLSCREEN environment variable")
+        'help': _(
+            "Hint SDL games to use a specific monitor when going fullscreen by "
+            "setting the SDL_VIDEO_FULLSCREEN environment variable"
+        )
     },
     {
         'option': 'display',
@@ -110,10 +122,12 @@ system_options = [
         'label': _('Turn off monitors except'),
         'choices': get_output_choices,
         'default': 'off',
-        'help': ("Only keep the selected screen active while the game is "
-                 "running. \n"
-                 "This is useful if you have a dual-screen setup, and are \n"
-                 "having display issues when running a game in fullscreen.")
+        'help': _(
+            "Only keep the selected screen active while the game is "
+            "running. "
+            "This is useful if you have a dual-screen setup, and are "
+            "having display issues when running a game in fullscreen."
+        )
     },
     {
         'option': 'resolution',
@@ -121,7 +135,7 @@ system_options = [
         'label': _('Switch resolution to'),
         'choices': get_resolution_choices,
         'default': 'off',
-        'help': "Switch to this screen resolution while the game is running."
+        'help': _("Switch to this screen resolution while the game is running.")
     },
     {
         'option': 'terminal',
@@ -129,7 +143,7 @@ system_options = [
         'type': 'bool',
         'default': False,
         'advanced': True,
-        'help': "Run the game in a new terminal window."
+        'help': _("Run the game in a new terminal window.")
     },
     {
         'option': 'terminal_app',
@@ -138,10 +152,12 @@ system_options = [
         'choices': system.get_terminal_apps,
         'default': system.get_default_terminal(),
         'advanced': True,
-        'help': ("The terminal emulator to be run with the previous option."
-                 "Choose from the list of detected terminal apps or enter "
-                 "the terminal's command or path."
-                 "Note: Not all terminal emulators are guaranteed to work.")
+        'help': _(
+            "The terminal emulator to be run with the previous option."
+            "Choose from the list of detected terminal apps or enter "
+            "the terminal's command or path."
+            "Note: Not all terminal emulators are guaranteed to work."
+        )
     },
     {
         'option': 'env',
@@ -155,29 +171,35 @@ system_options = [
         'type': 'string',
         'label': _('Command prefix'),
         'advanced': True,
-        'help': ("Command line instructions to add in front of the game's "
-                 "execution command.")
+        'help': _(
+            "Command line instructions to add in front of the game's "
+            "execution command."
+        )
     },
     {
         'option': 'include_processes',
         'type': 'string',
         'label': _('Include processes'),
         'advanced': True,
-        'help': ('What processes to include in process monitoring. '
-                 'This is to override the built-in exclude list.\n'
-                 'Space-separated list, processes including spaces '
-                 'can be wrapped in quotation marks.')
+        'help': _(
+            'What processes to include in process monitoring. '
+            'This is to override the built-in exclude list.'
+            'Space-separated list, processes including spaces '
+            'can be wrapped in quotation marks.'
+        )
     },
     {
         'option': 'exclude_processes',
         'type': 'string',
         'label': _('Exclude processes'),
         'advanced': True,
-        'help': ('What processes to exclude in process monitoring. '
-                 'For example background processes that stick around '
-                 'after the game has been closed.\n'
-                 'Space-separated list, processes including spaces '
-                 'can be wrapped in quotation marks.')
+        'help': _(
+            'What processes to exclude in process monitoring. '
+            'For example background processes that stick around '
+            'after the game has been closed.'
+            'Space-separated list, processes including spaces '
+            'can be wrapped in quotation marks.'
+        )
     },
     {
         'option': 'single_cpu',
@@ -185,7 +207,7 @@ system_options = [
         'label': _('Restrict to single core'),
         'advanced': True,
         'default': False,
-        'help': "Restrict the game to a single CPU core."
+        'help': _("Restrict the game to a single CPU core.")
     },
     {
         'option': 'disable_runtime',
@@ -193,9 +215,11 @@ system_options = [
         'label': _('Disable Lutris Runtime'),
         'default': False,
         'advanced': True,
-        'help': ("The Lutris Runtime loads some libraries before running the "
-                 "game. Which can cause some incompatibilities in some cases. "
-                 "Check this option to disable it.")
+        'help': _(
+            "The Lutris Runtime loads some libraries before running the "
+            "game. Which can cause some incompatibilities in some cases. "
+            "Check this option to disable it."
+        )
     },
     {
         'option': 'disable_monitoring',
@@ -212,7 +236,7 @@ system_options = [
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
-        'help': "Restart PulseAudio before launching the game."
+        'help': _("Restart PulseAudio before launching the game.")
     },
     {
         'option': 'pulse_latency',
@@ -221,8 +245,10 @@ system_options = [
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
-        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
-                 'audio quality on some games')
+        'help': _(
+            'Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
+            'audio quality on some games'
+        )
     },
     {
         'option': 'use_us_layout',
@@ -230,16 +256,18 @@ system_options = [
         'label': _('Switch to US keyboard layout'),
         'default': False,
         'advanced': True,
-        'help': 'Switch to US keyboard qwerty layout while game is running'
+        'help': _('Switch to US keyboard qwerty layout while game is running')
     },
     {
         'option': 'killswitch',
         'type': 'string',
         'label': _('Killswitch file'),
         'advanced': True,
-        'help': ("Path to a file which will stop the game when deleted \n"
-                 "(usually /dev/input/js0 to stop the game on joystick "
-                 "unplugging)")
+        'help': _(
+            "Path to a file which will stop the game when deleted "
+            "(usually /dev/input/js0 to stop the game on joystick "
+            "unplugging)"
+        )
     },
     {
         'option': 'xboxdrv',
@@ -247,20 +275,23 @@ system_options = [
         'label': _('xboxdrv config'),
         'advanced': True,
         'condition': system.find_executable('xboxdrv'),
-        'help': ("Command line options for xboxdrv, a driver for XBOX 360 "
-                 "controllers. Requires the xboxdrv package installed.")
+        'help': _(
+            "Command line options for xboxdrv, a driver for XBOX 360 "
+            "controllers. Requires the xboxdrv package installed."
+        )
     },
     {
         'option': 'sdl_gamecontrollerconfig',
         'type': 'string',
         'label': _('SDL2 gamepad mapping'),
         'advanced': True,
-        'help': ("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
-                 "gamecontrollerdb.txt file containing mappings.")
+        'help': _(
+            "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
+            "gamecontrollerdb.txt file containing mappings."
+        )
     },
     {
         'option': 'xephyr',
-        'type': 'choice',
         'label': _("Use Xephyr"),
         'type': 'choice',
         'choices': (
@@ -270,14 +301,14 @@ system_options = [
         ),
         'default': 'off',
         'advanced': True,
-        'help': "Run program in Xephyr to support 8BPP and 16BPP color modes",
+        'help': _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
     },
     {
         'option': 'xephyr_resolution',
         'type': 'string',
         'label': _('Xephyr resolution'),
         'advanced': True,
-        'help': 'Screen resolution of the Xephyr server'
+        'help': _('Screen resolution of the Xephyr server')
     },
 ]
 

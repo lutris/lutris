@@ -78,9 +78,9 @@ class Game(object):
         elif "FILE_NOT_FOUND" == message['error']:
             filename = message['file']
             if filename:
-                message_text = _("The file {} could not be found")
+                message_text = _("The file {filename} could not be found")
                 message_text = message_text.format(
-                    filename.replace('&', '&amp;')
+                    filename=filename.replace('&', '&amp;')
                 )
             else:
                 message_text = "No file provided"
@@ -88,8 +88,8 @@ class Game(object):
 
         elif "NOT_EXECUTABLE" == message['error']:
             filename = message['file'].replace('&', '&amp;')
-            message_text = _("The file {} is not executable")
-            dialogs.ErrorDialog(message_text.format(filename))
+            message_text = _("The file {filename} is not executable")
+            dialogs.ErrorDialog(message_text.format(filename=filename))
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""

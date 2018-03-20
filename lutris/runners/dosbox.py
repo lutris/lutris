@@ -47,35 +47,41 @@ def makeconfig(path, drives, commands):
 
 class dosbox(Runner):
     human_name = "DOSBox"
-    description = "MS-Dos emulator"
+    description = _("MS-Dos emulator")
     platforms = ["MS-DOS"]
-    description = "DOS Emulator"
+    description = _("DOS Emulator")
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "Main file",
-            'help': ("The CONF, EXE, COM or BAT file to launch.\n"
-                     "It can be left blank if the launch of the executable is"
-                     "managed in the config file.")
+            "label": _("Main file"),
+            'help': _(
+                "The CONF, EXE, COM or BAT file to launch."
+                 "It can be left blank if the launch of the executable is"
+                 "managed in the config file."
+            )
         },
         {
             "option": "config_file",
             "type": "file",
-            "label": "Configuration file",
-            'help': ("Start Dosbox with the options specified in this file. \n"
-                     "It can have a section in which you can put commands "
-                     "to execute on startup. Read Dosbox's documentation "
-                     "for more information.")
+            "label": _("Configuration file"),
+            'help': _(
+                "Start Dosbox with the options specified in this file."
+                 "It can have a section in which you can put commands "
+                 "to execute on startup. Read Dosbox's documentation "
+                 "for more information."
+            )
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Command arguments',
-            'help': ("Command line arguments used when launching "
-                     "DOSBox")
+            'label': _('Command arguments'),
+            'help': _(
+                "Command line arguments used when launching "
+                 "DOSBox"
+            )
         },
     ]
 
@@ -102,26 +108,30 @@ class dosbox(Runner):
     runner_options = [
         {
             "option": "scaler",
-            "label": "Graphic scaler",
+            "label": _("Graphic scaler"),
             "type": "choice",
             "choices": scaler_modes,
             "default": "normal3x",
-            'help': ("The algorithm used to scale up the game's base "
-                     "resolution, resulting in different visual styles. ")
+            'help': _(
+                "The algorithm used to scale up the game's base "
+                 "resolution, resulting in different visual styles. "
+            )
         },
         {
             "option": "exit",
-            "label": "Exit Dosbox with the game",
+            "label": _("Exit Dosbox with the game"),
             "type": "bool",
             "default": True,
-            'help': ("Shut down Dosbox when the game is quit.")
+            'help': _(
+                "Shut down Dosbox when the game is quit."
+            )
         },
         {
             "option": "fullscreen",
-            "label": "Open game in fullscreen",
+            "label": _("Open game in fullscreen"),
             "type": "bool",
             "default": False,
-            'help': ("Tells Dosbox to launch the game in fullscreen.")
+            'help': _("Tells Dosbox to launch the game in fullscreen.")
         }
     ]
 

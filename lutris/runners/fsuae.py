@@ -33,60 +33,66 @@ class fsuae(Runner):
         {
             'option': "main_file",
             'type': "file",
-            'label': "Boot disk",
+            'label': _("Boot disk"),
             'default_path': 'game_path',
-            'help': ("The main floppy disk file with the game data. \n"
-                     "FS-UAE supports floppy images in multiple file formats: "
-                     "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
-                     "and ADFs in zip files are a also supported.")
+            'help': _(
+                "The main floppy disk file with the game data."
+                 "FS-UAE supports floppy images in multiple file formats: "
+                 "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
+                 "and ADFs in zip files are a also supported."
+            )
         },
         {
             "option": "disks",
             "type": "multiple",
-            "label": "Additionnal floppies",
+            "label": _("Additionnal floppies"),
             'default_path': 'game_path',
-            'help': ("The additional floppy disk image(s).")
+            'help': _("The additional floppy disk image(s).")
         }
     ]
 
     runner_options = [
         {
             "option": "model",
-            "label": "Amiga model",
+            "label": _("Amiga model"),
             "type": "choice",
             "choices": model_choices,
             'default': 'A500',
-            'help': ("Specify the Amiga model you want to emulate.")
+            'help': _("Specify the Amiga model you want to emulate.")
         },
         {
             "option": "kickstart_file",
-            "label": "Kickstart ROMs location",
+            "label": _("Kickstart ROMs location"),
             "type": "file",
-            'help': ("Choose the folder containing original Amiga kickstart "
-                     "ROMs. Refer to FS-UAE documentation to find how to "
-                     "acquire them. Without these, FS-UAE uses a bundled "
-                     "replacement ROM which is less compatible with Amiga "
-                     "software.")
+            'help': _(
+                "Choose the folder containing original Amiga kickstart "
+                 "ROMs. Refer to FS-UAE documentation to find how to "
+                 "acquire them. Without these, FS-UAE uses a bundled "
+                 "replacement ROM which is less compatible with Amiga "
+                 "software."
+            )
         },
         {
             'option': 'kickstart_ext_file',
-            'label': 'Extended Kickstart location',
+            'label': _('Extended Kickstart location'),
             'type': 'file',
-            'help': 'Location of extended Kickstart used for CD32'
+            'help': _('Location of extended Kickstart used for CD32')
         },
         {
             "option": "gfx_fullscreen_amiga",
-            "label": "Fullscreen (F12 + s to switch)",
+            "label": _("Fullscreen (F12 + s to switch)"),
             "type": "bool",
             'default': False,
         },
         {
             "option": "scanlines",
-            "label": "Scanlines display style",
+            "label": _("Scanlines display style"),
             "type": "bool",
             'default': False,
-            'help': ("Activates a display filter adding scanlines to imitate "
-                     "the displays of yesteryear.")
+            'help': (
+                "Activates a display filter adding scanlines to imitate "
+                 "the displays of yesteryear."
+            )
         }
     ]
 

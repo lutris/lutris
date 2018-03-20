@@ -7,7 +7,7 @@ from lutris.runners.runner import Runner
 
 
 class scummvm(Runner):
-    description = "Runs various 2D point-and-click adventure games."
+    description = _("Runs various 2D point-and-click adventure games.")
     human_name = "ScummVM"
     platforms = ["Linux"]
     runnable_alone = True
@@ -16,16 +16,16 @@ class scummvm(Runner):
         {
             'option': 'game_id',
             'type': 'string',
-            'label': "Game identifier"
+            'label': _("Game identifier")
         },
         {
             'option': 'path',
             'type': 'directory_chooser',
-            'label': "Game files location"
+            'label': _("Game files location")
         },
         {
             "option": "subtitles",
-            "label": "Enable subtitles (if the game has voice)",
+            "label": _("Enable subtitles (if the game has voice)"),
             "type": "bool",
             'default': False,
         }
@@ -33,23 +33,25 @@ class scummvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": "Fullscreen mode",
+            "label": _("Fullscreen mode"),
             "type": "bool",
             'default': False,
         },
         {
             "option": "aspect",
-            "label": "Aspect ratio correction",
+            "label": _("Aspect ratio correction"),
             "type": "bool",
             "default": True,
-            'help': ("Most games supported by ScummVM were made for VGA "
-                     "display modes using rectangular pixels. Activating "
-                     "this option for these games will preserve the 4:3 "
-                     "aspect ratio they were made for.")
+            'help': _(
+                "Most games supported by ScummVM were made for VGA "
+                "display modes using rectangular pixels. Activating "
+                "this option for these games will preserve the 4:3 "
+                "aspect ratio they were made for."
+            )
         },
         {
             "option": "gfx-mode",
-            "label": "Graphic scaler",
+            "label": _("Graphic scaler"),
             "type": "choice",
             'default': '3x',
             "choices": [("normal", "normal"),
@@ -64,8 +66,10 @@ class scummvm(Runner):
                         ("supereagle", "supereagle"),
                         ("tv2x", "tv2x"),
                         ("dotmatrix", "dotmatrix")],
-            'help': ("The algorithm used to scale up the game's base "
-                     "resolution, resulting in different visual styles. ")
+            'help': _(
+                "The algorithm used to scale up the game's base "
+                "resolution, resulting in different visual styles. "
+            )
         }
     ]
 

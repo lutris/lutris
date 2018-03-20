@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 
 class mess(Runner):
     human_name = "MESS"
-    description = "Multi-system (consoles and computers) emulator"
+    description = _("Multi-system (consoles and computers) emulator")
     # TODO: A lot of platforms/machines are missing
     platforms = (
         'Acorn Atom',
@@ -127,20 +127,20 @@ class mess(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'ROM file',
-            'help': ("The game data, commonly called a ROM image.")
+            'label': _('ROM file'),
+            'help': _("The game data, commonly called a ROM image.")
         },
         {
             'option': 'machine',
             'type': 'choice_with_entry',
-            'label': "Machine",
+            'label': _("Machine"),
             'choices': machine_choices,
-            'help': ("The emulated machine.")
+            'help': _("The emulated machine.")
         },
         {
             'option': 'device',
             'type': 'choice_with_entry',
-            'label': "Storage type",
+            'label': _("Storage type"),
             'choices': [
                 ("Floppy disk", 'flop'),
                 ("Floppy drive 1", 'flop1'),
@@ -178,10 +178,12 @@ class mess(Runner):
         {
             'option': 'rompath',
             'type': 'directory_chooser',
-            'label': "BIOS path",
-            'help': ("Choose the folder containing MESS bios files.\n"
-                     "These files contain code from the original hardware "
-                     "necessary to the emulation.")
+            'label': _("BIOS path"),
+            'help': _(
+                "Choose the folder containing MESS bios files."
+                "These files contain code from the original hardware "
+                "necessary to the emulation."
+            )
         }
     ]
 

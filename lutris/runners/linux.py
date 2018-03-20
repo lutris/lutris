@@ -7,7 +7,7 @@ from lutris.runners.runner import Runner
 
 class linux(Runner):
     human_name = "Linux"
-    description = "Runs native games"
+    description = _("Runs native games")
     platforms = ['Linux']
 
     game_options = [
@@ -15,39 +15,43 @@ class linux(Runner):
             "option": "exe",
             "type": "file",
             "default_path": "game_path",
-            "label": "Executable",
-            'help': "The game's main executable file"
+            "label": _("Executable"),
+            'help': _("The game's main executable file")
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            'help': "Command line arguments used when launching the game"
+            "label": _("Arguments"),
+            'help': _("Command line arguments used when launching the game")
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": "Working directory",
-            'help': ("The location where the game is run from.\n"
-                     "By default, Lutris uses the directory of the "
-                     "executable.")
+            "label": _("Working directory"),
+            'help': _(
+                "The location where the game is run from."
+                "By default, Lutris uses the directory of the "
+                "executable."
+            )
         },
         {
             "option": "ld_preload",
             "type": "file",
-            "label": "Preload library",
+            "label": _("Preload library"),
             'advanced': True,
-            'help': ("A library to load before running the game's executable.")
+            'help': _("A library to load before running the game's executable.")
         },
         {
             "option": "ld_library_path",
             "type": "directory_chooser",
-            "label": "Add directory to LD_LIBRARY_PATH",
+            "label": _("Add directory to LD_LIBRARY_PATH"),
             'advanced': True,
-            'help': ("A directory where libraries should be searched for "
-                     "first, before the standard set of directories; this is "
-                     "useful when debugging a new library or using a "
-                     "nonstandard library for special purposes.")
+            'help': (
+                "A directory where libraries should be searched for "
+                "first, before the standard set of directories; this is "
+                "useful when debugging a new library or using a "
+                "nonstandard library for special purposes."
+            )
         }
     ]
 

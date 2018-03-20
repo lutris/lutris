@@ -6,7 +6,7 @@ from lutris.runners.runner import Runner
 
 
 class vice(Runner):
-    description = "Commodore Emulator"
+    description = _("Commodore Emulator")
     human_name = "Vice"
     platforms = [
         'Commodore 64',
@@ -20,47 +20,49 @@ class vice(Runner):
     game_options = [{
         "option": "main_file",
         "type": "file",
-        "label": "ROM file",
-        'help': ("The game data, commonly called a ROM image.\n"
-                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
-                 "D80, D82, D1M, D2M, D4M, T46, P00 and CRT.")
+        "label": _("ROM file"),
+        'help': _(
+            "The game data, commonly called a ROM image."
+            "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
+            "D80, D82, D1M, D2M, D4M, T46, P00 and CRT."
+        )
     }]
 
     runner_options = [
         {
             "option": "joy",
             "type": "bool",
-            "label": "Use joysticks",
+            "label": _("Use joysticks"),
             'default': False,
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             'default': False,
         },
         {
             "option": "double",
             "type": "bool",
-            "label": "Scale up display by 2",
+            "label": _("Scale up display by 2"),
             'default': True,
         },
         {
             'option': 'aspect_ratio',
             'type': 'bool',
-            'label': 'Keep aspect ratio',
+            'label': _('Keep aspect ratio'),
             'default': True
         },
         {
             'option': 'drivesound',
             'type': 'bool',
-            'label': 'Enable sound emulation of disk drives',
+            'label': _('Enable sound emulation of disk drives'),
             'default': False
         },
         {
             'option': 'renderer',
             'type': 'choice',
-            'label': 'Graphics renderer',
+            'label': _('Graphics renderer'),
             'choices': [
                 ('OpenGL', 'opengl'),
                 ('Software', 'software')
@@ -70,7 +72,7 @@ class vice(Runner):
         {
             "option": "machine",
             "type": "choice",
-            "label": "Machine",
+            "label": _("Machine"),
             "choices": [
                 ("C64", "c64"),
                 ("C128", "c128"),

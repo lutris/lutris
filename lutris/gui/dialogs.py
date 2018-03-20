@@ -131,7 +131,7 @@ class DownloadDialog(Gtk.Dialog):
         Gtk.Dialog.__init__(self, title or _("Downloading file"))
         self.set_size_request(485, 104)
         self.set_border_width(12)
-        default_download_url_label = _("Downloading") + " " + url
+        default_download_url_label = _("Downloading {url}").format(url=url)
         params = {'url': url,
                   'dest': dest,
                   'title': label or default_download_url_label}
@@ -161,8 +161,8 @@ class DownloadDialog(Gtk.Dialog):
 
 class InstallOrPlayDialog(Gtk.Dialog):
     def __init__(self, game_name):
-        is_installed_message = game_name + " " + _("is already installed")
-        Gtk.Dialog.__init__(self, is_installed_message)
+        installed_message = _("{game_name} is already installed").format(game_name=game_name)
+        Gtk.Dialog.__init__(self, installed_message)
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.action = None

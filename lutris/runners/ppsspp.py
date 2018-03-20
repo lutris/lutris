@@ -4,14 +4,14 @@ from lutris.runners.runner import Runner
 
 class ppsspp(Runner):
     human_name = "PPSSPP"
-    description = "Sony PSP emulator"
+    description = _("Sony PSP emulator")
     platforms = ['Sony PlayStation Portable']
     runner_executable = 'ppsspp/PPSSPPSDL'
     game_options = [
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'ISO file',
+            'label': _('ISO file'),
             'default_path': 'game_path'
         }
     ]
@@ -20,7 +20,7 @@ class ppsspp(Runner):
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': False,
         }
     ]

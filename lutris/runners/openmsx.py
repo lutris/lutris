@@ -4,14 +4,14 @@ from lutris.runners.runner import Runner
 
 class openmsx(Runner):
     human_name = "openMSX"
-    description = "MSX computer emulator"
+    description = _("MSX computer emulator")
     platforms = ["MSX, MSX2, MSX2+, MSX turboR"]
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image.")
+            "label": _("ROM file"),
+            'help': _("The game data, commonly called a ROM image.")
         }
     ]
 

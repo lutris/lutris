@@ -3,7 +3,7 @@ from lutris.runners.runner import Runner
 
 
 class dolphin(Runner):
-    description = "Gamecube and Wii emulator"
+    description = _("Gamecube and Wii emulator")
     human_name = "Dolphin"
     platforms = [
         'Nintendo Gamecube',
@@ -16,7 +16,7 @@ class dolphin(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "ISO file"
+            "label": _("ISO file")
         },
         {
             'option': 'platform',

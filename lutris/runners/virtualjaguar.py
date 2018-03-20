@@ -3,7 +3,7 @@ from lutris.runners.runner import Runner
 
 
 class virtualjaguar(Runner):
-    description = "Atari Jaguar emulator"
+    description = _("Atari Jaguar emulator")
     human_name = "Virtual Jaguar"
     platforms = ['Atari Jaguar']
     runnable_alone = True
@@ -13,9 +13,11 @@ class virtualjaguar(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image.\n"
-                     "Supported formats: J64 and JAG.")
+            "label": _("ROM file"),
+            'help': _(
+                "The game data, commonly called a ROM image."
+                "Supported formats: J64 and JAG."
+            )
         }
     ]
 

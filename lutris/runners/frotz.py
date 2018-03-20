@@ -15,11 +15,13 @@ class frotz(Runner):
         {
             "option": "story",
             "type": "file",
-            "label": "Story file",
-            'help': ('The Z-Machine game file.\n'
-                     'Usally ends in ".z*", with "*" being a number from 1 '
-                     'to 6 representing the version of the Z-Machine that '
-                     'the game was written for.')
+            "label": _("Story file"),
+            'help': _(
+                 "The Z-Machine game file."
+                 "Usally ends in '.z*', with '*' being a number from 1 "
+                 "to 6 representing the version of the Z-Machine that "
+                 "the game was written for."
+            )
         }
     ]
     system_options_override = [

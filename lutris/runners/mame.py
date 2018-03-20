@@ -12,7 +12,7 @@ class mame(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
+            "label": _("ROM file"),
             "default_path": "game_path",
         }
     ]
@@ -21,7 +21,7 @@ class mame(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             'default': True,
         }
     ]

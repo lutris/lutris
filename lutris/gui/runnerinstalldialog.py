@@ -33,7 +33,8 @@ class RunnerInstallDialog(Dialog):
                         parent=parent)
             return
         runner_name = self.runner_info['name']
-        version_management_label = runner_name + " " + _("version management")
+        version_management_label = _("{runner} version management").format(runner=runner_name)
+
         label = Gtk.Label(version_management_label)
         self.vbox.add(label)
         self.runner_store = self.get_store()

@@ -77,7 +77,7 @@ def get_default_info_directory():
 
 class libretro(Runner):
     human_name = "Libretro"
-    description = "Multi system emulator"
+    description = _("Multi system emulator")
     platforms = (
         '3DO',
         'Atari 800/5200',
@@ -133,12 +133,12 @@ class libretro(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'ROM file',
+            'label': _('ROM file'),
         },
         {
             'option': 'core',
             'type': 'choice',
-            'label': 'Core',
+            'label': _('Core'),
             'choices': get_core_choices(),
         }
     ]
@@ -147,13 +147,13 @@ class libretro(Runner):
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': True
         },
         {
             'option': 'config_file',
             'type': 'file',
-            'label': 'Config file',
+            'label': _('Config file'),
             'default': get_default_config_path()
         }
     ]
@@ -293,7 +293,7 @@ class libretro(Runner):
         if not core:
             return {
                 'error': 'CUSTOM',
-                'text': "No core has been selected for this game"
+                'text': _("No core has been selected for this game")
             }
         command.append('--libretro={}'.format(self.get_core_path(core)))
 
@@ -302,7 +302,7 @@ class libretro(Runner):
         if not file:
             return {
                 'error': 'CUSTOM',
-                'text': 'No game file specified'
+                'text': _('No game file specified')
             }
         if not os.path.exists(file):
             return {

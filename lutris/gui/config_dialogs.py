@@ -452,7 +452,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
-        headline_game_config_dialog = _("Configure %s") % game.name
+        headline_game_config_dialog = _("Configure {game}").format(game=game.name)
         super(EditGameConfigDialog, self).__init__(
             headline_game_config_dialog,
             parent=parent
@@ -475,7 +475,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runner config edit dialog."""
     def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
-        headline_game_runner_dialog = _("Configure %s") % runner.human_name
+        headline_game_runner_dialog = _("Configure {runner}").format(runner=runner.human_name)
         super(RunnerConfigDialog, self).__init__(
             headline_game_runner_dialog,
             parent=parent

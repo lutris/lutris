@@ -4,25 +4,27 @@ from lutris.runners.runner import Runner
 
 class osmose(Runner):
     human_name = "Osmose"
-    description = "Sega Master System Emulator"
+    description = _("Sega Master System Emulator")
     platforms = ['Sega Master System']
     runner_executable = 'osmose/osmose'
     game_options = [
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'ROM file',
+            'label': _('ROM file'),
             'default_path': 'game_path',
-            'help': ("The game data, commonly called a ROM image.\n"
-                     "Supported formats: SMS and GG files. ZIP compressed "
-                     "ROMs are supported.")
+            'help': _(
+                "The game data, commonly called a ROM image."
+                "Supported formats: SMS and GG files. ZIP compressed "
+                "ROMs are supported."
+            )
         }
     ]
     runner_options = [
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': False,
         }
     ]

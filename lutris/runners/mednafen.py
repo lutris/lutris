@@ -7,8 +7,10 @@ from lutris.util.joypad import get_controller_mappings
 
 class mednafen(Runner):
     human_name = "Mednafen"
-    description = ("Multi-system emulator including NES, GB(A), PC Engine "
-                   "support.")
+    description = _(
+        "Multi-system emulator including NES, GB(A), PC Engine "
+        "support."
+    )
     platforms = [
         'Nintendo Game Boy (Color)',
         'Nintendo Game Boy Advance',
@@ -48,29 +50,31 @@ class mednafen(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image. \n"
-                     "Mednafen supports GZIP and ZIP compressed ROMs.")
+            "label": _("ROM file"),
+            'help': _(
+                "The game data, commonly called a ROM image. "
+                "Mednafen supports GZIP and ZIP compressed ROMs."
+            )
         },
         {
             "option": "machine",
             "type": "choice",
-            "label": "Machine type",
+            "label": _("Machine type"),
             "choices": machine_choices,
-            'help': ("The emulated machine.")
+            'help': _("The emulated machine.")
         }
     ]
     runner_options = [
         {
             "option": "fs",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "stretch",
             "type": "choice",
-            "label": "Aspect ratio",
+            "label": _("Aspect ratio"),
             "choices": (
                 ("Disabled", "0"),
                 ("Stretched", "full"),
@@ -83,7 +87,7 @@ class mednafen(Runner):
         {
             "option": "scaler",
             "type": "choice",
-            "label": "Video scaler",
+            "label": _("Video scaler"),
             "choices": (
                 ("none", "none"),
                 ("hq2x", "hq2x"),
@@ -107,7 +111,7 @@ class mednafen(Runner):
         {
             "option": "dflt_cntrllr",
             "type": "bool",
-            "label": "Use Mednafen controller configuration",
+            "label": _("Use Mednafen controller configuration"),
             "default": False,
         }
 

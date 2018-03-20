@@ -6,26 +6,26 @@ from lutris.runners.runner import Runner
 
 class mupen64plus(Runner):
     human_name = "Mupen64Plus"
-    description = "Nintendo 64 emulator"
+    description = _("Nintendo 64 emulator")
     platforms = ['Nintendo 64']
     runner_executable = 'mupen64plus/mupen64plus'
     game_options = [{
         'option': 'main_file',
         'type': 'file',
-        'label': 'ROM file',
-        'help': ("The game data, commonly called a ROM image.")
+        'label': _('ROM file'),
+        'help': _("The game data, commonly called a ROM image.")
     }]
     runner_options = [
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': True
         },
         {
             'option': 'hideosd',
             'type': 'bool',
-            'label': 'Hide OSD',
+            'label': _('Hide OSD'),
             'default': True
         }
     ]

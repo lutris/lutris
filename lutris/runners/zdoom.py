@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 
 class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
-    description = "ZDoom DOOM Game Engine"
+    description = _("ZDoom DOOM Game Engine")
     human_name = "ZDoom"
     platforms = ["Linux"]
     runner_executable = 'zdoom/zdoom'
@@ -13,45 +13,47 @@ class zdoom(Runner):
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'WAD file',
-            'help': ("The game data, commonly called a WAD file.")
+            'label': _('WAD file'),
+            'help': _("The game data, commonly called a WAD file.")
         },
         {
             'option': 'files',
             'type': 'multiple',
-            'label': 'PWAD files',
-            'help': ("Used to load one or more PWAD files which generally contain "
-                     "user-created levels.")
+            'label': _('PWAD files'),
+            'help': _(
+                "Used to load one or more PWAD files which generally contain "
+                "user-created levels."
+            )
         },
         {
             'option': 'warp',
             'type': 'string',
-            'label': 'Warp to map',
-            'help': ("Starts the game on the given map.")
+            'label': _('Warp to map'),
+            'help': _("Starts the game on the given map.")
         }
     ]
     runner_options = [
         {
             "option": "2",
-            "label": "Pixel Doubling",
+            "label": _("Pixel Doubling"),
             "type": "bool",
             'default': False
         },
         {
             "option": "4",
-            "label": "Pixel Quadrupling",
+            "label": _("Pixel Quadrupling"),
             "type": "bool",
             'default': False
         },
         {
             "option": "nostartup",
-            "label": "Disable Startup Screens",
+            "label": _("Disable Startup Screens"),
             "type": "bool",
             'default': False
         },
         {
             "option": "skill",
-            "label": "Skill",
+            "label": _("Skill"),
             "type": "choice",
             "default": '',
             "choices": {

@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 
 class o2em(Runner):
     human_name = "O2EM"
-    description = "Magnavox Osyssey² Emulator"
+    description = _("Magnavox Osyssey² Emulator")
     platforms = (
         'Magnavox Odyssey²',
         'Phillips C52',
@@ -37,9 +37,9 @@ class o2em(Runner):
     game_options = [{
         "option": "main_file",
         "type": "file",
-        "label": "ROM file",
+        "label": _("ROM file"),
         "default_path": 'game_path',
-        'help': ("The game data, commonly called a ROM image.")
+        'help': _("The game data, commonly called a ROM image.")
     }]
     runner_options = [
         {
@@ -72,10 +72,12 @@ class o2em(Runner):
         {
             "option": "scanlines",
             "type": "bool",
-            "label": "Scanlines display style",
+            "label": _("Scanlines display style"),
             'default': False,
-            'help': ("Activates a display filter adding scanlines to imitate "
-                     "the displays of yesteryear.")
+            'help': _(
+                "Activates a display filter adding scanlines to imitate "
+                "the displays of yesteryear."
+            )
         }
     ]
 

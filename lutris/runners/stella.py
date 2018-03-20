@@ -3,7 +3,7 @@ from lutris.runners.runner import Runner
 
 
 class stella(Runner):
-    description = "Atari 2600 emulator"
+    description = _("Atari 2600 emulator")
     human_name = "Stella"
     platforms = ['Atari 2600']
     runnable_alone = True
@@ -12,10 +12,12 @@ class stella(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image.\n"
-                     "Supported formats: A26/BIN/ROM. GZIP and ZIP compressed "
-                     "ROMs are supported.")
+            "label": _("ROM file"),
+            'help': _(
+                "The game data, commonly called a ROM image."
+                "Supported formats: A26/BIN/ROM. GZIP and ZIP compressed "
+                "ROMs are supported."
+            )
         }
     ]
     runner_options = []

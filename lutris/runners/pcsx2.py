@@ -4,14 +4,14 @@ from lutris.runners.runner import Runner
 
 class pcsx2(Runner):
     human_name = "PCSX2"
-    description = "PlayStation 2 emulator"
+    description = _("PlayStation 2 emulator")
     platforms = ['Sony PlayStation 2']
     runner_executable = 'pcsx2/PCSX2'
     game_options = [
         {
             'option': 'main_file',
             'type': 'file',
-            'label': 'ISO file',
+            'label': _('ISO file'),
             'default_path': 'game_path'
         }
     ]
@@ -20,7 +20,7 @@ class pcsx2(Runner):
         {
             'option': 'fullscreen',
             'type': 'bool',
-            'label': 'Fullscreen',
+            'label': _('Fullscreen'),
             'default': False,
         }
     ]

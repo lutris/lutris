@@ -48,7 +48,7 @@ def kill():
 
 # pylint: disable=C0103
 class winesteam(wine.wine):
-    description = "Runs Steam for Windows games"
+    description = _("Runs Steam for Windows games")
     multiple_versions = False
     human_name = "Wine Steam"
     platforms = ['Windows']
@@ -59,52 +59,60 @@ class winesteam(wine.wine):
         {
             'option': 'appid',
             'type': 'string',
-            'label': 'Application ID',
-            'help': ("The application ID can be retrieved from the game's "
-                     "page at steampowered.com. Example: 235320 is the "
-                     "app ID for <i>Original War</i> in: \n"
-                     "http://store.steampowered.com/app/<b>235320</b>/")
+            'label': _('Application ID'),
+            'help': _(
+                "The application ID can be retrieved from the game's "
+                "page at steampowered.com. Example: 235320 is the "
+                "app ID for <i>Original War</i> in: "
+                "http://store.steampowered.com/app/<b>235320</b>/"
+            )
         },
         {
             'option': 'args',
             'type': 'string',
-            'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game")
+            'label': _('Arguments'),
+            'help': _("Command line arguments used when launching the game")
         },
         {
             'option': 'prefix',
             'type': 'directory_chooser',
-            'label': 'Prefix',
-            'help': ("The prefix (also named \"bottle\") used by Wine.\n"
-                     "It's a directory containing a set of files and "
-                     "folders making up a confined Windows environment.")
+            'label': _('Prefix'),
+            'help': _(
+                "The prefix (also named \"bottle\") used by Wine."
+                "It's a directory containing a set of files and "
+                "folders making up a confined Windows environment."
+            )
         },
         {
             'option': 'arch',
             'type': 'choice',
-            'label': 'Prefix architecture',
+            'label': _('Prefix architecture'),
             'choices': [('Auto', 'auto'),
                         ('32-bit', 'win32'),
                         ('64-bit', 'win64')],
             'default': 'auto',
-            'help': ("The architecture of the Windows environment.\n"
-                     "32-bit is recommended unless running "
-                     "a 64-bit only game.")
+            'help': (
+                "The architecture of the Windows environment."
+                "32-bit is recommended unless running "
+                "a 64-bit only game."
+            )
         },
         {
             'option': 'nolaunch',
             'type': 'bool',
             'default': False,
-            'label': 'Do not launch game, only open Steam',
-            'help': ("Opens Steam with the current settings without running the game, "
-                     "useful if a game has several launch options.")
+            'label': _('Do not launch game, only open Steam'),
+            'help': _(
+                "Opens Steam with the current settings without running the game, "
+                "useful if a game has several launch options."
+            )
         },
         {
             'option': 'steamless_binary',
             'type': 'file',
-            'label': 'Steamless binary',
+            'label': _('Steamless binary'),
             'advanced': True,
-            'help': ("Steamless binary for running the game directly")
+            'help': _("Steamless binary for running the game directly")
         },
     ]
 
@@ -117,21 +125,23 @@ class winesteam(wine.wine):
             {
                 'option': 'steam_path',
                 'type': 'directory_chooser',
-                'label': 'Custom Steam location',
-                'help': ("Choose a folder containing Steam.exe\n"
-                         "By default, Lutris will look for a Windows Steam "
-                         "installation into ~/.wine or will install it in "
-                         "its own custom Wine prefix.")
+                'label': _('Custom Steam location'),
+                'help': _(
+                    "Choose a folder containing Steam.exe "
+                    "By default, Lutris will look for a Windows Steam "
+                    "installation into ~/.wine or will install it in "
+                    "its own custom Wine prefix."
+                )
             },
         )
         self.runner_options.insert(
             1,
             {
                 'option': 'quit_steam_on_exit',
-                'label': "Stop Steam after game exits",
+                'label': _("Stop Steam after game exits"),
                 'type': 'bool',
                 'default': True,
-                'help': ("Shut down Steam after the game has quit.")
+                'help': _("Shut down Steam after the game has quit.")
             },
         )
         self.runner_options.insert(
@@ -139,11 +149,13 @@ class winesteam(wine.wine):
             {
                 'option': 'run_without_steam',
                 'type': 'string',
-                'label': 'Run without Steam (if possible)',
+                'label': _('Run without Steam (if possible)'),
                 'type': 'bool',
                 'default': False,
-                'help': ("If a steamless binary is available launches the game "
-                         "directly instead of launching it through Steam")
+                'help': _(
+                    "If a steamless binary is available launches the game "
+                    "directly instead of launching it through Steam"
+                )
             },
         )
         self.runner_options.insert(
@@ -151,10 +163,12 @@ class winesteam(wine.wine):
             {
                 'option': 'args',
                 'type': 'string',
-                'label': 'Arguments',
+                'label': _('Arguments'),
                 'advanced': True,
-                'help': ("Extra command line arguments used when "
-                         "launching Steam")
+                'help': _(
+                    "Extra command line arguments used when "
+                    "launching Steam"
+                )
             },
         )
 
