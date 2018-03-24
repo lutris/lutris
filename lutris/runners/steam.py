@@ -205,7 +205,7 @@ class steam(Runner):
         return args
 
     def get_env(self):
-        env = {}
+        env = super(steam, self).get_env()
 
         if not self.runner_config.get('lsi_steam') and self.runner_config.get('steam_native_runtime'):
             env['STEAM_RUNTIME'] = '0'

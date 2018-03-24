@@ -900,7 +900,9 @@ class wine(Runner):
         self.set_regedit_keys()
         return True
 
-    def get_env(self, full=True):
+    def get_env(self, os_env=True):
+        env = super(wine, self).get_env(os_env)
+
         if full:
             env = os.environ.copy()
         else:
@@ -980,7 +982,7 @@ class wine(Runner):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
         launch_info = {}
-        launch_info['env'] = self.get_env(full=False)
+        launch_info['env'] = self.get_env(os_env=False)
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])

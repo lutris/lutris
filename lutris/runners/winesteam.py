@@ -412,14 +412,14 @@ class winesteam(wine.wine):
         return True
 
     def get_run_data(self):
-        return {'command': self.launch_args, 'env': self.get_env(full=False)}
+        return {'command': self.launch_args, 'env': self.get_env(os_env=False)}
 
     def play(self):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
 
         launch_info = {}
-        launch_info['env'] = self.get_env(full=False)
+        launch_info['env'] = self.get_env(os_env=False)
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
@@ -487,7 +487,7 @@ class winesteam(wine.wine):
                 return False
         appid = appid if appid else self.appid
 
-        env = self.get_env(full=False)
+        env = self.get_env(os_env=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
         self.prelaunch()
         thread = LutrisThread(command, runner=self, env=env, watch=False)
