@@ -149,6 +149,39 @@ class Runner:
             raise ValueError('runner_executable not set for {}'.format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
+    def get_env(self, os_env=False):
+        env = {}
+
+        if os_env:
+            env.update(os.environ.copy())
+
+        system_env = self.system_config.get('env') or {}
+        env.update(system_env)
+
+        dri_prime = self.system_config.get('dri_prime')
+        if dri_prime:
+            env["DRI_PRIME"] = "1"
+        else:
+            env["DRI_PRIME"] = "0"
+
+        runtime_ld_library_path = None
+
+        if self.use_runtime():
+            runtime_env = runtime.get_env()
+            if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
+                env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
+            if 'LD_LIBRARY_PATH' in runtime_env:
+                runtime_ld_library_path = runtime_env['LD_LIBRARY_PATH']
+
+        if runtime_ld_library_path:
+            ld_library_path = env.get("LD_LIBRARY_PATH")
+            if not ld_library_path:
+                ld_library_path = '$LD_LIBRARY_PATH'
+            ld_library_path = ":".join([runtime_ld_library_path, ld_library_path])
+            env["LD_LIBRARY_PATH"] = ld_library_path
+
+        return env
+
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
         raise NotImplementedError("Implement the play method in your runner")
@@ -158,11 +191,7 @@ class Runner:
 
         Reimplement in derived runner if need be."""
         exe = self.get_executable()
-        env = {}
-        try:
-            env = self.get_env()
-        except AttributeError:
-            pass
+        env = self.get_env()
 
         return {'command': [exe], 'env': env}
 
@@ -178,8 +207,6 @@ class Runner:
         command_data = self.get_run_data()
         command = command_data.get('command')
         env = (command_data.get('env') or {}).copy()
-        if self.use_runtime():
-            env.update(runtime.get_env())
 
         thread = LutrisThread(command, runner=self, env=env, watch=False)
         thread.start()

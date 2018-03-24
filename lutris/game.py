@@ -295,36 +295,22 @@ class Game(object):
                                     "%s" % terminal)
                 self.state = self.STATE_STOPPED
                 return
+
         # Env vars
         game_env = gameplay_info.get('env') or {}
         env.update(game_env)
 
-        system_env = system_config.get('env') or {}
-        env.update(system_env)
+        ld_preload = gameplay_info.get('ld_preload')
+        if (ld_preload):
+            env["LD_PRELOAD"] = ld_preload
 
-        ld_preload = gameplay_info.get('ld_preload') or ''
-        env["LD_PRELOAD"] = ld_preload
-
-        dri_prime = system_config.get('dri_prime')
-        if dri_prime:
-            env["DRI_PRIME"] = "1"
-        else:
-            env["DRI_PRIME"] = "0"
-
-        # Runtime management
-        ld_library_path = ""
-        if self.runner.use_runtime():
-            runtime_env = runtime.get_env()
-            if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
-                env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
-            if 'LD_LIBRARY_PATH' in runtime_env:
-                ld_library_path = runtime_env['LD_LIBRARY_PATH']
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
+            ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
             ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
-        env["LD_LIBRARY_PATH"] = ld_library_path
+            env["LD_LIBRARY_PATH"] = ld_library_path
         # /Env vars
 
         include_processes = shlex.split(system_config.get('include_processes', ''))
