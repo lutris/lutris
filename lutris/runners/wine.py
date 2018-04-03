@@ -903,7 +903,7 @@ class wine(Runner):
     def get_env(self, os_env=True):
         env = super(wine, self).get_env(os_env)
 
-        if full:
+        if os_env:
             env = os.environ.copy()
         else:
             env = {}
