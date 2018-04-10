@@ -267,10 +267,31 @@ class Application(Gtk.Application):
                                            installer_file=installer_file,
                                            revision=revision)
         elif action in ('rungame', 'rungameid'):
+            if not db_game or not db_game['id']:
+                logger.info("No game found in library, shutting down")
+                self.do_shutdown()
+                return 0
+            
             logger.info("Launching %s" % db_game['name'])
-            self.window.on_game_run(game_id=db_game['id'])
+
+            # If game is installed, run it without showing the GUI
+            # Also set a timer to shut down lutris when game ends
+            if db_game['installed']:
+                self.window.hide()
+                self.window.on_game_run(game_id=db_game['id'])
+                GLib.timeout_add(300, self.refresh_status)
+            # If game is not installed, show the GUI
+            else:
+                self.window.on_game_run(game_id=db_game['id'])
+
 
         return 0
+
+    def refresh_status(self):
+        if self.window.running_game.state == self.window.running_game.STATE_STOPPED:
+            self.do_shutdown()
+            return False
+        return True
 
     def get_lutris_action(self, url):
         installer_info = {
