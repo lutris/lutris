@@ -699,7 +699,7 @@ class ScriptInterpreter(CommandsMixin):
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
-            steam_runner.config = LutrisConfig(runner_slug=self.runner)
+            steam_runner.config = LutrisConfig(runner_slug=steam_runner.name)
             if 'arch' in self.steam_data:
                 steam_runner.config.game_config['arch'] = self.steam_data['arch']
             AsyncCall(steam_runner.install_game, None, appid, is_game_files)

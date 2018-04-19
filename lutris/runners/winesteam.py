@@ -372,7 +372,7 @@ class winesteam(wine.wine):
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
-        if not arch:
+        if not arch or arch == "auto":
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
         if not os.path.exists(prefix):
