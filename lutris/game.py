@@ -297,7 +297,7 @@ class Game(object):
                 return
 
         # Env vars
-        game_env = gameplay_info.get('env') or {}
+        game_env = gameplay_info.get('env') or self.runner.get_env()
         env.update(game_env)
 
         ld_preload = gameplay_info.get('ld_preload')
