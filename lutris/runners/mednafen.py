@@ -152,7 +152,14 @@ class mednafen(Runner):
         """ Setup joystick mappings per machine """
 
         # Get the controller mappings
-        mapping = get_controller_mappings()[0][1]
+        controller_mappings = get_controller_mappings()
+        if not controller_mappings:
+            logger.warning("No controller detected for joysticks %s.", joy_ids)
+            return []
+
+        # TODO currently only supports the first controller. Add support for
+        # other controllers.
+        mapping = controller_mappings[0][1]
 
         # Construct a dictionnary of button codes to parse to mendafen
         map_code = {
