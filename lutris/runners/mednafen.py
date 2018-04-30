@@ -106,9 +106,9 @@ class mednafen(Runner):
             "default": "hq4x",
         },
         {
-            "option": "dflt_cntrllr",
+            "option": "dont_map_controllers",
             "type": "bool",
-            "label": "Use Mednafen controller configuration",
+            "label": "Use default Mednafen controller configuration",
             "default": False,
         }
 
@@ -328,13 +328,11 @@ class mednafen(Runner):
                    "-" + machine + ".special", scaler,
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
-        use_dflt_cntrllr = self.runner_config.get('dflt_cntrllr')
-        if (len(joy_ids) > 0) and not use_dflt_cntrllr:
+        dont_map_controllers = self.runner_config.get('dont_map_controllers')
+        if (len(joy_ids) > 0) and not dont_map_controllers:
             controls = self.set_joystick_controls(joy_ids, machine)
             for control in controls:
                 options.append(control)
-        else:
-            logger.debug("No joystick specification")
 
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
