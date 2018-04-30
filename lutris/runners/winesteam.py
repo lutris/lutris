@@ -174,11 +174,9 @@ class winesteam(wine.wine):
 
     @property
     def prefix_path(self):
-        _prefix = \
-            self.game_config.get('prefix') or \
-            self.get_or_create_default_prefix(
-                arch=self.game_config.get('arch')
-            )
+        _prefix = self.game_config.get('prefix') or self.get_or_create_default_prefix(
+            arch=self.game_config.get('arch')
+        )
         return os.path.expanduser(_prefix)
 
     @property
@@ -253,7 +251,11 @@ class winesteam(wine.wine):
             if os.path.exists(custom_path):
                 return custom_path
 
-        candidates = [self.get_default_prefix(), os.path.expanduser("~/.wine")]
+        candidates = [
+            self.get_default_prefix(arch='win32'),
+            self.get_default_prefix(arch='win64'),
+            os.path.expanduser("~/.wine")
+        ]
         for prefix in candidates:
             # Try the default install path
             steam_path = os.path.join(prefix,
@@ -372,7 +374,7 @@ class winesteam(wine.wine):
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
-        if not arch:
+        if not arch or arch == 'auto':
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
         if not os.path.exists(prefix):
