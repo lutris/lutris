@@ -1,21 +1,21 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# Czech Lutris translation.
+# Copyright (C) 2018
 # This file is distributed under the same license as the lutris package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Daniel Rusek <mail@asciiwolf.com>, 2018.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-11-09 21:49+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2018-04-19 23:38+0200\n"
 "Language-Team: Czech <LL@li.org>\n"
-"Language: \n"
+"Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
@@ -151,7 +151,7 @@ msgstr "Odstranit hru z knihovny"
 
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
-msgstr ""
+msgstr "Filtrovat seznam her"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:1
 msgid ""
