@@ -207,10 +207,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         Process results if the process is running in blocking mode or
         LutrisThread instance otherwise.
     """
-    detected_arch = detect_prefix_arch(prefix)
     executable = str(executable) if executable else ''
-    if arch not in ('win32', 'win64'):
-        arch = detected_arch or 'win32'
     if not wine_path:
         wine_path = wine().get_executable()
     if not working_dir:
@@ -222,6 +219,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         args = '{} "{}"'.format(_args[0], _args[1])
 
     # Create prefix if necessary
+    detected_arch = detect_prefix_arch(prefix)
+    if arch not in ('win32', 'win64'):
+        arch = detected_arch or 'win32'
     if not detected_arch:
         wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch)
@@ -267,12 +267,12 @@ def winetricks(app, prefix=None, arch=None, silent=True,
                wine_path=None, config=None, disable_runtime=False):
     """Execute winetricks."""
     winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
-    if arch not in ('win32', 'win64'):
-        arch = detect_prefix_arch(prefix) or 'win32'
     if wine_path:
         winetricks_wine = wine_path
     else:
         winetricks_wine = wine().get_executable()
+    if arch not in ('win32', 'win64'):
+        arch = detect_arch(prefix, winetricks_wine)
     args = app
     if str(silent).lower() in ('yes', 'on', 'true'):
         args = "--unattended " + args
@@ -297,7 +297,7 @@ def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
 
 def joycpl(wine_path=None, prefix=None, config=None):
     """Execute Joystick control panel."""
-    arch = detect_prefix_arch(prefix) or 'win32'
+    arch = detect_arch(prefix, wine_path)
     wineexec('control', prefix=prefix,
              wine_path=wine_path, arch=arch, args='joy.cpl')
 
@@ -306,18 +306,28 @@ def eject_disc(wine_path, prefix):
     wineexec('eject', prefix=prefix, wine_path=wine_path, args='-a')
 
 
-def detect_prefix_arch(directory=None):
-    """Return the architecture of the prefix found in `directory`.
+def detect_arch(prefix_path=None, wine_path=None):
+    arch = detect_prefix_arch(prefix_path)
+    if arch:
+        return arch
+    if wine_path and os.path.exists(wine_path + '64'):
+        return 'win64'
+    else:
+        return 'win32'
 
-    If no `directory` given, return the arch of the system's default prefix.
+
+def detect_prefix_arch(prefix_path=None):
+    """Return the architecture of the prefix found in `prefix_path`.
+
+    If no `prefix_path` given, return the arch of the system's default prefix.
     If no prefix found, return None."""
-    if not directory:
-        directory = "~/.wine"
-    directory = os.path.expanduser(directory)
-    registry_path = os.path.join(directory, 'system.reg')
-    if not os.path.isdir(directory) or not os.path.isfile(registry_path):
-        # No directory exists or invalid prefix
-        logger.debug("No prefix found in %s", directory)
+    if not prefix_path:
+        prefix_path = "~/.wine"
+    prefix_path = os.path.expanduser(prefix_path)
+    registry_path = os.path.join(prefix_path, 'system.reg')
+    if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
+        # No prefix_path exists or invalid prefix
+        logger.debug("No prefix found in %s", prefix_path)
         return
     with open(registry_path, 'r') as registry:
         for i in range(5):
@@ -326,7 +336,7 @@ def detect_prefix_arch(directory=None):
                 return 'win64'
             elif 'win32' in line:
                 return 'win32'
-    logger.debug("Can't detect prefix arch for %s", directory)
+    logger.debug("Can't detect prefix arch for %s", prefix_path)
 
 
 def set_drive_path(prefix, letter, path):
@@ -370,11 +380,11 @@ def is_version_installed(version):
 
 
 def get_default_version():
-    """Return the default version of wine. Prioritize 32bit builds"""
+    """Return the default version of wine. Prioritize 64bit builds"""
     installed_versions = get_wine_versions()
-    wine32_versions = [version for version in installed_versions if '64' not in version]
-    if wine32_versions:
-        return wine32_versions[0]
+    wine64_versions = [version for version in installed_versions if '64' in version]
+    if wine64_versions:
+        return wine64_versions[0]
     if installed_versions:
         return installed_versions[0]
 
@@ -770,7 +780,7 @@ class wine(Runner):
         Get it from the config or detect it from the prefix"""
         arch = self.game_config.get('arch') or 'auto'
         if arch not in ('win32', 'win64'):
-            arch = detect_prefix_arch(self.prefix_path) or 'win32'
+            arch = detect_arch(self.prefix_path, self.get_executable())
         return arch
 
     def get_version(self, use_default=True):
