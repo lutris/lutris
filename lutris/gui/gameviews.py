@@ -131,6 +131,9 @@ class GameStore(GObject.Object):
                     runner_human_name = runner.human_name
                     self.runner_names[runner_name] = runner_human_name
             platform = game_inst.platform
+            if not platform:
+                game_inst.set_platform_from_runner()
+                platform = game_inst.platform
 
         lastplayed = ''
         if game['lastplayed']:
