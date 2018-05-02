@@ -70,6 +70,12 @@ class Application(Gtk.Application):
             ErrorDialog("Your Linux distribution is too old, Lutris won't function properly")
 
     def add_arguments(self):
+        self.set_option_context_summary(
+            'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
+            'If several games share the same identifier you can use the '
+            'numerical ID (displayed when running lutris --list) and add lutris:rungameid/numerical-id.\n'
+            'To install a game, add lutris:install/game-identifier.'
+        )
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
@@ -271,7 +277,7 @@ class Application(Gtk.Application):
                 logger.info("No game found in library, shutting down")
                 self.do_shutdown()
                 return 0
-            
+
             logger.info("Launching %s" % db_game['name'])
 
             # If game is installed, run it without showing the GUI
