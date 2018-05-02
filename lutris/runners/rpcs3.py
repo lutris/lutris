@@ -5,6 +5,7 @@ class rpcs3(Runner):
     human_name = "rpcs3"
     description = "PlayStation 3 emulator"
     platforms = ['Sony PlayStation 3']
+    runnable_alone = True
     runner_executable = 'rpcs3/rpcs3'
     game_options = [
         {
