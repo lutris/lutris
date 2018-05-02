@@ -2,6 +2,7 @@
 import os
 import time
 import yaml
+import re
 import webbrowser
 
 from gi.repository import Gtk, Pango
@@ -180,6 +181,11 @@ class InstallerDialog(Gtk.Window):
     # "Choose installer" stage
     # ---------------------------
 
+    @staticmethod
+    def _escape_text(text):
+        """Used to escape some characters for display in Gtk labels"""
+        return re.sub('&(?!amp;)', '&amp;', text)
+
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.title_label.set_markup('<b>Select which version to install</b>')
@@ -213,7 +219,7 @@ class InstallerDialog(Gtk.Window):
             label.set_alignment(0, .5)
             label.set_margin_left(50)
             label.set_margin_right(50)
-            label.set_markup(text)
+            label.set_markup(self._escape_text(text))
             self.installer_choice_box.pack_start(label, True, True, padding)
             return label
 
@@ -236,10 +242,10 @@ class InstallerDialog(Gtk.Window):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(description)
+            "<i><b>{}</b></i>".format(self._escape_text(description))
         )
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self.scripts[script_index]['notes'])
+            "<i>{}</i>".format(self._escape_text(self.scripts[script_index]['notes']))
         )
         if btn.get_active():
             self.installer_choice = script_index
@@ -252,7 +258,7 @@ class InstallerDialog(Gtk.Window):
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
         self.interpreter = interpreter.ScriptInterpreter(script, self)
-        game_name = self.interpreter.game_name.replace('&', '&amp;')
+        game_name = self._escape_text(self.interpreter.game_name)
         self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
         self.select_install_folder()
 
