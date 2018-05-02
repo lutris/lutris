@@ -10,9 +10,17 @@ class rpcs3(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "file",
+            "type": "directory_chooser",
             "default_path": "game_path",
-            "label": "EBOOT.BIN"
+            "label": "Game folder"
+        }
+    ]
+
+    # RPCS3 currently uses an AppImage, no need for the runtime.
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': True,
         }
     ]
 
