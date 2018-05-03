@@ -89,8 +89,18 @@ def get_overrides_env(overrides):
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    wineexec('regedit', args="/S '%s'" % (filename), wine_path=wine_path, prefix=prefix,
-             arch=arch, blocking=True)
+    if arch == 'win64' and wine_path and os.path.exists(wine_path + '64'):
+        # Use wine64 by default if set to a 64bit prefix. Using regular wine
+        # will prevent some registry keys from being created. Most likely to be
+        # a bug in Wine. see: https://github.com/lutris/lutris/issues/804
+        wine_path = wine_path + '64'
+
+    wineexec('regedit',
+             args="/S '%s'" % filename,
+             wine_path=wine_path,
+             prefix=prefix,
+             arch=arch,
+             blocking=True)
 
 
 def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
