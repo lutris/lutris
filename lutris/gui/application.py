@@ -70,12 +70,15 @@ class Application(Gtk.Application):
             ErrorDialog("Your Linux distribution is too old, Lutris won't function properly")
 
     def add_arguments(self):
-        self.set_option_context_summary(
-            'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
-            'If several games share the same identifier you can use the '
-            'numerical ID (displayed when running lutris --list) and add lutris:rungameid/numerical-id.\n'
-            'To install a game, add lutris:install/game-identifier.'
-        )
+        if hasattr(self, 'set_option_context_summary'):
+            self.set_option_context_summary(
+                'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
+                'If several games share the same identifier you can use the '
+                'numerical ID (displayed when running lutris --list) and add lutris:rungameid/numerical-id.\n'
+                'To install a game, add lutris:install/game-identifier.'
+            )
+        else:
+            logger.warning("This version of Gtk doesn't support set_option_context_summary")
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
