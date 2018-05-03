@@ -1005,7 +1005,7 @@ class wine(Runner):
         launch_info['env'] = self.get_env(os_env=False)
 
         if self.runner_config.get('x360ce-path'):
-            self.setup_x360ce(self.runner_config['x360ce-path'])
+            self.setup_x360ce(os.path.expanduser(self.runner_config['x360ce-path']))
 
         command = [self.get_executable()]
 
