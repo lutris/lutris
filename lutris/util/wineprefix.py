@@ -1,10 +1,10 @@
 import os
-import time
 from lutris.util.wineregistry import WineRegistry
 from lutris.util.log import logger
 from lutris.util import joypad
 
 desktop_folders = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+
 
 class WinePrefixManager:
     """Class to allow modification of Wine prefixes without the use of Wine"""
@@ -86,15 +86,25 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
-                if not item in desktop_folders and os.path.islink(path):
+                if item not in desktop_folders and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 
     def set_crash_dialogs(self, enabled):
         """Enable or diable Wine crash dialogs"""
-        key = self.hkcu_prefix + "/Software/Wine/WineDbg"
-        value = 1 if enabled else 0
-        self.set_registry_key(key, "ShowCrashDialog", value)
+        self.set_registry_key(
+            self.hkcu_prefix + "/Software/Wine/WineDbg",
+            "ShowCrashDialog",
+            1 if enabled else 0
+        )
+
+    def use_xvid_mode(self, enabled):
+        """Set this to "Y" to allow wine switch the resolution using XVidMode extension."""
+        self.set_registry_key(
+            self.hkcu_prefix + "/Software/Wine/X11 Driver",
+            "UseXVidMode",
+            "Y" if enabled else "N"
+        )
 
     def configure_joypads(self):
         joypads = joypad.get_joypads()

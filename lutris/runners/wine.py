@@ -507,7 +507,8 @@ class wine(Runner):
         "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
         "Desktop": r"%s\Explorer" % reg_prefix,
         "WineDesktop": r"%s\Explorer\Desktops" % reg_prefix,
-        "ShowCrashDialog": r"%s\WineDbg" % reg_prefix
+        "ShowCrashDialog": r"%s\WineDbg" % reg_prefix,
+        "UseXVidMode": r"%s\X11 Driver" % reg_prefix
     }
 
     core_processes = (
@@ -701,6 +702,16 @@ class wine(Runner):
                 )
             },
             {
+                'option': 'UseXVidMode',
+                'label': 'Use XVidMode to switch resolutions',
+                'type': 'boolean',
+                'default': False,
+                'advanced': True,
+                'help': (
+                    'Set this to "Y" to allow wine switch the resolution using XVidMode extension.'
+                )
+            },
+            {
                 'option': 'Audio',
                 'label': 'Audio driver',
                 'type': 'choice',
@@ -891,22 +902,27 @@ class wine(Runner):
         prefix = self.prefix_path
         enable_wine_desktop = False
         prefix_manager = WinePrefixManager(prefix)
+        # Those options are directly changed with the prefix manager and skip
+        # any calls to regedit.
+        managed_keys = {
+            'ShowCrashDialog': prefix_manager.set_crash_dialogs,
+            'UseXVidMode': prefix_manager.use_xvid_mode
+        }
 
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or 'auto'
-            if not value or value == 'auto' and key != 'ShowCrashDialog':
+            if not value or value == 'auto' and key not in managed_keys.keys():
                 delete_registry_key(path, wine_path=self.get_executable(),
                                     prefix=prefix, arch=self.wine_arch)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
                     enable_wine_desktop = True
                     continue
-                elif key == 'ShowCrashDialog':
-                    prefix_manager.set_crash_dialogs(value)
+                elif key in managed_keys.keys():
+                    managed_keys[key](value)
                     continue
-                else:
-                    type = 'REG_SZ'
-                set_regedit(path, key, value, type=type,
+
+                set_regedit(path, key, value, type='REG_SZ',
                             wine_path=self.get_executable(), prefix=prefix,
                             arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)

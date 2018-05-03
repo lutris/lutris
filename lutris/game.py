@@ -198,16 +198,15 @@ class Game(object):
             display.get_outputs(),
             key=lambda e: e[0] == system_config.get('display')
         )
+
         gameplay_info = self.runner.play()
-
-        env = {}
-
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
 
+        env = {}
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
