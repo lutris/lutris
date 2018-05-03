@@ -54,7 +54,7 @@ class winesteam(wine.wine):
     platforms = ['Windows']
     runnable_alone = True
     depends_on = wine.wine
-    default_arch = 'win32'
+    default_arch = 'win64'
     game_options = [
         {
             'option': 'appid',
