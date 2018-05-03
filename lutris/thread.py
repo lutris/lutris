@@ -91,11 +91,8 @@ class LutrisThread(threading.Thread):
         """Attach child process that need to be killed on game exit."""
         self.attached_threads.append(thread)
 
-    def run(self):
-        """Run the thread."""
-        logger.debug("Command env: " + self.env_string)
-        logger.debug("Running command: " + self.command_string)
-
+    def apply_environment(self):
+        """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
         for key, value in self.env.items():
@@ -111,17 +108,29 @@ class LutrisThread(threading.Thread):
         # Copy the resulting environment to what will be passed to the process
         env = os.environ.copy()
         env.update(self.env)
+        return env
+
+    def run(self):
+        """Run the thread."""
+        logger.debug("Command env: " + self.env_string)
+        logger.debug("Running command: " + self.command_string)
 
         if self.terminal and system.find_executable(self.terminal):
             self.game_process = self.run_in_terminal()
         else:
             self.terminal = False
+            env = self.apply_environment()
             self.game_process = self.execute_process(self.command, env)
+
         if not self.game_process:
+            logger.warning("No game process available")
             return
+
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN | GLib.IO_HUP, self.on_stdout_output)
+            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout,
+                                                    GLib.IO_IN | GLib.IO_HUP,
+                                                    self.on_stdout_output)
         else:
             self.game_process.stdout.close()
 
