@@ -246,16 +246,15 @@ class Runner:
             return True
 
     def get_runner_info(self, version=None):
-        runner_api_url = 'https://lutris.net/api/runners/{}'.format(self.name)
+        runner_api_url = '{}/api/runners/{}'.format(settings.SITE_URL, self.name)
+        logger.info("Getting runner information for %s%s", self.name, '(version: %s)' % version if version else '')
         request = Request(runner_api_url)
         response = request.get()
         response_content = response.json
         if response_content:
             versions = response_content.get('versions') or []
-            if self.name == 'wine':
-                arch = 'i386'
-            else:
-                arch = self.arch
+            logger.debug("Got %s versions", len(versions))
+            arch = self.arch
             if version:
                 if version.endswith('-i386') or version.endswith('-x86_64'):
                     version, arch = version.rsplit('-', 1)
