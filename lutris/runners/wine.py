@@ -247,11 +247,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-    if (
-            not runtime.RUNTIME_DISABLED and
-            not disable_runtime and
-            not wine_config.system_config['disable_runtime']
-    ):
+
+    if use_lutris_runtime(force_disable=disable_runtime or
+                          wine_config.system_config['disable_runtime']):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -358,6 +356,24 @@ def set_drive_path(prefix, letter, path):
         os.remove(drive_path)
     logger.debug("Linking %s to %s", drive_path, path)
     os.symlink(path, drive_path)
+
+
+def use_lutris_runtime(force_disable=False):
+    """Returns whether to use the Lutris runtime.
+    The runtime can be forced to be disabled, otherwise it's disabled
+    automatically if Wine is installed system wide.
+    """
+    if force_disable or runtime.RUNTIME_DISABLED:
+        return False
+    return not is_installed_systemwide()
+
+
+def is_installed_systemwide():
+    """Return whether Wine is installed outside of Lutris"""
+    for build in WINE_PATHS.keys():
+        if system.find_executable(WINE_PATHS[build]):
+            return True
+    return False
 
 
 def get_wine_versions():
@@ -495,6 +511,13 @@ class wine(Runner):
             'help': ("The architecture of the Windows environment.\n"
                      "32-bit is recommended unless running "
                      "a 64-bit only game.")
+        }
+    ]
+
+    system_options_override = [
+        {
+            'option': 'disable_runtime',
+            'default': is_installed_systemwide(),
         }
     ]
 
