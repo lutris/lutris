@@ -704,7 +704,7 @@ class wine(Runner):
             {
                 'option': 'UseXVidMode',
                 'label': 'Use XVidMode to switch resolutions',
-                'type': 'boolean',
+                'type': 'bool',
                 'default': False,
                 'advanced': True,
                 'help': (
