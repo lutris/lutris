@@ -38,6 +38,7 @@ class steam(Runner):
     description = "Runs Steam for Linux games"
     human_name = "Steam"
     platforms = ['Linux']
+    runner_executable = 'steam'
     runnable_alone = True
     game_options = [
         {
@@ -178,7 +179,10 @@ class steam(Runner):
         if self.runner_config.get('lsi_steam') and system.find_executable('lsi-steam'):
             return system.find_executable('lsi-steam')
         else:
-            return system.find_executable('steam')
+            runner_executable = self.runner_config.get('runner_executable')
+            if runner_executable and os.path.isfile(runner_executable):
+                return runner_executable
+            return system.find_executable(self.runner_executable)
 
     @property
     def working_dir(self):
