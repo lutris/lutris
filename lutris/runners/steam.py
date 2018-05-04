@@ -92,19 +92,18 @@ class steam(Runner):
                      "Make sure you disabled Lutris Runtime and "
                      "have the required libraries installed.")
         },
-	{
-	    'option': 'lsi_steam',
-	    'label': "Start Steam with LSI",
-	    'type': 'bool',
-	    'default': False,
-	    'help': ("Launches steam with LSI patches enabled. "
-	             "Make sure Lutris Runtime is disabled and "
-	             "you have LSI installed. "
-	             "https://github.com/solus-project/linux-steam-integration")
-	},
+        {
+            'option': 'lsi_steam',
+            'label': "Start Steam with LSI",
+            'type': 'bool',
+            'default': False,
+            'help': ("Launches steam with LSI patches enabled. "
+                     "Make sure Lutris Runtime is disabled and "
+                     "you have LSI installed. "
+                     "https://github.com/solus-project/linux-steam-integration")
+        },
         {
             'option': 'run_without_steam',
-            'type': 'string',
             'label': 'Run without Steam (if possible)',
             'type': 'bool',
             'default': False,
@@ -184,7 +183,7 @@ class steam(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.runner_config['run_without_steam'] == True:
+        if self.runner_config['run_without_steam']:
             steamless_binary = self.game_config.get('steamless_binary')
             if (os.path.isfile(steamless_binary)):
                 return os.path.dirname(steamless_binary)
@@ -207,7 +206,10 @@ class steam(Runner):
     def get_env(self):
         env = super(steam, self).get_env()
 
-        if not self.runner_config.get('lsi_steam') and self.runner_config.get('steam_native_runtime'):
+        if(
+                not self.runner_config.get('lsi_steam') and
+                self.runner_config.get('steam_native_runtime')
+        ):
             env['STEAM_RUNTIME'] = '0'
 
         return env
@@ -298,9 +300,9 @@ class steam(Runner):
     def play(self):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
-        
+
         steamless_binary = self.game_config.get('steamless_binary')
-        if self.runner_config['run_without_steam'] == True and steamless_binary:
+        if self.runner_config['run_without_steam'] and steamless_binary:
             # Start without steam
             if not os.path.exists(steamless_binary):
                 return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
@@ -311,14 +313,14 @@ class steam(Runner):
                     command.append(arg)
         else:
             # Start through steam
-            
+
             # Get current steam pid to act as the root pid instead of lutris
             self.original_steampid = get_steam_pid()
             command = self.launch_args
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
-    
+
             if self.runner_config.get('start_in_big_picture') or not game_args:
                 command.append('steam://rungameid/%s' % self.appid)
             else:
