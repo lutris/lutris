@@ -280,7 +280,10 @@ class CommandsMixin(object):
             raise ScriptingError("Rename error, source path does not exist: %s"
                                  % src)
         if os.path.isdir(dst):
-            os.rmdir(dst)  # Remove if empty
+            try:
+                os.rmdir(dst)  # Remove if empty
+            except OSError:
+                pass
         if os.path.exists(dst):
             raise ScriptingError("Rename error, destination already exists: %s"
                                  % src)
