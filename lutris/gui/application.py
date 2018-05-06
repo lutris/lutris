@@ -74,7 +74,7 @@ class Application(Gtk.Application):
             self.set_option_context_summary(
                 'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
                 'If several games share the same identifier you can use the '
-                'numerical ID (displayed when running lutris --list) and add lutris:rungameid/numerical-id.\n'
+                'numerical ID (displayed when running lutris --list-games) and add lutris:rungameid/numerical-id.\n'
                 'To install a game, add lutris:install/game-identifier.'
             )
         else:
