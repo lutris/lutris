@@ -957,11 +957,6 @@ class wine(Runner):
 
     def get_env(self, os_env=True):
         env = super(wine, self).get_env(os_env)
-
-        if os_env:
-            env = os.environ.copy()
-        else:
-            env = {}
         env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
