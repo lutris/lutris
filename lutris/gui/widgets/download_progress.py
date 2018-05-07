@@ -1,6 +1,5 @@
-from gi.repository import Gtk, GObject, GLib, Pango
-
-from lutris.downloader import Downloader
+from gi.repository import GLib, GObject, Gtk, Pango
+from lutris.util.downloader import Downloader
 
 
 class DownloadProgressBox(Gtk.VBox):

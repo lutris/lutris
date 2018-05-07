@@ -1,13 +1,12 @@
 import os
 import time
-from gi.repository import GLib
 
-from lutris.downloader import Downloader
+from gi.repository import GLib
 from lutris.settings import RUNTIME_DIR, RUNTIME_URL
 from lutris.util import http, jobs, system
+from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
-
 
 RUNTIME_DISABLED = os.environ.get('LUTRIS_RUNTIME', '').lower() in ('0', 'off')
 
