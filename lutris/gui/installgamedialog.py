@@ -209,7 +209,7 @@ class InstallerDialog(Gtk.Window):
             if not radio_group:
                 radio_group = btn
 
-        def _create_label(padding, text):
+        def _create_label(text):
             label = Gtk.Label()
             label.set_max_width_chars(60)
             label.set_line_wrap(True)
@@ -218,15 +218,21 @@ class InstallerDialog(Gtk.Window):
             label.set_margin_left(50)
             label.set_margin_right(50)
             label.set_markup(self._escape_text(text))
-            self.installer_choice_box.pack_start(label, True, True, padding)
             return label
 
         self.description_label = _create_label(
-            10, "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
         )
+        self.installer_choice_box.pack_start(self.description_label, True, True, 10)
+
         self.notes_label = _create_label(
-            5, "<i>{}</i>".format(self.scripts[0]['notes'])
+            "<i>{}</i>".format(self.scripts[0]['notes'])
         )
+        notes_scrolled_area = Gtk.ScrolledWindow()
+        notes_scrolled_area.set_propagate_natural_height(True)
+        notes_scrolled_area.set_min_content_height(100)
+        notes_scrolled_area.add(self.notes_label)
+        self.installer_choice_box.pack_start(notes_scrolled_area, True, True, 10)
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
         self.installer_choice_box.show_all()
