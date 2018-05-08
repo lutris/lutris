@@ -33,19 +33,38 @@ def lookup_string_in_text(string, text):
             return line
 
 
+def parse_version(version):
+    """Parse a version string
+
+    Return a 3 element tuple containing:
+     - The version number as a list of integers
+     - The prefix (whatever characters before the version number)
+     - The suffix (whatever comes after)
+
+     Example::
+        >>> parse_version("3.6-staging")
+        ([3, 6], '', '-staging')
+
+    Returns:
+        tuple: (version number as list, prefix, suffix)
+    """
+    version_match = re.search(r'(\d[\d\.]+\d)', version)
+    if not version_match:
+        return ([], '', '')
+    version_number = version_match.groups()[0]
+    prefix = version[0:version_match.span()[0]]
+    suffix = version[version_match.span()[1]:]
+    return ([int(p) for p in version_number.split('.')], prefix, suffix)
+
+
 def version_sort(versions, reverse=False):
     def version_key(version):
-        version_match = re.search(r'(\d[\d\.]+\d)', version)
-        if not version_match:
-            return
-        version_number = version_match.groups()[0]
-        prefix = version[0:version_match.span()[0]]
-        suffix = version[version_match.span()[1]:]
-        version = [int(p) for p in version_number.split('.')]
-        version = version + [0] * (10 - len(version))
-        version.append(prefix)
-        version.append(suffix)
-        return version
+        version_list, prefix, suffix = parse_version(version)
+        # Normalize the length of sub-versions
+        sort_key = version_list + [0] * (10 - len(version_list))
+        sort_key.append(prefix)
+        sort_key.append(suffix)
+        return sort_key
     return sorted(versions, key=version_key, reverse=reverse)
 
 
