@@ -223,6 +223,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     executable = str(executable) if executable else ''
     if not wine_path:
         wine_path = wine().get_executable()
+    if not wine_path:
+        raise RuntimeError("Wine is not installed")
+
     if not working_dir:
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
@@ -232,10 +235,9 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         args = '{} "{}"'.format(_args[0], _args[1])
 
     # Create prefix if necessary
-    detected_arch = detect_prefix_arch(prefix)
     if arch not in ('win32', 'win64'):
-        arch = detected_arch or 'win32'
-    if not detected_arch:
+        arch = detect_arch(prefix, wine_path)
+    if not detect_prefix_arch(prefix):
         wine_bin = winetricks_wine if winetricks_wine else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch)
 
