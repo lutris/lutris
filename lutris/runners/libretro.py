@@ -14,6 +14,7 @@ LIBRETRO_CORES = [
     ('atari800 (Atari 800/5200)', 'atari800', 'Atari 800/5200'),
     ('blueMSX (MSX/MSX2/MSX+)', 'bluemsx', 'MSX/MSX2/MSX+'),
     ('Caprice32 (Amstrad CPC)', 'cap32', 'Amstrad CPC'),
+    ('ChaiLove', 'chailove', 'ChaiLove'),
     ('Citra (Nintendo 3DS)', 'citra', 'Nintendo 3DS'),
     ('Citra Canary (Nintendo 3DS)', 'citra_canary', 'Nintendo 3DS'),
     ('CrocoDS (Amstrad CPC)', 'crocods', 'Amstrad CPC'),
