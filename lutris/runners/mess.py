@@ -170,7 +170,7 @@ class mess(Runner):
                 ("Punch Tape 2", 'ptap2'),
                 ("Print Out", 'prin'),
                 ("Print Out", 'prin'),
-                
+
             ]
         }
     ]
@@ -182,6 +182,24 @@ class mess(Runner):
             'help': ("Choose the folder containing MESS bios files.\n"
                      "These files contain code from the original hardware "
                      "necessary to the emulation.")
+        },
+        {
+            'option': 'uimodekey',
+            'type': 'choice_with_entry',
+            'label': 'Menu mode key',
+            'choices': [
+                ('Scroll Lock', 'SCRLOCK'),
+                ('Num Lock', 'NUMLOCK'),
+                ('Caps Lock', 'CAPSLOCK'),
+                ('Menu', 'MENU'),
+                ('Right Control', 'RCONTROL'),
+                ('Left Control', 'LCONTROL'),
+                ('Right Alt', 'RALT'),
+                ('Left Alt', 'LALT'),
+                ('Right Super', 'RWIN'),
+                ('Left Super', 'LWIN'),
+            ],
+            'help': 'Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: Scroll Lock)'
         }
     ]
 
@@ -212,9 +230,11 @@ class mess(Runner):
         if rom and not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.game_config.get('device')
-        command = [self.get_executable(),
-                   '-uimodekey', 'RCONTROL',
-                   '-rompath', rompath, machine]
+        command = [self.get_executable()]
+        if self.runner_config.get('uimodekey'):
+            command += ['-uimodekey', self.runner['uimodekey']]
+
+        command += ['-rompath', rompath, machine]
         if device:
             command.append('-' + device)
         if rom:
