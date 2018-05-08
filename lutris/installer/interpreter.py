@@ -58,8 +58,6 @@ class ScriptInterpreter(CommandsMixin):
         self.target_path = None
         self.parent = parent
         self.reversion_data = {}
-        self.game_name = None
-        self.game_slug = None
         self.game_files = {}
         self.game_disc = None
         self.cancelled = False
@@ -76,7 +74,6 @@ class ScriptInterpreter(CommandsMixin):
         self.version = installer['version']
         self.slug = installer['slug']
         self.year = installer.get('year')
-        self.name = installer['name']
         self.runner = installer['runner']
         self.game_name = installer['name']
         self.game_slug = installer['game_slug']
@@ -150,7 +147,7 @@ class ScriptInterpreter(CommandsMixin):
             return False
 
         # Check that installers contains all required fields
-        for field in ('runner', 'name', 'game_slug'):
+        for field in ('runner', 'game_name', 'game_slug'):
             if not hasattr(self, field) or not getattr(self, field):
                 self.errors.append("Missing field '%s'" % field)
 
@@ -570,7 +567,7 @@ class ScriptInterpreter(CommandsMixin):
             }
 
         self.game_id = pga.add_or_update(
-            name=self.name,
+            name=self.game_name,
             runner=self.runner,
             slug=self.game_slug,
             directory=self.target_path,

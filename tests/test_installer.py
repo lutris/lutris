@@ -33,6 +33,7 @@ class TestScriptInterpreter(TestCase):
             'version': 'doom-gzdoom'
         }
         interpreter = ScriptInterpreter(installer, None)
+        self.assertEqual(interpreter.game_name, 'Doom')
         self.assertFalse(interpreter.errors)
         self.assertTrue(interpreter.is_valid())
 

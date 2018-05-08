@@ -258,8 +258,9 @@ class InstallerDialog(Gtk.Window):
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
         self.interpreter = interpreter.ScriptInterpreter(script, self)
-        game_name = self._escape_text(self.interpreter.game_name)
-        self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
+        self.title_label.set_markup(u"<b>Installing {}</b>".format(
+            self._escape_text(self.interpreter.game_name)
+        ))
         self.select_install_folder()
 
     # --------------------------
