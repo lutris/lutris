@@ -68,7 +68,9 @@ class LutrisThread(threading.Thread):
         self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
-        self.monitored_processes = defaultdict(list)  # Keep a copy of the monitored processes to allow comparisons
+
+        # Keep a copy of the monitored processes to allow comparisons
+        self.monitored_processes = defaultdict(list)
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -299,46 +301,50 @@ class LutrisThread(threading.Thread):
             return False
 
         if not self.ready_state:
+            # Don't monitor processes until the thread is in a ready state
             self.cycles_without_children = 0
             return True
 
         processes, num_children, num_watched_children, terminated_children = self.get_processes()
+        if num_watched_children > 0 and not self.monitoring_started:
+            logger.debug("Start process monitoring")
+            self.monitoring_started = True
 
         for key in processes:
             if processes[key] != self.monitored_processes[key]:
                 self.monitored_processes[key] = processes[key]
                 logger.debug("Processes {}: {}".format(key, ', '.join(processes[key]) or 'none'))
 
-        if num_watched_children > 0 and not self.monitoring_started:
-            logger.debug("Start process monitoring")
-            self.monitoring_started = True
-
         if self.runner and hasattr(self.runner, 'watch_game_process'):
             if not self.runner.watch_game_process():
                 self.is_running = False
                 return False
+
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
-                logger.debug("Cycles without children: %s", self.cycles_without_children)
+                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
+                if cycles_left:
+                    if cycles_left < 4:
+                        logger.debug("Thread aborting in %d cycle", cycles_left)
+                else:
+                    logger.warning("Thread aborting now")
         else:
             self.cycles_without_children = 0
         max_cycles_reached = (self.cycles_without_children >=
                               MAX_CYCLES_WITHOUT_CHILDREN)
 
         if num_children == 0 or max_cycles_reached:
-            if max_cycles_reached:
-                logger.debug('Maximum number of cycles without children reached')
             self.is_running = False
             self.stop()
             if num_children == 0:
                 logger.debug("No children left in thread")
                 self.game_process.communicate()
             else:
-                logger.debug('Some processes are still active (%d)', num_children)
+                logger.debug('%d processes are still active', num_children)
                 if self.is_zombie():
-                    logger.debug('Killing game process')
+                    logger.warning('Zombie process detected, killing game process')
                     self.game_process.kill()
             self.return_code = self.game_process.returncode
             if self.stdout_monitor:
