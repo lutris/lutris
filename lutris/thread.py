@@ -304,12 +304,10 @@ class LutrisThread(threading.Thread):
 
         processes, num_children, num_watched_children, terminated_children = self.get_processes()
 
-        if processes != self.monitored_processes:
-            self.monitored_processes = processes
-            logger.debug("Processes: " + " | ".join([
-                "{}: {}".format(key, ', '.join(processes[key]))
-                for key in processes if processes[key]
-            ]))
+        for key in processes:
+            if processes[key] != self.monitored_processes[key]:
+                self.monitored_processes[key] = processes[key]
+                logger.debug("Processes {}: {}".format(key, ', '.join(processes[key]) or 'none'))
 
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
