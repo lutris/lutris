@@ -42,10 +42,9 @@ class InstallerDialog(Gtk.Window):
         self.log_textview = None
 
         # Dialog properties
-        self.set_size_request(600, 480)
+        self.set_size_request(420, 420)
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
-        self.set_resizable(False)
 
         self.vbox = Gtk.VBox()
         self.add(self.vbox)
