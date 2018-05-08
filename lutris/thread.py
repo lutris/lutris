@@ -290,7 +290,6 @@ class LutrisThread(threading.Thread):
             if child not in processes['monitored']:
                 num_children += 1
                 num_watched_children += 1
-                terminated_children += 1
         return processes, num_children, num_watched_children, terminated_children
 
     def watch_children(self):
