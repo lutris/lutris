@@ -103,9 +103,8 @@ class LutrisThread(threading.Thread):
             os.environ[key] = value
 
         # Reset library paths if they were not provided
-        for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
-            if key not in self.env and os.environ.get(key):
-                del os.environ[key]
+        if not any([key in self.env for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD')]):
+            system.reset_library_preloads()
 
         # Copy the resulting environment to what will be passed to the process
         env = os.environ.copy()
