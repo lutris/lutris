@@ -60,14 +60,16 @@ def unpack_dependencies(string):
     """
     if not string:
         return []
-    dependencies = string.split(',')
-    dependencies = [dep.strip() for dep in dependencies if dep.strip()]
+    dependencies = [dep.strip() for dep in string.split(',') if dep.strip()]
     for index, dependency in enumerate(dependencies):
         if '|' in dependency:
-            choices = tuple([choice.strip()
-                             for choice in dependencies[index].split('|')
-                             if choice.strip()])
-            dependencies[index] = choices
-
-    dependencies = [dep for dep in dependencies if dep]
-    return dependencies
+            dependencies[index] = tuple([
+                option.strip()
+                for option in dependency.split('|')
+                if option.strip()
+            ])
+    return [
+        dependency
+        for dependency in dependencies
+        if dependency
+    ]
