@@ -13,6 +13,7 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
+from lutris.util.dxvk import DXVKManager
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -545,6 +546,7 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
+        self.dll_overrides = {}
         self.context_menu_entries = [
             ('wineexec', "Run EXE inside wine prefix", self.run_wineexec),
             ('winecfg', "Wine configuration", self.run_winecfg),
@@ -590,6 +592,12 @@ class wine(Runner):
                 'type': 'file',
                 'help': ('The Wine executable to be used if you have '
                          'selected "Custom" as the Wine version.')
+            },
+            {
+                'option': 'dxvk',
+                'label': 'Enable DXVK',
+                'type': 'bool',
+                'help': 'Use DXVK to translate DirectX 11 calls to Vulkan'
             },
             {
                 'option': 'x360ce-path',
@@ -946,6 +954,17 @@ class wine(Runner):
                             arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
 
+    def toggle_dxvk(self, enable_dxvk):
+        dxvk_manager = DXVKManager(self.prefix_path, arch=self.wine_arch)
+        if enable_dxvk:
+            if not dxvk_manager.is_available():
+                dxvk_manager.download()
+            dxvk_manager.enable()
+            for dll in dxvk_manager.dxvk_dlls:
+                self.dll_overrides[dll] = 'n'
+        else:
+            dxvk_manager.disable()
+
     def prelaunch(self):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
@@ -953,7 +972,15 @@ class wine(Runner):
         prefix_manager.configure_joypads()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
+        self.setup_x360ce(self.runner_config.get('x360ce-path'))
+        self.toggle_dxvk(bool(self.runner_config.get('dxvk')))
         return True
+
+    def get_dll_overrides(self):
+        overrides = self.runner_config.get('overrides') or {}
+
+        overrides.update(self.dll_overrides)
+        return overrides
 
     def get_env(self, os_env=True):
         env = super(wine, self).get_env(os_env)
@@ -963,16 +990,9 @@ class wine(Runner):
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
-        overrides = self.runner_config.get('overrides') or {}
-        if self.runner_config.get('x360ce-path'):
-            overrides['xinput1_3'] = 'native'
-            if self.runner_config.get('x360ce-xinput9'):
-                overrides['xinput9_1_0'] = 'native'
-            if self.runner_config.get('x360ce-dinput'):
-                overrides['dinput8'] = 'native'
+        overrides = self.get_dll_overrides()
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
-
         return env
 
     def get_pids(self, wine_path=None):
@@ -991,6 +1011,9 @@ class wine(Runner):
         return pids
 
     def setup_x360ce(self, x360ce_path):
+        if not x360ce_path:
+            return
+        x360ce_path = os.path.expanduser(x360ce_path)
         if not os.path.isdir(x360ce_path):
             logger.error("%s is not a valid path for x360ce", x360ce_path)
             return
@@ -1017,6 +1040,13 @@ class wine(Runner):
             x360ce_config.populate_controllers()
             x360ce_config.write(os.path.join(x360ce_path, 'x360ce.ini'))
 
+        # X360 DLL handling
+        self.dll_overrides['xinput1_3'] = 'native'
+        if self.runner_config.get('x360ce-xinput9'):
+            self.dll_overrides['xinput9_1_0'] = 'native'
+        if self.runner_config.get('x360ce-dinput'):
+            self.dll_overrides['dinput8'] = 'native'
+
     def sandbox(self, wine_prefix):
         sandbox = self.runner_config.get('sandbox', True)
 
@@ -1033,9 +1063,6 @@ class wine(Runner):
 
         launch_info = {}
         launch_info['env'] = self.get_env(os_env=False)
-
-        if self.runner_config.get('x360ce-path'):
-            self.setup_x360ce(os.path.expanduser(self.runner_config['x360ce-path']))
 
         command = [self.get_executable()]
 
