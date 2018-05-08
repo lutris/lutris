@@ -111,6 +111,18 @@ Example (setting some environment variables):
         __GL_THREADED_OPTIMIZATIONS: '1'
         mesa_glthread: 'true'
 
+Requiring additional binaries
+-----------------------------
+
+If the game or the installer needs some system binaries to run, you can specify
+them in the `require-binaries` directive. The value is a comma-separated list
+of required binaries (acting as AND), if one of several binaries are able to 
+run the program, you can add them as a ``|`` separated list (acting as OR).
+
+Example::
+    # This requires cmake to be installed and either ggc or clang
+    require-binaries: cmake, gcc | clang
+
 Mods and add-ons
 ----------------
 
@@ -118,9 +130,10 @@ Mods and add-ons require that a base game is already installed on the system.
 You can let the installer know that you want to install an add-on by specifying
 the ``requires`` directive. The value of ``requires`` must be the canonical
 slug name of the base game, not one of its aliases. For example, to install the
-add-on "The reckoning" for Quake 2, you should add:
+add-on "The reckoning" for Quake 2, you should add: ``requires: quake-2``
 
-``requires: quake-2``
+You can also add complex requirements following the same syntax as the
+``require-binaries`` directive described above.
 
 
 Writing the installation script

@@ -12,7 +12,7 @@ from lutris import pga
 from lutris import settings
 from lutris.game import Game
 from lutris.util import system
-from lutris.util import strings
+from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
@@ -89,6 +89,7 @@ class ScriptInterpreter(CommandsMixin):
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
 
+        self._check_binary_dependencies()
         self._check_dependency()
         if self.creates_game_folder:
             self.target_path = self.get_default_target()
@@ -172,6 +173,29 @@ class ScriptInterpreter(CommandsMixin):
         if bool(game) and bool(game['directory']):
             return game
 
+    def _check_binary_dependencies(self):
+        """Check if all required binaries are installed on the system.
+
+        This reads a `require-binaries` entry in the script, parsed the same way as
+        the `requires` entry.
+        """
+        binary_dependencies = unpack_dependencies(self.script.get('require-binaries'))
+        for dependency in binary_dependencies:
+            if isinstance(dependency, tuple):
+                installed_binaries = {
+                    dependency_option: bool(system.find_executable(dependency_option))
+                    for dependency_option in dependency
+                }
+                if not any(installed_binaries.values()):
+                    raise ScriptingError(
+                        "This installer requires %s on your system" % ' or '.join(dependency)
+                    )
+            else:
+                if not system.find_executable(dependency):
+                    raise ScriptingError(
+                        "This installer requires %s on your system" % ' or '.join(dependency)
+                    )
+
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
         game is installed.
@@ -182,7 +206,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.extends:
             dependencies = [self.extends]
         else:
-            dependencies = strings.unpack_dependencies(self.requires)
+            dependencies = unpack_dependencies(self.requires)
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
@@ -599,7 +623,7 @@ class ScriptInterpreter(CommandsMixin):
         if 'game' in self.script:
             config['game'].update(self.script['game'])
             config['game'] = self._substitute_config(config['game'])
-            
+
             # steamless_binary64 can be used to specify 64 bit non-steam binaries
             is_64bit = platform.machine() == "x86_64"
             if is_64bit and 'steamless_binary64' in config['game']:
