@@ -300,7 +300,7 @@ class Game(object):
         env.update(game_env)
 
         ld_preload = gameplay_info.get('ld_preload')
-        if (ld_preload):
+        if ld_preload:
             env["LD_PRELOAD"] = ld_preload
 
         game_ld_libary_path = gameplay_info.get('ld_library_path')

@@ -119,9 +119,7 @@ class InstallerDialog(Gtk.Window):
     def get_scripts(self):
         if system.path_exists(self.installer_file):
             # local script
-            logger.debug("Opening script: %s", self.installer_file)
-            scripts = yaml.safe_load(open(self.installer_file, 'r').read())
-            self.on_scripts_obtained(scripts)
+            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
         else:
             jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
                            self.game_slug, self.revision)
@@ -199,6 +197,7 @@ class InstallerDialog(Gtk.Window):
                 script[item] = script.get(item) or ''
             for item in ['runner', 'version']:
                 if item not in script:
+                    logger.error("Invalid script: %s", script)
                     raise ScriptingError('Missing field "%s" in install script' % item)
 
             runner = script['runner']

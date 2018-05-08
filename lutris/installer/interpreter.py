@@ -50,6 +50,17 @@ def fetch_script(game_slug, revision=None):
         return response
 
 
+def read_script(filename):
+    """Return scripts from a local file"""
+    logger.debug("Loading script(s) from %s", filename)
+    scripts = yaml.safe_load(open(filename, 'r').read())
+    if isinstance(scripts, list):
+        return scripts
+    if 'results' in scripts:
+        return scripts['results']
+    return scripts
+
+
 class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
     def __init__(self, installer, parent):
