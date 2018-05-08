@@ -34,8 +34,6 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
     Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
-    logger.debug("Setting wine registry key : %s\\%s to %s",
-                 path, key, value)
     reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
     formatted_value = {
         'REG_SZ': '"%s"' % value,
@@ -859,13 +857,10 @@ class wine(Runner):
         if fallback:
             # Fallback to default version
             default_version = get_default_version()
-            logger.warning("No wine version %s found, falling back to %s",
-                           version, default_version)
             wine_path = self.get_path_for_version(default_version)
             if wine_path:
                 # Update the version in the config
                 if version == self.runner_config.get('version'):
-                    # logger.info("Setting the version to %s", default_version)
                     self.runner_config['version'] = default_version
                     # TODO: runner_config is a dict so we have to instanciate a
                     # LutrisConfig object to save it.
@@ -878,7 +873,6 @@ class wine(Runner):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        logger.info("Min version %s", min_version)
         if not version:
             wine_versions = get_wine_versions()
             if min_version:
