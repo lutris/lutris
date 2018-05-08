@@ -75,7 +75,7 @@ class ScriptInterpreter(CommandsMixin):
         self.slug = installer['slug']
         self.year = installer.get('year')
         self.runner = installer['runner']
-        self.game_name = installer['name']
+        self.game_name = self.script.get('custom-name') or installer['name']
         self.game_slug = installer['game_slug']
         self.steamid = installer.get('steamid')
 

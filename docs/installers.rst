@@ -57,6 +57,17 @@ Example: ``main_file: game.rom``
 For web games, specify the game's URL (or filename) with ``main_file``.
 Example: ``main_file: http://www...``
 
+Customizing the game's name
+---------------------------
+
+Use the ``custom-name`` directive to override the name of the game. Use this
+only if the installer provides a significantly different game from the base
+one.
+(Note: In a future update, custom names will be added as game aliases so they
+can be searchable)
+
+Example: ``custom-name: Quake Champions: Doom Edition``
+
 Presetting game parameters
 --------------------------
 
