@@ -121,7 +121,9 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
 
     if not wine_path:
         wine_path = wine().get_executable()
-
+    if not wine_path:
+        logger.error("Wine not found, can't create prefix")
+        return
     wineboot_path = os.path.join(os.path.dirname(wine_path), 'wineboot')
     if not system.path_exists(wineboot_path):
         logger.error("No wineboot executable found in %s, "
