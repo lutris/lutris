@@ -299,21 +299,21 @@ class winesteam(wine.wine):
             dialog.run()
             on_steam_downloaded()
 
-    def is_wine_installed(self, version=None, fallback=True):
-        return super(winesteam, self).is_installed(version=version, fallback=fallback)
+    def is_wine_installed(self, version=None, fallback=True, min_version=None):
+        return super(winesteam, self).is_installed(version=version, fallback=fallback, min_version=min_version)
 
-    def is_installed(self, version=None, fallback=True):
+    def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        wine_installed = self.is_wine_installed(version, fallback)
+        wine_installed = self.is_wine_installed(version, fallback, min_version=min_version)
         if not wine_installed:
             logger.warning('wine is not installed')
             return False
         steam_path = self.get_steam_path()
-        if not steam_path or not os.path.exists(self.get_default_prefix()):
+        if not os.path.exists(self.get_default_prefix()):
             return False
-        return os.path.exists(steam_path)
+        return system.path_exists(steam_path)
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""

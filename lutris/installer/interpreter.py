@@ -400,6 +400,7 @@ class ScriptInterpreter(CommandsMixin):
             if self.runner == 'libretro':
                 params['core'] = self.script['game']['core']
             if self.runner.startswith('wine'):
+                params['min_version'] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:
                     params['version'] = version

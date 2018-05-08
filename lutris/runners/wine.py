@@ -10,7 +10,7 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.util import datapath, display, system
 from lutris.util.log import logger
-from lutris.util.strings import version_sort
+from lutris.util.strings import version_sort, parse_version
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
 from lutris.util.dxvk import DXVKManager
@@ -19,6 +19,7 @@ from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
 WINE_PATHS = {
     'winehq-devel': '/opt/wine-devel/bin/wine',
     'winehq-staging': '/opt/wine-staging/bin/wine',
@@ -873,17 +874,22 @@ class wine(Runner):
                     # which one to get the correct LutrisConfig object.
             return wine_path
 
-    def is_installed(self, version=None, fallback=True):
+    def is_installed(self, version=None, fallback=True, min_version=None):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
+        logger.info("Min version %s", min_version)
         if not version:
-            return len(get_wine_versions()) > 0
-        executable = self.get_executable(version, fallback)
-        if executable:
-            return os.path.exists(executable)
-        else:
-            return False
+            wine_versions = get_wine_versions()
+            if min_version:
+                min_version_list, _, _ = parse_version(min_version)
+                for version in wine_versions:
+                    version_list, _, _ = parse_version(version)
+                    if version_list > min_version_list:
+                        return True
+                logger.warning("Wine %s or higher not found", min_version)
+            return bool(wine_versions)
+        return system.path_exists(self.get_executable(version, fallback))
 
     @classmethod
     def msi_exec(cls, msi_file, quiet=False, prefix=None, wine_path=None,
