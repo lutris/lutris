@@ -28,7 +28,19 @@ from lutris.util.log import logger
     COL_LASTPLAYED,
     COL_LASTPLAYED_TEXT,
     COL_INSTALLED,
-) = list(range(11))
+    COL_INSTALLED_AT,
+    COL_INSTALLED_AT_TEXT
+) = list(range(13))
+
+COLUMN_NAMES = {
+    COL_NAME: 'name',
+    COL_YEAR: 'year',
+    COL_RUNNER_HUMAN_NAME: 'runner',
+    COL_PLATFORM: 'platform',
+    COL_LASTPLAYED_TEXT: 'lastplayed',
+    COL_INSTALLED_AT_TEXT: 'installed_at'
+}
+
 
 class GameStore(GObject.Object):
     __gsignals__ = {
@@ -45,7 +57,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.runner_names = {}
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -135,9 +147,13 @@ class GameStore(GObject.Object):
                 game_inst.set_platform_from_runner()
                 platform = game_inst.platform
 
-        lastplayed = ''
+        lastplayed_text = ''
         if game['lastplayed']:
-            lastplayed = time.strftime("%c", time.localtime(game['lastplayed']))
+            lastplayed_text = time.strftime("%c", time.localtime(game['lastplayed']))
+
+        installed_at_text = ''
+        if game['installed_at']:
+            installed_at_text = time.strftime("%c", time.localtime(game['installed_at']))
 
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
@@ -151,8 +167,10 @@ class GameStore(GObject.Object):
             runner_human_name,
             platform,
             game['lastplayed'],
-            lastplayed,
-            game['installed']
+            lastplayed_text,
+            game['installed'],
+            game['installed_at'],
+            installed_at_text
         ))
 
     def set_icon_type(self, icon_type):
@@ -307,36 +325,14 @@ class GameListView(Gtk.TreeView, GameView):
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
-        column = self.set_column(name_cell, "Name", COL_NAME)
-        width = settings.read_setting('name_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 200)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Year", COL_YEAR)
-        width = settings.read_setting('year_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 60)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME)
-        width = settings.read_setting('runner_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
-        width = settings.read_setting('platform_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT)
+        self.set_column(name_cell, "Name", COL_NAME, 200)
+        self.set_column(default_text_cell, "Year", COL_YEAR, 60)
+        self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
+        self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
+        self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120)
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        width = settings.read_setting('lastplayed_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
+        self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
+        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -350,12 +346,16 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id):
+    def set_column(self, cell, header, column_id, default_width):
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id)
         column.set_resizable(True)
         column.set_reorderable(True)
+        width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
+        column.set_fixed_width(int(width) if width else default_width)
+        self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
         return column
 
     def set_sort_with_column(self, col, sort_col):
