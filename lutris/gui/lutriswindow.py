@@ -389,8 +389,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
-        resources.fetch_icons([game['slug'] for game in self.game_list],
-                              callback=self.on_image_downloaded)
+        try:
+            resources.fetch_icons([game['slug'] for game in self.game_list],
+                                  callback=self.on_image_downloaded)
+        except TypeError as ex:
+            logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
         for child_widget in self.status_box.get_children():
