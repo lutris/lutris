@@ -61,6 +61,11 @@ def get_resolutions():
     return resolution_list
 
 
+def get_unique_resolutions():
+    """Return available resolutions, without duplicates and ordered with highest resolution first"""
+    return sorted(set(get_resolutions()), key=lambda x: int(x.split('x')[0]), reverse=True)
+
+
 def get_current_resolution(monitor=0):
     """Return the current resolution for the desktop."""
     resolution = list()
