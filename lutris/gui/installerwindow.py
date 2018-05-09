@@ -530,10 +530,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         logger.debug("Destroying %s", self.__repr__())
         if self.interpreter:
             self.interpreter.cleanup()
-        if self.parent:
-            self.destroy()
-        else:
-            Gtk.main_quit()
+        self.destroy()
 
     def create_shortcuts(self, *args):
         """Create desktop and global menu shortcuts."""
