@@ -38,7 +38,8 @@ class fsuae(Runner):
             'help': ("The main floppy disk file with the game data. \n"
                      "FS-UAE supports floppy images in multiple file formats: "
                      "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
-                     "and ADFs in zip files are a also supported.")
+                     "and ADFs in zip files are a also supported.\n"
+                     "Files ending in .hdf will be mounted as hard drives.")
         },
         {
             "option": "disks",
@@ -108,21 +109,30 @@ class fsuae(Runner):
         for disk in game_disks:
             if disk not in disks:
                 disks.append(disk)
+        # Make all paths absolute
+        disks = [
+            disk
+            if os.path.isabs(disk)
+            else os.path.join(self.game_path, disk)
+            for disk in disks
+        ]
+        drives = []
+        floppy_images = []
+        for drive, disk_path in enumerate(disks):
+            disk_param = self.get_disk_param(disk_path)
+            drives.append("--%s_%d=%s" % (disk_param, drive, disk_path))
+            if disk_param == 'floppy_drive':
+                floppy_images.append("--floppy_image_%d=%s" % (drive, disk_path))
+        return drives + floppy_images
+
+    def get_disk_param(self, disk_path):
         amiga_model = self.runner_config.get('model')
         if amiga_model in ('CD32', 'CDTV'):
-            disk_param = 'cdrom_drive'
+            return 'cdrom_drive'
+        elif disk_path.lower().endswith('.hdf'):
+            return 'hard_drive'
         else:
-            disk_param = 'floppy_drive'
-        floppy_drives = []
-        floppy_images = []
-        for drive, disk in enumerate(disks):
-            if not os.path.isabs(disk):
-                disk_path = os.path.join(self.game_path, disk)
-            else:
-                disk_path = disk
-            floppy_drives.append("--%s_%d=%s" % (disk_param, drive, disk_path))
-            floppy_images.append("--floppy_image_%d=%s" % (drive, disk_path))
-        return floppy_drives + floppy_images
+            return 'floppy_drive'
 
     def get_params(self):
         params = []
