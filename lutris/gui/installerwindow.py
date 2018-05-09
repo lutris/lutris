@@ -22,13 +22,13 @@ from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
 
-class InstallerWindow(Gtk.Window):
+class InstallerWindow(Gtk.ApplicationWindow):
     """GUI for the install process."""
     game_dir = None
     download_progress = None
 
-    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
-        Gtk.Window.__init__(self)
+    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None, application=None):
+        Gtk.ApplicationWindow.__init__(self, application=application)
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
@@ -526,6 +526,8 @@ class InstallerWindow(Gtk.Window):
         self.destroy()
 
     def on_destroy(self, widget):
+        """destroy event handler"""
+        logger.debug("Destroying %s", self.__repr__())
         if self.interpreter:
             self.interpreter.cleanup()
         if self.parent:

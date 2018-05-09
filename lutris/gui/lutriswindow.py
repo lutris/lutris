@@ -57,6 +57,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     status_box = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
+        self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
@@ -543,7 +544,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game_slug = self.running_game.slug
             logger.warning("%s is not available", game_slug)
             self.running_game = None
-            InstallerWindow(game_slug=game_slug, parent=self)
+            InstallerWindow(game_slug=game_slug,
+                            parent=self,
+                            application=self.application)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
@@ -568,7 +571,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return InstallerWindow(game_slug=game_slug,
                                installer_file=installer_file,
                                revision=revision,
-                               parent=self)
+                               parent=self,
+                               application=self.application)
 
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
