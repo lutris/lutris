@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import yaml
 import re
 import webbrowser
 
@@ -23,7 +22,7 @@ from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
 
-class InstallerDialog(Gtk.Window):
+class InstallerWindow(Gtk.Window):
     """GUI for the install process."""
     game_dir = None
     download_progress = None

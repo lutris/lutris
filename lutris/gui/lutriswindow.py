@@ -30,7 +30,7 @@ from lutris.gui.logwindow import LogWindow
 from lutris.gui.sync import SyncServiceDialog
 from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.installgamedialog import InstallerDialog
+from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
@@ -541,8 +541,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.running_game.play()
         else:
             game_slug = self.running_game.slug
+            logger.warning("%s is not available", game_slug)
             self.running_game = None
-            InstallerDialog(game_slug=game_slug, parent=self)
+            InstallerWindow(game_slug=game_slug, parent=self)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
@@ -553,11 +554,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_install_clicked(self, *args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""
-
-        installer_desc = game_slug if game_slug else installer_file
-        if revision:
-            installer_desc += " (%s)" % revision
-        logger.info("Installing %s" % installer_desc)
+        logger.info("Installing %s%s",
+                    game_slug if game_slug else installer_file,
+                    " (%s)" % revision if revision else '')
 
         if not game_slug and not installer_file:
             # Install the currently selected game in the UI
@@ -566,10 +565,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game_slug = game.get('slug')
         if not game_slug and not installer_file:
             return
-        InstallerDialog(game_slug=game_slug,
-                        installer_file=installer_file,
-                        revision=revision,
-                        parent=self)
+        return InstallerWindow(game_slug=game_slug,
+                               installer_file=installer_file,
+                               revision=revision,
+                               parent=self)
 
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
