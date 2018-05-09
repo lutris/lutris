@@ -2,6 +2,7 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+import time
 from itertools import chain
 
 from lutris.util.strings import slugify
@@ -83,6 +84,7 @@ def migrate_games():
         {'name': 'updated', 'type': 'DATETIME'},
         {'name': 'lastplayed', 'type': 'INTEGER'},
         {'name': 'installed', 'type': 'INTEGER'},
+        {'name': 'installed_at', 'type': 'INTEGER'},
         {'name': 'year', 'type': 'INTEGER'},
         {'name': 'steamid', 'type': 'INTEGER'},
         {'name': 'configpath', 'type': 'TEXT'},
@@ -214,6 +216,7 @@ def get_game_by_field(value, field='slug'):
 def add_game(name, **game_data):
     """Add a game to the PGA database."""
     game_data['name'] = name
+    game_data['installed_at'] = int(time.time())
     if 'slug' not in game_data:
         game_data['slug'] = slugify(name)
     return sql.db_insert(PGA_DB, "games", game_data)
