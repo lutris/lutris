@@ -1,3 +1,21 @@
+lutris (0.4.15) bionic; urgency=medium
+
+  * Add RPCS3 runner
+  * Prevent Lutris from killing Steam if it's downloading a game
+  * Add option to run DRM free Steam games without opening Steam
+  * Add `custom-name` directive for install scripts
+  * Set default Wine architecture to 64bit
+  * Add support for DXVK in Wine games
+  * Prioritize libraries in /usr/lib over the Lutris runtime
+  * Disable Lutris runtime on Wine games if Wine is installed globally
+  * Download recent wine version if the system installed one is too old
+  * Record installation date of games
+  * Add option for menu mode key in MESS
+  * Support hard disk images for FS-UAE
+  * Various UI fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 11 May 2018 14:05:48 -0700
+
 lutris (0.4.14) artful; urgency=medium
 
   * Add option to include and exclude processes from monitoring in installers
