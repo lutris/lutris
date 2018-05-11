@@ -130,7 +130,7 @@ def get_paths():
     paths = []
 
     if not RUNTIME_DISABLED:
-        paths += [
+        runtime_paths = [
             "lib32",
             "steam/i386/lib/i386-linux-gnu",
             "steam/i386/lib",
@@ -138,16 +138,21 @@ def get_paths():
             "steam/i386/usr/lib"
         ]
 
-    if system.is_64bit and not RUNTIME_DISABLED:
-        paths += [
-            "lib64",
-            "steam/amd64/lib/x86_64-linux-gnu",
-            "steam/amd64/lib",
-            "steam/amd64/usr/lib/x86_64-linux-gnu",
-            "steam/amd64/usr/lib"
-        ]
+        if system.is_64bit:
+            runtime_paths += [
+                "lib64",
+                "steam/amd64/lib/x86_64-linux-gnu",
+                "steam/amd64/lib",
+                "steam/amd64/usr/lib/x86_64-linux-gnu",
+                "steam/amd64/usr/lib"
+            ]
 
-    paths = [os.path.join(RUNTIME_DIR, path) for path in paths]
+        # Put /usr/lib at the beginning, this prioritizes system libraries over
+        # the Lutris and Steam runtimes.
+        paths = ["/usr/lib"]
+
+        # Then resolve absolute paths for the runtime
+        paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
 
     if os.environ.get('LD_LIBRARY_PATH'):
         paths.append(os.environ['LD_LIBRARY_PATH'])
