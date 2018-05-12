@@ -1,3 +1,13 @@
+lutris (0.4.16) bionic; urgency=high
+
+  * Fix crash preventing running or configuring wine games
+  * Fix Steam being shut down regardless of the associated option's setting
+  * Fix some external library folders not being detected
+  * Fix crash on InstallerWindow for GTK < 3.22
+  * Remove Ctrl+Q shortcut
+
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 11 May 2018 22:59:26 -0700
+
 lutris (0.4.15) bionic; urgency=medium
 
   * Add RPCS3 runner
