@@ -229,13 +229,19 @@ class LutrisThread(threading.Thread):
         for thread in self.attached_threads:
             logger.debug("Stopping thread %s", thread)
             thread.stop()
+
         if hasattr(self, 'stop_func'):
-            self.stop_func()
+            resume_stop = self.stop_func()
+            if not resume_stop:
+                return False
+
         self.restore_environment()
         self.is_running = False
+        self.ready_state = False
 
         if killall:
             self.killall()
+        return True
 
     def killall(self):
         """Kill every remaining child process"""
@@ -335,7 +341,12 @@ class LutrisThread(threading.Thread):
 
         if num_children == 0 or max_cycles_reached:
             self.is_running = False
-            self.stop()
+
+            resume_stop = self.stop()
+            if not resume_stop:
+                logger.info("Full shutdown prevented")
+                return False
+
             if num_children == 0:
                 logger.debug("No children left in thread")
                 self.game_process.communicate()

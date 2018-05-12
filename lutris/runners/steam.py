@@ -360,6 +360,8 @@ class steam(Runner):
         if self.runner_config.get('quit_steam_on_exit') \
            and not self.original_steampid:
             shutdown()
+            return True
+        return False
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():

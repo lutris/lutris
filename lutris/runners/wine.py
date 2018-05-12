@@ -1087,6 +1087,7 @@ class wine(Runner):
                  wine_path=self.get_executable(),
                  env=self.get_env(),
                  initial_pids=self.get_pids())
+        return True
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

@@ -470,7 +470,6 @@ class winesteam(wine.wine):
         return True
 
     def shutdown(self):
-        """Shutdown Steam in a clean way."""
         logger.debug("Stopping all winesteam processes")
         super(winesteam, self).stop()
 
@@ -481,6 +480,8 @@ class winesteam(wine.wine):
         if self.killall_on_exit():
             logger.debug("Game configured to stop Steam on exit")
             self.shutdown()
+            return True
+        return False
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
