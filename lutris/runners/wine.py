@@ -525,16 +525,16 @@ class wine(Runner):
         }
     ]
 
-    reg_prefix = "HKEY_CURRENT_USER\Software\Wine"
+    reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
-        "RenderTargetLockMode": r"%s\Direct3D" % reg_prefix,
-        "MouseWarpOverride": r"%s\DirectInput" % reg_prefix,
-        "OffscreenRenderingMode": r"%s\Direct3D" % reg_prefix,
-        "StrictDrawOrdering": r"%s\Direct3D" % reg_prefix,
-        "Desktop": r"%s\Explorer" % reg_prefix,
-        "WineDesktop": r"%s\Explorer\Desktops" % reg_prefix,
-        "ShowCrashDialog": r"%s\WineDbg" % reg_prefix,
-        "UseXVidMode": r"%s\X11 Driver" % reg_prefix
+        "RenderTargetLockMode": r"%s/Direct3D" % reg_prefix,
+        "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
+        "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
+        "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
+        "Desktop": r"%s/Explorer" % reg_prefix,
+        "WineDesktop": r"%s/Explorer/Desktops" % reg_prefix,
+        "ShowCrashDialog": r"%s/WineDbg" % reg_prefix,
+        "UseXVidMode": r"%s/X11 Driver" % reg_prefix
     }
 
     core_processes = (
@@ -914,18 +914,14 @@ class wine(Runner):
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
     def set_wine_desktop(self, enable_desktop=False):
+        prefix = self.prefix_path
+        prefix_manager = WinePrefixManager(prefix)
         path = self.reg_keys['Desktop']
 
         if enable_desktop:
-            set_regedit(path, 'Desktop', 'WineDesktop',
-                        wine_path=self.get_executable(),
-                        prefix=self.prefix_path,
-                        arch=self.wine_arch)
+            prefix_manager.set_registry_key(path, 'Desktop', 'WineDesktop')
         else:
-            delete_registry_key(path,
-                                wine_path=self.get_executable(),
-                                prefix=self.prefix_path,
-                                arch=self.wine_arch)
+            prefix_manager.clear_registry_key(path)
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
@@ -942,8 +938,7 @@ class wine(Runner):
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or 'auto'
             if not value or value == 'auto' and key not in managed_keys.keys():
-                delete_registry_key(path, wine_path=self.get_executable(),
-                                    prefix=prefix, arch=self.wine_arch)
+                prefix_manager.clear_registry_key(path)
             elif key in self.runner_config:
                 if key == 'Desktop' and value is True:
                     enable_wine_desktop = True
@@ -954,10 +949,8 @@ class wine(Runner):
                         value = None
                     managed_keys[key](value)
                     continue
+                prefix_manager.set_registry_key(path, key, value)
 
-                set_regedit(path, key, value, type='REG_SZ',
-                            wine_path=self.get_executable(), prefix=prefix,
-                            arch=self.wine_arch)
         self.set_wine_desktop(enable_wine_desktop)
 
     def toggle_dxvk(self, enable_dxvk):

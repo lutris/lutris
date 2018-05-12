@@ -216,11 +216,11 @@ class WineRegistryKey(object):
             self.add_meta(line)
         elif line.startswith('"'):
             try:
-                key, value = re.split(re.compile(r"(?<![^\\]\\\")="), line, maxsplit=1)
+                key, value = re.split(re.compile(r"(?<![^\\]\\\")\"="), line, maxsplit=1)
             except ValueError as ex:
                 logger.error("Unable to parse line %s", line)
                 raise
-            key = key[1:-1]
+            key = key[1:]
             self.subkeys[key] = value
         elif line.startswith('@'):
             k, v = line.split('=', 1)
