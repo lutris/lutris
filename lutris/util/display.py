@@ -77,7 +77,9 @@ def get_resolutions():
     resolution_list = []
     for line in get_vidmodes():
         if line.startswith("  "):
-            resolution_list.append(line.split()[0])
+            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            if resolution_match:
+                resolution_list.append(resolution_match.groups()[0])
     return resolution_list
 
 
@@ -91,7 +93,9 @@ def get_current_resolution(monitor=0):
     resolution = list()
     for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
-            resolution.append(line.split()[0])
+            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            if resolution_match:
+                resolution.append(resolution_match.groups()[0])
     if monitor == 'all':
         return resolution
     else:
