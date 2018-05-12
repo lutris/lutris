@@ -1,8 +1,28 @@
+import re
+import time
 import subprocess
 
 from lutris.util.log import logger
 
+XRANDR_CACHE = None
+XRANDR_CACHE_SET_AT = None
 
+
+def cached(function):
+    def wrapper():
+        global XRANDR_CACHE
+        global XRANDR_CACHE_SET_AT
+
+        if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
+            logger.debug("returning cache! %s", XRANDR_CACHE)
+            return XRANDR_CACHE
+        XRANDR_CACHE = function()
+        XRANDR_CACHE_SET_AT = time.time()
+        return XRANDR_CACHE
+    return wrapper
+
+
+@cached
 def get_vidmodes():
     xrandr_output = subprocess.Popen(["xrandr"],
                                      stdout=subprocess.PIPE).communicate()[0]
