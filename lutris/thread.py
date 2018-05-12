@@ -342,6 +342,12 @@ class LutrisThread(threading.Thread):
         if num_children == 0 or max_cycles_reached:
             self.is_running = False
 
+            # Remove logger early to avoid issues with zombie processes
+            # (unconfirmed)
+            if self.stdout_monitor:
+                logger.debug("Detaching logger")
+                GLib.source_remove(self.stdout_monitor)
+
             resume_stop = self.stop()
             if not resume_stop:
                 logger.info("Full shutdown prevented")
@@ -356,8 +362,6 @@ class LutrisThread(threading.Thread):
                     logger.warning('Zombie process detected, killing game process')
                     self.game_process.kill()
             self.return_code = self.game_process.returncode
-            if self.stdout_monitor:
-                GLib.source_remove(self.stdout_monitor)
             return False
 
         if terminated_children and terminated_children == num_watched_children:
