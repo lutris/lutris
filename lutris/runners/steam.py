@@ -165,15 +165,19 @@ class steam(Runner):
     def steam_data_dir(self):
         """Return dir where Steam files lie."""
         candidates = (
-            "~/.local/share/steam/SteamApps",
-            "~/.steam/steam/SteamApps",
-            "~/.steam/SteamApps",
+            "~/.steam",
+            "~/.local/share/steam",
+            "~/.steam/steam",
         )
         for candidate in candidates:
-            path = os.path.expanduser(candidate)
-            path = system.fix_path_case(path)
+            path = system.fix_path_case(
+                os.path.join(
+                    os.path.expanduser(candidate),
+                    "SteamApps"
+                )
+            )
             if path:
-                return path.rstrip('sSteamAp')
+                return path[:-len("SteamApps")]
 
     def get_executable(self):
         if self.runner_config.get('lsi_steam') and system.find_executable('lsi-steam'):
