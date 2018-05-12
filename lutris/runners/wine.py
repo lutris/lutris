@@ -949,6 +949,9 @@ class wine(Runner):
                     enable_wine_desktop = True
                     continue
                 elif key in managed_keys.keys():
+                    # Do not pass fallback 'auto' value to managed keys
+                    if value == 'auto':
+                        value = None
                     managed_keys[key](value)
                     continue
 
