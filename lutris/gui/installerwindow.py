@@ -228,7 +228,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
             "<i>{}</i>".format(self.scripts[0]['notes'])
         )
         notes_scrolled_area = Gtk.ScrolledWindow()
-        notes_scrolled_area.set_propagate_natural_height(True)
+        try:
+            notes_scrolled_area.set_propagate_natural_height(True)
+        except AttributeError:
+            logger.warning("Your version of GTK is OLD")
         notes_scrolled_area.set_min_content_height(100)
         notes_scrolled_area.add(self.notes_label)
         self.installer_choice_box.pack_start(notes_scrolled_area, True, True, 10)
