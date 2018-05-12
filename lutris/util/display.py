@@ -14,7 +14,6 @@ def cached(function):
         global XRANDR_CACHE_SET_AT
 
         if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
-            logger.debug("returning cache! %s", XRANDR_CACHE)
             return XRANDR_CACHE
         XRANDR_CACHE = function()
         XRANDR_CACHE_SET_AT = time.time()
