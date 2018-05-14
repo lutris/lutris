@@ -108,5 +108,5 @@ class TestWineRegistryKey(TestCase):
         key.parse('"A"=val')
         self.assertEqual(key.subkeys["A"], 'val')
 
-        key.parse('"String with \\"quotes\\""=val')
-        self.assertEqual(key.subkeys['String with \\"quotes\\"'], 'val')
+        key.parse('"String with \"quotes\""=val')
+        self.assertEqual(key.subkeys['String with \"quotes\"'], 'val')
