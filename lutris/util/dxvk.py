@@ -14,7 +14,7 @@ class DXVKManager:
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_dir = os.path.join(RUNTIME_DIR, 'dxvk')
     dxvk_dlls = ('dxgi', 'd3d11')
-    latest_version = "0.50"
+    latest_version = "0.51"
 
     def __init__(self, prefix, arch='win64', version=None):
         self.prefix = prefix
