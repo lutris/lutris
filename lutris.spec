@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.4.14
+Version:        0.4.16
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -21,11 +21,13 @@ BuildArch:      noarch
 BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 
-%if 0%{?fedora_version}
+%if 0%{?fedora}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
+Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
+Recommends:     wine
 %endif
-%if 0%{?rhel_version} || 0%{?centos_version}
+%if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
@@ -38,7 +40,13 @@ BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
-%if 0%{?fedora_version} || 0%{?suse_version}
+
+# Add Gdk dependency for Tumbleweed (package unavailable for other releases)
+%if 0%{?suse_version} > 1500
+Requires: python3-gobject-Gdk
+%endif
+
+%if 0%{?fedora} || 0%{?suse_version}
 BuildRequires: fdupes
 %endif
 
@@ -62,7 +70,7 @@ on Linux.
 
 %install
 %py3_install
-%if 0%{?fedora_version} || 0%{?suse_version}
+%if 0%{?fedora} || 0%{?suse_version}
 %fdupes %{buildroot}%{python3_sitelib}
 %endif
 
@@ -71,9 +79,9 @@ on Linux.
 %suse_update_desktop_file -r -i %{appid} Network FileTransfer
 %endif
 
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}.desktop
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
+%if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{name}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %endif
 
 %if 0%{?suse_version} >= 1140

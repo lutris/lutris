@@ -1,25 +1,26 @@
-# Czech Lutris translation.
-# Copyright (C) 2018
-# This file is distributed under the same license as the lutris package.
-# Daniel Rusek <mail@asciiwolf.com>, 2018.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-11-09 21:49+0100\n"
-"PO-Revision-Date: 2018-04-19 23:38+0200\n"
-"Language-Team: Czech <LL@li.org>\n"
-"Language: cs\n"
+"PO-Revision-Date: 2018-02-04 15:05+0100\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "X-Generator: Poedit 2.0.6\n"
+"Last-Translator: Marcin Mikołajczak <me@m4sk.in>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: pl\n"
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
-msgstr "O Lutris"
+msgstr "O Lutrisie"
 
 #: ../data/ui/AboutDialog.ui.h:2
 msgid "© 2010, 2012 Mathieu Comandon"
@@ -27,7 +28,7 @@ msgstr "© 2010, 2012 Mathieu Comandon"
 
 #: ../data/ui/AboutDialog.ui.h:3
 msgid "Open Source Gaming Platform"
-msgstr "Otevřená herní platforma"
+msgstr "Otwartoźródłowa platforma dla graczy"
 
 #: ../data/ui/AboutDialog.ui.h:4
 msgid "http://lutris.net"
@@ -55,35 +56,35 @@ msgstr "Lutris"
 
 #: ../data/ui/LutrisWindow3.ui.h:2
 msgid "_File"
-msgstr "_Soubor"
+msgstr "_Plik"
 
 #: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
 msgid "_Edit"
-msgstr "_Upravit"
+msgstr "_Edycja"
 
 #: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
 msgid "_View"
-msgstr "_Zobrazit"
+msgstr "_Widok"
 
 #: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
 msgid "_Help"
-msgstr "_Nápověda"
+msgstr "Pomo_c"
 
 #: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
 msgid "Add game"
-msgstr "Přidat hru"
+msgstr "Dodaj grę"
 
 #: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
 msgid "Play"
-msgstr "Hrát"
+msgstr "Zagraj"
 
 #: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
 msgid "Stop"
-msgstr "Stop"
+msgstr "Zatrzymaj"
 
 #: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
 msgid "Remove"
-msgstr "Odstranit"
+msgstr "Usuń"
 
 #: ../data/ui/LutrisWindow.ui.h:2
 msgid "_Lutris"
@@ -91,23 +92,23 @@ msgstr "_Lutris"
 
 #: ../data/ui/LutrisWindow.ui.h:3
 msgid "Connect"
-msgstr "Připojit"
+msgstr "Połącz"
 
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr "Instalovat a nastavit spouštěče"
+msgstr "Zainstaluj i skonfiguruj program uruchamiający"
 
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
-msgstr "Spravovat spouštěče"
+msgstr "Zarządzaj programami uruchamiającymi"
 
 #: ../data/ui/LutrisWindow.ui.h:6
 msgid "Import"
-msgstr "Importovat"
+msgstr "Importuj"
 
 #: ../data/ui/LutrisWindow.ui.h:7
 msgid "Import games from ScummVM"
-msgstr "Importovat hry ze ScummVM"
+msgstr "Importuj gry z ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:8
 msgid "ScummVM"
@@ -115,7 +116,7 @@ msgstr "ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:10
 msgid "configure the default options"
-msgstr "nastavit výchozí hodnoty"
+msgstr "konfiguruj domyślne opcje"
 
 #: ../data/ui/LutrisWindow.ui.h:12
 msgid "Icons"
@@ -123,35 +124,35 @@ msgstr "Ikony"
 
 #: ../data/ui/LutrisWindow.ui.h:13
 msgid "List"
-msgstr "Seznam"
+msgstr "Lista"
 
 #: ../data/ui/LutrisWindow.ui.h:14
 msgid "_Game"
-msgstr "_Hra"
+msgstr "_Gra"
 
 #: ../data/ui/LutrisWindow.ui.h:15
 msgid "Start"
-msgstr "Start"
+msgstr "Rozpocznij"
 
 #: ../data/ui/LutrisWindow.ui.h:17
 msgid "Play game"
-msgstr "Hrát hru"
+msgstr "Zagraj w grę"
 
 #: ../data/ui/LutrisWindow.ui.h:19
 msgid "Stop game"
-msgstr "Zastavit hru"
+msgstr "Zatrzymaj grę"
 
 #: ../data/ui/LutrisWindow.ui.h:22
 msgid "Add Game"
-msgstr "Přidat hru"
+msgstr "Dodaj grę"
 
 #: ../data/ui/LutrisWindow.ui.h:23
 msgid "Remove game from library"
-msgstr "Odstranit hru z knihovny"
+msgstr "Usuń grę z biblioteki"
 
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
-msgstr "Filtrovat seznam her"
+msgstr "Filtruj listę gier"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:1
 msgid ""
@@ -171,12 +172,12 @@ msgstr ""
 
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr ""
+msgstr "Prawa autorskie (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
-msgstr ""
+msgstr "gtk-cancel"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:2
 msgid "gtk-ok"
-msgstr ""
+msgstr "gtk-ok"

@@ -7,6 +7,7 @@ import string
 import subprocess
 import sys
 import traceback
+from gi.repository import Gtk, Gdk
 
 from lutris.util.log import logger
 
@@ -18,6 +19,7 @@ TERMINAL_CANDIDATES = [
     'xfce4-terminal',
     'pantheon-terminal',
     'terminator',
+    'mate-terminal',
     'urxvt',
     'cool-retro-term',
     'Eterm',
@@ -33,6 +35,7 @@ TERMINAL_CANDIDATES = [
     'termite',
     'tilix',
     'wterm',
+    'kitty',
     'yuakuake',
 ]
 
@@ -175,13 +178,33 @@ def python_identifier(string):
     return re.sub(r'(\${)([\w-]*)(})', dashrepl, string)
 
 
-def substitute(fileid, files):
-    fileid = python_identifier(str(fileid))
-    files = dict((k.replace('-', '_'), v) for k, v in list(files.items()))
-    template = string.Template(fileid)
-    if fileid in list(files.keys()):
-        return files[fileid]
-    return template.safe_substitute(files)
+def substitute(string_template, variables):
+    """Expand variables on a string template
+
+    Args:
+        string_template (str): template string_template with variables preceded by $
+        variables (dict): mapping of variable identifier > value
+
+    Return:
+        str: String with substituted values
+    """
+    string_template = python_identifier(str(string_template))
+    identifiers = variables.keys()
+
+    # We support dashes in identifiers but they are not valid in python
+    # identifers, which is a requirement for the templating engine we use
+    # Replace the dashes with underscores in the mapping and template
+    variables = dict((k.replace('-', '_'), v) for k, v in variables.items())
+    for identifier in identifiers:
+        string_template = string_template.replace(
+            '${}'.format(identifier),
+            '${}'.format(identifier.replace('-', '_'))
+        )
+
+    template = string.Template(string_template)
+    if string_template in list(variables.keys()):
+        return variables[string_template]
+    return template.safe_substitute(variables)
 
 
 def merge_folders(source, destination):
@@ -339,3 +362,15 @@ def path_is_empty(path):
 
 def stacktrace():
     traceback.print_stack()
+
+
+def reset_library_preloads():
+    for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
+        if os.environ.get(key):
+            del os.environ[key]
+
+
+def open_uri(uri):
+    """Opens a local or remote URI with the default application"""
+    reset_library_preloads()
+    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)

@@ -54,7 +54,7 @@ class winesteam(wine.wine):
     platforms = ['Windows']
     runnable_alone = True
     depends_on = wine.wine
-    default_arch = 'win32'
+    default_arch = 'win64'
     game_options = [
         {
             'option': 'appid',
@@ -98,16 +98,21 @@ class winesteam(wine.wine):
             'label': 'Do not launch game, only open Steam',
             'help': ("Opens Steam with the current settings without running the game, "
                      "useful if a game has several launch options.")
-        }
-
+        },
+        {
+            'option': 'steamless_binary',
+            'type': 'file',
+            'label': 'Steamless binary',
+            'advanced': True,
+            'help': ("Steamless binary for running the game directly")
+        },
     ]
 
     def __init__(self, config=None):
         super(winesteam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Wine Steam)"
         self.no_game_remove_warning = True
-        self.runner_options.insert(
-            0,
+        winesteam_options = [
             {
                 'option': 'steam_path',
                 'type': 'directory_chooser',
@@ -117,9 +122,6 @@ class winesteam(wine.wine):
                          "installation into ~/.wine or will install it in "
                          "its own custom Wine prefix.")
             },
-        )
-        self.runner_options.insert(
-            1,
             {
                 'option': 'quit_steam_on_exit',
                 'label': "Stop Steam after game exits",
@@ -127,9 +129,14 @@ class winesteam(wine.wine):
                 'default': True,
                 'help': ("Shut down Steam after the game has quit.")
             },
-        )
-        self.runner_options.insert(
-            2,
+            {
+                'option': 'run_without_steam',
+                'label': 'Run without Steam (if possible)',
+                'type': 'bool',
+                'default': False,
+                'help': ("If a steamless binary is available launches the game "
+                         "directly instead of launching it through Steam")
+            },
             {
                 'option': 'args',
                 'type': 'string',
@@ -138,7 +145,25 @@ class winesteam(wine.wine):
                 'help': ("Extra command line arguments used when "
                          "launching Steam")
             },
-        )
+            {
+                'option': 'default_win32_prefix',
+                'type': 'directory_chooser',
+                'label': 'Default Wine prefix (32bit)',
+                'default': os.path.join(settings.RUNNER_DIR, 'winesteam/prefix'),
+                'help': "Default prefix location for Steam (32 bit)",
+                'advanced': True
+            },
+            {
+                'option': 'default_win64_prefix',
+                'type': 'directory_chooser',
+                'label': 'Default Wine prefix (64bit)',
+                'default': os.path.join(settings.RUNNER_DIR, 'winesteam/prefix64'),
+                'help': "Default prefix location for Steam (64 bit)",
+                'advanced': True
+            },
+        ]
+        for option in reversed(winesteam_options):
+            self.runner_options.insert(0, option)
 
     def __repr__(self):
         return "Winesteam runner (%s)" % self.config
@@ -149,11 +174,9 @@ class winesteam(wine.wine):
 
     @property
     def prefix_path(self):
-        _prefix = \
-            self.game_config.get('prefix') or \
-            self.get_or_create_default_prefix(
-                arch=self.game_config.get('arch')
-            )
+        _prefix = self.game_config.get('prefix') or self.get_or_create_default_prefix(
+            arch=self.game_config.get('arch')
+        )
         return os.path.expanduser(_prefix)
 
     @property
@@ -174,6 +197,10 @@ class winesteam(wine.wine):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        if self.runner_config['run_without_steam']:
+            steamless_binary = self.game_config.get('steamless_binary')
+            if (os.path.isfile(steamless_binary)):
+                return os.path.dirname(steamless_binary)
         return os.path.expanduser("~/")
 
     @property
@@ -220,11 +247,15 @@ class winesteam(wine.wine):
         """Return Steam exe's path"""
         custom_path = self.runner_config.get('steam_path') or ''
         if custom_path:
-            custom_path = os.path.join(custom_path, 'Steam.exe')
+            custom_path = os.path.expanduser(os.path.join(custom_path, 'Steam.exe'))
             if os.path.exists(custom_path):
                 return custom_path
 
-        candidates = [self.get_default_prefix(), os.path.expanduser("~/.wine")]
+        candidates = [
+            self.get_default_prefix(arch='win32'),
+            self.get_default_prefix(arch='win64'),
+            os.path.expanduser("~/.wine")
+        ]
         for prefix in candidates:
             # Try the default install path
             steam_path = os.path.join(prefix,
@@ -268,21 +299,21 @@ class winesteam(wine.wine):
             dialog.run()
             on_steam_downloaded()
 
-    def is_wine_installed(self, version=None, fallback=True):
-        return super(winesteam, self).is_installed(version=version, fallback=fallback)
+    def is_wine_installed(self, version=None, fallback=True, min_version=None):
+        return super(winesteam, self).is_installed(version=version, fallback=fallback, min_version=min_version)
 
-    def is_installed(self, version=None, fallback=True):
+    def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the steam executable is on the
            harddrive.
         """
-        wine_installed = self.is_wine_installed(version, fallback)
+        wine_installed = self.is_wine_installed(version, fallback, min_version=min_version)
         if not wine_installed:
             logger.warning('wine is not installed')
             return False
         steam_path = self.get_steam_path()
-        if not steam_path or not os.path.exists(self.get_default_prefix()):
+        if not os.path.exists(self.get_default_prefix()):
             return False
-        return os.path.exists(steam_path)
+        return system.path_exists(steam_path)
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
@@ -339,16 +370,11 @@ class winesteam(wine.wine):
 
     def get_default_prefix(self, arch=None):
         """Return the default prefix' path."""
-        if not arch:
-            arch = self.default_arch
-        path = 'winesteam/prefix'
-        if arch == 'win64':
-            path += '64'
-        return os.path.join(settings.RUNNER_DIR, path)
+        return self.runner_config['default_%s_prefix' % (arch or self.default_arch)]
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
-        if not arch:
+        if not arch or arch == 'auto':
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
         if not os.path.exists(prefix):
@@ -388,29 +414,46 @@ class winesteam(wine.wine):
         return True
 
     def get_run_data(self):
-        return {'command': self.launch_args, 'env': self.get_env(full=False)}
+        return {'command': self.launch_args, 'env': self.get_env(os_env=False)}
 
     def play(self):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
 
         launch_info = {}
-        launch_info['env'] = self.get_env(full=False)
+        launch_info['env'] = self.get_env(os_env=False)
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
 
-        command = self.launch_args
-        if self.game_config.get('nolaunch'):
-            command.append('steam://open/games/details')
-        elif not game_args:
-            command.append('steam://rungameid/%s' % self.appid)
-        else:
-            command.append('-applaunch')
-            command.append(self.appid)
+        steamless_binary = self.game_config.get('steamless_binary')
+        if self.runner_config['run_without_steam'] and steamless_binary:
+            # Start without steam
+            if not os.path.exists(steamless_binary):
+                return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
+            command = [self.get_executable()]
+            runner_args = self.runner_config.get('args') or ''
+            if runner_args:
+                for arg in shlex.split(runner_args):
+                    command.append(arg)
+            command.append(steamless_binary)
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
+
+        else:
+            # Start through steam
+            command = self.launch_args
+            if self.game_config.get('nolaunch'):
+                command.append('steam://open/games/details')
+            elif not game_args:
+                command.append('steam://rungameid/%s' % self.appid)
+            else:
+                command.append('-applaunch')
+                command.append(self.appid)
+                if game_args:
+                    for arg in shlex.split(game_args):
+                        command.append(arg)
         launch_info['command'] = command
         return launch_info
 
@@ -427,7 +470,6 @@ class winesteam(wine.wine):
         return True
 
     def shutdown(self):
-        """Shutdown Steam in a clean way."""
         logger.debug("Stopping all winesteam processes")
         super(winesteam, self).stop()
 
@@ -438,6 +480,8 @@ class winesteam(wine.wine):
         if self.killall_on_exit():
             logger.debug("Game configured to stop Steam on exit")
             self.shutdown()
+            return True
+        return False
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
@@ -446,7 +490,7 @@ class winesteam(wine.wine):
                 return False
         appid = appid if appid else self.appid
 
-        env = self.get_env(full=False)
+        env = self.get_env(os_env=False)
         command = self.launch_args + ['steam://uninstall/%s' % appid]
         self.prelaunch()
         thread = LutrisThread(command, runner=self, env=env, watch=False)

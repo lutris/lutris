@@ -1,3 +1,4 @@
+"""Commands for installer scripts"""
 import multiprocessing
 import os
 import stat
@@ -19,29 +20,50 @@ from lutris.runners import wine, import_task
 from lutris.thread import LutrisThread
 
 
-class CommandsMixin(object):
+class CommandsMixin:
     """The directives for the `installer:` part of the install script."""
 
     def __init__(self):
-        raise RuntimeError("Don't instanciate this class, it's a mixin!!!!!!!!!!!!!!!!")
+        if isinstance(self, CommandsMixin):
+            raise RuntimeError("This class is a mixin")
 
     def _get_runner_version(self):
-        if self.script.get('wine'):
-            return wine.support_legacy_version(self.script['wine'].get('version'))
+        if self.runner in ('wine', 'winesteam'):
+            if self.script.get(self.runner):
+                wine_version = self.script[self.runner].get('version')
+                logger.debug("Install script uses Wine %s", wine_version)
+                return wine.support_legacy_version(wine_version)
         if self.runner == 'libretro':
             return self.script['game']['core']
+        return None
 
-    def _check_required_params(self, params, command_data, command_name):
+    @staticmethod
+    def _check_required_params(params, command_data, command_name):
         """Verify presence of a list of parameters required by a command."""
-        if type(params) is str:
+        if isinstance(params, str):
             params = [params]
         for param in params:
-            if param not in command_data:
-                raise ScriptingError('The "%s" parameter is mandatory for '
-                                     'the %s command' % (param, command_name),
-                                     command_data)
+            if isinstance(param, tuple):
+                param_present = False
+                for key in param:
+                    if key in command_data:
+                        param_present = True
+                if not param_present:
+                    raise ScriptingError(
+                        'One of %s parameter is mandatory for the %s command' %
+                        (' or '.join(param), command_name),
+                        command_data
+                    )
+            else:
+                if param not in command_data:
+                    raise ScriptingError(
+                        'The %s parameter is mandatory for the %s command' %
+                        (param, command_name),
+                        command_data
+                    )
 
     def check_md5(self, data):
+        """Checks compare the MD5 checksum of `file` and compare it to `value`"""
         self._check_required_params(['file', 'value'], data, 'check_md5')
         filename = self._substitute(data['file'])
         hash_string = self._killable_process(system.get_md5_hash, filename)
@@ -51,9 +73,10 @@ class CommandsMixin(object):
         self._iter_commands()
 
     def chmodx(self, filename):
+        """Make filename executable"""
         filename = self._substitute(filename)
-        st = os.stat(filename)
-        os.chmod(filename, st.st_mode | stat.S_IEXEC)
+        file_stats = os.stat(filename)
+        os.chmod(filename, file_stats.st_mode | stat.S_IEXEC)
 
     def execute(self, data):
         """Run an executable file."""
@@ -62,13 +85,13 @@ class CommandsMixin(object):
         working_dir = None
         env = {}
         if isinstance(data, dict):
-            if 'command' not in data and 'file' not in data:
-                raise ScriptingError('Parameter file or command is mandatory '
-                                     'for the execute command', data)
-            elif 'command' in data and 'file' in data:
-                raise ScriptingError('Parameters file and command can\'t be '
-                                     'used at the same time for the execute '
-                                     'command', data)
+            self._check_required_params(('file', 'command'), data, 'execute')
+            if 'command' in data and 'file' in data:
+                raise ScriptingError(
+                    'Parameters file and command can\'t be used '
+                    'at the same time for the execute command',
+                    data
+                )
             file_ref = data.get('file', '')
             command = data.get('command', '')
             args_string = data.get('args', '')
@@ -78,10 +101,10 @@ class CommandsMixin(object):
             working_dir = data.get('working_dir')
             if not data.get('disable_runtime', False):
                 env.update(runtime.get_env())
-            userenv = data.get('env', {})
+            userenv = data.get('env') or {}
             for key in userenv:
-                v = userenv[key]
-                userenv[key] = self._get_file(v) or self._substitute(v)
+                env_value = userenv[key]
+                userenv[key] = self._get_file(env_value)
             env.update(userenv)
             include_processes = shlex.split(data.get('include_processes', ''))
             exclude_processes = shlex.split(data.get('exclude_processes', ''))
@@ -90,22 +113,24 @@ class CommandsMixin(object):
             include_processes = []
             exclude_processes = []
         else:
-            raise ScriptingError('No parameters supplied to execute command.', data)
+            raise ScriptingError(
+                'No parameters supplied to execute command.',
+                data
+            )
 
         if command:
-            command = command.strip()
-            command = self._get_file(command) or self._substitute(command)
             file_ref = 'bash'
-            args = ['-c', command]
+            args = ['-c', self._get_file(command.strip())]
             include_processes.append('bash')
         else:
             # Determine whether 'file' value is a file id or a path
-            file_ref = self._get_file(file_ref) or self._substitute(file_ref)
+            file_ref = self._get_file(file_ref)
 
         exec_path = system.find_executable(file_ref)
         if not exec_path:
             raise ScriptingError("Unable to find executable %s" % file_ref)
         if not os.access(exec_path, os.X_OK):
+            logger.warning("Making %s executable", exec_path)
             self.chmodx(exec_path)
 
         if terminal:
@@ -115,8 +140,11 @@ class CommandsMixin(object):
             working_dir = self.target_path
 
         command = [exec_path] + args
-        logger.debug("Executing %s" % command)
-        thread = LutrisThread(command, env=env, term=terminal, cwd=working_dir,
+        logger.debug("Executing %s", command)
+        thread = LutrisThread(command,
+                              env=env,
+                              term=terminal,
+                              cwd=working_dir,
                               include_processes=include_processes,
                               exclude_processes=exclude_processes)
         thread.start()
@@ -126,10 +154,9 @@ class CommandsMixin(object):
 
     def extract(self, data):
         """Extract a file, guessing the compression method."""
-        self._check_required_params('file', data, 'extract')
-        filename = self._get_file(data['file'])
-        if not filename:
-            filename = self._substitute(data['file'])
+        self._check_required_params([('file', 'src')], data, 'extract')
+        src_param = data.get('file') or data.get('src')
+        filename = self._get_file(src_param)
 
         if not os.path.exists(filename):
             raise ScriptingError("%s does not exists" % filename)
@@ -159,7 +186,7 @@ class CommandsMixin(object):
                       has_entry, self._on_input_menu_validated)
         return 'STOP'
 
-    def _on_input_menu_validated(self, widget, *args):
+    def _on_input_menu_validated(self, _widget, *args):
         alias = args[0]
         menu = args[1]
         choosen_option = menu.get_active_id()
@@ -170,6 +197,7 @@ class CommandsMixin(object):
             self._iter_commands()
 
     def insert_disc(self, data):
+        """Request user to insert an optical disc"""
         self._check_required_params('requires', data, 'insert_disc')
         requires = data.get('requires')
         message = data.get(
@@ -188,7 +216,7 @@ class CommandsMixin(object):
                       self._find_matching_disc, requires)
         return 'STOP'
 
-    def _find_matching_disc(self, widget, requires, extra_path=None):
+    def _find_matching_disc(self, _widget, requires, extra_path=None):
         if extra_path:
             drives = [extra_path]
         else:
@@ -197,24 +225,26 @@ class CommandsMixin(object):
             required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
             if required_abspath:
-                logger.debug("Found %s on cdrom %s" % (requires, drive))
+                logger.debug("Found %s on cdrom %s", requires, drive)
                 self.game_disc = drive
                 self._iter_commands()
                 break
 
     def mkdir(self, directory):
+        """Create directory"""
         directory = self._substitute(directory)
         try:
             os.makedirs(directory)
         except OSError:
-            logger.debug("Directory %s already exists" % directory)
+            logger.debug("Directory %s already exists", directory)
         else:
-            logger.debug("Created directory %s" % directory)
+            logger.debug("Created directory %s", directory)
 
     def merge(self, params):
+        """Merge the contents given by src to destination folder dst"""
         self._check_required_params(['src', 'dst'], params, 'merge')
         src, dst = self._get_move_paths(params)
-        logger.debug("Merging %s into %s" % (src, dst))
+        logger.debug("Merging %s into %s", src, dst)
         if not os.path.exists(src):
             raise ScriptingError("Source does not exist: %s" % src, params)
         if not os.path.exists(dst):
@@ -236,7 +266,7 @@ class CommandsMixin(object):
         """Move a file or directory into a destination folder."""
         self._check_required_params(['src', 'dst'], params, 'move')
         src, dst = self._get_move_paths(params)
-        logger.debug("Moving %s to %s" % (src, dst))
+        logger.debug("Moving %s to %s", src, dst)
         if not os.path.exists(src):
             raise ScriptingError("I can't move %s, it does not exist" % src)
         if os.path.isfile(src):
@@ -269,7 +299,10 @@ class CommandsMixin(object):
             raise ScriptingError("Rename error, source path does not exist: %s"
                                  % src)
         if os.path.isdir(dst):
-            os.rmdir(dst)  # Remove if empty
+            try:
+                os.rmdir(dst)  # Remove if empty
+            except OSError:
+                pass
         if os.path.exists(dst):
             raise ScriptingError("Rename error, destination already exists: %s"
                                  % src)
@@ -343,10 +376,10 @@ class CommandsMixin(object):
 
         for key in data:
             value = data[key]
-            if type(value) is dict:
+            if isinstance(value, dict):
                 for inner_key in value:
                     value[inner_key] = self._substitute(value[inner_key])
-            elif type(value) is list:
+            elif isinstance(value, list):
                 for index, elem in enumerate(value):
                     value[index] = self._substitute(elem)
             else:
@@ -364,6 +397,7 @@ class CommandsMixin(object):
             GLib.idle_add(self.parent.attach_logger, thread)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
             return 'STOP'
+        return None
 
     def _monitor_task(self, thread):
         if not thread.is_running:
@@ -376,57 +410,55 @@ class CommandsMixin(object):
         self._check_required_params(['file', 'content'], params, 'write_file')
 
         # Get file
-        file = self._get_file(params['file']) or self._substitute(params['file'])
+        dest_file_path = self._get_file(params['file'])
 
         # Create dir if necessary
-        basedir = os.path.dirname(file)
+        basedir = os.path.dirname(dest_file_path)
         if not os.path.exists(basedir):
             os.makedirs(basedir)
 
         mode = params.get('mode', 'w')
+        if not mode.startswith(('a', 'w')):
+            raise ScriptingError("Wrong value for write_file mode: '%s'" % mode)
 
-        with open(file, mode) as f:
-            f.write(params['content'])
+        with open(dest_file_path, mode) as dest_file:
+            dest_file.write(self._substitute(params['content']))
 
     def write_json(self, params):
         """Write data into a json file."""
         self._check_required_params(['file', 'data'], params, 'write_json')
 
         # Get file
-        file = self._get_file(params['file']) or self._substitute(params['file'])
+        filename = self._get_file(params['file'])
 
         # Create dir if necessary
-        basedir = os.path.dirname(file)
+        basedir = os.path.dirname(filename)
         if not os.path.exists(basedir):
             os.makedirs(basedir)
 
         merge = params.get('merge', True)
 
-        with open(file, 'a+') as f:
-            pass
-
-        with open(file, 'r+' if merge else 'w') as f:
-            data = {}
+        with open(filename, 'r+' if merge else 'w') as json_file:
+            json_data = {}
             if merge:
                 try:
-                    data = json.load(f)
+                    json_data = json.load(json_file)
                 except ValueError:
-                    pass
+                    logger.error("Failed to parse JSON from file %s", filename)
 
-            data = selective_merge(data, params.get('data', {}))
-            f.seek(0)
-            f.write(json.dumps(data, indent=2))
+            json_data = selective_merge(json_data, params.get('data', {}))
+            json_file.seek(0)
+            json_file.write(json.dumps(json_data, indent=2))
 
     def write_config(self, params):
         """Write a key-value pair into an INI type config file."""
         self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'write_config')
         # Get file
-        config_file = (self._get_file(params['file']) or
-                       self._substitute(params['file']))
+        config_file_path = self._get_file(params['file'])
 
         # Create dir if necessary
-        basedir = os.path.dirname(config_file)
+        basedir = os.path.dirname(config_file_path)
         if not os.path.exists(basedir):
             os.makedirs(basedir)
 
@@ -434,7 +466,7 @@ class CommandsMixin(object):
                                   dict_type=MultiOrderedDict,
                                   strict=False)
         parser.optionxform = str  # Preserve text case
-        parser.read(config_file)
+        parser.read(config_file_path)
 
         value = self._substitute(params['value'])
 
@@ -442,11 +474,14 @@ class CommandsMixin(object):
             parser.add_section(params['section'])
         parser.set(params['section'], params['key'], value)
 
-        with open(config_file, 'wb') as f:
-            parser.write(f)
+        with open(config_file_path, 'wb') as config_file:
+            parser.write(config_file)
 
     def _get_file(self, fileid):
-        return self.game_files.get(fileid)
+        file_path = self.game_files.get(fileid)
+        if not file_path:
+            file_path = self._substitute(fileid)
+        return file_path
 
     def _killable_process(self, func, *args, **kwargs):
         """Run function `func` in a separate, killable process."""

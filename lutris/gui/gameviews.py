@@ -26,21 +26,20 @@ from lutris.util.log import logger
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
     COL_LASTPLAYED,
+    COL_LASTPLAYED_TEXT,
     COL_INSTALLED,
-) = list(range(10))
+    COL_INSTALLED_AT,
+    COL_INSTALLED_AT_TEXT
+) = list(range(13))
 
-
-def sort_func(store, a_iter, b_iter, _user_data):
-    """Default sort function."""
-    a_name = store.get(a_iter, COL_NAME)
-    b_name = store.get(b_iter, COL_NAME)
-
-    if a_name > b_name:
-        return 1
-    elif a_name < b_name:
-        return -1
-    else:
-        return 0
+COLUMN_NAMES = {
+    COL_NAME: 'name',
+    COL_YEAR: 'year',
+    COL_RUNNER_HUMAN_NAME: 'runner',
+    COL_PLATFORM: 'platform',
+    COL_LASTPLAYED_TEXT: 'lastplayed',
+    COL_INSTALLED_AT_TEXT: 'installed_at'
+}
 
 
 class GameStore(GObject.Object):
@@ -58,7 +57,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.runner_names = {}
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, str, bool)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
@@ -144,10 +143,17 @@ class GameStore(GObject.Object):
                     runner_human_name = runner.human_name
                     self.runner_names[runner_name] = runner_human_name
             platform = game_inst.platform
+            if not platform:
+                game_inst.set_platform_from_runner()
+                platform = game_inst.platform
 
-        lastplayed = ''
+        lastplayed_text = ''
         if game['lastplayed']:
-            lastplayed = time.strftime("%c", time.localtime(game['lastplayed']))
+            lastplayed_text = time.strftime("%c", time.localtime(game['lastplayed']))
+
+        installed_at_text = ''
+        if game['installed_at']:
+            installed_at_text = time.strftime("%c", time.localtime(game['installed_at']))
 
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
@@ -160,8 +166,11 @@ class GameStore(GObject.Object):
             runner_name,
             runner_human_name,
             platform,
-            lastplayed,
-            game['installed']
+            game['lastplayed'],
+            lastplayed_text,
+            game['installed'],
+            game['installed_at'],
+            installed_at_text
         ))
 
     def set_icon_type(self, icon_type):
@@ -316,35 +325,14 @@ class GameListView(Gtk.TreeView, GameView):
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
-        column = self.set_column(name_cell, "Name", COL_NAME)
-        width = settings.read_setting('name_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 200)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Year", COL_YEAR)
-        width = settings.read_setting('year_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 60)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME)
-        width = settings.read_setting('runner_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Platform", COL_PLATFORM)
-        width = settings.read_setting('platform_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
-
-        column = self.set_column(default_text_cell, "Last played", COL_LASTPLAYED)
-        width = settings.read_setting('lastplayed_column_width', 'list view')
-        column.set_fixed_width(int(width) if width else 120)
-        self.append_column(column)
-        column.connect("notify::width", self.on_column_width_changed)
+        self.set_column(name_cell, "Name", COL_NAME, 200)
+        self.set_column(default_text_cell, "Year", COL_YEAR, 60)
+        self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
+        self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
+        self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120)
+        self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
+        self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
+        self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -358,13 +346,28 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id):
+    def set_column(self, cell, header, column_id, default_width):
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id)
         column.set_resizable(True)
         column.set_reorderable(True)
+        width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
+        column.set_fixed_width(int(width) if width else default_width)
+        self.append_column(column)
+        column.connect("notify::width", self.on_column_width_changed)
         return column
+
+    def set_sort_with_column(self, col, sort_col):
+        """Set to sort a column by using another column.
+        """
+
+        def sort_func(model, row1, row2, user_data):
+            v1 = model.get_value(row1, sort_col)
+            v2 = model.get_value(row2, sort_col)
+            return -1 if v1 < v2 else 0 if v1 == v2 else 1
+
+        self.model.set_sort_func(col, sort_func)
 
     def get_selected_game(self):
         """Return the currently selected game's id."""

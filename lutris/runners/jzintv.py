@@ -30,12 +30,29 @@ class jzintv(Runner):
             "option": "fullscreen",
             "type": "bool",
             "label": "Fullscreen"
+        },
+        {
+            "option": "resolution",
+            "type": "choice",
+            "label": "Resolution",
+            "choices": (
+                ("320 x 200 (default)", "0"),
+                ("640 x 480", "1"),
+                ("800 x 400", "5"),
+                ("800 x 600", "2"),
+                ("1024 x 768", "3"),
+                ("1680 x 1050", "4"),
+                ("1600 x 1200", "6")
+            )
         }
     ]
 
     def play(self):
         """Run Intellivision game"""
         arguments = [self.get_executable()]
+        selected_resolution = self.runner_config.get("resolution")
+        if selected_resolution:
+            arguments = arguments + ["-z%s" % selected_resolution]
         if self.runner_config.get("fullscreen"):
             arguments = arguments + ["-f"]
         bios_path = self.runner_config.get("bios_path", '')

@@ -5,6 +5,7 @@ from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 
+
 class mednafen(Runner):
     human_name = "Mednafen"
     description = ("Multi-system emulator including NES, GB(A), PC Engine "
@@ -29,19 +30,19 @@ class mednafen(Runner):
     machine_choices = (
         ('Game Boy (Color)', 'gb'),
         ('Game Boy Advance', 'gba'),
-        ('Game Gear','gg'),
-        ('Genesis/Mega Drive','md'),
+        ('Game Gear', 'gg'),
+        ('Genesis/Mega Drive', 'md'),
         ('Lynx', 'lynx'),
-        ('Master System','sms'),
-        ('Neo Geo Pocket (Color)','gnp'),
+        ('Master System', 'sms'),
+        ('Neo Geo Pocket (Color)', 'gnp'),
         ('NES', 'nes'),
         ('PC Engine', 'pce'),
-        ('PC-FX','pcfx'),
+        ('PC-FX', 'pcfx'),
         ('PlayStation', 'psx'),
-        ('Saturn','ss'),
-        ('SNES','snes'),
+        ('Saturn', 'ss'),
+        ('SNES', 'snes'),
         ('WonderSwan', 'wswan'),
-        ('Virtual Boy','vb'),
+        ('Virtual Boy', 'vb'),
     )
     runner_executable = 'mednafen/bin/mednafen'
     game_options = [
@@ -105,9 +106,9 @@ class mednafen(Runner):
             "default": "hq4x",
         },
         {
-            "option": "dflt_cntrllr",
+            "option": "dont_map_controllers",
             "type": "bool",
-            "label": "Use Mednafen controller configuration",
+            "label": "Use default Mednafen controller configuration",
             "default": False,
         }
 
@@ -151,54 +152,67 @@ class mednafen(Runner):
         """ Setup joystick mappings per machine """
 
         # Get the controller mappings
-        mapping = get_controller_mappings()[0][1]
+        controller_mappings = get_controller_mappings()
+        if not controller_mappings:
+            logger.warning("No controller detected for joysticks %s.", joy_ids)
+            return []
 
-        # Consrtuct a dictionary of button codes to parse to mendafen
-        map_code = {'a':'','b':'','c':'','x':'','y':'','z':'','back':'',
-                'start':'','leftshoulder':'','rightshoulder':'',
-                'lefttrigger':'','righttrigger':'','leftstick':'',
-                'rightstick':'','select':'','shoulder_l':'','shoulder_r':'',
-                'i':'','ii':'','iii':'','iv':'','v':'','vi':'','run':'',
-                'ls':'','rs':'','fire1':'','fire2':'','option_1':'',
-                'option_2':'','cross':'','circle':'','square':'','triangle':'',
-                'r1':'','r2':'','l1':'','l2':'','option':'','l':'','r':'',
-                'right-x':'','right-y':'','left-x':'','left-y':'',
-                'up-x':'','up-y':'','down-x':'','down-y':'','up-l':'',
-                'up-r':'','down-l':'','down-r':'','left-l':'','left-r':'',
-                'right-l':'','right-r':'',
-                'lstick_up':'0000c001',
-                'lstick_down':'00008001',
-                'lstick_right':'00008000',
-                'lstick_left':'0000c000',
-                'rstick_up':'0000c003',
-                'rstick_down':'00008003',
-                'rstick_left':'0000c002',
-                'rstick_right':'00008002',
-                'dpup':'0000c005',
-                'dpdown':'00008005',
-                'dpleft':'0000c004',
-                'dpright':'00008004'}
+        # TODO currently only supports the first controller. Add support for
+        # other controllers.
+        mapping = controller_mappings[0][1]
+
+        # Construct a dictionnary of button codes to parse to mendafen
+        map_code = {
+            'a': '', 'b': '', 'c': '',
+            'x': '', 'y': '', 'z': '',
+            'back': '', 'start': '',
+            'leftshoulder': '', 'rightshoulder': '',
+            'lefttrigger': '', 'righttrigger': '',
+            'leftstick': '', 'rightstick': '',
+            'select': '',
+            'shoulder_l': '', 'shoulder_r': '',
+            'i': '', 'ii': '', 'iii': '', 'iv': '', 'v': '', 'vi': '', 'run': '',
+            'ls': '', 'rs': '', 'fire1': '', 'fire2': '', 'option_1': '', 'option_2': '',
+            'cross': '', 'circle': '', 'square': '', 'triangle': '',
+            'r1': '', 'r2': '', 'l1': '', 'l2': '', 'option': '', 'l': '', 'r': '',
+            'right-x': '', 'right-y': '', 'left-x': '', 'left-y': '',
+            'up-x': '', 'up-y': '', 'down-x': '', 'down-y': '', 'up-l': '',
+            'up-r': '', 'down-l': '', 'down-r': '', 'left-l': '', 'left-r': '',
+            'right-l': '', 'right-r': '',
+            'lstick_up': '0000c001',
+            'lstick_down': '00008001',
+            'lstick_right': '00008000',
+            'lstick_left': '0000c000',
+            'rstick_up': '0000c003',
+            'rstick_down': '00008003',
+            'rstick_left': '0000c002',
+            'rstick_right': '00008002',
+            'dpup': '0000c005',
+            'dpdown': '00008005',
+            'dpleft': '0000c004',
+            'dpright': '00008004'
+        }
 
         # Insert the button mapping number into the map_codes
         for button in mapping.keys:
             bttn_id = mapping.keys[button]
-            if bttn_id[0]=='b': # it's a button
-                map_code[button] = '000000'+bttn_id[1:].zfill(2)
+            if bttn_id[0] == 'b':  # it's a button
+                map_code[button] = '000000' + bttn_id[1:].zfill(2)
 
         # Duplicate button names that are emulated in mednanfen
         map_code['up'] = map_code['dpup']       #
         map_code['down'] = map_code['dpdown']   #
         map_code['left'] = map_code['dpleft']   # Multiple systems
-        map_code['right'] = map_code['dpright'] #
+        map_code['right'] = map_code['dpright']
         map_code['select'] = map_code['back']   #
-        map_code['shoulder_r'] = map_code['rightshoulder'] #GBA
+        map_code['shoulder_r'] = map_code['rightshoulder']  # GBA
         map_code['shoulder_l'] = map_code['leftshoulder']  #
         map_code['i'] = map_code['b']              #
         map_code['ii'] = map_code['a']             #
-        map_code['iii'] = map_code['leftshoulder'] #
+        map_code['iii'] = map_code['leftshoulder']
         map_code['iv'] = map_code['y']             # PCEngine and PCFX
         map_code['v'] = map_code['x']              #
-        map_code['vi'] = map_code['rightshoulder'] #
+        map_code['vi'] = map_code['rightshoulder']
         map_code['run'] = map_code['start']        #
         map_code['ls'] = map_code['leftshoulder']    #
         map_code['rs'] = map_code['rightshoulder']   # Saturn
@@ -223,7 +237,7 @@ class mednafen(Runner):
         map_code['left-x'] = map_code['dpleft']        #
         map_code['up-x'] = map_code['dpup']            #
         map_code['down-x'] = map_code['dpdown']        # Wonder Swan
-        map_code['right-y'] = map_code['lstick_right'] #
+        map_code['right-y'] = map_code['lstick_right']
         map_code['left-y'] = map_code['lstick_left']   #
         map_code['up-y'] = map_code['lstick_up']       #
         map_code['down-y'] = map_code['lstick_down']   #
@@ -240,37 +254,37 @@ class mednafen(Runner):
 
         # Define which buttons to use for each machine
         layout = {
-            'nes' : ['a','b','start','select','up','down','left','right'],
-            'gb' : ['a','b','start','select','up','down','left','right'],
-            'gba' : ['a','b','shoulder_r','shoulder_l','start','select',
-                     'up','down','left', 'right'],
-            'pce' : ['i','ii','iii','iv','v','vi','run','select','up','down',
-                     'left','right'],
-            'ss' : ['a','b','c','x','y','z','ls','rs','start','up','down',
-                    'left','right'],
-            'gg' : ['button1','button2','start','up','down','left','right'],
-            'md' : ['a','b','c','x','y','z','start','up','down','left',
-                    'right'],
-            'sms' : ['fire1','fire2','up','down','left','right'],
-            'lynx' : ['a','b','option_1','option_2','up','down','left',
-                      'right'],
-            'psx' : ['cross','circle','square','triangle','l1','l2','r1','r2',
-                     'start','select','lstick_up','lstick_down','lstick_right',
-                     'lstick_left','rstick_up','rstick_down','rstick_left',
-                     'rstick_right','up','down','left','right'],
-            'pcfx' : ['i','ii','iii','iv','v','vi','run','select','up','down',
-                      'left','right'],
-            'ngp' : ['a','b','option','up','down','left','right'],
-            'snes' : ['a','b','x','y','l','r','start','select','up','down',
-                      'left','right'],
-            'wswan' : ['a','b','right-x','right-y','left-x','left-y','up-x',
-                       'up-y','down-x','down-y','start'],
-            'vb' : ['up-l','down-l','left-l','right-l','up-r','down-r',
-                    'left-r','right-r','a','b','lt','rt']
+            'nes': ['a', 'b', 'start', 'select', 'up', 'down', 'left', 'right'],
+            'gb': ['a', 'b', 'start', 'select', 'up', 'down', 'left', 'right'],
+            'gba': ['a', 'b', 'shoulder_r', 'shoulder_l', 'start', 'select',
+                    'up', 'down', 'left', 'right'],
+            'pce': ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'run', 'select', 'up', 'down',
+                    'left', 'right'],
+            'ss': ['a', 'b', 'c', 'x', 'y', 'z', 'ls', 'rs', 'start', 'up', 'down',
+                   'left', 'right'],
+            'gg': ['button1', 'button2', 'start', 'up', 'down', 'left', 'right'],
+            'md': ['a', 'b', 'c', 'x', 'y', 'z', 'start', 'up', 'down', 'left',
+                   'right'],
+            'sms': ['fire1', 'fire2', 'up', 'down', 'left', 'right'],
+            'lynx': ['a', 'b', 'option_1', 'option_2', 'up', 'down', 'left',
+                     'right'],
+            'psx': ['cross', 'circle', 'square', 'triangle', 'l1', 'l2', 'r1', 'r2',
+                    'start', 'select', 'lstick_up', 'lstick_down', 'lstick_right',
+                    'lstick_left', 'rstick_up', 'rstick_down', 'rstick_left',
+                    'rstick_right', 'up', 'down', 'left', 'right'],
+            'pcfx': ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'run', 'select', 'up', 'down',
+                     'left', 'right'],
+            'ngp': ['a', 'b', 'option', 'up', 'down', 'left', 'right'],
+            'snes': ['a', 'b', 'x', 'y', 'l', 'r', 'start', 'select', 'up', 'down',
+                     'left', 'right'],
+            'wswan': ['a', 'b', 'right-x', 'right-y', 'left-x', 'left-y', 'up-x',
+                      'up-y', 'down-x', 'down-y', 'start'],
+            'vb': ['up-l', 'down-l', 'left-l', 'right-l', 'up-r', 'down-r',
+                   'left-r', 'right-r', 'a', 'b', 'lt', 'rt']
         }
         # Select a the gamepad type
         controls = []
-        if machine in ['gg','lynx','wswan','gb','gba','vb']:
+        if machine in ['gg', 'lynx', 'wswan', 'gb', 'gba', 'vb']:
             gamepad = 'builtin.gamepad'
         elif machine in ['md']:
             gamepad = 'port1.gamepad6'
@@ -285,8 +299,8 @@ class mednafen(Runner):
 
         # Construct the controlls options
         for button in layout[machine]:
-            controls.append("-{}.input.{}.{}".format(machine,gamepad,button)) 
-            controls.append("joystick {} {}".format(joy_ids[0],map_code[button]))
+            controls.append("-{}.input.{}.{}".format(machine, gamepad, button))
+            controls.append("joystick {} {}".format(joy_ids[0], map_code[button]))
         return controls
 
     def play(self):
@@ -314,13 +328,11 @@ class mednafen(Runner):
                    "-" + machine + ".special", scaler,
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
-        use_dflt_cntrllr = self.runner_config.get('dflt_cntrllr')
-        if (len(joy_ids) > 0) and not use_dflt_cntrllr:
+        dont_map_controllers = self.runner_config.get('dont_map_controllers')
+        if (len(joy_ids) > 0) and not dont_map_controllers:
             controls = self.set_joystick_controls(joy_ids, machine)
             for control in controls:
                 options.append(control)
-        else:
-            logger.debug("No joystick specification")
 
         if not os.path.exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}

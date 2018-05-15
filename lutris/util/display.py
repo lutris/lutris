@@ -1,8 +1,27 @@
+import re
+import time
 import subprocess
 
 from lutris.util.log import logger
 
+XRANDR_CACHE = None
+XRANDR_CACHE_SET_AT = None
 
+
+def cached(function):
+    def wrapper():
+        global XRANDR_CACHE
+        global XRANDR_CACHE_SET_AT
+
+        if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
+            return XRANDR_CACHE
+        XRANDR_CACHE = function()
+        XRANDR_CACHE_SET_AT = time.time()
+        return XRANDR_CACHE
+    return wrapper
+
+
+@cached
 def get_vidmodes():
     xrandr_output = subprocess.Popen(["xrandr"],
                                      stdout=subprocess.PIPE).communicate()[0]
@@ -57,8 +76,15 @@ def get_resolutions():
     resolution_list = []
     for line in get_vidmodes():
         if line.startswith("  "):
-            resolution_list.append(line.split()[0])
+            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            if resolution_match:
+                resolution_list.append(resolution_match.groups()[0])
     return resolution_list
+
+
+def get_unique_resolutions():
+    """Return available resolutions, without duplicates and ordered with highest resolution first"""
+    return sorted(set(get_resolutions()), key=lambda x: int(x.split('x')[0]), reverse=True)
 
 
 def get_current_resolution(monitor=0):
@@ -66,7 +92,9 @@ def get_current_resolution(monitor=0):
     resolution = list()
     for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
-            resolution.append(line.split()[0])
+            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            if resolution_match:
+                resolution.append(resolution_match.groups()[0])
     if monitor == 'all':
         return resolution
     else:

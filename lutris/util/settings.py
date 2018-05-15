@@ -10,14 +10,18 @@ class SettingsIO(object):
         if os.path.exists(self.config_file):
             self.config.read([self.config_file])
 
-    def read_setting(self, key, section='lutris'):
+    def read_setting(self, key, section='lutris', default=None):
+        """Read a setting from the config file
+
+        Params:
+            key (str): Setting key
+            section (str): Optional section, default to 'lutris'
+            default (str): Default value to return if setting not present
+        """
         try:
-            value = self.config.get(section, key)
-        except configparser.NoOptionError:
-            value = None
-        except configparser.NoSectionError:
-            value = None
-        return value
+            return self.config.get(section, key)
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            return default
 
     def write_setting(self, key, value, section='lutris'):
         if not self.config.has_section(section):

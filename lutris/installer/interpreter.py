@@ -14,7 +14,7 @@ from lutris import pga
 from lutris import settings
 from lutris.game import Game
 from lutris.util import system
-from lutris.util import strings
+from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
@@ -52,6 +52,17 @@ def fetch_script(game_slug, revision=None):
         return response
 
 
+def read_script(filename):
+    """Return scripts from a local file"""
+    logger.debug("Loading script(s) from %s", filename)
+    scripts = yaml.safe_load(open(filename, 'r').read())
+    if isinstance(scripts, list):
+        return scripts
+    if 'results' in scripts:
+        return scripts['results']
+    return scripts
+
+
 class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
     def __init__(self, installer, parent):
@@ -60,8 +71,6 @@ class ScriptInterpreter(CommandsMixin):
         self.target_path = None
         self.parent = parent
         self.reversion_data = {}
-        self.game_name = None
-        self.game_slug = None
         self.game_files = {}
         self.game_disc = None
         self.cancelled = False
@@ -80,9 +89,8 @@ class ScriptInterpreter(CommandsMixin):
         self.version = installer['version']
         self.slug = installer['slug']
         self.year = installer.get('year')
-        self.name = installer['name']
         self.runner = installer['runner']
-        self.game_name = installer['name']
+        self.game_name = self.script.get('custom-name') or installer['name']
         self.game_slug = installer['game_slug']
         self.steamid = installer.get('steamid')
 
@@ -93,6 +101,7 @@ class ScriptInterpreter(CommandsMixin):
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
 
+        self._check_binary_dependencies()
         self._check_dependency()
         if self.creates_game_folder:
             self.target_path = self.get_default_target()
@@ -153,7 +162,7 @@ class ScriptInterpreter(CommandsMixin):
             return False
 
         # Check that installers contains all required fields
-        for field in ('runner', 'name', 'game_slug'):
+        for field in ('runner', 'game_name', 'game_slug'):
             if not hasattr(self, field) or not getattr(self, field):
                 self.errors.append("Missing field '%s'" % field)
 
@@ -176,6 +185,29 @@ class ScriptInterpreter(CommandsMixin):
         if bool(game) and bool(game['directory']):
             return game
 
+    def _check_binary_dependencies(self):
+        """Check if all required binaries are installed on the system.
+
+        This reads a `require-binaries` entry in the script, parsed the same way as
+        the `requires` entry.
+        """
+        binary_dependencies = unpack_dependencies(self.script.get('require-binaries'))
+        for dependency in binary_dependencies:
+            if isinstance(dependency, tuple):
+                installed_binaries = {
+                    dependency_option: bool(system.find_executable(dependency_option))
+                    for dependency_option in dependency
+                }
+                if not any(installed_binaries.values()):
+                    raise ScriptingError(
+                        "This installer requires %s on your system" % ' or '.join(dependency)
+                    )
+            else:
+                if not system.find_executable(dependency):
+                    raise ScriptingError(
+                        "This installer requires %s on your system" % ' or '.join(dependency)
+                    )
+
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
         game is installed.
@@ -186,7 +218,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.extends:
             dependencies = [self.extends]
         else:
-            dependencies = strings.unpack_dependencies(self.requires)
+            dependencies = unpack_dependencies(self.requires)
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
@@ -258,15 +290,19 @@ class ScriptInterpreter(CommandsMixin):
         if isinstance(game_file[file_id], dict):
             filename = game_file[file_id]['filename']
             file_uri = game_file[file_id]['url']
+            referer = game_file[file_id].get('referer')
         else:
             file_uri = game_file[file_id]
             filename = os.path.basename(file_uri)
+            referer = None
+
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
             self._download_steam_data(file_uri, file_id)
             return
+
         if not filename:
             raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
 
@@ -297,7 +333,7 @@ class ScriptInterpreter(CommandsMixin):
         # Change parent's status
         self.parent.set_status('')
         self.game_files[file_id] = dest_file
-        self.parent.start_download(file_uri, dest_file)
+        self.parent.start_download(file_uri, dest_file, referer=referer)
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
@@ -325,6 +361,7 @@ class ScriptInterpreter(CommandsMixin):
             if self.runner == 'libretro':
                 params['core'] = self.script['game']['core']
             if self.runner.startswith('wine'):
+                params['min_version'] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:
                     params['version'] = version
@@ -503,7 +540,7 @@ class ScriptInterpreter(CommandsMixin):
             }
 
         self.game_id = pga.add_or_update(
-            name=self.name,
+            name=self.game_name,
             runner=self.runner,
             slug=self.game_slug,
             directory=self.target_path,
@@ -556,6 +593,11 @@ class ScriptInterpreter(CommandsMixin):
         if 'game' in self.script:
             config['game'].update(self.script['game'])
             config['game'] = self._substitute_config(config['game'])
+
+            # steamless_binary64 can be used to specify 64 bit non-steam binaries
+            is_64bit = platform.machine() == "x86_64"
+            if is_64bit and 'steamless_binary64' in config['game']:
+                config['game']['steamless_binary'] = config['game']['steamless_binary64']
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
@@ -656,7 +698,7 @@ class ScriptInterpreter(CommandsMixin):
         appid = self.steam_data['appid']
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
-            steam_runner.config = LutrisConfig(runner_slug=self.runner)
+            steam_runner.config = LutrisConfig(runner_slug=steam_runner.name)
             if 'arch' in self.steam_data:
                 steam_runner.config.game_config['arch'] = self.steam_data['arch']
             AsyncCall(steam_runner.install_game, None, appid, is_game_files)
@@ -732,9 +774,11 @@ class ScriptInterpreter(CommandsMixin):
         data_path = self._get_steam_game_path(runner_class)
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
-        logger.debug("got data path: %s" % data_path)
-        self.game_files[self.steam_data['file_id']] = \
-            os.path.join(data_path, self.steam_data['steam_rel_path'])
+        self.game_files[self.steam_data['file_id']] = os.path.abspath(
+            os.path.join(
+                data_path, self.steam_data['steam_rel_path']
+            )
+        )
         self.iter_game_files()
 
     def _download_steam_data(self, file_uri, file_id):

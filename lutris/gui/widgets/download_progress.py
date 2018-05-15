@@ -1,6 +1,5 @@
-from gi.repository import Gtk, GObject, GLib, Pango
-
-from lutris.downloader import Downloader
+from gi.repository import GLib, GObject, Gtk, Pango
+from lutris.util.downloader import Downloader
 
 
 class DownloadProgressBox(Gtk.Box):
@@ -20,6 +19,7 @@ class DownloadProgressBox(Gtk.Box):
         self.downloader = downloader
         self.url = params.get('url')
         self.dest = params.get('dest')
+        self.referer = params.get('referer')
         title = params.get('title', "Downloading {}".format(self.url))
 
         self.main_label = Gtk.Label(title)
@@ -57,7 +57,9 @@ class DownloadProgressBox(Gtk.Box):
         """Start downloading a file."""
         if not self.downloader:
             try:
-                self.downloader = Downloader(self.url, self.dest,
+                self.downloader = Downloader(self.url,
+                                             self.dest,
+                                             referer=self.referer,
                                              overwrite=True)
             except RuntimeError as ex:
                 from lutris.gui.dialogs import ErrorDialog

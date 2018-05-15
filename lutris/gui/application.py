@@ -70,6 +70,15 @@ class Application(Gtk.Application):
             ErrorDialog("Your Linux distribution is too old, Lutris won't function properly")
 
     def add_arguments(self):
+        if hasattr(self, 'set_option_context_summary'):
+            self.set_option_context_summary(
+                'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
+                'If several games share the same identifier you can use the '
+                'numerical ID (displayed when running lutris --list-games) and add lutris:rungameid/numerical-id.\n'
+                'To install a game, add lutris:install/game-identifier.'
+            )
+        else:
+            logger.warning("This version of Gtk doesn't support set_option_context_summary")
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
@@ -138,7 +147,6 @@ class Application(Gtk.Application):
         action = Gio.SimpleAction.new('quit')
         action.connect('activate', lambda *x: self.quit())
         self.add_action(action)
-        self.add_accelerator('<Primary>q', 'app.quit')
 
         builder = Gtk.Builder.new_from_file(
             os.path.join(datapath.get(), 'ui', 'menus.ui')
@@ -271,10 +279,31 @@ class Application(Gtk.Application):
                                            installer_file=installer_file,
                                            revision=revision)
         elif action in ('rungame', 'rungameid'):
+            if not db_game or not db_game['id']:
+                logger.info("No game found in library, shutting down")
+                self.do_shutdown()
+                return 0
+
             logger.info("Launching %s" % db_game['name'])
-            self.window.on_game_run(game_id=db_game['id'])
+
+            # If game is installed, run it without showing the GUI
+            # Also set a timer to shut down lutris when game ends
+            if db_game['installed']:
+                self.window.hide()
+                self.window.on_game_run(game_id=db_game['id'])
+                GLib.timeout_add(300, self.refresh_status)
+            # If game is not installed, show the GUI
+            else:
+                self.window.on_game_run(game_id=db_game['id'])
+
 
         return 0
+
+    def refresh_status(self):
+        if self.window.running_game.state == self.window.running_game.STATE_STOPPED:
+            self.do_shutdown()
+            return False
+        return True
 
     def get_lutris_action(self, url):
         installer_info = {

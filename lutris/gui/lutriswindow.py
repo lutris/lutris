@@ -6,7 +6,7 @@ import time
 from collections import namedtuple
 from itertools import chain
 
-from gi.repository import Gtk, Gdk, GLib, Gio, GObject
+from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings
 from lutris.game import Game
@@ -16,6 +16,8 @@ from lutris.runtime import RuntimeUpdater
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
+from lutris.util.system import open_uri
+
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
@@ -23,12 +25,11 @@ from lutris.util.steam import SteamWatcher
 from lutris.services import get_services_synced_at_startup, steam, xdg
 
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarListBox
 from lutris.gui.logwindow import LogWindow
 from lutris.gui.sync import SyncServiceDialog
 from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.installgamedialog import InstallerDialog
+from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config_dialogs import (
     AddGameDialog, EditGameConfigDialog, SystemConfigDialog
@@ -66,6 +67,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_spinner = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
+        self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
@@ -167,10 +169,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         actions = {
             'browse-games': Action(
-                lambda *x: self._open_browser('https://lutris.net/games/')
+                lambda *x: open_uri('https://lutris.net/games/')
             ),
             'register-account': Action(
-                lambda *x: self._open_browser('https://lutris.net/user/register/')
+                lambda *x: open_uri('https://lutris.net/user/register/')
             ),
 
             'disconnect': Action(self.on_disconnect),
@@ -422,8 +424,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
-        resources.fetch_icons([game['slug'] for game in self.game_list],
-                              callback=self.on_image_downloaded)
+        try:
+            resources.fetch_icons([game['slug'] for game in self.game_list],
+                                  callback=self.on_image_downloaded)
+        except TypeError as ex:
+            logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def refresh_status(self):
         """Refresh status bar."""
@@ -483,10 +488,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if is_connected:
             self.connection_label.set_text(username)
             logger.info('Connected to lutris.net as %s', username)
-
-    @staticmethod
-    def _open_browser(url):
-        Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *args):
@@ -586,8 +587,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.running_game.play()
         else:
             game_slug = self.running_game.slug
+            logger.warning("%s is not available", game_slug)
             self.running_game = None
-            InstallerDialog(game_slug=game_slug, parent=self)
+            InstallerWindow(game_slug=game_slug,
+                            parent=self,
+                            application=self.application)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
@@ -598,11 +602,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_install_clicked(self, *args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""
-
-        installer_desc = game_slug if game_slug else installer_file
-        if revision:
-            installer_desc += " (%s)" % revision
-        logger.info("Installing %s" % installer_desc)
+        logger.info("Installing %s%s",
+                    game_slug if game_slug else installer_file,
+                    " (%s)" % revision if revision else '')
 
         if not game_slug and not installer_file:
             # Install the currently selected game in the UI
@@ -611,10 +613,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game_slug = game.get('slug')
         if not game_slug and not installer_file:
             return
-        InstallerDialog(game_slug=game_slug,
-                        installer_file=installer_file,
-                        revision=revision,
-                        parent=self)
+        return InstallerWindow(game_slug=game_slug,
+                               installer_file=installer_file,
+                               revision=revision,
+                               parent=self,
+                               application=self.application)
 
     def game_selection_changed(self, _widget):
         # Emulate double click to workaround GTK bug #484640
@@ -645,6 +648,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                       [game.slug], self.on_image_downloaded)
 
     def on_image_downloaded(self, game_slugs):
+        logger.debug("Updated images for %d games" % len(game_slugs))
+
         for game_slug in game_slugs:
             games = pga.get_games_where(slug=game_slug)
             for game in games:
@@ -720,7 +725,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game = Game(self.view.selected_game)
         path = game.get_browse_dir()
         if path and os.path.exists(path):
-            Gtk.show_uri(None, 'file://' + path, Gdk.CURRENT_TIME)
+            open_uri('file://' + path)
         else:
             dialogs.NoticeDialog(
                 "Can't open %s \nThe folder doesn't exist." % path
@@ -728,7 +733,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_view_game(self, widget):
         game = Game(self.view.selected_game)
-        self._open_browser('https://lutris.net/games/' + game.slug)
+        open_uri('https://lutris.net/games/' + game.slug)
 
     def on_edit_game_configuration(self, widget):
         """Edit game preferences."""

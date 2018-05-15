@@ -194,17 +194,19 @@ class Game(object):
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
-        self.original_outputs = sorted(display.get_outputs(), key=lambda e: e[0] == system_config.get('display'))
+        self.original_outputs = sorted(
+            display.get_outputs(),
+            key=lambda e: e[0] == system_config.get('display')
+        )
+
         gameplay_info = self.runner.play()
-
-        env = {}
-
         logger.debug("Launching %s: %s" % (self.name, gameplay_info))
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
 
+        env = {}
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
@@ -273,7 +275,7 @@ class Game(object):
 
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command:
-            launch_arguments = shlex.split(prefix_command) + launch_arguments
+            launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
 
         single_cpu = system_config.get('single_cpu') or False
         if single_cpu:
@@ -292,36 +294,22 @@ class Game(object):
                                     "%s" % terminal)
                 self.state = self.STATE_STOPPED
                 return
+
         # Env vars
-        game_env = gameplay_info.get('env') or {}
+        game_env = gameplay_info.get('env') or self.runner.get_env()
         env.update(game_env)
 
-        system_env = system_config.get('env') or {}
-        env.update(system_env)
+        ld_preload = gameplay_info.get('ld_preload')
+        if ld_preload:
+            env["LD_PRELOAD"] = ld_preload
 
-        ld_preload = gameplay_info.get('ld_preload') or ''
-        env["LD_PRELOAD"] = ld_preload
-
-        dri_prime = system_config.get('dri_prime')
-        if dri_prime:
-            env["DRI_PRIME"] = "1"
-        else:
-            env["DRI_PRIME"] = "0"
-
-        # Runtime management
-        ld_library_path = ""
-        if self.runner.use_runtime():
-            runtime_env = runtime.get_env()
-            if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
-                env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
-            if 'LD_LIBRARY_PATH' in runtime_env:
-                ld_library_path = runtime_env['LD_LIBRARY_PATH']
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
+            ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
             ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
-        env["LD_LIBRARY_PATH"] = ld_library_path
+            env["LD_LIBRARY_PATH"] = ld_library_path
         # /Env vars
 
         include_processes = shlex.split(system_config.get('include_processes', ''))
@@ -390,7 +378,7 @@ class Game(object):
 
     def stop(self):
         if self.runner.system_config.get('xboxdrv'):
-            log.debug("Stopping xboxdrv")
+            logger.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
@@ -443,5 +431,9 @@ class Game(object):
                                     "already using the same Wine prefix.</b>")
 
     def notify_steam_game_changed(self, appmanifest):
-        logger.debug(appmanifest)
-        logger.debug(appmanifest.states)
+        logger.debug("Steam game %s state has changed, new states: %s",
+                     appmanifest.steamid, ', '.join(appmanifest.states))
+        if 'Fully Installed' in appmanifest.states:
+            self.game_thread.ready_state = True
+        elif 'Update Required' in appmanifest.states:
+            self.game_thread.ready_state = False

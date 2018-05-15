@@ -28,7 +28,7 @@ try:
     locale_name = locale.getlocale()
     locale.setlocale(locale.LC_ALL, locale_name)
 except locale.Error:
-    sys.stderr.write("Unsupported locale %s\n" % locale_name)
+    sys.stderr.write("Unsupported locale %s. Try running with LC_ALL=C.\n" % locale_name)
 
 from lutris.gui.application import Application
 

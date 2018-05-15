@@ -126,7 +126,11 @@ def get_games():
         if not app.get_executable():
             continue
 
-        appid = os.path.splitext(app.get_id())[0]
+        try:
+            appid = os.path.splitext(app.get_id())[0]
+        except UnicodeDecodeError:
+            logger.error("Failed to read ID for app %s (non UTF-8 encoding). Reverting to executable name.", app)
+            appid = app.get_executable()
         exe = None
         args = []
 

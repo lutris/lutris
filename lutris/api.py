@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import urllib.request
 import urllib.parse
@@ -86,4 +87,25 @@ def get_games(game_slugs=None, page=1):
     else:
         payload = None
     response.get(data=payload)
-    return response.json
+    response_data = response.json
+
+    if not response_data:
+        logger.warning('Unable to get games from API')
+        return None
+
+    results = response_data.get('results', [])
+    while response_data.get('next'):
+        page_match = re.search(r'page=(\d+)', response_data['next'])
+        if page_match:
+            page = page_match.group(1)
+        else:
+            logger.error("No page found in %s", response_data['next'])
+            break
+        page_result = get_games(game_slugs=game_slugs, page=page)
+        if not page_result:
+            logger.warning("Unable to get response for page %s", page)
+            break
+        else:
+            results += page_result
+
+    return results

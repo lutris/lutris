@@ -3,14 +3,14 @@ import gi
 gi.require_version('WebKit2', '4.0')
 
 from gi.repository import WebKit2
-from gi.repository import GLib, Gtk, Gdk, GObject
+from gi.repository import GLib, Gtk, GObject
 
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.logwindow import LogTextView
 from lutris.util import datapath
-from lutris.util.log import logger
+from lutris.util.system import open_uri
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -37,10 +37,7 @@ class GtkBuilderDialog(GObject.Object):
         pass
 
     def on_close(self, *args):
-        try:
-            self.dialog.destroy()
-        except:
-            logger.info("Tell strider that he can't write an about dialog")
+        self.dialog.destroy()
 
     def on_response(self, widget, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
@@ -344,7 +341,7 @@ class ClientUpdateDialog(GtkBuilderDialog):
     dialog_object = "client_update_dialog"
 
     def on_open_downloads_clicked(self, _widget):
-        Gtk.show_uri(None, "http://lutris.net", Gdk.CURRENT_TIME)
+        open_uri("http://lutris.net")
 
 
 class NoInstallerDialog(Gtk.MessageDialog):

@@ -1,9 +1,10 @@
 # -*- coding:Utf-8 -*-
-from gi.repository import Gtk, GObject, Gdk
+from gi.repository import Gtk, GObject
 
 from lutris import runners
 from lutris import settings
 from lutris.gui.widgets.utils import get_icon
+from lutris.util.system import open_uri
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
@@ -175,12 +176,15 @@ class RunnersDialog(Gtk.Dialog):
                               runner, runner_label)
 
     def on_runner_open_clicked(self, widget):
-        Gtk.show_uri(None, 'file://' + settings.RUNNER_DIR, Gdk.CURRENT_TIME)
+        open_uri('file://' + settings.RUNNER_DIR)
 
     def on_refresh_clicked(self, widget):
         for child in self.runner_listbox:
             child.destroy()
         self.populate_runners()
+
+    def on_close_clicked(self, widget):
+        self.destroy()
 
     def set_install_state(self, widget, runner, runner_label):
         if runner.is_installed():

@@ -237,9 +237,13 @@ def sync_with_lutris(platform='linux'):
             steamid = re.findall(r'(\d+)', appmanifest_file)[0]
             seen_ids.add(steamid)
             appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-            if steamid not in steamids_in_lutris and platform == 'linux':
+            if steamid not in steamids_in_lutris:
                 # New Steam game, not seen before in Lutris,
-                # only supports Linux games
+                if platform != 'linux':
+                    # Windows games might require additional steps.
+                    # TODO: Find a way to mark games as "Not fully configured"
+                    # as the status.
+                    logger.warning("Importing Steam game %s but game might require additional configuration")
                 sync_appmanifest_state(appmanifest_path)
             else:
                 # Lookup previously installed Steam games

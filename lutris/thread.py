@@ -41,6 +41,7 @@ class LutrisThread(threading.Thread):
                  watch=True, cwd=None, include_processes=[], exclude_processes=[], log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
+        self.ready_state = True
         self.env = env
         self.original_env = {}
         self.command = command
@@ -67,7 +68,9 @@ class LutrisThread(threading.Thread):
         self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
-        self.monitored_processes = defaultdict(list)  # Keep a copy of the monitored processes to allow comparisons
+
+        # Keep a copy of the monitored processes to allow comparisons
+        self.monitored_processes = defaultdict(list)
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
@@ -90,11 +93,8 @@ class LutrisThread(threading.Thread):
         """Attach child process that need to be killed on game exit."""
         self.attached_threads.append(thread)
 
-    def run(self):
-        """Run the thread."""
-        logger.debug("Command env: " + self.env_string)
-        logger.debug("Running command: " + self.command_string)
-
+    def apply_environment(self):
+        """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
         for key, value in self.env.items():
@@ -103,25 +103,37 @@ class LutrisThread(threading.Thread):
             os.environ[key] = value
 
         # Reset library paths if they were not provided
-        for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
-            if key not in self.env and os.environ.get(key):
-                del os.environ[key]
+        if not any([key in self.env for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD')]):
+            system.reset_library_preloads()
 
         # Copy the resulting environment to what will be passed to the process
         env = os.environ.copy()
         env.update(self.env)
+        return env
+
+    def run(self):
+        """Run the thread."""
+        logger.debug("Command env: " + self.env_string)
+        logger.debug("Running command: " + self.command_string)
 
         if self.terminal and system.find_executable(self.terminal):
             self.game_process = self.run_in_terminal()
         else:
             self.terminal = False
+            env = self.apply_environment()
             self.game_process = self.execute_process(self.command, env)
+
         if not self.game_process:
+            logger.warning("No game process available")
             return
 
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout, GLib.IO_IN | GLib.IO_HUP, self.on_stdout_output)
+            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout,
+                                                    GLib.IO_IN | GLib.IO_HUP,
+                                                    self.on_stdout_output)
+        else:
+            self.game_process.stdout.close()
 
     def on_stdout_output(self, fd, condition):
         if condition == GLib.IO_HUP:
@@ -217,13 +229,19 @@ class LutrisThread(threading.Thread):
         for thread in self.attached_threads:
             logger.debug("Stopping thread %s", thread)
             thread.stop()
+
         if hasattr(self, 'stop_func'):
-            self.stop_func()
+            resume_stop = self.stop_func()
+            if not resume_stop:
+                return False
+
         self.restore_environment()
         self.is_running = False
+        self.ready_state = False
 
         if killall:
             self.killall()
+        return True
 
     def killall(self):
         """Kill every remaining child process"""
@@ -278,7 +296,6 @@ class LutrisThread(threading.Thread):
             if child not in processes['monitored']:
                 num_children += 1
                 num_watched_children += 1
-                terminated_children += 1
         return processes, num_children, num_watched_children, terminated_children
 
     def watch_children(self):
@@ -286,49 +303,65 @@ class LutrisThread(threading.Thread):
         if not self.game_process or not self.is_running:
             logger.error('No game process available')
             return False
+
+        if not self.ready_state:
+            # Don't monitor processes until the thread is in a ready state
+            self.cycles_without_children = 0
+            return True
+
         processes, num_children, num_watched_children, terminated_children = self.get_processes()
-
-        if processes != self.monitored_processes:
-            self.monitored_processes = processes
-            logger.debug("Processes: " + " | ".join([
-                "{}: {}".format(key, ', '.join(processes[key]))
-                for key in processes if processes[key]
-            ]))
-
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
             self.monitoring_started = True
+
+        for key in processes:
+            if processes[key] != self.monitored_processes[key]:
+                self.monitored_processes[key] = processes[key]
+                logger.debug("Processes {}: {}".format(key, ', '.join(processes[key]) or 'none'))
 
         if self.runner and hasattr(self.runner, 'watch_game_process'):
             if not self.runner.watch_game_process():
                 self.is_running = False
                 return False
+
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
-                logger.debug("Cycles without children: %s", self.cycles_without_children)
+                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
+                if cycles_left:
+                    if cycles_left < 4:
+                        logger.debug("Thread aborting in %d cycle", cycles_left)
+                else:
+                    logger.warning("Thread aborting now")
         else:
             self.cycles_without_children = 0
         max_cycles_reached = (self.cycles_without_children >=
                               MAX_CYCLES_WITHOUT_CHILDREN)
 
         if num_children == 0 or max_cycles_reached:
-            if max_cycles_reached:
-                logger.debug('Maximum number of cycles without children reached')
             self.is_running = False
-            self.stop()
+
+            # Remove logger early to avoid issues with zombie processes
+            # (unconfirmed)
+            if self.stdout_monitor:
+                logger.debug("Detaching logger")
+                GLib.source_remove(self.stdout_monitor)
+
+            resume_stop = self.stop()
+            if not resume_stop:
+                logger.info("Full shutdown prevented")
+                return False
+
             if num_children == 0:
                 logger.debug("No children left in thread")
                 self.game_process.communicate()
             else:
-                logger.debug('Some processes are still active (%d)', num_children)
+                logger.debug('%d processes are still active', num_children)
                 if self.is_zombie():
-                    logger.debug('Killing game process')
+                    logger.warning('Zombie process detected, killing game process')
                     self.game_process.kill()
             self.return_code = self.game_process.returncode
-            if self.stdout_monitor:
-                GLib.source_remove(self.stdout_monitor)
             return False
 
         if terminated_children and terminated_children == num_watched_children:

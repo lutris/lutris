@@ -1,14 +1,13 @@
 import os
-from gi.repository import Gtk, GObject, GLib
-from lutris.util.log import logger
-from lutris.util import system
-from lutris.util.extract import extract_archive
-from lutris.util import jobs
-from lutris.gui.widgets.dialogs import Dialog
+
+from gi.repository import GLib, GObject, Gtk
+from lutris import api, settings
 from lutris.gui.dialogs import ErrorDialog
-from lutris import api
-from lutris import settings
-from lutris.downloader import Downloader
+from lutris.gui.widgets.dialogs import Dialog
+from lutris.util import jobs, system
+from lutris.util.downloader import Downloader
+from lutris.util.extract import extract_archive
+from lutris.util.log import logger
 
 
 class RunnerInstallDialog(Dialog):

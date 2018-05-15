@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import yaml
+import re
 import webbrowser
 
 from gi.repository import Gtk, Pango
 
-from lutris import pga, settings
+from lutris import api, pga, settings
 from lutris.services import xdg
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
@@ -22,13 +22,13 @@ from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
 
-class InstallerDialog(Gtk.Window):
+class InstallerWindow(Gtk.ApplicationWindow):
     """GUI for the install process."""
     game_dir = None
     download_progress = None
 
-    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None):
-        super().__init__()
+    def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None, application=None):
+        Gtk.ApplicationWindow.__init__(self, application=application)
         self.set_default_icon_name('lutris')
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
@@ -41,10 +41,9 @@ class InstallerDialog(Gtk.Window):
         self.log_textview = None
 
         # Dialog properties
-        self.set_size_request(600, 480)
+        self.set_size_request(420, 420)
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
-        self.set_resizable(False)
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
@@ -121,9 +120,7 @@ class InstallerDialog(Gtk.Window):
     def get_scripts(self):
         if system.path_exists(self.installer_file):
             # local script
-            logger.debug("Opening script: %s", self.installer_file)
-            scripts = yaml.safe_load(open(self.installer_file, 'r').read())
-            self.on_scripts_obtained(scripts)
+            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
         else:
             jobs.AsyncCall(interpreter.fetch_script, self.on_scripts_obtained,
                            self.game_slug, self.revision)
@@ -151,7 +148,27 @@ class InstallerDialog(Gtk.Window):
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
             game_data = pga.get_game_by_field(self.game_slug, 'slug')
-            game = Game(game_data['id'])
+
+            if game_data and 'slug' in game_data:
+                # Game data already exist locally.
+                game = Game(game_data['id'])
+            else:
+                # Try to load game data from remote.
+                games = api.get_games([self.game_slug])
+
+                if games and len(games) >= 1:
+                    remote_game = games[0]
+                    game_data = {
+                        'name': remote_game['name'],
+                        'slug': remote_game['slug'],
+                        'year': remote_game['year'],
+                        'updated': remote_game['updated'],
+                        'steamid': remote_game['steamid']
+                    }
+                    game = Game(pga.add_game(**game_data))
+                else:
+                    game = None
+
             AddGameDialog(
                 self.parent,
                 game=game,
@@ -163,6 +180,11 @@ class InstallerDialog(Gtk.Window):
     # ---------------------------
     # "Choose installer" stage
     # ---------------------------
+
+    @staticmethod
+    def _escape_text(text):
+        """Used to escape some characters for display in Gtk labels"""
+        return re.sub('&(?!amp;)', '&amp;', text)
 
     def choose_installer(self):
         """Stage where we choose an install script."""
@@ -177,6 +199,7 @@ class InstallerDialog(Gtk.Window):
                 script[item] = script.get(item) or ''
             for item in ['runner', 'version']:
                 if item not in script:
+                    logger.error("Invalid script: %s", script)
                     raise ScriptingError('Missing field "%s" in install script' % item)
 
             runner = script['runner']
@@ -189,7 +212,7 @@ class InstallerDialog(Gtk.Window):
             if not radio_group:
                 radio_group = btn
 
-        def _create_label(padding, text):
+        def _create_label(text):
             label = Gtk.Label()
             label.set_max_width_chars(60)
             label.set_line_wrap(True)
@@ -197,16 +220,25 @@ class InstallerDialog(Gtk.Window):
             label.set_alignment(0, .5)
             label.set_margin_left(50)
             label.set_margin_right(50)
-            label.set_markup(text)
-            self.installer_choice_box.pack_start(label, True, True, padding)
+            label.set_markup(self._escape_text(text))
             return label
 
         self.description_label = _create_label(
-            10, "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
         )
+        self.installer_choice_box.pack_start(self.description_label, True, True, 10)
+
         self.notes_label = _create_label(
-            5, "<i>{}</i>".format(self.scripts[0]['notes'])
+            "<i>{}</i>".format(self.scripts[0]['notes'])
         )
+        notes_scrolled_area = Gtk.ScrolledWindow()
+        try:
+            notes_scrolled_area.set_propagate_natural_height(True)
+        except AttributeError:
+            logger.debug("set_propagate_natural_height not available")
+        notes_scrolled_area.set_min_content_height(100)
+        notes_scrolled_area.add(self.notes_label)
+        self.installer_choice_box.pack_start(notes_scrolled_area, True, True, 10)
 
         self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
         self.installer_choice_box.show_all()
@@ -220,10 +252,10 @@ class InstallerDialog(Gtk.Window):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(description)
+            "<i><b>{}</b></i>".format(self._escape_text(description))
         )
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self.scripts[script_index]['notes'])
+            "<i>{}</i>".format(self._escape_text(self.scripts[script_index]['notes']))
         )
         if btn.get_active():
             self.installer_choice = script_index
@@ -236,8 +268,9 @@ class InstallerDialog(Gtk.Window):
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
         self.interpreter = interpreter.ScriptInterpreter(script, self)
-        game_name = self.interpreter.game_name.replace('&', '&amp;')
-        self.title_label.set_markup(u"<b>Installing {}</b>".format(game_name))
+        self.title_label.set_markup(u"<b>Installing {}</b>".format(
+            self._escape_text(self.interpreter.game_name)
+        ))
         self.select_install_folder()
 
     # --------------------------
@@ -333,11 +366,11 @@ class InstallerDialog(Gtk.Window):
             return
         self.interpreter.file_selected(file_path)
 
-    def start_download(self, file_uri, dest_file, callback=None, data=None):
+    def start_download(self, file_uri, dest_file, callback=None, data=None, referer=None):
         self.clean_widgets()
         logger.debug("Downloading %s to %s", file_uri, dest_file)
         self.download_progress = DownloadProgressBox(
-            {'url': file_uri, 'dest': dest_file}, cancelable=True
+            {'url': file_uri, 'dest': dest_file, 'referer': referer}, cancelable=True
         )
         self.download_progress.cancel_button.hide()
         callback = callback or self.on_download_complete
@@ -502,12 +535,11 @@ class InstallerDialog(Gtk.Window):
         self.destroy()
 
     def on_destroy(self, widget):
+        """destroy event handler"""
+        logger.debug("Destroying %s", self.__repr__())
         if self.interpreter:
             self.interpreter.cleanup()
-        if self.parent:
-            self.destroy()
-        else:
-            Gtk.main_quit()
+        self.destroy()
 
     def create_shortcuts(self, *args):
         """Create desktop and global menu shortcuts."""
