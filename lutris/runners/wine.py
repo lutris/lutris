@@ -252,8 +252,10 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
     wine_config = config or LutrisConfig(runner_slug='wine')
 
-    if use_lutris_runtime(force_disable=disable_runtime or
-                          wine_config.system_config['disable_runtime']):
+    if use_lutris_runtime(
+            wine_path=executable,
+            force_disable=disable_runtime or wine_config.system_config['disable_runtime']
+    ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -362,13 +364,16 @@ def set_drive_path(prefix, letter, path):
     os.symlink(path, drive_path)
 
 
-def use_lutris_runtime(force_disable=False):
+def use_lutris_runtime(wine_path, force_disable=False):
     """Returns whether to use the Lutris runtime.
     The runtime can be forced to be disabled, otherwise it's disabled
     automatically if Wine is installed system wide.
     """
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
+    if WINE_DIR in wine_path:
+        logger.debug("%s is provided by Lutris, using runtime")
+        return True
     return not is_installed_systemwide()
 
 
