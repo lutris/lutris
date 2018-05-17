@@ -301,7 +301,7 @@ def fix_path_case(path):
 def get_pids_using_file(path):
     """Return a set of pids using file `path`."""
     if not os.path.exists(path):
-        logger.error("No file %s", path)
+        logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
     fuser_path = None
     fuser_output = ""

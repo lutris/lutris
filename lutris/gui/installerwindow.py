@@ -530,7 +530,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def on_destroy(self, widget):
         """destroy event handler"""
-        logger.debug("Destroying %s", self.__repr__())
         if self.interpreter:
             self.interpreter.cleanup()
         self.destroy()

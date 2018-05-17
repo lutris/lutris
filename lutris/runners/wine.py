@@ -341,7 +341,7 @@ def detect_prefix_arch(prefix_path=None):
     registry_path = os.path.join(prefix_path, 'system.reg')
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
         # No prefix_path exists or invalid prefix
-        logger.debug("No prefix found in %s", prefix_path)
+        logger.debug("Not detecting prefix arch, no prefix found in %s", prefix_path)
         return
     with open(registry_path, 'r') as registry:
         for i in range(5):
