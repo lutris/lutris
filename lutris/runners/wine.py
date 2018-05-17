@@ -383,7 +383,7 @@ def is_installed_systemwide():
     for build in WINE_PATHS.keys():
         if system.find_executable(WINE_PATHS[build]):
             if (
-                WINE_PATHS['build'] == 'wine' and
+                WINE_PATHS[build] == 'wine' and
                 os.path.exists('/usr/lib/wine/wine64') and
                 not os.path.exists('/usr/lib/wine/wine')
             ):
