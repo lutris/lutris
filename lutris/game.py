@@ -431,9 +431,11 @@ class Game(object):
                                     "already using the same Wine prefix.</b>")
 
     def notify_steam_game_changed(self, appmanifest):
-        logger.debug("Steam game %s state has changed, new states: %s",
-                     appmanifest.steamid, ', '.join(appmanifest.states))
-        if 'Fully Installed' in appmanifest.states:
+        """Receive updates from Steam games and set the thread's ready state accordingly"""
+        if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
+            logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
-        elif 'Update Required' in appmanifest.states:
+        elif 'Update Required' in appmanifest.states and self.game_thread.ready_state:
+            logger.info("Steam game %s updating, setting game thread as not ready",
+                        appmanifest.steamid)
             self.game_thread.ready_state = False
