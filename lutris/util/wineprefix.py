@@ -57,6 +57,8 @@ class WinePrefixManager:
 
         if (not desktop_dir):
             desktop_dir = user_dir
+        else:
+            desktop_dir = os.path.expanduser(desktop_dir)
 
         if os.path.exists(user_dir):
             # Replace desktop integration symlinks
