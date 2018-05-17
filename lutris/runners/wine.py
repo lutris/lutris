@@ -382,6 +382,13 @@ def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.keys():
         if system.find_executable(WINE_PATHS[build]):
+            if (
+                WINE_PATHS['build'] == 'wine' and
+                os.path.exists('/usr/lib/wine/wine64') and
+                not os.path.exists('/usr/lib/wine/wine')
+            ):
+                logger.warning("wine32 is missing from system")
+                return False
             return True
     return False
 
