@@ -150,6 +150,9 @@ def get_paths():
         # Put /usr/lib at the beginning, this prioritizes system libraries over
         # the Lutris and Steam runtimes.
         paths = ["/usr/lib"]
+        if os.path.exists("/usr/lib32"):
+            # Also let the system take over 32bit libs.
+            paths.append("/usr/lib32")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
