@@ -8,13 +8,16 @@ from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
+DXVK_LATEST = "0.51"
+DXVK_PAST_RELEASES = ["0.50", "0.42", "0.41", "0.40", "0.31", "0.30", "0.21", "0.20"]
+
 
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_dir = os.path.join(RUNTIME_DIR, 'dxvk')
     dxvk_dlls = ('dxgi', 'd3d11')
-    latest_version = "0.51"
+    latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch='win64', version=None):
         self.prefix = prefix
@@ -37,7 +40,7 @@ class DXVKManager:
 
     @staticmethod
     def is_dxvk_dll(dll_path):
-        """Check if a given DLL path is provided by DVXK
+        """Check if a given DLL path is provided by DXVK
 
         Very basic check to see if a dll exists and is over 1MB. If this is the
         case, then consider the DLL to be from DXVK
@@ -55,7 +58,9 @@ class DXVKManager:
 
     def download(self):
         """Download DXVK to the local cache"""
-        dxvk_url = self.base_url.format(self.version, self.version)
+        # There's a glitch in one of the archive's names
+        fixed_version = 'v0.40' if self.version == '0.40' else self.version
+        dxvk_url = self.base_url.format(self.version, fixed_version)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
 

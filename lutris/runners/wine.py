@@ -13,7 +13,7 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort, parse_version
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
-from lutris.util.dxvk import DXVKManager
+from lutris.util import dxvk
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -584,6 +584,15 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
+        def get_dxvk_choices():
+            version_choices = [
+                ('Manual', 'manual'),
+                ('Latest: (%s)' % dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
+            ]
+            for version in dxvk.DXVK_PAST_RELEASES:
+                version_choices.append((version, version))
+            return version_choices
+
         self.runner_options = [
             {
                 'option': 'version',
@@ -607,6 +616,13 @@ class wine(Runner):
                 'label': 'Enable DXVK',
                 'type': 'bool',
                 'help': 'Use DXVK to translate DirectX 11 calls to Vulkan'
+            },
+            {
+                'option': 'dxvk_version',
+                'label': 'DXVK version',
+                'type': 'choice',
+                'choices': get_dxvk_choices,
+                'default': dxvk.DXVK_LATEST
             },
             {
                 'option': 'x360ce-path',
@@ -959,16 +975,21 @@ class wine(Runner):
 
         self.set_wine_desktop(enable_wine_desktop)
 
-    def toggle_dxvk(self, enable_dxvk):
-        dxvk_manager = DXVKManager(self.prefix_path, arch=self.wine_arch)
-        if enable_dxvk:
-            if not dxvk_manager.is_available():
-                dxvk_manager.download()
-            dxvk_manager.enable()
+    def toggle_dxvk(self, enable, version=None):
+        dxvk_manager = dxvk.DXVKManager(self.prefix_path, arch=self.wine_arch, version=version)
+
+        # manual version only sets the dlls to native
+        if version != 'manual':
+            if enable:
+                if not dxvk_manager.is_available():
+                    dxvk_manager.download()
+                dxvk_manager.enable()
+            else:
+                dxvk_manager.disable()
+
+        if enable:
             for dll in dxvk_manager.dxvk_dlls:
                 self.dll_overrides[dll] = 'n'
-        else:
-            dxvk_manager.disable()
 
     def prelaunch(self):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
@@ -978,12 +999,14 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get('x360ce-path'))
-        self.toggle_dxvk(bool(self.runner_config.get('dxvk')))
+        self.toggle_dxvk(
+            bool(self.runner_config.get('dxvk')),
+            version=self.runner_config.get('dxvk_version')
+        )
         return True
 
     def get_dll_overrides(self):
         overrides = self.runner_config.get('overrides') or {}
-
         overrides.update(self.dll_overrides)
         return overrides
 
@@ -1053,11 +1076,10 @@ class wine(Runner):
             self.dll_overrides['dinput8'] = 'native'
 
     def sandbox(self, wine_prefix):
-        sandbox = self.runner_config.get('sandbox', True)
-
-        if (sandbox):
-            sandbox_dir = self.runner_config.get('sandbox_dir', None)
-            wine_prefix.desktop_integration(desktop_dir=sandbox_dir)
+        if self.runner_config.get('sandbox', True):
+            wine_prefix.desktop_integration(
+                desktop_dir=self.runner_config.get('sandbox_dir')
+            )
 
     def play(self):
         game_exe = self.game_exe
