@@ -138,12 +138,17 @@ class ConfigBox(VBox):
             self.generate_combobox(option_key,
                                    option["choices"],
                                    option["label"],
-                                   value, default)
+                                   value,
+                                   default)
+
         elif option_type == 'choice_with_entry':
             self.generate_combobox(option_key,
                                    option["choices"],
                                    option["label"],
-                                   value, default, has_entry=True)
+                                   value,
+                                   default,
+                                   has_entry=True)
+
         elif option_type == 'bool':
             self.generate_checkbox(option, value)
             self.tooltip_default = 'Enabled' if default else 'Disabled'
@@ -229,7 +234,7 @@ class ConfigBox(VBox):
         # With entry ("choice_with_entry" type)
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
-            combobox.set_entry_text_column(1)
+            combobox.set_entry_text_column(0)
             if value:
                 combobox.get_child().set_text(value)
         # No entry ("choice" type)
