@@ -9,7 +9,7 @@ from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
 DXVK_LATEST = "0.51"
-DXVK_PAST_RELEASES = ["0.50", "0.42", "0.41", "0.40", "0.31", "0.30", "0.21", "0.20"]
+DXVK_PAST_RELEASES = ["0.50", "0.42", "0.31", "0.21"]
 
 
 class DXVKManager:
