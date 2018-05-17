@@ -69,7 +69,13 @@ class DXVKManager:
         downloader.start()
         while downloader.check_progress() < 1:
             time.sleep(1)
-        extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
+        if not os.path.exists(dxvk_archive_path):
+            logger.error("DXVK %s not downloaded")
+            return
+        if os.stat(dxvk_archive_path).st_size:
+            extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
+        else:
+            logger.error("%s is an empty file", self.dxvk_path)
         os.remove(dxvk_archive_path)
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
@@ -113,7 +119,8 @@ class DXVKManager:
     def enable(self):
         """Enable DXVK for the current prefix"""
         if not os.path.exists(self.dxvk_path):
-            raise RuntimeError("DXVK %s is not availble locally" % self.version)
+            logger.error("DXVK %s is not availble locally" % self.version)
+            return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.enable_dxvk_dll(system_dir, dxvk_arch, dll)
 
