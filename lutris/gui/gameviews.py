@@ -123,7 +123,7 @@ class GameStore(GObject.Object):
         self.add_game(game)
 
     def add_game(self, game):
-        name = game['name'].replace('&', "&amp;")
+        name = game['name'].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         runner = None
         platform = ''
         runner_name = game['runner']
