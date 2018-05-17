@@ -247,13 +247,14 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINE'] = winetricks_wine
     else:
         wineenv['WINE'] = wine_path
+
     if prefix:
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
 
     if use_lutris_runtime(
-            wine_path=executable,
+            wine_path=wineenv['WINE'],
             force_disable=disable_runtime or wine_config.system_config['disable_runtime']
     ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
