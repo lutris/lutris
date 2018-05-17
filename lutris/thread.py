@@ -132,8 +132,6 @@ class LutrisThread(threading.Thread):
             self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout,
                                                     GLib.IO_IN | GLib.IO_HUP,
                                                     self.on_stdout_output)
-        else:
-            self.game_process.stdout.close()
 
     def on_stdout_output(self, fd, condition):
         if condition == GLib.IO_HUP:
