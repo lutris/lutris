@@ -274,9 +274,9 @@ class Runner:
                 ]
                 if default_version:
                     return default_version[0]
-            elif len(versions) == 1 and system.is_64bit:
+            elif len(versions) == 1 and system.IS_64BIT:
                 return versions[0]
-            elif len(versions) > 1 and system.is_64bit:
+            elif len(versions) > 1 and system.IS_64BIT:
                 default_version = [
                     v for v in versions
                     if v['default'] is True

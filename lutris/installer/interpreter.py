@@ -4,7 +4,6 @@ import os
 import time
 import yaml
 import shutil
-import platform
 
 from gi.repository import GLib
 
@@ -539,8 +538,7 @@ class ScriptInterpreter(CommandsMixin):
         launcher_value = None
 
         # exe64 can be provided to specify an executable for 64bit systems
-        is_64bit = platform.machine() == "x86_64"
-        exe = 'exe64' if 'exe64' in self.script and is_64bit else 'exe'
+        exe = 'exe64' if 'exe64' in self.script and system.IS_64BIT else 'exe'
 
         for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
             if launcher not in self.script:
@@ -634,8 +632,7 @@ class ScriptInterpreter(CommandsMixin):
             config['game'] = self._substitute_config(config['game'])
 
             # steamless_binary64 can be used to specify 64 bit non-steam binaries
-            is_64bit = platform.machine() == "x86_64"
-            if is_64bit and 'steamless_binary64' in config['game']:
+            if system.IS_64BIT and 'steamless_binary64' in config['game']:
                 config['game']['steamless_binary'] = config['game']['steamless_binary64']
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)

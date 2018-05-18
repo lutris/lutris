@@ -1,3 +1,5 @@
+"""System utilities"""
+# pylint: disable=inconsistent-return-statements
 import hashlib
 import signal
 import os
@@ -41,7 +43,7 @@ TERMINAL_CANDIDATES = [
 
 INSTALLED_TERMINALS = []
 
-is_64bit = sys.maxsize > 2**32
+IS_64BIT = sys.maxsize > 2**32
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
@@ -64,7 +66,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
         logger.error("No executable provided!")
         return
     if os.path.isabs(command[0]) and not path_exists(command[0]):
-        logger.error("No executable found in %s" % command)
+        logger.error("No executable found in %s", command)
         return
 
     if not quiet:
@@ -87,11 +89,13 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
         stderr_handler = open(os.devnull, 'w')
         stderr_needs_closing = True
     try:
-        stdout, stderr = subprocess.Popen(command,
-                                          shell=False,
-                                          stdout=subprocess.PIPE,
-                                          stderr=stderr_handler,
-                                          env=existing_env, cwd=cwd).communicate()
+        stdout, stderr = subprocess.Popen(
+            command,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=stderr_handler,
+            env=existing_env, cwd=cwd
+        ).communicate()
     except (OSError, TypeError) as ex:
         logger.error('Could not run command %s (env: %s): %s', command, env, ex)
         return
@@ -107,8 +111,8 @@ def get_md5_hash(filename):
     """Return the md5 hash of a file."""
     md5 = hashlib.md5()
     try:
-        with open(filename, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
+        with open(filename, 'rb') as _file:
+            for chunk in iter(lambda: _file.read(8192), b''):
                 md5.update(chunk)
     except IOError:
         print("Error reading %s" % filename)
@@ -116,7 +120,8 @@ def get_md5_hash(filename):
     return md5.hexdigest()
 
 
-def find_executable(exec_name, quiet=False):
+def find_executable(exec_name):
+    """Return the absolute path of an executable"""
     if not exec_name:
         raise ValueError("find_executable: exec_name required")
     return shutil.which(exec_name)
@@ -135,8 +140,7 @@ def get_pid(program, multiple=False):
     pids = pids.split()
     if multiple:
         return pids
-    else:
-        return pids[0]
+    return pids[0]
 
 
 def get_all_pids():
@@ -145,6 +149,7 @@ def get_all_pids():
 
 
 def kill_pid(pid):
+    """Terminate a process referenced by its PID"""
     try:
         pid = int(pid)
     except ValueError:
@@ -167,22 +172,24 @@ def get_command_line(pid):
     return cmdline
 
 
-def python_identifier(string):
-    if not isinstance(string, str):
-        logger.error("python_identifier requires a string, got %s", string)
+def python_identifier(unsafe_string):
+    """Converts a string to something that can be used as a python variable"""
+    if not isinstance(unsafe_string, str):
+        logger.error("Cannot convert %s to a python identifier",
+                     type(unsafe_string))
         return
 
-    def dashrepl(matchobj):
+    def _dashrepl(matchobj):
         return matchobj.group(0).replace('-', '_')
 
-    return re.sub(r'(\${)([\w-]*)(})', dashrepl, string)
+    return re.sub(r'(\${)([\w-]*)(})', _dashrepl, unsafe_string)
 
 
 def substitute(string_template, variables):
     """Expand variables on a string template
 
     Args:
-        string_template (str): template string_template with variables preceded by $
+        string_template (str): template with variables preceded by $
         variables (dict): mapping of variable identifier > value
 
     Return:
@@ -208,6 +215,7 @@ def substitute(string_template, variables):
 
 
 def merge_folders(source, destination):
+    """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
     source = os.path.abspath(source)
     for (dirpath, dirnames, filenames) in os.walk(source):
@@ -215,13 +223,13 @@ def merge_folders(source, destination):
         dst_abspath = os.path.join(destination, source_relpath)
         for dirname in dirnames:
             new_dir = os.path.join(dst_abspath, dirname)
-            logger.debug("creating dir: %s" % new_dir)
+            logger.debug("creating dir: %s", new_dir)
             try:
                 os.mkdir(new_dir)
             except OSError:
                 pass
         for filename in filenames:
-            logger.debug("Copying %s" % filename)
+            logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename),
@@ -229,14 +237,16 @@ def merge_folders(source, destination):
 
 
 def remove_folder(path):
+    """Delete a folder specified by path"""
     if os.path.exists(path):
-        logger.debug("Removing folder %s" % path)
+        logger.debug("Removing folder %s", path)
         if os.path.samefile(os.path.expanduser('~'), path):
             raise RuntimeError("Lutris tried to erase home directory!")
         shutil.rmtree(path)
 
 
 def create_folder(path):
+    """Creates a folder specified by path"""
     if not path:
         return
     path = os.path.expanduser(path)
@@ -247,11 +257,7 @@ def create_folder(path):
 
 def is_removeable(path, excludes=None):
     """Check if a folder is safe to remove (not system or home, ...)"""
-    if not path:
-        return False
-    if not os.path.exists(path):
-        return False
-    if path in excludes:
+    if not path_exists(path) or path in excludes:
         return False
 
     parts = path.strip('/').split('/')
@@ -313,27 +319,27 @@ def get_pids_using_file(path):
     if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
         return set([])
-    else:
-        fuser_output = execute([fuser_path, path], quiet=True)
-        return set(fuser_output.split())
+    fuser_output = execute([fuser_path, path], quiet=True)
+    return set(fuser_output.split())
 
 
 def get_terminal_apps():
+    """Return the list of installed terminal emulators"""
     if INSTALLED_TERMINALS:
         return INSTALLED_TERMINALS
     else:
         for exe in TERMINAL_CANDIDATES:
-            if find_executable(exe, quiet=True):
+            if find_executable(exe):
                 INSTALLED_TERMINALS.append(exe)
     return INSTALLED_TERMINALS
 
 
 def get_default_terminal():
+    """Return the default terminal emulator"""
     terms = get_terminal_apps()
     if terms:
         return terms[0]
-    else:
-        logger.debug("Couldn't find a terminal emulator.")
+    logger.error("Couldn't find a terminal emulator.")
 
 
 def reverse_expanduser(path):
@@ -348,6 +354,7 @@ def reverse_expanduser(path):
 
 
 def path_exists(path):
+    """Wrapper around os.path.exists that doesn't crash with empty values"""
     if not path:
         return False
     return os.path.exists(path)
@@ -361,10 +368,12 @@ def path_is_empty(path):
 
 
 def stacktrace():
+    """Print a stacktrace at the current location"""
     traceback.print_stack()
 
 
 def reset_library_preloads():
+    """Remove library preloads from environment"""
     for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
         if os.environ.get(key):
             del os.environ[key]
