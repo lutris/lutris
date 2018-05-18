@@ -132,8 +132,6 @@ class LutrisThread(threading.Thread):
             self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout,
                                                     GLib.IO_IN | GLib.IO_HUP,
                                                     self.on_stdout_output)
-        else:
-            self.game_process.stdout.close()
 
     def on_stdout_output(self, fd, condition):
         if condition == GLib.IO_HUP:
@@ -182,8 +180,14 @@ class LutrisThread(threading.Thread):
         try:
             if self.cwd and not system.path_exists(self.cwd):
                 os.makedirs(self.cwd)
+
+            if self.watch:
+                pipe=subprocess.PIPE
+            else:
+                pipe=None
+
             return subprocess.Popen(command, bufsize=1,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    stdout=pipe, stderr=subprocess.STDOUT,
                                     cwd=self.cwd, env=env)
         except OSError as ex:
             logger.exception("Failed to execute %s: %s", ' '.join(command), ex)
