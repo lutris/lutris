@@ -69,7 +69,6 @@ class RuntimeUpdater:
         created_at = time.strptime(created_at[:created_at.find('.')],
                                    "%Y-%m-%dT%H:%M:%S")
         if self.get_created_at(name) >= created_at:
-            logger.debug("Runtime %s is up to date", name)
             return
         if self.status_updater:
             self.status_updater("Updating Runtime")
