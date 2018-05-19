@@ -1045,7 +1045,7 @@ class wine(Runner):
         # Add wineserver PIDs to the mix (at least one occurence of fuser not
         # picking the games's PID from wine/wine64 but from wineserver for some
         # unknown reason.
-        pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe, 'wineserver')))
+        pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), 'wineserver'))
         return pids
 
     def setup_x360ce(self, x360ce_path):
