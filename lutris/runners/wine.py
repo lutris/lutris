@@ -1040,9 +1040,12 @@ class wine(Runner):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)
         if self.wine_arch == 'win64' and os.path.basename(exe) == 'wine':
-            wine64 = exe + '64'
-            pids_64 = system.get_pids_using_file(wine64)
-            pids = pids | pids_64
+            pids = pids | system.get_pids_using_file(exe + '64')
+
+        # Add wineserver PIDs to the mix (at least one occurence of fuser not
+        # picking the games's PID from wine/wine64 but from wineserver for some
+        # unknown reason.
+        pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe, 'wineserver')))
         return pids
 
     def setup_x360ce(self, x360ce_path):
