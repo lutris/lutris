@@ -151,7 +151,6 @@ class Runner:
 
     def get_env(self, os_env=False):
         env = {}
-
         if os_env:
             env.update(os.environ.copy())
 

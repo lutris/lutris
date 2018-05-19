@@ -1018,7 +1018,12 @@ class wine(Runner):
         return overrides
 
     def get_env(self, os_env=True):
-        env = super(wine, self).get_env(os_env)
+        """Return environment variables used by the game"""
+        # Always false to runner.get_env, the default value
+        # of os_env is inverted in that class.
+        env = super(wine, self).get_env(False)
+        if os_env:
+            env.update(os.environ.copy())
         env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
