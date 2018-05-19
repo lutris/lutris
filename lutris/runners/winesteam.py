@@ -339,7 +339,7 @@ class winesteam(wine.wine):
             main_dir = os.path.join(steam_data_dir, 'steamapps')
             main_dir = system.fix_path_case(main_dir)
             if main_dir and os.path.isdir(main_dir):
-                dirs.append(main_dir)
+                dirs.append(os.path.abspath(main_dir))
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:
@@ -349,7 +349,7 @@ class winesteam(wine.wine):
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
                 if linux_path and os.path.isdir(linux_path):
-                    dirs.append(linux_path)
+                    dirs.append(os.path.abspath(linux_path))
                 i += 1
         return dirs
 
