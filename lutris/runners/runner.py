@@ -212,11 +212,13 @@ class Runner:
         thread.start()
 
     def use_runtime(self):
-        disable_runtime = self.system_config.get('disable_runtime')
-        disable_runtime_by_env = runtime.RUNTIME_DISABLED
-        if disable_runtime_by_env is True:
-            disable_runtime = disable_runtime_by_env
-        return not disable_runtime
+        if runtime.RUNTIME_DISABLED:
+            logger.info("Runtime disabled by environment")
+            return False
+        if self.system_config.get('disable_runtime'):
+            logger.info("Runtime disabled by system configuration")
+            return False
+        return True
 
     def install_dialog(self):
         """Ask the user if she wants to install the runner.
