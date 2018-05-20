@@ -594,7 +594,7 @@ class wine(Runner):
         def get_dxvk_choices():
             version_choices = [
                 ('Manual', 'manual'),
-                ('Latest: (%s)' % dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
+                (dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
             ]
             for version in dxvk.DXVK_PAST_RELEASES:
                 version_choices.append((version, version))
