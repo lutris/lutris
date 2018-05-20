@@ -1,3 +1,14 @@
+lutris (0.4.17) bionic; urgency=medium
+
+  * Add DVXK version option
+  * Fixes in Wine registry handling
+  * Prioritize /usr/lib32 over Lutris runtime
+  * Re-enable Lutris runtime if using a Lutris Wine build
+  * Fix xrandr parsing when DisplayPort are available
+  * Get pids used by wineserver (experimental, likely to be removed)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 20 May 2018 14:51:49 -0700
+
 lutris (0.4.16) bionic; urgency=high
 
   * Fix crash preventing running or configuring wine games
