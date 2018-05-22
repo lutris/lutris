@@ -20,10 +20,10 @@ deb: clean
 	mv ../lutris_0* build
 
 changelog-add:
-	dch -i
+	EDITOR=vim dch -i
 
 changelog-edit:
-	dch -e
+	EDITOR=vim dch -e
 
 clean:
 	rm -rf build

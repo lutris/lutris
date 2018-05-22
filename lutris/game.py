@@ -316,6 +316,8 @@ class Game(object):
         exclude_processes = shlex.split(system_config.get('exclude_processes', ''))
 
         monitoring_disabled = system_config.get('disable_monitoring')
+        if monitoring_disabled:
+            show_obnoxious_process_monitor_message()
         process_watch = not monitoring_disabled
 
         self.game_thread = LutrisThread(launch_arguments,
@@ -431,9 +433,29 @@ class Game(object):
                                     "already using the same Wine prefix.</b>")
 
     def notify_steam_game_changed(self, appmanifest):
-        logger.debug("Steam game %s state has changed, new states: %s",
-                     appmanifest.steamid, ', '.join(appmanifest.states))
-        if 'Fully Installed' in appmanifest.states:
+        """Receive updates from Steam games and set the thread's ready state accordingly"""
+        if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
+            logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
-        elif 'Update Required' in appmanifest.states:
+        elif 'Update Required' in appmanifest.states and self.game_thread.ready_state:
+            logger.info("Steam game %s updating, setting game thread as not ready",
+                        appmanifest.steamid)
             self.game_thread.ready_state = False
+
+
+def show_obnoxious_process_monitor_message():
+    """Display an annoying message for people who disable the process monitor"""
+    for _ in range(5):
+        logger.critical("")
+    logger.critical("   ****************************************************")
+    logger.critical("   ****************************************************")
+    logger.critical("   ***  YOU HAVE THE PROCESS MONITOR DISABLED!!!!!  ***")
+    logger.critical("   ****************************************************")
+    logger.critical("   ****************************************************")
+    logger.critical("THIS OPTION WAS IMPLEMENTED AS A WORKAROUND FOR A BUG THAT HAS BEEN FIXED!!11!!1")
+    logger.critical("RUNNING GAMES WITH THE PROCESS MONITOR DISABLED IS NOT SUPPORTED!!!")
+    logger.critical("YOU ARE DISCOURAGED FROM REPORTING ISSUES WITH THE PROCESS MONITOR DISABLED!!!")
+    logger.critical("THIS OPTION WILL BE REMOVED IN A FUTURE RELEASE!!!!!!!")
+    logger.critical("IF YOU THINK THIS OPTION CAN BE USEFUL FOR ANY MEANS PLEASE LET US KNOW!!!!")
+    for _ in range(5):
+        logger.critical("")

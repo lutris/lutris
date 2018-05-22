@@ -13,7 +13,7 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort, parse_version
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
-from lutris.util.dxvk import DXVKManager
+from lutris.util import dxvk
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -34,7 +34,6 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
 
     Path is something like HKEY_CURRENT_USER\Software\Wine\Direct3D
     """
-    reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
     formatted_value = {
         'REG_SZ': '"%s"' % value,
         'REG_DWORD': 'dword:' + value,
@@ -43,11 +42,12 @@ def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
         'REG_EXPAND_SZ': 'hex(7):' + value,
     }
     # Make temporary reg file
-    reg_file = open(reg_path, "w")
-    reg_file.write(
-        'REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type])
-    )
-    reg_file.close()
+    reg_path = os.path.join(settings.CACHE_DIR, 'winekeys.reg')
+    with open(reg_path, "w") as reg_file:
+        reg_file.write(
+            'REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type])
+        )
+    logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
 
@@ -247,13 +247,16 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINE'] = winetricks_wine
     else:
         wineenv['WINE'] = wine_path
+
     if prefix:
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
 
-    if use_lutris_runtime(force_disable=disable_runtime or
-                          wine_config.system_config['disable_runtime']):
+    if use_lutris_runtime(
+            wine_path=wineenv['WINE'],
+            force_disable=disable_runtime or wine_config.system_config['disable_runtime']
+    ):
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
 
     if overrides:
@@ -339,7 +342,7 @@ def detect_prefix_arch(prefix_path=None):
     registry_path = os.path.join(prefix_path, 'system.reg')
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
         # No prefix_path exists or invalid prefix
-        logger.debug("No prefix found in %s", prefix_path)
+        logger.debug("Not detecting prefix arch, no prefix found in %s", prefix_path)
         return
     with open(registry_path, 'r') as registry:
         for i in range(5):
@@ -362,13 +365,16 @@ def set_drive_path(prefix, letter, path):
     os.symlink(path, drive_path)
 
 
-def use_lutris_runtime(force_disable=False):
+def use_lutris_runtime(wine_path, force_disable=False):
     """Returns whether to use the Lutris runtime.
     The runtime can be forced to be disabled, otherwise it's disabled
     automatically if Wine is installed system wide.
     """
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
+    if WINE_DIR in wine_path:
+        logger.debug("%s is provided by Lutris, using runtime")
+        return True
     return not is_installed_systemwide()
 
 
@@ -376,6 +382,13 @@ def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.keys():
         if system.find_executable(WINE_PATHS[build]):
+            if (
+                WINE_PATHS[build] == 'wine' and
+                os.path.exists('/usr/lib/wine/wine64') and
+                not os.path.exists('/usr/lib/wine/wine')
+            ):
+                logger.warning("wine32 is missing from system")
+                return False
             return True
     return False
 
@@ -578,6 +591,15 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
+        def get_dxvk_choices():
+            version_choices = [
+                ('Manual', 'manual'),
+                (dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
+            ]
+            for version in dxvk.DXVK_PAST_RELEASES:
+                version_choices.append((version, version))
+            return version_choices
+
         self.runner_options = [
             {
                 'option': 'version',
@@ -601,6 +623,13 @@ class wine(Runner):
                 'label': 'Enable DXVK',
                 'type': 'bool',
                 'help': 'Use DXVK to translate DirectX 11 calls to Vulkan'
+            },
+            {
+                'option': 'dxvk_version',
+                'label': 'DXVK version',
+                'type': 'choice_with_entry',
+                'choices': get_dxvk_choices,
+                'default': dxvk.DXVK_LATEST
             },
             {
                 'option': 'x360ce-path',
@@ -953,16 +982,21 @@ class wine(Runner):
 
         self.set_wine_desktop(enable_wine_desktop)
 
-    def toggle_dxvk(self, enable_dxvk):
-        dxvk_manager = DXVKManager(self.prefix_path, arch=self.wine_arch)
-        if enable_dxvk:
-            if not dxvk_manager.is_available():
-                dxvk_manager.download()
-            dxvk_manager.enable()
+    def toggle_dxvk(self, enable, version=None):
+        dxvk_manager = dxvk.DXVKManager(self.prefix_path, arch=self.wine_arch, version=version)
+
+        # manual version only sets the dlls to native
+        if version != 'manual':
+            if enable:
+                if not dxvk_manager.is_available():
+                    dxvk_manager.download()
+                dxvk_manager.enable()
+            else:
+                dxvk_manager.disable()
+
+        if enable:
             for dll in dxvk_manager.dxvk_dlls:
                 self.dll_overrides[dll] = 'n'
-        else:
-            dxvk_manager.disable()
 
     def prelaunch(self):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
@@ -972,17 +1006,24 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get('x360ce-path'))
-        self.toggle_dxvk(bool(self.runner_config.get('dxvk')))
+        self.toggle_dxvk(
+            bool(self.runner_config.get('dxvk')),
+            version=self.runner_config.get('dxvk_version')
+        )
         return True
 
     def get_dll_overrides(self):
         overrides = self.runner_config.get('overrides') or {}
-
         overrides.update(self.dll_overrides)
         return overrides
 
     def get_env(self, os_env=True):
-        env = super(wine, self).get_env(os_env)
+        """Return environment variables used by the game"""
+        # Always false to runner.get_env, the default value
+        # of os_env is inverted in that class.
+        env = super(wine, self).get_env(False)
+        if os_env:
+            env.update(os.environ.copy())
         env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
@@ -1004,9 +1045,12 @@ class wine(Runner):
             exe = system.find_executable(exe)
         pids = system.get_pids_using_file(exe)
         if self.wine_arch == 'win64' and os.path.basename(exe) == 'wine':
-            wine64 = exe + '64'
-            pids_64 = system.get_pids_using_file(wine64)
-            pids = pids | pids_64
+            pids = pids | system.get_pids_using_file(exe + '64')
+
+        # Add wineserver PIDs to the mix (at least one occurence of fuser not
+        # picking the games's PID from wine/wine64 but from wineserver for some
+        # unknown reason.
+        pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), 'wineserver'))
         return pids
 
     def setup_x360ce(self, x360ce_path):
@@ -1047,11 +1091,10 @@ class wine(Runner):
             self.dll_overrides['dinput8'] = 'native'
 
     def sandbox(self, wine_prefix):
-        sandbox = self.runner_config.get('sandbox', True)
-
-        if (sandbox):
-            sandbox_dir = self.runner_config.get('sandbox_dir', None)
-            wine_prefix.desktop_integration(desktop_dir=sandbox_dir)
+        if self.runner_config.get('sandbox', True):
+            wine_prefix.desktop_integration(
+                desktop_dir=self.runner_config.get('sandbox_dir')
+            )
 
     def play(self):
         game_exe = self.game_exe

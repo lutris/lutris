@@ -85,7 +85,7 @@ class CommandsMixin:
         working_dir = None
         env = {}
         if isinstance(data, dict):
-            self._check_required_params(('file', 'command'), data, 'execute')
+            self._check_required_params([('file', 'command')], data, 'execute')
             if 'command' in data and 'file' in data:
                 raise ScriptingError(
                     'Parameters file and command can\'t be used '

@@ -127,10 +127,13 @@ Requiring additional binaries
 
 If the game or the installer needs some system binaries to run, you can specify
 them in the `require-binaries` directive. The value is a comma-separated list
-of required binaries (acting as AND), if one of several binaries are able to 
+of required binaries (acting as AND), if one of several binaries are able to
 run the program, you can add them as a ``|`` separated list (acting as OR).
 
-Example::
+Example
+
+::
+
     # This requires cmake to be installed and either ggc or clang
     require-binaries: cmake, gcc | clang
 
@@ -351,6 +354,7 @@ Example:
             Enabled: 'false'
 
 This writes (or updates) a file with the following content:
+
 ::
 
     {
@@ -374,8 +378,18 @@ Currently, the following tasks are implemented:
 *   wine / winesteam: ``create_prefix`` Creates an empty Wine prefix at the
     specified path. The other wine/winesteam directives below include the
     creation of the prefix, so in most cases you won't need to use the
-    create_prefix command. Parameters are ``prefix`` (the path), ``arch``
-    (optional architecture of the prefix, default: win32), ``overrides`` (optional dll overrides, format described later), ``install_gecko`` (optional variable to stop installing gecko), ``install_mono`` (optional variable to stop installing mono).
+    create_prefix command. Parameters are:
+
+    * ``prefix``: the path
+
+    * ``arch``: optional architecture of the prefix, default: win64 unless a
+      32bit build is specified in the runner options.
+
+    * ``overrides``: optional dll overrides, format described later
+
+    * ``install_gecko``: optional variable to stop installing gecko
+
+    * ``install_mono``: optional variable to stop installing mono
 
     Example:
 
@@ -640,7 +654,7 @@ Example wine game:
       files:
       - installer: "N/A:Select the game's setup file"
       installer:
-      - task: 
+      - task:
         executable: installer
         name: wineexec
         prefix: $GAMEDIR/prefix
@@ -945,7 +959,7 @@ Sysoptions
 
 **winesteam (wine section options available to winesteam runner) section:**
 
-``steam_path`` (example: ``Z:\home\user\Steam\Steam.exe``) 
+``steam_path`` (example: ``Z:\home\user\Steam\Steam.exe``)
 
 ``quit_steam_on_exit`` (example: ``true``)
 

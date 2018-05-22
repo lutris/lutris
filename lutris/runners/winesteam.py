@@ -247,21 +247,24 @@ class winesteam(wine.wine):
         """Return Steam exe's path"""
         custom_path = self.runner_config.get('steam_path') or ''
         if custom_path:
-            custom_path = os.path.expanduser(os.path.join(custom_path, 'Steam.exe'))
+            custom_path = os.path.abspath(os.path.expanduser(os.path.join(custom_path, 'Steam.exe')))
             if os.path.exists(custom_path):
                 return custom_path
 
         candidates = [
-            self.get_default_prefix(arch='win32'),
             self.get_default_prefix(arch='win64'),
+            self.get_default_prefix(arch='win32'),
             os.path.expanduser("~/.wine")
         ]
         for prefix in candidates:
             # Try the default install path
-            steam_path = os.path.join(prefix,
-                                      "drive_c/Program Files/Steam/Steam.exe")
-            if os.path.exists(steam_path):
-                return steam_path
+            for default_path in [
+                "drive_c/Program Files (x86)/Steam/Steam.exe",
+                "drive_c/Program Files/Steam/Steam.exe",
+            ]:
+                steam_path = os.path.join(prefix, default_path)
+                if os.path.exists(steam_path):
+                    return steam_path
 
             # Try from the registry key
             user_reg = os.path.join(prefix, "user.reg")
@@ -273,10 +276,9 @@ class winesteam(wine.wine):
                 steam_path = self.get_open_command(registry)
                 if not steam_path:
                     continue
-            path = registry.get_unix_path(steam_path)
-            path = system.fix_path_case(path)
-            if path:
-                return path
+            return system.fix_path_case(
+                registry.get_unix_path(steam_path)
+            )
 
     def install(self, version=None, downloader=None, callback=None):
         installer_path = get_steam_installer_dest()
@@ -339,7 +341,7 @@ class winesteam(wine.wine):
             main_dir = os.path.join(steam_data_dir, 'steamapps')
             main_dir = system.fix_path_case(main_dir)
             if main_dir and os.path.isdir(main_dir):
-                dirs.append(main_dir)
+                dirs.append(os.path.abspath(main_dir))
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:
@@ -349,7 +351,7 @@ class winesteam(wine.wine):
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
                 if linux_path and os.path.isdir(linux_path):
-                    dirs.append(linux_path)
+                    dirs.append(os.path.abspath(linux_path))
                 i += 1
         return dirs
 

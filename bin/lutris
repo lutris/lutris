@@ -19,7 +19,7 @@ import locale
 from os.path import realpath, dirname, normpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
-if LAUNCH_PATH != "/usr/bin":
+if not LAUNCH_PATH.startswith("/usr"):
     sys.dont_write_bytecode = True
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
@@ -27,7 +27,7 @@ if LAUNCH_PATH != "/usr/bin":
 try:
     locale_name = locale.getlocale()
     locale.setlocale(locale.LC_ALL, locale_name)
-except locale.Error:
+except (locale.Error, ValueError):
     sys.stderr.write("Unsupported locale %s. Try running with LC_ALL=C.\n" % locale_name)
 
 from lutris.gui.application import Application

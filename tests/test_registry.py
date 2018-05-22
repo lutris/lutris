@@ -110,3 +110,6 @@ class TestWineRegistryKey(TestCase):
 
         key.parse('"String with \"quotes\""=val')
         self.assertEqual(key.subkeys['String with \"quotes\"'], 'val')
+
+        key.parse('"\"C:\\Program Files\\Windows Media Player\\wmplayer.exe\""="Yes"')
+        self.assertEqual(key.subkeys['\"C:\\Program Files\\Windows Media Player\\wmplayer.exe\"'], '"Yes"')

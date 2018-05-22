@@ -48,7 +48,7 @@ class RuntimeUpdater:
 
             # Skip 32bit runtimes on 64 bit systems except the lib32 one
             if(runtime['architecture'] == 'i386' and
-               system.is_64bit and
+               system.IS_64BIT and
                runtime['name'] != 'lib32'):
                 logger.debug('Skipping runtime %s for %s',
                              runtime['name'], runtime['architecture'])
@@ -56,7 +56,7 @@ class RuntimeUpdater:
 
             # Skip 64bit runtimes on 32 bit systems
             if(runtime['architecture'] == 'x86_64' and
-               not system.is_64bit):
+               not system.IS_64BIT):
                 logger.debug('Skipping runtime %s for %s',
                              runtime['name'], runtime['architecture'])
                 continue
@@ -69,7 +69,6 @@ class RuntimeUpdater:
         created_at = time.strptime(created_at[:created_at.find('.')],
                                    "%Y-%m-%dT%H:%M:%S")
         if self.get_created_at(name) >= created_at:
-            logger.debug("Runtime %s is up to date", name)
             return
         if self.status_updater:
             self.status_updater("Updating Runtime")
@@ -138,7 +137,7 @@ def get_paths():
             "steam/i386/usr/lib"
         ]
 
-        if system.is_64bit:
+        if system.IS_64BIT:
             runtime_paths += [
                 "lib64",
                 "steam/amd64/lib/x86_64-linux-gnu",
@@ -150,6 +149,9 @@ def get_paths():
         # Put /usr/lib at the beginning, this prioritizes system libraries over
         # the Lutris and Steam runtimes.
         paths = ["/usr/lib"]
+        if os.path.exists("/usr/lib32"):
+            # Also let the system take over 32bit libs.
+            paths.append("/usr/lib32")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
