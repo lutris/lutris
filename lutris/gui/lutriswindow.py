@@ -189,7 +189,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'remove-game': Action(self.on_remove_game, enabled=False),
 
             'preferences': Action(self.on_preferences_activate),
-            'manage-runners': Action(lambda *x: RunnersDialog(transient_for=self)),
+            'manage-runners': Action(self.on_manage_runners),
             'about': Action(self.on_about_clicked),
 
             'show-installed-only': Action(self.on_show_installed_state_change, type='b',
@@ -525,6 +525,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_preferences_activate(self, *args):
         """Callback when preferences is activated."""
         SystemConfigDialog(parent=self)
+
+    @GtkTemplate.Callback
+    def on_manage_runners(self, *args):
+        return RunnersDialog(transient_for=self)
 
     def invalidate_game_filter(self):
         self.game_store.modelfilter.refilter()

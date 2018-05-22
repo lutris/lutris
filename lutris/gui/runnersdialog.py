@@ -1,13 +1,12 @@
 # -*- coding:Utf-8 -*-
-from gi.repository import Gtk, GObject
-
-from lutris import runners
-from lutris import settings
+from gi.repository import GObject, Gtk
+from lutris import runners, settings
+from lutris.gui.config_dialogs import RunnerConfigDialog
+from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.widgets.utils import get_icon
 from lutris.util.system import open_uri
-from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.config_dialogs import RunnerConfigDialog
-from lutris.gui.runnerinstalldialog import RunnerInstallDialog
+from lutris.util.log import logger
 
 
 class RunnersDialog(Gtk.Dialog):
@@ -29,13 +28,16 @@ class RunnersDialog(Gtk.Dialog):
         self._vbox = self.get_content_area()
         self._header = self.get_header_bar()
 
+        # Signals
+        self.connect('destroy', self.on_destroy)
+        self.connect('configure-event', self.on_resize)
+
         # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.NEVER,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         self._vbox.pack_start(scrolled_window, True, True, 0)
-        self.show_all()
 
         # Runner list
         self.runner_list = sorted(runners.__all__)
@@ -58,15 +60,10 @@ class RunnersDialog(Gtk.Dialog):
         open_runner_button.props.tooltip_text = 'Open Runners Folder'
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
         buttons_box.add(open_runner_button)
-
-        self._header.add(buttons_box)
         buttons_box.show_all()
+        self._header.add(buttons_box)
 
-        # Signals
-        self.connect('destroy', self.on_destroy)
-        self.connect('configure-event', self.on_resize)
-
-        self._vbox.pack_start(buttons_box, False, False, 5)
+        self.show_all()
 
     @staticmethod
     def _listbox_header_func(row, before):

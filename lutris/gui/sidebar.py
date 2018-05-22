@@ -5,10 +5,10 @@ from lutris import runners
 from lutris import platforms
 from lutris import pga
 from lutris.util import datapath
+from lutris.util.log import logger
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.widgets.utils import get_icon
 
 TYPE = 0
 SLUG = 1
@@ -96,12 +96,11 @@ class SidebarHeader(Gtk.Box):
         box.add(label)
         self.add(box)
         if name == 'Runners':
-            btn = Gtk.Button.new_from_icon_name('emblem-system-symbolic',
-                                                Gtk.IconSize.MENU)
-            btn.props.action_name = 'win.manage-runners'
-            btn.props.relief = Gtk.ReliefStyle.NONE
-            btn.get_style_context().add_class('sidebar-button')
-            box.add(btn)
+            manage_runners_button = Gtk.Button.new_from_icon_name('emblem-system-symbolic', Gtk.IconSize.MENU)
+            manage_runners_button.props.action_name = 'win.manage-runners'
+            manage_runners_button.props.relief = Gtk.ReliefStyle.NONE
+            manage_runners_button.get_style_context().add_class('sidebar-button')
+            box.add(manage_runners_button)
         self.add(Gtk.Separator())
         self.show_all()
 
