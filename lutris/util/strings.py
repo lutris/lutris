@@ -92,3 +92,10 @@ def unpack_dependencies(string):
         for dependency in dependencies
         if dependency
     ]
+
+
+def gtk_safe(string):
+    """Return a string ready to used in Gtk widgets"""
+    if not string:
+        string = ''
+    return string.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')

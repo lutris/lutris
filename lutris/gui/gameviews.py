@@ -15,6 +15,7 @@ from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SM
 
 from lutris.services import xdg
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 (
     COL_ID,
@@ -159,18 +160,18 @@ class GameStore(GObject.Object):
                                      game['installed'])
         self.store.append((
             game['id'],
-            game['slug'],
-            name,
+            gtk_safe(game['slug']),
+            gtk_safe(game['name']),
             pixbuf,
-            str(game['year'] or ''),
-            runner_name,
-            runner_human_name,
-            platform,
+            gtk_safe(str(game['year'] or '')),
+            gtk_safe(runner_name),
+            gtk_safe(runner_human_name),
+            gtk_safe(platform),
             game['lastplayed'],
-            lastplayed_text,
+            gtk_safe(lastplayed_text),
             game['installed'],
             game['installed_at'],
-            installed_at_text
+            gtk_safe(installed_at_text)
         ))
 
     def set_icon_type(self, icon_type):
