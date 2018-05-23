@@ -72,6 +72,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.runtime_updater = RuntimeUpdater()
         self.running_game = None
         self.threads_stoppers = []
+        self.search_event = None  # Event ID for search entry debouncing
 
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
@@ -531,8 +532,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return RunnersDialog(transient_for=self)
 
     def invalidate_game_filter(self):
+        """Refilter the game view based on current filters
+
+        Returns:
+            bool: Return False so calls from idle_add are not recurring
+        """
         self.game_store.modelfilter.refilter()
         self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
+        self.search_event = None
+        return False
 
     def on_show_installed_state_change(self, action, value):
         action.set_state(value)
@@ -554,8 +562,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
+        """Callback for the search input keypresses.
+
+        Uses debouncing to avoid Gtk warnings like:
+        gtk_tree_model_filter_real_unref_node: assertion 'elt->ref_count > 0' failed
+
+        It doesn't seem to be very effective though and the Gtk warnings are still here.
+        """
         self.game_store.filter_text = widget.get_text()
-        self.invalidate_game_filter()
+        if self.search_event:
+            GLib.source_remove(self.search_event)
+        self.search_event = GLib.timeout_add(300, self.invalidate_game_filter)
 
     @GtkTemplate.Callback
     def _on_search_toggle(self, button):
