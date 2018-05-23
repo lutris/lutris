@@ -2,6 +2,12 @@ import re
 import time
 import subprocess
 
+import gi
+
+gi.require_version('GnomeDesktop', '3.0')
+from gi.repository import GnomeDesktop
+from gi.repository import Gdk
+
 from lutris.util.system import find_executable
 from lutris.util.log import logger
 
@@ -185,3 +191,33 @@ def get_providers():
             providers.append(line[position:].strip())
 
     return providers
+
+
+class DisplayManager(object):
+    def __init__(self):
+        self.screen = Gdk.Screen.get_default()
+        self.rr_screen = GnomeDesktop.RRScreen.new(self.screen)
+        self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
+        self.rr_config.load_current()
+
+    @property
+    def outputs(self):
+        return self.rr_screen.list_outputs()
+
+    def get_display_names(self):
+        return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
+
+    def get_output_modes(self, output):
+        logger.debug("Retrieving modes for %s", output)
+        resolutions = []
+        for mode in output.list_modes():
+            resolution = "%sx%s" % (mode.get_width(), mode.get_height())
+            if resolution not in resolutions:
+                resolutions.append(resolution)
+        return resolutions
+
+    def get_resolutions(self):
+        resolutions = []
+        for mode in self.rr_screen.list_modes():
+            resolutions.append("%sx%s" % (mode.get_width(), mode.get_height()))
+        return sorted(set(resolutions), key=lambda x: int(x.split('x')[0]), reverse=True)

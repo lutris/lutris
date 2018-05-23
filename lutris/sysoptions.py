@@ -5,25 +5,19 @@ from collections import OrderedDict
 from lutris import runners
 from lutris.util import display, system
 
-DISPLAYS = None
 
-
-def get_displays():
-    global DISPLAYS
-    if not DISPLAYS:
-        DISPLAYS = display.get_output_names()
-    return DISPLAYS
+DISPLAY_MANAGER = display.DisplayManager()
 
 
 def get_resolution_choices():
-    resolutions = display.get_resolutions()
+    resolutions = DISPLAY_MANAGER.get_resolutions()
     resolution_choices = list(zip(resolutions, resolutions))
     resolution_choices.insert(0, ("Keep current", 'off'))
     return resolution_choices
 
 
 def get_output_choices():
-    displays = get_displays()
+    displays = DISPLAY_MANAGER.get_display_names()
     output_choices = list(zip(displays, displays))
     output_choices.insert(0, ("Off", 'off'))
     return output_choices
@@ -33,16 +27,15 @@ def get_output_list():
     choices = [
         ('Off', 'off'),
     ]
-    displays = get_displays()
+    displays = DISPLAY_MANAGER.get_display_names()
     for index, output in enumerate(displays):
         # Display name can't be used because they might not be in the right order
         # Using DISPLAYS to get the number of connected monitors
-        choices.append(("Monitor {}".format(index + 1), str(index)))
+        choices.append((output, str(index)))
     return choices
 
 
-def get_dri_prime():
-    return len(display.get_providers()) > 1
+USE_DRI_PRIME = len(display.get_providers()) > 1
 
 
 system_options = [
@@ -88,7 +81,7 @@ system_options = [
         'option': 'dri_prime',
         'type': 'bool',
         'default': False,
-        'condition': get_dri_prime,
+        'condition': USE_DRI_PRIME,
         'label': 'Use PRIME (hybrid graphics on laptops)',
         'help': ("If you have open source graphic drivers (Mesa), selecting this "
                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
