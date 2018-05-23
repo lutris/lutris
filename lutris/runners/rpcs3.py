@@ -10,7 +10,7 @@ class rpcs3(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "directory_chooser",
+            "type": "file",
             "default_path": "game_path",
             "label": "Game folder"
         }
