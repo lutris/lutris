@@ -133,6 +133,8 @@ class Game(object):
         if not self.runner:
             return
         self.platform = self.runner.get_platform()
+        if not self.platform:
+            logger.warning("Can't get platform for runner %s", self.runner.human_name)
 
     def save(self, metadata_only=False):
         """

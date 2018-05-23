@@ -31,11 +31,7 @@ class dolphin(Runner):
     runner_options = []
 
     def get_platform(self):
-        selected_platform = self.game_config.get('platform')
-        if selected_platform:
-            return self.platforms[int(selected_platform)]
-        else:
-            return ''
+        return self.platforms[int(self.game_config.get('platform') or 1)]
 
     def play(self):
         iso = self.game_config.get('main_file') or ''

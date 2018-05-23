@@ -56,7 +56,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
-        self.runner_names = {}
+        self.runner_names = self.populate_runner_names()
 
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
@@ -68,29 +68,17 @@ class GameStore(GObject.Object):
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
 
+    def populate_runner_names(self):
+        names = {}
+        for runner in runners.__all__:
+            runner_inst = runners.import_runner(runner)
+            names[runner] = runner_inst.human_name
+        return names
+
     def fill_store(self, games):
-        """Fill the model asynchronously and in steps.
-
-        Each iteration on `loader` adds a batch of games to the model as a low
-        priority operation so they get displayed before adding the next batch.
-        This is an optimization to avoid having to wait for all games to be
-        loaded in the model before the list is drawn on the window.
-        """
-        loader = self._fill_store_generator(games)
-        GLib.idle_add(loader.__next__)
-
-    def _fill_store_generator(self, games, batch=100):
-        """Generator to fill the model in batches."""
-        n = 0
+        """Fill the model"""
         for game in games:
             self.add_game(game)
-            # Yield to GTK main loop once in a while
-            n += 1
-            if (n % batch) == 0:
-                # Returning True to GLib.idle_add makes it run the callback
-                # again. (Yeah, the GTK doc isn't clear about this feature :)
-                yield True
-        yield False
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
@@ -123,30 +111,29 @@ class GameStore(GObject.Object):
             ))
         self.add_game(game)
 
-    def add_game(self, game):
-        name = game['name'].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        runner = None
-        platform = ''
-        runner_name = game['runner']
-        runner_human_name = ''
-        if runner_name:
+    def get_runner_info(self, game):
+        if not game['runner']:
+            return
+        runner_human_name = self.runner_names.get(game['runner'], '')
+        platform = game['platform']
+        if not platform and game['installed']:
             game_inst = Game(game['id'])
-            if not game_inst.is_installed:
-                return
-            if runner_name in self.runner_names:
-                runner_human_name = self.runner_names[runner_name]
-            else:
-                try:
-                    runner = runners.import_runner(runner_name)
-                except runners.InvalidRunner:
-                    game['installed'] = False
-                else:
-                    runner_human_name = runner.human_name
-                    self.runner_names[runner_name] = runner_human_name
             platform = game_inst.platform
             if not platform:
                 game_inst.set_platform_from_runner()
                 platform = game_inst.platform
+                logger.debug("Setting platform for %s: %s", game['name'], platform)
+
+        return runner_human_name, platform
+
+    def add_game(self, game):
+        platform = ''
+        runner_human_name = ''
+        runner_info = self.get_runner_info(game)
+        if runner_info:
+            runner_human_name, platform = runner_info
+        else:
+            game['installed'] = False
 
         lastplayed_text = ''
         if game['lastplayed']:
@@ -156,15 +143,14 @@ class GameStore(GObject.Object):
         if game['installed_at']:
             installed_at_text = time.strftime("%c", time.localtime(game['installed_at']))
 
-        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
-                                     game['installed'])
+        pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type, game['installed'])
         self.store.append((
             game['id'],
             gtk_safe(game['slug']),
             gtk_safe(game['name']),
             pixbuf,
             gtk_safe(str(game['year'] or '')),
-            gtk_safe(runner_name),
+            gtk_safe(game['runner']),
             gtk_safe(runner_human_name),
             gtk_safe(platform),
             game['lastplayed'],
