@@ -532,15 +532,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return RunnersDialog(transient_for=self)
 
     def invalidate_game_filter(self):
-        """Refilter the game view based on current filters
-
-        Returns:
-            bool: Return False so calls from idle_add are not recurring
-        """
+        """Refilter the game view based on current filters"""
         self.game_store.modelfilter.refilter()
         self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
-        self.search_event = None
-        return False
 
     def on_show_installed_state_change(self, action, value):
         action.set_state(value)
@@ -569,10 +563,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         It doesn't seem to be very effective though and the Gtk warnings are still here.
         """
-        self.game_store.filter_text = widget.get_text()
         if self.search_event:
             GLib.source_remove(self.search_event)
-        self.search_event = GLib.timeout_add(300, self.invalidate_game_filter)
+        self.search_event = GLib.timeout_add(300, self._do_search_filter, widget.get_text())
+
+    def _do_search_filter(self, search_terms):
+        self.game_store.filter_text = search_terms
+        self.invalidate_game_filter()
+        self.search_event = None
+        return False
 
     @GtkTemplate.Callback
     def _on_search_toggle(self, button):
