@@ -336,18 +336,27 @@ class Game:
         game_env = gameplay_info.get('env') or self.runner.get_env()
         env.update(game_env)
 
+        # LD_PRELOAD
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
 
+        # Feral gamemode
+        gamemode = system_config.get('gamemode')
+        if gamemode:
+            env['LD_PRELOAD'] = ':'.join([
+                path for path in
+                [env.get('LD_PRELOAD'), system.GAMEMODE_PATH]
+                if path
+            ])
+
+        # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
-            ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
-            env["LD_LIBRARY_PATH"] = ld_library_path
-        # /Env vars
+            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
 
         include_processes = shlex.split(system_config.get('include_processes', ''))
         exclude_processes = shlex.split(system_config.get('exclude_processes', ''))

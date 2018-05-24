@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict
 
 from lutris import runners
+# from lutris.util.log import logger
 from lutris.util import display, system
 
 DISPLAYS = None
@@ -93,6 +94,14 @@ system_options = [  # pylint: disable=invalid-name
                  "activating your NVIDIA graphic chip for high 3D "
                  "performance. primusrun normally has better performance, but"
                  "optirun/virtualgl works better for more games.")
+    },
+    {
+        'option': 'gamemode',
+        'type': 'bool',
+        'default': bool(system.GAMEMODE_PATH),
+        'condition': bool(system.GAMEMODE_PATH),
+        'label': 'Enable Feral gamemode',
+        'help': 'Request a set of optimisations be temporarily applied to the host OS'
     },
     {
         'option': 'dri_prime',
