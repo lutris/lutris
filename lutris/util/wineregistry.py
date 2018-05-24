@@ -172,7 +172,12 @@ class WineRegistry(object):
         letter, relpath = windows_path.split(':', 1)
         relpath = relpath.strip('/')
         drive_link = os.path.join(drives_path, letter.lower() + ":")
-        drive_path = os.readlink(drive_link)
+        try:
+            drive_path = os.readlink(drive_link)
+        except FileNotFoundError:
+            logger.error("Unable to read link for %s", drive_link)
+            return
+
         if not os.path.isabs(drive_path):
             drive_path = os.path.join(drives_path, drive_path)
         return os.path.join(drive_path, relpath)
