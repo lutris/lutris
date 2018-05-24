@@ -438,6 +438,11 @@ class CommandsMixin:
 
         merge = params.get('merge', True)
 
+        if not os.path.exists(filename):
+            # create an empty file
+            with open(filename, 'a+'):
+                pass
+
         with open(filename, 'r+' if merge else 'w') as json_file:
             json_data = {}
             if merge:
