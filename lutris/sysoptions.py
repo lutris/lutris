@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict
 
 from lutris import runners
+# from lutris.util.log import logger
 from lutris.util import display, system
 
 
@@ -65,6 +66,14 @@ system_options = [
         'label': 'Restore default gamma correction after game quits',
         'help': ("Some games don't correctly restores gamma on exit, making "
                  "your display too bright. Select this option to correct it.")
+    },
+    {
+        'option': 'gamemode',
+        'type': 'bool',
+        'default': bool(system.GAMEMODE_PATH),
+        'condition': bool(system.GAMEMODE_PATH),
+        'label': 'Enable Feral gamemode',
+        'help': 'Request a set of optimisations be temporarily applied to the host OS'
     },
     {
         'option': 'primusrun',
