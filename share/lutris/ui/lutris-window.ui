@@ -150,7 +150,7 @@
                 <property name="receives_default">True</property>
                 <property name="halign">center</property>
                 <property name="relief">half</property>
-                <property name="uri">http://lutris.net/games/</property>
+                <property name="uri">https://lutris.net/games/</property>
               </object>
               <packing>
                 <property name="expand">False</property>

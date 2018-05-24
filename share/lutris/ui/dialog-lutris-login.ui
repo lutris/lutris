@@ -30,7 +30,7 @@
                 <property name="has_tooltip">True</property>
                 <property name="valign">center</property>
                 <property name="relief">none</property>
-                <property name="uri">http://lutris.net/user/password/reset/</property>
+                <property name="uri">https://lutris.net/user/password/reset/</property>
               </object>
               <packing>
                 <property name="expand">False</property>
