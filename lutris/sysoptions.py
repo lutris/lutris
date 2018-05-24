@@ -206,6 +206,14 @@ system_options = [
         'help': "Disables process monitoring of games, Lutris won't detect when game quits."
     },
     {
+        'option': 'disable_compositor',
+        'label': "Disable desktop effects",
+        'type': 'bool',
+        'default': False,
+        'advanced': True,
+        'help': "Disable desktop effects while game is running, reducing stuttering and increasing performance"
+    },
+    {
         'option': 'reset_pulse',
         'type': 'bool',
         'label': 'Reset PulseAudio',

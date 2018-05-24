@@ -53,6 +53,8 @@ class Game(object):
 
         self.load_config()
         self.resolution_changed = False
+        self.compositor_disabled = False
+        self.stop_compositor = self.start_compositor = ""
         self.original_outputs = None
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
@@ -109,6 +111,24 @@ class Game(object):
                          self.runner_name, self.slug)
         else:
             self.runner = runner_class(self.config)
+
+    def desktop_effects(self, enable):
+        if enable:
+            system.execute(self.start_compositor, shell=True)
+        else:
+            if os.environ.get('DESKTOP_SESSION') == "plasma":
+                self.stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
+                self.start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
+            elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
+                self.stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
+                self.start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
+            elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
+                self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
+                self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
+                
+            if not (self.compositor_disabled or self.stop_compositor == ""):
+                system.execute(self.stop_compositor, shell=True)
+                self.compositor_disabled = True;
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
@@ -320,6 +340,9 @@ class Game(object):
             show_obnoxious_process_monitor_message()
         process_watch = not monitoring_disabled
 
+        if self.runner.system_config.get('disable_compositor'):
+            self.desktop_effects(False)
+
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
                                         env=env,
@@ -402,6 +425,9 @@ class Game(object):
         if self.resolution_changed\
            or self.runner.system_config.get('reset_desktop'):
             display.change_resolution(self.original_outputs)
+
+        if self.compositor_disabled:
+            self.desktop_effects(True)
 
         if self.runner.system_config.get('use_us_layout'):
             subprocess.Popen(['setxkbmap'], env=os.environ).communicate()
