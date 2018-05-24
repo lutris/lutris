@@ -9141,7 +9141,8 @@ load_shockwave() {
     # 2017/08/03: bebebaef1644a994179a2e491ce3f55599d768f7c6019729f21e7029b1845b9c
     # 2017/12/12: 0a9813ac55a8718440518dc2f5f410a3a065b422fe0618c073bfc631b9abf12c
     # 2018/03/16: 4d7b408cf5b65a522b071d7d9ddbc5f6964911a7d55c418e31f393e6055cf796
-    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi 4d7b408cf5b65a522b071d7d9ddbc5f6964911a7d55c418e31f393e6055cf796
+    # 2018/05/24: 2b03fa11ff6f31b3fef9313264f0ef356ee11d5bc3642c30a2482b4ac5dd0084
+    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi 2b03fa11ff6f31b3fef9313264f0ef356ee11d5bc3642c30a2482b4ac5dd0084
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" msiexec /i sw_lic_full_installer.msi $W_UNATTENDED_SLASH_Q
@@ -9894,18 +9895,36 @@ load_vjrun20()
 
 #----------------------------------------------------------------
 
-w_metadata vulkansdk dlls \
-    title="Vulkan SDK 1.0.68 (developers only)" \
+w_metadata vulkanrt dlls \
+    title="Vulkan Runtime 1.1.73.0" \
     publisher="LunarG" \
     year="2018" \
     media="download" \
-    file1="VulkanSDK-1.0.68.0-Installer.exe" \
-    installed_file1="C:/VulkanSDK/1.0.68.0/Vulkan.ico"
+    file1="VulkanRT-1.1.73.0-Installer.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/vulkan-1.dll"
+
+load_vulkanrt()
+{
+    # https://vulkan.lunarg.com/sdk/home
+    w_download "https://sdk.lunarg.com/sdk/download/1.1.73.0/windows/VulkanRT-1.1.73.0-Installer.exe?Human=true;u=" cfec461b17aff521cf06b727aa612d654d4e72de8e3c21bd219e77b87f56f20a VulkanRT-1.1.73.0-Installer.exe
+    w_try_cd "$W_CACHE/$W_PACKAGE"
+    w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_S
+}
+
+#----------------------------------------------------------------
+
+w_metadata vulkansdk dlls \
+    title="Vulkan SDK 1.1.73.0 (developers only)" \
+    publisher="LunarG" \
+    year="2018" \
+    media="download" \
+    file1="VulkanSDK-1.1.73.0-Installer.exe" \
+    installed_file1="C:/VulkanSDK/1.1.73.0/Vulkan.ico"
 
 load_vulkansdk()
 {
     # https://vulkan.lunarg.com/sdk/home
-    w_download "https://sdk.lunarg.com/sdk/download/1.0.68.0/windows/VulkanSDK-1.0.68.0-Installer.exe" 8e6401d4f90af1ab384f76cb59f1b7fe9bcd717c92b2080089f893f2de4b33bb
+    w_download "https://sdk.lunarg.com/sdk/download/1.1.73.0/windows/VulkanSDK-1.1.73.0-Installer.exe?Human=true;u=" a5d193f97db4de97e6b4fdd81f00ff6a603f66bb17dc3cf8ac0fe9aec58497c7 VulkanSDK-1.1.73.0-Installer.exe
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_S
 }
