@@ -1,3 +1,13 @@
+lutris (0.4.18) bionic; urgency=medium
+
+  * Fix 'execute' command arguments
+  * Fix 'write_json' command when no file exists
+  * Avoid crash when wine prefix has broken symlinks
+  * Update DXVK latest version to 0.52
+  * Update winetricks
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 24 May 2018 14:06:45 -0700
+
 lutris (0.4.17) bionic; urgency=medium
 
   * Add DVXK version option
