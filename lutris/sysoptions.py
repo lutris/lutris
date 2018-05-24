@@ -2,12 +2,17 @@
 import os
 from collections import OrderedDict
 
+from gi.repository import GLib
+
 from lutris import runners
 # from lutris.util.log import logger
 from lutris.util import display, system
 
 
-DISPLAY_MANAGER = display.DisplayManager()
+try:
+    DISPLAY_MANAGER = display.DisplayManager()
+except GLib.Error:
+    DISPLAY_MANAGER = display.LegacyDisplayManager()
 
 
 def get_resolution_choices():

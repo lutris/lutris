@@ -193,6 +193,16 @@ def get_providers():
     return providers
 
 
+class LegacyDisplayManager:
+    @staticmethod
+    def get_resolutions():
+        return get_resolutions()
+
+    @staticmethod
+    def get_display_names():
+        return get_output_names()
+
+
 class DisplayManager(object):
     def __init__(self):
         self.screen = Gdk.Screen.get_default()
