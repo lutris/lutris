@@ -209,7 +209,7 @@ system_options = [
         'option': 'disable_compositor',
         'label': "Disable desktop effects",
         'type': 'bool',
-        'default': True,
+        'default': False,
         'advanced': True,
         'help': "Disable desktop effects while game is running, reducing stuttering and increasing performance"
     },

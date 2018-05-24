@@ -1009,7 +1009,7 @@ Sysoptions
 
 ``disable_monitoring`` (example: ``true``)
 
-``disable_compositor`` (example: ``false``)
+``disable_compositor`` (example: ``true``)
 
 ``reset_pulse`` (example: ``true``)
 

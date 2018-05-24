@@ -46,7 +46,7 @@ INSTALLED_TERMINALS = []
 IS_64BIT = sys.maxsize > 2**32
 
 
-def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
+def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
     """
         Execute a system command and return its results.
 
@@ -91,7 +91,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False):
     try:
         stdout, stderr = subprocess.Popen(
             command,
-            shell=False,
+            shell=shell,
             stdout=subprocess.PIPE,
             stderr=stderr_handler,
             env=existing_env, cwd=cwd
