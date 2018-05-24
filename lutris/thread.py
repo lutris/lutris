@@ -144,7 +144,7 @@ class LutrisThread(threading.Thread):
         except ValueError:
             # fd might be closed
             line = None
-        if line:
+        if line and 'winemenubuilder.exe' not in line:
             self.stdout += line
             if self.log_buffer:
                 self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
