@@ -53,8 +53,8 @@ class Game(object):
 
         self.load_config()
         self.resolution_changed = False
-        stop_compositor = ""
-        self.compositor_disabled = True
+        self.compositor_disabled = False
+        self.stop_compositor = self.start_compositor = ""
         self.original_outputs = None
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
@@ -117,18 +117,18 @@ class Game(object):
             system.execute(self.start_compositor, shell=True)
         else:
             if os.environ.get('DESKTOP_SESSION') == "plasma":
-                stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
+                self.stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
                 self.start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
             elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
-                stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
+                self.stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
                 self.start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
             elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
-                stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
+                self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
                 self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
-            else:
-                self.compositor_disabled = False;
-            if self.compositor_disabled:
-                system.execute(stop_compositor, shell=True)
+                
+            if not (self.compositor_disabled or self.stop_compositor == ""):
+                system.execute(self.stop_compositor, shell=True)
+                self.compositor_disabled = True;
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
