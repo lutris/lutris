@@ -18,3 +18,5 @@ lutris.e4p
 .coverage
 pga.db
 tests/coverage/*
+/dist
+/lutris.egg-info
