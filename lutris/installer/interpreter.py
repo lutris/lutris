@@ -79,9 +79,9 @@ class ScriptInterpreter(CommandsMixin):
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
-        
+
         self.script_pretty = dumps(self.script, indent=4)
-        
+
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
 
@@ -284,6 +284,9 @@ class ScriptInterpreter(CommandsMixin):
         - filename : force destination filename when url is present or path
                      of local file.
         """
+        if not isinstance(game_file, dict):
+            raise ScriptingError("Invalid file, check the installer script",
+                                 game_file)
         # Setup file_id, file_uri and local filename
         file_id = list(game_file.keys())[0]
         if isinstance(game_file[file_id], dict):
