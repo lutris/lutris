@@ -1,16 +1,16 @@
 import os
+
+from lutris import api, pga, runtime, settings
+from lutris.gui.logwindow import LogTextView
+from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.util import datapath
+from lutris.util.system import open_uri
+
 import gi
 gi.require_version('WebKit2', '4.0')
 
-from gi.repository import WebKit2
-from gi.repository import GLib, Gtk, GObject
-
-from lutris import api, pga, runtime, settings
-from lutris.gui.widgets.download_progress import DownloadProgressBox
-from lutris.gui.widgets.dialogs import Dialog
-from lutris.gui.logwindow import LogTextView
-from lutris.util import datapath
-from lutris.util.system import open_uri
+from gi.repository import GLib, GObject, Gtk, WebKit2
 
 
 class GtkBuilderDialog(GObject.Object):
