@@ -2,6 +2,7 @@ import os
 from lutris import settings
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class mess(Runner):
@@ -213,7 +214,7 @@ class mess(Runner):
 
     @property
     def working_dir(self):
-        return os.path.join(os.path.expanduser("~"), ".mame")
+        return os.path.join(system.expanduser("~", self.get_env(os_env=True)), ".mame")
 
     def play(self):
         rompath = self.runner_config.get('rompath') or ''

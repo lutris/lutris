@@ -105,7 +105,7 @@ class reicast(Runner):
     def write_config(self, config):
         parser = ConfigParser()
 
-        config_path = os.path.expanduser('~/.reicast/emu.cfg')
+        config_path = system.expanduser('~/.reicast/emu.cfg', self.get_env(os_env=True))
         if os.path.exists(config_path):
             with open(config_path, 'r') as config_file:
                 parser.read(config_file)

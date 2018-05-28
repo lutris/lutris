@@ -3,9 +3,7 @@ import os
 import subprocess
 
 from lutris.runners.runner import Runner
-
-RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
-
+from lutris.util import system
 
 class residualvm(Runner):
     human_name = "ResidualVM"
@@ -51,6 +49,10 @@ class residualvm(Runner):
             'default': False,
         }
     ]
+
+    @property
+    def config_file(self):
+        return os.path.join(system.expanduser("~", self.get_env(os_env=True)), ".residualvmrc")
 
     @property
     def game_path(self):
