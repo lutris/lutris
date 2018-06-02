@@ -3,7 +3,8 @@ import os
 from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
-from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
+from lutris.gui.widgets.common import (VBox, Label,
+                                       FileChooserEntry, EditableGrid)
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -13,23 +14,31 @@ class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
         super().__init__()
-        self.options = None
+        self.options = []
         self.game = game
+        self.config = None
+        self.raw_config = None
 
     def generate_top_info_box(self, text):
+        """Add a top section with general help text for the current tab"""
         help_box = Gtk.Box()
         help_box.set_margin_left(15)
         help_box.set_margin_right(15)
         help_box.set_margin_bottom(5)
-        icon = Gtk.Image(icon_name='dialog-information')
+
+        icon = Gtk.Image.new_from_icon_name('dialog-information',
+                                            Gtk.IconSize.MENU)
+        help_box.pack_start(icon, False, False, 5)
+
         label = Gtk.Label("<i>%s</i>" % text)
         label.set_line_wrap(True)
         label.set_alignment(0, 0.5)
         label.set_use_markup(True)
-        help_box.pack_start(icon, False, False, 5)
         help_box.pack_start(label, False, False, 5)
+
         self.pack_start(help_box, False, False, 0)
-        self.pack_start(Gtk.HSeparator(), False, False, 10)
+        self.pack_start(Gtk.HSeparator(), False, False, 12)
+
         help_box.show_all()
 
     def generate_widgets(self, config_section):
