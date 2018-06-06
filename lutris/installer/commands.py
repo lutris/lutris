@@ -367,10 +367,9 @@ class CommandsMixin:
         runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
 
         wine_version = None
-        if runner_name == 'wine':
-            wine_version = self._get_runner_version()
 
         if runner_name.startswith('wine'):
+            wine_version = self._get_runner_version()
             if wine_version:
                 data['wine_path'] = wine.get_wine_version_exe(wine_version)
 

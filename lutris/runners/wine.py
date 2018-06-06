@@ -373,7 +373,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
     if WINE_DIR in wine_path:
-        logger.debug("%s is provided by Lutris, using runtime")
+        logger.debug("%s is provided by Lutris, using runtime", wine_path)
         return True
     return not is_installed_systemwide()
 
