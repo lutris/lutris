@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20180513-next
+WINETRICKS_VERSION=20180603-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -7597,14 +7597,15 @@ load_dotnet_verifier()
 {
     # https://blogs.msdn.microsoft.com/astebner/2008/10/13/net-framework-setup-verification-tool-users-guide/
     # 2016/10/26: sha256sum 1daf4b1b27669b65f613e17814da3c8342d3bfa9520a65a880c58d6a2a6e32b5, adds .NET Framework 4.6.{1,2} support
-    # 2017/06/12: sha256sum , adds .NET Framework 4.7 support
+    # 2017/06/12: sha256sum 310a0341fbe68f5b8601f2d8deef5d05ca6bce50df03912df391bc843794ef60, adds .NET Framework 4.7 support
+    # 2018/06/03: sha256sum 13fd683fd604f9de09a9e649df303100b81e6797f868024d55e5c2f3c14aa9a6, adds .NET Framework 4.7.{1,2} support
 
-    w_download https://msdnshared.blob.core.windows.net/media/2017/11/netfx_setupverifier_new.zip 310a0341fbe68f5b8601f2d8deef5d05ca6bce50df03912df391bc843794ef60
+    w_download https://msdnshared.blob.core.windows.net/media/2018/05/netfx_setupverifier_new.zip 13fd683fd604f9de09a9e649df303100b81e6797f868024d55e5c2f3c14aa9a6
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try_unzip "$W_SYSTEM32_DLLS" netfx_setupverifier_new.zip netfx_setupverifier.exe
 
-    w_warn "You can run the .Net Verifier with \"${WINE} netfx_setupverifier.exe\""
+    w_warn "You can run the .NET Verifier with \"${WINE} netfx_setupverifier.exe\""
 }
 
 #----------------------------------------------------------------
@@ -8116,7 +8117,7 @@ load_icodecs()
         # arguments easily accessible, we'd have to just kill all explorer.exe processes.
         #
         # So instead, use system kill
-        inode_pid="$(pgrep -f 'explorer.exe C:\\Program Files\\Ligos\\Indeo')"
+        inode_pid="$(pgrep -f "explorer.exe.*Indeo")"
         kill -HUP "$inode_pid"
 }
 
@@ -10057,9 +10058,10 @@ load_wmi()
     # WMI for NT4.0 need validation: https://www.microsoft.com/en-us/download/details.aspx?id=7665
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=16510
     # Originally at: https://download.microsoft.com/download/platformsdk/wmi9x/1.5/W9X/EN-US/wmi9x.exe
-    # 2017/10/14: ftp://59.124.141.94 is dead
-    # Mirror list: http://www.filewatcher.com/_/?q=wmi9x.exe
-    w_download ftp://82.162.138.211/pub/Install/Microsoft/Win9x/Update/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
+    # Mirror list: https://filemare.com/en-us/search/wmi9x.exe/761569271
+    # 2017/10/14: ftp://59.124.141.94 is dead, using ftp://82.162.138.211
+    # 2018/06/03: ftp://82.162.138.211 is dead, moved to ftp://ftp.espe.edu.ec
+    w_download ftp://ftp.espe.edu.ec/Drivers/Drivers%20SHARP/DISC%201/Sharpdesk/Redist/Esp/WMI/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
 
     w_set_winver win98
     w_override_dlls native,builtin wbemprox wmiutils
@@ -12777,7 +12779,8 @@ w_metadata steam apps \
 load_steam()
 {
     # 2016/10/28: 029f918a29b2b311711788e8a477c8de529c11d7dba3caf99cbbde5a983efdad
-    w_download http://media.steampowered.com/client/installer/SteamSetup.exe 029f918a29b2b311711788e8a477c8de529c11d7dba3caf99cbbde5a983efdad
+    # 2018/06/01: 3bc6942fe09f10ed3447bccdcf4a70ed369366fef6b2c7f43b541f1a3c5d1c51
+    w_download http://media.steampowered.com/client/installer/SteamSetup.exe 3bc6942fe09f10ed3447bccdcf4a70ed369366fef6b2c7f43b541f1a3c5d1c51
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # Should be fixed in newer steam versions, since 2012. Commenting out for a while before removing in case users need to revert locally
@@ -15547,9 +15550,12 @@ load_eve()
     # https://community.eveonline.com/support/download/
     w_download https://binaries.eveonline.com/EveLauncher-1104888.exe d1d66ea0a0e4a476a926307dcdb3d7b5e777d7cff7feb172ce7779dac9fdae8f
 
+    if test "$W_OPT_UNATTENDED"; then
+        w_warn "Quiet mode doesn't work with latest eve update, button names don't appear in AHK."
+    fi
+
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
-        # FIXME: doesn't work with latest update, button names don't appear in AHK?
         run, $file1
         WinWait, EVE Online
         if ( w_opt_unattended > 0 ) {
@@ -15754,7 +15760,7 @@ load_fifa11_demo()
 w_metadata hon games \
     title="Heroes of Newerth" \
     publisher="S2 Games" \
-    year="2013" \
+    year="2018" \
     media="download" \
     file1="HoNClient.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/Heroes of Newerth/hon.exe"
@@ -15762,7 +15768,8 @@ w_metadata hon games \
 load_hon()
 {
     # 2017/03/28: 0f3c3431a88964647fc4d9540490e43afedc2e48573c260892882ecf48172317
-    w_download http://dl.heroesofnewerth.com/installers/win32/HoNClient.exe 0f3c3431a88964647fc4d9540490e43afedc2e48573c260892882ecf48172317
+    # 2018/06/03: d4c82a3c5fdaee193675838e2fe6ade6b9fcdc4bdaf57848300c0eb09e71a945
+    w_download http://dl.heroesofnewerth.com/installers/win32/HoNClient.exe d4c82a3c5fdaee193675838e2fe6ade6b9fcdc4bdaf57848300c0eb09e71a945
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
