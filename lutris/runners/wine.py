@@ -252,12 +252,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-
-    if use_lutris_runtime(
-            wine_path=wineenv['WINE'],
-            force_disable=disable_runtime or wine_config.system_config['disable_runtime']
-    ):
-        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+    disable_runtime = disable_runtime or wine_config.system_config['disable_runtime']
+    if use_lutris_runtime(wine_path=wineenv['WINE'], force_disable=disable_runtime):
+        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths(
+            prefer_system_libs=wine_config.system_config['prefer_system_libs']
+        ))
 
     if overrides:
         wineenv['WINEDLLOVERRIDES'] = get_overrides_env(overrides)

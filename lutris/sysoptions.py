@@ -108,8 +108,9 @@ system_options = [
         'label': 'Fullscreen SDL games to display',
         'choices': get_output_list,
         'default': 'off',
-        'help': ("Hint SDL games to use a specific monitor when going fullscreen by "
-                 "setting the SDL_VIDEO_FULLSCREEN environment variable")
+        'help': ("Hint SDL games to use a specific monitor when going "
+                 "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
+                 "environment variable")
     },
     {
         'option': 'display',
@@ -205,12 +206,21 @@ system_options = [
                  "Check this option to disable it.")
     },
     {
+        'option': 'prefer_system_libs',
+        'type': 'bool',
+        'default': True,
+        'advanced': True,
+        'help': ('When the runtime is enabled, prioritize the system libraries'
+                 ' over the provided ones.')
+    },
+    {
         'option': 'disable_monitoring',
         'label': "Disable process monitor",
         'type': 'bool',
         'default': False,
         'advanced': True,
-        'help': "Disables process monitoring of games, Lutris won't detect when game quits."
+        'help': ("Disables process monitoring of games, "
+                 "Lutris won't detect when game quits.")
     },
     {
         'option': 'disable_compositor',
@@ -218,7 +228,8 @@ system_options = [
         'type': 'bool',
         'default': False,
         'advanced': True,
-        'help': "Disable desktop effects while game is running, reducing stuttering and increasing performance"
+        'help': ("Disable desktop effects while game is running, "
+                 "reducing stuttering and increasing performance")
     },
     {
         'option': 'reset_pulse',
@@ -236,8 +247,8 @@ system_options = [
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
-        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
-                 'audio quality on some games')
+        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 '
+                 'to improve audio quality on some games')
     },
     {
         'option': 'use_us_layout',
@@ -275,7 +286,6 @@ system_options = [
     },
     {
         'option': 'xephyr',
-        'type': 'choice',
         'label': "Use Xephyr",
         'type': 'choice',
         'choices': (

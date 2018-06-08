@@ -114,17 +114,17 @@ class RuntimeUpdater:
         logger.debug("Runtime updated")
 
 
-def get_env():
+def get_env(prefer_system_libs=True):
     """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
     return {
         key: value for key, value in {
             'STEAM_RUNTIME': os.path.join(RUNTIME_DIR, 'steam') if not RUNTIME_DISABLED else None,
-            'LD_LIBRARY_PATH': ':'.join(get_paths())
+            'LD_LIBRARY_PATH': ':'.join(get_paths(prefer_system_libs=prefer_system_libs))
         }.items() if value
     }
 
 
-def get_paths():
+def get_paths(prefer_system_libs=True):
     """Return a list of paths containing the runtime libraries."""
     paths = []
 
@@ -146,12 +146,13 @@ def get_paths():
                 "steam/amd64/usr/lib"
             ]
 
-        # Put /usr/lib at the beginning, this prioritizes system libraries over
-        # the Lutris and Steam runtimes.
-        paths = ["/usr/lib"]
-        if os.path.exists("/usr/lib32"):
-            # Also let the system take over 32bit libs.
-            paths.append("/usr/lib32")
+        if prefer_system_libs:
+            # Put /usr/lib at the beginning, this prioritizes
+            # system libraries over the Lutris and Steam runtimes.
+            paths = ["/usr/lib"]
+            if os.path.exists("/usr/lib32"):
+                # Also let the system take over 32bit libs.
+                paths.append("/usr/lib32")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
