@@ -254,8 +254,13 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     wine_config = config or LutrisConfig(runner_slug='wine')
     disable_runtime = disable_runtime or wine_config.system_config['disable_runtime']
     if use_lutris_runtime(wine_path=wineenv['WINE'], force_disable=disable_runtime):
+        if WINE_DIR in wine_path:
+            wine_root_path = os.path.dirname(os.path.dirname(wine_path))
+        else:
+            wine_root_path = None
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths(
-            prefer_system_libs=wine_config.system_config['prefer_system_libs']
+            prefer_system_libs=wine_config.system_config['prefer_system_libs'],
+            wine_path=wine_root_path
         ))
 
     if overrides:
@@ -341,16 +346,17 @@ def detect_prefix_arch(prefix_path=None):
     registry_path = os.path.join(prefix_path, 'system.reg')
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
         # No prefix_path exists or invalid prefix
-        logger.debug("Not detecting prefix arch, no prefix found in %s", prefix_path)
-        return
+        logger.debug("Prefix not found: %s", prefix_path)
+        return None
     with open(registry_path, 'r') as registry:
-        for i in range(5):
+        for _line_no in range(5):
             line = registry.readline()
             if 'win64' in line:
                 return 'win64'
             elif 'win32' in line:
                 return 'win32'
-    logger.debug("Can't detect prefix arch for %s", prefix_path)
+    logger.debug("Failed to detect Wine prefix architecture in %s", prefix_path)
+    return None
 
 
 def set_drive_path(prefix, letter, path):
@@ -379,12 +385,12 @@ def use_lutris_runtime(wine_path, force_disable=False):
 
 def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
-    for build in WINE_PATHS.keys():
-        if system.find_executable(WINE_PATHS[build]):
+    for build in WINE_PATHS.values():
+        if system.find_executable(build):
             if (
-                WINE_PATHS[build] == 'wine' and
-                os.path.exists('/usr/lib/wine/wine64') and
-                not os.path.exists('/usr/lib/wine/wine')
+                    build == 'wine' and
+                    os.path.exists('/usr/lib/wine/wine64') and
+                    not os.path.exists('/usr/lib/wine/wine')
             ):
                 logger.warning("wine32 is missing from system")
                 return False
@@ -1024,7 +1030,8 @@ class wine(Runner):
     def get_env(self, os_env=True):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
-        # of os_env is inverted in that class.
+        # of os_env is inverted in the wine class,
+        # the OS env is read later.
         env = super(wine, self).get_env(False)
         if os_env:
             env.update(os.environ.copy())
@@ -1038,6 +1045,18 @@ class wine(Runner):
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
         return env
+
+    def get_runtime_env(self):
+        """Return runtime environment variables with path to wine for Lutris builds"""
+        wine_path = self.get_executable()
+        if WINE_DIR in wine_path:
+            wine_root = os.path.dirname(os.path.dirname(wine_path))
+        else:
+            wine_root = None
+        return runtime.get_env(
+            self.system_config.get('prefer_system_libs', True),
+            wine_path=wine_root
+        )
 
     def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""
