@@ -289,12 +289,16 @@ class ScriptInterpreter(CommandsMixin):
                                  game_file)
         # Setup file_id, file_uri and local filename
         file_id = list(game_file.keys())[0]
-        if isinstance(game_file[file_id], dict):
-            filename = game_file[file_id]['filename']
-            file_uri = game_file[file_id]['url']
-            referer = game_file[file_id].get('referer')
+        file_meta = game_file[file_id]
+        if isinstance(file_meta, dict):
+            for field in ('url', 'filename'):
+                if field not in file_meta:
+                    raise ScriptingError('missing field `%s` for file `%s`' % (field, file_id))
+            file_uri = file_meta['url']
+            filename = file_meta['filename']
+            referer = file_meta.get('referer')
         else:
-            file_uri = game_file[file_id]
+            file_uri = file_meta
             filename = os.path.basename(file_uri)
             referer = None
 
