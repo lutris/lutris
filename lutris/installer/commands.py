@@ -100,6 +100,7 @@ class CommandsMixin:
             terminal = data.get('terminal')
             working_dir = data.get('working_dir')
             if not data.get('disable_runtime', False):
+                # Possibly need to handle prefer_system_libs here
                 env.update(runtime.get_env())
             userenv = data.get('env') or {}
             for key in userenv:

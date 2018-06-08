@@ -386,6 +386,10 @@ class LutrisThread(threading.Thread):
 
 
 def exec_in_thread(command):
+    """Execute arbitrary command in a Lutris thread
+
+    Used by the --exec command line flag.
+    """
     arguments = shlex.split(command)
     env = runtime.get_env()
     thread = LutrisThread(arguments, env=env)
