@@ -166,7 +166,9 @@ class Runner:
         runtime_ld_library_path = None
 
         if self.use_runtime():
-            runtime_env = runtime.get_env()
+            runtime_env = runtime.get_env(
+                self.system_config.get('prefer_system_libs', True)
+            )
             if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
                 env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
             if 'LD_LIBRARY_PATH' in runtime_env:
