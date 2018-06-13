@@ -289,8 +289,9 @@ class steam(Runner):
                 if not is_running():
                     return True
         # If using primusrun, shutdown existing Steam first
-        primusrun = self.system_config.get('primusrun')
-        if primusrun and system.find_executable('primusrun'):
+        optimus = self.system_config.get('optimus')
+        # primusrun = self.system_config.get('primusrun')
+        if optimus != 'off':
             if is_running():
                 logger.info("Waiting for Steam shutdown...")
                 shutdown()
