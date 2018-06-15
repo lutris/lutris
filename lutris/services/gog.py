@@ -13,6 +13,7 @@ from lutris.gui.dialogs import WebConnectDialog
 NAME = "GOG"
 
 
+
 class GogService:
     name = "GOG"
     embed_url = 'https://embed.gog.com'
@@ -69,6 +70,7 @@ class GogService:
             token_file.write(json.dumps(token))
 
     def load_cookies(self):
+        logger.debug("Loading cookies from %s", self.credentials_path)
         if not os.path.exists(self.credentials_path):
             logger.debug("No cookies found, please authenticate first")
             return

@@ -45,7 +45,7 @@ class GogWindow(Gtk.Window):
 
         self.set_titlebar(headerbar)
 
-        self.set_size_request(450, 300)
+        self.set_size_request(480, 640)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(vbox)
@@ -153,6 +153,8 @@ class GogWindow(Gtk.Window):
             download_info = self.gog_service.get_download_info(downlink)
             for field in ('checksum', 'downlink'):
                 url = download_info[field]
+                if not os.path.exists(DEST_PATH):
+                    os.makedirs(DEST_PATH)
                 checksum_path = os.path.join(DEST_PATH, download_info[field + '_filename'])
                 dlg = DownloadDialog(url, checksum_path)
                 dlg.run()
