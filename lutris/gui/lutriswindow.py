@@ -604,6 +604,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not game_id:
             return
         self.running_game = Game(game_id)
+        self.running_game.connect('game-error', self.on_game_error)
         if self.running_game.is_installed:
             self.running_game.play()
         else:
@@ -613,6 +614,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             InstallerWindow(game_slug=game_slug,
                             parent=self,
                             application=self.application)
+
+    def on_game_error(self, game, error):
+        logger.error("%s crashed", game)
+        dialogs.ErrorDialog(error, parent=self)
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
