@@ -5,11 +5,10 @@ import time
 import gi
 gi.require_version('GnomeDesktop', '3.0')
 
-from gi.repository import Gdk, GnomeDesktop
+from gi.repository import Gdk, GnomeDesktop, GLib
 
 from lutris.util import system
 from lutris.util.log import logger
-
 
 XRANDR_CACHE = None
 XRANDR_CACHE_SET_AT = None
@@ -31,6 +30,7 @@ def cached(function):
 
 @cached
 def get_vidmodes():
+    """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
     xrandr_output = subprocess.Popen(["xrandr"],
                                      stdout=subprocess.PIPE).communicate()[0]
@@ -71,10 +71,15 @@ def get_outputs():
 
 
 def get_output_names():
+    """Return output names from XrandR"""
     return [output[0] for output in get_outputs()]
 
 
 def turn_off_except(display):
+    """Use XrandR to turn off displays except the one referenced by `display`"""
+    if not display:
+        logger.error("No active display given, no turning off every display")
+        return
     for output in get_outputs():
         if output[0] != display:
             logger.info("Turning off %s", output[0])
@@ -86,7 +91,7 @@ def get_resolutions():
     resolution_list = []
     for line in get_vidmodes():
         if line.startswith("  "):
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     return resolution_list
@@ -102,13 +107,12 @@ def get_current_resolution(monitor=0):
     resolution = list()
     for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution.append(resolution_match.groups()[0])
     if monitor == 'all':
         return resolution
-    else:
-        return resolution[monitor]
+    return resolution[monitor]
 
 
 def change_resolution(resolution):
@@ -124,7 +128,7 @@ def change_resolution(resolution):
         logger.debug("Switching resolution to %s", resolution)
 
         if resolution not in get_resolutions():
-            logger.warning("Resolution %s doesn't exist." % resolution)
+            logger.warning("Resolution %s doesn't exist.", resolution)
         else:
             logger.info("Changing resolution to %s", resolution)
             subprocess.Popen(["xrandr", "-s", resolution])
@@ -137,8 +141,8 @@ def change_resolution(resolution):
             position = (display_geom[1], display_geom[2])
 
             if (
-                len(display) > 2 and
-                display[2] in ('normal', 'left', 'right', 'inverted')
+                    len(display) > 2 and
+                    display[2] in ('normal', 'left', 'right', 'inverted')
             ):
                 rotation = display[2]
             else:
@@ -255,3 +259,44 @@ class DisplayManager(object):
         for mode in self.rr_screen.list_modes():
             resolutions.append("%sx%s" % (mode.get_width(), mode.get_height()))
         return sorted(set(resolutions), key=lambda x: int(x.split('x')[0]), reverse=True)
+
+
+try:
+    DISPLAY_MANAGER = DisplayManager()
+except GLib.Error:
+    DISPLAY_MANAGER = LegacyDisplayManager()
+
+USE_DRI_PRIME = len(get_graphics_adapaters()) > 1
+
+
+def get_resolution_choices():
+    """Return list of available resolutions as label, value tuples
+    suitable for inclusion in drop-downs.
+    """
+    resolutions = DISPLAY_MANAGER.get_resolutions()
+    resolution_choices = list(zip(resolutions, resolutions))
+    resolution_choices.insert(0, ("Keep current", 'off'))
+    return resolution_choices
+
+
+def get_output_choices():
+    """Return list of outputs for drop-downs"""
+    displays = DISPLAY_MANAGER.get_display_names()
+    output_choices = list(zip(displays, displays))
+    output_choices.insert(0, ("Off", 'off'))
+    return output_choices
+
+
+def get_output_list():
+    """Return a list of output with their index.
+    This is used to indicate to SDL 1.2 which monitor to use.
+    """
+    choices = [
+        ('Off', 'off'),
+    ]
+    displays = DISPLAY_MANAGER.get_display_names()
+    for index, output in enumerate(displays):
+        # Display name can't be used because they might not be in the right order
+        # Using DISPLAYS to get the number of connected monitors
+        choices.append((output, str(index)))
+    return choices

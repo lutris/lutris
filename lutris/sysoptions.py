@@ -2,46 +2,9 @@
 import os
 from collections import OrderedDict
 
-from gi.repository import GLib
-
 from lutris import runners
 # from lutris.util.log import logger
 from lutris.util import display, system
-
-
-try:
-    DISPLAY_MANAGER = display.DisplayManager()
-except GLib.Error:
-    DISPLAY_MANAGER = display.LegacyDisplayManager()
-
-
-def get_resolution_choices():
-    resolutions = DISPLAY_MANAGER.get_resolutions()
-    resolution_choices = list(zip(resolutions, resolutions))
-    resolution_choices.insert(0, ("Keep current", 'off'))
-    return resolution_choices
-
-
-def get_output_choices():
-    displays = DISPLAY_MANAGER.get_display_names()
-    output_choices = list(zip(displays, displays))
-    output_choices.insert(0, ("Off", 'off'))
-    return output_choices
-
-
-def get_output_list():
-    choices = [
-        ('Off', 'off'),
-    ]
-    displays = DISPLAY_MANAGER.get_display_names()
-    for index, output in enumerate(displays):
-        # Display name can't be used because they might not be in the right order
-        # Using DISPLAYS to get the number of connected monitors
-        choices.append((output, str(index)))
-    return choices
-
-
-USE_DRI_PRIME = len(display.get_graphics_adapaters()) > 1
 
 
 system_options = [
@@ -95,7 +58,7 @@ system_options = [
         'option': 'dri_prime',
         'type': 'bool',
         'default': False,
-        'condition': USE_DRI_PRIME,
+        'condition': display.USE_DRI_PRIME,
         'label': 'Use PRIME (hybrid graphics on laptops)',
         'help': ("If you have open source graphic drivers (Mesa), selecting this "
                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
@@ -106,7 +69,7 @@ system_options = [
         'option': 'sdl_video_fullscreen',
         'type': 'choice',
         'label': 'Fullscreen SDL games to display',
-        'choices': get_output_list,
+        'choices': display.get_output_list,
         'default': 'off',
         'help': ("Hint SDL games to use a specific monitor when going "
                  "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
@@ -116,7 +79,7 @@ system_options = [
         'option': 'display',
         'type': 'choice',
         'label': 'Turn off monitors except',
-        'choices': get_output_choices,
+        'choices': display.get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
@@ -127,7 +90,7 @@ system_options = [
         'option': 'resolution',
         'type': 'choice',
         'label': 'Switch resolution to',
-        'choices': get_resolution_choices,
+        'choices': display.get_resolution_choices,
         'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },

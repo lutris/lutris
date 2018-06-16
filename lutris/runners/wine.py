@@ -685,7 +685,7 @@ class wine(Runner):
                 'option': 'WineDesktop',
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
-                'choices': display.get_unique_resolutions,
+                'choices': display.get_resolution_choices,
                 'help': ("The size of the virtual desktop in pixels.")
             },
             {
