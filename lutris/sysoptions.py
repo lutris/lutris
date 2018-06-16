@@ -41,7 +41,7 @@ def get_output_list():
     return choices
 
 
-USE_DRI_PRIME = len(display.get_providers()) > 1
+USE_DRI_PRIME = len(display.get_graphics_adapaters()) > 1
 
 
 system_options = [

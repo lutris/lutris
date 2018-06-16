@@ -1,15 +1,15 @@
 import re
-import time
 import subprocess
+import time
 
 import gi
-
 gi.require_version('GnomeDesktop', '3.0')
-from gi.repository import GnomeDesktop
-from gi.repository import Gdk
 
-from lutris.util.system import find_executable
+from gi.repository import Gdk, GnomeDesktop
+
+from lutris.util import system
 from lutris.util.log import logger
+
 
 XRANDR_CACHE = None
 XRANDR_CACHE_SET_AT = None
@@ -154,7 +154,7 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     global XGAMMA_FOUND
     if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = find_executable('xgamma')
+        XGAMMA_FOUND = system.find_executable('xgamma')
     if XGAMMA_FOUND is True:
         subprocess.Popen(["xgamma", "-gamma", "1.0"])
     else:
@@ -175,10 +175,29 @@ def get_xrandr_version():
         return {"major": 0, "minor": 0}
 
 
+def get_graphics_adapaters():
+    """Return the list of graphics cards available on a system
+
+    Returns:
+        list: list of tuples containing PCI ID and description of the VGA adapter
+    """
+
+    if not system.find_executable('lspci'):
+        logger.warning('lspci is not available. List of graphics cards not available')
+        return []
+    return [
+        (pci_id, vga_desc.split(': ')[1]) for pci_id, vga_desc in [
+            line.split(maxsplit=1)
+            for line in system.execute('lspci').split('\n')
+            if 'VGA' in line
+        ]
+    ]
+
+
 def get_providers():
     """Return the list of available graphic cards"""
     pattern = "name:"
-    providers = list()
+    providers = []
     version = get_xrandr_version()
 
     if version["major"] == 1 and version["minor"] >= 4:
