@@ -175,11 +175,14 @@ def get_path_from_appmanifest(steamapps_path, appid):
 
 
 def mark_as_installed(steamid, runner_name, game_info):
+    """Sets a Steam game as installed"""
     for key in ['name', 'slug']:
         assert game_info[key]
-    logger.info("Setting %s as installed" % game_info['name'])
+
+    logger.info("Setting %s as installed", game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
+        id=game_info.get('id'),
         steamid=int(steamid),
         name=game_info['name'],
         runner=runner_name,
@@ -210,22 +213,33 @@ def mark_as_uninstalled(game_info):
     return game_id
 
 
-def sync_appmanifest_state(appmanifest_path, name=None, slug=None):
+def sync_appmanifest_state(appmanifest_path, update=None):
+    """Given a Steam appmanifest reflect it's state in a Lutris game
+
+    Params:
+        appmanifest_path (str): Path to the Steam AppManifest file
+        update (dict, optional): Existing lutris game to update
+    """
+
     try:
         appmanifest = AppManifest(appmanifest_path)
     except Exception:
         logger.error("Unable to parse file %s", appmanifest_path)
         return
     if appmanifest.is_installed():
-        game_info = {
-            'name': name or appmanifest.name,
-            'slug': slug or appmanifest.slug,
-        }
+        if update:
+            game_info = update
+        else:
+            game_info = {
+                'name': appmanifest.name,
+                'slug': appmanifest.slug,
+            }
         runner_name = appmanifest.get_runner_name()
         mark_as_installed(appmanifest.steamid, runner_name, game_info)
 
 
 def sync_with_lutris(platform='linux'):
+    logger.debug("Syncing Steam for %s games to Lutris", platform.capitalize())
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not='')
     steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
@@ -250,10 +264,11 @@ def sync_with_lutris(platform='linux'):
                 pga_entry = None
                 for game in steam_games_in_lutris:
                     if str(game['steamid']) == steamid and not game['installed']:
+                        logger.debug("Matched previously installed game %s", game['name'])
                         pga_entry = game
                         break
                 if pga_entry:
-                    sync_appmanifest_state(appmanifest_path, name=pga_entry['name'], slug=pga_entry['slug'])
+                    sync_appmanifest_state(appmanifest_path, update=pga_entry)
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:
         for game in steam_games_in_lutris:
