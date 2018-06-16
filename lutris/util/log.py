@@ -26,7 +26,7 @@ logger.addHandler(loghandler)
 
 # Set the logging level to show debug messages.
 console = logging.StreamHandler()
-fmt = '%(levelname)-8s %(asctime)s [%(module)s]:%(message)s'
+fmt = '%(levelname)-8s %(asctime)s [%(module)s.%(funcName)s]:%(message)s'
 formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
 logger.addHandler(console)
