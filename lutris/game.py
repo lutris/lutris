@@ -303,14 +303,13 @@ class Game(GObject.Object):
                 raise GameConfigError(
                     "Unable to find Xephyr, install it or disable the Xephyr option"
                 )
-            if xephyr == '8bpp':
-                xephyr_depth = '8'
-            else:
-                xephyr_depth = '16'
+
+            xephyr_depth = '8' if xephyr == '8bpp' else '16'
             xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
             xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
                               xephyr_resolution + 'x' + xephyr_depth, '-glamor',
                               '-reset', '-terminate', '-fullscreen']
+
             xephyr_thread = LutrisThread(xephyr_command)
             xephyr_thread.start()
             time.sleep(3)

@@ -31,6 +31,7 @@ def cached(function):
 
 @cached
 def get_vidmodes():
+    logger.debug("Retrieving video modes from XrandR")
     xrandr_output = subprocess.Popen(["xrandr"],
                                      stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
@@ -76,6 +77,7 @@ def get_output_names():
 def turn_off_except(display):
     for output in get_outputs():
         if output[0] != display:
+            logger.info("Turning off %s", output[0])
             subprocess.Popen(["xrandr", "--output", output[0], "--off"])
 
 
@@ -124,6 +126,7 @@ def change_resolution(resolution):
         if resolution not in get_resolutions():
             logger.warning("Resolution %s doesn't exist." % resolution)
         else:
+            logger.info("Changing resolution to %s", resolution)
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
@@ -140,7 +143,7 @@ def change_resolution(resolution):
                 rotation = display[2]
             else:
                 rotation = "normal"
-
+            logger.info("Switching resolution of %s to %s", display_name, display_resolution)
             subprocess.Popen([
                 "xrandr",
                 "--output", display_name,
@@ -168,6 +171,7 @@ def get_xrandr_version():
                                      stdout=subprocess.PIPE).communicate()[0].decode()
     position = xrandr_output.find(pattern) + len(pattern)
     version_str = xrandr_output[position:].strip().split(".")
+    logger.debug("Found XrandR version %s", version_str)
     try:
         return {"major": int(version_str[0]), "minor": int(version_str[1])}
     except ValueError:
@@ -201,6 +205,7 @@ def get_providers():
     version = get_xrandr_version()
 
     if version["major"] == 1 and version["minor"] >= 4:
+        logger.debug("Retrieving providers from XrandR")
         xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
                                          stdout=subprocess.PIPE).communicate()[0].decode()
         for line in xrandr_output.split("\n"):
