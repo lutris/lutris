@@ -825,8 +825,7 @@ Example winesteam game:
         name: create_prefix
         prefix: $GAMEDIR/prefix
         arch: win64
-
-      wine:
+      winesteam:
         Desktop: true
         WineDesktop: 1024x768
         overrides:
@@ -845,7 +844,7 @@ Example steam linux game:
     game_slug: my-game
     version: Installer
     slug: my-game-installer
-    runner: winesteam
+    runner: steam
 
     script:
       game:
