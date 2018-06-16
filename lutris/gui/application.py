@@ -28,13 +28,14 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import pga
+from lutris import settings
 from lutris.config import check_config
 from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
-from lutris.util.log import logger
+from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
 from lutris.util.resources import parse_installer_url
 from lutris.services.steam import (AppManifest, get_appmanifests,
                                    get_steamapps_paths)
@@ -46,7 +47,7 @@ class Application(Gtk.Application):
     def __init__(self):
         super().__init__(application_id='net.lutris.Lutris',
                          flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
-
+        logger.info("Running Lutris %s", settings.VERSION)
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
@@ -189,6 +190,7 @@ class Application(Gtk.Application):
 
         # Set up logger
         if options.contains('debug'):
+            console_handler.setFormatter(DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
         # Text only commands
