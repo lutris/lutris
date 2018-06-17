@@ -386,8 +386,11 @@ class CommandsMixin:
                 value = self._substitute(data[key])
             data[key] = value
 
-        if runner_name in ['wine', 'winesteam'] and 'prefix' not in data:
-            data['prefix'] = self.target_path
+        if 'prefix' not in data:
+            if runner_name == 'wine':
+                data['prefix'] = wine.wine.prefix_path
+            elif runner_name == 'winesteam':
+                data['prefix'] = self._get_steam_runner().prefix_path
 
         task = import_task(runner_name, task_name)
         thread = task(**data)
