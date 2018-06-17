@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import yaml
 import shlex
 import threading
 import subprocess
@@ -97,8 +98,9 @@ class LutrisThread(threading.Thread):
         """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
+        logger.debug("Setting environment variables %s",
+                     yaml.safe_dump(self.env, default_flow_style=False))
         for key, value in self.env.items():
-            logger.debug('Storing environment variable %s to %s', key, value)
             self.original_env[key] = os.environ.get(key)
             os.environ[key] = value
 

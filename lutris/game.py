@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Module that actually runs the games."""
 import os
+import json
 import time
 import shlex
 import subprocess
@@ -252,11 +253,12 @@ class Game(GObject.Object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s", self.name, gameplay_info)
+        logger.info("Launching %s", self.name)
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
+        logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
         env = {}
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
