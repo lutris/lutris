@@ -111,6 +111,9 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
 def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
                   install_gecko=None, install_mono=None):
     """Create a new Wine prefix."""
+    if not prefix:
+        raise ValueError("No prefix path specified")
+
     logger.debug("Creating a %s prefix in %s", arch, prefix)
 
     # Avoid issue of 64bit Wine refusing to create win32 prefix
