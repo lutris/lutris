@@ -24,6 +24,7 @@ create_prefix = wine.create_prefix
 wineexec = wine.wineexec
 winetricks = wine.winetricks
 winecfg = wine.winecfg
+winekill = wine.winekill
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
