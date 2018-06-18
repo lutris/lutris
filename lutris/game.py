@@ -261,9 +261,6 @@ class Game(object):
         # Command
         launch_arguments = gameplay_info['command']
 
-        # primusrun = system_config.get('primusrun')
-        # if primusrun and system.find_executable('primusrun'):
-        #     launch_arguments.insert(0, 'primusrun')
         optimus = system_config.get('optimus')
         if optimus == 'primusrun' and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
