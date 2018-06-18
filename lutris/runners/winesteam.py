@@ -202,7 +202,7 @@ class winesteam(wine.wine):
             steamless_binary = self.game_config.get('steamless_binary')
             if (os.path.isfile(steamless_binary)):
                 return os.path.dirname(steamless_binary)
-        return super(self, winesteam).working_dir
+        return os.path.expanduser("~/")
 
     @property
     def launch_args(self):
@@ -255,7 +255,7 @@ class winesteam(wine.wine):
         candidates = [
             self.get_default_prefix(arch='win64'),
             self.get_default_prefix(arch='win32'),
-            system.expanduser("~/.wine", self.get_env(os_env=True))
+            os.path.expanduser("~/.wine")
         ]
         for prefix in candidates:
             # Try the default install path

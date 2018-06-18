@@ -172,7 +172,7 @@ class steam(Runner):
         for candidate in candidates:
             path = system.fix_path_case(
                 os.path.join(
-                    system.expanduser(candidate, self.get_env(os_env=True)),
+                    os.path.expanduser(candidate),
                     "SteamApps"
                 )
             )
@@ -211,8 +211,8 @@ class steam(Runner):
 
         return args
 
-    def get_env(self, os_env=False):
-        env = super(steam, self).get_env(os_env)
+    def get_env(self):
+        env = super(steam, self).get_env()
 
         if(
                 not self.runner_config.get('lsi_steam') and

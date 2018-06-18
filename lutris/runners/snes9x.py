@@ -53,12 +53,8 @@ class snes9x(Runner):
         }
     ]
 
-    @property
-    def config_file(self):
-        return system.expanduser("~/.snes9x/snes9x.xml", self.get_env(os_env=True))
-
     def set_option(self, option, value):
-        config_file = self.config_file
+        config_file = os.path.expanduser("~/.snes9x/snes9x.xml")
         if not os.path.exists(config_file):
             subprocess.Popen([self.get_executable(), '-help'])
         if not os.path.exists(config_file):
