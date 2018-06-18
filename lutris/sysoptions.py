@@ -7,6 +7,15 @@ from lutris import runners
 from lutris.util import display, system
 
 
+def get_optirun_choices():
+    choices = [('Off', 'off')]
+    if system.find_executable('primusrun'):
+        choices.append(('primusrun', 'primusrun'))
+    if system.find_executable('optirun'):
+        choices.append(('optirun/virtualgl', 'optirun'))
+    return choices
+
+
 system_options = [
     {
         'option': 'game_path',
@@ -44,15 +53,16 @@ system_options = [
         'help': 'Request a set of optimisations be temporarily applied to the host OS'
     },
     {
-        'option': 'primusrun',
-        'type': 'bool',
-        'default': False,
-        'condition': system.find_executable('primusrun'),
-        'label': 'Use primusrun (NVIDIA Optimus laptops)',
-        'help': ("If you have installed the primus package, selecting this "
-                 "option will run the game with the primusrun command, "
+        'option': 'optimus',
+        'type': 'choice',
+        'default': 'off',
+        'choices': get_optirun_choices,
+        'label': 'Optimus launcher (NVIDIA Optimus laptops)',
+        'help': ("If you have installed the primus or bumblebee packages, "
+                 "select what launcher will run the game with the command, "
                  "activating your NVIDIA graphic chip for high 3D "
-                 "performance.")
+                 "performance. primusrun normally has better performance, but"
+                 "optirun/virtualgl works better for more games.")
     },
     {
         'option': 'dri_prime',
