@@ -125,7 +125,7 @@ class Game(object):
             elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
                 self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
                 self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
-                
+
             if not (self.compositor_disabled or self.stop_compositor == ""):
                 system.execute(self.stop_compositor, shell=True)
                 self.compositor_disabled = True;
@@ -261,9 +261,13 @@ class Game(object):
         # Command
         launch_arguments = gameplay_info['command']
 
-        primusrun = system_config.get('primusrun')
-        if primusrun and system.find_executable('primusrun'):
+        optimus = system_config.get('optimus')
+        if optimus == 'primusrun' and system.find_executable('primusrun'):
             launch_arguments.insert(0, 'primusrun')
+        elif optimus == 'optirun' and system.find_executable('optirun'):
+            launch_arguments.insert(0, 'virtualgl')
+            launch_arguments.insert(0, '-b')
+            launch_arguments.insert(0, 'optirun')
 
         xephyr = system_config.get('xephyr') or 'off'
         if xephyr != 'off':
