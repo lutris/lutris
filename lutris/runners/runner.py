@@ -121,7 +121,7 @@ class Runner:
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return os.path.expanduser("~/")
+        return system.expanduser("~/", self.get_env(os_env=True))
 
     def killall_on_exit(self):
         return True

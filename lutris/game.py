@@ -260,10 +260,16 @@ class Game(GObject.Object):
             return
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
+        # Init env
         env = {}
+        game_env = gameplay_info.get('env') or self.runner.get_env()
+        os_env = {}
+        os_env.update(os.environ)
+        os_env.update(game_env)
+        
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
         if sdl_gamecontrollerconfig:
-            path = os.path.expanduser(sdl_gamecontrollerconfig)
+            path = system.expanduser(sdl_gamecontrollerconfig, os_env)
             if os.path.exists(path):
                 with open(path, "r") as f:
                     sdl_gamecontrollerconfig = f.read()
@@ -353,7 +359,6 @@ class Game(GObject.Object):
                 return
 
         # Env vars
-        game_env = gameplay_info.get('env') or self.runner.get_env()
         env.update(game_env)
 
         # LD_PRELOAD

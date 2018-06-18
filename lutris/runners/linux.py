@@ -3,6 +3,7 @@ import os
 import shlex
 import stat
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class linux(Runner):
@@ -114,7 +115,7 @@ class linux(Runner):
 
         ld_library_path = self.game_config.get('ld_library_path')
         if ld_library_path:
-            launch_info['ld_library_path'] = os.path.expanduser(ld_library_path)
+            launch_info['ld_library_path'] = system.expanduser(ld_library_path, self.get_env(os_env=True))
 
         command = [self.get_relative_exe()]
 

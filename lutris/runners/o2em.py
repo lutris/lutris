@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class o2em(Runner):
@@ -12,7 +13,6 @@ class o2em(Runner):
         'Phillips Videopac+',
         'Brandt Jopac',
     )
-    bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = 'o2em/o2em'
 
     checksums = {
@@ -78,6 +78,10 @@ class o2em(Runner):
                      "the displays of yesteryear.")
         }
     ]
+
+    @property
+    def bios_path(self):
+        return system.expanduser("~/.o2em/bios", get_env(os_env=True))
 
     def get_platform(self):
         bios = self.runner_config.get('bios')

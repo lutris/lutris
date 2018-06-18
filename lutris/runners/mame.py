@@ -28,7 +28,7 @@ class mame(Runner):
 
     @property
     def config_dir(self):
-        return os.path.join(os.path.expanduser("~"), ".mame")
+        return os.path.join(system.expanduser("~", self.get_env(os_env=True)), ".mame")
 
     @property
     def working_dir(self):
