@@ -177,7 +177,8 @@ def get_path_from_appmanifest(steamapps_path, appid):
 def mark_as_installed(steamid, runner_name, game_info):
     """Sets a Steam game as installed"""
     for key in ['name', 'slug']:
-        assert game_info[key]
+        if key not in game_info:
+            raise ValueError("Missing %s field in %s" % (key, game_info))
 
     logger.info("Setting %s as installed", game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
