@@ -204,7 +204,7 @@ class ScriptInterpreter(CommandsMixin):
             else:
                 if not system.find_executable(dependency):
                     raise ScriptingError(
-                        "This installer requires %s on your system" % ' or '.join(dependency)
+                        "This installer requires %s on your system" % (dependency)
                     )
 
     def _check_dependency(self):
