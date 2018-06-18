@@ -321,9 +321,10 @@ Writing into an INI type config file
 Modify or create a config file with the ``write_config`` directive. A config file
 is a text file composed of key=value (or key: value) lines grouped under
 [sections]. Use the ``file`` (an absolute path or a ``file id``), ``section``,
-``key`` and ``value`` parameters. Note that the file is entirely rewritten and
-comments are left out; Make sure to compare the initial and resulting file
-to spot any potential parsing issues.
+``key`` and ``value`` parameters or the ``data`` parameter. Set ``merge: false``
+to first truncate the file. Note that the file is entirely rewritten and
+comments are left out; Make sure to compare the initial and resulting file to
+spot any potential parsing issues.
 
 Example:
 
@@ -334,6 +335,16 @@ Example:
         section: Engine
         key: Renderer
         value: OpenGL
+
+::
+
+    - write_config:
+        file: $GAMEDIR/myfile.ini
+        data:
+          General:
+            iNumHWThreads: 2
+            bUseThreadedAI: 1
+
 
 Writing into a JSON type file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
