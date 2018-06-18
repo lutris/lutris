@@ -82,17 +82,6 @@ system_options = [
         'help': ("Some games don't correctly restores gamma on exit, making "
                  "your display too bright. Select this option to correct it.")
     },
-    # {
-    #     'option': 'primusrun',
-    #     'type': 'bool',
-    #     'default': False,
-    #     'condition': system.find_executable('primusrun'),
-    #     'label': 'Use primusrun (NVIDIA Optimus laptops)',
-    #     'help': ("If you have installed the primus package, selecting this "
-    #              "option will run the game with the primusrun command, "
-    #              "activating your NVIDIA graphic chip for high 3D "
-    #              "performance.")
-    # },
     {
         'option': 'optimus',
         'type': 'choice',
