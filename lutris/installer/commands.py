@@ -491,7 +491,6 @@ class CommandsMixin:
                 parser.add_section(section)
             for key, value in keys.items():
                 value = self._substitute(value)
-                print(section, key, value)
                 parser.set(section, key, value)
 
         with open(config_file_path, 'wb') as config_file:
