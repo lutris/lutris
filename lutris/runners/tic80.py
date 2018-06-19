@@ -30,7 +30,7 @@ class tic80(Runner):
             'default': False
         },
         {
-            'option': 'sound',
+            'option': 'nosound',
             'type': 'bool',
             'label': 'Start in silent mode',
             'default': False
@@ -44,7 +44,7 @@ class tic80(Runner):
             arguments.append('-surf')
         if self.runner_config.get('skip'):
             arguments.append('-skip')
-        if self.runner_config.get('sound'):
+        if self.runner_config.get('nosound'):
             arguments.append('-nosound')
         rom = self.game_config.get('main_file') or ''
         if not os.path.exists(rom):
