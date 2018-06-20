@@ -1,14 +1,14 @@
-import os
-import re
-import shutil
+"""Utility module to handle media resources"""
 import concurrent.futures
-from urllib.parse import urlparse, parse_qsl
-from gi.repository import GLib
+import os
+import shutil
+from urllib.parse import parse_qsl, urlparse
 
-from lutris import settings
-from lutris import api
-from lutris.util.log import logger
+from lutris import api, settings
 from lutris.util.http import Request
+from lutris.util.log import logger
+
+from gi.repository import GLib
 
 BANNER = "banner"
 ICON = "icon"
@@ -40,6 +40,8 @@ def fetch_icons(game_slugs, callback=None):
         return
 
     results = api.get_games(game_slugs=missing_media_slugs)
+    if not results:
+        logger.warning("Unable to get games, check your network connectivity")
 
     new_icon = False
     banner_downloads = []
@@ -68,20 +70,21 @@ def fetch_icons(game_slugs, callback=None):
                 for url, dest_path in downloads]
         concurrent.futures.wait(futs)
 
-    if (new_icon):
+    if new_icon:
         udpate_desktop_icons()
 
     if updated_slugs and callback:
         callback(updated_slugs)
 
-def udpate_desktop_icons():
-    # Update Icon for GTK+ desktop manager
-    gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
-    if (gtk_update_icon_cache):
-        os.system("gtk-update-icon-cache -tf %s"
-        % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
 
+def udpate_desktop_icons():
+    """Update Icon for GTK+ desktop manager"""
+    gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
+    if gtk_update_icon_cache:
+        icon_path = os.path.join(GLib.get_user_data_dir(), 'icons/hicolor')
+        os.system("gtk-update-icon-cache -tf %s" % icon_path)
     # Other desktop manager cache command must be added here when needed
+
 
 def download_media(url, dest, overwrite=False):
     if os.path.exists(dest):
@@ -100,7 +103,8 @@ def parse_installer_url(url):
     action = None
     try:
         parsed_url = urlparse(url, scheme="lutris")
-    except:
+    except Exception:  # pylint: disable=broad-except
+        logger.warning("Unable to parse url %s", url)
         return False
     if parsed_url.scheme != "lutris":
         return False
