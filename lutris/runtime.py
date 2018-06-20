@@ -165,6 +165,10 @@ def get_paths(prefer_system_libs=True, wine_path=None):
             if os.path.exists("/usr/lib32"):
                 # Also let the system take over 32bit libs.
                 paths.append("/usr/lib32")
+            if os.path.exists("/lib/x86_64-linux-gnu"):
+                paths.append("/lib/x86_64-linux-gnu")
+            if os.path.exists("/lib/i386-linux-gnu"):
+                paths.append("/lib/i386-linux-gnu")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
