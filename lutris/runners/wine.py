@@ -581,10 +581,11 @@ class wine(Runner):
         self.dll_overrides = {}
         self.context_menu_entries = [
             ('wineexec', "Run EXE inside wine prefix", self.run_wineexec),
+            ('oculus-wineexec', "Run EXE inside wine prefix, with Oculus support.", self.run_wineexec_oculus),
             ('winecfg', "Wine configuration", self.run_winecfg),
             ('wine-regedit', "Wine registry", self.run_regedit),
             ('winetricks', 'Winetricks', self.run_winetricks),
-            ('joycpl', 'Joystick Control Panel', self.run_joycpl),
+            ('joycpl', 'Joystick Control Panel', self.run_joycpl)
         ]
 
         def get_wine_version_choices():
@@ -646,6 +647,12 @@ class wine(Runner):
                 'type': 'choice_with_entry',
                 'choices': get_dxvk_choices,
                 'default': dxvk.DXVK_LATEST
+            },
+            {
+                'option': 'oculus_support',
+                'label': 'Oculus Rift support',
+                'type': 'bool',
+                'default': False
             },
             {
                 'option': 'x360ce-path',
@@ -944,6 +951,13 @@ class wine(Runner):
         if not filename:
             return
         wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
+
+    def run_wineexec_oculus(self, *args):
+        dlg = FileDialog("Select an EXE or MSI file", default_path=self.game_path)
+        filename = dlg.filename
+        if not filename:
+            return
+        wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path, config=self, oculus=True)
 
     def run_winecfg(self, *args):
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
