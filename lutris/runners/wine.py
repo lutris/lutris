@@ -649,12 +649,6 @@ class wine(Runner):
                 'default': dxvk.DXVK_LATEST
             },
             {
-                'option': 'oculus_support',
-                'label': 'Oculus Rift support',
-                'type': 'bool',
-                'default': False
-            },
-            {
                 'option': 'x360ce-path',
                 'label': "Path to the game's executable, for x360ce support",
                 'type': 'directory_chooser',
