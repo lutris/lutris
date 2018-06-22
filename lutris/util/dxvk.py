@@ -59,7 +59,7 @@ class DXVKManager:
     def download(self):
         """Download DXVK to the local cache"""
         # There's a glitch in some of the archive's names
-        fixed_version = 'v%s' % self.version if self.version in ['0.40', '0.60'] else self.version
+        fixed_version = 'v%s' % self.version if self.version in ['0.40'] else self.version
         dxvk_url = self.base_url.format(self.version, fixed_version)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
