@@ -17,6 +17,7 @@ from lutris.util import dxvk
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
+from lutris.settings import RUNTIME_DIR
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
@@ -202,7 +203,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
 def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
              working_dir=None, winetricks_wine='', blocking=False,
              config=None, include_processes=[], exclude_processes=[],
-             disable_runtime=False, env={}, overrides=None):
+             disable_runtime=False, env={}, overrides=None, oculus=False):
     """
     Execute a Wine command.
 
@@ -254,6 +255,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if prefix:
         wineenv['WINEPREFIX'] = prefix
 
+    oculus_wrapper = os.path.join(RUNTIME_DIR, 'oculuswrapper', 'oculus_wine_wrapper')
+
     wine_config = config or LutrisConfig(runner_slug='wine')
     disable_runtime = disable_runtime or wine_config.system_config['disable_runtime']
     if use_lutris_runtime(wine_path=wineenv['WINE'], force_disable=disable_runtime):
@@ -271,16 +274,21 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 
     wineenv.update(env)
 
-    command = [wine_path]
+    if oculus:
+        command = [oculus_wrapper]
+    else:
+        command = [wine_path]
+
     if executable:
         command.append(executable)
-    command += shlex.split(args)
+        command += shlex.split(args)
+
     if blocking:
         return system.execute(command, env=wineenv, cwd=working_dir)
     else:
         thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
-                              include_processes=include_processes,
-                              exclude_processes=exclude_processes)
+            include_processes=include_processes,
+            exclude_processes=exclude_processes)
         thread.start()
         return thread
 
