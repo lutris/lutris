@@ -155,7 +155,7 @@ class DXVKManager:
     def enable(self):
         """Enable DXVK for the current prefix"""
         if not os.path.exists(self.dxvk_path):
-            logger.error("DXVK %s is not availble locally" % self.version)
+            logger.error("DXVK %s is not available locally", self.version)
             return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.enable_dxvk_dll(system_dir, dxvk_arch, dll)

@@ -226,7 +226,9 @@ class ConfigBox(VBox):
         for choice in choices:
             if type(choice) is str:
                 choice = [choice, choice]
-            if choice[1] == default:
+            if choice[1] == default and not has_entry:
+                # Do not add default label to editable dropdowns since this gets
+                # added to the actual value.
                 liststore.append([choice[0] + "  (default)", default])
                 self.tooltip_default = choice[0]
             else:
