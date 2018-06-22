@@ -8,8 +8,8 @@ from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
-DXVK_LATEST = "0.52"
-DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
+DXVK_LATEST = "0.60"
+DXVK_PAST_RELEASES = ["0.54", "0.53", "0.52", "0.51", "0.50", "0.42", "0.31", "0.21"]
 
 
 class DXVKManager:
@@ -58,8 +58,8 @@ class DXVKManager:
 
     def download(self):
         """Download DXVK to the local cache"""
-        # There's a glitch in one of the archive's names
-        fixed_version = 'v0.40' if self.version == '0.40' else self.version
+        # There's a glitch in some of the archive's names
+        fixed_version = 'v%s' % self.version if self.version in ['0.40', '0.60'] else self.version
         dxvk_url = self.base_url.format(self.version, fixed_version)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
