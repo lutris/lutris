@@ -27,15 +27,10 @@ class ServiceSyncRow(Gtk.Box):
         self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "connect"):
-            if service.is_connected():
-                logout_button = Gtk.Button("Disconnect")
-                logout_button.connect('clicked', lambda w: service.disconnect())
-                actions.pack_start(logout_button, False, False, 0)
-            else:
-                sync_button = Gtk.Button("Connect")
-                sync_button.set_tooltip_text("Connect to %s" % name)
-                sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect, dialog))
-                actions.pack_start(sync_button, False, False, 0)
+            self.connect_button = Gtk.Button()
+            self.connect_button.connect('clicked', self.on_connect_clicked, service)
+            self._connect_button_toggle(service.is_connected())
+            actions.pack_start(self.connect_button, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
             sync_switch = Gtk.Switch()
@@ -50,6 +45,17 @@ class ServiceSyncRow(Gtk.Box):
             sync_button.set_tooltip_text("Sync now")
             sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
             actions.pack_start(sync_button, False, False, 0)
+
+    def on_connect_clicked(self, button, service):
+        if service.is_connected():
+            service.disconnect()
+            self._connect_button_toggle(False)
+        else:
+            service.connect()
+            self._connect_button_toggle(True)
+
+    def _connect_button_toggle(self, is_connected):
+        self.connect_button.set_label("Disconnect" if is_connected else "Connect")
 
     def on_sync_button_clicked(self, button, sync_method):
         AsyncCall(sync_method, callback=self.on_service_synced)

@@ -133,7 +133,7 @@ class GogService:
         return self.make_api_request(url)
 
     def get_library(self, page=None, search=None):
-        """Return list of GOG games"""
+        """Return a page of GOG games"""
         params = {
             'mediaType': '1'
         }
@@ -186,6 +186,13 @@ def connect(parent=None):
 def disconnect():
     service = GogService()
     service.disconnect()
+
+
+def sync_with_lutris():
+    service = GogService()
+    game_list = service.get_library()
+    with open('/home/strider/game-list', 'w') as f:
+        f.write(json.dumps(game_list, indent=2))
 
 
 def get_games():
