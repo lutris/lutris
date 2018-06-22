@@ -1,3 +1,4 @@
+"""Module for handling the GOG service"""
 import os
 import time
 import json
@@ -13,8 +14,8 @@ from lutris.gui.dialogs import WebConnectDialog
 NAME = "GOG"
 
 
-
 class GogService:
+    """Service clas for GOG"""
     name = "GOG"
     embed_url = 'https://embed.gog.com'
     api_url = 'https://api.gog.com'
@@ -29,6 +30,7 @@ class GogService:
 
     @property
     def login_url(self):
+        """Return authentication URL"""
         params = {
             'client_id': self.client_id,
             'layout': 'client2',
@@ -37,7 +39,16 @@ class GogService:
         }
         return "https://auth.gog.com/auth?" + urlencode(params)
 
+    def disconnect(self):
+        """Disconnect from GOG by removing all credentials"""
+        for auth_file in [self.credentials_path, self.token_path]:
+            try:
+                os.remove(auth_file)
+            except OSError:
+                logger.warning("Unable to remove %s", auth_file)
+
     def request_token(self, url="", refresh_token=""):
+        """Get authentication token from GOG"""
         if refresh_token:
             grant_type = 'refresh_token'
             extra_params = {
@@ -45,7 +56,6 @@ class GogService:
             }
         else:
             grant_type = 'authorization_code'
-
             parsed_url = urlparse(url)
             response_params = dict(parse_qsl(parsed_url.query))
             if 'code' not in response_params:
@@ -56,6 +66,7 @@ class GogService:
                 'code': response_params['code'],
                 'redirect_uri': self.redirect_uri
             }
+
         params = {
             'client_id': self.client_id,
             'client_secret': self.client_secret,
@@ -70,6 +81,7 @@ class GogService:
             token_file.write(json.dumps(token))
 
     def load_cookies(self):
+        """Load cookies from disk"""
         logger.debug("Loading cookies from %s", self.credentials_path)
         if not os.path.exists(self.credentials_path):
             logger.debug("No cookies found, please authenticate first")
@@ -79,6 +91,7 @@ class GogService:
         return cookiejar
 
     def load_token(self):
+        """Load token from disk"""
         if not os.path.exists(self.token_path):
             raise AuthenticationError("No GOG token available")
         with open(self.token_path) as token_file:
@@ -86,17 +99,20 @@ class GogService:
         return token_content
 
     def get_token_age(self):
+        """Return age of token"""
         token_stat = os.stat(self.token_path)
         token_modified = token_stat.st_mtime
         return time.time() - token_modified
 
     def make_request(self, url):
+        """Send a cookie authenticated HTTP request to GOG"""
         cookies = self.load_cookies()
         request = Request(url, cookies=cookies)
         request.get()
         return request.json
 
     def make_api_request(self, url):
+        """Send a token authenticated request to GOG"""
         try:
             token = self.load_token()
         except AuthenticationError:
@@ -112,10 +128,12 @@ class GogService:
         return request.json
 
     def get_user_data(self):
+        """Return GOG profile information"""
         url = 'https://embed.gog.com/userData.json'
         return self.make_api_request(url)
 
     def get_library(self, page=None, search=None):
+        """Return list of GOG games"""
         params = {
             'mediaType': '1'
         }
@@ -127,10 +145,12 @@ class GogService:
         return self.make_request(url)
 
     def get_games_list(self):
+        """I don't know."""
         url = self.api_url + '/products'
         return self.make_api_request(url)
 
     def get_game_details(self, product_id):
+        """Return game information for a given game"""
         logger.info("Getting game details for %s", product_id)
         url = '{}/products/{}?expand=downloads'.format(
             self.api_url,
@@ -139,6 +159,7 @@ class GogService:
         return self.make_api_request(url)
 
     def get_download_info(self, downlink):
+        """Return file download information"""
         logger.info("Getting download info for %s", downlink)
         response = self.make_api_request(downlink)
         for field in ('checksum', 'downlink'):
@@ -149,18 +170,26 @@ class GogService:
 
 
 def is_connected():
+    """Return True if user is connected to GOG"""
     service = GogService()
     user_data = service.get_user_data()
     return user_data and 'username' in user_data
 
 
 def connect(parent=None):
+    """Connect to GOG"""
     service = GogService()
     dialog = WebConnectDialog(service, parent)
     dialog.run()
 
 
+def disconnect():
+    service = GogService()
+    service.disconnect()
+
+
 def get_games():
+    """?"""
     service = GogService()
 
     game_list = service.get_library()

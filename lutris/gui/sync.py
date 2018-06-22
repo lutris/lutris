@@ -18,12 +18,24 @@ class ServiceSyncRow(Gtk.Box):
         icon = get_icon(self.identifier)
         self.pack_start(icon, False, False, 0)
 
-        label = Gtk.Label(xalign=0)
+        label = Gtk.Label()
+        label.set_xalign(0)
         label.set_markup("<b>{}</b>".format(name))
         self.pack_start(label, True, True, 0)
 
         actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(actions, False, False, 0)
+
+        if hasattr(service, "connect"):
+            if service.is_connected():
+                logout_button = Gtk.Button("Disconnect")
+                logout_button.connect('clicked', lambda w: service.disconnect())
+                actions.pack_start(logout_button, False, False, 0)
+            else:
+                sync_button = Gtk.Button("Connect")
+                sync_button.set_tooltip_text("Connect to %s" % name)
+                sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect, dialog))
+                actions.pack_start(sync_button, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
             sync_switch = Gtk.Switch()
@@ -38,17 +50,6 @@ class ServiceSyncRow(Gtk.Box):
             sync_button.set_tooltip_text("Sync now")
             sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
             actions.pack_start(sync_button, False, False, 0)
-
-        if hasattr(service, "connect"):
-            if service.is_connected():
-                get_games_button = Gtk.Button("Get games")
-                get_games_button.connect('clicked', lambda w: GLib.idle_add(service.get_games))
-                actions.pack_start(get_games_button, False, False, 0)
-            else:
-                sync_button = Gtk.Button("Connect")
-                sync_button.set_tooltip_text("Connect to %s" % name)
-                sync_button.connect('clicked', lambda w: GLib.idle_add(service.connect, dialog))
-                actions.pack_start(sync_button, False, False, 0)
 
     def on_sync_button_clicked(self, button, sync_method):
         AsyncCall(sync_method, callback=self.on_service_synced)
