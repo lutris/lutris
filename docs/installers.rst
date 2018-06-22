@@ -402,6 +402,9 @@ Currently, the following tasks are implemented:
 
     * ``install_mono``: optional variable to stop installing mono
 
+    * ``oculus``: Whether to use the Oculus Rift wrapper script to launch or not. default: false.
+
+
     Example:
 
     ::
