@@ -191,7 +191,8 @@ def disconnect():
 def sync_with_lutris():
     service = GogService()
     game_list = service.get_library()
-    with open('/home/strider/game-list', 'w') as f:
+    file_name = os.path.expanduser("~/game-list")
+    with open(file_name, 'w') as f:
         f.write(json.dumps(game_list, indent=2))
 
 
