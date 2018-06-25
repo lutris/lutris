@@ -159,16 +159,19 @@ def get_paths(prefer_system_libs=True, wine_path=None):
                 if system.path_exists(lib64_path):
                     paths.append(lib64_path)
 
-            # Put /usr/lib at the beginning, this prioritizes
-            # system libraries over the Lutris and Steam runtimes.
+            # This prioritizes system libraries over
+            # the Lutris and Steam runtimes.
             paths.append("/usr/lib")
             if os.path.exists("/usr/lib32"):
-                # Also let the system take over 32bit libs.
                 paths.append("/usr/lib32")
             if os.path.exists("/lib/x86_64-linux-gnu"):
                 paths.append("/lib/x86_64-linux-gnu")
             if os.path.exists("/lib/i386-linux-gnu"):
                 paths.append("/lib/i386-linux-gnu")
+            if os.path.exists("/usr/lib/x86_64-linux-gnu"):
+                paths.append("/usr/lib/x86_64-linux-gnu")
+            if os.path.exists("/usr/lib/i386-linux-gnu"):
+                paths.append("/usr/lib/i386-linux-gnu")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
