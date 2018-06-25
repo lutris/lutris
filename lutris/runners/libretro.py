@@ -155,7 +155,6 @@ class libretro(Runner):
             super(libretro, self).install(version, downloader, callback)
 
     def get_run_data(self):
-        self.prelaunch()
         return {
             'command': [self.get_executable()] + self.get_runner_parameters()
         }
