@@ -44,8 +44,6 @@ class RunnersDialog(Gtk.Dialog):
         self.runner_listbox = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         self.runner_listbox.set_header_func(self._listbox_header_func)
 
-        self.populate_runners()
-
         scrolled_window.add(self.runner_listbox)
 
         # Header buttons
@@ -64,6 +62,9 @@ class RunnersDialog(Gtk.Dialog):
         self._header.add(buttons_box)
 
         self.show_all()
+
+        # Run this after show_all, else all hidden buttons gets shown
+        self.populate_runners()
 
     @staticmethod
     def _listbox_header_func(row, before):
