@@ -169,7 +169,6 @@ class libretro(Runner):
             super(libretro, self).install(version, downloader, callback)
 
     def get_run_data(self):
-        self.prelaunch()
         return {
             'command': [self.get_executable()] + self.get_runner_parameters()
         }
@@ -187,7 +186,7 @@ class libretro(Runner):
     def prelaunch(self):
         config_file = self.get_config_file()
         if not os.path.exists(config_file):
-            logger.warning("Unable to find retroarch config. Except erratic behavior")
+            logger.warning("Unable to find retroarch config. Expect erratic behavior")
             return True
         retro_config = RetroConfig(config_file)
 
