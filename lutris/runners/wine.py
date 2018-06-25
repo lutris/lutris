@@ -477,7 +477,7 @@ def get_real_executable(windows_executable, working_dir=None):
     if exec_name.endswith(".msi"):
         return ('msiexec', ['/i', windows_executable], working_dir)
 
-    if exec_name.endswith(".bat"):
+    if exec_name.endswith(".bat") or exec_name.endswith(".cmd"):
         if not working_dir or os.path.dirname(windows_executable) == working_dir:
             working_dir = os.path.dirname(windows_executable) or None
             windows_executable = os.path.basename(windows_executable)
