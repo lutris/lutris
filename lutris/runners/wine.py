@@ -807,6 +807,15 @@ class wine(Runner):
                 'help': "Sets WINEDLLOVERRIDES when launching the game."
             },
             {
+                'option': 'autoconf_joypad',
+                'type': 'bool',
+                'label': 'Autoconfigure joypads',
+                'advanced': True,
+                'default': True,
+                'help': ('Automatically disables one of Wine\'s detected joypad '
+                         'to avoid having 2 controllers detected')
+            },
+            {
                 'option': 'sandbox',
                 'type': 'bool',
                 'label': 'Create a sandbox for wine folders',
@@ -1010,7 +1019,8 @@ class wine(Runner):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
-        prefix_manager.configure_joypads()
+        if self.runner_config.get('autoconf_joypad', True):
+            prefix_manager.configure_joypads()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get('x360ce-path'))
