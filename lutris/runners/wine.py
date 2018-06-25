@@ -442,19 +442,19 @@ def get_default_version():
 
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
-    if os.path.exists(wine_path) and os.path.isabs(wine_path):
+    if not system.path_exists(wine_path):
+        return
+    if os.path.isabs(wine_path):
         wine_stats = os.stat(wine_path)
         if wine_stats.st_size < 2000:
             # This version is a script, ignore it
             return
-    try:
-        version = subprocess.check_output([wine_path, "--version"]).decode().strip()
-    except OSError:
+    version = system.execute([wine_path, "--version"])
+    if not version:
         return
-    else:
-        if version.startswith('wine-'):
-            version = version[5:]
-        return version
+    if version.startswith('wine-'):
+        version = version[5:]
+    return version
 
 
 def support_legacy_version(version):
