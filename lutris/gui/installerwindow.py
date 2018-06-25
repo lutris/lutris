@@ -30,6 +30,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None, application=None):
         Gtk.ApplicationWindow.__init__(self, application=application)
         self.set_default_icon_name('lutris')
+        self.set_show_menubar(False)
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
