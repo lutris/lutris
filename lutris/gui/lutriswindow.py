@@ -38,6 +38,7 @@ from lutris.gui.config_dialogs import (
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
+from lutris.gui.widgets.utils import IMAGE_SIZES
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), 'ui', 'lutris-window.ui'))
@@ -293,7 +294,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("remove-game", self.on_remove_game)
 
     def _bind_zoom_adjustment(self):
-        SCALE = ('icon_small', 'icon', 'banner_small', 'banner')
+        SCALE = list(IMAGE_SIZES.keys())
         self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
         self.zoom_adjustment.connect('value-changed',
                                      lambda adj: self._set_icon_type(SCALE[int(adj.props.value)]))
@@ -346,7 +347,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             self.icon_type = settings.read_setting('icon_type_gridview')
             default = settings.ICON_TYPE_GRIDVIEW
-        if self.icon_type not in ("banner_small", "banner", "icon", "icon_small"):
+        if self.icon_type not in IMAGE_SIZES.keys():
             self.icon_type = default
         return self.icon_type
 
@@ -376,7 +377,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
-        SCALE = ('icon_small', 'icon', 'banner_small', 'banner')
+        SCALE = list(IMAGE_SIZES.keys())
         self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
 
         settings.write_setting('view_type', view_type)

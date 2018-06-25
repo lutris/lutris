@@ -17,10 +17,10 @@ DEFAULT_BANNER = os.path.join(datapath.get(), 'media/default_banner.png')
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
 
 IMAGE_SIZES = {
-    'banner': BANNER_SIZE,
-    'banner_small': BANNER_SMALL_SIZE,
+    'icon_small': ICON_SMALL_SIZE,
     'icon': ICON_SIZE,
-    'icon_small': ICON_SMALL_SIZE
+    'banner_small': BANNER_SMALL_SIZE,
+    'banner': BANNER_SIZE
 }
 
 
@@ -75,10 +75,10 @@ def get_overlay(size):
 
 
 def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
-    if icon_type in ("banner", "banner_small"):
+    if icon_type.startswith("banner"):
         default_icon_path = DEFAULT_BANNER
         icon_path = datapath.get_banner_path(game_slug)
-    elif icon_type in ("icon", "icon_small"):
+    elif icon_type.startswith("icon"):
         default_icon_path = DEFAULT_ICON
         icon_path = datapath.get_icon_path(game_slug)
     else:
