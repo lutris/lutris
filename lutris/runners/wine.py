@@ -1,8 +1,9 @@
+"""Wine runner module"""
 import os
 import time
 import shlex
 import shutil
-import subprocess
+from functools import lru_cache
 from collections import OrderedDict
 
 from lutris import runtime
@@ -172,7 +173,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         }
     command = [os.path.join(wine_root, "wineserver"), "-k"]
 
-    logger.debug("Killing all wine processes: %s" % command)
+    logger.debug("Killing all wine processes: %s", command)
     logger.debug("\tWine prefix: %s", prefix)
     logger.debug("\tWine arch: %s", arch)
     if initial_pids:
@@ -277,12 +278,12 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     command += shlex.split(args)
     if blocking:
         return system.execute(command, env=wineenv, cwd=working_dir)
-    else:
-        thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
-                              include_processes=include_processes,
-                              exclude_processes=exclude_processes)
-        thread.start()
-        return thread
+
+    thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
+                          include_processes=include_processes,
+                          exclude_processes=exclude_processes)
+    thread.start()
+    return thread
 
 
 def winetricks(app, prefix=None, arch=None, silent=True,
@@ -440,6 +441,7 @@ def get_default_version():
         return installed_versions[0]
 
 
+@lru_cache(maxsize=10)
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if not system.path_exists(wine_path):
