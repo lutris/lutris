@@ -546,6 +546,7 @@ class wine(Runner):
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "RenderTargetLockMode": r"%s/Direct3D" % reg_prefix,
+        "Audio": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
@@ -776,6 +777,19 @@ class wine(Runner):
                 'help': (
                     'Set this to "Y" to allow wine switch the resolution using XVidMode extension.'
                 )
+            },
+            {
+                'option': 'Audio',
+                'label': 'Audio driver',
+                'type': 'choice',
+                'choices': [('Auto', 'auto'),
+                            ('ALSA', 'alsa'),
+                            ('PulseAudio', 'pulse'),
+                            ('OSS', 'oss')],
+                'default': 'auto',
+                'help': ("Which audio backend to use.\n"
+                         "By default, Wine automatically picks the right one "
+                         "for your system.")
             },
             {
                 'option': 'ShowCrashDialog',
