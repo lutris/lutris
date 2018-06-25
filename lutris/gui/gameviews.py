@@ -41,14 +41,23 @@ COLUMN_NAMES = {
     COL_LASTPLAYED_TEXT: 'lastplayed',
     COL_INSTALLED_AT_TEXT: 'installed_at'
 }
+sortings = {
+    'name': COL_NAME,
+    'year': COL_YEAR,
+    'runner': COL_RUNNER_HUMAN_NAME,
+    'platform': COL_PLATFORM,
+    'lastplayed': COL_LASTPLAYED,
+    'installed_at': COL_INSTALLED_AT
+}
 
 
 class GameStore(GObject.Object):
     __gsignals__ = {
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,))
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool,))
     }
 
-    def __init__(self, games, icon_type, filter_installed):
+    def __init__(self, games, icon_type, filter_installed, sort_key, sort_ascending):
         super().__init__()
         self.games = games
         self.icon_type = icon_type
@@ -60,8 +69,13 @@ class GameStore(GObject.Object):
 
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
         self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+        self.prevent_sort_update = False # prevent recursion with signals
+
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
+        self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
+        self.sort_view(sort_key, sort_ascending)
+        self.modelsort.connect('sort-column-changed', self.on_sort_column_changed)
         if games:
             self.fill_store(games)
 
@@ -99,6 +113,27 @@ class GameStore(GObject.Object):
             if platform != self.filter_platform:
                 return False
         return True
+
+    def sort_view(self, key='name', ascending=True):
+        self.modelsort.set_sort_column_id(
+            COL_NAME,
+            Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
+        )
+        self.modelsort.set_sort_column_id(
+            sortings[key],
+            Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
+        )
+
+    def on_sort_column_changed(self, model):
+        if self.prevent_sort_update:
+            return
+        (col, direction) = model.get_sort_column_id()
+        key = next((c for c, k in sortings.items() if k == col), None)
+        ascending = direction == Gtk.SortType.ASCENDING
+        self.prevent_sort_update = True
+        self.sort_view(key, ascending)
+        self.prevent_sort_update = False
+        self.emit('sorting-changed', key, ascending)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""
@@ -298,7 +333,7 @@ class GameListView(Gtk.TreeView, GameView):
 
     def __init__(self, store):
         self.game_store = store
-        self.model = self.game_store.modelfilter.sort_new_with_model()
+        self.model = self.game_store.modelsort
         super().__init__(self.model)
         self.set_rules_hint(True)
 
@@ -306,6 +341,7 @@ class GameListView(Gtk.TreeView, GameView):
         image_cell = Gtk.CellRendererPixbuf()
         column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
         column.set_reorderable(True)
+        column.set_sort_indicator(False)
         self.append_column(column)
 
         # Text columns
@@ -318,9 +354,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
         self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120, sort_id=COL_LASTPLAYED)
-        # self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
         self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120, sort_id=COL_INSTALLED_AT)
-        # self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -338,6 +372,7 @@ class GameListView(Gtk.TreeView, GameView):
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
         column.set_sort_column_id(column_id if sort_id is None else sort_id)
+        self.set_column_sort(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
         width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
@@ -346,14 +381,22 @@ class GameListView(Gtk.TreeView, GameView):
         column.connect("notify::width", self.on_column_width_changed)
         return column
 
-    def set_sort_with_column(self, col, sort_col):
-        """Set to sort a column by using another column.
-        """
+    def set_column_sort(self, col):
+        """Sort a column and fallback to sorting by name and runner."""
 
         def sort_func(model, row1, row2, user_data):
-            v1 = model.get_value(row1, sort_col)
-            v2 = model.get_value(row2, sort_col)
-            return -1 if v1 < v2 else 0 if v1 == v2 else 1
+            v1 = model.get_value(row1, col)
+            v2 = model.get_value(row2, col)
+            diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            if diff is 0:
+                v1 = model.get_value(row1, COL_NAME)
+                v2 = model.get_value(row2, COL_NAME)
+                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            if diff is 0:
+                v1 = model.get_value(row1, COL_RUNNER_HUMAN_NAME)
+                v2 = model.get_value(row2, COL_RUNNER_HUMAN_NAME)
+                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            return diff
 
         self.model.set_sort_func(col, sort_func)
 
@@ -392,7 +435,7 @@ class GameGridView(Gtk.IconView, GameView):
 
     def __init__(self, store):
         self.game_store = store
-        self.model = self.game_store.modelfilter
+        self.model = self.game_store.modelsort
         super().__init__(model=self.model)
 
         self.set_column_spacing(1)

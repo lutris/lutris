@@ -82,6 +82,20 @@
               </object>
             </child>
             <child>
+              <object class="GtkButton">
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="tooltip_text" translatable="yes">Toggle View</property>
+                <property name="action-name">win.toggle-viewtype</property>
+                <child>
+                  <object class="GtkImage" id="viewtype_icon">
+                    <property name="visible">1</property>
+                    <property name="icon-name">view-list-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
               <object class="GtkMenuButton">
                 <property name="visible">1</property>
                 <property name="can_focus">1</property>
@@ -503,48 +517,7 @@
         <property name="orientation">vertical</property>
         <property name="width_request">160</property>
         <property name="spacing">3</property>
-        <property name="homogeneous">1</property>
-        <child>
-          <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkToggleButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">Grid View</property>
-                <property name="image">view_grid_symbolic</property>
-                <property name="draw_indicator">False</property>
-                <property name="action-name">win.view-type</property>
-                <property name="action-target">'grid'</property>
-                <property name="xalign">0.5</property>
-                <property name="hexpand">1</property>
-                <property name="vexpand">1</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkToggleButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">List View</property>
-                <property name="image">view_list_symbolic</property>
-                <property name="xalign">0.5</property>
-                <property name="hexpand">1</property>
-                <property name="vexpand">1</property>
-                <property name="draw_indicator">False</property>
-                <property name="action-name">win.view-type</property>
-                <property name="action-target">'list'</property>
-                <property name="hexpand">1</property>
-                <property name="vexpand">1</property>
-              </object>
-            </child>
-            <style>
-              <class name="linked"/>
-            </style>
-          </object>
-        </child>
+        <property name="homogeneous">0</property>
         <child>
           <object class="GtkScale">
             <property name="visible">1</property>
@@ -565,47 +538,97 @@
           </object>
         </child>
         <child>
-          <object class="GtkCheckButton">
+          <object class="GtkModelButton">
             <property name="visible">1</property>
-            <property name="can_focus">1</property>
             <property name="action-name">win.show-installed-only</property>
+            <property name="text" translatable="yes">_Installed Games Only</property>
             <accelerator key="h" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">1</property>
-                <property name="label" translatable="yes">_Installed Games Only</property>
-                <property name="use-underline">1</property>
-              </object>
-            </child>
+            <property name="use-underline">1</property>
           </object>
         </child>
         <child>
-          <object class="GtkCheckButton">
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Sort _Ascending</property>
+            <property name="action-name">win.view-sorting-ascending</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Name</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'name'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Year</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'year'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Runner</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'runner'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Platform</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'platform'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Last played</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'lastplayed'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Ins_talled at</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'installed_at'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
             <property name="visible">1</property>
-            <property name="can_focus">1</property>
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">1</property>
             <property name="action-name">win.use-dark-theme</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">1</property>
-                <property name="label" translatable="yes">Use _Dark Theme</property>
-                <property name="use-underline">1</property>
-              </object>
-            </child>
+            <property name="text" translatable="yes">Use _Dark Theme</property>
+            <property name="use-underline">1</property>
           </object>
         </child>
         <child>
-          <object class="GtkCheckButton">
+          <object class="GtkModelButton">
             <property name="visible">1</property>
-            <property name="can_focus">1</property>
             <property name="action-name">win.show-side-bar</property>
             <accelerator key="f9" signal="clicked"/>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">1</property>
-                <property name="label" translatable="yes">Show _Side Panel</property>
-                <property name="use-underline">1</property>
-              </object>
-            </child>
+            <property name="text" translatable="yes">Show _Side Panel</property>
+            <property name="use-underline">1</property>
           </object>
         </child>
       </object>

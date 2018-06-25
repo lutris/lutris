@@ -67,6 +67,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_button = GtkTemplate.Child()
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
+    viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         self.application = application
@@ -95,6 +96,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('filter_installed') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+        self.view_sorting = \
+            settings.read_setting('view_sorting') or 'name'
+        self.view_sorting_ascending = \
+            settings.read_setting('view_sorting_ascending') != 'false'
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
 
         # Sync local lutris library with current Steam games and desktop games
@@ -103,8 +108,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_list = pga.get_games()
-        self.game_store = GameStore([], self.icon_type, self.filter_installed)
+        self.game_store = GameStore([], self.icon_type, self.filter_installed, self.view_sorting, self.view_sorting_ascending)
         self.view = self.get_view(view_type)
+        self.game_store.connect('sorting-changed', self.on_game_store_sorting_changed)
         super().__init__(default_width=width,
                          default_height=height,
                          icon_name='lutris',
@@ -122,6 +128,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Load view
         self.games_scrollwindow.add(self.view)
         self.connect_signals()
+        other_view = 'list' if view_type is 'grid' else 'grid'
+        self.viewtype_icon.set_from_icon_name(
+            'view-' + other_view + '-symbolic',
+            Gtk.IconSize.BUTTON
+        )
         self.view.show()
 
         # Contextual menu
@@ -197,10 +208,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'show-installed-only': Action(self.on_show_installed_state_change, type='b',
                                           default=self.filter_installed,
                                           accel='<Primary>h'),
-            'view-type': Action(self.on_viewtype_state_change, type='s',
-                                default=self.current_view_type),
+            'toggle-viewtype': Action(self.on_toggle_viewtype),
             'icon-type': Action(self.on_icontype_state_change, type='s',
                                 default=self.icon_type),
+            'view-sorting': Action(self.on_view_sorting_state_change, type='s',
+                                   default=self.view_sorting),
+            'view-sorting-ascending': Action(self.on_view_sorting_direction_change, type='b',
+                                             default=self.view_sorting_ascending),
             'use-dark-theme': Action(self.on_dark_theme_state_change, type='b',
                                      default=self.use_dark_theme),
             'show-side-bar': Action(self.on_sidebar_state_change, type='b',
@@ -377,6 +391,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
+        other_view = 'list' if view_type is 'grid' else 'grid'
+        self.viewtype_icon.set_from_icon_name(
+            'view-' + other_view + '-symbolic',
+            Gtk.IconSize.BUTTON
+        )
         SCALE = list(IMAGE_SIZES.keys())
         self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
 
@@ -538,6 +557,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def invalidate_game_filter(self):
         """Refilter the game view based on current filters"""
         self.game_store.modelfilter.refilter()
+        self.game_store.modelsort.clear_cache()
+        self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
         self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
 
     def on_show_installed_state_change(self, action, value):
@@ -785,11 +806,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
 
-    def on_viewtype_state_change(self, action, val):
-        action.set_state(val)
-        view_type = val.get_string()
-        if view_type != self.current_view_type:
-            self.switch_view(view_type)
+    def on_toggle_viewtype(self, *args):
+        if self.current_view_type is 'grid':
+            self.switch_view('list')
+        else:
+            self.switch_view('grid')
 
     def _set_icon_type(self, icon_type):
         self.icon_type = icon_type
@@ -805,6 +826,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
         self._set_icon_type(value.get_string())
+
+    def on_view_sorting_state_change(self, action, value):
+        ascending = self.view_sorting_ascending
+        self.game_store.sort_view(value.get_string(), ascending)
+
+    def on_view_sorting_direction_change(self, action, value):
+        self.game_store.sort_view(self.view_sorting, value.get_boolean())
+
+    def on_game_store_sorting_changed(self, game_store, key, ascending):
+        self.view_sorting = key
+        self.view_sorting_ascending = ascending
+        self.actions['view-sorting'].set_state(GLib.Variant.new_string(key))
+        self.actions['view-sorting-ascending'].set_state(GLib.Variant.new_boolean(ascending))
+        settings.write_setting('view_sorting', self.view_sorting)
+        settings.write_setting(
+            'view_sorting_ascending',
+            'true' if self.view_sorting_ascending else 'false'
+        )
 
     def create_menu_shortcut(self, *args):
         """Add the selected game to the system's Games menu."""
