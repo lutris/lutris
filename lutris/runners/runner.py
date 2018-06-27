@@ -176,7 +176,7 @@ class Runner:
         return runtime.get_env(self.system_config.get("prefer_system_libs", True))
 
     def play(self):
-        """Dummy method, must be implemented by derived runnners."""
+        """Dummy method, must be implemented by derived runners."""
         raise NotImplementedError("Implement the play method in your runner")
 
     def get_run_data(self):
