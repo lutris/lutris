@@ -44,6 +44,8 @@ __all__ = (
     "dgen",
     "reicast",
     "redream",
+    # Fantasy consoles
+    "pico8",
     # Misc legacy systems
     "frotz",
     "jzintv",

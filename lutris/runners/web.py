@@ -162,7 +162,7 @@ class web(Runner):
     def get_env(self, os_env=True):
         env = super(web, self).get_env(os_env)
 
-        env["ENABLE_FLASH_PLAYER"] = "1" if self.runner_config["enable_flash"] else "0"
+        env['ENABLE_FLASH_PLAYER'] = '1' if self.runner_config.get('enable_flash') else '0'
 
         return env
 

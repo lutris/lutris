@@ -16,13 +16,14 @@ class Downloader:
 
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False, referer=None):
+    def __init__(self, url, dest, overwrite=False, referer=None, callback=None):
         self.url = url
         self.dest = dest
         self.overwrite = overwrite
         self.referer = referer
         self.stop_request = None
         self.thread = None
+        self.callback = callback
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -105,6 +106,8 @@ class Downloader:
             self.progress_percentage = 100
         self.state = self.COMPLETED
         self.file_pointer.close()
+        if self.callback:
+            self.callback()
 
     def async_download(self, url, queue, stop_request=None):
         headers = {}
