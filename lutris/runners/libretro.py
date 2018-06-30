@@ -167,7 +167,7 @@ class libretro(Runner):
         """Return the system directory used for storing BIOS and firmwares."""
         system_directory = retro_config['system_directory']
         if not system_directory or system_directory == 'default':
-            system_directory = '~/.config/retroarch/system'
+            system_directory = get_default_config_path('system')
         return os.path.expanduser(system_directory)
 
     def prelaunch(self):
@@ -197,6 +197,8 @@ class libretro(Runner):
             retro_config['overlay_directory'] = get_default_config_path('overlay')
             retro_config['assets_directory'] = get_default_config_path('assets')
             retro_config.save()
+        else:
+            retro_config = RetroConfig(config_file)
 
         core = self.game_config.get('core')
         info_file = os.path.join(get_default_config_path('info'),
