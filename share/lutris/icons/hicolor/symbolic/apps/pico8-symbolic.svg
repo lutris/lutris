@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="root">
+  <g
+     id="layer1"
+     transform="translate(8,8)">
+    <rect
+       style="opacity:0.91"
+       width="48"
+       height="48"
+       x="96"
+       y="0" />
+    <rect
+       y="48"
+       x="48"
+       height="48"
+       width="48"
+       style="opacity:0.91" />
+    <rect
+       y="48"
+       x="144"
+       height="48"
+       width="48"
+       style="opacity:0.6" />
+    <rect
+       style="opacity:0.86"
+       width="48"
+       height="48"
+       x="0"
+       y="96" />
+    <rect
+       style="opacity:0.72"
+       width="48"
+       height="48"
+       x="192"
+       y="96" />
+    <rect
+       y="144"
+       x="48"
+       height="48"
+       width="48"
+       style="opacity:0.93" />
+    <rect
+       style="opacity:0.89"
+       width="48"
+       height="48"
+       x="144"
+       y="144" />
+    <rect
+       style="opacity:0.86"
+       width="48"
+       height="48"
+       x="96"
+       y="192" />
+    <path d="M96 48 H 144 V 96 H 192 V 144 H 144 V 192 H 96 V 144 H 48 V 96 H 96" style="opacity: 0.4"/>
+  </g>
+</svg>
