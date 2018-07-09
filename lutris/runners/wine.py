@@ -444,7 +444,7 @@ def get_default_version():
 @lru_cache(maxsize=10)
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
-    if not system.path_exists(wine_path):
+    if not system.path_exists(wine_path) and not shutil.which(wine_path):
         return
     if os.path.isabs(wine_path):
         wine_stats = os.stat(wine_path)
