@@ -597,7 +597,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             raise ValueError("game_id must be an int")
         if not self.view.has_game_id(game_id):
             logger.debug("Adding new installed game to view (%d)" % game_id)
-            self.add_game_to_view(game_id, async=False)
+            self.add_game_to_view(game_id, is_async=False)
 
         game = Game(game_id)
         view.set_installed(game)
@@ -646,7 +646,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
         return True
 
-    def add_game_to_view(self, game_id, async=True):
+    def add_game_to_view(self, game_id, is_async=True):
+        """Add a given game to the current view
+
+        Params:
+            game_id (str): SQL ID of the game to add
+            is_async (bool): Adds the game asynchronously (defaults to True)
+        """
         if not game_id:
             raise ValueError("Missing game id")
 
@@ -656,7 +662,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.sidebar_treeview.update()
             return False
 
-        if async:
+        if is_async:
             GLib.idle_add(do_add_game)
         else:
             do_add_game()
