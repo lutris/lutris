@@ -2,14 +2,15 @@
 import os
 import time
 import shutil
+import re
 
 from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
-DXVK_LATEST = "0.52"
-DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
+DXVK_LATEST = "0.62"
+DXVK_PAST_RELEASES = ["0.61", "0.52", "0.51", "0.42"]
 
 
 class DXVKManager:
@@ -61,6 +62,7 @@ class DXVKManager:
         # There's a glitch in one of the archive's names
         fixed_version = 'v0.40' if self.version == '0.40' else self.version
         dxvk_url = self.base_url.format(self.version, fixed_version)
+        dxvk_url = re.sub(r"\s+\(default\)","", dxvk_url)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
 
