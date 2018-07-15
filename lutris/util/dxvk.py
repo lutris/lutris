@@ -2,6 +2,7 @@
 import os
 import time
 import shutil
+import re
 
 from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
@@ -61,6 +62,7 @@ class DXVKManager:
         # There's a glitch in one of the archive's names
         fixed_version = 'v0.40' if self.version == '0.40' else self.version
         dxvk_url = self.base_url.format(self.version, fixed_version)
+        dxvk_url = re.sub(r"\s+\(default\)","", dxvk_url)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
 
