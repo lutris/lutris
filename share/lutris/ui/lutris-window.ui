@@ -161,6 +161,7 @@
             <child>
               <object class="GtkLinkButton" id="connect_link">
                 <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
+                <property name="tooltip_text"></property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -178,6 +179,7 @@
             <child>
               <object class="GtkLinkButton">
                 <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+                <property name="tooltip_text"></property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
