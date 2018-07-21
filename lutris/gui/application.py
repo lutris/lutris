@@ -148,6 +148,7 @@ class Application(Gtk.Application):
         action = Gio.SimpleAction.new('quit')
         action.connect('activate', lambda *x: self.quit())
         self.add_action(action)
+        self.add_accelerator('<Primary>q', 'app.quit')
 
         builder = Gtk.Builder.new_from_file(
             os.path.join(datapath.get(), 'ui', 'menus.ui')
