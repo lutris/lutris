@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20180513-next
+WINETRICKS_VERSION=20180603-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -36,6 +36,7 @@ WINETRICKS_VERSION=20180513-next
 #   for the user when downloads cannot be fully automated.
 # - pkexec, sudo, or kdesu (gksu/gksudo/kdesudo are deprecated upstream but also still supported)
 #   are used to mount .iso images if the user cached them with -k option.
+# - fuseiso, archivemount (Linux), or hdiutil (macOS) is used to mount .iso images.
 # - perl is used to munge steam config files.
 # - torify is used with option "--torify" if sites are blocked in single countries.
 # On Ubuntu, the following lines can be used to install all the prerequisites:
@@ -1792,27 +1793,56 @@ w_umount()
         w_try_cd "$VCD_DIR"
         w_try vcdmount.exe /u
     else
-        echo "Running $WINETRICKS_SUDO umount $W_ISO_MOUNT_ROOT"
+        if test "$W_USE_USERMOUNT"; then
+            # FUSE-based tools or hdiutil
+            if test -d "$W_ISO_USER_MOUNT_ROOT"; then
+                "$WINE" eject "${W_ISO_MOUNT_LETTER}:"
+                cat > "$W_TMP"/unset_type_cdrom.reg <<_EOF_
+REGEDIT4
 
-        case "$WINETRICKS_SUDO" in
-            gksu*|kdesudo)
-              # -l lazy unmount in case executable still running
-              "$WINETRICKS_SUDO" "umount -l $W_ISO_MOUNT_ROOT"
-              w_try "$WINETRICKS_SUDO" "rm -rf $W_ISO_MOUNT_ROOT"
-              ;;
-            kdesu)
-              "$WINETRICKS_SUDO" -c "umount -l $W_ISO_MOUNT_ROOT"
-              w_try "$WINETRICKS_SUDO" -c "rm -rf $W_ISO_MOUNT_ROOT"
-              ;;
-            *)
-              "$WINETRICKS_SUDO" umount -l "$W_ISO_MOUNT_ROOT"
-              w_try "$WINETRICKS_SUDO" rm -rf "$W_ISO_MOUNT_ROOT"
-              ;;
-        esac
+[HKEY_LOCAL_MACHINE\\Software\\Wine\\Drives]
+"${W_ISO_MOUNT_LETTER}:"=-
+_EOF_
+                w_try_regedit "$W_TMP"/unset_type_cdrom.reg
+                rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
+                rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
 
-        "$WINE" eject "${W_ISO_MOUNT_LETTER}:"
-        rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
-        rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
+                case "$WINETRICKS_ISO_MOUNT" in
+                    hdiutil)
+                        "$WINETRICKS_ISO_MOUNT" detach "$W_ISO_USER_MOUNT_ROOT"
+                        ;;
+                    *)
+                        # -uz lazy unmount in case executable still running
+                        fusermount -uz "$W_ISO_USER_MOUNT_ROOT"
+                        ;;
+                esac
+                w_try rmdir "$W_ISO_USER_MOUNT_ROOT"
+            fi
+            W_ISO_MOUNT_ROOT=/mnt/winetricks
+        else
+            # sudo + umount
+            echo "Running $WINETRICKS_SUDO umount $W_ISO_MOUNT_ROOT"
+
+            case "$WINETRICKS_SUDO" in
+                gksu*|kdesudo)
+                    # -l lazy unmount in case executable still running
+                    "$WINETRICKS_SUDO" "umount -l $W_ISO_MOUNT_ROOT"
+                    w_try "$WINETRICKS_SUDO" "rm -rf $W_ISO_MOUNT_ROOT"
+                    ;;
+                kdesu)
+                    "$WINETRICKS_SUDO" -c "umount -l $W_ISO_MOUNT_ROOT"
+                    w_try "$WINETRICKS_SUDO" -c "rm -rf $W_ISO_MOUNT_ROOT"
+                    ;;
+                *)
+                    "$WINETRICKS_SUDO" umount -l "$W_ISO_MOUNT_ROOT"
+                    w_try "$WINETRICKS_SUDO" rm -rf "$W_ISO_MOUNT_ROOT"
+                    ;;
+            esac
+
+            "$WINE" eject "${W_ISO_MOUNT_LETTER}:"
+            rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
+            rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
+        fi
     fi
 }
 
@@ -2830,6 +2860,9 @@ w_do_call()
         test "$W_OPT_NOCLEAN" = 1 || rm -rf "$W_TMP"
         mkdir -p "$W_TMP"
 
+        # Reset whether use of user mount tool
+        unset W_USE_USERMOUNT
+
         # Calling subshell must explicitly propagate error code with exit $?
     ) || exit $?
 }
@@ -3218,6 +3251,31 @@ winetricks_detect_sudo()
             WINETRICKS_SUDO=kdesu
         fi
     fi
+}
+
+# Detect which iso mount tool to use
+winetricks_detect_iso_mount()
+{
+    if test -x "$(which fuseiso 2>/dev/null)"; then
+        # File/dir names are converted to lowercase
+        WINETRICKS_ISO_MOUNT=fuseiso
+    elif test -x "$(which archivemount 2>/dev/null)"; then
+        # File/dir names may be uppercase and we may need
+        # case-insensitive operations
+        #   e.g. w_try "$WINE" cmd /c "copy $W_ISO_MOUNT_LETTER:\\DOC.PDF C:\\doc.pdf"
+        # This tool had path issue in 0.8.8 or older versions
+        #   e.g. office2013pro works in 0.8.9 or later but doesn't work in 0.8.8
+        WINETRICKS_ISO_MOUNT=archivemount
+    elif test -x "$(which hdiutil 2>/dev/null)"; then
+        # File/dir names may be uppercase (same as archivemount)
+        WINETRICKS_ISO_MOUNT=hdiutil
+    else
+        WINETRICKS_ISO_MOUNT=none
+    fi
+    # Notes about other tools:
+    #   fuseiso9660: may append ";1" to filenames
+    #   unar: the drive icon is not "optical drive + disc" in Wine Explorer
+    #         and "wine eject" command fails
 }
 
 winetricks_get_prefix_var()
@@ -4511,31 +4569,94 @@ winetricks_mount_cached_iso()
             sleep 1
         done
     else
-        # Linux
-        # FIXME: find a way to mount or copy from image without sudo
-        _W_USERID=$(id -u)
-        # WINETRICKS_IMG may contain spaces and needs to be quoted
-        case "$WINETRICKS_SUDO" in
-            gksu*|kdesudo)
-              w_try $WINETRICKS_SUDO "mkdir -p $W_ISO_MOUNT_ROOT"
-              w_try $WINETRICKS_SUDO "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
-              ;;
-            kdesu)
-              w_try $WINETRICKS_SUDO -c "mkdir -p $W_ISO_MOUNT_ROOT"
-              w_try $WINETRICKS_SUDO -c "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
-              ;;
-            *)
-              w_try $WINETRICKS_SUDO mkdir -p $W_ISO_MOUNT_ROOT
-              w_try $WINETRICKS_SUDO mount -o ro,loop,uid="$_W_USERID",unhide "$WINETRICKS_IMG" $W_ISO_MOUNT_ROOT
-              ;;
-        esac
+        if test "$W_USE_USERMOUNT"; then
+            # Linux (FUSE-based tools), macOS (hdiutil)
+            if test "$WINETRICKS_ISO_MOUNT" = "none"; then
+                # If no tools found, fall back to sudo + mount
+                w_warn "No user mount tools detected, using sudo + mount"
+                unset W_USE_USERMOUNT
+                winetricks_mount_cached_iso
+                return
+            fi
+            echo "Running mkdir -p $W_ISO_USER_MOUNT_ROOT"
+            mkdir -p "$W_ISO_USER_MOUNT_ROOT"
+            if test $? -ne 0; then
+                w_warn "mkdir -p $W_ISO_USER_MOUNT_ROOT failed, falling back to sudo + mount"
+                unset W_USE_USERMOUNT
+                winetricks_mount_cached_iso
+                return
+            fi
+            case "$WINETRICKS_ISO_MOUNT" in
+                fuseiso)
+                    echo "Running $WINETRICKS_ISO_MOUNT $WINETRICKS_IMG $W_ISO_USER_MOUNT_ROOT"
+                    $WINETRICKS_ISO_MOUNT "$WINETRICKS_IMG" "$W_ISO_USER_MOUNT_ROOT"
+                    ;;
+                archivemount)
+                    echo "Running $WINETRICKS_ISO_MOUNT $WINETRICKS_IMG $W_ISO_USER_MOUNT_ROOT -o readonly"
+                    $WINETRICKS_ISO_MOUNT "$WINETRICKS_IMG" "$W_ISO_USER_MOUNT_ROOT" -o readonly
+                    ;;
+                hdiutil)
+                    echo "Running $WINETRICKS_ISO_MOUNT attach -mountpoint $W_ISO_USER_MOUNT_ROOT $WINETRICKS_IMG"
+                    $WINETRICKS_ISO_MOUNT attach -mountpoint "$W_ISO_USER_MOUNT_ROOT" "$WINETRICKS_IMG"
+                    ;;
+                *)
+                    w_warn "Unknown ISO mount tool $WINETRICKS_ISO_MOUNT, using sudo + mount"
+                    unset W_USE_USERMOUNT
+                    winetricks_mount_cached_iso
+                    return
+                    ;;
+            esac
+            if test $? -ne 0; then
+                w_warn "$WINETRICKS_ISO_MOUNT failed, falling back to sudo + mount"
+                unset W_USE_USERMOUNT
+                winetricks_mount_cached_iso
+                return
+            fi
 
-        echo "Mounting as drive ${W_ISO_MOUNT_LETTER}:"
-        # Gotta provide a symlink to the raw disc, else installers that check volume names will fail
-        rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"*
-        ln -sf "$WINETRICKS_IMG" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
-        ln -sf "$W_ISO_MOUNT_ROOT" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
-        unset _W_USERID
+            echo "Mounting as drive ${W_ISO_MOUNT_LETTER}:"
+            # Gotta provide a symlink to the raw disc, else installers that check volume names will fail
+            rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"*
+            ln -sf "$WINETRICKS_IMG" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
+            ln -sf "$W_ISO_USER_MOUNT_ROOT" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
+            # Gotta set the type to "cdrom", else "wine eject" will fail
+            cat > "$W_TMP"/set_type_cdrom.reg <<_EOF_
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\\Software\\Wine\\Drives]
+"${W_ISO_MOUNT_LETTER}:"="cdrom"
+_EOF_
+            w_try_regedit "$W_TMP"/set_type_cdrom.reg
+            # The new drive is not recognized without waiting
+            # FIXME: not sure if the duration is appropriate
+            sleep 5
+
+            W_ISO_MOUNT_ROOT="$W_ISO_USER_MOUNT_ROOT"
+        else
+            # Linux (sudo + mount)
+            _W_USERID=$(id -u)
+            # WINETRICKS_IMG may contain spaces and needs to be quoted
+            case "$WINETRICKS_SUDO" in
+                gksu*|kdesudo)
+                    w_try $WINETRICKS_SUDO "mkdir -p $W_ISO_MOUNT_ROOT"
+                    w_try $WINETRICKS_SUDO "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
+                    ;;
+                kdesu)
+                    w_try $WINETRICKS_SUDO -c "mkdir -p $W_ISO_MOUNT_ROOT"
+                    w_try $WINETRICKS_SUDO -c "mount -o ro,loop,uid=$_W_USERID,unhide '$WINETRICKS_IMG' $W_ISO_MOUNT_ROOT"
+                    ;;
+                *)
+                    w_try $WINETRICKS_SUDO mkdir -p "$W_ISO_MOUNT_ROOT"
+                    w_try $WINETRICKS_SUDO mount -o ro,loop,uid="$_W_USERID",unhide "$WINETRICKS_IMG" "$W_ISO_MOUNT_ROOT"
+                    ;;
+            esac
+
+            echo "Mounting as drive ${W_ISO_MOUNT_LETTER}:"
+            # Gotta provide a symlink to the raw disc, else installers that check volume names will fail
+            rm -f "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"*
+            ln -sf "$WINETRICKS_IMG" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}::"
+            ln -sf "$W_ISO_MOUNT_ROOT" "$WINEPREFIX/dosdevices/${W_ISO_MOUNT_LETTER}:"
+            unset _W_USERID
+        fi
     fi
 }
 
@@ -4821,10 +4942,16 @@ winetricks_set_wineprefix()
         # WINE64 = wine64, available on 64-bit prefixes
         # WINE_ARCH = the native wine for the prefix (wine for 32-bit, wine64 for 64-bit)
         # WINE_MULTI = generic wine, new name
-        case "$WINE" in
-            *64) WINE64="${WINE}" ;;
-            *) WINE64="${WINE}64" ;;
-        esac
+        if [ "${WINE%??}64" = "$WINE" ]; then
+            WINE64="${WINE}"
+        elif which "${WINE}64" >/dev/null 2>&1; then
+            WINE64="${WINE}64"
+        else
+            # Handle case where wine binaries (or binary wrappers) have a suffix
+            WINE64="$(dirname "$WINE")/"
+            [ "$WINE64" = "./" ] && WINE64=""
+            WINE64="${WINE64}$(basename "$WINE" | sed 's/^wine/wine64/')"
+        fi
         WINE_ARCH="${WINE64}"
         WINE_MULTI="${WINE}"
 
@@ -5055,6 +5182,7 @@ winetricks_init()
 
     # Overridden for windows
     W_ISO_MOUNT_ROOT=/mnt/winetricks
+    W_ISO_USER_MOUNT_ROOT="$HOME"/winetricks-iso
     W_ISO_MOUNT_LETTER=i
 
     WINETRICKS_WINE_VERSION=${WINETRICKS_WINE_VERSION:-$(winetricks_early_wine --version | sed 's/.*wine/wine/')}
@@ -5336,8 +5464,9 @@ helper_win2ksp4()
 
     # Originally at https://www.microsoft.com/en-us/download/details.aspx?id=4127
     # Mirror list at http://www.filewatcher.com/m/w2ksp4_en.exe.135477136-0.html
-    # The rename from w2ksp4_en.exe to W2KSP4_EN.EXE avoids users having to redownload for a file rename
-    w_download_to win2ksp4 ftp://ftp.twaren.net/pub/cpatch/msupdate/win2000/en/w2ksp4_en.exe 167bb78d4adc957cc39fb4902517e1f32b1e62092353be5f8fb9ee647642de7e W2KSP4_EN.EXE
+    # This URL doesn't need rename from w2ksp4_en.exe to W2KSP4_EN.EXE
+    # to avoid users having to redownload for a file rename
+    w_download_to win2ksp4 https://ftp.gnome.org/mirror/archive/ftp.sunet.se/pub/security/vendor/microsoft/win2000/Service_Packs/usa/W2KSP4_EN.EXE 167bb78d4adc957cc39fb4902517e1f32b1e62092353be5f8fb9ee647642de7e
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/win2ksp4/W2KSP4_EN.EXE
 }
 
@@ -5358,7 +5487,7 @@ helper_winxpsp3()
     # https://download.microsoft.com/download/d/3/0/d30e32d8-418a-469d-b600-f32ce3edf42d/WindowsXP-KB936929-SP3-x86-ENU.exe
     # Mirror list: http://www.filewatcher.com/m/WindowsXP-KB936929-SP3-x86-ENU.exe.331805736-0.html
     # 2018/04/04: http://www.download.windowsupdate.com/msdownload/update/software/dflt/2008/04/windowsxp-kb936929-sp3-x86-enu_c81472f7eeea2eca421e116cd4c03e2300ebfde4.exe
-    w_download_to winxpsp3 ftp://ftp.emacinc.com/LegacyProducts/SBC/drivers/vdx/WINXP/WindowsXP-KB936929-SP3-x86-ENU.exe 62e524a552db9f6fd22d469010ea4d7e28ee06fa615a1c34362129f808916654
+    w_download_to winxpsp3 https://ftp.gnome.org/mirror/archive/ftp.sunet.se/pub/security/vendor/microsoft/winxp/Service_Packs/WindowsXP-KB936929-SP3-x86-ENU.exe 62e524a552db9f6fd22d469010ea4d7e28ee06fa615a1c34362129f808916654
 
     w_try_cabextract -d "$W_TMP" -L -F "$filename" "$W_CACHE"/winxpsp3/WindowsXP-KB936929-SP3-x86-ENU.exe
 }
@@ -5405,7 +5534,8 @@ load_adobeair()
     # 2017/03/14: 20.0.0.260 (strings 'Adobe AIR.dll' | grep 20\\. ) sha256sum 318770b9a18e59ca4a721a1f5c2b0235cffdbe77a043e99cb2af32074d61de45
     # 2018/01/30: 28.0.0.127 (strings 'Adobe AIR.dll' | grep 28\\. ) sha256sum 9076489e273652089a4a53a1d38c6631e8b7477e39426a843e0273f25bfb109f
     # 2018/03/16: 29.0.0.112 (strings 'Adobe AIR.dll' | grep -E "^29\..+\..+" ) sha256sum 5186b54682644a30f2be61c9b510de9a9a76e301bc1b42f0f1bc50bd809a3625
-    w_download https://airdownload.adobe.com/air/win/download/latest/AdobeAIRInstaller.exe 5186b54682644a30f2be61c9b510de9a9a76e301bc1b42f0f1bc50bd809a3625
+    # 2018/06/08: 30.0.0.107 (strings 'Adobe AIR.dll' | grep -E "^30\..+\..+" ) sha256sum bcc36174f6f70baba27e5ed1c0df67e55c306ac7bc86b1d280eff4db8c314985
+    w_download https://airdownload.adobe.com/air/win/download/latest/AdobeAIRInstaller.exe bcc36174f6f70baba27e5ed1c0df67e55c306ac7bc86b1d280eff4db8c314985
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # See https://bugs.winehq.org/show_bug.cgi?id=43506
@@ -5509,7 +5639,7 @@ load_cabinet()
     # https://www.microsoft.com/downloads/en/details.aspx?FamilyId=9AD000F2-CAE7-493D-B0F3-AE36C570ADE8&displaylang=en
     # Originally at: https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe
     # Mirror list: http://www.filewatcher.com/m/MDAC_TYP.EXE.5389224-0.html (5.14 MB MDAC_TYP.EXE)
-    w_download ftp://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
+    w_download http://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
 
     w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/${W_PACKAGE}/${file1}"
     w_try cp "${W_TMP}/cabinet.dll" "${W_SYSTEM32_DLLS}/cabinet.dll"
@@ -5531,7 +5661,7 @@ load_cmd()
 {
     # Originally at: https://download.microsoft.com/download/8/d/c/8dc79965-dfbc-4b25-9546-e23bc4b791c6/Q811493_W2K_SP4_X86_EN.exe
     # Mirror list: http://www.filewatcher.com/_/?q=Q811493_W2K_SP4_X86_EN.exe
-    w_download ftp://ftp.fu-berlin.de/pc/security/ms-patches/win2000/Security_Bulletins/Q811493_W2K_SP4_X86_EN.exe b5574b3516a724c2cba0d864162a3d1d684db1cf30de8db4b0e0ea6a1f6f1480
+    w_download https://ftp.gnome.org/mirror/archive/ftp.sunet.se/pub/security/vendor/microsoft/win2000/Security_Bulletins/Q811493_W2K_SP4_X86_EN.exe b5574b3516a724c2cba0d864162a3d1d684db1cf30de8db4b0e0ea6a1f6f1480
     w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_CACHE/$W_PACKAGE/$file1" -F cmd.exe
 
     w_override_dlls native,builtin cmd.exe
@@ -6475,6 +6605,36 @@ load_dxsdk_jun2010()
 
 #----------------------------------------------------------------
 
+w_metadata dxvk dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.54.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk()
+{
+    _W_dxvk_dir="${file1%.tar.gz}"
+
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.54/dxvk-0.54.tar.gz" 1c2f186baaa01d2de7b832f6f05021bdd29eccb65fc197c8b15adfd4e08f9640
+    w_try_cd "$W_TMP"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1"
+    w_try mv "$W_TMP/$_W_dxvk_dir/x32/d3d11.dll" "$W_SYSTEM32_DLLS/"
+    w_try mv "$W_TMP/$_W_dxvk_dir/x32/dxgi.dll" "$W_SYSTEM32_DLLS/"
+    if test "$W_ARCH" = "win64"; then
+        w_try mv "$W_TMP/$_W_dxvk_dir/x64/d3d11.dll" "$W_SYSTEM64_DLLS/"
+        w_try mv "$W_TMP/$_W_dxvk_dir/x64/dxgi.dll" "$W_SYSTEM64_DLLS/"
+    fi
+    w_override_dlls native d3d11 dxgi
+
+    unset _W_dxvk_dir
+}
+
+#----------------------------------------------------------------
+
 w_metadata dmusic32 dlls \
     title="MS dmusic32.dll from DirectX user redistributable" \
     publisher="Microsoft" \
@@ -7066,7 +7226,7 @@ load_dotnet30()
     # No longer on microsoft.com, and archive.org is unreliablel. Choose amongst the oldest/most reliable looking from
     # http://www.filewatcher.com/m/dotnetfx3.exe.52770576-0.html
     # (and verify sha256sum, of course ;))
-    w_download ftp://ftp.softlab-nsk.com/pub/ForwardTxSoftware/DotNetFX123/DotNet_v3/dotnetfx3.exe 6cf8921e00f52bbd888aa7a520a7bac47e818e2a850bcc44494c64d6cbfafdac
+    w_download http://descargas.udenar.edu.co/Framework.net/dotnetfx3.exe 6cf8921e00f52bbd888aa7a520a7bac47e818e2a850bcc44494c64d6cbfafdac
 
     w_call remove_mono
 
@@ -7597,14 +7757,15 @@ load_dotnet_verifier()
 {
     # https://blogs.msdn.microsoft.com/astebner/2008/10/13/net-framework-setup-verification-tool-users-guide/
     # 2016/10/26: sha256sum 1daf4b1b27669b65f613e17814da3c8342d3bfa9520a65a880c58d6a2a6e32b5, adds .NET Framework 4.6.{1,2} support
-    # 2017/06/12: sha256sum , adds .NET Framework 4.7 support
+    # 2017/06/12: sha256sum 310a0341fbe68f5b8601f2d8deef5d05ca6bce50df03912df391bc843794ef60, adds .NET Framework 4.7 support
+    # 2018/06/03: sha256sum 13fd683fd604f9de09a9e649df303100b81e6797f868024d55e5c2f3c14aa9a6, adds .NET Framework 4.7.{1,2} support
 
-    w_download https://msdnshared.blob.core.windows.net/media/2017/11/netfx_setupverifier_new.zip 310a0341fbe68f5b8601f2d8deef5d05ca6bce50df03912df391bc843794ef60
+    w_download https://msdnshared.blob.core.windows.net/media/2018/05/netfx_setupverifier_new.zip 13fd683fd604f9de09a9e649df303100b81e6797f868024d55e5c2f3c14aa9a6
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try_unzip "$W_SYSTEM32_DLLS" netfx_setupverifier_new.zip netfx_setupverifier.exe
 
-    w_warn "You can run the .Net Verifier with \"${WINE} netfx_setupverifier.exe\""
+    w_warn "You can run the .NET Verifier with \"${WINE} netfx_setupverifier.exe\""
 }
 
 #----------------------------------------------------------------
@@ -8116,7 +8277,7 @@ load_icodecs()
         # arguments easily accessible, we'd have to just kill all explorer.exe processes.
         #
         # So instead, use system kill
-        inode_pid="$(pgrep -f 'explorer.exe C:\\Program Files\\Ligos\\Indeo')"
+        inode_pid="$(pgrep -f "explorer.exe.*Indeo")"
         kill -HUP "$inode_pid"
 }
 
@@ -8255,7 +8416,7 @@ load_mdac27()
     # https://www.microsoft.com/downloads/en/details.aspx?FamilyId=9AD000F2-CAE7-493D-B0F3-AE36C570ADE8&displaylang=en
     # Originally at: https://download.microsoft.com/download/3/b/f/3bf74b01-16ba-472d-9a8c-42b2b4fa0d76/mdac_typ.exe
     # Mirror list: http://www.filewatcher.com/m/MDAC_TYP.EXE.5389224-0.html (5.14 MB MDAC_TYP.EXE)
-    w_download ftp://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
+    w_download http://ftp.gunadarma.ac.id/pub/driver/itegno/USB%20Software/MDAC/MDAC_TYP.EXE 36d2a3099e6286ae3fab181a502a95fbd825fa5ddb30bf09b345abc7f1f620b4
 
     load_native_mdac
     w_set_winver nt40
@@ -8574,7 +8735,7 @@ load_msls31()
     # Needed by native RichEdit and Internet Explorer
     # Originally at https://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe
     # Mirror list at http://www.filewatcher.com/m/InstMsiW.exe.1822848-0.html
-    w_download ftp://ftp.hp.com/pub/softlib/software/msi/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b InstMsiW.exe
+    w_download http://ftp.hp.com/pub/softlib/software/msi/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b InstMsiW.exe
 
     w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msls31/InstMsiW.exe
     w_try cp -f "$W_TMP"/msls31.dll "$W_SYSTEM32_DLLS"
@@ -8638,7 +8799,7 @@ load_msxml3()
     # Known bad sites (2017/06/11):
     # ftp://support.danbit.dk/D/DVD-RW-USB2B/Driver/Installation/Data/Redist/msxml3.msi
     # ftp://94.79.56.169/common/Client/MSXML%204.0%20Service%20Pack%202/msxml3.msi
-    w_download "ftp://176.9.43.153/MS%20XML%20Parser/msxml3.msi" f9c678f8217e9d4f9647e8a1f6d89a7c26a57b9e9e00d39f7487493dd7b4e36c
+    w_download https://media.codeweavers.com/pub/other/msxml3.msi f9c678f8217e9d4f9647e8a1f6d89a7c26a57b9e9e00d39f7487493dd7b4e36c
 
     # It won't install on top of Wine's msxml3, which has a pretty high version number, so delete Wine's fake DLL
     rm "$W_SYSTEM32_DLLS"/msxml3.dll
@@ -9043,7 +9204,7 @@ load_riched30()
     # with sha256sum 536e4c8385d7d250fd5702a6868d1ed004692136eefad22252d0dac15f02563a
     # Mirror list at http://www.filewatcher.com/m/InstMsiA.Exe.1707856-0.html
     # But they all have a different sha256sum, 5ab8b82f578f09dbccf797754155e531b5996b532c1f19c531596ec07cc4b46d
-    w_download ftp://ftp.vim.org/vol/2/linux-asp/i386/beta/cpe/b29/Changed_Components/win/InstMsiA.Exe 5ab8b82f578f09dbccf797754155e531b5996b532c1f19c531596ec07cc4b46d InstMsiA.exe
+    w_download http://ftp.tw.vim.org/cpatch/msupdate/msi/source/instmsia.exe 5ab8b82f578f09dbccf797754155e531b5996b532c1f19c531596ec07cc4b46d InstMsiA.exe
 
     w_try_cabextract --directory="$W_TMP" "$W_CACHE"/riched30/InstMsiA.exe
     w_try cp -f "$W_TMP"/riched20.dll "$W_SYSTEM32_DLLS"
@@ -9142,7 +9303,8 @@ load_shockwave() {
     # 2017/12/12: 0a9813ac55a8718440518dc2f5f410a3a065b422fe0618c073bfc631b9abf12c
     # 2018/03/16: 4d7b408cf5b65a522b071d7d9ddbc5f6964911a7d55c418e31f393e6055cf796
     # 2018/05/24: 2b03fa11ff6f31b3fef9313264f0ef356ee11d5bc3642c30a2482b4ac5dd0084
-    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi 2b03fa11ff6f31b3fef9313264f0ef356ee11d5bc3642c30a2482b4ac5dd0084
+    # 2018/06/14: a37f6c47b74fa3c96906e01b9b41d63c08d212fa3e357e354db1b5a93eb92c2f
+    w_download https://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.msi a37f6c47b74fa3c96906e01b9b41d63c08d212fa3e357e354db1b5a93eb92c2f
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" msiexec /i sw_lic_full_installer.msi $W_UNATTENDED_SLASH_Q
@@ -9919,14 +10081,36 @@ w_metadata vulkansdk dlls \
     year="2018" \
     media="download" \
     file1="VulkanSDK-1.1.73.0-Installer.exe" \
-    installed_file1="C:/VulkanSDK/1.1.73.0/Vulkan.ico"
+    installed_file1="C:/VulkanSDK/1.1.73.0/Vulkan.ico" \
+    installed_file2="C:/windows/winevulkan.json"
 
 load_vulkansdk()
 {
+    _W_vulkan_version="${file1%-*.exe}"
+    _W_vulkan_version="${_W_vulkan_version#*-}"
     # https://vulkan.lunarg.com/sdk/home
     w_download "https://sdk.lunarg.com/sdk/download/1.1.73.0/windows/VulkanSDK-1.1.73.0-Installer.exe?Human=true;u=" a5d193f97db4de97e6b4fdd81f00ff6a603f66bb17dc3cf8ac0fe9aec58497c7 VulkanSDK-1.1.73.0-Installer.exe
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_S
+    echo "Creating C:\\windows\\winevulkan.json winevulkan json file"
+    cat > "$W_WINDIR_UNIX"/winevulkan.json <<_EOF_
+{
+    "file_format_version": "1.0.0",
+    "ICD": {
+        "library_path": "c:\\\\windows\\\\system32\\\\winevulkan.dll",
+        "api_version": "$_W_vulkan_version"
+    }
+}
+_EOF_
+    echo "Creating winevulkan registry settings"
+    cat > "$W_TMP"/winevulkan.reg <<_EOF_
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\\SOFTWARE\\Khronos\\Vulkan\\Drivers\\]
+"C:\\\\Windows\\\\winevulkan.json"=dword:00000000
+
+_EOF_
+    w_try_regedit "$W_TMP_WIN"\\winevulkan.reg
 }
 
 #----------------------------------------------------------------
@@ -10057,9 +10241,10 @@ load_wmi()
     # WMI for NT4.0 need validation: https://www.microsoft.com/en-us/download/details.aspx?id=7665
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=16510
     # Originally at: https://download.microsoft.com/download/platformsdk/wmi9x/1.5/W9X/EN-US/wmi9x.exe
-    # 2017/10/14: ftp://59.124.141.94 is dead
-    # Mirror list: http://www.filewatcher.com/_/?q=wmi9x.exe
-    w_download ftp://82.162.138.211/pub/Install/Microsoft/Win9x/Update/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
+    # Mirror list: https://filemare.com/en-us/search/wmi9x.exe/761569271
+    # 2017/10/14: ftp://59.124.141.94 is dead, using ftp://82.162.138.211
+    # 2018/06/03: ftp://82.162.138.211 is dead, moved to ftp://ftp.espe.edu.ec
+    w_download http://alesi.com.mx/soporte/Sharpdesk/Redist/Esp/WMI/wmi9x.exe 1d5d94050354b164c6a19531df151e0703d5eb39cebf4357ee2cfc340c2509d0
 
     w_set_winver win98
     w_override_dlls native,builtin wbemprox wmiutils
@@ -10929,7 +11114,7 @@ load_tahoma()
 {
     # Formerly at https://download.microsoft.com/download/office97pro/fonts/1/w95/en-us/tahoma32.exe
     # Mirror list: http://www.filewatcher.com/_/?q=tahoma32.exe
-    w_download "ftp://ftp.uevora.pt/pub/windows/Microsoft/Euro/Euro-Compatible%20Tahoma%20Font/tahoma32.exe" 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
+    w_download https://www.encodage-video.com/devprog/win/tahoma32.exe 57496fb91d1629d2b6f313aaa6ebcdbcfd09c269b6462fe490420c786c089a40
 
     w_try_cabextract -d "$W_TMP" "$W_CACHE/$W_PACKAGE/$file1"
     w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "*.TTF"
@@ -12022,7 +12207,7 @@ load_mspaint()
 
     # Originally at: https://download.microsoft.com/download/0/A/4/0A40DF5C-2BAE-4C63-802A-84C33B34AC98/WindowsXP-KB978706-x86-ENU.exe
     # Mirror list: http://www.filewatcher.com/_/?q=WindowsXP-KB978706-x86-ENU.exe
-    w_download ftp://cbvk.cz/programy_pro_knihovny/update-pack/Windows%20XP%20x86%20ENU/Security%20Updates/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
+    w_download http://cbvk.cz/programy_pro_knihovny/update-pack/Windows%20XP%20x86%20ENU/Security%20Updates/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
     w_try $WINE "$W_CACHE"/mspaint/WindowsXP-KB978706-x86-ENU.exe /q /x:"$W_TMP"/WindowsXP-KB978706-x86-ENU
     w_try cp -f "$W_TMP"/WindowsXP-KB978706-x86-ENU/SP3GDR/mspaint.exe "$W_WINDIR_UNIX"/mspaint.exe
 }
@@ -12327,6 +12512,24 @@ _EOF_
         w_try_regedit "$W_TMP_WIN"\\MaxVersionGL.reg
     fi
 
+    case "$WINETRICKS_ISO_MOUNT" in
+        # archivemount > 0.8.8: works
+        # archivemount <= 0.8.8: cannot finish installation due to path issue
+        archivemount)
+            _W_last_bad_ver=0.8.8
+            _W_tool_ver="$(archivemount --version 2>&1 | head -n 1 | cut -d ' ' -f3)"
+            _W_pos_am_ver="$(printf "%s\\n%s" "${_W_tool_ver}" "${_W_last_bad_ver}" | sort -t. -k 1,1n -k 2,2n -k 3,3n | grep -n "^${_W_tool_ver}\$" | cut -d : -f1 | head -n 1)"
+            if test "$_W_pos_am_ver" = "2"; then
+                W_USE_USERMOUNT=1
+            else
+                w_warn "archivemount <= $_W_last_bad_ver has path issue and cannot be used."
+            fi
+            unset _W_last_bad_ver _W_tool_ver _W_pos_am_ver
+            ;;
+        # fuseiso: works
+        # hdiutil: partially tested (only mounting/unmounting and copying files)
+        *) W_USE_USERMOUNT=1 ;;
+    esac
     w_mount OFFICE15
 
     if test $W_OPT_UNATTENDED; then
@@ -12777,7 +12980,8 @@ w_metadata steam apps \
 load_steam()
 {
     # 2016/10/28: 029f918a29b2b311711788e8a477c8de529c11d7dba3caf99cbbde5a983efdad
-    w_download http://media.steampowered.com/client/installer/SteamSetup.exe 029f918a29b2b311711788e8a477c8de529c11d7dba3caf99cbbde5a983efdad
+    # 2018/06/01: 3bc6942fe09f10ed3447bccdcf4a70ed369366fef6b2c7f43b541f1a3c5d1c51
+    w_download http://media.steampowered.com/client/installer/SteamSetup.exe 3bc6942fe09f10ed3447bccdcf4a70ed369366fef6b2c7f43b541f1a3c5d1c51
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # Should be fixed in newer steam versions, since 2012. Commenting out for a while before removing in case users need to revert locally
@@ -12795,16 +12999,16 @@ load_steam()
             run, SteamSetup.exe
             SetTitleMatchMode, 2
             WinWait, Steam, Using Steam
-            ControlClick, Button2
-            WinWait, Steam, Please review
-            ControlClick, Button4
             sleep 1000
             ControlClick, Button2
             WinWait, Steam, Select the language
+            sleep 1000
             ControlClick, Button2
             WinWait, Steam, Choose the folder
+            sleep 1000
             ControlClick, Button2
             WinWait, Steam, Steam has been installed
+            sleep 1000
             ControlClick, Button4
             sleep 1000
             ControlClick, Button2
@@ -12817,6 +13021,15 @@ load_steam()
     # Not all users need this disabled, but let's play it safe for now
     if w_workaround_wine_bug 22053 "Disabling gameoverlayrenderer to prevent game crashes on some machines."; then
         w_override_dlls disabled gameoverlayrenderer
+    fi
+    if w_workaround_wine_bug 39403 "Force Steam/Steamwebhelper Client to Windows XP compatibility, to workaround store/web no longer working."; then
+        if [ "$W_ARCH" = "win64" ]; then
+            w_set_app_winver steam.exe winxp64
+            w_set_app_winver steamwebhelper.exe winxp64
+        else
+            w_set_app_winver steam.exe winxp
+            w_set_app_winver steamwebhelper.exe winxp
+        fi
     fi
 }
 
@@ -13158,7 +13371,7 @@ load_wme9()
     # See also https://www.microsoft.com/en-us/download/details.aspx?id=17792
     # Formerly at: https://download.microsoft.com/download/8/1/f/81f9402f-efdd-439d-b2a4-089563199d47/WMEncoder.exe
     # Mirror list: http://www.filewatcher.com/_/?q=WMEncoder.exe
-    w_download ftp://ftp.upmost.com.tw/pub/UPMOST/CD-ISO/V30I/Extra/WMEncoder/Media%20Encoder%209/ENG/WMEncoder.exe 19d1610d12b51c969f64703c4d3a76aae30dee526bae715381b5f3369f717d76
+    w_download https://people.ok.ubc.ca/mberger/MiscSW/WMEncoder.exe 19d1610d12b51c969f64703c4d3a76aae30dee526bae715381b5f3369f717d76
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" WMEncoder.exe $W_UNATTENDED_SLASH_Q
@@ -15547,9 +15760,12 @@ load_eve()
     # https://community.eveonline.com/support/download/
     w_download https://binaries.eveonline.com/EveLauncher-1104888.exe d1d66ea0a0e4a476a926307dcdb3d7b5e777d7cff7feb172ce7779dac9fdae8f
 
+    if test "$W_OPT_UNATTENDED"; then
+        w_warn "Quiet mode doesn't work with latest eve update, button names don't appear in AHK."
+    fi
+
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
-        # FIXME: doesn't work with latest update, button names don't appear in AHK?
         run, $file1
         WinWait, EVE Online
         if ( w_opt_unattended > 0 ) {
@@ -15754,7 +15970,7 @@ load_fifa11_demo()
 w_metadata hon games \
     title="Heroes of Newerth" \
     publisher="S2 Games" \
-    year="2013" \
+    year="2018" \
     media="download" \
     file1="HoNClient.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/Heroes of Newerth/hon.exe"
@@ -15762,7 +15978,8 @@ w_metadata hon games \
 load_hon()
 {
     # 2017/03/28: 0f3c3431a88964647fc4d9540490e43afedc2e48573c260892882ecf48172317
-    w_download http://dl.heroesofnewerth.com/installers/win32/HoNClient.exe 0f3c3431a88964647fc4d9540490e43afedc2e48573c260892882ecf48172317
+    # 2018/06/03: d4c82a3c5fdaee193675838e2fe6ade6b9fcdc4bdaf57848300c0eb09e71a945
+    w_download http://dl.heroesofnewerth.com/installers/win32/HoNClient.exe d4c82a3c5fdaee193675838e2fe6ade6b9fcdc4bdaf57848300c0eb09e71a945
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
@@ -19224,6 +19441,40 @@ load_sandbox()
     echo disable > "$WINEPREFIX/.update-timestamp"
 }
 
+####
+# settings->sound
+
+#----------------------------------------------------------------
+
+w_metadata sound=alsa settings \
+    title_uk="Встановити звуковий драйвер ALSA" \
+    title="Set sound driver to ALSA"
+w_metadata sound=coreaudio settings \
+    title_uk="Встановити звуковий драйвер Mac CoreAudio" \
+    title="Set sound driver to Mac CoreAudio"
+w_metadata sound=disabled settings \
+    title_uk="Вимкнути звуковий драйвер" \
+    title="Set sound driver to disabled"
+w_metadata sound=oss settings \
+    title_uk="Встановити звуковий драйвер OSS" \
+    title="Set sound driver to OSS"
+w_metadata sound=pulse settings \
+    title_uk="Встановити звуковий драйвер PulseAudio" \
+    title="Set sound driver to PulseAudio"
+
+load_sound()
+{
+    echo "Setting sound driver to $1"
+    cat > "$W_TMP"/set-sound.reg <<_EOF_
+REGEDIT4
+
+[HKEY_CURRENT_USER\\Software\\Wine\\Drivers]
+"Audio"="$1"
+
+_EOF_
+    w_try_regedit "$W_TMP_WIN"\\set-sound.reg
+}
+
 # settings->winversions
 #----------------------------------------------------------------
 
@@ -19696,6 +19947,7 @@ then
             # No non-option arguments given, so read them from GUI, and loop until user quits
             winetricks_detect_gui
             winetricks_detect_sudo
+            test -z "$WINETRICKS_ISO_MOUNT" && winetricks_detect_iso_mount
             while true
             do
                 case $WINETRICKS_CURMENU in
@@ -19756,6 +20008,7 @@ then
             winetricks_stats_init
             # Command-line case
             winetricks_detect_sudo
+            test -z "$WINETRICKS_ISO_MOUNT" && winetricks_detect_iso_mount
             # User gave command-line arguments, so just run those verbs and exit
             for verb; do
                 case $verb in

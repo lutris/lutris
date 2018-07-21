@@ -3,46 +3,8 @@ import os
 from collections import OrderedDict
 
 from lutris import runners
+# from lutris.util.log import logger
 from lutris.util import display, system
-
-DISPLAYS = None
-
-
-def get_displays():
-    global DISPLAYS
-    if not DISPLAYS:
-        DISPLAYS = display.get_output_names()
-    return DISPLAYS
-
-
-def get_resolution_choices():
-    resolutions = display.get_resolutions()
-    resolution_choices = list(zip(resolutions, resolutions))
-    resolution_choices.insert(0, ("Keep current", 'off'))
-    return resolution_choices
-
-
-def get_output_choices():
-    displays = get_displays()
-    output_choices = list(zip(displays, displays))
-    output_choices.insert(0, ("Off", 'off'))
-    return output_choices
-
-
-def get_output_list():
-    choices = [
-        ('Off', 'off'),
-    ]
-    displays = get_displays()
-    for index, output in enumerate(displays):
-        # Display name can't be used because they might not be in the right order
-        # Using DISPLAYS to get the number of connected monitors
-        choices.append(("Monitor {}".format(index + 1), str(index)))
-    return choices
-
-
-def get_dri_prime():
-    return len(display.get_providers()) > 1
 
 
 def get_optirun_choices():
@@ -83,6 +45,14 @@ system_options = [
                  "your display too bright. Select this option to correct it.")
     },
     {
+        'option': 'gamemode',
+        'type': 'bool',
+        'default': bool(system.GAMEMODE_PATH),
+        'condition': bool(system.GAMEMODE_PATH),
+        'label': 'Enable Feral gamemode',
+        'help': 'Request a set of optimisations be temporarily applied to the host OS'
+    },
+    {
         'option': 'optimus',
         'type': 'choice',
         'default': 'off',
@@ -98,7 +68,7 @@ system_options = [
         'option': 'dri_prime',
         'type': 'bool',
         'default': False,
-        'condition': get_dri_prime,
+        'condition': display.USE_DRI_PRIME,
         'label': 'Use PRIME (hybrid graphics on laptops)',
         'help': ("If you have open source graphic drivers (Mesa), selecting this "
                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
@@ -109,16 +79,17 @@ system_options = [
         'option': 'sdl_video_fullscreen',
         'type': 'choice',
         'label': 'Fullscreen SDL games to display',
-        'choices': get_output_list,
+        'choices': display.get_output_list,
         'default': 'off',
-        'help': ("Hint SDL games to use a specific monitor when going fullscreen by "
-                 "setting the SDL_VIDEO_FULLSCREEN environment variable")
+        'help': ("Hint SDL games to use a specific monitor when going "
+                 "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
+                 "environment variable")
     },
     {
         'option': 'display',
         'type': 'choice',
         'label': 'Turn off monitors except',
-        'choices': get_output_choices,
+        'choices': display.get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
@@ -129,7 +100,7 @@ system_options = [
         'option': 'resolution',
         'type': 'choice',
         'label': 'Switch resolution to',
-        'choices': get_resolution_choices,
+        'choices': display.get_resolution_choices,
         'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },
@@ -208,12 +179,22 @@ system_options = [
                  "Check this option to disable it.")
     },
     {
+        'option': 'prefer_system_libs',
+        'type': 'bool',
+        'label': 'Prefer system libraries',
+        'default': True,
+        'advanced': True,
+        'help': ('When the runtime is enabled, prioritize the system libraries'
+                 ' over the provided ones.')
+    },
+    {
         'option': 'disable_monitoring',
         'label': "Disable process monitor",
         'type': 'bool',
         'default': False,
         'advanced': True,
-        'help': "Disables process monitoring of games, Lutris won't detect when game quits."
+        'help': ("Disables process monitoring of games, "
+                 "Lutris won't detect when game quits.")
     },
     {
         'option': 'disable_compositor',
@@ -221,7 +202,8 @@ system_options = [
         'type': 'bool',
         'default': False,
         'advanced': True,
-        'help': "Disable desktop effects while game is running, reducing stuttering and increasing performance"
+        'help': ("Disable desktop effects while game is running, "
+                 "reducing stuttering and increasing performance")
     },
     {
         'option': 'reset_pulse',
@@ -239,8 +221,8 @@ system_options = [
         'default': False,
         'advanced': True,
         'condition': system.find_executable('pulseaudio'),
-        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 to improve '
-                 'audio quality on some games')
+        'help': ('Set the environment variable PULSE_LATENCY_MSEC=60 '
+                 'to improve audio quality on some games')
     },
     {
         'option': 'use_us_layout',
@@ -278,7 +260,6 @@ system_options = [
     },
     {
         'option': 'xephyr',
-        'type': 'choice',
         'label': "Use Xephyr",
         'type': 'choice',
         'choices': (

@@ -8,8 +8,8 @@ from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
-DXVK_LATEST = "0.52"
-DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
+DXVK_LATEST = "0.60"
+DXVK_PAST_RELEASES = ["0.54", "0.53", "0.52", "0.51", "0.50", "0.42", "0.31", "0.21"]
 
 
 class DXVKManager:
@@ -58,8 +58,8 @@ class DXVKManager:
 
     def download(self):
         """Download DXVK to the local cache"""
-        # There's a glitch in one of the archive's names
-        fixed_version = 'v0.40' if self.version == '0.40' else self.version
+        # There's a glitch in some of the archive's names
+        fixed_version = 'v%s' % self.version if self.version in ['0.40'] else self.version
         dxvk_url = self.base_url.format(self.version, fixed_version)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
@@ -88,7 +88,10 @@ class DXVKManager:
                 shutil.move(wine_dll_path, wine_dll_path + ".orig")
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
-        shutil.copy(dxvk_dll_path, wine_dll_path)
+        try:
+            shutil.copy(dxvk_dll_path, wine_dll_path)
+        except OSError:
+            logger.error("Failed to copy %s to %s", dxvk_dll_path, wine_dll_path)
 
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
@@ -119,7 +122,7 @@ class DXVKManager:
     def enable(self):
         """Enable DXVK for the current prefix"""
         if not os.path.exists(self.dxvk_path):
-            logger.error("DXVK %s is not availble locally" % self.version)
+            logger.error("DXVK %s is not available locally", self.version)
             return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.enable_dxvk_dll(system_dir, dxvk_arch, dll)

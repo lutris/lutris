@@ -1,8 +1,13 @@
 import re
-import time
 import subprocess
+import time
 
-from lutris.util.system import find_executable
+import gi
+gi.require_version('GnomeDesktop', '3.0')
+
+from gi.repository import Gdk, GnomeDesktop, GLib
+
+from lutris.util import system
 from lutris.util.log import logger
 
 XRANDR_CACHE = None
@@ -25,6 +30,8 @@ def cached(function):
 
 @cached
 def get_vidmodes():
+    """Return video modes from XrandR"""
+    logger.debug("Retrieving video modes from XrandR")
     xrandr_output = subprocess.Popen(["xrandr"],
                                      stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
@@ -64,12 +71,18 @@ def get_outputs():
 
 
 def get_output_names():
+    """Return output names from XrandR"""
     return [output[0] for output in get_outputs()]
 
 
 def turn_off_except(display):
+    """Use XrandR to turn off displays except the one referenced by `display`"""
+    if not display:
+        logger.error("No active display given, no turning off every display")
+        return
     for output in get_outputs():
         if output[0] != display:
+            logger.info("Turning off %s", output[0])
             subprocess.Popen(["xrandr", "--output", output[0], "--off"])
 
 
@@ -78,7 +91,7 @@ def get_resolutions():
     resolution_list = []
     for line in get_vidmodes():
         if line.startswith("  "):
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     return resolution_list
@@ -94,13 +107,12 @@ def get_current_resolution(monitor=0):
     resolution = list()
     for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution.append(resolution_match.groups()[0])
     if monitor == 'all':
         return resolution
-    else:
-        return resolution[monitor]
+    return resolution[monitor]
 
 
 def change_resolution(resolution):
@@ -116,8 +128,9 @@ def change_resolution(resolution):
         logger.debug("Switching resolution to %s", resolution)
 
         if resolution not in get_resolutions():
-            logger.warning("Resolution %s doesn't exist." % resolution)
+            logger.warning("Resolution %s doesn't exist.", resolution)
         else:
+            logger.info("Changing resolution to %s", resolution)
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
@@ -128,13 +141,13 @@ def change_resolution(resolution):
             position = (display_geom[1], display_geom[2])
 
             if (
-                len(display) > 2 and
-                display[2] in ('normal', 'left', 'right', 'inverted')
+                    len(display) > 2 and
+                    display[2] in ('normal', 'left', 'right', 'inverted')
             ):
                 rotation = display[2]
             else:
                 rotation = "normal"
-
+            logger.info("Switching resolution of %s to %s", display_name, display_resolution)
             subprocess.Popen([
                 "xrandr",
                 "--output", display_name,
@@ -148,7 +161,7 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     global XGAMMA_FOUND
     if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = find_executable('xgamma')
+        XGAMMA_FOUND = system.find_executable('xgamma')
     if XGAMMA_FOUND is True:
         subprocess.Popen(["xgamma", "-gamma", "1.0"])
     else:
@@ -162,6 +175,7 @@ def get_xrandr_version():
                                      stdout=subprocess.PIPE).communicate()[0].decode()
     position = xrandr_output.find(pattern) + len(pattern)
     version_str = xrandr_output[position:].strip().split(".")
+    logger.debug("Found XrandR version %s", version_str)
     try:
         return {"major": int(version_str[0]), "minor": int(version_str[1])}
     except ValueError:
@@ -169,13 +183,33 @@ def get_xrandr_version():
         return {"major": 0, "minor": 0}
 
 
+def get_graphics_adapaters():
+    """Return the list of graphics cards available on a system
+
+    Returns:
+        list: list of tuples containing PCI ID and description of the VGA adapter
+    """
+
+    if not system.find_executable('lspci'):
+        logger.warning('lspci is not available. List of graphics cards not available')
+        return []
+    return [
+        (pci_id, vga_desc.split(': ')[1]) for pci_id, vga_desc in [
+            line.split(maxsplit=1)
+            for line in system.execute('lspci').split('\n')
+            if 'VGA' in line
+        ]
+    ]
+
+
 def get_providers():
     """Return the list of available graphic cards"""
     pattern = "name:"
-    providers = list()
+    providers = []
     version = get_xrandr_version()
 
     if version["major"] == 1 and version["minor"] >= 4:
+        logger.debug("Retrieving providers from XrandR")
         xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
                                          stdout=subprocess.PIPE).communicate()[0].decode()
         for line in xrandr_output.split("\n"):
@@ -185,3 +219,84 @@ def get_providers():
             providers.append(line[position:].strip())
 
     return providers
+
+
+class LegacyDisplayManager:
+    @staticmethod
+    def get_resolutions():
+        return get_resolutions()
+
+    @staticmethod
+    def get_display_names():
+        return get_output_names()
+
+
+class DisplayManager(object):
+    def __init__(self):
+        self.screen = Gdk.Screen.get_default()
+        self.rr_screen = GnomeDesktop.RRScreen.new(self.screen)
+        self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
+        self.rr_config.load_current()
+
+    @property
+    def outputs(self):
+        return self.rr_screen.list_outputs()
+
+    def get_display_names(self):
+        return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
+
+    def get_output_modes(self, output):
+        logger.debug("Retrieving modes for %s", output)
+        resolutions = []
+        for mode in output.list_modes():
+            resolution = "%sx%s" % (mode.get_width(), mode.get_height())
+            if resolution not in resolutions:
+                resolutions.append(resolution)
+        return resolutions
+
+    def get_resolutions(self):
+        resolutions = []
+        for mode in self.rr_screen.list_modes():
+            resolutions.append("%sx%s" % (mode.get_width(), mode.get_height()))
+        return sorted(set(resolutions), key=lambda x: int(x.split('x')[0]), reverse=True)
+
+
+try:
+    DISPLAY_MANAGER = DisplayManager()
+except GLib.Error:
+    DISPLAY_MANAGER = LegacyDisplayManager()
+
+USE_DRI_PRIME = len(get_graphics_adapaters()) > 1
+
+
+def get_resolution_choices():
+    """Return list of available resolutions as label, value tuples
+    suitable for inclusion in drop-downs.
+    """
+    resolutions = DISPLAY_MANAGER.get_resolutions()
+    resolution_choices = list(zip(resolutions, resolutions))
+    resolution_choices.insert(0, ("Keep current", 'off'))
+    return resolution_choices
+
+
+def get_output_choices():
+    """Return list of outputs for drop-downs"""
+    displays = DISPLAY_MANAGER.get_display_names()
+    output_choices = list(zip(displays, displays))
+    output_choices.insert(0, ("Off", 'off'))
+    return output_choices
+
+
+def get_output_list():
+    """Return a list of output with their index.
+    This is used to indicate to SDL 1.2 which monitor to use.
+    """
+    choices = [
+        ('Off', 'off'),
+    ]
+    displays = DISPLAY_MANAGER.get_display_names()
+    for index, output in enumerate(displays):
+        # Display name can't be used because they might not be in the right order
+        # Using DISPLAYS to get the number of connected monitors
+        choices.append((output, str(index)))
+    return choices

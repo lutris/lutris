@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>SVG symbolic icon tester</title>
+		<style>
+			input {
+				display: none;
+			}
+			.colorselect {
+				display: flex;
+				width: auto;
+				border: 1px solid black;
+				padding: 0;
+			}
+			.colorselect label {
+				flex-grow: 1;
+				height: 50px;
+				width: 100px;
+			}
+			
+			.white-select,
+			#bg-white:checked ~ svg {
+				background-color: #fff;
+			}
+			.lightgrey-select,
+			#bg-lightgrey:checked ~ svg {
+				background-color: #bbb;
+			}
+			.grey-select,
+			#bg-grey:checked ~ svg {
+				background-color: #888;
+			}
+			.darkgrey-select,
+			#bg-darkgrey:checked ~ svg {
+				background-color: #444;
+			}
+			.black-select,
+			#bg-black:checked ~ svg {
+				background-color: #000;
+			}
+			.red-select,
+			#bg-red:checked ~ svg {
+				background-color: #f00;
+			}
+			.green-select,
+			#bg-green:checked ~ svg {
+				background-color: #0f0;
+			}
+			.blue-select,
+			#bg-blue:checked ~ svg {
+				background-color: #00f;
+			}
+			
+			#fg-white:checked ~ svg {
+				fill: #fff;
+			}
+			#fg-lightgrey:checked ~ svg {
+				fill: #bbb;
+			}
+			#fg-grey:checked ~ svg {
+				fill: #888;
+			}
+			#fg-darkgrey:checked ~ svg {
+				fill: #444;
+			}
+			#fg-black:checked ~ svg {
+				fill: #000;
+			}
+			#fg-red:checked ~ svg {
+				fill: #f00;
+			}
+			#fg-green:checked ~ svg {
+				fill: #0f0;
+			}
+			#fg-blue:checked ~ svg {
+				fill: #00f;
+			}
+			
+			svg {
+				float: left;
+				width: 64px;
+				height: 64px;
+				padding: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Background</h2>
+		<input id="bg-white" class="bg" type="radio" name="bg" />
+		<input id="bg-lightgrey" class="bg" type="radio" name="bg" />
+		<input id="bg-grey" class="bg" type="radio" name="bg" />
+		<input id="bg-darkgrey" class="bg" type="radio" name="bg" />
+		<input id="bg-black" class="bg" type="radio" name="bg" />
+		<div class="colorselect">
+			<label for="bg-white" class="white-select"></label>
+			<label for="bg-lightgrey" class="lightgrey-select"></label>
+			<label for="bg-grey" class="grey-select"></label>
+			<label for="bg-darkgrey" class="darkgrey-select"></label>
+			<label for="bg-black" class="black-select"></label>
+		</div>
+		
+		<h2>Foreground</h2>
+		<input id="fg-white" class="fg" type="radio" name="fg" />
+		<input id="fg-lightgrey" class="fg" type="radio" name="fg" />
+		<input id="fg-grey" class="fg" type="radio" name="fg" />
+		<input id="fg-darkgrey" class="fg" type="radio" name="fg" />
+		<input id="fg-black" class="fg" type="radio" name="fg" />
+		<input id="fg-red" class="fg" type="radio" name="fg" />
+		<input id="fg-green" class="fg" type="radio" name="fg" />
+		<input id="fg-blue" class="fg" type="radio" name="fg" />
+		<div class="colorselect">
+			<label for="fg-white" class="white-select"></label>
+			<label for="fg-lightgrey" class="lightgrey-select"></label>
+			<label for="fg-grey" class="grey-select"></label>
+			<label for="fg-darkgrey" class="darkgrey-select"></label>
+			<label for="fg-black" class="black-select"></label>
+			<label for="fg-red" class="red-select"></label>
+			<label for="fg-green" class="green-select"></label>
+			<label for="fg-blue" class="blue-select"></label>
+		</div>
+		
+		<h2>Icons</h2>
+		<svg>
+			<use xlink:href="ags-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="atari800-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="browser-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="citra-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="desmume-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="dgen-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="dolphin-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="dosbox-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="frotz-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="fsuae-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="gens-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="hatari-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="jzintv-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="libretro-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="linux-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="mame-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="mednafen-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="mess-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="mupen64plus-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="nulldc-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="o2em-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="openmsx-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="osmose-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="pcsx2-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="ppsspp-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="reicast-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="residualvm-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="scummvm-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="snes9x-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="steam-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="stella-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="vice-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="virtualjaguar-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="web-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="wine-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="winesteam-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="xdg-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+		<svg>
+			<use xlink:href="zdoom-symbolic.svg#root" height="100%" width="100%" />
+		</svg>
+	</body>
+</html>

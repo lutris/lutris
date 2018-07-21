@@ -1,8 +1,9 @@
+"""Wine runner module"""
 import os
 import time
 import shlex
 import shutil
-import subprocess
+from functools import lru_cache
 from collections import OrderedDict
 
 from lutris import runtime
@@ -111,6 +112,9 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch='win32'):
 def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
                   install_gecko=None, install_mono=None):
     """Create a new Wine prefix."""
+    if not prefix:
+        raise ValueError("No prefix path specified")
+
     logger.debug("Creating a %s prefix in %s", arch, prefix)
 
     # Avoid issue of 64bit Wine refusing to create win32 prefix
@@ -169,7 +173,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         }
     command = [os.path.join(wine_root, "wineserver"), "-k"]
 
-    logger.debug("Killing all wine processes: %s" % command)
+    logger.debug("Killing all wine processes: %s", command)
     logger.debug("\tWine prefix: %s", prefix)
     logger.debug("\tWine arch: %s", arch)
     if initial_pids:
@@ -252,12 +256,16 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
         wineenv['WINEPREFIX'] = prefix
 
     wine_config = config or LutrisConfig(runner_slug='wine')
-
-    if use_lutris_runtime(
-            wine_path=wineenv['WINE'],
-            force_disable=disable_runtime or wine_config.system_config['disable_runtime']
-    ):
-        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths())
+    disable_runtime = disable_runtime or wine_config.system_config['disable_runtime']
+    if use_lutris_runtime(wine_path=wineenv['WINE'], force_disable=disable_runtime):
+        if WINE_DIR in wine_path:
+            wine_root_path = os.path.dirname(os.path.dirname(wine_path))
+        else:
+            wine_root_path = None
+        wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths(
+            prefer_system_libs=wine_config.system_config['prefer_system_libs'],
+            wine_path=wine_root_path
+        ))
 
     if overrides:
         wineenv['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
@@ -270,12 +278,12 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     command += shlex.split(args)
     if blocking:
         return system.execute(command, env=wineenv, cwd=working_dir)
-    else:
-        thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
-                              include_processes=include_processes,
-                              exclude_processes=exclude_processes)
-        thread.start()
-        return thread
+
+    thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
+                          include_processes=include_processes,
+                          exclude_processes=exclude_processes)
+    thread.start()
+    return thread
 
 
 def winetricks(app, prefix=None, arch=None, silent=True,
@@ -342,16 +350,17 @@ def detect_prefix_arch(prefix_path=None):
     registry_path = os.path.join(prefix_path, 'system.reg')
     if not os.path.isdir(prefix_path) or not os.path.isfile(registry_path):
         # No prefix_path exists or invalid prefix
-        logger.debug("Not detecting prefix arch, no prefix found in %s", prefix_path)
-        return
+        logger.debug("Prefix not found: %s", prefix_path)
+        return None
     with open(registry_path, 'r') as registry:
-        for i in range(5):
+        for _line_no in range(5):
             line = registry.readline()
             if 'win64' in line:
                 return 'win64'
             elif 'win32' in line:
                 return 'win32'
-    logger.debug("Can't detect prefix arch for %s", prefix_path)
+    logger.debug("Failed to detect Wine prefix architecture in %s", prefix_path)
+    return None
 
 
 def set_drive_path(prefix, letter, path):
@@ -373,19 +382,19 @@ def use_lutris_runtime(wine_path, force_disable=False):
     if force_disable or runtime.RUNTIME_DISABLED:
         return False
     if WINE_DIR in wine_path:
-        logger.debug("%s is provided by Lutris, using runtime")
+        logger.debug("%s is provided by Lutris, using runtime", wine_path)
         return True
     return not is_installed_systemwide()
 
 
 def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
-    for build in WINE_PATHS.keys():
-        if system.find_executable(WINE_PATHS[build]):
+    for build in WINE_PATHS.values():
+        if system.find_executable(build):
             if (
-                WINE_PATHS[build] == 'wine' and
-                os.path.exists('/usr/lib/wine/wine64') and
-                not os.path.exists('/usr/lib/wine/wine')
+                    build == 'wine' and
+                    os.path.exists('/usr/lib/wine/wine64') and
+                    not os.path.exists('/usr/lib/wine/wine')
             ):
                 logger.warning("wine32 is missing from system")
                 return False
@@ -432,21 +441,22 @@ def get_default_version():
         return installed_versions[0]
 
 
+@lru_cache(maxsize=10)
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
-    if os.path.exists(wine_path) and os.path.isabs(wine_path):
+    if not system.path_exists(wine_path) and not shutil.which(wine_path):
+        return
+    if os.path.isabs(wine_path):
         wine_stats = os.stat(wine_path)
         if wine_stats.st_size < 2000:
             # This version is a script, ignore it
             return
-    try:
-        version = subprocess.check_output([wine_path, "--version"]).decode().strip()
-    except OSError:
+    version = system.execute([wine_path, "--version"])
+    if not version:
         return
-    else:
-        if version.startswith('wine-'):
-            version = version[5:]
-        return version
+    if version.startswith('wine-'):
+        version = version[5:]
+    return version
 
 
 def support_legacy_version(version):
@@ -469,7 +479,7 @@ def get_real_executable(windows_executable, working_dir=None):
     if exec_name.endswith(".msi"):
         return ('msiexec', ['/i', windows_executable], working_dir)
 
-    if exec_name.endswith(".bat"):
+    if exec_name.endswith(".bat") or exec_name.endswith(".cmd"):
         if not working_dir or os.path.dirname(windows_executable) == working_dir:
             working_dir = os.path.dirname(windows_executable) or None
             windows_executable = os.path.basename(windows_executable)
@@ -541,6 +551,7 @@ class wine(Runner):
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "RenderTargetLockMode": r"%s/Direct3D" % reg_prefix,
+        "Audio": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
@@ -680,7 +691,7 @@ class wine(Runner):
                 'option': 'WineDesktop',
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
-                'choices': display.get_unique_resolutions,
+                'choices': display.get_resolution_choices,
                 'help': ("The size of the virtual desktop in pixels.")
             },
             {
@@ -773,6 +784,19 @@ class wine(Runner):
                 )
             },
             {
+                'option': 'Audio',
+                'label': 'Audio driver',
+                'type': 'choice',
+                'choices': [('Auto', 'auto'),
+                            ('ALSA', 'alsa'),
+                            ('PulseAudio', 'pulse'),
+                            ('OSS', 'oss')],
+                'default': 'auto',
+                'help': ("Which audio backend to use.\n"
+                         "By default, Wine automatically picks the right one "
+                         "for your system.")
+            },
+            {
                 'option': 'ShowCrashDialog',
                 'label': 'Show crash dialogs',
                 'type': 'bool',
@@ -797,6 +821,15 @@ class wine(Runner):
                 'label': 'DLL overrides',
                 'advanced': True,
                 'help': "Sets WINEDLLOVERRIDES when launching the game."
+            },
+            {
+                'option': 'autoconf_joypad',
+                'type': 'bool',
+                'label': 'Autoconfigure joypads',
+                'advanced': True,
+                'default': True,
+                'help': ('Automatically disables one of Wine\'s detected joypad '
+                         'to avoid having 2 controllers detected')
             },
             {
                 'option': 'sandbox',
@@ -1002,7 +1035,8 @@ class wine(Runner):
         if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
-        prefix_manager.configure_joypads()
+        if self.runner_config.get('autoconf_joypad', True):
+            prefix_manager.configure_joypads()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get('x360ce-path'))
@@ -1020,7 +1054,8 @@ class wine(Runner):
     def get_env(self, os_env=True):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
-        # of os_env is inverted in that class.
+        # of os_env is inverted in the wine class,
+        # the OS env is read later.
         env = super(wine, self).get_env(False)
         if os_env:
             env.update(os.environ.copy())
@@ -1034,6 +1069,18 @@ class wine(Runner):
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
         return env
+
+    def get_runtime_env(self):
+        """Return runtime environment variables with path to wine for Lutris builds"""
+        wine_path = self.get_executable()
+        if WINE_DIR in wine_path:
+            wine_root = os.path.dirname(os.path.dirname(wine_path))
+        else:
+            wine_root = None
+        return runtime.get_env(
+            self.system_config.get('prefer_system_libs', True),
+            wine_path=wine_root
+        )
 
     def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""

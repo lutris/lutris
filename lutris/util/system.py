@@ -41,9 +41,22 @@ TERMINAL_CANDIDATES = [
     'yuakuake',
 ]
 
+# Global variable holder for currently installed terminals
 INSTALLED_TERMINALS = []
 
+# Detect if system is 64bit capable
 IS_64BIT = sys.maxsize > 2**32
+
+# Path to Feral gamemode library
+GAMEMODE_PATH = next(
+    (
+        path for path in map(
+            lambda x: os.path.join(x, 'libgamemodeauto.so'),
+            ['/usr/lib/x86_64-linux-gnu', '/usr/lib']
+        ) if os.path.exists(path)
+    ),
+    None
+)
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
@@ -311,11 +324,14 @@ def get_pids_using_file(path):
         return set()
     fuser_path = None
     fuser_output = ""
-    path_candidates = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
-    for candidate in path_candidates:
-        fuser_path = os.path.join(candidate, 'fuser')
-        if os.path.exists(fuser_path):
-            break
+    fuser_path = find_executable("fuser")
+    if not fuser_path:
+        # Some distributions don't include sbin folders in $PATH
+        path_candidates = ['/sbin', '/usr/sbin']
+        for candidate in path_candidates:
+            fuser_path = os.path.join(candidate, 'fuser')
+            if os.path.exists(fuser_path):
+                break
     if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
         return set([])

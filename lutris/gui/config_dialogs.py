@@ -9,7 +9,8 @@ from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry
 from lutris.gui.widgets.dialogs import Dialog
-from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf, BANNER_SIZE, ICON_SIZE
+from lutris.gui.widgets.utils import (get_pixbuf_for_game, get_pixbuf,
+                                      BANNER_SIZE, ICON_SIZE)
 from lutris.util.strings import slugify
 from lutris.util import datapath, resources
 
@@ -57,7 +58,7 @@ class GameDialogCommon(object):
         self._add_notebook_tab(info_sw, "Game info")
 
     def _get_name_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Name")
         box.pack_start(label, False, False, 20)
@@ -70,7 +71,7 @@ class GameDialogCommon(object):
         return box
 
     def _get_slug_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Identifier")
         box.pack_start(label, False, False, 20)
@@ -88,7 +89,7 @@ class GameDialogCommon(object):
         return box
 
     def _get_runner_box(self):
-        runner_box = Gtk.HBox()
+        runner_box = Gtk.Box()
         runner_label = Gtk.Label("Runner")
         runner_label.set_alignment(0.5, 0.5)
         self.runner_dropdown = self._get_runner_dropdown()
@@ -102,7 +103,7 @@ class GameDialogCommon(object):
         return runner_box
 
     def _get_banner_box(self):
-        banner_box = Gtk.HBox()
+        banner_box = Gtk.Box()
         banner_label = Gtk.Label("Banner")
         banner_label.set_alignment(0.5, 0.5)
         self.banner_button = Gtk.Button()
@@ -135,7 +136,7 @@ class GameDialogCommon(object):
         return banner_box
 
     def _get_year_box(self):
-        box = Gtk.HBox()
+        box = Gtk.Box()
 
         label = Gtk.Label(label="Release year")
         box.pack_start(label, False, False, 20)
@@ -262,7 +263,7 @@ class GameDialogCommon(object):
         self.action_area.pack_start(checkbox, False, False, 5)
 
         # Buttons
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         cancel_button = Gtk.Button(label="Cancel")
         cancel_button.connect("clicked", self.on_cancel_clicked)
         hbox.pack_start(cancel_button, True, True, 10)
@@ -398,7 +399,7 @@ class GameDialogCommon(object):
                 dest_path = datapath.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = 'png'
-            pixbuf = get_pixbuf(image_path, None, size)
+            pixbuf = get_pixbuf(image_path, size)
             pixbuf.savev(dest_path, file_format, [], [])
             self._set_image(image_type)
 
@@ -423,7 +424,7 @@ class GameDialogCommon(object):
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
     def __init__(self, parent, game=None, runner=None, callback=None):
-        super(AddGameDialog, self).__init__("Add a new game", parent=parent)
+        super().__init__("Add a new game", parent=parent)
         self.game = game
         self.saved = False
 
@@ -455,7 +456,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
 class EditGameConfigDialog(Dialog, GameDialogCommon):
     """Game config edit dialog."""
     def __init__(self, parent, game, callback):
-        super(EditGameConfigDialog, self).__init__(
+        super().__init__(
             "Configure %s" % game.name,
             parent=parent
         )
@@ -477,7 +478,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
     """Runner config edit dialog."""
     def __init__(self, runner, parent=None):
         self.runner_name = runner.__class__.__name__
-        super(RunnerConfigDialog, self).__init__(
+        super().__init__(
             "Configure %s" % runner.human_name,
             parent=parent
         )
@@ -500,7 +501,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
     def __init__(self, parent=None):
-        super(SystemConfigDialog, self).__init__("System preferences", parent=parent)
+        super().__init__("System preferences", parent=parent)
 
         self.game = None
         self.runner_name = None

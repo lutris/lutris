@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """Module that actually runs the games."""
 import os
+import json
 import time
 import shlex
 import subprocess
+from functools import wraps
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, GObject
 
 from lutris import pga
 from lutris import runtime
+from lutris.exceptions import LutrisError, GameConfigError
 from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util import audio, display, jobs, system, strings
@@ -18,7 +21,23 @@ from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 
 
-class Game(object):
+def watch_lutris_errors(function):
+    """Decorator used to catch LutrisError exceptions and send events"""
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        """Catch all LutrisError exceptions and emit an event."""
+        try:
+            return function(*args, **kwargs)
+        except LutrisError as ex:
+            game = args[0]
+            logger.error("Unable to run %s", game.name)
+            game.emit('game-error', ex.message)
+
+    return wrapper
+
+
+class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
@@ -26,7 +45,12 @@ class Game(object):
     STATE_STOPPED = 'stopped'
     STATE_RUNNING = 'running'
 
+    __gsignals__ = {
+        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
     def __init__(self, id=None):
+        super().__init__()
         self.id = id
         self.runner = None
         self.game_thread = None
@@ -116,23 +140,24 @@ class Game(object):
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
-            if os.environ.get('DESKTOP_SESSION') == "plasma":
+            session = os.environ.get('DESKTOP_SESSION')
+            if session == "plasma":
                 self.stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
                 self.start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
-            elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
+            elif session == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
                 self.stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
                 self.start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
-            elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
+            elif session == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
                 self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
                 self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
 
             if not (self.compositor_disabled or self.stop_compositor == ""):
                 system.execute(self.stop_compositor, shell=True)
-                self.compositor_disabled = True;
+                self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
-            logger.debug("Removing game %s from disk" % self.id)
+            logger.debug("Removing game %s from disk", self.id)
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
@@ -141,7 +166,7 @@ class Game(object):
             from_library = True
 
         if from_library:
-            logger.debug("Removing game %s from library" % self.id)
+            logger.debug("Removing game %s from library", self.id)
             pga.delete_game(self.id)
         else:
             pga.set_uninstalled(self.id)
@@ -150,9 +175,12 @@ class Game(object):
         return from_library
 
     def set_platform_from_runner(self):
+        """Set the game's platform from the runner"""
         if not self.runner:
             return
         self.platform = self.runner.get_platform()
+        if not self.platform:
+            logger.warning("Can't get platform for runner %s", self.runner.human_name)
 
     def save(self, metadata_only=False):
         """
@@ -186,9 +214,7 @@ class Game(object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                logger.warning("Runtime updates: {}".format(
-                    runtime_updater.current_updates)
-                )
+                logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         return True
@@ -205,10 +231,17 @@ class Game(object):
             return
 
         if hasattr(self.runner, 'prelaunch'):
-            jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+            logger.debug("Running %s prelaunch", self.runner)
+            try:
+                jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+            except Exception as ex:
+                logger.error(ex)
+                raise
+
         else:
             self.do_play(True)
 
+    @watch_lutris_errors
     def do_play(self, prelaunched, _error=None):
         if not prelaunched:
             self.state = self.STATE_STOPPED
@@ -220,11 +253,12 @@ class Game(object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s" % (self.name, gameplay_info))
+        logger.info("Launching %s", self.name)
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
+        logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
         env = {}
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
@@ -271,14 +305,17 @@ class Game(object):
 
         xephyr = system_config.get('xephyr') or 'off'
         if xephyr != 'off':
-            if xephyr == '8bpp':
-                xephyr_depth = '8'
-            else:
-                xephyr_depth = '16'
+            if not system.find_executable('Xephyr'):
+                raise GameConfigError(
+                    "Unable to find Xephyr, install it or disable the Xephyr option"
+                )
+
+            xephyr_depth = '8' if xephyr == '8bpp' else '16'
             xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
             xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
                               xephyr_resolution + 'x' + xephyr_depth, '-glamor',
                               '-reset', '-terminate', '-fullscreen']
+
             xephyr_thread = LutrisThread(xephyr_command)
             xephyr_thread.start()
             time.sleep(3)
@@ -323,18 +360,27 @@ class Game(object):
         game_env = gameplay_info.get('env') or self.runner.get_env()
         env.update(game_env)
 
+        # LD_PRELOAD
         ld_preload = gameplay_info.get('ld_preload')
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
 
+        # Feral gamemode
+        gamemode = system_config.get('gamemode')
+        if gamemode:
+            env['LD_PRELOAD'] = ':'.join([
+                path for path in
+                [env.get('LD_PRELOAD'), system.GAMEMODE_PATH]
+                if path
+            ])
+
+        # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
                 ld_library_path = '$LD_LIBRARY_PATH'
-            ld_library_path = ":".join([game_ld_libary_path, ld_library_path])
-            env["LD_LIBRARY_PATH"] = ld_library_path
-        # /Env vars
+            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
 
         include_processes = shlex.split(system_config.get('include_processes', ''))
         exclude_processes = shlex.split(system_config.get('exclude_processes', ''))

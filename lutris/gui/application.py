@@ -28,13 +28,14 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import pga
+from lutris import settings
 from lutris.config import check_config
 from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
-from lutris.util.log import logger
+from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
 from lutris.util.resources import parse_installer_url
 from lutris.services.steam import (AppManifest, get_appmanifests,
                                    get_steamapps_paths)
@@ -44,10 +45,9 @@ from .lutriswindow import LutrisWindow
 
 class Application(Gtk.Application):
     def __init__(self):
-
-        Gtk.Application.__init__(self, application_id='net.lutris.Lutris',
-                                 flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
-
+        super().__init__(application_id='net.lutris.Lutris',
+                         flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        logger.info("Running Lutris %s", settings.VERSION)
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
@@ -57,6 +57,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.help_overlay = None
         self.css_provider = Gtk.CssProvider.new()
 
         try:
@@ -140,16 +141,6 @@ class Application(Gtk.Application):
                              _('uri to open'),
                              'URI')
 
-    def set_connect_state(self, connected):
-        # We fiddle with the menu directly which is rather ugly
-        menu = self.get_menubar().get_item_link(0, 'submenu').get_item_link(0, 'section')
-        menu.remove(0)  # Assert that it is the very first item
-        if connected:
-            item = Gio.MenuItem.new('Disconnect', 'win.disconnect')
-        else:
-            item = Gio.MenuItem.new('Connect', 'win.connect')
-        menu.prepend_item(item)
-
     def do_startup(self):
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -157,16 +148,31 @@ class Application(Gtk.Application):
         action = Gio.SimpleAction.new('quit')
         action.connect('activate', lambda *x: self.quit())
         self.add_action(action)
+        self.add_accelerator('<Primary>q', 'app.quit')
 
         builder = Gtk.Builder.new_from_file(
-            os.path.join(datapath.get(), 'ui', 'menus-traditional.ui')
+            os.path.join(datapath.get(), 'ui', 'menus.ui')
         )
-        menubar = builder.get_object('menubar')
-        self.set_menubar(menubar)
+        appmenu = builder.get_object('app-menu')
+        self.set_app_menu(appmenu)
+
+        if Gtk.get_major_version() > 3 or Gtk.get_minor_version() >= 20:
+            builder = Gtk.Builder.new_from_file(
+                os.path.join(datapath.get(), 'ui', 'help-overlay.ui')
+            )
+            self.help_overlay = builder.get_object('help_overlay')
+
+            it = appmenu.iterate_item_links(appmenu.get_n_items() - 1)
+            assert(it.next())
+            last_section = it.get_value()
+            shortcuts_item = Gio.MenuItem.new(_('Keyboard Shortcuts'), 'win.show-help-overlay')
+            last_section.prepend_item(shortcuts_item)
 
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
+            if hasattr(self.window, 'set_help_overlay'):
+                self.window.set_help_overlay(self.help_overlay)
             screen = self.window.props.screen
             Gtk.StyleContext.add_provider_for_screen(
                 screen,
@@ -185,6 +191,7 @@ class Application(Gtk.Application):
 
         # Set up logger
         if options.contains('debug'):
+            console_handler.setFormatter(DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
         # Text only commands

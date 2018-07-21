@@ -114,17 +114,21 @@ class RuntimeUpdater:
         logger.debug("Runtime updated")
 
 
-def get_env():
+def get_env(prefer_system_libs=True, wine_path=None):
     """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
+    # Adding the STEAM_RUNTIME here is probably unneeded and unwanted
     return {
         key: value for key, value in {
             'STEAM_RUNTIME': os.path.join(RUNTIME_DIR, 'steam') if not RUNTIME_DISABLED else None,
-            'LD_LIBRARY_PATH': ':'.join(get_paths())
+            'LD_LIBRARY_PATH': ':'.join(get_paths(
+                prefer_system_libs=prefer_system_libs,
+                wine_path=wine_path
+            ))
         }.items() if value
     }
 
 
-def get_paths():
+def get_paths(prefer_system_libs=True, wine_path=None):
     """Return a list of paths containing the runtime libraries."""
     paths = []
 
@@ -146,12 +150,25 @@ def get_paths():
                 "steam/amd64/usr/lib"
             ]
 
-        # Put /usr/lib at the beginning, this prioritizes system libraries over
-        # the Lutris and Steam runtimes.
-        paths = ["/usr/lib"]
-        if os.path.exists("/usr/lib32"):
-            # Also let the system take over 32bit libs.
-            paths.append("/usr/lib32")
+        if prefer_system_libs:
+            paths = []
+            # Prioritize libwine.so.1 for lutris builds
+            if system.path_exists(wine_path):
+                paths.append(os.path.join(wine_path, 'lib'))
+                lib64_path = os.path.join(wine_path, 'lib64')
+                if system.path_exists(lib64_path):
+                    paths.append(lib64_path)
+
+            # Put /usr/lib at the beginning, this prioritizes
+            # system libraries over the Lutris and Steam runtimes.
+            paths.append("/usr/lib")
+            if os.path.exists("/usr/lib32"):
+                # Also let the system take over 32bit libs.
+                paths.append("/usr/lib32")
+            if os.path.exists("/lib/x86_64-linux-gnu"):
+                paths.append("/lib/x86_64-linux-gnu")
+            if os.path.exists("/lib/i386-linux-gnu"):
+                paths.append("/lib/i386-linux-gnu")
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]

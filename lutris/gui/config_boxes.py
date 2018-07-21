@@ -3,7 +3,8 @@ import os
 from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
-from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
+from lutris.gui.widgets.common import (VBox, Label,
+                                       FileChooserEntry, EditableGrid)
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
@@ -12,24 +13,32 @@ from lutris.util.system import reverse_expanduser
 class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
-        super(ConfigBox, self).__init__()
-        self.options = None
+        super().__init__()
+        self.options = []
         self.game = game
+        self.config = None
+        self.raw_config = None
 
     def generate_top_info_box(self, text):
-        help_box = Gtk.HBox()
+        """Add a top section with general help text for the current tab"""
+        help_box = Gtk.Box()
         help_box.set_margin_left(15)
         help_box.set_margin_right(15)
         help_box.set_margin_bottom(5)
-        icon = Gtk.Image(icon_name='dialog-information')
+
+        icon = Gtk.Image.new_from_icon_name('dialog-information',
+                                            Gtk.IconSize.MENU)
+        help_box.pack_start(icon, False, False, 5)
+
         label = Gtk.Label("<i>%s</i>" % text)
         label.set_line_wrap(True)
         label.set_alignment(0, 0.5)
         label.set_use_markup(True)
-        help_box.pack_start(icon, False, False, 5)
         help_box.pack_start(label, False, False, 5)
+
         self.pack_start(help_box, False, False, 0)
-        self.pack_start(Gtk.HSeparator(), False, False, 10)
+        self.pack_start(Gtk.HSeparator(), False, False, 12)
+
         help_box.show_all()
 
     def generate_widgets(self, config_section):
@@ -66,12 +75,12 @@ class ConfigBox(VBox):
             if callable(option.get('condition')):
                 option['condition'] = option['condition']()
 
-            hbox = Gtk.HBox()
+            hbox = Gtk.Box()
             hbox.set_margin_left(20)
-            self.wrapper = Gtk.HBox()
+            self.wrapper = Gtk.Box()
             self.wrapper.set_spacing(20)
 
-            placeholder = Gtk.HBox()
+            placeholder = Gtk.Box()
             placeholder.set_size_request(32, 32)
             hbox.pack_end(placeholder, False, False, 5)
 
@@ -226,7 +235,9 @@ class ConfigBox(VBox):
         for choice in choices:
             if type(choice) is str:
                 choice = [choice, choice]
-            if choice[1] == default:
+            if choice[1] == default and not has_entry:
+                # Do not add default label to editable dropdowns since this gets
+                # added to the actual value.
                 liststore.append([choice[0] + "  (default)", default])
                 self.tooltip_default = choice[0]
             else:
@@ -369,7 +380,7 @@ class ConfigBox(VBox):
     # Multiple file selector
     def generate_multiple_file_chooser(self, option_name, label, value=None):
         """Generate a multiple file selector."""
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ':')
         label.set_halign(Gtk.Align.START)
         button = Gtk.Button('Add files')
@@ -455,7 +466,7 @@ class ConfigBox(VBox):
         label = Label(text)
         label.set_use_markup(True)
         label.set_max_width_chars(60)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         hbox.pack_start(label, False, False, 0)
         hbox.show_all()
         tooltip.set_custom(hbox)

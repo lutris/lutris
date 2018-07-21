@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import yaml
 import shlex
 import threading
 import subprocess
@@ -97,8 +98,9 @@ class LutrisThread(threading.Thread):
         """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
+        logger.debug("Setting environment variables %s",
+                     yaml.safe_dump(self.env, default_flow_style=False))
         for key, value in self.env.items():
-            logger.debug('Storing environment variable %s to %s', key, value)
             self.original_env[key] = os.environ.get(key)
             os.environ[key] = value
 
@@ -144,7 +146,7 @@ class LutrisThread(threading.Thread):
         except ValueError:
             # fd might be closed
             line = None
-        if line:
+        if line and 'winemenubuilder.exe' not in line:
             self.stdout += line
             if self.log_buffer:
                 self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
@@ -386,6 +388,10 @@ class LutrisThread(threading.Thread):
 
 
 def exec_in_thread(command):
+    """Execute arbitrary command in a Lutris thread
+
+    Used by the --exec command line flag.
+    """
     arguments = shlex.split(command)
     env = runtime.get_env()
     thread = LutrisThread(arguments, env=env)
