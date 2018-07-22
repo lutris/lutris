@@ -2,7 +2,6 @@
 import os
 import sys
 from setuptools import setup
-from lutris.settings import VERSION
 
 if sys.version_info < (3, 4):
     sys.exit('Python 3.4 is required to run Lutris')
@@ -21,7 +20,7 @@ for directory, _, filenames in os.walk(u'share'):
 
 setup(
     name='lutris',
-    version=VERSION,
+    version='0.4.18',
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
