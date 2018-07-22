@@ -293,8 +293,6 @@ class ScriptInterpreter(CommandsMixin):
 
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
-        elif file_uri.startswith("https://www.moddb.com/downloads/start/"):
-            file_uri = self._moddb_ultimate_download_uri(file_uri)
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
             # Download Steam data
             self._download_steam_data(file_uri, file_id)
@@ -374,25 +372,6 @@ class ScriptInterpreter(CommandsMixin):
             self.parent.set_status('Getting Steam game data')
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
-
-    def _moddb_ultimate_download_uri(self, permanent_uri):
-        """Permalinks to ModDB mod files redirect to one of several mirrors
-        with a time-limited token in the URL.  This function takes the
-        permalink and returns the proper download URL.
-
-        permanent_uri: The permanent/canonical download URL for the mod file
-        """
-        import re
-
-        request = Request(permanent_uri)
-        request.get()
-
-        transient_uri = re.findall("/downloads/mirror/[a-f0-9/]+", request.text)[0]
-
-        if transient_uri is None:
-            raise RuntimeError("Couldn't get mirror for %s" % permanent_uri)
-        else:
-             return "https://www.moddb.com"+transient_uri
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
