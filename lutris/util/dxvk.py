@@ -88,7 +88,7 @@ class DXVKManager:
                 shutil.move(wine_dll_path, wine_dll_path + ".orig")
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
-        shutil.copy(dxvk_dll_path, wine_dll_path)
+        os.symlink(dxvk_dll_path, wine_dll_path)
 
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
