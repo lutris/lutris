@@ -393,6 +393,7 @@ class wine(Runner):
                 'type': 'choice',
                 'choices': [('Disabled', '-all'),
                             ('Enabled', ''),
+                            ('Inherit from environment', 'inherit'),
                             ('Show FPS', '+fps'),
                             ('Full (CAUTION: Will cause MASSIVE slowdown)', '+all')],
                 'default': '-all',
@@ -635,7 +636,9 @@ class wine(Runner):
         env = super(wine, self).get_env(False)
         if os_env:
             env.update(os.environ.copy())
-        env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
+        show_debug = self.runner_config.get('show_debug', '-all')
+        if show_debug != 'inherit':
+            env['WINEDEBUG'] = show_debug
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
         if self.prefix_path:
