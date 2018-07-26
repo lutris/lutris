@@ -6605,23 +6605,28 @@ load_dxsdk_jun2010()
 
 #----------------------------------------------------------------
 
-w_metadata dxvk dlls \
-    title="Vulkan-based D3D11 implementation for Linux / Wine" \
-    publisher="Philip Rebohle" \
-    year="2018" \
-    media="download" \
-    file1="dxvk-0.54.tar.gz" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
-    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
-
-load_dxvk()
+# $1 - dxvk archive name (required)
+# $2 - minimum Wine version (optional)
+# $3 - minimum Vulkan API version (optional, requires $2 be set)
+helper_dxvk()
 {
-    _W_dxvk_dir="${file1%.tar.gz}"
+    _W_dxvk_archive="${1}"
+    _W_min_wine_version="${2}"
+    _W_min_vulkan_version="${3}"
 
-    # https://github.com/doitsujin/dxvk
-    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.54/dxvk-0.54.tar.gz" 1c2f186baaa01d2de7b832f6f05021bdd29eccb65fc197c8b15adfd4e08f9640
+    _W_dxvk_dir="${_W_dxvk_archive%.tar.gz}"
+    _W_dxvk_version="${_W_dxvk_dir#*-}"
+
+    w_warn "Please refer to dxvk version ${_W_dxvk_version} release notes... See: https://github.com/doitsujin/dxvk/releases/tag/v${_W_dxvk_version}"
+    if [ ! -z "$_W_min_wine_version" ] && ! w_wine_version_in ",${_W_min_wine_version}" ; then
+        [ -z "$_W_min_vulkan_version" ] || _W_vulkan_info=" The base requirement is Vulkan $_W_min_vulkan_version API support."
+        w_warn "dxvk ${_W_dxvk_version} does not support wine version ${_wine_version_stripped}. dxvk ${_W_dxvk_version} requires wine version ${_W_min_wine_version} (or newer).${_W_vulkan_info}"
+        unset _W_vulkan_info
+    fi
+    w_warn "Please refer to current dxvk base graphics driver requirements... See: https://github.com/doitsujin/dxvk/wiki/Driver-support"
+
     w_try_cd "$W_TMP"
-    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$_W_dxvk_archive"
     w_try mv "$W_TMP/$_W_dxvk_dir/x32/d3d11.dll" "$W_SYSTEM32_DLLS/"
     w_try mv "$W_TMP/$_W_dxvk_dir/x32/dxgi.dll" "$W_SYSTEM32_DLLS/"
     if test "$W_ARCH" = "win64"; then
@@ -6630,7 +6635,117 @@ load_dxvk()
     fi
     w_override_dlls native d3d11 dxgi
 
-    unset _W_dxvk_dir
+    unset _W_dxvk_archive _W_dxvk_dir _W_dxvk_version _W_min_vulkan_version _W_min_wine_version
+}
+
+#----------------------------------------------------------------
+
+w_metadata dxvk54 dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (0.54)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.54.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk54()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.54/dxvk-0.54.tar.gz" 1c2f186baaa01d2de7b832f6f05021bdd29eccb65fc197c8b15adfd4e08f9640
+    helper_dxvk "$file1" "3.6"
+}
+
+#----------------------------------------------------------------
+
+w_metadata dxvk60 dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (0.60)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.60.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk60()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.60/dxvk-0.60.tar.gz" 27d6f700241d3ec3b6c002c3d739bb0e3f210ec916ecb5a62d9204e9e50f2c4a
+    helper_dxvk "$file1" "3.10" "1.0.76"
+}
+
+#----------------------------------------------------------------
+
+w_metadata dxvk61 dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (0.61)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.61.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk61()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.61/dxvk-0.61.tar.gz" d04388f026dc0d8b276b08f7db74fb3556cbbc8f762401eb5ef52629ee39ded1
+    helper_dxvk "$file1" "3.10" "1.0.76"
+}
+
+#----------------------------------------------------------------
+
+w_metadata dxvk62 dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (0.62)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.62.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk62()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.62/dxvk-0.62.tar.gz" b9dbb57908e24b094b68f665ad729b6ee277eecc8ba04a6e6e4f8a4d2dfd94e3
+    helper_dxvk "$file1" "3.10" "1.0.76"
+}
+
+w_metadata dxvk63 dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (0.63)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.63.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk63()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.63/dxvk-0.63.tar.gz" 696df816bd9640770dee14f932bc641a16261fccf76be7c28d812a64ca6040fa
+    helper_dxvk "$file1" "3.10" "1.0.76"
+}
+
+
+#----------------------------------------------------------------
+
+w_metadata dxvk dlls \
+    title="Vulkan-based D3D11 implementation for Linux / Wine (latest)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk()
+{
+    # https://github.com/doitsujin/dxvk
+    # There's no stable exe URL, but they do provide a RELEASE file that lets us build one:
+    w_download_to "$W_TMP" "https://raw.githubusercontent.com/doitsujin/dxvk/master/RELEASE"
+    dxvk_version="$(cat "${W_TMP}/RELEASE")"
+    w_linkcheck=1_ignore w_download "https://github.com/doitsujin/dxvk/releases/download/v${dxvk_version}/dxvk-${dxvk_version}.tar.gz"
+    helper_dxvk "dxvk-${dxvk_version}.tar.gz" "3.10" "1.0.76"
+    unset dxvk_version
 }
 
 #----------------------------------------------------------------
@@ -7770,6 +7885,26 @@ load_dotnet_verifier()
 
 #----------------------------------------------------------------
 
+w_metadata dx8vb dlls \
+    title="MS dx8vb.dll from DirectX 8.1 runtime" \
+    publisher="Microsoft" \
+    year="2001" \
+    media="download" \
+    file1="DX81NTger.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/dx8vb.dll"
+
+load_dx8vb()
+{
+    # https://www.microsoft.com/de-de/download/details.aspx?id=10968
+    w_download https://download.microsoft.com/download/win2000pro/dx/8.1/NT5/DE/DX81NTger.exe 31513966a29dc100165072891d21b5c5e0dd2632abf3409a843cefb3a9886f13
+
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -F dx8vb.dll "$W_CACHE/$W_PACKAGE"/DX81NTger.exe
+
+    w_override_dlls native dx8vb
+}
+
+#----------------------------------------------------------------
+
 w_metadata dxdiagn dlls \
     title="DirectX Diagnostic Library" \
     publisher="Microsoft" \
@@ -8046,7 +8181,7 @@ w_metadata glut dlls \
 
 load_glut()
 {
-    w_download http://press.liacs.nl/researchdownloads/glut.win32/glut-3.7.6-bin.zip 788e97653bfd527afbdc69e1b7c6bcf9cb45f33d13ddf9d676dc070da92f80d4
+    w_download https://press.liacs.nl/researchdownloads/glut.win32/glut-3.7.6-bin.zip 788e97653bfd527afbdc69e1b7c6bcf9cb45f33d13ddf9d676dc070da92f80d4
     # FreeBSD unzip rm -rf's inside the target directory before extracting:
     w_try_unzip "$W_TMP" "$W_CACHE"/glut/glut-3.7.6-bin.zip
     w_try mv "$W_TMP/glut-3.7.6-bin" "$W_DRIVE_C"
@@ -8643,7 +8778,7 @@ load_msdxmocx()
     # 2017/09/28: define.fi is down, these sites have mpfull.exe with the original sha256:
     # http://hell.pl/agnus/windows95/
     # http://zerosky.oldos.org/win9x.html
-    # http://sdfox7.com/win95/
+    # https://sdfox7.com/win95/
 
     w_download http://hell.pl/agnus/windows95/mpfull.exe a39b2b9735cedd513fcb78f8634695d35073e9d7e865e536a0da6db38c7225e4
 
@@ -8735,7 +8870,7 @@ load_msls31()
     # Needed by native RichEdit and Internet Explorer
     # Originally at https://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe
     # Mirror list at http://www.filewatcher.com/m/InstMsiW.exe.1822848-0.html
-    w_download http://ftp.hp.com/pub/softlib/software/msi/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b InstMsiW.exe
+    w_download https://ftp.hp.com/pub/softlib/software/msi/InstMsiW.exe 4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b InstMsiW.exe
 
     w_try_cabextract --directory="$W_TMP" "$W_CACHE"/msls31/InstMsiW.exe
     w_try cp -f "$W_TMP"/msls31.dll "$W_SYSTEM32_DLLS"
@@ -10331,12 +10466,17 @@ load_xact()
         w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'xapofx*.dll' "$x"
     done
 
-    # Don't install 64-bit xact DLLs. They are broken in Wine, see:
-    # https://bugs.winehq.org/show_bug.cgi?id=41618#c5
-
-    w_override_dlls native,builtin xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 xaudio2_5 xaudio2_6 xaudio2_7
-    w_override_dlls native,builtin x3daudio1_0 x3daudio1_1 x3daudio1_2 x3daudio1_3 x3daudio1_4 x3daudio1_5 x3daudio1_6 x3daudio1_7
-    w_override_dlls native,builtin xapofx1_1 xapofx1_2 xapofx1_3 xapofx1_4 xapofx1_5
+    if test "$W_ARCH" = "win64" ; then
+        w_try_cabextract -d "$W_TMP" -L -F '*_xact_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+        w_try_cabextract -d "$W_TMP" -L -F '*_x3daudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+        w_try_cabextract -d "$W_TMP" -L -F '*_xaudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+        for x in "$W_TMP"/*x64.cab ; do
+            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xactengine*.dll' "$x"
+            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xaudio*.dll' "$x"
+            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'x3daudio*.dll' "$x"
+            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xapofx*.dll' "$x"
+        done
+    fi
 
     # Register xactengine?_?.dll
     for x in "$W_SYSTEM32_DLLS"/xactengine* ; do
@@ -10708,6 +10848,7 @@ w_metadata corefonts fonts \
 
 load_corefonts()
 {
+    w_download "https://mirrors.kernel.org/gentoo/distfiles/andale32.exe" 0524fe42951adc3a7eb870e32f0920313c71f170c859b5f770d82b4ee111e970
     w_download "https://mirrors.kernel.org/gentoo/distfiles/arial32.exe" 85297a4d146e9c87ac6f74822734bdee5f4b2a722d7eaa584b7f2cbf76f478f6
     w_download "https://mirrors.kernel.org/gentoo/distfiles/arialb32.exe" a425f0ffb6a1a5ede5b979ed6177f4f4f4fdef6ae7c302a7b7720ef332fec0a8
     w_download "https://mirrors.kernel.org/gentoo/distfiles/comic32.exe" 9c6df3feefde26d4e41d4a4fe5db2a89f9123a772594d7f59afd062625cd204e
@@ -10723,6 +10864,10 @@ load_corefonts()
     # to exit silently. Because there are apps out there that depend on the
     # files being present in the Windows font directory we use cabextract
     # to obtain the files and register the fonts by hand.
+
+    w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/andale32.exe
+    w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "AndaleMo.TTF"
+    w_register_font andalemo.ttf "Andale Mono"
 
     w_try_cabextract -d "$W_TMP" "$W_CACHE"/corefonts/arial32.exe
     w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX" "Arial*.TTF"
@@ -11293,7 +11438,7 @@ w_metadata 3m_library apps \
     media="download" \
     file1="cloudLibrary-2.1.1702011951-Setup.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/cloudLibrary/cloudLibrary.exe" \
-    homepage="http://www.yourcloudlibrary.com/index.php/en-us/"
+    homepage="https://www.yourcloudlibrary.com/index.php/en-us/"
 
 load_3m_library()
 {
@@ -11644,18 +11789,19 @@ load_fontxplorer()
 #----------------------------------------------------------------
 
 w_metadata foobar2000 apps \
-    title="foobar2000 v1.3.14" \
+    title="foobar2000 v1.4" \
     publisher="Peter Pawlowski" \
-    year="2016" \
+    year="2018" \
     media="manual_download" \
-    file1="foobar2000_v1.3.14.exe" \
+    file1="foobar2000_v1.4.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/foobar2000/foobar2000.exe"
 
 load_foobar2000()
 {
     # 2016/12/21: 1.3.14 - 72d024d258c2f3b6cea62dc47fb613848202e7f33f2331f6b2e0a8e61daffcb6
+    # 2018/07/25: 1.4    - 7c048faecfec79f9ec2b332b2c68b25e0d0219b47a7c679fe56f2ec05686a96a
 
-    w_download_manual https://www.foobar2000.org/download foobar2000_v1.3.14.exe 72d024d258c2f3b6cea62dc47fb613848202e7f33f2331f6b2e0a8e61daffcb6
+    w_download_manual https://www.foobar2000.org/download foobar2000_v1.4.exe 7c048faecfec79f9ec2b332b2c68b25e0d0219b47a7c679fe56f2ec05686a96a
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_try "$WINE" "$file1" $W_UNATTENDED_SLASH_S
 }
@@ -11686,7 +11832,7 @@ w_metadata irfanview apps \
     media="download" \
     file1="iview444_setup.exe" \
     installed_file1="$W_PROGRAMS_X86_WIN/IrfanView/i_view32.exe" \
-    homepage="http://www.irfanview.com/"
+    homepage="https://www.irfanview.com/"
 
 load_irfanview()
 {
@@ -12207,7 +12353,7 @@ load_mspaint()
 
     # Originally at: https://download.microsoft.com/download/0/A/4/0A40DF5C-2BAE-4C63-802A-84C33B34AC98/WindowsXP-KB978706-x86-ENU.exe
     # Mirror list: http://www.filewatcher.com/_/?q=WindowsXP-KB978706-x86-ENU.exe
-    w_download http://cbvk.cz/programy_pro_knihovny/update-pack/Windows%20XP%20x86%20ENU/Security%20Updates/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
+    w_download https://cbvk.cz/programy_pro_knihovny/update-pack/Windows%20XP%20x86%20ENU/Security%20Updates/WindowsXP-KB978706-x86-ENU.exe 93ed34ab6c0d01a323ce10992d1c1ca27d1996fef82f0864d83e7f5ac6f9b24b
     w_try $WINE "$W_CACHE"/mspaint/WindowsXP-KB978706-x86-ENU.exe /q /x:"$W_TMP"/WindowsXP-KB978706-x86-ENU
     w_try cp -f "$W_TMP"/WindowsXP-KB978706-x86-ENU/SP3GDR/mspaint.exe "$W_WINDIR_UNIX"/mspaint.exe
 }
@@ -12222,7 +12368,7 @@ w_metadata mt4 apps \
 
 load_mt4()
 {
-    w_download https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
+    w_download https://web.archive.org/web/20160112133258/https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe?utm_campaign=www.metatrader4.com 96c82266e18cc4ada1bbc0cd0ada74c3a31d18914fb1a36626f4596c8bacb6f0 mt4setup.exe
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"; then
         w_call opensymbol
@@ -12827,7 +12973,7 @@ w_metadata qq apps \
 load_qq()
 {
     w_download https://dldir1.qq.com/qqfile/qq/QQ8.9.1/20437/QQ8.9.1.exe 8e0d3ff5264da2d77e2fc011c21048edeebcf082f55f68a301f763c3a15c0d3f
-    w_download http://hillwoodhome.net/wine/QQ.tar.gz eb5cd6371eb75ec9e2fc0271199df05cbb9f38a60c2e81d5d8ac7daeb40aba62
+    w_download https://hillwoodhome.net/wine/QQ.tar.gz eb5cd6371eb75ec9e2fc0271199df05cbb9f38a60c2e81d5d8ac7daeb40aba62
 
     if w_workaround_wine_bug 5162 "Installing native riched20 to work around can't input username."; then
         w_call riched20
@@ -13198,19 +13344,26 @@ load_vc2005trial()
         winwait, Visual Studio, Setup is loading
         if ( w_opt_unattended > 0 ) {
             winwait, Visual Studio, Loading completed
+            sleep 1000
             controlclick, button2
             winwait, Visual Studio, Select features
+            sleep 1000
             controlclick, button38
+            sleep 1000
             controlclick, button40
             winwait, Visual Studio, You have chosen
+            sleep 1000
             controlclick, button1
             winwait, Visual Studio, Select features
+            sleep 1000
             controlclick, button11
         }
-        ;this can take a while
+        ; this can take a while
         winwait, Finish Page
-        if ( w_opt_unattended > 0 )
+        if ( w_opt_unattended > 0 ) {
+            sleep 1000
             controlclick, button2
+        }
         winwaitclose, Finish Page
     "
 }
@@ -13589,7 +13742,7 @@ w_metadata 3dmark03 benchmarks \
 
 load_3dmark03()
 {
-    # http://www.futuremark.com/benchmarks/3dmark03/download/
+    # https://www.futuremark.com/benchmarks/3dmark03/download/
     if ! test -f "$W_CACHE/$W_PACKAGE/3DMark03_v360_1901.exe"; then
         w_download_manual https://www.futuremark.com/download/3dmark03/ 3DMark03_v360_1901.exe 86d7f73747944c553e47e6ab5a74138e8bbca07fab8216ae70a61ac7f9a1c468
     fi
@@ -13916,7 +14069,7 @@ w_metadata amnesia_tdd_demo games \
 
 load_amnesia_tdd_demo()
 {
-    w_download_manual http://download.cnet.com/Amnesia-The-Dark-Descent-Demo/3000-2097_4-75312743.html amnesia_tdd_demo_1.0.1.exe ee4c07b40bfa59b506d2cee258c5c7a16028e11fc3a2bd243258c6bec8532dbc
+    w_download_manual https://download.cnet.com/Amnesia-The-Dark-Descent-Demo/3000-2097_4-75312743.html amnesia_tdd_demo_1.0.1.exe ee4c07b40bfa59b506d2cee258c5c7a16028e11fc3a2bd243258c6bec8532dbc
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
@@ -14088,7 +14241,7 @@ w_metadata atmosphir games \
 
 load_atmosphir()
 {
-    w_download_manual http://download.cnet.com/Atmosphir/3000-7492_4-75335647.html atmosphir-installer-v1.0.2.exe a6b2c82a98d750014874f8ab445b38ebb127450e5a7a9350832cf3a8d3a
+    w_download_manual https://download.cnet.com/Atmosphir/3000-7492_4-75335647.html atmosphir-installer-v1.0.2.exe a6b2c82a98d750014874f8ab445b38ebb127450e5a7a9350832cf3a8d3a
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
@@ -14558,7 +14711,7 @@ w_metadata cod_demo games \
 
 load_cod_demo()
 {
-    w_download_manual http://www.gamefront.com/files/968870/call_of_duty_demo_exe Call_Of_Duty_Demo.exe a7773f1ddb0c9928f738a2be34614d52bc07ecc42c0fe704ab5a596da5421b08
+    w_download_manual https://www.gamefront.com/files/968870/call_of_duty_demo_exe Call_Of_Duty_Demo.exe a7773f1ddb0c9928f738a2be34614d52bc07ecc42c0fe704ab5a596da5421b08
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
@@ -14699,7 +14852,7 @@ w_metadata cod4mw_demo games \
 load_cod4mw_demo()
 {
     # 2017/03/28: Also at https://www.fileplanet.com/213663/210000/fileinfo/LEGO-Harry-Potter:-Years-1-4-Demo
-    w_download_manual http://download.cnet.com/Call-of-Duty-4-Modern-Warfare/3000-7441_4-11277584.html CoD4MWDemoSetup_v2.exe 715710678394e9b0edda5dd3a560c9711557297aa2849c83e5c109db9830fbbb
+    w_download_manual https://download.cnet.com/Call-of-Duty-4-Modern-Warfare/3000-7441_4-11277584.html CoD4MWDemoSetup_v2.exe 715710678394e9b0edda5dd3a560c9711557297aa2849c83e5c109db9830fbbb
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
@@ -14814,7 +14967,7 @@ w_metadata civ4_demo games \
 
 load_civ4_demo()
 {
-    w_download_manual http://download.cnet.com/Civilization-IV-demo/3000-7489_4-10465206.html Civilization4_Demo.zip aaafc7fcbf0fc16c9b28c2422400721a40818b867e9291268877c5d3841122a2
+    w_download_manual https://download.cnet.com/Civilization-IV-demo/3000-7489_4-10465206.html Civilization4_Demo.zip aaafc7fcbf0fc16c9b28c2422400721a40818b867e9291268877c5d3841122a2
 
     w_try_unzip "$W_TMP" "$W_CACHE/$W_PACKAGE"/Civilization4_Demo.zip
     w_try_cd "$W_TMP/$W_PACKAGE"
@@ -16945,7 +17098,7 @@ w_metadata myth2_demo games \
     media="download" \
     file1="Myth2_Demo_180.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/Myth II Demo/Myth II Demo.exe" \
-    homepage="http://projectmagma.net/"
+    homepage="https://projectmagma.net/"
 
 load_myth2_demo()
 {
@@ -16953,7 +17106,7 @@ load_myth2_demo()
     # source code to Project Magma for further development.
 
     # 2017/03/27: 1a5e11be25c43491e2b4da5291b646ffe5330a6289bef236f404906e3b4f5e96
-    w_download http://tain.totalcodex.net/items/download/myth-ii-demo-windows 1a5e11be25c43491e2b4da5291b646ffe5330a6289bef236f404906e3b4f5e96 "${file1}"
+    w_download https://tain.totalcodex.net/items/download/myth-ii-demo-windows 1a5e11be25c43491e2b4da5291b646ffe5330a6289bef236f404906e3b4f5e96 "${file1}"
 
     w_try_cd "${W_TMP}"
     w_try unzip "${W_CACHE}/${W_PACKAGE}/${file1}"
@@ -17238,7 +17391,7 @@ w_metadata riseofnations_demo games \
 
 load_riseofnations_demo()
 {
-    w_download_manual http://download.cnet.com/Rise-of-Nations-Trial-Version/3000-7562_4-10730812.html RiseOfNationsTrial.exe f0bd8be3999164e669aad33583e372ca0f530b1a2ac0194a4c13b265e9cdf744
+    w_download_manual https://download.cnet.com/Rise-of-Nations-Trial-Version/3000-7562_4-10730812.html RiseOfNationsTrial.exe f0bd8be3999164e669aad33583e372ca0f530b1a2ac0194a4c13b265e9cdf744
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
@@ -19355,6 +19508,34 @@ load_hosts()
 
 #----------------------------------------------------------------
 
+w_metadata isolate_home settings \
+    title_uk="Видалити посилання на вино преміум на \$HOME" \
+    title="Remove wineprefix links to \$HOME"
+
+load_isolate_home()
+{
+    w_skip_windows isolate_home && return
+
+    _olddir="$(pwd)"
+    w_try_cd "$WINEPREFIX/drive_c/users/$USER"
+    for x in *
+    do
+        if test -h "$x" && test -d "$x"; then
+            rm -f "$x"
+            mkdir -p "$x"
+        fi
+    done
+    w_try_cd "$_olddir"
+    unset _olddir
+
+    # Workaround for:
+    # https://bugs.winehq.org/show_bug.cgi?id=22450 (sandbox verb)
+    # https://bugs.winehq.org/show_bug.cgi?id=22974 (isolate_home, sandbox verbs)
+    echo disable > "$WINEPREFIX/.update-timestamp"
+}
+
+#----------------------------------------------------------------
+
 w_metadata native_mdac settings \
     title_uk="Перевизначити odbc32, odbccp32 та oledb32" \
     title="Override odbc32, odbccp32 and oledb32"
@@ -19385,7 +19566,7 @@ w_metadata remove_mono settings \
 
 load_remove_mono()
 {
-    mono_uuid="$("${WINE_ARCH}" uninstaller --list | grep Mono | cut -f1 -d\|)"
+    mono_uuid="$("${WINE_ARCH}" uninstaller --list | grep 'Wine Mono' | cut -f1 -d\|)"
     if test "$mono_uuid"; then
          "${WINE_ARCH}" uninstaller --remove "$mono_uuid"
     else
@@ -19420,25 +19601,12 @@ load_sandbox()
     # Unmap drive Z
     rm -f "$WINEPREFIX/dosdevices/z:"
 
-    _olddir="$(pwd)"
-    w_try_cd "$WINEPREFIX/drive_c/users/$USER"
-    for x in *
-    do
-        if test -h "$x" && test -d "$x"; then
-            rm -f "$x"
-            mkdir -p "$x"
-        fi
-    done
-    w_try_cd "$_olddir"
-    unset _olddir
-
     # Disable unixfs
     # Unfortunately, when you run with a different version of Wine, Wine will recreate this key.
     # See https://bugs.winehq.org/show_bug.cgi?id=22450
     "$WINE" regedit /d 'HKEY_LOCAL_MACHINE\\Software\\Microsoft\Windows\CurrentVersion\Explorer\Desktop\Namespace\{9D20AAE8-0625-44B0-9CA7-71889C2254D9}'
 
-    # Disable recreation of the above key - or any updating of the registry - when running with a newer version of Wine.
-    echo disable > "$WINEPREFIX/.update-timestamp"
+    w_call isolate_home
 }
 
 ####
