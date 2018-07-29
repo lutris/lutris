@@ -1,4 +1,5 @@
 VERSION=`grep "VERSION" lutris/settings.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
+GITBRANCH=master
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -10,12 +11,12 @@ test:
 	nosetests
 
 deb-source: clean
-	gbp buildpackage -S
+	gbp buildpackage -S --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 
 deb: clean
-	gbp buildpackage
+	gbp buildpackage --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 
