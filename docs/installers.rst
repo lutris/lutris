@@ -26,10 +26,10 @@ Examples:
 ::
 
     files:
-    - file1: http://site.com/gamesetup.exe
+    - file1: https://example.com/gamesetup.exe
     - file2: "N/A:Select the game's setup file"
     - file3:
-        url: http://site.com/url-that-doesnt-resolve-to-a-proper-filename
+        url: https://example.com/url-that-doesnt-resolve-to-a-proper-filename
         filename: actual_local_filename.zip
         referer: www.mywebsite.com
 
@@ -625,7 +625,7 @@ Example Linux game:
         working_dir: $GAMEDIR
 
       files:
-      - myfile: http://example.com/mygame.zip
+      - myfile: https://example.com/mygame.zip
 
       installer:
       - chmodx: $GAMEDIR/mygame
@@ -866,7 +866,7 @@ When submitting the installer script to lutris.net, only copy the script part. R
       args: --some-arg
 
     files:
-    - myfile: http://example.com
+    - myfile: https://example.com
 
     installer:
     - chmodx: $GAMEDIR/mygame
