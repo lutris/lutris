@@ -15,7 +15,7 @@ NAME = "GOG"
 
 
 class GogService:
-    """Service clas for GOG"""
+    """Service class for GOG"""
     name = "GOG"
     embed_url = 'https://embed.gog.com'
     api_url = 'https://api.gog.com'

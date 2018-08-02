@@ -118,7 +118,7 @@ class GogWindow(Gtk.Window):
         game_details = self.gog_service.get_game_details(game['id'])
         installer_liststore = Gtk.ListStore(str, str)
         installers = game_details['downloads']['installers']
-        for index, installer in enumerate(installers):
+        for _, installer in enumerate(installers):
             installer_liststore.append(
                 (installer['id'], "{} ({}, {})".format(installer['name'], installer['language_full'], installer['os']))
             )
