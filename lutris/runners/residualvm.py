@@ -39,10 +39,15 @@ class residualvm(Runner):
             'default': False,
         },
         {
-            "option": "soft-renderer",
-            "label": "Software renderer",
-            "type": "bool",
-            'default': False,
+            "option": "renderer",
+            "label": "Renderer",
+            "type": "choice",
+            'choices': (
+                ('OpenGL', '0'),
+                ('OpenGL shaders', '1'),
+                ('Software', '2'),
+            ),
+            'default': 'OpenGL',
         },
         {
             "option": "show-fps",
@@ -77,10 +82,9 @@ class residualvm(Runner):
         else:
             command.append("--no-fullscreen")
 
-        if self.runner_config.get("soft-renderer"):
-            command.append("--soft-renderer")
-        else:
-            command.append("--no-soft-renderer")
+        renderer = self.runner_config.get("renderer"):
+        if renderer:
+            command.append("--renderer=%s" % renderer)
 
         if self.runner_config.get("show-fps"):
             command.append("--show-fps")
