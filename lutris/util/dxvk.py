@@ -3,13 +3,20 @@ import os
 import time
 import shutil
 
+from requests import get
 from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
-DXVK_LATEST = "0.52"
-DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
+# Get latest DXVK versions from GitHub
+dxvk_url = "https://api.github.com/repos/doitsujin/dxvk/tags"
+dxvk_json = get(dxvk_url).json()
+dxvk_versions = [x['name'].replace('v', '') for x in dxvk_json]
+
+DXVK_LATEST = dxvk_versions[0]
+DXVK_PAST_RELEASES = [x['name'].replace('v', '') for x in dxvk_json]
+
 
 
 class DXVKManager:
