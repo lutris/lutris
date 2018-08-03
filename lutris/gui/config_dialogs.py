@@ -335,6 +335,9 @@ class GameDialogCommon(object):
         if not name:
             ErrorDialog("Please fill in the name")
             return False
+        if self.runner_name in ('steam', 'winesteam') and self.lutris_config.game_config.get('appid') is None:
+            ErrorDialog("Steam AppId not provided")
+            return False
         return True
 
     def on_save(self, _button, callback=None):
