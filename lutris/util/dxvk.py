@@ -1,23 +1,41 @@
 """DXVK helper module"""
 import os
+import json
 import time
 import shutil
+import urllib.request
 
-from requests import get
 from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
-# Get latest DXVK versions from GitHub
-dxvk_url = "https://api.github.com/repos/doitsujin/dxvk/tags"
-dxvk_json = get(dxvk_url).json()
-dxvk_versions = [x['name'].replace('v', '') for x in dxvk_json]
 
-DXVK_LATEST = dxvk_versions[0]
-DXVK_PAST_RELEASES = [x['name'].replace('v', '') for x in dxvk_json]
+def get_latest_dxvk_versions():
+    """Get latest DXVK versions from GitHub"""
+    dxvk_url = "https://api.github.com/repos/doitsujin/dxvk/tags"
+    cache = os.path.join(RUNTIME_DIR, 'dxvk', 'dxvk_versions.json')
 
+    # If the DXVK cache does not exist then download it
+    if not os.path.exists("./dxvk_versions.json"):
+        urllib.request.urlretrieve(dxvk_url, cache)
 
+    # Re-download DXVK versions cache if more than a day old
+    if os.path.getmtime("dxvk_versions.json")+86400 < time.time():
+        urllib.request.urlretrieve(dxvk_url, cache)
+
+    with open("dxvk_versions.json", "r") as f:
+        dxvk_json = json.load(f)
+        DXVK_LATEST = dxvk_json[0]['name'].replace('v','')
+        DXVK_PAST_RELEASES = [x['name'].replace('v', '') for x in dxvk_json][1:]
+
+    return DXVK_LATEST, DXVK_PAST_RELEASES
+
+try:
+    DXVK_LATEST, DXVK_PAST_RELEASES = get_latest_dxvk_versions()
+except:
+    DXVK_LATEST = "0.52"
+    DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
 
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
