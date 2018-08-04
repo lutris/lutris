@@ -33,26 +33,40 @@ class ServiceSyncRow(Gtk.Box):
             actions.pack_start(self.connect_button, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
-            sync_switch = Gtk.Switch()
-            sync_switch.set_tooltip_text("Sync when Lutris starts")
-            sync_switch.props.valign = Gtk.Align.CENTER
-            sync_switch.connect('notify::active', self.on_switch_changed)
-            if read_setting('sync_at_startup', self.identifier) == 'True':
-                sync_switch.set_state(True)
-            actions.pack_start(sync_switch, False, False, 0)
+            self.sync_switch = Gtk.Switch()
+            self.sync_switch.set_tooltip_text("Sync when Lutris starts")
+            self.sync_switch.props.valign = Gtk.Align.CENTER
+            self.sync_switch.connect('notify::active', self.on_switch_changed)
 
-            sync_button = Gtk.Button("Sync")
-            sync_button.set_tooltip_text("Sync now")
-            sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
-            actions.pack_start(sync_button, False, False, 0)
+            if read_setting('sync_at_startup', self.identifier) == 'True':
+                self.sync_switch.set_state(True)
+            actions.pack_start(self.sync_switch, False, False, 0)
+
+            self.sync_button = Gtk.Button("Sync")
+            self.sync_button.set_tooltip_text("Sync now")
+            self.sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
+            actions.pack_start(self.sync_button, False, False, 0)
+
+            if hasattr(service, "connect") and not service.is_connected():
+                self.sync_switch.set_sensitive(False)
+                self.sync_button.set_sensitive(False)
 
     def on_connect_clicked(self, button, service):
         if service.is_connected():
             service.disconnect()
             self._connect_button_toggle(False)
+
+            self.sync_switch.set_sensitive(False)
+            self.sync_button.set_sensitive(False)
+
+            # Disable sync on disconnect
+            if self.sync_switch and self.sync_switch.get_active():
+                self.sync_switch.set_state(False)
         else:
             service.connect()
             self._connect_button_toggle(True)
+            self.sync_switch.set_sensitive(True)
+            self.sync_button.set_sensitive(True)
 
     def _connect_button_toggle(self, is_connected):
         self.connect_button.set_label("Disconnect" if is_connected else "Connect")
