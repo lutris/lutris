@@ -71,22 +71,8 @@ LIBRETRO_CORES = [
 def get_core_choices():
     return [(core[0], core[1]) for core in LIBRETRO_CORES]
 
-
-def get_default_config_path():
-    return os.path.join(settings.RUNNER_DIR, 'retroarch/retroarch.cfg')
-
-
-def get_default_assets_directory():
-    return os.path.join(settings.RUNNER_DIR, 'retroarch/assets')
-
-
-def get_default_cores_directory():
-    return os.path.join(settings.RUNNER_DIR, 'retroarch/cores')
-
-
-def get_default_info_directory():
-    return os.path.join(settings.RUNNER_DIR, 'retroarch/info')
-
+def get_default_config_path(path=''):
+    return os.path.join(settings.RUNNER_DIR, 'retroarch', path)
 
 class libretro(Runner):
     human_name = "Libretro"
@@ -119,7 +105,7 @@ class libretro(Runner):
             'option': 'config_file',
             'type': 'file',
             'label': 'Config file',
-            'default': get_default_config_path()
+            'default': get_default_config_path('retroarch.cfg')
         }
     ]
 
@@ -175,33 +161,47 @@ class libretro(Runner):
         }
 
     def get_config_file(self):
-        return self.runner_config.get('config_file') or get_default_config_path()
+        return self.runner_config.get('config_file') or get_default_config_path('retroarch.cfg')
 
     def get_system_directory(self, retro_config):
         """Return the system directory used for storing BIOS and firmwares."""
         system_directory = retro_config['system_directory']
         if not system_directory or system_directory == 'default':
-            system_directory = '~/.config/retroarch/system'
+            system_directory = get_default_config_path('system')
         return os.path.expanduser(system_directory)
 
     def prelaunch(self):
         config_file = self.get_config_file()
+
+        # Create retroarch.cfg if it doesn't exist.
         if not os.path.exists(config_file):
-            logger.warning("Unable to find retroarch config. Except erratic behavior")
-            return True
-        retro_config = RetroConfig(config_file)
+            f = open(config_file, 'w')
+            f.write('# Lutris RetroArch Configuration')
+            f.close()
 
-        retro_config['libretro_directory'] = get_default_cores_directory()
-        retro_config['libretro_info_path'] = get_default_info_directory()
-
-        # Change assets path to the Lutris provided one if necessary
-        assets_directory = os.path.expanduser(retro_config['assets_directory'])
-        if system.path_is_empty(assets_directory):
-            retro_config['assets_directory'] = get_default_assets_directory()
-        retro_config.save()
+            # Build the default config settings.
+            retro_config = RetroConfig(config_file)
+            retro_config['libretro_directory'] = get_default_config_path('cores')
+            retro_config['libretro_info_path'] = get_default_config_path('info')
+            retro_config['content_database_path'] = get_default_config_path('database/rdb')
+            retro_config['cheat_database_path'] = get_default_config_path('database/cht')
+            retro_config['cursor_directory'] = get_default_config_path('database/cursors')
+            retro_config['screenshot_directory'] = get_default_config_path('screenshots')
+            retro_config['input_remapping_directory'] = get_default_config_path('remaps')
+            retro_config['video_shader_dir'] = get_default_config_path('shaders')
+            retro_config['core_assets_directory'] = get_default_config_path('downloads')
+            retro_config['thumbnails_directory'] = get_default_config_path('thumbnails')
+            retro_config['playlist_directory'] = get_default_config_path('playlists')
+            retro_config['joypad_autoconfig_dir'] = get_default_config_path('autoconfig')
+            retro_config['rgui_config_directory'] = get_default_config_path('config')
+            retro_config['overlay_directory'] = get_default_config_path('overlay')
+            retro_config['assets_directory'] = get_default_config_path('assets')
+            retro_config.save()
+        else:
+            retro_config = RetroConfig(config_file)
 
         core = self.game_config.get('core')
-        info_file = os.path.join(get_default_info_directory(),
+        info_file = os.path.join(get_default_config_path('info'),
                                  '{}_libretro.info'.format(core))
         if os.path.exists(info_file):
             core_config = RetroConfig(info_file)

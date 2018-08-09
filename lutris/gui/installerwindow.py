@@ -45,6 +45,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_size_request(420, 420)
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
+        self.set_show_menubar(False)
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
