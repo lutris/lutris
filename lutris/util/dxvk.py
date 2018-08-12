@@ -17,14 +17,14 @@ def get_latest_dxvk_versions():
     cache = os.path.join(RUNTIME_DIR, 'dxvk', 'dxvk_versions.json')
 
     # If the DXVK cache does not exist then download it
-    if not os.path.exists("./dxvk_versions.json"):
+    if not os.path.exists(cache):
         urllib.request.urlretrieve(dxvk_url, cache)
 
     # Re-download DXVK versions cache if more than a day old
-    if os.path.getmtime("dxvk_versions.json")+86400 < time.time():
+    if os.path.getmtime(cache)+86400 < time.time():
         urllib.request.urlretrieve(dxvk_url, cache)
 
-    with open("dxvk_versions.json", "r") as f:
+    with open(cache, "r") as f:
         dxvk_json = json.load(f)
         DXVK_LATEST = dxvk_json[0]['name'].replace('v','')
         DXVK_PAST_RELEASES = [x['name'].replace('v', '') for x in dxvk_json][1:]
