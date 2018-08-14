@@ -98,7 +98,7 @@ class ScriptInterpreter(CommandsMixin):
         if not self.is_valid():
             raise ScriptingError("Invalid script: \n{}".format("\n".join(self.errors)), self.script)
 
-        self.files :list = self.script.get('files', [])
+        self.files = self.script.get('files', [])
         self.requires = self.script.get('requires')
         self.extends = self.script.get('extends')
 
@@ -466,7 +466,7 @@ class ScriptInterpreter(CommandsMixin):
 
         # Add gog installation to commands, if it's a GOG and linux game
         if self.gog_data and self.gog_data["os"] == "linux":
-            commands :list = self.script.get('installer', [])
+            commands = self.script.get('installer', [])
             gogcommands = []
             gogcommands.append({
                 "extract": {
