@@ -11,31 +11,39 @@ from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 
 
-def get_latest_dxvk_versions():
-    """Get latest DXVK versions from GitHub"""
-    dxvk_url = "https://api.github.com/repos/doitsujin/dxvk/tags"
-    cache = os.path.join(RUNTIME_DIR, 'dxvk', 'dxvk_versions.json')
+CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
+DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 
-    # If the DXVK cache does not exist then download it
-    if not os.path.exists(cache):
-        urllib.request.urlretrieve(dxvk_url, cache)
 
-    # Re-download DXVK versions cache if more than a day old
-    if os.path.getmtime(cache)+86400 < time.time():
-        urllib.request.urlretrieve(dxvk_url, cache)
+def get_dxvk_versions():
+    """Get DXVK versions from GitHub"""
+    versions_path = os.path.join(RUNTIME_DIR, 'dxvk', 'dxvk_versions.json')
 
-    with open(cache, "r") as f:
-        dxvk_json = json.load(f)
-        DXVK_LATEST = dxvk_json[0]['name'].replace('v','')
-        DXVK_PAST_RELEASES = [x['name'].replace('v', '') for x in dxvk_json][1:]
+    # Download tags if the versions_path does not exist or is more than a day old
+    if (
+            not os.path.exists(versions_path) or
+            os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
+    ):
+        urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
 
-    return DXVK_LATEST, DXVK_PAST_RELEASES
+    with open(versions_path, "r") as dxvk_tags:
+        dxvk_json = json.load(dxvk_tags)
+        dxvk_versions = [x['name'].replace('v', '') for x in dxvk_json]
+
+    return dxvk_versions
+
 
 try:
-    DXVK_LATEST, DXVK_PAST_RELEASES = get_latest_dxvk_versions()
-except:
-    DXVK_LATEST = "0.52"
-    DXVK_PAST_RELEASES = ["0.51", "0.50", "0.42", "0.31", "0.21"]
+    DXVK_VERSIONS = get_dxvk_versions()
+except Exception as ex:  # pylint: disable= broad-except
+    logger.error(ex)
+    DXVK_VERSIONS = [
+        "0.65", "0.64", "0.63",
+        "0.54", "0.53" "0.52",
+        "0.42", "0.31", "0.21"
+    ]
+DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+
 
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
