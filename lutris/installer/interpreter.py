@@ -885,7 +885,7 @@ class ScriptInterpreter(CommandsMixin):
     # GOG stuff
     # -----------
 
-    def get_gog_downloadlink(self) -> (str, str):
+    def get_gog_downloadlink(self):
         """Get url of a gog installer."""
         self.gog_data = self.script['game']['gog']
 
