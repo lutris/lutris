@@ -217,6 +217,9 @@ class Runner:
         command = command_data.get('command')
         env = (command_data.get('env') or {}).copy()
 
+        if hasattr(self, 'prelaunch'):
+            self.prelaunch()
+
         thread = LutrisThread(command, runner=self, env=env, watch=False)
         thread.start()
 

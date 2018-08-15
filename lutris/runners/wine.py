@@ -961,19 +961,24 @@ class wine(Runner):
         filename = dlg.filename
         if not filename:
             return
+        self.prelaunch()
         wineexec(filename, wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
 
     def run_winecfg(self, *args):
+        self.prelaunch()
         winecfg(wine_path=self.get_executable(), prefix=self.prefix_path,
                 arch=self.wine_arch, config=self)
 
     def run_regedit(self, *args):
+        self.prelaunch()
         wineexec("regedit", wine_path=self.get_executable(), prefix=self.prefix_path, config=self)
 
     def run_winetricks(self, *args):
+        self.prelaunch()
         winetricks('', prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
     def run_joycpl(self, *args):
+        self.prelaunch()
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
     def set_wine_desktop(self, enable_desktop=False):
