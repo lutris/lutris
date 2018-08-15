@@ -12,8 +12,7 @@ from lutris.util.log import logger
 
 XRANDR_CACHE = None
 XRANDR_CACHE_SET_AT = None
-XGAMMA_FOUND = False
-
+XGAMMA_PATH = system.find_executable('xgamma')
 
 def cached(function):
     def wrapper():
@@ -159,11 +158,8 @@ def change_resolution(resolution):
 
 def restore_gamma():
     """Restores gamma to a normal level."""
-    global XGAMMA_FOUND
-    if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = system.find_executable('xgamma')
-    if XGAMMA_FOUND is True:
-        subprocess.Popen(["xgamma", "-gamma", "1.0"])
+    if XGAMMA_PATH is not None:
+        subprocess.Popen([XGAMMA_PATH, "-gamma", "1.0"])
     else:
         logger.warning('xgamma is not available on your system')
 
