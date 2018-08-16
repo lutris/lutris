@@ -295,7 +295,8 @@ system_options = [
         'choices': (
             ('Off', 'off'),
             ('8BPP (256 colors)', '8bpp'),
-            ('16BPP (65536 colors)', '16bpp')
+            ('16BPP (65536 colors)', '16bpp'),
+            ('24BPP (16M colors)', '24bpp'),
         ),
         'default': 'off',
         'advanced': True,
