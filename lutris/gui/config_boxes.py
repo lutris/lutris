@@ -252,12 +252,18 @@ class ConfigBox(VBox):
                 combobox.set_active_id(default)
 
         combobox.connect('changed', self.on_combobox_change, option_name)
+        combobox.connect('scroll-event', self.on_combobox_scroll)
         label = Label(label)
         label.set_alignment(0.5, 0.5)
         combobox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(combobox, True, True, 0)
         self.option_widget = combobox
+
+    def on_combobox_scroll(self, combobox, event):
+        """ Do not change options when scrolling
+            with cursor inside a ComboBox. #1024 """
+        return True
 
     def on_combobox_change(self, combobox, option):
         """Action triggered on combobox 'changed' signal."""
