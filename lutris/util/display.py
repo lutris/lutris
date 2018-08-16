@@ -161,10 +161,13 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     global XGAMMA_FOUND
     if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = system.find_executable('xgamma')
-    if XGAMMA_FOUND is not None:
-        subprocess.Popen([XGAMMA_FOUND, "-gamma", "1.0"])
-    else:
+        if system.find_executable('xgamma') is None:
+            XGAMMA_FOUND = False
+        else:
+            XGAMMA_FOUND = True
+    if XGAMMA_FOUND is True:
+        subprocess.Popen(["xgamma", "-gamma", "1.0"])
+    elif XGAMMA_FOUND is False:
         logger.warning('xgamma is not available on your system')
 
 
