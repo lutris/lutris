@@ -167,7 +167,7 @@ def restore_gamma():
             XGAMMA_FOUND = True
     if XGAMMA_FOUND is True:
         subprocess.Popen(["xgamma", "-gamma", "1.0"])
-    elif XGAMMA_FOUND is False:
+    else:
         logger.warning('xgamma is not available on your system')
 
 
