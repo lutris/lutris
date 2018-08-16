@@ -12,8 +12,7 @@ from lutris.util.log import logger
 
 XRANDR_CACHE = None
 XRANDR_CACHE_SET_AT = None
-XGAMMA_FOUND = False
-
+XGAMMA_FOUND = None
 
 def cached(function):
     def wrapper():
@@ -161,7 +160,7 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     global XGAMMA_FOUND
     if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = system.find_executable('xgamma')
+        XGAMMA_FOUND = bool(system.find_executable('xgamma'))
     if XGAMMA_FOUND is True:
         subprocess.Popen(["xgamma", "-gamma", "1.0"])
     else:
