@@ -82,7 +82,7 @@ class residualvm(Runner):
         else:
             command.append("--no-fullscreen")
 
-        renderer = self.runner_config.get("renderer"):
+        renderer = self.runner_config.get("renderer")
         if renderer:
             command.append("--renderer=%s" % renderer)
 
