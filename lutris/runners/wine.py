@@ -541,13 +541,6 @@ class wine(Runner):
         }
     ]
 
-    system_options_override = [
-        {
-            'option': 'disable_runtime',
-            'default': is_installed_systemwide(),
-        }
-    ]
-
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
         "RenderTargetLockMode": r"%s/Direct3D" % reg_prefix,
