@@ -261,9 +261,10 @@ class ConfigBox(VBox):
         self.option_widget = combobox
 
     def on_combobox_scroll(self, combobox, event):
-        """ Do not change options when scrolling
-            with cursor inside a ComboBox. #1024 """
-        return True
+        """Do not change options when scrolling
+        with cursor inside a ComboBox."""
+        combobox.stop_emission_by_name('scroll-event')
+        return False
 
     def on_combobox_change(self, combobox, option):
         """Action triggered on combobox 'changed' signal."""
