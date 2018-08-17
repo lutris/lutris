@@ -49,7 +49,7 @@ class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_dir = os.path.join(RUNTIME_DIR, 'dxvk')
-    dxvk_dlls = ('dxgi', 'd3d11')
+    dxvk_dlls = ('dxgi', 'd3d11', 'd3d10core', 'd3d10_1', 'd3d10')
     latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch='win64', version=None):
@@ -121,7 +121,8 @@ class DXVKManager:
                 shutil.move(wine_dll_path, wine_dll_path + ".orig")
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
-        os.symlink(dxvk_dll_path, wine_dll_path)
+        if os.path.exists(dxvk_dll_path):
+            os.symlink(dxvk_dll_path, wine_dll_path)
 
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
