@@ -376,11 +376,16 @@ def use_lutris_runtime(wine_path, force_disable=False):
     automatically if Wine is installed system wide.
     """
     if force_disable or runtime.RUNTIME_DISABLED:
+        logger.info("Runtime is forced disabled")
         return False
     if WINE_DIR in wine_path:
         logger.debug("%s is provided by Lutris, using runtime")
         return True
-    return not is_installed_systemwide()
+    if is_installed_systemwide():
+        logger.info("Using system wine version, not using runtime")
+        return False
+    logger.debug("Using Lutris runtime for wine")
+    return True
 
 
 def is_installed_systemwide():
