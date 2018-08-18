@@ -23,7 +23,11 @@ Depends: ${misc:Depends},
  python3-gi,
  gir1.2-gtk-3.0,
  psmisc,
- cabextract
+ cabextract,
+ unrar,
+ unzip,
+ p7zip,
+ curl
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
