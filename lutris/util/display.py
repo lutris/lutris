@@ -34,6 +34,10 @@ def get_outputs():
     """Return list of tuples containing output name and geometry."""
     outputs = []
     vid_modes = get_vidmodes()
+    display=None
+    geom=None
+    rotate=None
+    refresh_rate=None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
@@ -53,13 +57,19 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                outputs.append((parts[0], geom, "normal"))
+                display=parts[0]
+                rotate="normal"
             else:
                 if rotate in ("left", "right"):
                     geom_parts = geom.split('+')
                     x_y = geom_parts[0].split('x')
                     geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
-                outputs.append((parts[0], geom, rotate))
+                display=parts[0]
+        elif '*' in line:
+            for number in parts:
+                if '*' in number:
+                    refresh_rate=number[:5]
+                    outputs.append((display, geom, rotate, refresh_rate))
     return outputs
 
 
@@ -126,6 +136,7 @@ def change_resolution(resolution):
             display_geom = display[1].split('+')
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
+            refresh_rate=display[3]
 
             if (
                 len(display) > 2 and
@@ -140,7 +151,8 @@ def change_resolution(resolution):
                 "--output", display_name,
                 "--mode", display_resolution,
                 "--pos", "{}x{}".format(position[0], position[1]),
-                "--rotate", rotation
+                "--rotate", rotation,
+                "--rate", refresh_rate
             ]).communicate()
 
 
