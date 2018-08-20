@@ -35,7 +35,8 @@ def get_outputs():
     outputs = []
     vid_modes = get_vidmodes()
     display=None
-    geom=None
+    mode=None
+    position=None
     rotate=None
     refresh_rate=None
     if not vid_modes:
@@ -57,21 +58,17 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                display=parts[0]
                 rotate="normal"
-            else:
-                if rotate in ("left", "right"):
-                    geom_parts = geom.split('+')
-                    x_y = geom_parts[0].split('x')
-                    geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
-                display=parts[0]
+            geo_split=geom.split('+')
+            position=geo_split[1] + "x" + geo_split[2]
+            display=parts[0]
         elif '*' in line:
+            mode=parts[0]
             for number in parts:
                 if '*' in number:
                     refresh_rate=number[:5]
-                    outputs.append((display, geom, rotate, refresh_rate))
+                    outputs.append((display, mode, position, rotate, refresh_rate))
     return outputs
-
 
 def get_output_names():
     return [output[0] for output in get_outputs()]
@@ -133,24 +130,23 @@ def change_resolution(resolution):
         for display in resolution:
             display_name = display[0]
             logger.debug("Switching to %s on %s", display[1], display[0])
-            display_geom = display[1].split('+')
-            display_resolution = display_geom[0]
-            position = (display_geom[1], display_geom[2])
-            refresh_rate=display[3]
+            display_mode=display[1]
+            position=display[2]
+            refresh_rate=display[4]
 
             if (
                 len(display) > 2 and
-                display[2] in ('normal', 'left', 'right', 'inverted')
+                display[3] in ('normal', 'left', 'right', 'inverted')
             ):
-                rotation = display[2]
+                rotation = display[3]
             else:
                 rotation = "normal"
 
             subprocess.Popen([
                 "xrandr",
                 "--output", display_name,
-                "--mode", display_resolution,
-                "--pos", "{}x{}".format(position[0], position[1]),
+                "--mode", display_mode,
+                "--pos", position,
                 "--rotate", rotation,
                 "--rate", refresh_rate
             ]).communicate()
