@@ -251,8 +251,12 @@ class ScriptInterpreter(CommandsMixin):
                 os.mkdir(self.cache_path)
 
             if self.target_path and self.should_create_target:
-                os.makedirs(self.target_path)
+                try:
+                    os.makedirs(self.target_path)
+                except PermissionError:
+                    raise ScriptingError("Lutris does not have necessary permissions to install to choosen game dir:", self.target_path)
                 self.reversion_data['created_main_dir'] = True
+
 
         if len(self.game_files) < len(self.files):
             logger.info(
