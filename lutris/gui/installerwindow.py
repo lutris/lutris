@@ -221,12 +221,12 @@ class InstallerWindow(Gtk.ApplicationWindow):
             return label
 
         self.description_label = _create_label(
-            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+            "<b>{}</b>".format(self.scripts[0]['description'])
         )
         self.installer_choice_box.pack_start(self.description_label, True, True, 10)
 
         self.notes_label = _create_label(
-            "<i>{}</i>".format(self.scripts[0]['notes'])
+            "{}".format(self.scripts[0]['notes'])
         )
         notes_scrolled_area = Gtk.ScrolledWindow()
         try:
@@ -249,10 +249,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(self._escape_text(description))
+            "<b>{}</b>".format(self._escape_text(description))
         )
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self._escape_text(self.scripts[script_index]['notes']))
+            "{}".format(self._escape_text(self.scripts[script_index]['notes']))
         )
         if btn.get_active():
             self.installer_choice = script_index
