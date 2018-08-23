@@ -78,6 +78,7 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
+        self.gog_data = {}
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
@@ -252,7 +253,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def prepare_game_files(self):
         # Add gog installer to files
-        if self.script["game"]["gog"]:
+        if self.script["game"].get("gog", False):
             data = self.get_gog_downloadlink()
             gogUrl = data[0]
             self.gog_data["os"] = data[1]
