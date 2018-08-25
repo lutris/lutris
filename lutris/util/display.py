@@ -149,7 +149,7 @@ def change_resolution(resolution):
                 rotation = display.rotation
             else:
                 rotation = "normal"
-            logger.info("Switching resolution of %s to %s", display_name, display_resolution)
+            logger.info("Switching resolution of %s to %s", display.name, display_resolution)
             subprocess.Popen([
                 "xrandr",
                 "--output", display.name,
