@@ -249,7 +249,7 @@ class Game(GObject.Object):
         system_config = self.runner.system_config
         self.original_outputs = sorted(
             display.get_outputs(),
-            key=lambda e: e[0] == system_config.get('display')
+            key=lambda e: e.name == system_config.get('display')
         )
 
         gameplay_info = self.runner.play()

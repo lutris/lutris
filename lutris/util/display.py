@@ -2,6 +2,8 @@ import re
 import subprocess
 import time
 
+from collections import namedtuple
+
 import gi
 gi.require_version('GnomeDesktop', '3.0')
 
@@ -35,9 +37,10 @@ def get_vidmodes():
                                      stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
 
+Output = namedtuple('Output', ('name', 'geometry', 'rotation', 'primary'))
 
 def get_outputs():
-    """Return list of tuples containing output name and geometry."""
+    """Return list of namedtuples containing output 'name', 'geometry', 'rotation' and wether it is the 'primary' display."""
     outputs = []
     vid_modes = get_vidmodes()
     if not vid_modes:
@@ -50,28 +53,29 @@ def get_outputs():
         if parts[1] == 'connected':
             if len(parts) == 2:
                 continue
-            if parts[2] != 'primary':
-                geom = parts[2]
-                rotate = parts[3]
-            else:
+            if parts[2] == 'primary':
                 geom = parts[3]
                 rotate = parts[4]
+                primary = True
+            else:
+                geom = parts[2]
+                rotate = parts[3]
+                primary = False
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                outputs.append((parts[0], geom, "normal"))
-            else:
-                if rotate in ("left", "right"):
-                    geom_parts = geom.split('+')
-                    x_y = geom_parts[0].split('x')
-                    geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
-                outputs.append((parts[0], geom, rotate))
+                rotate = 'normal'
+            elif rotate in ('left', 'right'):
+                geom_parts = geom.split('+')
+                x_y = geom_parts[0].split('x')
+                geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
+            outputs.append(Output(name=parts[0], geometry=geom, rotation=rotate, primary=primary))
     return outputs
 
 
 def get_output_names():
     """Return output names from XrandR"""
-    return [output[0] for output in get_outputs()]
+    return [output.name for output in get_outputs()]
 
 
 def turn_off_except(display):
@@ -80,9 +84,9 @@ def turn_off_except(display):
         logger.error("No active display given, no turning off every display")
         return
     for output in get_outputs():
-        if output[0] != display:
+        if output.name != display:
             logger.info("Turning off %s", output[0])
-            subprocess.Popen(["xrandr", "--output", output[0], "--off"])
+            subprocess.Popen(['xrandr', '--output', output.name, '--off'])
 
 
 def get_resolutions():
@@ -133,23 +137,22 @@ def change_resolution(resolution):
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
-            display_name = display[0]
-            logger.debug("Switching to %s on %s", display[1], display[0])
-            display_geom = display[1].split('+')
+            logger.debug("Switching to %s on %s", display.geometry, display.name)
+            display_geom = display.geometry.split('+')
             display_resolution = display_geom[0]
             position = (display_geom[1], display_geom[2])
 
             if (
-                    len(display) > 2 and
-                    display[2] in ('normal', 'left', 'right', 'inverted')
+                display.rotation is not None and
+                display.rotation in ('normal', 'left', 'right', 'inverted')
             ):
-                rotation = display[2]
+                rotation = display.rotation
             else:
                 rotation = "normal"
             logger.info("Switching resolution of %s to %s", display_name, display_resolution)
             subprocess.Popen([
                 "xrandr",
-                "--output", display_name,
+                "--output", display.name,
                 "--mode", display_resolution,
                 "--pos", "{}x{}".format(position[0], position[1]),
                 "--rotate", rotation
