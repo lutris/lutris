@@ -274,9 +274,24 @@ class Game(GObject.Object):
 
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
-            display.turn_off_except(restrict_to_display)
-            time.sleep(3)
-            self.resolution_changed = True
+            if restrict_to_display == 'primary':
+                restrict_to_display = None
+                for output in self.original_outputs:
+                    if output.primary:
+                        restrict_to_display = output.name
+                        break
+            else:
+                found = False
+                for output in self.original_outputs:
+                    if output.name == restrict_to_display:
+                        found = True
+                        break
+                if not found:
+                    restrict_to_display = None
+            if restrict_to_display:
+                display.turn_off_except(restrict_to_display)
+                time.sleep(3)
+                self.resolution_changed = True
 
         resolution = system_config.get('resolution')
         if resolution != 'off':

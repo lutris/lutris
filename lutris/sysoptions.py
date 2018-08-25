@@ -6,7 +6,6 @@ from lutris import runners
 # from lutris.util.log import logger
 from lutris.util import display, system
 
-
 def get_optirun_choices():
     choices = [('Off', 'off')]
     if system.find_executable('primusrun'):
