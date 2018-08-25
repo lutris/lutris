@@ -286,6 +286,7 @@ def get_output_choices():
     displays = DISPLAY_MANAGER.get_display_names()
     output_choices = list(zip(displays, displays))
     output_choices.insert(0, ("Off", 'off'))
+    output_choices.insert(0, ("Primary", 'primary'))
     return output_choices
 
 
