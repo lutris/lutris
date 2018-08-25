@@ -280,6 +280,8 @@ class Game(GObject.Object):
                     if output.primary:
                         restrict_to_display = output.name
                         break
+                if not restrict_to_display:
+                    logger.warning('No primary display set')
             else:
                 found = False
                 for output in self.original_outputs:
@@ -287,6 +289,7 @@ class Game(GObject.Object):
                         found = True
                         break
                 if not found:
+                    logger.warning('Selected display %s not found', restrict_to_display)
                     restrict_to_display = None
             if restrict_to_display:
                 display.turn_off_except(restrict_to_display)
