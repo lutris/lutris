@@ -1,0 +1,205 @@
+#
+# Yunusemre Şentürk <yunusemre.senturk@pardus.org.tr>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Lutris\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-09 21:49+0100\n"
+"PO-Revision-Date: 2018-08-27 12:29+0300\n"
+"Last-Translator: Yunusemre Şentürk <yunusemre.senturk@pardus.org.tr>\n"
+"Language-Team: Türkçe <>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 2.91.7\n"
+
+#: ../data/ui/AboutDialog.ui.h:1
+msgid "About Lutris"
+msgstr "Lutris Hakkında"
+
+#: ../data/ui/AboutDialog.ui.h:2
+msgid "© 2010, 2012 Mathieu Comandon"
+msgstr "© 2010, 2012 Mathieu Comandon"
+
+#: ../data/ui/AboutDialog.ui.h:3
+msgid "Open Source Gaming Platform"
+msgstr "Açık Kaynak Oyun Platformu"
+
+#: ../data/ui/AboutDialog.ui.h:4
+msgid "http://lutris.net"
+msgstr "http://lutris.net"
+
+#: ../data/ui/AboutDialog.ui.h:5
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"Bu program özgür yazılımdır: Yeniden dağıtabilir ve/veya Özgür Yazılım Vakfı "
+"tarafından yayınlanmış 3. sürüm lisans veya isterseniz herhangi sonraki "
+"sürüm ile GNU Genel Kamu Lisansı sözleşmesi altında düzenleyebilirsiniz.\n"
+"\n"
+"Bu program HERHANGİ GARANTİSİ OLMAKSIZIN; hatta TİCARETE UYGUNLUK veya BELLİ "
+"BİR AMACA UYGUNLUK garantisi bile olmaksızın, kullanışlı olması umularak "
+"dağıtıldı.\n"
+"Daha fazla bilgi için GNU Genel Kamu Lisansıʼna bakın.\n"
+"\n"
+"Bu program ile birlikte GNU Genel Kamu Lisansıʼnın bir kopyasını almış "
+"olmalısınız.\n"
+"Eğer almadıysanız bile şuraya bakınız: <http://www.gnu.org/licenses/>"
+
+#: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
+msgid "Lutris"
+msgstr "Lutris"
+
+#: ../data/ui/LutrisWindow3.ui.h:2
+msgid "_File"
+msgstr "_Dosya"
+
+#: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
+msgid "_Edit"
+msgstr "Düz_enle"
+
+#: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
+msgid "_View"
+msgstr "Gö_rünüm"
+
+#: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
+msgid "_Help"
+msgstr "_Yardım"
+
+#: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
+msgid "Add game"
+msgstr "Oyun ekle"
+
+#: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
+msgid "Play"
+msgstr "Oyna"
+
+#: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
+msgid "Stop"
+msgstr "Durdur"
+
+#: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
+msgid "Remove"
+msgstr "Kaldır"
+
+#: ../data/ui/LutrisWindow.ui.h:2
+msgid "_Lutris"
+msgstr "_Lutris"
+
+#: ../data/ui/LutrisWindow.ui.h:3
+msgid "Connect"
+msgstr "Bağlan"
+
+#: ../data/ui/LutrisWindow.ui.h:4
+msgid "Install and configure runners"
+msgstr "Koşucuları kurun ve yapılandırın"
+
+#: ../data/ui/LutrisWindow.ui.h:5
+msgid "Manage runners"
+msgstr "Koşucuları yönet"
+
+#: ../data/ui/LutrisWindow.ui.h:6
+msgid "Import"
+msgstr "İçe Aktar"
+
+#: ../data/ui/LutrisWindow.ui.h:7
+msgid "Import games from ScummVM"
+msgstr "ScummVM'den oyunlar içe aktar"
+
+#: ../data/ui/LutrisWindow.ui.h:8
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:10
+msgid "configure the default options"
+msgstr "varsayılan seçenekleri yapılandır"
+
+#: ../data/ui/LutrisWindow.ui.h:12
+msgid "Icons"
+msgstr "Simgeler"
+
+#: ../data/ui/LutrisWindow.ui.h:13
+msgid "List"
+msgstr "Liste"
+
+#: ../data/ui/LutrisWindow.ui.h:14
+msgid "_Game"
+msgstr "_Oyun"
+
+#: ../data/ui/LutrisWindow.ui.h:15
+msgid "Start"
+msgstr "Başlat"
+
+#: ../data/ui/LutrisWindow.ui.h:17
+msgid "Play game"
+msgstr "Oyunu oyna"
+
+#: ../data/ui/LutrisWindow.ui.h:19
+msgid "Stop game"
+msgstr "Oyunu durdur"
+
+#: ../data/ui/LutrisWindow.ui.h:22
+msgid "Add Game"
+msgstr "Oyun ekle"
+
+#: ../data/ui/LutrisWindow.ui.h:23
+msgid "Remove game from library"
+msgstr "Oyunu kütüphaneden kaldır"
+
+#: ../data/ui/LutrisWindow.ui.h:25
+msgid "Filter the list of games"
+msgstr "Oyunların listesini filtrele"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:1
+msgid ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:14
+msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:1
+msgid "gtk-cancel"
+msgstr "gtk-cancel"
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:2
+msgid "gtk-ok"
+msgstr "gtk-ok"
