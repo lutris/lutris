@@ -12,7 +12,7 @@ from lutris import settings
 LIBRETRO_CORES = [
     ('4do (3DO)', '4do', '3DO'),
     ('atari800 (Atari 800/5200)', 'atari800', 'Atari 800/5200'),
-    ('blueMSX (MSX/MSX2/MSX+)', 'bluemsx', 'MSX/MSX2/MSX+'),
+    ('blueMSX (MSX/MSX2/MSX2+)', 'bluemsx', 'MSX/MSX2/MSX2+'),
     ('Caprice32 (Amstrad CPC)', 'cap32', 'Amstrad CPC'),
     ('ChaiLove', 'chailove', 'ChaiLove'),
     ('Citra (Nintendo 3DS)', 'citra', 'Nintendo 3DS'),
@@ -52,7 +52,7 @@ LIBRETRO_CORES = [
     ('Neko Project 2 (NEC PC-98)', 'nekop2', 'NEC PC-98'),
     ('Neko Project II kai (NEC PC-98)', 'np2kai', 'NEC PC-98'),
     ('O2EM (Magnavox Odyssey²)', 'o2em', 'Magnavox Odyssey²'),
-    ('ParaLLEl N64 (Nintendo 64)', 'parallel_n64', 'Nintendo 64'),
+    ('ParaLLEl N64 (Nintendo 64)', 'parallel_n64', 'Nintendo N64'),
     ('PCSX Rearmed (Sony Playstation)', 'pcsx_rearmed', 'Sony PlayStation'),
     ('PicoDrive (Sega Genesis)', 'picodrive', 'Sega Genesis'),
     ('Portable SHARP X68000 Emulator (SHARP X68000)', 'px68k', 'Sharp X68000'),
