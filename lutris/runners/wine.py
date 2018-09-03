@@ -285,7 +285,10 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
 def winetricks(app, prefix=None, arch=None, silent=True,
                wine_path=None, config=None, disable_runtime=False):
     """Execute winetricks."""
-    winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
+    winetricks_path = os.path.join(settings.RUNTIME_DIR, 'winetricks/winetricks')
+    if not system.path_exists(winetricks_path):
+        logger.warning("Could not find local winetricks install, falling back to bundled version")
+        winetricks_path = os.path.join(datapath.get(), 'bin/winetricks')
     if wine_path:
         winetricks_wine = wine_path
     else:
