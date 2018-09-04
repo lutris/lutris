@@ -1,4 +1,4 @@
-# Galician Lutris translation.
+# Spanish Lutris translation.
 # Copyright (C) 2016
 # This file is distributed under the same license as the PACKAGE package.
 #
@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-12-09 14:30+0100\n"
-"PO-Revision-Date: 2016-12-09 14:37+0100\n"
+"PO-Revision-Date: 2018-09-04 12:50-0800\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,7 +17,7 @@ msgstr ""
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
-msgstr "Sobre Lutris"
+msgstr "Acerca de Lutris"
 
 #: ../data/ui/AboutDialog.ui.h:2
 msgid "© 2010, 2012 Mathieu Comandon"
@@ -25,7 +25,7 @@ msgstr "© 2010, 2012 Mathieu Comandon"
 
 #: ../data/ui/AboutDialog.ui.h:3
 msgid "Open Source Gaming Platform"
-msgstr "Plataforma open source de xogos"
+msgstr "Plataforma de juegos de código abierto"
 
 #: ../data/ui/AboutDialog.ui.h:4
 msgid "http://lutris.net"
@@ -46,6 +46,18 @@ msgid ""
 "You should have received a copy of the GNU General Public License\n"
 "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
+"Este programa es software libre: puedes reduistribuir lo o modificar\n"
+"lo bajo los terminos de La Licencia Pública General de GNU como fue\n"
+"publicado por Free Software Foundation, cualquiera versión 3 de la Licencia\n"
+"o (a su opcion) cualquier versión posterior.\n"
+"\n"
+"Este programa se distribuye con la esperanza de que sea útil,\n"
+"pero SIN NINGUNA GARANTIA; sin siquiera el implícito garantia de\n"
+"COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Véase la\n"
+"Licencia Pública General de GNU para más detalles.\n"
+"\n"
+"Debería haber recibido una copia de la Licencia Pública General GNU\n"
+"junto con esta programa. Si no, visite <http://www.gnu.org/licenses/>.\n"
 
 #: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
 msgid "Lutris"
@@ -65,11 +77,11 @@ msgstr "_Ver"
 
 #: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
 msgid "_Help"
-msgstr "_Ayudar"
+msgstr "_Ayuda"
 
 #: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
 msgid "Add game"
-msgstr "Añadir un Juego"
+msgstr "Añadir juego"
 
 #: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
 msgid "Play"
@@ -93,11 +105,11 @@ msgstr "Conectar"
 
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr "Instalar y configurar los runners"
+msgstr "Instalar y configurar runners"
 
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
-msgstr "Gestionar os runners"
+msgstr "Administrar runners"
 
 #: ../data/ui/LutrisWindow.ui.h:6
 msgid "Import"
@@ -105,7 +117,7 @@ msgstr "Importar"
 
 #: ../data/ui/LutrisWindow.ui.h:7
 msgid "Import games from ScummVM"
-msgstr "Importar los videojuegos de ScummVM"
+msgstr "Importar juegos de ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:8
 msgid "ScummVM"
@@ -113,7 +125,7 @@ msgstr "ScummVM"
 
 #: ../data/ui/LutrisWindow.ui.h:10
 msgid "configure the default options"
-msgstr "configurar las opciones predefinidas"
+msgstr "configurar las opciones predeterminadas"
 
 #: ../data/ui/LutrisWindow.ui.h:12
 msgid "Icons"
@@ -125,7 +137,7 @@ msgstr "Lista"
 
 #: ../data/ui/LutrisWindow.ui.h:14
 msgid "_Game"
-msgstr "_Videojuego"
+msgstr "_Juego"
 
 #: ../data/ui/LutrisWindow.ui.h:15
 msgid "Start"
@@ -133,19 +145,19 @@ msgstr "Empezar"
 
 #: ../data/ui/LutrisWindow.ui.h:17
 msgid "Play game"
-msgstr "Jugar a un videojuego"
+msgstr "Jugar juego"
 
 #: ../data/ui/LutrisWindow.ui.h:19
 msgid "Stop game"
-msgstr "Parar un videojuego"
+msgstr "Parar juego"
 
 #: ../data/ui/LutrisWindow.ui.h:22
 msgid "Add Game"
-msgstr "Añadir un juego"
+msgstr "Añadir Juego"
 
 #: ../data/ui/LutrisWindow.ui.h:23
 msgid "Remove game from library"
-msgstr "Eliminar un juego de la libreria"
+msgstr "Eliminar juego de la libreria"
 
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
@@ -166,6 +178,19 @@ msgid ""
 "# You should have received a copy of the GNU General Public License along\n"
 "# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# Este programa es software libre: puedes reduistribuir lo o modificar\n"
+"# lo bajo los terminos de La Licencia Pública General de GNU como fue\n"
+"# publicado por Free Software Foundation, cualquiera versión 3 de la Licencia\n"
+"# o (a su opcion) cualquier versión posterior.\n"
+"#\n"
+"# Este programa se distribuye con la esperanza de que sea útil,\n"
+"# pero SIN NINGUNA GARANTIA; sin siquiera el implícito garantia de\n"
+"# COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Véase la\n"
+"# Licencia Pública General de GNU para más detalles.\n"
+"#\n"
+"# Debería haber recibido una copia de la Licencia Pública General GNU\n"
+"# junto con esta programa. Si no, visite <http://www.gnu.org/licenses/>.\n"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
