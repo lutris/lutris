@@ -1,3 +1,15 @@
+lutris (0.4.19) bionic; urgency=medium
+
+  * Prioritize winetricks from the runtime
+  * Populate DXVK versions with github releases
+  * Add support for DirectX 10 with DXVK
+  * Fix detection of xgamma
+  * Add 24BPP option for Xephyr
+  * Restore Alsa option for Wine
+  * Prepend additional system paths to runtime
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 04 Sep 2018 18:48:52 -0700
+
 lutris (0.4.18) bionic; urgency=medium
 
   * Fix 'execute' command arguments
