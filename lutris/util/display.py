@@ -37,12 +37,16 @@ def get_vidmodes():
                                      stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
 
-Output = namedtuple('Output', ('name', 'geometry', 'rotation', 'primary'))
+Output = namedtuple('Output', ('name', 'mode', 'position', 'rotation', 'primary', 'rate'))
 
 def get_outputs():
     """Return list of namedtuples containing output 'name', 'geometry', 'rotation' and wether it is the 'primary' display."""
     outputs = []
     vid_modes = get_vidmodes()
+    position=None
+    rotate=None
+    primary=None
+    name=None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
@@ -65,13 +69,16 @@ def get_outputs():
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
                 rotate = 'normal'
-            elif rotate in ('left', 'right'):
-                geom_parts = geom.split('+')
-                x_y = geom_parts[0].split('x')
-                geom = "{}x{}+{}+{}".format(x_y[1], x_y[0], geom_parts[1], geom_parts[2])
-            outputs.append(Output(name=parts[0], geometry=geom, rotation=rotate, primary=primary))
+            geom_parts = geom.split('+')
+            position=geom_parts[1] + "x" + geom_parts[2]
+            name=parts[0]
+        elif '*' in line:
+            mode=parts[0]
+            for number in parts:
+                if '*' in number:
+                    hertz=number[:5]
+                    outputs.append(Output(name=name, mode=mode, position=position, rotation=rotate, primary=primary, rate=hertz))
     return outputs
-
 
 def get_output_names():
     """Return output names from XrandR"""
@@ -137,10 +144,7 @@ def change_resolution(resolution):
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
-            logger.debug("Switching to %s on %s", display.geometry, display.name)
-            display_geom = display.geometry.split('+')
-            display_resolution = display_geom[0]
-            position = (display_geom[1], display_geom[2])
+            logger.debug("Switching to %s on %s", display.mode, display.name)
 
             if (
                 display.rotation is not None and
@@ -149,13 +153,14 @@ def change_resolution(resolution):
                 rotation = display.rotation
             else:
                 rotation = "normal"
-            logger.info("Switching resolution of %s to %s", display.name, display_resolution)
+            logger.info("Switching resolution of %s to %s", display.name, display.mode)
             subprocess.Popen([
                 "xrandr",
                 "--output", display.name,
-                "--mode", display_resolution,
-                "--pos", "{}x{}".format(position[0], position[1]),
-                "--rotate", rotation
+                "--mode", display.mode,
+                "--pos", display.position,
+                "--rotate", rotation,
+                "--rate", display.rate
             ]).communicate()
 
 
