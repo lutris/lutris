@@ -279,7 +279,7 @@ class steam(Runner):
             if is_running():
                 shutdown()
                 time.sleep(5)
-        command = ["steam", "steam://install/%s" % (appid)]
+        command = [self.get_executable(), "steam://install/%s" % (appid)]
         subprocess.Popen(command)
 
     def prelaunch(self):
