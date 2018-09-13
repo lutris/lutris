@@ -1,8 +1,10 @@
+# pylint: disable=missing-docstring
 import os
+import random
 
 from gi.repository import GLib, GObject, Gtk
 from lutris import api, settings
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
@@ -53,7 +55,7 @@ class RunnerInstallDialog(Dialog):
 
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_text = Gtk.CellRendererText()
-        renderer_progress = Gtk.CellRendererProgress()
+        self.renderer_progress = Gtk.CellRendererProgress()
 
         installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=3)
         renderer_toggle.connect("toggled", self.on_installed_toggled)
@@ -69,7 +71,7 @@ class RunnerInstallDialog(Dialog):
         arch_column.set_property('min-width', 50)
         treeview.append_column(arch_column)
 
-        progress_column = Gtk.TreeViewColumn(None, renderer_progress,
+        progress_column = Gtk.TreeViewColumn(None, self.renderer_progress,
                                              value=self.COL_PROGRESS,
                                              visible=self.COL_PROGRESS)
         progress_column.set_property('fixed-width', 60)
@@ -112,7 +114,12 @@ class RunnerInstallDialog(Dialog):
     def on_installed_toggled(self, widget, path):
         row = self.runner_store[path]
         if row[self.COL_VER] in self.installing:
-            self.cancel_install(row)
+            confirm_dlg = QuestionDialog({
+                "question": "Do you want to cancel the download?",
+                "title": "Download starting"
+            })
+            if confirm_dlg.result == confirm_dlg.YES:
+                self.cancel_install(row)
         elif row[self.COL_INSTALLED]:
             self.uninstall_runner(row)
         else:
@@ -146,9 +153,18 @@ class RunnerInstallDialog(Dialog):
             self.cancel_install(row)
             return False
         downloader.check_progress()
-        row[4] = downloader.progress_percentage
+        percent_downloaded = downloader.progress_percentage
+        if percent_downloaded >= 1:
+            row[4] = percent_downloaded
+            self.renderer_progress.props.pulse = -1
+            self.renderer_progress.props.text = "%d %%" % int(percent_downloaded)
+        else:
+            row[4] = 1
+            self.renderer_progress.props.pulse = random.randint(1, 100)
+            self.renderer_progress.props.text = "Downloading…"
         if downloader.state == downloader.COMPLETED:
             row[4] = 99
+            self.renderer_progress.props.text = "Extracting…"
             self.on_runner_downloaded(row)
             return False
         return True
@@ -169,6 +185,7 @@ class RunnerInstallDialog(Dialog):
         os.remove(src)
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True
+        self.renderer_progress.props.text = ""
         self.installing.pop(row[self.COL_VER])
 
     def on_response(self, dialog, response):
