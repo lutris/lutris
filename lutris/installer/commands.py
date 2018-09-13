@@ -292,6 +292,28 @@ class CommandsMixin:
             # Change game file reference so it can be used as executable
             self.game_files['src'] = src
 
+    def package(self, params):
+        """install a package on the preffered package manager"""
+        # TODO: tempory workaround to what seem to be a yaml parsing bug
+        tempParams = {}
+        for loop in params:
+            for keys in loop:
+                tempParams[keys] = loop[keys]
+        params=tempParams
+        print("\n\n\n\n\n\n",params)
+        # TODO: get the correct correct package manager
+        packageManagerToUse = "portage"
+        # get the package id
+        package = params.get(packageManagerToUse)
+        if type(package) != str:
+            raise ScriptingError("no package specified for the '"+packageManagerToUse+"' package manager")
+        # install via the package manager
+        if packageManagerToUse == "portage":# for gentoo/linux, using emerge
+            return self.execute("kdesu -t -c 'emerge "+package+" --nospinner'")
+        # TODO: add the apt package manager
+        else:
+            raise ScriptingError("Lutris isn't compatible with the '"+packageManager+"' package manager at this time.")
+
     def rename(self, params):
         """Rename file or folder."""
         self._check_required_params(['src', 'dst'], params, 'rename')
