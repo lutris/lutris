@@ -294,15 +294,13 @@ class CommandsMixin:
 
     def package(self, params):
         """install a package on the preffered package manager"""
-        # TODO: tempory workaround to what seem to be a yaml parsing bug
-        tempParams = {}
-        for loop in params:
-            for keys in loop:
-                tempParams[keys] = loop[keys]
-        params=tempParams
-        print("\n\n\n\n\n\n",params)
-        # TODO: get the correct correct package manager
-        packageManagerToUse = "portage"
+        import os.path
+        # get the sytem package manager
+        portageInstalled = os.path.isdir("/usr/share/portage")
+        if portageInstalled:
+            packageManagerToUse = "portage"
+        else:
+            raise ScriptingError("No compatible system manager found on your system. actually, only portage work.")
         # get the package id
         package = params.get(packageManagerToUse)
         if type(package) != str:
