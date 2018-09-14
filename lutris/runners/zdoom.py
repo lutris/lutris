@@ -28,6 +28,19 @@ class zdoom(Runner):
             'type': 'string',
             'label': 'Warp to map',
             'help': ("Starts the game on the given map.")
+        },
+        {
+            'option': 'config',
+            'type': 'file',
+            'label': 'Config file',
+            'help': ("Used to load a user-created configuration file. If specified, "
+                     "the file must exist and contain the wad directory list or launch will fail.")
+        },
+        {
+            'option': 'savedir',
+            'type': 'directory_chooser',
+            'label': 'Save path',
+            'help': ("User-specified path where save files should be located.")
         }
     ]
     runner_options = [
@@ -134,5 +147,17 @@ class zdoom(Runner):
             command.append("-file")
             for pwad in pwads:
                 command.append(pwad)
+        
+        # Append configuration file, if provided.
+        config = self.game_config.get('config')
+        if config:
+            command.append("-config")
+            command.append(config)
 
+        # Append directory for game saves, if provided.
+        savedir = self.game_config.get('savedir')
+        if savedir:
+            command.append("-savedir")
+            command.append(savedir)
+        
         return {'command': command}
