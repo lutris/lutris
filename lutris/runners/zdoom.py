@@ -160,16 +160,4 @@ class zdoom(Runner):
             for pwad in pwads:
                 command.append(pwad)
         
-        # Append configuration file, if provided.
-        config = self.game_config.get('config')
-        if config:
-            command.append("-config")
-            command.append(config)
-
-        # Append directory for game saves, if provided.
-        savedir = self.game_config.get('savedir')
-        if savedir:
-            command.append("-savedir")
-            command.append(savedir)
-        
         return {'command': command}
