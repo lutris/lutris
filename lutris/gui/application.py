@@ -23,6 +23,7 @@ import gettext
 from gettext import gettext as _
 
 import gi
+
 gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gio, GLib, Gtk
@@ -40,6 +41,7 @@ from lutris.services.steam import (AppManifest, get_appmanifests,
                                    get_steamapps_paths)
 
 from .lutriswindow import LutrisWindow
+from lutris.gui.lutristray import LutrisTray
 
 
 class Application(Gtk.Application):
@@ -57,6 +59,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.tray = None
         self.css_provider = Gtk.CssProvider.new()
 
         try:
@@ -163,6 +166,7 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
+        self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:
