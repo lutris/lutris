@@ -256,6 +256,8 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     if use_lutris_runtime(wine_path=wineenv['WINE'], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
+        elif WINE_DIR in winetricks_wine:
+            wine_root_path = os.path.dirname(os.path.dirname(winetricks_wine))
         else:
             wine_root_path = None
         wineenv['LD_LIBRARY_PATH'] = ':'.join(runtime.get_paths(
