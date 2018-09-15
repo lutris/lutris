@@ -5,7 +5,7 @@ from gi.repository import Gtk, GObject, Gdk
 
 from lutris import runners
 from lutris import settings
-from lutris.util.system import open_uri, remove_folder
+from lutris.util.system import open_uri
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
@@ -189,7 +189,6 @@ class RunnersDialog(Gtk.Window):
         if runner.is_installed():
             self.emit('runner-installed')
             self.refresh_button.emit('clicked')
-            # runner_label.set_sensitive(True)
 
     def on_configure_clicked(self, widget, runner, runner_label):
         config_dialog = RunnerConfigDialog(runner, parent=self)
