@@ -1,9 +1,11 @@
 # -*- coding:Utf-8 -*-
+import os
+
 from gi.repository import Gtk, GObject, Gdk
 
 from lutris import runners
 from lutris import settings
-from lutris.util.system import open_uri
+from lutris.util.system import open_uri, remove_folder
 from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
@@ -56,10 +58,10 @@ class RunnersDialog(Gtk.Window):
         open_runner_button.connect('clicked', self.on_runner_open_clicked)
         buttons_box.pack_start(open_runner_button, False, False, 0)
 
-        refresh_button = Gtk.Button("Refresh")
-        refresh_button.show()
-        refresh_button.connect('clicked', self.on_refresh_clicked)
-        buttons_box.pack_start(refresh_button, False, False, 10)
+        self.refresh_button = Gtk.Button("Refresh")
+        self.refresh_button.show()
+        self.refresh_button.connect('clicked', self.on_refresh_clicked)
+        buttons_box.pack_start(self.refresh_button, False, False, 10)
 
         close_button = Gtk.Button("Close")
         close_button.show()
@@ -124,6 +126,12 @@ class RunnersDialog(Gtk.Window):
                                     runner_label)
         hbox.pack_start(self.install_button, False, False, 5)
 
+        self.remove_button = Gtk.Button("Remove")
+        self.remove_button.set_size_request(90, 30)
+        self.remove_button.set_valign(Gtk.Align.CENTER)
+        self.remove_button.connect("clicked", self.on_remove_clicked, runner, runner_label)
+        hbox.pack_start(self.remove_button, False, False, 5)
+
         self.configure_button = Gtk.Button("Configure")
         self.configure_button.set_size_request(90, 30)
         self.configure_button.set_valign(Gtk.Align.CENTER)
@@ -144,12 +152,21 @@ class RunnersDialog(Gtk.Window):
         if runner.multiple_versions:
             self.versions_button.show()
             self.install_button.hide()
+            if runner.can_uninstall():
+                self.remove_button.show()
+            else:
+                self.remove_button.hide()
         else:
             self.versions_button.hide()
+            self.remove_button.hide()
             self.install_button.show()
 
         if runner.is_installed():
             self.install_button.hide()
+            if runner.can_uninstall():
+                self.remove_button.show()
+            else:
+                self.remove_button.hide()
 
         self.configure_button.show()
 
@@ -171,13 +188,18 @@ class RunnersDialog(Gtk.Window):
             ErrorDialog(ex.message, parent=self)
         if runner.is_installed():
             self.emit('runner-installed')
-            widget.hide()
-            runner_label.set_sensitive(True)
+            self.refresh_button.emit('clicked')
+            # runner_label.set_sensitive(True)
 
     def on_configure_clicked(self, widget, runner, runner_label):
         config_dialog = RunnerConfigDialog(runner, parent=self)
         config_dialog.connect('destroy', self.set_install_state,
                               runner, runner_label)
+
+    def on_remove_clicked(self, widget, runner, runner_label):
+        if runner.is_installed():
+            runner.uninstall()
+            self.refresh_button.emit('clicked')
 
     def on_runner_open_clicked(self, widget):
         open_uri('file://' + settings.RUNNER_DIR)
