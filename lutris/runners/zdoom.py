@@ -68,7 +68,7 @@ class zdoom(Runner):
             "label": "Config file",
             "type": "file",
             'help': ("Used to load a user-created configuration file. If specified, "
-                     "the file must exist and contain the wad directory list or launch will fail.")
+                     "the file must contain the wad directory list or launch will fail.")
         },
         {
             "option": "savedir",
