@@ -1,4 +1,5 @@
 import os
+import shlex
 from lutris.util import display
 from lutris.runners.runner import Runner
 
@@ -15,6 +16,12 @@ class zdoom(Runner):
             'type': 'file',
             'label': 'WAD file',
             'help': ("The game data, commonly called a WAD file.")
+        },
+        {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Arguments',
+            'help': ("Command line arguments used when launching the game.")
         },
         {
             'option': 'files',
@@ -159,5 +166,10 @@ class zdoom(Runner):
             command.append("-file")
             for pwad in pwads:
                 command.append(pwad)
+        
+        # Append additional arguments, if provided.
+        args = self.game_config.get('args') or ''
+        for arg in shlex.split(args):
+            command.append(arg)
         
         return {'command': command}
