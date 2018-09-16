@@ -69,11 +69,11 @@ class zdoom(Runner):
             "default": '',
             "choices": {
                 ("None", ''),
-                ("I'm Too Young To Die (0)", '0'),
-                ("Hey, Not Too Rough (1)", '1'),
-                ("Hurt Me Plenty (2)", '2'),
-                ("Ultra-Violence (3)", '3'),
-                ("Nightmare! (4)", '4'),
+                ("I'm Too Young To Die (1)", '1'),
+                ("Hey, Not Too Rough (2)", '2'),
+                ("Hurt Me Plenty (3)", '3'),
+                ("Ultra-Violence (4)", '4'),
+                ("Nightmare! (5)", '5'),
             }
         },
         {
