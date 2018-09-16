@@ -28,7 +28,13 @@ class zdoom(Runner):
             'type': 'string',
             'label': 'Warp to map',
             'help': ("Starts the game on the given map.")
-        }
+        },
+        {
+            'option': 'savedir',
+            'type': 'directory_chooser',
+            'label': 'Save path',
+            'help': ("User-specified path where save files should be located.")
+        }        
     ]
     runner_options = [
         {
@@ -69,12 +75,6 @@ class zdoom(Runner):
             "type": "file",
             'help': ("Used to load a user-created configuration file. If specified, "
                      "the file must contain the wad directory list or launch will fail.")
-        },
-        {
-            "option": "savedir",
-            "label": "Save path",
-            "type": "directory_chooser",
-            'help': ("User-specified path where save files should be located.")
         }
     ]
 
@@ -124,12 +124,6 @@ class zdoom(Runner):
         if config:
             command.append("-config")
             command.append(config)
-
-        # Append directory for save games, if provided.
-        savedir = self.runner_config.get('savedir')
-        if savedir:
-            command.append("-savedir")
-            command.append(savedir)
             
         # Append the warp arguments.
         warp = self.game_config.get('warp')
@@ -137,7 +131,13 @@ class zdoom(Runner):
             command.append("-warp")
             for warparg in warp.split(' '):
                 command.append(warparg)
-
+    
+        # Append directory for save games, if provided.
+        savedir = self.game_config.get('savedir')
+        if savedir:
+            command.append("-savedir")
+            command.append(savedir)
+                
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
         if wad:
