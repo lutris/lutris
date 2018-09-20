@@ -1,32 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<application>
 <component type="desktop">
   <id>lutris.desktop</id>
-  <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0</project_license>
   <name>Lutris</name>
   <summary>Lutris is an open source gaming platform for Linux distributions</summary>
   <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuições Linux</summary>
   <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto para distribuciones Linux</summary>
+  <developer_name>Lutris Team</developer_name>
+  <url type="homepage">https://lutris.net/</url>
+  <categories>
+    <category>Game</category>
+  </categories>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The Lutris main window.</caption>
+      <image type="source" width="1221" height="609">https://raw.githubusercontent.com/RobLoach/lutris-flatpak/22451401c8fe38af0575fefc0a5a0e61c4503758/screenshot.jpg</image>
+    </screenshot>
+  </screenshots>
   <description><p>Lutris is an open source gaming platform for Linux distributions. It helps you install and manage your games in a unified interface. Our goal is to support every game which runs on Linux, from native to Windows games (via Wine) to emulators and browser games. The desktop application and the website are libre software, your contributions are welcome!</p></description>
   <description xml:lang="pt_BR"><p>Lutris é uma plataforma de jogos aberta para distribuições Linux. Ele ajuda você a instalar e gerenciar seus jogos em uma interface unificada. Nosso objetivo é suportar todos os jogos que rodam no Linux, desde jogos nativos até Windows (via Wine), emuladores e jogos de navegador. O aplicativo de desktop e o site são softwares livres, suas contribuições são bem vindas!</p></description>
   <description xml:lang="es">Lutris es una plataforma de juegos abierta para distribuciones Linux. Te ayuda a instalar y administrar tus juegos en una interfaz unificada. Nuestro objetivo es apoyar todos los juegos que se ejecutan en Linux, desde juegos nativos a juegos de Windows (a través de Wine) a emuladores y juegos de navegador. La aplicación de escritorio y el sitio web son software libre, ¡sus contribuciones son bienvenidas!<p></p></description>
-  <screenshots>
-    <screenshot type="default">
-      <image>https://lutris.net/static/images/screenshots/lutris-main.jpg</image>
-      <caption>Main window</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://lutris.net/static/images/screenshots/lutris-game-config.jpg</image>
-      <caption>Game configuration dialog</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://lutris.net/static/images/screenshots/lutris-runners.jpg</image>
-      <caption>Runners dialog</caption>
-    </screenshot>
-  </screenshots>
-  <url type="homepage">https://lutris.net</url>
-  <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
-  <url type="donation">https://www.patreon.com/lutris</url>
-  <update_contact>contact@lutris.net</update_contact>
-  <translation type="gettext">lutris</translation>
-</component>
+  <launchable type="desktop-id">org.lutris.Lutris.desktop</launchable>
+  <project_license>GPL-3.0</project_license>
+  <metadata_license>CC0-1.0</metadata_license>
+  <releases>
+    <release version="0.4.19" date="2018-08-05">
+      <description>
+        <ul>
+          <li>Prioritize winetricks from the runtime</li>
+          <li>Populate DXVK versions with github releases</li>
+          <li>Add support for DirectX 10 with DXVK</li>
+          <li>Fix detection of xgamma</li>
+          <li>Add 24BPP option for Xephyr</li>
+          <li>Restore Alsa option for Wine</li>
+          <li>Prepend additional system paths to runtime</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</application>
