@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <application>
-<component type="desktop">
-  <id>lutris.desktop</id>
+<component type="desktop"><id>lutris.desktop</id></component type="desktop">
   <name>Lutris</name>
   <summary>Lutris is an open source gaming platform for Linux distributions</summary>
   <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuições Linux</summary>
