@@ -11,10 +11,7 @@
     <category>Game</category>
   </categories>
   <screenshots>
-    <screenshot type="default">
-      <caption>The Lutris main window.</caption>
-      <image type="source" width="1221" height="609">https://raw.githubusercontent.com/RobLoach/lutris-flatpak/22451401c8fe38af0575fefc0a5a0e61c4503758/screenshot.jpg</image>
-    </screenshot>
+    <screenshot type="default"><image>https://lutris.net/static/images/lutris-main-window.jpg</image></screenshot>
   </screenshots>
   <description><p>Lutris is an open source gaming platform for Linux distributions. It helps you install and manage your games in a unified interface. Our goal is to support every game which runs on Linux, from native to Windows games (via Wine) to emulators and browser games. The desktop application and the website are libre software, your contributions are welcome!</p></description>
   <description xml:lang="pt_BR"><p>Lutris é uma plataforma de jogos aberta para distribuições Linux. Ele ajuda você a instalar e gerenciar seus jogos em uma interface unificada. Nosso objetivo é suportar todos os jogos que rodam no Linux, desde jogos nativos até Windows (via Wine), emuladores e jogos de navegador. O aplicativo de desktop e o site são softwares livres, suas contribuições são bem vindas!</p></description>
