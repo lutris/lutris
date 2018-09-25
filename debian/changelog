@@ -1,3 +1,13 @@
+lutris (0.4.20) bionic; urgency=medium
+
+  * Fix detection of winetricks path
+  * Improve visual feedback on wine download dialog
+  * Add skill and command-line arguments for Zdoom
+  * Add option to disable joypad auto-configuration
+  * Restore refresh rate on monitor reset
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 24 Sep 2018 20:46:46 -0700
+
 lutris (0.4.19) bionic; urgency=medium
 
   * Prioritize winetricks from the runtime
