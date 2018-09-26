@@ -127,7 +127,7 @@ def set_config_paths():
             )
 
 
-def get_games(name_filter=None, filter_installed=False, filter_runner=None, select='*'):
+def get_games(name_filter=None, filter_installed=False, filter_runner=None, select='*', show_installed_first=False):
     """Get the list of every game in database."""
     query = "select " + select + " from games"
     params = []
@@ -142,7 +142,10 @@ def get_games(name_filter=None, filter_installed=False, filter_runner=None, sele
         filters.append("runner = ?")
     if filters:
         query += " WHERE " + " AND ".join([f for f in filters])
-    query += " ORDER BY slug"
+    if show_installed_first:
+        query += " ORDER BY installed DESC, slug"
+    else:
+        query += " ORDER BY slug"
 
     return sql.db_query(PGA_DB, query, tuple(params))
 

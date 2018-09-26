@@ -42,6 +42,10 @@
           <attribute name="label">I_nstalled games only</attribute>
           <attribute name="action">win.show-installed-only</attribute>
         </item>
+        <item>
+          <attribute name="label">Installed games _first</attribute>
+          <attribute name="action">win.show-installed-first</attribute>
+        </item>
       </section>
       <section>
         <item>
