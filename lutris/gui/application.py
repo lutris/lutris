@@ -59,6 +59,9 @@ class Application(Gtk.Application):
         self.window = None
         self.css_provider = Gtk.CssProvider.new()
 
+        if os.geteuid() == 0:
+            ErrorDialog("Running Lutris as root is not recommended and may cause unexpected issues")
+
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), 'ui', 'lutris.css'))
         except GLib.Error as e:
