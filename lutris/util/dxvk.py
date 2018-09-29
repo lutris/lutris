@@ -17,7 +17,10 @@ DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
-    versions_path = os.path.join(RUNTIME_DIR, 'dxvk', 'dxvk_versions.json')
+    dxvk_path = os.path.join(RUNTIME_DIR, 'dxvk');
+    if not os.path.isdir(dxvk_path):
+        os.mkdir(dxvk_path)
+    versions_path = os.path.join(dxvk_path, 'dxvk_versions.json')
 
     # Download tags if the versions_path does not exist or is more than a day old
     if (
