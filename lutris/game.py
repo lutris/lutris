@@ -464,6 +464,8 @@ class Game(object):
 
     def notify_steam_game_changed(self, appmanifest):
         """Receive updates from Steam games and set the thread's ready state accordingly"""
+        if not self.game_thread:
+            return
         if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
             logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
