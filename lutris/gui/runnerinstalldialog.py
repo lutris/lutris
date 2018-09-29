@@ -23,7 +23,7 @@ class RunnerInstallDialog(Dialog):
         super(RunnerInstallDialog, self).__init__(
             title, parent, 0, ('_OK', Gtk.ResponseType.OK)
         )
-        width, height = (400, 380)
+        width, height = (460, 380)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
 
