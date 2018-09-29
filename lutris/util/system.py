@@ -354,10 +354,12 @@ def reverse_expanduser(path):
 
 
 def path_exists(path):
-    """Wrapper around os.path.exists that doesn't crash with empty values"""
+    """Wrapper around os.path.exists that doesn't crash with empty values
+    Also return True for broken symlinks.
+    """
     if not path:
         return False
-    return os.path.exists(path)
+    return os.path.exists(path) or os.path.islink(path)
 
 
 def path_is_empty(path):
