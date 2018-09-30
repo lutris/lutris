@@ -152,6 +152,9 @@ class ConfigBox(VBox):
         elif option_type == 'bool':
             self.generate_checkbox(option, value)
             self.tooltip_default = 'Enabled' if default else 'Disabled'
+        elif option_type == 'extended_bool':
+            self.generate_checkbox_with_callback(option, value)
+            self.tooltip_default = 'Enabled' if default else 'Disabled'
         elif option_type == 'range':
             self.generate_range(option_key,
                                 option["min"],
@@ -197,9 +200,31 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(checkbox, True, True, 5)
         self.option_widget = checkbox
 
+    #Checkbox with callback
+    def generate_checkbox_with_callback(self, option, value=None):
+        """Generate a checkbox. With callback"""
+        checkbox = Gtk.CheckButton(label=option["label"])
+        if option['active'] is True:
+            checkbox.set_sensitive(True)
+        else:
+            checkbox.set_sensitive(False)
+        if value is True:
+            checkbox.set_active(value)
+        checkbox.connect("toggled", self.checkbox_toggle_with_callback, option['option'], option['callback'], option['callback_on'])
+        self.wrapper.pack_start(checkbox, True, True, 5)
+        self.option_widget = checkbox
+
     def checkbox_toggle(self, widget, option_name):
         """Action for the checkbox's toggled signal."""
         self.option_changed(widget, option_name, widget.get_active())
+
+    def checkbox_toggle_with_callback(self, widget, option_name, callback, callback_on=None):
+        """Action for the checkbox's toggled signal. With callback method"""
+        if widget.get_active() == callback_on or callback_on == None:
+            if callback(self.config):
+                self.option_changed(widget, option_name, widget.get_active())
+            else:
+                widget.set_active(False)
 
     # Entry
     def generate_entry(self, option_name, label, value=None):

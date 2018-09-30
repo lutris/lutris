@@ -17,6 +17,7 @@ from lutris.util import dxvk
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
+from lutris.gui.dialogs import ErrorDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
@@ -436,6 +437,13 @@ def get_wine_version_exe(version):
 def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
 
+def is_esync_limit_set():
+    nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
+    nolimit = int(nolimit)
+    if nolimit > 1048576:
+        return False
+    else:
+        return True
 
 def get_default_version():
     """Return the default version of wine. Prioritize 64bit builds"""
@@ -474,6 +482,10 @@ def support_legacy_version(version):
         version += '-i386'
     return version
 
+def is_version_esync(version):
+    if version.find('esync'):
+        return True
+    return False
 
 def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
@@ -609,6 +621,18 @@ class wine(Runner):
                 version_choices.append((version, version))
             return version_choices
 
+        def esync_limit_callback(config):
+            if not is_esync_limit_set():
+                ErrorDialog("Your limits are not set correctly."
+                            " Please increase them as described here:"
+                            " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
+                            "https://github.com/lutris/lutris/wiki/How-to:-Esync</a>")
+                return False
+            else:
+                if is_version_esync(config['version']):
+                    ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
+                return True
+
         self.runner_options = [
             {
                 'option': 'version',
@@ -639,6 +663,15 @@ class wine(Runner):
                 'type': 'choice_with_entry',
                 'choices': get_dxvk_choices,
                 'default': dxvk.DXVK_LATEST
+            },
+            {
+                'option': 'esync',
+                'label': 'Enable Esync',
+                'type': 'extended_bool',
+                'help': 'Enable eventfd-based synchronization (esync)',
+                'callback': esync_limit_callback,
+                'callback_on' : True,
+                'active' : True
             },
             {
                 'option': 'x360ce-path',
@@ -1065,9 +1098,11 @@ class wine(Runner):
         env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
+        print(self.get_executable())
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
+        env["WINEESYNC"] = "1" if self.runner_config.get('esync') else "0"
         overrides = self.get_dll_overrides()
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
