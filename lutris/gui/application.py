@@ -173,7 +173,7 @@ class Application(Gtk.Application):
                 self.css_provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
-        self.window.present()
+            GLib.timeout_add(300, self.refresh_status)
 
     @staticmethod
     def _print(command_line, string):
@@ -271,34 +271,36 @@ class Application(Gtk.Application):
                 action = 'install'
 
         if action == 'install':
+            self.window.present()
             self.window.on_install_clicked(game_slug=game_slug,
                                            installer_file=installer_file,
                                            revision=revision)
         elif action in ('rungame', 'rungameid'):
             if not db_game or not db_game['id']:
-                logger.info("No game found in library, shutting down")
-                self.do_shutdown()
+                if self.window.is_visible():
+                    logger.info("No game found in library")
+                else:
+                    logger.info("No game found in library, shutting down")
+                    self.do_shutdown()
                 return 0
 
             logger.info("Launching %s" % db_game['name'])
 
-            # If game is installed, run it without showing the GUI
-            # Also set a timer to shut down lutris when game ends
-            if db_game['installed']:
-                self.window.hide()
-                self.window.on_game_run(game_id=db_game['id'])
-                GLib.timeout_add(300, self.refresh_status)
-            # If game is not installed, show the GUI
-            else:
-                self.window.on_game_run(game_id=db_game['id'])
+            # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
+            if not db_game['installed']:
+                self.window.present()
+            self.window.on_game_run(game_id=db_game['id'])
 
+        else:
+            self.window.present()
 
         return 0
 
     def refresh_status(self):
-        if self.window.running_game.state == self.window.running_game.STATE_STOPPED:
-            self.do_shutdown()
-            return False
+        if self.window.running_game is None or self.window.running_game.state == self.window.running_game.STATE_STOPPED:
+            if not self.window.is_visible():
+                self.do_shutdown()
+                return False
         return True
 
     def get_lutris_action(self, url):
