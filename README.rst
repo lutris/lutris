@@ -2,21 +2,17 @@
 Lutris
 ******
 
-Lutris is an open source gaming platform for GNU/Linux.
-It makes gaming on Linux easier by managing, installing and providing optimal
-settings for games.
+Lutris is an open source gaming platform that makes gaming on Linux easier by
+managing, installing and providing optimal settings for games.
 
-Lutris does not sell games; you have to provide your own copy of the games
-unless they are open source or freeware.
-Games can be installed anywhere on your system; Lutris does not impose
-anything.
+Lutris does not sell games, and you must provide your own copy of a game
+unless it is open source/freeware.
+Instead, Lutris utilizes scripts called "runners" to provide a large library of
+games.
+These runners (with the exception of Steam and web browsers) are provided and
+managed by Lutris, so you don't need to install them with your package manager.
 
-Lutris relies on various programs referenced as 'runners' to provide a vast
-library of games.
-These runners (with the exception of Steam and web browsers) are provided by
-Lutris, you don't need to install them with your package manager.
-
-We currently support the following runners:
+Lutris currently supports the following programs:
 
 * Linux (Native games)
 * Steam
@@ -56,62 +52,57 @@ We currently support the following runners:
 Installer scripts
 =================
 
-Lutris automates installation of games using configuration scripts written in
-JSON or YAML, which list the various files needed to install a game and can
-perform a series of actions on them.
-The syntax of installers is described in ``docs/installers.rst``, and is also
-available on `lutris.net <https://lutris.net>`_ when writing installers.
+Lutris installations are fully automated through runners, which can be written
+in either JSON or YAML.
+The runner syntax is described in ``docs/installers.rst``, and is also
+available online at `lutris.net <https://lutris.net>`_.
 
-A web UI is planned to ease the creation of these scripts.
+A web UI is planned to ease the creation of runners.
 
-Game Library
+Game library
 ============
 
-You can optionally create an account on `lutris.net <https://lutris.net>`_ and
-connect this account to the client.
-This will allow you to sync your game library from the website to the client
-(not the other way around).
-If you wish, you can also sync your Steam library with your Lutris library on
-the website.
+Optional accounts can be created at `lutris.net
+<https://lutris.net>`_ and linked with Lutris clients.
+This enables your client to automatically sync fetch library from the website.
+**It is currently not possible to sync from the client to the cloud.**
+Via the website, it is also possible to sync your Steam library to your Lutris
+library.
 
-The client does not store your `lutris.net <https://lutris.net>`_ credentials
-on your computer.
-Instead, when you authenticate, the website will send a token which will
-be used to sync your library.
+The Lutris client only stores a token when connected with the website, and your
+login credentials are never saved.
 This token is stored in ``~/.cache/lutris/auth-token``.
 
 Configuration files
 ===================
 
-The client, runner, and game configuration files are stored in
-``~/.config/lutris``.
-There is no need to manually edit these files as everything should be done from
-the client.
+* ``~/.config/lutris``: The client, runners, and game configuration files
 
-``lutris.conf``: preferences for the client's UI
+   * There is be no need to manually edit these files as everything should
+be done from the client.
 
-``system.yml``: default configuration for every game
+* ``lutris.conf``: Preferences for the client's UI
 
-``runners/*.yml``: runner-specific default configurations
+* ``system.yml``: Default game configuration, which applies to every game
 
-``games/*.yml``: game-specific configurations
+* ``runners/*.yml``: Runner-specific configurations
 
-The game configuration can override previously defined runner and system
-configuration and runner configuration can override system configuration.
+* ``games/*.yml``: Game-specific configurations
+
+Game-specific configurations supersede runner-specific configurations, which in
+turn supersede the system configuration.
 
 Runners and the game database
-=========================
+=============================
 
-The data necessary to manage your library and run the game is stored in
-``~/.local/share/lutris``.
+``~/.local/share/lutris``: All data necessary to manage Lutris' library and games, including:
 
-``pga.db``: your game library, game installation status, locations on the
-filesystem, and some additional metadata, all stored in an SQLite
-database
+* ``pga.db``: An SQLite database tracking the game library, game installation
+status, various file locations, and some additional metadata
 
-``runners/*``: runners downloaded from `lutris.net <https://lutris.net>`_
+``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
 
-``icons/*.png`` and ``banners/*.jpg``: game images
+``icons/*.png`` and ``banners/*.jpg``: Game banners and icons
 
 Command line options
 ====================
@@ -135,24 +126,24 @@ identifier on the command line such as::
 
     lutris lutris:quake
 
-This will install the game if not already installed or launch the game
-otherwise (unless the ``--reinstall`` flag is passed).
+This will install the game if it is not already installed; otherwise it will
+launch the game (unless the ``--reinstall`` flag is passed).
 
 Planned features
 ================
 
-Lutris is far from complete and some of the more interesting features have yet
+Lutris is far from complete, and some of the more interesting features have yet
 to be implemented.
 
-Here's what to expect from the future versions of Lutris:
+Here's what to expect from future versions of Lutris:
 
-* Integration with GOG and Humble Bundle
-* Integration with the TOSEC database
-* Management of Personal Game Archives (let you store your games files on
-  private storage, allowing you to reinstall them on all your devices)
-* Game saves sync
-* Community features (friends list, chat, multiplayer game scheduling)
+* GOG and Humble Bundle integration
+* TOSEC database integration
+* Management of personal game data, i.e. syncing games across devices using private cloud storage
+* Save syncing
+* Community features (friends list, chat, multiplayer game scheduling, etc.)
 * Controller configuration GUI (with xboxdrv support)
+* Web UI for editing runners
 
 Come with us!
 =============
