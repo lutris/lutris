@@ -341,7 +341,11 @@ class Game(object):
 
         monitoring_disabled = system_config.get('disable_monitoring')
         if monitoring_disabled:
-            show_obnoxious_process_monitor_message()
+            dialogs.ErrorDialog("<b>The process monitor is disabled, Lutris "
+                                "won't be able to keep track of the game status. "
+                                "If this game require the process monitor to be "
+                                "disabled in order to run, please submit an "
+                                "issue.</b>")
         process_watch = not monitoring_disabled
 
         if self.runner.system_config.get('disable_compositor'):
@@ -473,21 +477,3 @@ class Game(object):
             logger.info("Steam game %s updating, setting game thread as not ready",
                         appmanifest.steamid)
             self.game_thread.ready_state = False
-
-
-def show_obnoxious_process_monitor_message():
-    """Display an annoying message for people who disable the process monitor"""
-    for _ in range(5):
-        logger.critical("")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("   ***  YOU HAVE THE PROCESS MONITOR DISABLED!!!!!  ***")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("THIS OPTION WAS IMPLEMENTED AS A WORKAROUND FOR A BUG THAT HAS BEEN FIXED!!11!!1")
-    logger.critical("RUNNING GAMES WITH THE PROCESS MONITOR DISABLED IS NOT SUPPORTED!!!")
-    logger.critical("YOU ARE DISCOURAGED FROM REPORTING ISSUES WITH THE PROCESS MONITOR DISABLED!!!")
-    logger.critical("THIS OPTION WILL BE REMOVED IN A FUTURE RELEASE!!!!!!!")
-    logger.critical("IF YOU THINK THIS OPTION CAN BE USEFUL FOR ANY MEANS PLEASE LET US KNOW!!!!")
-    for _ in range(5):
-        logger.critical("")
