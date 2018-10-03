@@ -343,7 +343,7 @@ class Game(object):
         if monitoring_disabled:
             dialogs.ErrorDialog("<b>The process monitor is disabled, Lutris "
                                 "won't be able to keep track of the game status. "
-                                "If this game require the process monitor to be "
+                                "If this game requires the process monitor to be "
                                 "disabled in order to run, please submit an "
                                 "issue.</b>")
         process_watch = not monitoring_disabled
