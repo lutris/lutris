@@ -10,7 +10,7 @@ from gi.repository import GLib, Gtk
 from lutris import pga
 from lutris import runtime
 from lutris.services import xdg
-from lutris.runners import import_runner, InvalidRunner
+from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
@@ -191,6 +191,11 @@ class Game(object):
                 )
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
+
+        if "wine" in self.runner_name:
+            if not "system" in wine.get_wine_versions():
+                dialogs.ErrorDialog("install wine")
+
         return True
 
     def play(self):
