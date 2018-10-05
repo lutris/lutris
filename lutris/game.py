@@ -196,10 +196,10 @@ class Game(object):
                 'hide-wine-systemwide-install-warning',
                 "Wine is not installed on your system.",
                 secondary_message="Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies. Please "
+                "Wine builds from Lutris will have all required dependencies.\nPlease "
                 "follow the instructions given in the <a "
                 "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
-                "install Wine"
+                "install Wine."
             )
         return True
 
