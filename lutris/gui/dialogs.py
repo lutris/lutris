@@ -1,3 +1,5 @@
+"""Commonly used dialogs"""
+# pylint: disable=no-member
 import os
 
 from lutris import api, pga, runtime, settings
@@ -5,6 +7,7 @@ from lutris.gui.logwindow import LogTextView
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
+from lutris.util.log import logger
 from lutris.util.system import open_uri
 
 import gi
@@ -80,13 +83,13 @@ class QuestionDialog(Gtk.MessageDialog):
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
-    def __init__(self, settings):
+    def __init__(self, dialog_settings):
         super().__init__(
             message_type=Gtk.MessageType.QUESTION,
             buttons=Gtk.ButtonsType.YES_NO
         )
-        self.set_markup(settings['question'])
-        self.set_title(settings['title'])
+        self.set_markup(dialog_settings['question'])
+        self.set_title(dialog_settings['title'])
         self.result = self.run()
         self.destroy()
 
@@ -418,4 +421,33 @@ class InstallerSourceDialog(Gtk.Dialog):
         self.show_all()
 
     def on_close(self, *args):
+        self.destroy()
+
+
+class DontShowAgainDialog(Gtk.MessageDialog):
+    """Display a message to the user and offer an option not to display this dialog again."""
+    def __init__(self, setting, message, secondary_message=None, parent=None):
+        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
+
+        if settings.read_setting(setting) == 'True':
+            logger.info("Dialog %s dismissed by user", setting)
+            self.destroy()
+            return
+
+        self.set_border_width(12)
+        self.set_markup("<b>%s</b>" % message)
+        if secondary_message:
+            self.props.secondary_use_markup = True
+            self.props.secondary_text = secondary_message
+
+        dont_show_checkbutton = Gtk.CheckButton("Do not display this message again.")
+        dont_show_checkbutton.props.halign = Gtk.Align.CENTER
+        dont_show_checkbutton.show()
+
+        content_area = self.get_content_area()
+        # content_area.props.halign = Gtk.Align.CENTER
+        content_area.pack_start(dont_show_checkbutton, False, False, 0)
+        self.run()
+        if dont_show_checkbutton.get_active():
+            settings.write_setting(setting, True)
         self.destroy()

@@ -13,7 +13,7 @@ from lutris import pga
 from lutris import runtime
 from lutris.exceptions import LutrisError, GameConfigError
 from lutris.services import xdg
-from lutris.runners import import_runner, InvalidRunner
+from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
@@ -217,6 +217,16 @@ class Game(GObject.Object):
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
+        if "wine" in self.runner_name and not wine.get_system_wine_version():
+            dialogs.DontShowAgainDialog(
+                'hide-wine-systemwide-install-warning',
+                "Wine is not installed on your system.",
+                secondary_message="Having Wine installed on your system guarantees that "
+                "Wine builds from Lutris will have all required dependencies. Please "
+                "follow the instructions given in the <a "
+                "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+                "install Wine"
+            )
         return True
 
     def play(self):
