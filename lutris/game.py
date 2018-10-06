@@ -70,14 +70,14 @@ class Game(object):
 
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
-        if "CUSTOM" == message['error']:
+        if message['error'] == "CUSTOM":
             message_text = message['text'].replace('&', '&amp;')
             dialogs.ErrorDialog(message_text)
-        elif "RUNNER_NOT_INSTALLED" == message['error']:
+        elif message['error'] == "RUNNER_NOT_INSTALLED":
             dialogs.ErrorDialog('Error the runner is not installed')
-        elif "NO_BIOS" == message['error']:
+        elif message['error'] == "NO_BIOS":
             dialogs.ErrorDialog("A bios file is required to run this game")
-        elif "FILE_NOT_FOUND" == message['error']:
+        elif message['error'] == "FILE_NOT_FOUND":
             filename = message['file']
             if filename:
                 message_text = "The file {} could not be found".format(
@@ -86,8 +86,7 @@ class Game(object):
             else:
                 message_text = "No file provided"
             dialogs.ErrorDialog(message_text)
-
-        elif "NOT_EXECUTABLE" == message['error']:
+        elif message['error'] == "NOT_EXECUTABLE":
             message_text = message['file'].replace('&', '&amp;')
             dialogs.ErrorDialog("The file %s is not executable" % message_text)
 
