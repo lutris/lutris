@@ -258,15 +258,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     'name': appmanifest.name,
                     'slug': appmanifest.slug,
                 }
-            game_id = steam.mark_as_installed(appmanifest.steamid,
-                                              runner_name,
-                                              game_info)
-            game_ids = [game['id'] for game in self.game_list]
-            if game_id not in game_ids:
-                self.add_game_to_view(game_id)
-            else:
-                self.view.set_installed(Game(game_id))
-
+            if steam in get_services_synced_at_startup():
+                game_id = steam.mark_as_installed(appmanifest.steamid,
+                                                  runner_name,
+                                                  game_info)
+                game_ids = [game['id'] for game in self.game_list]
+                if game_id not in game_ids:
+                    self.add_game_to_view(game_id)
+                else:
+                    self.view.set_installed(Game(game_id))
     @staticmethod
     def set_dark_theme(is_dark):
         gtksettings = Gtk.Settings.get_default()
