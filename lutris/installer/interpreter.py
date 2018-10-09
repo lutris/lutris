@@ -532,6 +532,18 @@ class ScriptInterpreter(CommandsMixin):
     # ----------------
 
     def _finish_install(self):
+        exe = self.script.get('game').get('exe')
+        if not exe is None:
+            path = self._substitute(exe)
+            if not os.path.isabs(path):
+                path = os.path.join(self.target_path, exe)
+
+        if not os.path.isfile(path):
+            self.parent.set_status("Installation didn't complete successfully")
+            self.parent.on_install_error("Installation failed (specified"
+            " executable not found)!")
+            return
+
         self.parent.set_status("Writing configuration")
         self._write_config()
         self.parent.set_status("Installation finished !")
