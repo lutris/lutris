@@ -220,7 +220,7 @@ class ConfigBox(VBox):
 
     def checkbox_toggle_with_callback(self, widget, option_name, callback, callback_on=None):
         """Action for the checkbox's toggled signal. With callback method"""
-        if widget.get_active() == callback_on or callback_on == None:
+        if widget.get_active() == callback_on or callback_on is None:
             if callback(self.config):
                 self.option_changed(widget, option_name, widget.get_active())
             else:

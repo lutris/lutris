@@ -628,10 +628,9 @@ class wine(Runner):
                             " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
                             "https://github.com/lutris/lutris/wiki/How-to:-Esync</a>")
                 return False
-            else:
-                if is_version_esync(config['version']):
-                    ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
-                return True
+            if is_version_esync(config['version']):
+                ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
+            return True
 
         self.runner_options = [
             {
@@ -1098,7 +1097,6 @@ class wine(Runner):
         env['WINEDEBUG'] = self.runner_config.get('show_debug', '-all')
         env['WINEARCH'] = self.wine_arch
         env['WINE'] = self.get_executable()
-        print(self.get_executable())
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
