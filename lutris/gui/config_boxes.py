@@ -350,8 +350,6 @@ class ConfigBox(VBox):
             if default_path and os.path.exists(default_path):
                 file_chooser.set_current_folder(default_path)
 
-        file_chooser.entry.connect('changed', self._on_chooser_file_set, option_name)
-
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
@@ -363,9 +361,13 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
+        file_chooser.entry.connect('changed', self._on_chooser_file_set,
+                                            option_name)
 
     def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
+        if "~" in entry.get_text():
+            entry.set_text(entry.get_text().replace("~", os.path.expanduser("~")))
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
