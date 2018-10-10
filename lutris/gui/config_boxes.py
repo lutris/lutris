@@ -352,8 +352,8 @@ class ConfigBox(VBox):
 
         if path:
             # If path is relative, complete with game dir
-        if not os.path.isabs(path):
-            entry.set_text(entry.get_text().replace("~", os.path.expanduser("~")))
+            if not os.path.isabs(path):
+                path =  os.path.expanduser(path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
@@ -366,8 +366,8 @@ class ConfigBox(VBox):
 
     def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        if not os.path.isabs(path):
-            entry.set_text(entry.get_text().replace("~", os.path.expanduser("~")))
+        if not os.path.isabs(entry.get_text()):
+            entry.set_text(os.path.expanduser(entry.get_text()))
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
