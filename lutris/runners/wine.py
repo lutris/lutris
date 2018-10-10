@@ -18,6 +18,7 @@ from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import DontShowAgainDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
@@ -629,7 +630,10 @@ class wine(Runner):
                             "https://github.com/lutris/lutris/wiki/How-to:-Esync</a>")
                 return False
             if is_version_esync(config['version']):
-                ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
+                DontShowAgainDialog('hide-wine-non-esync-version-warning',
+                "Incompatible Wine version detected",
+                secondary_message="The wine build you have selected does not seem to support Esync.\n"
+                "Please switch to an esync-capable version (unless you know what you are doing).")
             return True
 
         self.runner_options = [
