@@ -2,9 +2,9 @@
 <application>
   <id type="desktop">lutris.desktop</id>
   <name>Lutris</name>
-  <summary>Lutris is an open source gaming platform for Linux distributions</summary>
-  <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuições Linux</summary>
-  <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto para distribuciones Linux</summary>
+  <summary>Lutris is an open source gaming platform for Linux distribution</summary>
+  <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuição Linux</summary>
+  <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto para distribución Linux</summary>
   <developer_name>Lutris Team</developer_name>
   <url type="Homepage">https://lutris.net</url>
   <url type="Donate">https://www.patreon.com/lutris</url>
@@ -32,7 +32,6 @@
     <content_attribute id="violence-bloodshed">intense</content_attribute>
     <content_attribute id="violence-sexual">intense</content_attribute>
     <content_attribute id="violence-desecration">intense</content_attribute>
-    <content_attribute id="violence-slavery">intense</content_attribute>
     <content_attribute id="violence-worship">intense</content_attribute>
     <content_attribute id="drugs-alcohol">moderate</content_attribute>
     <content_attribute id="drugs-narcotics">moderate</content_attribute>
