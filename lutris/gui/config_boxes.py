@@ -1,4 +1,5 @@
 """Widget generators and their signal handlers"""
+# pylint: disable=no-member
 import os
 from gi.repository import Gtk, Gdk
 
@@ -13,8 +14,12 @@ class ConfigBox(VBox):
     """Dynamically generate a vbox built upon on a python dict."""
     def __init__(self, game=None):
         super(ConfigBox, self).__init__()
-        self.options = None
+        self.options = []
         self.game = game
+        self.config = None
+        self.raw_config = None
+        self.option_widget = None
+        self.wrapper = None
 
     def generate_top_info_box(self, text):
         help_box = Gtk.HBox()
@@ -332,7 +337,11 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a file."""
         option_name = option['option']
         label = Label(option['label'])
-        file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
+        file_chooser = FileChooserEntry(
+            title='Select file',
+            action=Gtk.FileChooserAction.OPEN,
+            default_path=path  # reverse_expanduser(path)
+        )
         file_chooser.set_size_request(200, 30)
 
         if 'default_path' in option:
@@ -341,25 +350,23 @@ class ConfigBox(VBox):
             if default_path and os.path.exists(default_path):
                 file_chooser.set_current_folder(default_path)
 
-        file_chooser.set_action(Gtk.FileChooserAction.OPEN)
-        file_chooser.connect("file-set", self.on_chooser_file_set,
-                             option_name)
+        file_chooser.entry.connect('changed', self._on_chooser_file_set, option_name)
+
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
                 path = os.path.join(self.game.directory, path)
-            file_chooser.unselect_all()
-            file_chooser.select_filename(path)
-        label.set_alignment(0.5, 0.5)
+            file_chooser.entry.set_text(path)
+
         file_chooser.set_valign(Gtk.Align.CENTER)
+        label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
 
-    def on_chooser_file_set(self, widget, option):
+    def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        filename = widget.get_filename()
-        self.option_changed(widget, option, filename)
+        self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
     def generate_directory_chooser(self, option_name, label_text, value=None):
@@ -370,7 +377,7 @@ class ConfigBox(VBox):
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             default_path=reverse_expanduser(value)
         )
-        directory_chooser.entry.connect('changed', self.on_chooser_dir_set,
+        directory_chooser.entry.connect('changed', self._on_chooser_dir_set,
                                         option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         label.set_alignment(0.5, 0.5)
@@ -378,10 +385,9 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.option_widget = directory_chooser
 
-    def on_chooser_dir_set(self, entry, option):
+    def _on_chooser_dir_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        filename = entry.get_text()
-        self.option_changed(entry.get_parent(), option, filename)
+        self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):
@@ -557,11 +563,8 @@ class GameBox(ConfigBox):
                 runner = game.runner
             if runner:
                 self.options = runner.game_options
-            else:
-                self.options = []
         else:
             logger.warning("No runner in game supplied to GameBox")
-            self.options = []
         self.generate_widgets('game')
 
 
@@ -575,8 +578,6 @@ class RunnerBox(ConfigBox):
             runner = None
         if runner:
             self.options = runner.get_runner_options()
-        else:
-            self.options = []
 
         if lutris_config.level == 'game':
             self.generate_top_info_box(
