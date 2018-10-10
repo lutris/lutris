@@ -533,9 +533,8 @@ class ScriptInterpreter(CommandsMixin):
 
     def _finish_install(self):
         game = self.script.get('game')
-        launcher, launcher_value = self._find_launcher_in_script(game)
         if game:
-            launcher_value = game.get('exe')
+            launcher, launcher_value = self._get_game_launcher(game)
         if launcher_value:
             path = self._substitute(launcher_value)
             if not os.path.isabs(path):
