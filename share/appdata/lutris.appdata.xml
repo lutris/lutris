@@ -2,9 +2,9 @@
 <application>
   <id type="desktop">lutris.desktop</id>
   <name>Lutris</name>
-  <summary>Lutris is an open source gaming platform for Linux distribution</summary>
-  <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuição Linux</summary>
-  <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto para distribución Linux</summary>
+  <summary>Lutris is an open source gaming platform for Linux</summary>
+  <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto para distribuições Linux</summary>
+  <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto para distribuciones Linux</summary>
   <developer_name>Lutris Team</developer_name>
   <url type="Homepage">https://lutris.net</url>
   <url type="Donate">https://www.patreon.com/lutris</url>
