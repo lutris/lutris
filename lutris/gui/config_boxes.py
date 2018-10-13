@@ -230,7 +230,8 @@ class ConfigBox(VBox):
                 self.option_changed(widget, option_name, widget.get_active())
             else:
                 widget.set_active(False)
-
+        else:
+            self.option_changed(widget, option_name, widget.get_active())
     # Entry
     def generate_entry(self, option_name, label, value=None):
         """Generate an entry box."""
