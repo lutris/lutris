@@ -12,7 +12,7 @@ class rpcs3(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "Full path to EBOOT.BIN (/home/...)"
+            "label": "Path to EBOOT.BIN"
         }
     ]
 
