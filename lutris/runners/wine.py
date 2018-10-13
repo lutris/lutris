@@ -522,11 +522,12 @@ def build_vulkan_error(option, on_launch):
         checkbox_message = "Enable anyway and do not show this message again."
 
     DontShowAgainDialog('hide-no-vulkan-warning',
-        message,
-        secondary_message="Please follow the installation procedures as described in\n"
-        "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
-        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
-        checkbox_message = checkbox_message)
+                        message,
+                        secondary_message="Please follow the installation "
+                        "procedures as described in\n"
+                        "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
+                        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+                        checkbox_message=checkbox_message)
 
 def dxvk_vulkan_check(on_launch):
     vulkan_lib = os.path.isfile("/usr/lib/libvulkan.so")
