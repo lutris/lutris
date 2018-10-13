@@ -212,7 +212,8 @@ Example:
 Copying and merging directories
 -------------------------------
 
-Both merging and copying actions are done with the ``merge`` directive.
+Both merging and copying actions are done with the ``merge`` or the ``copy`` directive.
+It is not important which of these directives is used because ``copy`` is just an alias for ``merge``.
 Whether the action does a merge or copy depends on the existence of the
 destination directory. When merging into an existing directory, original files
 with the same name as the ones present in the merged directory will be
