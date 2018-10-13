@@ -14,6 +14,7 @@ from lutris.util.strings import version_sort, parse_version
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
 from lutris.util import dxvk
+from lutris.util import vulkan
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -508,7 +509,7 @@ def get_real_executable(windows_executable, working_dir=None):
 
     return (windows_executable, [], working_dir)
 
-def build_vulkan_error(option, on_launch):
+def display_vulkan_error(option, on_launch):
     if option == 0:
         message = "No Vulkan loader was detected."
     if option == 1:
@@ -516,31 +517,19 @@ def build_vulkan_error(option, on_launch):
     if option == 2:
         message = "64-bit Vulkan loader was not detected."
 
-    if on_launch:
-        checkbox_message = "Launch anyway and do not show this message again."
-    else:
-        checkbox_message = "Enable anyway and do not show this message again."
+    if message:
+        if on_launch:
+            checkbox_message = "Launch anyway and do not show this message again."
+        else:
+            checkbox_message = "Enable anyway and do not show this message again."
 
-    DontShowAgainDialog('hide-no-vulkan-warning',
-                        message,
-                        secondary_message="Please follow the installation "
-                        "procedures as described in\n"
-                        "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
-                        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
-                        checkbox_message=checkbox_message)
-
-def dxvk_vulkan_check(on_launch):
-    vulkan_lib = os.path.isfile("/usr/lib/libvulkan.so")
-    vulkan_lib32 = os.path.isfile("/usr/lib32/libvulkan.so")
-    vulkan_lib_multi = os.path.isfile("/usr/lib/x86_64-linux-gnu/libvulkan.so")
-    vulkan_lib32_multi = os.path.isfile("/usr/lib32/i386-linux-gnu/libvulkan.so")
-
-    if (vulkan_lib or vulkan_lib_multi) and not (vulkan_lib32 or vulkan_lib32_multi):
-        build_vulkan_error(1, on_launch)
-    if not (vulkan_lib or vulkan_lib_multi) and (vulkan_lib32 or vulkan_lib32_multi):
-        build_vulkan_error(2, on_launch)
-    if not ((vulkan_lib and vulkan_lib32) or (vulkan_lib_multi and vulkan_lib32_multi)):
-        build_vulkan_error(0, on_launch)
+        DontShowAgainDialog('hide-no-vulkan-warning',
+                            message,
+                            secondary_message="Please follow the installation "
+                            "procedures as described in\n"
+                            "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
+                            "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+                            checkbox_message=checkbox_message)
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -667,8 +656,8 @@ class wine(Runner):
             return True
 
         def dxvk_vulkan_callback(config):
-            dxvk_vulkan_check(False)
-            return True
+            result = vulkan.vulkan_check()
+            display_vulkan_error(result, False)
 
         self.runner_options = [
             {
@@ -1226,7 +1215,7 @@ class wine(Runner):
         using_dxvk = self.runner_config.get('dxvk')
 
         if using_dxvk:
-            dxvk_vulkan_check(True)
+            vulkan.vulkan_check(True)
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
