@@ -361,7 +361,7 @@ class NoInstallerDialog(Gtk.MessageDialog):
 
 class DontShowAgainDialog(Gtk.MessageDialog):
     """Display a message to the user and offer an option not to display this dialog again."""
-    def __init__(self, setting, message, secondary_message=None, parent=None):
+    def __init__(self, setting, message, secondary_message=None, parent=None, checkbox_message=None):
         super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         if settings.read_setting(setting) == 'True':
@@ -375,7 +375,10 @@ class DontShowAgainDialog(Gtk.MessageDialog):
             self.props.secondary_use_markup = True
             self.props.secondary_text = secondary_message
 
-        dont_show_checkbutton = Gtk.CheckButton("Do not display this message again.")
+        if not checkbox_message:
+            checkbox_message = "Do not display this message again."
+
+        dont_show_checkbutton = Gtk.CheckButton(checkbox_message)
         dont_show_checkbutton.props.halign = Gtk.Align.CENTER
         dont_show_checkbutton.show()
 

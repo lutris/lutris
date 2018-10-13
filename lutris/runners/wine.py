@@ -18,6 +18,7 @@ from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import DontShowAgainDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
@@ -507,6 +508,38 @@ def get_real_executable(windows_executable, working_dir=None):
 
     return (windows_executable, [], working_dir)
 
+def build_vulkan_error(option, on_launch):
+    if option == 0:
+        message = "No Vulkan loader was detected."
+    if option == 1:
+        message = "32-bit Vulkan loader was not detected."
+    if option == 2:
+        message = "64-bit Vulkan loader was not detected."
+
+    if on_launch:
+        checkbox_message = "Launch anyway and do not show this message again."
+    else:
+        checkbox_message = "Enable anyway and do not show this message again."
+
+    DontShowAgainDialog('hide-no-vulkan-warning',
+        message,
+        secondary_message="Please follow the installation procedures as described in\n"
+        "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
+        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+        checkbox_message = checkbox_message)
+
+def dxvk_vulkan_check(on_launch):
+    vulkan_lib = os.path.isfile("/usr/lib/libvulkan.so")
+    vulkan_lib32 = os.path.isfile("/usr/lib32/libvulkan.so")
+    vulkan_lib_multi = os.path.isfile("/usr/lib/x86_64-linux-gnu/libvulkan.so")
+    vulkan_lib32_multi = os.path.isfile("/usr/lib32/i386-linux-gnu/libvulkan.so")
+
+    if (vulkan_lib or vulkan_lib_multi) and not (vulkan_lib32 or vulkan_lib32_multi):
+        build_vulkan_error(1, on_launch)
+    if not (vulkan_lib or vulkan_lib_multi) and (vulkan_lib32 or vulkan_lib32_multi):
+        build_vulkan_error(2, on_launch)
+    if not ((vulkan_lib and vulkan_lib32) or (vulkan_lib_multi and vulkan_lib32_multi)):
+        build_vulkan_error(0, on_launch)
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -632,6 +665,10 @@ class wine(Runner):
                 ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
             return True
 
+        def dxvk_vulkan_callback(config):
+            dxvk_vulkan_check(False)
+            return True
+
         self.runner_options = [
             {
                 'option': 'version',
@@ -653,8 +690,11 @@ class wine(Runner):
             {
                 'option': 'dxvk',
                 'label': 'Enable DXVK',
-                'type': 'bool',
-                'help': 'Use DXVK to translate DirectX 11 calls to Vulkan'
+                'type': 'extended_bool',
+                'help': 'Use DXVK to translate DirectX 11 calls to Vulkan',
+                'callback': dxvk_vulkan_callback,
+                'callback_on': True,
+                'active': True
             },
             {
                 'option': 'dxvk_version',
@@ -1182,6 +1222,10 @@ class wine(Runner):
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get('args', '')
+        using_dxvk = self.runner_config.get('dxvk')
+
+        if using_dxvk:
+            dxvk_vulkan_check(True)
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
