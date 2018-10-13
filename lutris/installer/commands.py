@@ -263,6 +263,10 @@ class CommandsMixin:
             return
         self._killable_process(system.merge_folders, src, dst)
 
+    def copy(self, params):
+        """Alias for merge"""
+        self.merge(params)
+
     def move(self, params):
         """Move a file or directory into a destination folder."""
         self._check_required_params(['src', 'dst'], params, 'move')
