@@ -517,7 +517,7 @@ def display_vulkan_error(option, on_launch):
     if option == 2:
         message = "64-bit Vulkan loader was not detected."
 
-    if message:
+    if option != 3:
         if on_launch:
             checkbox_message = "Launch anyway and do not show this message again."
         else:
@@ -661,6 +661,7 @@ class wine(Runner):
         def dxvk_vulkan_callback(config):
             result = vulkan.vulkan_check()
             display_vulkan_error(result, False)
+            return True
 
         self.runner_options = [
             {
