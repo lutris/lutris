@@ -15,6 +15,7 @@ from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
 from lutris.util import dxvk
 from lutris.util import vulkan
+from lutris.util.vulkan import vulkan_available
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
@@ -510,26 +511,25 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 def display_vulkan_error(option, on_launch):
-    if option == 0:
+    if option == vulkan_available.NONE:
         message = "No Vulkan loader was detected."
-    if option == 1:
+    if option == vulkan_available.SIXTY_FOUR:
         message = "32-bit Vulkan loader was not detected."
-    if option == 2:
+    if option == vulkan_available.THIRTY_TWO:
         message = "64-bit Vulkan loader was not detected."
 
-    if option != 3:
-        if on_launch:
-            checkbox_message = "Launch anyway and do not show this message again."
-        else:
-            checkbox_message = "Enable anyway and do not show this message again."
+    if on_launch:
+        checkbox_message = "Launch anyway and do not show this message again."
+    else:
+        checkbox_message = "Enable anyway and do not show this message again."
 
-        DontShowAgainDialog('hide-no-vulkan-warning',
-                            message,
-                            secondary_message="Please follow the installation "
-                            "procedures as described in\n"
-                            "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
-                            "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
-                            checkbox_message=checkbox_message)
+    DontShowAgainDialog('hide-no-vulkan-warning',
+                        message,
+                        secondary_message="Please follow the installation "
+                        "procedures as described in\n"
+                        "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
+                        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+                        checkbox_message=checkbox_message)
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -660,7 +660,8 @@ class wine(Runner):
 
         def dxvk_vulkan_callback(config):
             result = vulkan.vulkan_check()
-            display_vulkan_error(result, False)
+            if result != vulkan_available.ALL:
+                display_vulkan_error(result, False)
             return True
 
         self.runner_options = [
@@ -1206,7 +1207,8 @@ class wine(Runner):
 
         if using_dxvk:
             result = vulkan.vulkan_check()
-            display_vulkan_error(result, True)
+            if result != vulkan_available.ALL:
+                display_vulkan_error(result, True)
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
