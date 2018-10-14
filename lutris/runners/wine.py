@@ -565,10 +565,10 @@ class wine(Runner):
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
-        "Desktop": r"%s/Explorer" % reg_prefix,
-        "WineDesktop": r"%s/Explorer/Desktops" % reg_prefix,
-        "ShowCrashDialog": r"%s/WineDbg" % reg_prefix,
-        "UseXVidMode": r"%s/X11 Driver" % reg_prefix
+        "Desktop": "MANAGED",
+        "WineDesktop": "MANAGED",
+        "ShowCrashDialog": "MANAGED",
+        "UseXVidMode": "MANAGED"
     }
 
     core_processes = (
@@ -669,8 +669,8 @@ class wine(Runner):
                 'type': 'extended_bool',
                 'help': 'Enable eventfd-based synchronization (esync)',
                 'callback': esync_limit_callback,
-                'callback_on' : True,
-                'active' : True
+                'callback_on': True,
+                'active': True
             },
             {
                 'option': 'x360ce-path',
@@ -1010,26 +1010,17 @@ class wine(Runner):
         self.prelaunch()
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
-    def set_wine_desktop(self, enable_desktop=False):
-        prefix = self.prefix_path
-        prefix_manager = WinePrefixManager(prefix)
-        path = self.reg_keys['Desktop']
-
-        if enable_desktop:
-            prefix_manager.set_registry_key(path, 'Desktop', 'WineDesktop')
-        else:
-            prefix_manager.clear_registry_key(path)
-
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
-        enable_wine_desktop = False
         prefix_manager = WinePrefixManager(prefix)
         # Those options are directly changed with the prefix manager and skip
         # any calls to regedit.
         managed_keys = {
             'ShowCrashDialog': prefix_manager.set_crash_dialogs,
-            'UseXVidMode': prefix_manager.use_xvid_mode
+            'UseXVidMode': prefix_manager.use_xvid_mode,
+            'Desktop': prefix_manager.set_virtual_desktop,
+            'WineDesktop': prefix_manager.set_desktop_size
         }
 
         for key, path in self.reg_keys.items():
@@ -1037,18 +1028,13 @@ class wine(Runner):
             if not value or value == 'auto' and key not in managed_keys.keys():
                 prefix_manager.clear_registry_key(path)
             elif key in self.runner_config:
-                if key == 'Desktop' and value is True:
-                    enable_wine_desktop = True
-                    continue
-                elif key in managed_keys.keys():
+                if key in managed_keys.keys():
                     # Do not pass fallback 'auto' value to managed keys
                     if value == 'auto':
                         value = None
                     managed_keys[key](value)
                     continue
                 prefix_manager.set_registry_key(path, key, value)
-
-        self.set_wine_desktop(enable_wine_desktop)
 
     def toggle_dxvk(self, enable, version=None):
         dxvk_manager = dxvk.DXVKManager(self.prefix_path, arch=self.wine_arch, version=version)
