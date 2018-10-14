@@ -14,10 +14,12 @@ from lutris.util.strings import version_sort, parse_version
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
 from lutris.util import dxvk
+from lutris.util import vulkan
 from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import DontShowAgainDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
@@ -507,6 +509,27 @@ def get_real_executable(windows_executable, working_dir=None):
 
     return (windows_executable, [], working_dir)
 
+def display_vulkan_error(option, on_launch):
+    if option == 0:
+        message = "No Vulkan loader was detected."
+    if option == 1:
+        message = "32-bit Vulkan loader was not detected."
+    if option == 2:
+        message = "64-bit Vulkan loader was not detected."
+
+    if message:
+        if on_launch:
+            checkbox_message = "Launch anyway and do not show this message again."
+        else:
+            checkbox_message = "Enable anyway and do not show this message again."
+
+        DontShowAgainDialog('hide-no-vulkan-warning',
+                            message,
+                            secondary_message="Please follow the installation "
+                            "procedures as described in\n"
+                            "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
+                            "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+                            checkbox_message=checkbox_message)
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -565,10 +588,10 @@ class wine(Runner):
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
-        "Desktop": r"%s/Explorer" % reg_prefix,
-        "WineDesktop": r"%s/Explorer/Desktops" % reg_prefix,
-        "ShowCrashDialog": r"%s/WineDbg" % reg_prefix,
-        "UseXVidMode": r"%s/X11 Driver" % reg_prefix
+        "Desktop": "MANAGED",
+        "WineDesktop": "MANAGED",
+        "ShowCrashDialog": "MANAGED",
+        "UseXVidMode": "MANAGED"
     }
 
     core_processes = (
@@ -629,8 +652,15 @@ class wine(Runner):
                             "https://github.com/lutris/lutris/wiki/How-to:-Esync</a>")
                 return False
             if is_version_esync(config['version']):
-                ErrorDialog("Your wine version may not support esync, if you are unsure please check.")
+                DontShowAgainDialog('hide-wine-non-esync-version-warning',
+                "Incompatible Wine version detected",
+                secondary_message="The wine build you have selected does not seem to support Esync.\n"
+                "Please switch to an esync-capable version (unless you know what you are doing).")
             return True
+
+        def dxvk_vulkan_callback(config):
+            result = vulkan.vulkan_check()
+            display_vulkan_error(result, False)
 
         self.runner_options = [
             {
@@ -653,8 +683,11 @@ class wine(Runner):
             {
                 'option': 'dxvk',
                 'label': 'Enable DXVK',
-                'type': 'bool',
-                'help': 'Use DXVK to translate DirectX 11 calls to Vulkan'
+                'type': 'extended_bool',
+                'help': 'Use DXVK to translate DirectX 11 calls to Vulkan',
+                'callback': dxvk_vulkan_callback,
+                'callback_on': True,
+                'active': True
             },
             {
                 'option': 'dxvk_version',
@@ -669,8 +702,8 @@ class wine(Runner):
                 'type': 'extended_bool',
                 'help': 'Enable eventfd-based synchronization (esync)',
                 'callback': esync_limit_callback,
-                'callback_on' : True,
-                'active' : True
+                'callback_on': True,
+                'active': True
             },
             {
                 'option': 'x360ce-path',
@@ -1010,26 +1043,17 @@ class wine(Runner):
         self.prelaunch()
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
-    def set_wine_desktop(self, enable_desktop=False):
-        prefix = self.prefix_path
-        prefix_manager = WinePrefixManager(prefix)
-        path = self.reg_keys['Desktop']
-
-        if enable_desktop:
-            prefix_manager.set_registry_key(path, 'Desktop', 'WineDesktop')
-        else:
-            prefix_manager.clear_registry_key(path)
-
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
-        enable_wine_desktop = False
         prefix_manager = WinePrefixManager(prefix)
         # Those options are directly changed with the prefix manager and skip
         # any calls to regedit.
         managed_keys = {
             'ShowCrashDialog': prefix_manager.set_crash_dialogs,
-            'UseXVidMode': prefix_manager.use_xvid_mode
+            'UseXVidMode': prefix_manager.use_xvid_mode,
+            'Desktop': prefix_manager.set_virtual_desktop,
+            'WineDesktop': prefix_manager.set_desktop_size
         }
 
         for key, path in self.reg_keys.items():
@@ -1037,18 +1061,13 @@ class wine(Runner):
             if not value or value == 'auto' and key not in managed_keys.keys():
                 prefix_manager.clear_registry_key(path)
             elif key in self.runner_config:
-                if key == 'Desktop' and value is True:
-                    enable_wine_desktop = True
-                    continue
-                elif key in managed_keys.keys():
+                if key in managed_keys.keys():
                     # Do not pass fallback 'auto' value to managed keys
                     if value == 'auto':
                         value = None
                     managed_keys[key](value)
                     continue
                 prefix_manager.set_registry_key(path, key, value)
-
-        self.set_wine_desktop(enable_wine_desktop)
 
     def toggle_dxvk(self, enable, version=None):
         dxvk_manager = dxvk.DXVKManager(self.prefix_path, arch=self.wine_arch, version=version)
@@ -1182,6 +1201,10 @@ class wine(Runner):
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get('args', '')
+        using_dxvk = self.runner_config.get('dxvk')
+
+        if using_dxvk:
+            vulkan.vulkan_check(True)
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}

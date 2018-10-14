@@ -232,6 +232,7 @@ class ConfigBox(VBox):
                 widget.set_active(False)
         else:
             self.option_changed(widget, option_name, widget.get_active())
+
     # Entry
     def generate_entry(self, option_name, label, value=None):
         """Generate an entry box."""
@@ -351,12 +352,10 @@ class ConfigBox(VBox):
             if default_path and os.path.exists(default_path):
                 file_chooser.set_current_folder(default_path)
 
-        file_chooser.entry.connect('changed', self._on_chooser_file_set, option_name)
-
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
-                path = os.path.join(self.game.directory, path)
+                path =  os.path.expanduser(path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
@@ -364,9 +363,13 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
+        file_chooser.entry.connect('changed', self._on_chooser_file_set,
+                                            option_name)
 
     def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
+        if not os.path.isabs(entry.get_text()):
+            entry.set_text(os.path.expanduser(entry.get_text()))
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
