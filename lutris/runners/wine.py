@@ -1204,7 +1204,8 @@ class wine(Runner):
         using_dxvk = self.runner_config.get('dxvk')
 
         if using_dxvk:
-            vulkan.vulkan_check(True)
+            result = vulkan.vulkan_check()
+            display_vulkan_error(result, True)
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
