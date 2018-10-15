@@ -22,6 +22,18 @@ and also in the [build scripts repository](https://github.com/lutris/buildbot)
 where you can submit bash scripts for various open source games and engines we
 do not already have.
 
+Other areas can benefit non technical help. The Lutris UI is far from being
+perfect and could use the input of people experienced with UX and design.
+Also, while not fully ready, we do appreciate receiving translations for other
+languages. Support for i18n will come in a future update.
+
+Another area where users can help is [confirming some
+issues](https://github.com/lutris/lutris/issues?q=is%3Aissue+is%3Aopen+label%3A%22need+help%22)
+that can't be reproduced on the developers setup. Other issues, tagged [need
+help](https://github.com/lutris/lutris/issues?q=is%3Aissue+is%3Aopen+label%3A%22need+help%22)
+might be a bit more technical to resolve but you can always have a look and see
+if they fit your area of expertise.
+
 Formatting your code
 --------------------
 
