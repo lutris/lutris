@@ -367,6 +367,10 @@ class Runner:
     def remove_game_data(self, game_path=None):
         system.remove_folder(game_path)
 
+    def can_uninstall(self):
+        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        return os.path.isdir(runner_path)
+
     def uninstall(self):
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):

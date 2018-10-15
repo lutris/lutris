@@ -64,8 +64,12 @@ class FileChooserEntry(Gtk.Box):
         self.file_chooser_dlg.set_create_folders(True)
 
         if default_path:
+            if not os.path.isdir(default_path):
+                default_folder = os.path.dirname(default_path)
+            else:
+                default_folder = default_path
             self.file_chooser_dlg.set_current_folder(
-                os.path.expanduser(default_path)
+                os.path.expanduser(default_folder)
             )
 
         button = Gtk.Button()

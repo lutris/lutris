@@ -80,6 +80,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.load_icon_type_from_settings(view_type)
         self.filter_installed = \
             settings.read_setting('filter_installed') == 'true'
+        self.show_installed_first = \
+            settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
         self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
@@ -89,8 +91,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             service.sync_with_lutris()
 
         # Window initialization
-        self.game_list = pga.get_games()
-        self.game_store = GameStore([], self.icon_type, self.filter_installed)
+        self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
+        self.game_store = GameStore([], self.icon_type, self.filter_installed, self.show_installed_first)
         self.view = self.get_view(view_type)
         super().__init__(default_width=width,
                          default_height=height,
@@ -188,6 +190,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'show-installed-only': Action(self.on_show_installed_state_change, type='b',
                                           default=self.filter_installed,
                                           accel='<Primary>h'),
+            'show-installed-first': Action(self.on_show_installed_first_state_change, type='b',
+                                           default=self.show_installed_first),
             'view-type': Action(self.on_viewtype_state_change, type='s',
                                 default=self.current_view_type),
             'icon-type': Action(self.on_icontype_state_change, type='s',
@@ -254,15 +258,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     'name': appmanifest.name,
                     'slug': appmanifest.slug,
                 }
-            game_id = steam.mark_as_installed(appmanifest.steamid,
-                                              runner_name,
-                                              game_info)
-            game_ids = [game['id'] for game in self.game_list]
-            if game_id not in game_ids:
-                self.add_game_to_view(game_id)
-            else:
-                self.view.set_installed(Game(game_id))
-
+            if steam in get_services_synced_at_startup():
+                game_id = steam.mark_as_installed(appmanifest.steamid,
+                                                  runner_name,
+                                                  game_info)
+                game_ids = [game['id'] for game in self.game_list]
+                if game_id not in game_ids:
+                    self.add_game_to_view(game_id)
+                else:
+                    self.view.set_installed(Game(game_id))
     @staticmethod
     def set_dark_theme(is_dark):
         gtksettings = Gtk.Settings.get_default()
@@ -279,6 +283,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         This must be called each time the view is rebuilt.
         """
+        self.connect('delete-event', lambda *x: self.hide_on_delete())
         self.view.connect('game-installed', self.on_game_installed)
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
@@ -495,6 +500,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_preferences_activate(self, *args):
         """Callback when preferences is activated."""
         SystemConfigDialog(parent=self)
+
+    def on_show_installed_first_state_change(self, action, value):
+        action.set_state(value)
+        show_installed_first = value.get_boolean()
+        self.set_show_installed_first_state(show_installed_first)
+
+    def set_show_installed_first_state(self, show_installed_first):
+        self.show_installed_first = show_installed_first
+        setting_value = 'true' if show_installed_first else 'false'
+        settings.write_setting(
+            'show_installed_first', setting_value
+        )
+        self.game_store.sort_view(show_installed_first)
+        self.game_store.modelfilter.refilter()
 
     def on_show_installed_state_change(self, action, value):
         action.set_state(value)

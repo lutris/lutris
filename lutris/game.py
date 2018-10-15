@@ -70,14 +70,14 @@ class Game(object):
 
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
-        if "CUSTOM" == message['error']:
+        if message['error'] == "CUSTOM":
             message_text = message['text'].replace('&', '&amp;')
             dialogs.ErrorDialog(message_text)
-        elif "RUNNER_NOT_INSTALLED" == message['error']:
+        elif message['error'] == "RUNNER_NOT_INSTALLED":
             dialogs.ErrorDialog('Error the runner is not installed')
-        elif "NO_BIOS" == message['error']:
+        elif message['error'] == "NO_BIOS":
             dialogs.ErrorDialog("A bios file is required to run this game")
-        elif "FILE_NOT_FOUND" == message['error']:
+        elif message['error'] == "FILE_NOT_FOUND":
             filename = message['file']
             if filename:
                 message_text = "The file {} could not be found".format(
@@ -86,8 +86,7 @@ class Game(object):
             else:
                 message_text = "No file provided"
             dialogs.ErrorDialog(message_text)
-
-        elif "NOT_EXECUTABLE" == message['error']:
+        elif message['error'] == "NOT_EXECUTABLE":
             message_text = message['file'].replace('&', '&amp;')
             dialogs.ErrorDialog("The file %s is not executable" % message_text)
 
@@ -196,10 +195,10 @@ class Game(object):
                 'hide-wine-systemwide-install-warning',
                 "Wine is not installed on your system.",
                 secondary_message="Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies. Please "
+                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
                 "follow the instructions given in the <a "
                 "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
-                "install Wine"
+                "install Wine."
             )
         return True
 
@@ -353,7 +352,7 @@ class Game(object):
         if monitoring_disabled:
             dialogs.ErrorDialog("<b>The process monitor is disabled, Lutris "
                                 "won't be able to keep track of the game status. "
-                                "If this game require the process monitor to be "
+                                "If this game requires the process monitor to be "
                                 "disabled in order to run, please submit an "
                                 "issue.</b>")
         process_watch = not monitoring_disabled

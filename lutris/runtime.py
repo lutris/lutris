@@ -164,6 +164,8 @@ def get_paths(prefer_system_libs=True, wine_path=None):
             paths.append("/usr/lib")
             if os.path.exists("/usr/lib32"):
                 paths.append("/usr/lib32")
+            if os.path.exists("/usr/lib64"):
+                paths.append("/usr/lib64")
             if os.path.exists("/lib/x86_64-linux-gnu"):
                 paths.append("/lib/x86_64-linux-gnu")
             if os.path.exists("/lib/i386-linux-gnu"):

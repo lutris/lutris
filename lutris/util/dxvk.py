@@ -18,7 +18,7 @@ DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
-    dxvk_path = os.path.join(RUNTIME_DIR, 'dxvk');
+    dxvk_path = os.path.join(RUNTIME_DIR, 'dxvk')
     if not os.path.isdir(dxvk_path):
         os.mkdir(dxvk_path)
     versions_path = os.path.join(dxvk_path, 'dxvk_versions.json')
@@ -80,7 +80,7 @@ class DXVKManager:
     def is_dxvk_dll(dll_path):
         """Check if a given DLL path is provided by DXVK
 
-        Very basic check to see if a dll exists and is over 1MB. If this is the
+        Very basic check to see if a dll exists and is over 256K. If this is the
         case, then consider the DLL to be from DXVK
         """
         if os.path.exists(dll_path):
@@ -88,7 +88,7 @@ class DXVKManager:
             dll_size = dll_stats.st_size
         else:
             dll_size = 0
-        return dll_size > 1024 * 1024
+        return dll_size > 1024 * 256
 
     def is_available(self):
         """Return whether DXVK is cached locally"""
