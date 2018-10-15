@@ -64,20 +64,20 @@ project's code base.
 Project structure
 -----------------
 
-[root]-+ Config files and READMEs
-       |
-       +-[bin] Main lutris executable script
-       +-[debian] Debian / Ubuntu packaging configuration
-       +-[docs] User documentation
-       +-[lutris]-+ Source folder
-       |          |
-       |          +-[gui] Gtk UI code
-       |          +-[installer] Install script interpreter
-       |          +-[migrations] Migration scripts for user side changes
-       |          +-[runners] Runner code, detailing launch options and settings
-       |          +-[services] External services (Steam, GOG, ...)
-       |          +-[util] Generic utilities
-       |
-       +-[po] Translation files
-       +-[share] Lutris resources like icons, ui files, scripts
-       +-[tests] Unit tests
+    [root]-+ Config files and READMEs
+        |
+        +-[bin] Main lutris executable script
+        +-[debian] Debian / Ubuntu packaging configuration
+        +-[docs] User documentation
+        +-[lutris]-+ Source folder
+        |          |
+        |          +-[gui] Gtk UI code
+        |          +-[installer] Install script interpreter
+        |          +-[migrations] Migration scripts for user side changes
+        |          +-[runners] Runner code, detailing launch options and settings
+        |          +-[services] External services (Steam, GOG, ...)
+        |          +-[util] Generic utilities
+        |
+        +-[po] Translation files
+        +-[share] Lutris resources like icons, ui files, scripts
+        +-[tests] Unit tests
