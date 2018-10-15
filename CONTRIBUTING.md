@@ -16,6 +16,12 @@ If you are less experienced with code, you can also have a look at the issues
 that are [not part of a release](https://github.com/lutris/lutris/milestone/29)
 which usually include problems with specific games or runners.
 
+Don't forget that lutris is not only a desktop client, there are also a lot of
+issues to work on [on the website](https://github.com/lutris/website/issues)
+and also in the [build scripts repository](https://github.com/lutris/buildbot)
+where you can submit bash scripts for various open source games and engines we
+do not already have.
+
 Formatting your code
 --------------------
 
