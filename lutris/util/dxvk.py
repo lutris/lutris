@@ -5,7 +5,7 @@ import time
 import shutil
 import urllib.request
 
-from lutris.settings import RUNTIME_DIR
+from lutris.settings import RUNTIME_DIR, DATA_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
@@ -14,7 +14,13 @@ from lutris.util.system import path_exists
 
 CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
-
+DXVK_VERSIONS = [
+    "0.71", "0.70", "0.65",
+    "0.64", "0.63", "0.62",
+    "0.54", "0.53", "0.52",
+    "0.42", "0.31", "0.21"
+]
+DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
@@ -36,18 +42,12 @@ def get_dxvk_versions():
 
     return dxvk_versions
 
-
-try:
-    DXVK_VERSIONS = get_dxvk_versions()
-except Exception as ex:  # pylint: disable= broad-except
-    logger.error(ex)
-    DXVK_VERSIONS = [
-        "0.71", "0.70", "0.65",
-        "0.64", "0.63", "0.62",
-        "0.54", "0.53", "0.52",
-        "0.42", "0.31", "0.21"
-    ]
-DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+def init_dxvk_versions():
+    try:
+        DXVK_VERSIONS = get_dxvk_versions()
+    except Exception as ex:  # pylint: disable= broad-except
+        logger.error(ex)
+    DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
 
 class DXVKManager:

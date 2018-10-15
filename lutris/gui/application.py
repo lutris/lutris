@@ -29,6 +29,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import pga
 from lutris.config import check_config
+from lutris.util.dxvk import init_dxvk_versions
 from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
@@ -52,6 +53,7 @@ class Application(Gtk.Application):
         gettext.textdomain("lutris")
 
         check_config()
+        init_dxvk_versions()
         migrate()
         update_platforms()
 
