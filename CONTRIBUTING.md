@@ -48,3 +48,36 @@ can add `(Closes #nnn)` or `(Fixes #nnn)` to your PR title or message, where
 `nnn` is the ticket number you're fixing. If you have been fixing your PR with
 several commits, please consider squashing those commits into one with `git
 rebase -i`.
+
+Developer resources
+-------------------
+
+Lutris uses Python 3 and GObject / Gtk+ 3 as its core stack, here are some
+links to some resources that can help you familiarize yourself with the
+project's code base.
+
+* [Python 3 documentation](https://docs.python.org/3/)
+* [PyGObject documentation](https://pygobject.readthedocs.io/en/latest/)
+* [Python Gtk 3 tutorial](https://python-gtk-3-tutorial.readthedocs.io/en/latest/objects.html)
+* [Fakegir GObject code completion](https://github.com/strycore/fakegir)
+
+Project structure
+-----------------
+
+[root]-+ Config files and READMEs
+       |
+       +-[bin] Main lutris executable script
+       +-[debian] Debian / Ubuntu packaging configuration
+       +-[docs] User documentation
+       +-[lutris]-+ Source folder
+       |          |
+       |          +-[gui] Gtk UI code
+       |          +-[installer] Install script interpreter
+       |          +-[migrations] Migration scripts for user side changes
+       |          +-[runners] Runner code, detailing launch options and settings
+       |          +-[services] External services (Steam, GOG, ...)
+       |          +-[util] Generic utilities
+       |
+       +-[po] Translation files
+       +-[share] Lutris resources like icons, ui files, scripts
+       +-[tests] Unit tests
