@@ -59,7 +59,7 @@ class ServiceSyncRow(Gtk.HBox):
 class SyncServiceDialog(Gtk.Dialog):
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, title="Import local games", parent=parent)
+        Gtk.Dialog.__init__(self, title="Configure local game import", parent=parent)
         self.connect("delete-event", lambda *x: self.destroy())
         self.set_border_width(10)
         self.set_size_request(512, 0)
@@ -68,8 +68,8 @@ class SyncServiceDialog(Gtk.Dialog):
         self.get_content_area().add(box_outer)
 
         description_label = Gtk.Label()
-        description_label.set_markup("You can import games from local game sources, \n"
-                                     "you can also choose to sync everytime Lutris starts")
+        description_label.set_markup("You can choose which local game sources will get synced each\n"
+                                     "time Lutris starts, or launch an immediate import of games.")
         box_outer.pack_start(description_label, False, False, 5)
 
         separator = Gtk.Separator()
