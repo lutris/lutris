@@ -260,7 +260,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_installer_selected(self, widget):
         self.prepare_install(self.installer_choice)
         self.installer_choice_box.destroy()
-        self.show_non_empty_warning()
+        self.forbid_non_empty_pfx_overwrite()
 
     def prepare_install(self, script_index):
         script = self.scripts[script_index]
@@ -284,7 +284,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
             self.non_empty_label = Gtk.Label()
             self.non_empty_label.set_markup(
                 "<b>Warning!</b> The selected path "
-                "contains files, installation might not work properly."
+                "contains files, Please change the directory."
             )
             self.widget_box.pack_start(self.non_empty_label, False, False, 10)
         else:
@@ -299,17 +299,24 @@ class InstallerWindow(Gtk.ApplicationWindow):
         """Set the installation target for the game."""
         path = text_entry.get_text()
         self.interpreter.target_path = os.path.expanduser(path)
-        self.show_non_empty_warning()
+        self.forbid_non_empty_pfx_overwrite()
 
-    def show_non_empty_warning(self):
+    def forbid_non_empty_pfx_overwrite(self):
         """Display a warning if destination folder is not empty."""
         if not self.location_entry:
             return
         path = self.location_entry.get_text()
+        
+        # replace ~ with full path so os.path.exists and listdir work correctly
+        if path.startswith("~/"):
+            path = path.replace("~", os.path.expanduser('~'), 1)
+
         if os.path.exists(path) and os.listdir(path):
             self.non_empty_label.show()
+            self.install_button.hide()
         else:
             self.non_empty_label.hide()
+            self.install_button.show()
 
     # ---------------------
     # "Get the files" stage
