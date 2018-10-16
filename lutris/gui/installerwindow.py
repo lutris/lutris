@@ -309,7 +309,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         
         # replace ~ with full path so os.path.exists and listdir work correctly
         if path.startswith("~/"):
-            path = path.replace("~",os.path.expanduser('~'),1)
+            path = path.replace("~", os.path.expanduser('~'), 1)
 
         if os.path.exists(path) and os.listdir(path):
             self.non_empty_label.show()
