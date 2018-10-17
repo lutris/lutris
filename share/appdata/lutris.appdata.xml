@@ -7,9 +7,11 @@
   <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto</summary>
   <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
   <developer_name>Lutris Team</developer_name>
-  <url type="Homepage">https://lutris.net</url>
-  <url type="Donate">https://www.patreon.com/lutris</url>
-  <url type="Support">https://forums.lutris.net</url>
+  <url type="homepage">https://lutris.net</url>
+  <url type="donate">https://www.patreon.com/lutris</url>
+  <url type="help">https://forums.lutris.net</url>
+  <url type="faq">https://lutris.net/faq</url>
+  <url type="translate">https://github.com/lutris/lutris/tree/master/po</url>
   <categories>
     <category>Game</category>
   </categories>
