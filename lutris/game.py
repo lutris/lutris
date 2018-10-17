@@ -10,7 +10,7 @@ from gi.repository import GLib, Gtk
 from lutris import pga
 from lutris import runtime
 from lutris.services import xdg
-from lutris.runners import import_runner, InvalidRunner
+from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
@@ -70,14 +70,14 @@ class Game(object):
 
     def show_error_message(self, message):
         """Display an error message based on the runner's output."""
-        if "CUSTOM" == message['error']:
+        if message['error'] == "CUSTOM":
             message_text = message['text'].replace('&', '&amp;')
             dialogs.ErrorDialog(message_text)
-        elif "RUNNER_NOT_INSTALLED" == message['error']:
+        elif message['error'] == "RUNNER_NOT_INSTALLED":
             dialogs.ErrorDialog('Error the runner is not installed')
-        elif "NO_BIOS" == message['error']:
+        elif message['error'] == "NO_BIOS":
             dialogs.ErrorDialog("A bios file is required to run this game")
-        elif "FILE_NOT_FOUND" == message['error']:
+        elif message['error'] == "FILE_NOT_FOUND":
             filename = message['file']
             if filename:
                 message_text = "The file {} could not be found".format(
@@ -86,8 +86,7 @@ class Game(object):
             else:
                 message_text = "No file provided"
             dialogs.ErrorDialog(message_text)
-
-        elif "NOT_EXECUTABLE" == message['error']:
+        elif message['error'] == "NOT_EXECUTABLE":
             message_text = message['file'].replace('&', '&amp;')
             dialogs.ErrorDialog("The file %s is not executable" % message_text)
 
@@ -191,6 +190,16 @@ class Game(object):
                 )
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
+        if "wine" in self.runner_name and not wine.get_system_wine_version():
+            dialogs.DontShowAgainDialog(
+                'hide-wine-systemwide-install-warning',
+                "Wine is not installed on your system.",
+                secondary_message="Having Wine installed on your system guarantees that "
+                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
+                "follow the instructions given in the <a "
+                "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+                "install Wine."
+            )
         return True
 
     def play(self):
@@ -341,7 +350,11 @@ class Game(object):
 
         monitoring_disabled = system_config.get('disable_monitoring')
         if monitoring_disabled:
-            show_obnoxious_process_monitor_message()
+            dialogs.ErrorDialog("<b>The process monitor is disabled, Lutris "
+                                "won't be able to keep track of the game status. "
+                                "If this game requires the process monitor to be "
+                                "disabled in order to run, please submit an "
+                                "issue.</b>")
         process_watch = not monitoring_disabled
 
         if self.runner.system_config.get('disable_compositor'):
@@ -464,6 +477,8 @@ class Game(object):
 
     def notify_steam_game_changed(self, appmanifest):
         """Receive updates from Steam games and set the thread's ready state accordingly"""
+        if not self.game_thread:
+            return
         if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
             logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
@@ -471,21 +486,3 @@ class Game(object):
             logger.info("Steam game %s updating, setting game thread as not ready",
                         appmanifest.steamid)
             self.game_thread.ready_state = False
-
-
-def show_obnoxious_process_monitor_message():
-    """Display an annoying message for people who disable the process monitor"""
-    for _ in range(5):
-        logger.critical("")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("   ***  YOU HAVE THE PROCESS MONITOR DISABLED!!!!!  ***")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("THIS OPTION WAS IMPLEMENTED AS A WORKAROUND FOR A BUG THAT HAS BEEN FIXED!!11!!1")
-    logger.critical("RUNNING GAMES WITH THE PROCESS MONITOR DISABLED IS NOT SUPPORTED!!!")
-    logger.critical("YOU ARE DISCOURAGED FROM REPORTING ISSUES WITH THE PROCESS MONITOR DISABLED!!!")
-    logger.critical("THIS OPTION WILL BE REMOVED IN A FUTURE RELEASE!!!!!!!")
-    logger.critical("IF YOU THINK THIS OPTION CAN BE USEFUL FOR ANY MEANS PLEASE LET US KNOW!!!!")
-    for _ in range(5):
-        logger.critical("")

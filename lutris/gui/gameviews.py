@@ -47,18 +47,23 @@ class GameStore(GObject.Object):
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,))
     }
 
-    def __init__(self, games, icon_type, filter_installed):
+    def __init__(self, games, icon_type, filter_installed, show_installed_first=False):
         super(GameStore, self).__init__()
         self.games = games
         self.icon_type = icon_type
         self.filter_installed = filter_installed
+        self.show_installed_first = show_installed_first
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
+        self.modelfilter = None
         self.runner_names = {}
 
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
-        self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+        if show_installed_first:
+            self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+        else:
+            self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         if games:
@@ -110,6 +115,15 @@ class GameStore(GObject.Object):
             if platform != self.filter_platform:
                 return False
         return True
+
+    def sort_view(self, show_installed_first=False):
+        self.show_installed_first = show_installed_first
+        if show_installed_first:
+            self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+            self.modelfilter.get_model().set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+        else:
+            self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+            self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""

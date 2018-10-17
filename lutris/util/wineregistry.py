@@ -162,6 +162,17 @@ class WineRegistry(object):
             return
         key.subkeys.clear()
 
+    def clear_subkeys(self, path, keys):
+        """Remove some subkeys from a key"""
+        key = self.keys.get(path)
+        if not key:
+            return
+        for subkey in list(key.subkeys.keys()):
+            if subkey not in keys:
+                continue
+            key.subkeys.pop(subkey)
+
+
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:
@@ -217,6 +228,11 @@ class WineRegistryKey(object):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
     def parse(self, line):
+        """Parse a registry line, populating meta and subkeys"""
+        if len(line) < 4:
+            # Line is too short, nothing to parse
+            return
+
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
@@ -224,12 +240,13 @@ class WineRegistryKey(object):
                 key, value = re.split(re.compile(r"(?<![^\\]\\\")="), line, maxsplit=1)
             except ValueError as ex:
                 logger.error("Unable to parse line %s", line)
-                raise
+                logger.exception(ex)
+                return
             key = key[1:-1]
             self.subkeys[key] = value
         elif line.startswith('@'):
-            k, v = line.split('=', 1)
-            self.subkeys['default'] = v
+            key, value = line.split('=', 1)
+            self.subkeys['default'] = value
 
     def add_to_last(self, line):
         last_subkey = list(self.subkeys.keys())[-1]

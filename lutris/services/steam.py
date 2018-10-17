@@ -228,6 +228,7 @@ def sync_appmanifest_state(appmanifest_path, name=None, slug=None):
 def sync_with_lutris(platform='linux'):
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not='')
+    proton_ids = ["858280", "930400", "961940", "228980"]
     steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
     seen_ids = set()  # Set of Steam appids seen while browsing AppManifests
 
@@ -237,7 +238,7 @@ def sync_with_lutris(platform='linux'):
             steamid = re.findall(r'(\d+)', appmanifest_file)[0]
             seen_ids.add(steamid)
             appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-            if steamid not in steamids_in_lutris:
+            if steamid not in steamids_in_lutris and steamid not in proton_ids:
                 # New Steam game, not seen before in Lutris,
                 if platform != 'linux':
                     # Windows games might require additional steps.

@@ -210,6 +210,7 @@ class winesteam(wine.wine):
 
         # Try to fix Steam's browser. Never worked but it's supposed to...
         args.append('-no-cef-sandbox')
+        args.append('-console')
 
         steam_args = self.runner_config.get('args') or ''
         if steam_args:

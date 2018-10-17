@@ -212,7 +212,8 @@ Example:
 Copying and merging directories
 -------------------------------
 
-Both merging and copying actions are done with the ``merge`` directive.
+Both merging and copying actions are done with the ``merge`` or the ``copy`` directive.
+It is not important which of these directives is used because ``copy`` is just an alias for ``merge``.
 Whether the action does a merge or copy depends on the existence of the
 destination directory. When merging into an existing directory, original files
 with the same name as the ones present in the merged directory will be
@@ -655,10 +656,10 @@ Example wine game:
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -670,7 +671,11 @@ Example wine game:
           WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
-Example gog wine game, some installer crash with with /SILENT or /VERYSILENT option (Cuphead and Star Wars: Battlefront II for example), (most options can be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline, there is undocumented gog option ``/nogui``, you need to use it when you use ``/silent`` and ``/suppressmsgboxes`` parameters):
+Example gog wine game, some installer crash with with /SILENT or /VERYSILENT
+option (Cuphead and Star Wars: Battlefront II for example), (most options can
+be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline,
+there is undocumented gog option ``/NOGUI``, you need to use it when you use
+``/SILENT`` and ``/SUPPRESSMSGBOXES`` parameters):
 
 ::
 
@@ -691,11 +696,11 @@ Example gog wine game, some installer crash with with /SILENT or /VERYSILENT opt
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -768,9 +773,9 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
       installer:
       - chmodx: installer
       - execute:
-        executable: installer
-        description: Installing game, it will take a while...
-        args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
+          file: installer
+          description: Installing game, it will take a while...
+          args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
       system:
         terminal: true
 
@@ -793,12 +798,12 @@ Example gog linux game, alternative (requires unzip):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-        args: $installer -d "$GAMEDIR" "data/noarch/*"
-        description: Extracting game data, it will take a while...
-        file: unzip
+          args: $installer -d "$GAMEDIR" "data/noarch/*"
+          description: Extracting game data, it will take a while...
+          file: unzip
       - rename:
-        dst: $GAMEDIR/Game
-        src: $GAMEDIR/data/noarch
+          dst: $GAMEDIR/Game
+          src: $GAMEDIR/data/noarch
       system:
         terminal: true
 
@@ -821,10 +826,10 @@ Example winesteam game:
         arch: win64
       installer:
       - task:
-        description: Setting up wine prefix
-        name: create_prefix
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          description: Setting up wine prefix
+          name: create_prefix
+          prefix: $GAMEDIR/prefix
+          arch: win64
       winesteam:
         Desktop: true
         WineDesktop: 1024x768

@@ -40,6 +40,11 @@ class WinePrefixManager:
         registry.clear_key(self.get_key_path(key))
         registry.save()
 
+    def clear_registry_subkeys(self, key, subkeys):
+        registry = WineRegistry(self.get_registry_path(key))
+        registry.clear_subkeys(self.get_key_path(key), subkeys)
+        registry.save()
+
     def override_dll(self, dll, mode):
         key = self.hkcu_prefix + "/Software/Wine/DllOverrides"
         if mode.startswith("dis"):
@@ -99,6 +104,27 @@ class WinePrefixManager:
             "ShowCrashDialog",
             1 if enabled else 0
         )
+
+    def set_virtual_desktop(self, enabled):
+        """Enable or disable wine virtual desktop.
+        The Lutris virtual desktop is refered to as 'WineDesktop', in Wine the
+        virtual desktop name is 'default'.
+        """
+        logger.debug('Virtual desktop: %s', enabled)
+
+        path = self.hkcu_prefix + '/Software/Wine/Explorer'
+        if enabled:
+            self.set_registry_key(path, 'Desktop', 'WineDesktop')
+        else:
+            self.clear_registry_key(path)
+
+    def set_desktop_size(self, desktop_size):
+        """Sets the desktop size if one is given but do not reset the key if
+        one isn't.
+        """
+        path = self.hkcu_prefix + '/Software/Wine/Explorer/Desktops'
+        if desktop_size:
+            self.set_registry_key(path, 'WineDesktop', desktop_size)
 
     def use_xvid_mode(self, enabled):
         """Set this to "Y" to allow wine switch the resolution using XVidMode extension."""
