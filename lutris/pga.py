@@ -325,6 +325,18 @@ def get_used_runners():
     return [result[0] for result in results if result[0]]
 
 
+def get_used_runners_game_count():
+    """Return a dictionary listing for each runner in use, how many games are using it."""
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = ("select runner, count(*) from games "
+                 "where runner is not null "
+                 "group by runner "
+                 "order by runner")
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return {result[0]: result[1] for result in results if result[0]}
+
+
 def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(PGA_DB) as cursor:
@@ -333,3 +345,18 @@ def get_used_platforms():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
+
+
+def get_used_platforms_game_count():
+    """Return a dictionary listing for each platform in use, how many games are using it."""
+    with sql.db_cursor(PGA_DB) as cursor:
+        # The extra check for 'installed is 1' is needed because
+        # the platform lists don't show uninstalled games, but the platform of a game
+        # is remembered even after the game is uninstalled.
+        query = ("select platform, count(*) from games "
+                 "where platform is not null and platform is not '' and installed is 1 "
+                 "group by platform "
+                 "order by platform")
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return {result[0]: result[1] for result in results if result[0]}
