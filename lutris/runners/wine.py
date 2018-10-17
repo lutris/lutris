@@ -529,7 +529,7 @@ def display_vulkan_error(option, on_launch):
                         secondary_message="Please follow the installation "
                         "procedures as described in\n"
                         "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
-                        "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
+                        "How-to:-DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
                         checkbox_message=checkbox_message)
     if settings.read_setting(setting) == 'True':
         return True
@@ -665,7 +665,8 @@ class wine(Runner):
         def dxvk_vulkan_callback(config):
             result = vulkan.vulkan_check()
             if result != vulkan_available.ALL:
-                display_vulkan_error(result, False)
+                if not display_vulkan_error(result, False):
+                    return False
             return True
 
         self.runner_options = [
