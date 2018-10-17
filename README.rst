@@ -118,18 +118,17 @@ Command line options
 
 The following command line arguments are available::
 
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
-  -v, --verbose         Verbose output
-  -d, --debug           Show debug messages
-  -i INSTALLER_FILE, --install=INSTALLER_FILE
-                        Install a game from a yml file
-  -l, --list-games      List all games in database
-  -o, --installed       Only list installed games
-  -j, --json            Display the list of games in JSON format
-  --list-steam-games    List available Steam games
-  --list-steam-folders  List all known Steam library folders
-  --reinstall           Reinstall game
+-v, --version              Print the version of Lutris and exit
+-d, --debug                Show debug messages
+-i, --install              Install a game from a yml file
+-e, --exec                 Execute a program with the lutris runtime
+-l, --list-games           List all games in database
+-o, --installed            Only list installed games
+-s, --list-steam-games     List available Steam games
+--list-steam-folders       List all known Steam library folders
+-j, --json                 Display the list of games in JSON format
+--reinstall                Reinstall game
+--display=DISPLAY          X display to use
 
 Additionally, you can pass a ``lutris:`` protocol link followed by a game
 identifier on the command line such as::
