@@ -523,13 +523,17 @@ def display_vulkan_error(option, on_launch):
     else:
         checkbox_message = "Enable anyway and do not show this message again."
 
-    DontShowAgainDialog('hide-no-vulkan-warning',
+    setting = 'hide-no-vulkan-warning'
+    DontShowAgainDialog(setting,
                         message,
                         secondary_message="Please follow the installation "
                         "procedures as described in\n"
                         "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
                         "How-to:-DXVK(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
                         checkbox_message=checkbox_message)
+    if settings.read_setting(setting) == 'True':
+        return True
+    return False
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -1208,7 +1212,8 @@ class wine(Runner):
         if using_dxvk:
             result = vulkan.vulkan_check()
             if result != vulkan_available.ALL:
-                display_vulkan_error(result, True)
+                if not display_vulkan_error(result, True):
+                    return {'error': 'VULKAN_NOT_FOUND'}
 
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
