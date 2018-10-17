@@ -443,7 +443,7 @@ def is_version_installed(version):
 def is_esync_limit_set():
     nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
     nolimit = int(nolimit)
-    if nolimit > 1048576:
+    if nolimit < 1048576:
         return False
     else:
         return True
@@ -486,7 +486,7 @@ def support_legacy_version(version):
     return version
 
 def is_version_esync(version):
-    if version.find('esync'):
+    if version.find('esync') != -1:
         return True
     return False
 
@@ -532,6 +532,28 @@ def display_vulkan_error(option, on_launch):
                         "How-to:-DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
                         checkbox_message=checkbox_message)
     if settings.read_setting(setting) == 'True':
+        return True
+    return False
+
+def esync_display_limit_warning():
+    ErrorDialog("Your limits are not set correctly."
+                " Please increase them as described here:"
+                " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
+                "How-to:-Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>")
+
+def esync_display_version_warning(on_launch):
+    setting = 'hide-wine-non-esync-version-warning'
+    if on_launch:
+        checkbox_message= "Launch anyway and do not show this message again."
+    else:
+        checkbox_message= "Enable anyway and do not show this message again."
+
+    DontShowAgainDialog(setting,
+                        "Incompatible Wine version detected",
+                        secondary_message="The wine build you have selected does not seem to support Esync.\n"
+                        "Please switch to an esync-capable version.",
+                        checkbox_message=checkbox_message)
+    if settings.read_setting(setting) == 'True':#
         return True
     return False
 
@@ -649,17 +671,18 @@ class wine(Runner):
             return version_choices
 
         def esync_limit_callback(config):
-            if not is_esync_limit_set():
-                ErrorDialog("Your limits are not set correctly."
-                            " Please increase them as described here:"
-                            " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
-                            "https://github.com/lutris/lutris/wiki/How-to:-Esync</a>")
+            limits_set = is_esync_limit_set()
+            wine_ver = is_version_esync(config['version'])
+            if not limits_set and not wine_ver:
+                esync_display_version_warning(False)
+                esync_display_limit_warning()
                 return False
-            if is_version_esync(config['version']):
-                DontShowAgainDialog('hide-wine-non-esync-version-warning',
-                "Incompatible Wine version detected",
-                secondary_message="The wine build you have selected does not seem to support Esync.\n"
-                "Please switch to an esync-capable version (unless you know what you are doing).")
+            elif not limits_set:
+                esync_display_limit_warning()
+                return False
+            elif not wine_ver:
+                if not esync_display_version_warning(False):
+                    return False
             return True
 
         def dxvk_vulkan_callback(config):
@@ -1126,7 +1149,9 @@ class wine(Runner):
         if self.prefix_path:
             env['WINEPREFIX'] = self.prefix_path
 
-        env["WINEESYNC"] = "1" if self.runner_config.get('esync') else "0"
+        if not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
+            env["WINEESYNC"] = "1" if self.runner_config.get('esync') else "0"
+
         overrides = self.get_dll_overrides()
         if overrides:
             env['WINEDLLOVERRIDES'] = get_overrides_env(overrides)
@@ -1221,6 +1246,22 @@ class wine(Runner):
 
         launch_info = {}
         launch_info['env'] = self.get_env(os_env=False)
+
+        if 'WINEESYNC' in launch_info['env']:
+            if launch_info['env']['WINEESYNC'] == "1":
+                limit_set = is_esync_limit_set()
+                wine_ver = is_version_esync(self.runner_config['version'])
+
+                if not limit_set and not wine_ver:
+                    esync_display_version_warning(True)
+                    esync_display_limit_warning()
+                    return {'error': 'ESYNC_LIMIT_NOT_SET'}
+                elif not is_esync_limit_set():
+                    esync_display_limit_warning()
+                    return {'error': 'ESYNC_LIMIT_NOT_SET'}
+                elif not is_version_esync(self.runner_config['version']):
+                    if not esync_display_version_warning(True):
+                        return {'error': 'NON_ESYNC_WINE_VERSION'}
 
         command = [self.get_executable()]
 
