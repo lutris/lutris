@@ -32,8 +32,8 @@ def get_dxvk_versions():
     # Download tags if the versions_path does not exist or is more than a day old
     print(os.path.exists(versions_path))
     if (
-            not os.path.exists(versions_path) or True
-            #os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
+            not os.path.exists(versions_path) or
+            os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
     ):
         urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
 
