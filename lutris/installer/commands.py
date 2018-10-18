@@ -113,6 +113,13 @@ class CommandsMixin:
             command = data
             include_processes = []
             exclude_processes = []
+        elif isinstance(data, list):
+            args = data[1:]
+            file_ref = data[0]
+            command = False
+            include_processes = []
+            exclude_processes = []
+
         else:
             raise ScriptingError(
                 'No parameters supplied to execute command.',
