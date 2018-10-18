@@ -485,8 +485,12 @@ def support_legacy_version(version):
         version += '-i386'
     return version
 
-def is_version_esync(version):
-    if version.find('esync') != -1:
+def is_version_esync(version, path):
+    command = path + " --version"
+    wine_ver = str(subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read())
+    if wine_ver.lower().find('esync') != -1:
+        return True
+    if version.lower().find('esync') != -1:
         return True
     return False
 
@@ -668,7 +672,8 @@ class wine(Runner):
 
         def esync_limit_callback(config):
             limits_set = is_esync_limit_set()
-            wine_ver = is_version_esync(config['version'])
+            wine_path = self.get_path_for_version(config['version'])
+            wine_ver = is_version_esync(config['version'], wine_path)
             if not limits_set and not wine_ver:
                 esync_display_version_warning(False)
                 esync_display_limit_warning()
@@ -1244,7 +1249,7 @@ class wine(Runner):
         if 'WINEESYNC' in launch_info['env']:
             if launch_info['env']['WINEESYNC'] == "1":
                 limit_set = is_esync_limit_set()
-                wine_ver = is_version_esync(self.runner_config['version'])
+                wine_ver = is_version_esync(self.runner_config['version'], self.get_executable())
 
                 if not limit_set and not wine_ver:
                     esync_display_version_warning(True)
@@ -1253,7 +1258,7 @@ class wine(Runner):
                 elif not is_esync_limit_set():
                     esync_display_limit_warning()
                     return {'error': 'ESYNC_LIMIT_NOT_SET'}
-                elif not is_version_esync(self.runner_config['version']):
+                elif not wine_ver:
                     if not esync_display_version_warning(True):
                         return {'error': 'NON_ESYNC_WINE_VERSION'}
 
