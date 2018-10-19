@@ -322,23 +322,38 @@ class CommandsMixin:
 
     def package(self, params):
         """install a package on the preffered package manager"""
-        import os.path
+        # TODO: possibility to install in a user owned prefix, to allow to use as non root user ( still allow as root, to save disk space )
         # get the sytem package manager
-        portageInstalled = os.path.isdir("/usr/share/portage")
-        if portageInstalled:
-            packageManagerToUse = "portage"
+        is_portage_installed = os.path.isdir("/usr/share/portage")
+        if is_portage_installed:
+            package_manager_to_use = "portage"
         else:
             raise ScriptingError("No compatible system manager found on your system. actually, only portage work.")
+
         # get the package id
-        package = params.get(packageManagerToUse)
+        package = params.get(package_manager_to_use)
         if type(package) != str:
-            raise ScriptingError("no package specified for the '"+packageManagerToUse+"' package manager")
+            # TODO: test if the programmer didn't just put an other type
+            raise ScriptingError("no package specified for the '%s' package manager" % package_manager_to_use)
+
+        # parameter that package manager could use :
+        command = [] # the command script need to run to install the package ( promptless )
+        use_command = False # does the command need to be run ?
+        use_command_root = False # does the command need to be run as root ( useless without use_command )
+
         # install via the package manager
-        if packageManagerToUse == "portage":# for gentoo/linux, using emerge
-            return self.execute("kdesu -t -c 'emerge "+package+" --nospinner'")
+        if package_manager_to_use == "portage":# for gentoo/linux, using emerge
+            use_command = True
+            use_command_root = True
+            command = "emerge " + shlex.quote(package) + " --nospinner"
         # TODO: add the apt package manager
         else:
-            raise ScriptingError("Lutris isn't compatible with the '"+packageManager+"' package manager at this time.")
+            raise ScriptingError("Lutris isn't compatible with the '"+package_manager_to_use+"' package manager at this time.")
+
+        if use_command == True:
+            if use_command_root:
+                return self.execute_root(command)
+            return self.execute(command)
 
     def rename(self, params):
         """Rename file or folder."""
