@@ -1,10 +1,6 @@
 import datetime
 
 
-def sec_to_hrs(dur):
-    return dur/3600
-
-
 class Timer:
 
     def start_t(self):
@@ -14,12 +10,12 @@ class Timer:
         self.end = datetime.datetime.now().replace(microsecond=0)
 
     def duration(self):
-        return (self.end - self.start).seconds
+        return ((self.end - self.start).seconds) / 3600
 
     def increment(self, saved_dur):
         if saved_dur == '':
-            return "%.1f hrs play time" % sec_to_hrs(self.duration())
+            return "%.1f hrs play time" % self.duration()
 
         saved_dur = float(saved_dur.split()[0])
-        new_dur = saved_dur + sec_to_hrs(self.duration())
+        new_dur = saved_dur + self.duration()
         return "%.1f hrs play time" % new_dur
