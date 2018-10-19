@@ -14,8 +14,8 @@ class Timer:
 
     def increment(self, saved_dur):
         if saved_dur == '':
-            return "%.1f hrs play time" % self.duration()
+            return "%.1f hrs" % self.duration()
 
         saved_dur = float(saved_dur.split()[0])
         new_dur = saved_dur + self.duration()
-        return "%.1f hrs play time" % new_dur
+        return "%.1f hrs" % new_dur
