@@ -218,8 +218,13 @@ class Game(object):
         else:
             self.do_play(True)
 
-    def do_play(self, prelaunched, _error=None):
+    def do_play(self, prelaunched, error=None):
+        if error:
+            logger.error(error)
+            dialogs.ErrorDialog(str(error))
         if not prelaunched:
+            logger.error("Game prelaunch unsuccessful")
+            dialogs.ErrorDialog("An error prevented the game from running")
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config

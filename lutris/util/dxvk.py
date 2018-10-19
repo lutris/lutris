@@ -5,7 +5,7 @@ import time
 import shutil
 import urllib.request
 
-from lutris.settings import RUNTIME_DIR, DATA_DIR
+from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
@@ -22,6 +22,7 @@ DXVK_VERSIONS = [
     "0.42", "0.31", "0.21"
 ]
 DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+
 
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
@@ -49,6 +50,10 @@ def init_dxvk_versions():
     except Exception as ex:  # pylint: disable= broad-except
         logger.error(ex)
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+
+
+class UnavailableDXVKVersion(RuntimeError):
+    """Exception raised when a version of DXVK is not found"""
 
 
 class DXVKManager:
@@ -97,9 +102,7 @@ class DXVKManager:
 
     def download(self):
         """Download DXVK to the local cache"""
-        # There's a glitch in one of the archive's names
-        fixed_version = 'v0.40' if self.version == '0.40' else self.version
-        dxvk_url = self.base_url.format(self.version, fixed_version)
+        dxvk_url = self.base_url.format(self.version, self.version)
         if self.is_available():
             logger.warning("DXVK already available at %s", self.dxvk_path)
 
@@ -107,15 +110,16 @@ class DXVKManager:
         downloader = Downloader(dxvk_url, dxvk_archive_path)
         downloader.start()
         while downloader.check_progress() < 1:
-            time.sleep(1)
+            time.sleep(0.3)
         if not os.path.exists(dxvk_archive_path):
             logger.error("DXVK %s not downloaded")
             return
         if os.stat(dxvk_archive_path).st_size:
             extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
+            os.remove(dxvk_archive_path)
         else:
-            logger.error("%s is an empty file", self.dxvk_path)
-        os.remove(dxvk_archive_path)
+            os.remove(dxvk_archive_path)
+            raise UnavailableDXVKVersion("Failed to download DXVK %s" % self.version)
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Copies DXVK dlls to the appropriate destination"""
