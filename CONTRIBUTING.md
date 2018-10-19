@@ -62,6 +62,9 @@ pylint checks. We highly recommend that you install a pylint plugin for your
 code editor. Once you have pylint set up to check the code, you can configure
 it to use 120 characters max per line instead of 80.
 
+You can help fixing formatting issues or other code smells by having a look at
+the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
+
 Writing tests
 -------------
 
