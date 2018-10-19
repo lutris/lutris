@@ -58,7 +58,7 @@ def sync_game_details(remote_library):
         if not sync_required:
             continue
 
-        logger.debug("Syncing details for %s" % slug)
+        logger.debug("Syncing details for %s", slug)
         game_id = pga.add_or_update(
             name=local_game['name'],
             runner=local_game['runner'],
@@ -88,17 +88,17 @@ def sync_from_remote():
     :rtype: tuple of sets, added games and updated games
     """
     local_library = pga.get_games()
-    local_slugs = set([game['slug'] for game in local_library])
+    local_slugs = {game['slug'] for game in local_library}
 
     try:
         remote_library = api.get_library()
     except Exception as ex:
-        logger.error("Error while downloading the remote library: %s" % ex)
+        logger.error("Error while downloading the remote library: %s", ex)
         remote_library = {}
-    remote_slugs = set([game['slug'] for game in remote_library])
+    remote_slugs = {game['slug'] for game in remote_library}
 
     missing_slugs = remote_slugs.difference(local_slugs)
 
     added = sync_missing_games(missing_slugs, remote_library)
     updated = sync_game_details(remote_library)
-    return (added, updated)
+    return added, updated

@@ -18,7 +18,7 @@ from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 
 
-class Game(object):
+class Game:
     """This class takes cares of loading the configuration for a game
        and running it.
     """
@@ -26,8 +26,8 @@ class Game(object):
     STATE_STOPPED = 'stopped'
     STATE_RUNNING = 'running'
 
-    def __init__(self, id=None):
-        self.id = id
+    def __init__(self, game_id=None):
+        self.id = game_id
         self.runner = None
         self.game_thread = None
         self.heartbeat = None
@@ -36,7 +36,7 @@ class Game(object):
         self.state = self.STATE_IDLE
         self.exit_main_loop = False
 
-        game_data = pga.get_game_by_field(id, 'id')
+        game_data = pga.get_game_by_field(game_id, 'id')
         self.slug = game_data.get('slug') or ''
         self.runner_name = game_data.get('runner') or ''
         self.directory = game_data.get('directory') or ''
@@ -68,7 +68,8 @@ class Game(object):
             value += " (%s)" % self.runner_name
         return value
 
-    def show_error_message(self, message):
+    @staticmethod
+    def show_error_message(message):
         """Display an error message based on the runner's output."""
         if message['error'] == "CUSTOM":
             message_text = message['text'].replace('&', '&amp;')
@@ -127,11 +128,11 @@ class Game(object):
 
             if not (self.compositor_disabled or self.stop_compositor == ""):
                 system.execute(self.stop_compositor, shell=True)
-                self.compositor_disabled = True;
+                self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
-            logger.debug("Removing game %s from disk" % self.id)
+            logger.debug("Removing game %s from disk", self.id)
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
@@ -140,7 +141,7 @@ class Game(object):
             from_library = True
 
         if from_library:
-            logger.debug("Removing game %s from library" % self.id)
+            logger.debug("Removing game %s from library", self.id)
             pga.delete_game(self.id)
         else:
             pga.set_uninstalled(self.id)
@@ -185,9 +186,7 @@ class Game(object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                logger.warning("Runtime updates: {}".format(
-                    runtime_updater.current_updates)
-                )
+                logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         if "wine" in self.runner_name and not wine.get_system_wine_version():
@@ -234,7 +233,7 @@ class Game(object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s" % (self.name, gameplay_info))
+        logger.debug("Launching %s: %s", self.name, gameplay_info)
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
@@ -399,7 +398,8 @@ class Game(object):
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
-    def xboxdrv_stop(self):
+    @staticmethod
+    def xboxdrv_stop():
         os.system("pkexec xboxdrvctl --shutdown")
         if os.path.exists("/usr/share/lutris/bin/resetxpad"):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")

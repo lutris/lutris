@@ -16,7 +16,7 @@ API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
 
 def read_api_key():
     if not os.path.exists(API_KEY_FILE_PATH):
-        return
+        return None
     with open(API_KEY_FILE_PATH, 'r') as token_file:
         api_string = token_file.read()
     username, token = api_string.split(":")
@@ -65,8 +65,7 @@ def get_library():
     response_data = response.json
     if response_data:
         return response_data['games']
-    else:
-        return []
+    return []
 
 
 def get_runners(runner_name):
@@ -75,7 +74,7 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_games(game_slugs=None, page=1):
+def get_games(game_slugs=None, page='1'):
     url = settings.SITE_URL + "/api/games"
 
     if int(page) > 1:
