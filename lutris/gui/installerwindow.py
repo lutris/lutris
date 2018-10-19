@@ -306,6 +306,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if not self.location_entry:
             return
         path = self.location_entry.get_text()
+        
+        # replace ~ with full path so os.path.exists and os.listdir work correctly
+        path = os.path.expanduser(path)
+                 
         if os.path.exists(path) and os.listdir(path):
             self.non_empty_label.show()
         else:

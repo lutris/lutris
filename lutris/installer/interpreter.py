@@ -59,6 +59,27 @@ def read_script(filename):
         return scripts['results']
     return scripts
 
+def _get_game_launcher(script):
+    """Return the key and value of the launcher"""
+    launcher_value = None
+
+    # exe64 can be provided to specify an executable for 64bit systems
+    exe = 'exe64' if 'exe64' in script and system.IS_64BIT else 'exe'
+
+    for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
+        if launcher not in script:
+            continue
+        launcher_value = script[launcher]
+
+        if launcher == "exe64":
+            launcher = "exe"  # If exe64 is used, rename it to exe
+
+        break
+
+    if not launcher_value:
+        launcher = None
+    return (launcher, launcher_value)
+
 
 class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
@@ -532,31 +553,23 @@ class ScriptInterpreter(CommandsMixin):
     # ----------------
 
     def _finish_install(self):
-        self.parent.set_status("Writing configuration")
-        self._write_config()
-        self.parent.set_status("Installation finished !")
-        self.parent.on_install_finished()
+        game = self.script.get('game')
+        if game:
+            launcher, launcher_value = _get_game_launcher(game)
+        if launcher_value:
+            path = self._substitute(launcher_value)
+            if not os.path.isabs(path):
+                path = os.path.join(self.target_path, launcher_value)
 
-    def _get_game_launcher(self):
-        """Return the key and value of the launcher"""
-        launcher_value = None
-
-        # exe64 can be provided to specify an executable for 64bit systems
-        exe = 'exe64' if 'exe64' in self.script and system.IS_64BIT else 'exe'
-
-        for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
-            if launcher not in self.script:
-                continue
-            launcher_value = self.script[launcher]
-
-            if launcher == "exe64":
-                launcher = "exe"  # If exe64 is used, rename it to exe
-
-            break
-
-        if not launcher_value:
-            launcher = None
-        return (launcher, launcher_value)
+        if path and not os.path.isfile(path):
+            self.parent.set_status("Installation didn't complete successfully")
+            self.parent.on_install_error("Installation failed (specified"
+            " executable not found)!")
+        else:
+            self.parent.set_status("Writing configuration")
+            self._write_config()
+            self.parent.set_status("Installation finished !")
+            self.parent.on_install_finished()
 
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
@@ -611,7 +624,7 @@ class ScriptInterpreter(CommandsMixin):
         # Game options such as exe or main_file can be added at the root of the
         # script as a shortcut, this integrates them into the game config
         # properly
-        launcher, launcher_value = self._get_game_launcher()
+        launcher, launcher_value = _get_game_launcher(self.script)
         if type(launcher_value) == list:
             game_files = []
             for game_file in launcher_value:

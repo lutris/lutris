@@ -34,6 +34,25 @@ help](https://github.com/lutris/lutris/issues?q=is%3Aissue+is%3Aopen+label%3A%22
 might be a bit more technical to resolve but you can always have a look and see
 if they fit your area of expertise.
 
+Running Lutris from Git
+-----------------------
+
+Running Lutris from a local git repository is easy, it only requires cloning
+the repository and executing Lutris from there.
+
+    git clone https://github.com/lutris/lutris
+    cd lutris
+    ./bin/lutris -d
+
+Make sure you have all necessary dependencies installed. It is recommended that
+you keep a stable copy of the client installed with your package manager to
+ensure that all dependencies are available.
+If you are working on a branch implementing new features, such as the `next`
+branch, it might introduce new dependencies. Check in the package configuration
+files for new dependencies, for example Debian based distros will have their
+dependencies listed in `debian/control` and in `lutris.spec` for RPM based
+ones.
+
 Formatting your code
 --------------------
 
@@ -42,6 +61,9 @@ developers from going back and fixing your code, please make your code pass the
 pylint checks. We highly recommend that you install a pylint plugin for your
 code editor. Once you have pylint set up to check the code, you can configure
 it to use 120 characters max per line instead of 80.
+
+You can help fixing formatting issues or other code smells by having a look at
+the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
 Writing tests
 -------------
