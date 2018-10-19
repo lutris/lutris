@@ -249,12 +249,11 @@ def add_or_update(**params):
         if not slug:
             slug = slugify(name)
         game = get_game_by_field(slug, 'slug')
-    if game:
+    if game and game['runner'] == params.get('runner'):
         game_id = game['id']
         sql.db_update(PGA_DB, "games", params, ('id', game_id))
         return game_id
-    else:
-        return add_game(**params)
+    return add_game(**params)
 
 
 def delete_game(id):
