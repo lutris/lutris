@@ -8,11 +8,11 @@ def clock_look(dur):
     if 60 < dur < 3600:
         min = int(dur/60)
         return "00:%02d" % min
-    else:
-        hrs = int(dur / 3600)
-        tmp = dur % 3600
-        min = int(tmp / 60)
-        return "%02d:%02d" % hrs, min
+    
+    hrs = int(dur / 3600)
+    tmp = dur % 3600
+    mins = int(tmp / 60)
+    return "%02d:%02d" % hrs, mins
 
 
 class Timer:
@@ -29,8 +29,8 @@ class Timer:
     def increment(self, saved_dur):
         if saved_dur == '':
             return clock_look(self.duration())
-        else:
-            saved_hrs, saved_min = saved_dur.split(':')
-            saved_dur = datetime.timedelta(
-                hours=int(saved_hrs), minutes=int(saved_min))
-            return clock_look(saved_dur.seconds + self.duration())
+        
+        saved_hrs, saved_min = saved_dur.split(':')
+        saved_dur = datetime.timedelta(
+            hours=int(saved_hrs), minutes=int(saved_min))
+        return clock_look(saved_dur.seconds + self.duration())
