@@ -560,8 +560,7 @@ class ScriptInterpreter(CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path):
                 path = os.path.join(self.target_path, launcher_value)
-            print(launcher_value)
-            
+
         if path and not os.path.isfile(path):
             self.parent.set_status("Installation didn't complete successfully")
             self.parent.on_install_error("Installation failed (specified"

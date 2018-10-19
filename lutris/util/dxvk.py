@@ -32,7 +32,6 @@ def get_dxvk_versions():
     versions_path = os.path.join(dxvk_path, 'dxvk_versions.json')
 
     # Download tags if the versions_path does not exist or is more than a day old
-    print(os.path.exists(versions_path))
     if (
             not os.path.exists(versions_path) or
             os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
@@ -52,7 +51,6 @@ def init_dxvk_versions():
         DXVK_VERSIONS = get_dxvk_versions()
     except Exception as ex:  # pylint: disable= broad-except
         logger.error(ex)
-    print(DXVK_VERSIONS)
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
 
