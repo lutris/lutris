@@ -1,6 +1,4 @@
 import datetime
-import os.path
-
 
 def sec_to_hrs(dur):
     return dur/3600
