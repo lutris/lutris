@@ -6,8 +6,8 @@ def clock_look(dur):
     if dur < 60:
         return ''
     if 60 < dur < 3600:
-        min = int(dur/60)
-        return "00:%02d" % min
+        mins = int(dur/60)
+        return "00:%02d" % mins
     
     hrs = int(dur / 3600)
     tmp = dur % 3600
