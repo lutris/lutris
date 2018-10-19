@@ -160,6 +160,23 @@ class CommandsMixin:
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
         return 'STOP'
 
+    def execute_root(self,data):
+        sudo_to_use = "kdesu"
+        if isinstance(data,str):
+            command_quoted = shlex.quote(data)
+            command = None
+            if sudo_to_use == "kdesu":
+                command = "kdesu -t -c "+command_quoted
+            else:
+                raise ScriptingError("no command found to execute command as root. Actually only compatible with kdesu.")
+            if command != None:
+                return self.execute(command)
+            else:
+                raise ScriptingError("no command returned to run %s as root.",command_quoted)
+
+        else:
+            raise ScriptingError("invalid data type entered in execute_root command.")
+
     def extract(self, data):
         """Extract a file, guessing the compression method."""
         self._check_required_params([('file', 'src')], data, 'extract')
