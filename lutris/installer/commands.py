@@ -332,7 +332,7 @@ class CommandsMixin:
 
         # get the package id
         package = params.get(package_manager_to_use)
-        if type(package) != str:
+        if not isinstance(package, str):
             # TODO: test if the programmer didn't just put an other type
             raise ScriptingError("no package specified for the '%s' package manager" % package_manager_to_use)
 
@@ -350,7 +350,7 @@ class CommandsMixin:
         else:
             raise ScriptingError("Lutris isn't compatible with the '"+package_manager_to_use+"' package manager at this time.")
 
-        if use_command == True:
+        if use_command:
             if use_command_root:
                 return self.execute_root(command)
             return self.execute(command)
