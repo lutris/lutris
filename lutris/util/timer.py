@@ -21,8 +21,6 @@ class Timer:
         if saved_dur == '':
             return "%.1f hrs play time" % sec_to_hrs(self.duration())
 
-        else:
-            saved_dur = float(saved_dur.split()[0])
-            new_dur = saved_dur + sec_to_hrs(self.duration())
-            print(saved_dur, new_dur)
-            return "%.1f hrs play time" % new_dur
+        saved_dur = float(saved_dur.split()[0])
+        new_dur = saved_dur + sec_to_hrs(self.duration())
+        return "%.1f hrs play time" % new_dur
