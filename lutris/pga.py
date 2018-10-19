@@ -39,9 +39,9 @@ def get_schema(tablename):
 
 
 def field_to_string(
-    name="", type="", not_null=False, default=None, indexed=False
+        name="", field_type="", indexed=False
 ):
-    field_query = "%s %s" % (name, type)
+    field_query = "%s %s" % (name, field_type)
     if indexed:
         field_query += " PRIMARY KEY"
     return field_query
@@ -241,8 +241,8 @@ def add_games_bulk(games):
 def add_or_update(**params):
     slug = params.get('slug')
     name = params.get('name')
-    id = params.get('id')
-    assert any([slug, name, id])
+    game_id = params.get('id')
+    assert any([slug, name, game_id])
     if 'id' in params:
         game = get_game_by_field(params['id'], 'id')
     else:
@@ -256,13 +256,13 @@ def add_or_update(**params):
     return add_game(**params)
 
 
-def delete_game(id):
+def delete_game(game_id):
     """Delete a game from the PGA."""
-    sql.db_delete(PGA_DB, "games", 'id', id)
+    sql.db_delete(PGA_DB, "games", 'id', game_id)
 
 
-def set_uninstalled(id):
-    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''}, ('id', id))
+def set_uninstalled(game_id):
+    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''}, ('id', game_id))
 
 
 def add_source(uri):
@@ -296,12 +296,10 @@ def check_for_file(game, file_id):
             source = source[7:]
         else:
             protocol = source[:7]
-            logger.warn(
-                "PGA source protocol {} not implemented".format(protocol)
-            )
+            logger.warning("PGA source protocol %s not implemented", protocol)
             continue
         if not os.path.exists(source):
-            logger.info("PGA source {} unavailable".format(source))
+            logger.info("PGA source %s unavailable", source)
             continue
         game_dir = os.path.join(source, game)
         if not os.path.exists(game_dir):

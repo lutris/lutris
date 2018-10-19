@@ -34,7 +34,7 @@ def get_output_list():
         ('Off', 'off'),
     ]
     displays = get_displays()
-    for index, output in enumerate(displays):
+    for index, _ in enumerate(displays):
         # Display name can't be used because they might not be in the right order
         # Using DISPLAYS to get the number of connected monitors
         choices.append(("Monitor {}".format(index + 1), str(index)))
