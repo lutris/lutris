@@ -175,7 +175,8 @@ class Game(object):
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            playtime = self.playtime,
         )
 
     def prelaunch(self):
