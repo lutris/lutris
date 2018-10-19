@@ -10,7 +10,7 @@ class Timer:
         self.end = datetime.datetime.now()
 
     def duration(self):
-        return ((self.end - self.start).seconds) / 3600
+        return (self.end - self.start).seconds / 3600
 
     def increment(self, saved_dur):
         if saved_dur == '':
