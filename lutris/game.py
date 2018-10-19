@@ -18,7 +18,6 @@ from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
 
-
 class Game(object):
     """This class takes cares of loading the configuration for a game
        and running it.
@@ -49,8 +48,7 @@ class Game(object):
         self.lastplayed = game_data.get('lastplayed') or 0
         self.game_config_id = game_data.get('configpath') or ''
         self.steamid = game_data.get('steamid') or ''
-        self.has_custom_banner = bool(
-            game_data.get('has_custom_banner')) or False
+        self.has_custom_banner = bool(game_data.get('has_custom_banner')) or False
         self.has_custom_icon = bool(game_data.get('has_custom_icon')) or False
 
         self.load_config()
@@ -132,7 +130,7 @@ class Game(object):
 
             if not (self.compositor_disabled or self.stop_compositor == ""):
                 system.execute(self.stop_compositor, shell=True)
-                self.compositor_disabled = True
+                self.compositor_disabled = True;
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
@@ -177,8 +175,7 @@ class Game(object):
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id,
-            playtime=self.playtime
+            id=self.id
         )
 
     def prelaunch(self):
@@ -250,8 +247,7 @@ class Game(object):
             return
 
         env = {}
-        sdl_gamecontrollerconfig = system_config.get(
-            'sdl_gamecontrollerconfig')
+        sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if os.path.exists(path):
@@ -299,8 +295,7 @@ class Game(object):
                 xephyr_depth = '8'
             else:
                 xephyr_depth = '16'
-            xephyr_resolution = system_config.get(
-                'xephyr_resolution') or '640x480'
+            xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
             xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
                               xephyr_resolution + 'x' + xephyr_depth, '-glamor',
                               '-reset', '-terminate', '-fullscreen']
@@ -310,8 +305,7 @@ class Game(object):
             env['DISPLAY'] = ':2'
 
         if system_config.get('use_us_layout'):
-            setxkbmap_command = ['setxkbmap',
-                                 '-model', 'pc101', 'us', '-print']
+            setxkbmap_command = ['setxkbmap', '-model', 'pc101', 'us', '-print']
             xkbcomp_command = ['xkbcomp', '-', os.environ.get('DISPLAY', ':0')]
             xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
             subprocess.Popen(setxkbmap_command,
@@ -325,8 +319,7 @@ class Game(object):
 
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command:
-            launch_arguments = shlex.split(
-                os.path.expandvars(prefix_command)) + launch_arguments
+            launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
 
         single_cpu = system_config.get('single_cpu') or False
         if single_cpu:
@@ -363,10 +356,8 @@ class Game(object):
             env["LD_LIBRARY_PATH"] = ld_library_path
         # /Env vars
 
-        include_processes = shlex.split(
-            system_config.get('include_processes', ''))
-        exclude_processes = shlex.split(
-            system_config.get('exclude_processes', ''))
+        include_processes = shlex.split(system_config.get('include_processes', ''))
+        exclude_processes = shlex.split(system_config.get('exclude_processes', ''))
 
         monitoring_disabled = system_config.get('disable_monitoring')
         if monitoring_disabled:
@@ -410,8 +401,7 @@ class Game(object):
             "--dbus", "session", "--silent"
         ] + config.split()
         logger.debug("[xboxdrv] %s", ' '.join(command))
-        self.xboxdrv_thread = LutrisThread(
-            command, include_processes=['xboxdrv'])
+        self.xboxdrv_thread = LutrisThread(command, include_processes=['xboxdrv'])
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
@@ -444,25 +434,22 @@ class Game(object):
             logger.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None,
-                           killall=self.runner.killall_on_exit())
+            jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
         self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
+        """Restore some settings and cleanup after game quit."""
 
         self.timer.end_t()
         self.playtime = self.timer.increment(self.playtime)
 
-        """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
-            logger.debug(
-                "Game thread still running, stopping it (state: %s)", self.state)
+            logger.debug("Game thread still running, stopping it (state: %s)", self.state)
             self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-
         self.save(metadata_only=True)
 
         os.chdir(os.path.expanduser('~'))
@@ -508,8 +495,7 @@ class Game(object):
         if not self.game_thread:
             return
         if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
-            logger.info("Steam game %s is fully installed",
-                        appmanifest.steamid)
+            logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
         elif 'Update Required' in appmanifest.states and self.game_thread.ready_state:
             logger.info("Steam game %s updating, setting game thread as not ready",
