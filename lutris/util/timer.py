@@ -4,10 +4,10 @@ import datetime
 class Timer:
 
     def start_t(self):
-        self.start = datetime.datetime.now().replace(microsecond=0)
+        self.start = datetime.datetime.now()
 
     def end_t(self):
-        self.end = datetime.datetime.now().replace(microsecond=0)
+        self.end = datetime.datetime.now()
 
     def duration(self):
         return ((self.end - self.start).seconds) / 3600
