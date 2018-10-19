@@ -1,6 +1,4 @@
 import datetime
-import os.path
-
 
 def clock_look(dur):
     if dur < 60:
