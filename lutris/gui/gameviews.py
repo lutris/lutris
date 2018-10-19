@@ -355,7 +355,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
         self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
-        self.set_column(default_text_cell, "Play Time", COL_PLAYTIME_TEXT, 100)
+        self.set_column(default_text_cell, "Play Time (hh:mm)", COL_PLAYTIME_TEXT, 100)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
