@@ -1,16 +1,9 @@
 import datetime
+import os.path
 
-def clock_look(dur):
-    if dur < 60:
-        return ''
-    if 60 < dur < 3600:
-        mins = int(dur/60)
-        return "00:%02d" % mins
-    
-    hrs = int(dur / 3600)
-    tmp = dur % 3600
-    mins = int(tmp / 60)
-    return "%02d:%02d" % hrs, mins
+
+def sec_to_hrs(dur):
+    return dur/3600
 
 
 class Timer:
@@ -26,9 +19,10 @@ class Timer:
 
     def increment(self, saved_dur):
         if saved_dur == '':
-            return clock_look(self.duration())
-        
-        saved_hrs, saved_min = saved_dur.split(':')
-        saved_dur = datetime.timedelta(
-            hours=int(saved_hrs), minutes=int(saved_min))
-        return clock_look(saved_dur.seconds + self.duration())
+            return "%.1f hrs play time" % sec_to_hrs(self.duration())
+
+        else:
+            saved_dur = float(saved_dur.split()[0])
+            new_dur = saved_dur + sec_to_hrs(self.duration())
+            print(saved_dur, new_dur)
+            return "%.1f hrs play time" % new_dur
