@@ -49,6 +49,11 @@ files for new dependencies, for example Debian based distros will have their
 dependencies listed in `debian/control` and in `lutris.spec` for RPM based
 ones.
 
+Under NO circumstances should you use a virtualenv or install dependencies with
+pip. The PyGOject introspection libraries are not regular python packages and
+it is not possible to pip install them or use them from a virtualenv. Make
+sure to always use PyGOject from your distribution's package manager.
+
 Formatting your code
 --------------------
 
