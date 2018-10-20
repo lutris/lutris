@@ -38,10 +38,9 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(
-        name="", field_type="", indexed=False
-):
-    field_query = "%s %s" % (name, field_type)
+def field_to_string(name="", type="", indexed=False):  # pylint: disable=redefined-builtin
+    """Converts a python based table definition to it's SQL statement"""
+    field_query = "%s %s" % (name, type)
     if indexed:
         field_query += " PRIMARY KEY"
     return field_query
