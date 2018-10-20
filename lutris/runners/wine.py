@@ -68,6 +68,7 @@ def get_overrides_env(overrides):
         ('b,n', []),
         ('b', []),
         ('n', []),
+        ('d', []),
         ('', [])
     ])
     for dll, value in overrides.items():
@@ -76,6 +77,7 @@ def get_overrides_env(overrides):
         value = value.replace(' ', '')
         value = value.replace('builtin', 'b')
         value = value.replace('native', 'n')
+        value = value.replace('d', '')
         value = value.replace('disabled', '')
         try:
             override_buckets[value].append(dll)
