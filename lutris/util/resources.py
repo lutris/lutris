@@ -37,9 +37,11 @@ def fetch_icons(game_slugs, callback=None):
     # Remove duplicate slugs
     missing_media_slugs = list(set(no_banners) | set(no_icons))
     if not missing_media_slugs:
+        logger.debug("No icon are missing")
         return
-
+    logger.debug("Requesting missing icons from API")
     results = api.get_games(game_slugs=missing_media_slugs)
+    logger.debug("Got %d icons", len(results))
 
     new_icon = False
     banner_downloads = []
@@ -84,6 +86,7 @@ def udpate_desktop_icons():
     # Other desktop manager cache command must be added here when needed
 
 def download_media(url, dest, overwrite=False):
+    logger.debug("Downloading %s to %s", url, dest)
     if os.path.exists(dest):
         if overwrite:
             os.remove(dest)

@@ -44,6 +44,7 @@ class Request(object):
                                       platform.machine())
 
     def get(self, data=None):
+        logger.debug("GET %s", self.url)
         req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
             request = urllib.request.urlopen(req, timeout=self.timeout)
@@ -52,10 +53,14 @@ class Request(object):
         except (socket.timeout, urllib.error.URLError) as e:
             logger.error("Unable to connect to server (%s): %s", self.url, e)
         else:
+            # Response code is available with getcode but should 200 if there
+            # is no exception
+            # logger.debug("Got response code: %s", request.getcode())
             try:
                 total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
+                logger.warning("Failed to read response's content length")
                 total_size = 0
 
             chunks = []
