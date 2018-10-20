@@ -290,6 +290,7 @@ class GameView(object):
         row = self.get_row_by_id(game['id'])
         if row:
             row[COL_YEAR] = str(game['year'])
+            row[COL_PLAYTIME_TEXT] = game['playtime']
             self.update_image(game['id'], row[COL_INSTALLED])
 
     def update_image(self, game_id, is_installed=False):
