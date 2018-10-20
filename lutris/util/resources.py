@@ -63,14 +63,14 @@ def fetch_icons(game_slugs, callback=None):
                 new_icon = True
 
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
-
     downloads = banner_downloads + icon_downloads
-    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+    logger.debug("Downloading %d files", len(downloads))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         futs = [executor.submit(download_media, url, dest_path)
                 for url, dest_path in downloads]
         concurrent.futures.wait(futs)
 
-    if (new_icon):
+    if new_icon:
         udpate_desktop_icons()
 
     if updated_slugs and callback:
