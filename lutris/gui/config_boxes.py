@@ -356,6 +356,8 @@ class ConfigBox(VBox):
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
                 path = os.path.expanduser(path)
+                if not os.path.isabs(path):
+                    path = os.path.join(self.game.directory, path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
