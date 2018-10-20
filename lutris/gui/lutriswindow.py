@@ -78,8 +78,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
-        self.filter_installed = \
-            settings.read_setting('filter_installed') != 'false'
+        self.filter_installed = settings.read_setting('filter_installed') == 'true'
         self.show_installed_first = \
             settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
