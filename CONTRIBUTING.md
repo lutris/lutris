@@ -1,9 +1,5 @@
-*************************************************************
-/!\ This document is an early draft. It might be full of lies
-*************************************************************
-
-Contributing to Lutris (draft)
-==============================
+Contributing to Lutris
+======================
 
 Finding issues to work on
 -------------------------
