@@ -118,12 +118,11 @@ class GameStore(GObject.Object):
 
     def sort_view(self, show_installed_first=False):
         self.show_installed_first = show_installed_first
+        self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+        self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
             self.modelfilter.get_model().set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
-        else:
-            self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
-            self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""
@@ -186,6 +185,7 @@ class GameStore(GObject.Object):
             game['installed_at'],
             installed_at_text
         ))
+        self.sort_view(self.show_installed_first)
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
