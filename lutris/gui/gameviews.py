@@ -85,12 +85,12 @@ class GameStore(GObject.Object):
 
     def _fill_store_generator(self, games, batch=100):
         """Generator to fill the model in batches."""
-        n = 0
+        loop = 0
         for game in games:
             self.add_game(game)
             # Yield to GTK main loop once in a while
-            n += 1
-            if (n % batch) == 0:
+            loop += 1
+            if (loop % batch) == 0:
                 # Returning True to GLib.idle_add makes it run the callback
                 # again. (Yeah, the GTK doc isn't clear about this feature :)
                 yield True
