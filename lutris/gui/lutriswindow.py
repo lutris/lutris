@@ -395,7 +395,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 self.add_game_to_view(game_id)
             icons_sync = AsyncCall(self.sync_icons, callback=None)
             self.threads_stoppers.append(icons_sync.stop_request.set)
-            self.set_status("Updated games")
+            self.set_status("")
 
     def update_runtime(self):
         self.runtime_updater.update(self.set_status)
