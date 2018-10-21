@@ -556,6 +556,7 @@ class ScriptInterpreter(CommandsMixin):
         game = self.script.get('game')
         if game:
             launcher, launcher_value = _get_game_launcher(game)
+        path = None
         if launcher_value:
             path = self._substitute(launcher_value)
             if not os.path.isabs(path):
