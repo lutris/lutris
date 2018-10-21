@@ -4,11 +4,13 @@ import re
 import subprocess
 from enum import Enum
 
+
 class vulkan_available(Enum):
     NONE = 0
     THIRTY_TWO = 1
     SIXTY_FOUR = 2
     ALL = 3
+
 
 def vulkan_check():
     has_64_bit = False

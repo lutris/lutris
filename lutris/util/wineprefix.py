@@ -60,7 +60,7 @@ class WinePrefixManager:
         user = os.getenv('USER')
         user_dir = os.path.join(self.path, "drive_c/users/", user)
 
-        if (not desktop_dir):
+        if not desktop_dir:
             desktop_dir = user_dir
         else:
             desktop_dir = os.path.expanduser(desktop_dir)
@@ -71,22 +71,22 @@ class WinePrefixManager:
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
-                if (os.path.islink(path)):
+                if os.path.islink(path):
                     os.unlink(path)
-                elif (os.path.isdir(path)):
+                elif os.path.isdir(path):
                     try:
                         os.rmdir(path)
                     # We can't delete nonempty dir, so we rename as wine do.
                     except OSError:
                         os.rename(path, old_path)
 
-                if (desktop_dir != user_dir):
+                if desktop_dir != user_dir:
                     src_path = os.path.join(desktop_dir, item)
                     os.makedirs(src_path, exist_ok=True)
                     os.symlink(src_path, path)
                 else:
                     # We use first the renamed dir, otherwise we make it.
-                    if (os.path.isdir(old_path)):
+                    if os.path.isdir(old_path):
                         os.rename(old_path, path)
                     else:
                         os.makedirs(path, exist_ok=True)
