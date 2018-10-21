@@ -69,6 +69,12 @@ class GameStore(GObject.Object):
         if games:
             self.fill_store(games)
 
+    def __str__(self):
+        return (
+            "GameStore: <filter_installed: {filter_installed}, "
+            "filter_text: {filter_text}>".format(**self.__dict__)
+        )
+
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
 

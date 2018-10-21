@@ -369,8 +369,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     for p in range(math.ceil(len(added_ids) / page_size))
                 ])
                 self.game_list += added_games
-                self.view.populate_games(added_games)
                 self.switch_splash_screen()
+                self.view.populate_games(added_games)
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
@@ -384,22 +384,33 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
-            # XXX this migth not work if the game has no 'item' set
+            # XXX this might not work if the game has no 'item' set
+            logger.debug("Updating row for ID %s" % game_id)
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
+            logger.info("Setting up view for first run")
+            for game_id in added:
+                logger.debug("Adding %s", game_id)
+                self.add_game_to_view(game_id)
             icons_sync = AsyncCall(self.sync_icons, callback=None)
             self.threads_stoppers.append(icons_sync.stop_request.set)
-            self.set_status("")
+            self.set_status("Updated games")
 
     def update_runtime(self):
         self.runtime_updater.update(self.set_status)
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
+        game_slugs = [game['slug'] for game in self.game_list]
+        if not game_slugs:
+            return
+        logger.debug("Syncing %d icons" % len(game_slugs))
         try:
-            resources.fetch_icons([game['slug'] for game in self.game_list],
-                                  callback=self.on_image_downloaded)
+            GLib.idle_add(
+                resources.fetch_icons, game_slugs,
+                self.on_image_downloaded
+            )
         except TypeError as ex:
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
@@ -449,7 +460,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             username = credentials["username"]
         self.toggle_connection(True, username)
         self.sync_library()
-        self.connect_link.hide()
+        self.connect_link.set_sensitive(False)
         self.actions['synchronize'].props.enabled = True
 
     @GtkTemplate.Callback
@@ -680,7 +691,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         def do_add_game():
             self.view.add_game_by_id(game_id)
-            self.switch_splash_screen()
+            self.switch_splash_screen(force=True)
             self.sidebar_treeview.update()
             return False
 
