@@ -26,7 +26,7 @@ MIGRATIONS.append([
 
 
 def get_migration_module(migration_name):
-    return importlib.import_module('lutris.migrations.%s' % migration_name)
+    return importlib.import_module('lutris.migrations.%s', migration_name)
 
 
 def migrate():
