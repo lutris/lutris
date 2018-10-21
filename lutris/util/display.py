@@ -182,8 +182,8 @@ def get_providers():
 
     providers = list()
     providers_cmd = subprocess.Popen(
-        ["lspci | grep VGA | sed 's/.*: //'"], shell=True, stdout=subprocess.PIPE).communicate()[0].decode()
+        ["lspci"], stdout=subprocess.PIPE).communicate()[0].decode()
     for provider in providers_cmd.strip().split("\n"):
-        providers.append(provider)
-
+        if "VGA" in provider:
+            providers.append(provider)
     return providers
