@@ -248,7 +248,13 @@ def add_or_update(**params):
         if not slug:
             slug = slugify(name)
         game = get_game_by_field(slug, 'slug')
-    if game and game['runner'] == params.get('runner'):
+    if (
+            game and
+            (
+                game['runner'] == params.get('runner') or
+                not all([params.get('runner'), game['runner']])
+            )
+    ):
         game_id = game['id']
         sql.db_update(PGA_DB, "games", params, ('id', game_id))
         return game_id
