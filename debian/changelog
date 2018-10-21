@@ -1,6 +1,6 @@
 lutris (0.4.21) bionic; urgency=medium
 
-  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggled was activated.
+  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
   * Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
   * Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
   * Added check for the presence of executable after the installation finished.
