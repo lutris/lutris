@@ -179,17 +179,11 @@ def get_xrandr_version():
 
 def get_providers():
     """Return the list of available graphic cards"""
-    pattern = "name:"
-    providers = list()
-    version = get_xrandr_version()
 
-    if version["major"] == 1 and version["minor"] >= 4:
-        xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
-                                         stdout=subprocess.PIPE).communicate()[0].decode()
-        for line in xrandr_output.split("\n"):
-            if line.find("Provider ") != 0:
-                continue
-            position = line.find(pattern) + len(pattern)
-            providers.append(line[position:].strip())
+    providers = list()
+    providers_cmd = subprocess.Popen(
+        ["lspci | grep VGA | sed 's/.*: //'"], shell=True, stdout=subprocess.PIPE).communicate()[0].decode()
+    for provider in providers_cmd.strip().split("\n"):
+        providers.append(provider)
 
     return providers
