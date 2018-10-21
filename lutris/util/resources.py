@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
@@ -17,8 +16,9 @@ ICON = "icon"
 def get_icon_path(game, icon_type):
     if icon_type == BANNER:
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game)
-    if icon_type == ICON:
+    elif icon_type == ICON:
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game)
+    return None
 
 
 def has_icon(game, icon_type):
@@ -28,6 +28,7 @@ def has_icon(game, icon_type):
     elif icon_type == ICON:
         icon_path = get_icon_path(game, ICON)
         return os.path.exists(icon_path)
+    return False
 
 
 def fetch_icons(game_slugs, callback=None):
@@ -76,14 +77,15 @@ def fetch_icons(game_slugs, callback=None):
     if updated_slugs and callback:
         callback(updated_slugs)
 
+
 def udpate_desktop_icons():
     # Update Icon for GTK+ desktop manager
     gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
-    if (gtk_update_icon_cache):
-        os.system("gtk-update-icon-cache -tf %s"
-        % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
+    if gtk_update_icon_cache:
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
 
     # Other desktop manager cache command must be added here when needed
+
 
 def download_media(url, dest, overwrite=False):
     logger.debug("Downloading %s to %s", url, dest)

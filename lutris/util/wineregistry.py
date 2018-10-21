@@ -64,7 +64,7 @@ class WindowsFileTime:
         return datetime.fromtimestamp(self.to_unix_timestamp())
 
 
-class WineRegistry(object):
+class WineRegistry:
     version_header = "WINE REGISTRY Version "
     relative_to_header = ";; All keys relative to "
 
@@ -85,7 +85,8 @@ class WineRegistry(object):
         if self.reg_filename:
             return os.path.dirname(self.reg_filename)
 
-    def get_raw_registry(self, reg_filename):
+    @staticmethod
+    def get_raw_registry(reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
         if not os.path.exists(reg_filename):
             return []
@@ -172,7 +173,6 @@ class WineRegistry(object):
                 continue
             key.subkeys.pop(subkey)
 
-
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:
@@ -194,7 +194,7 @@ class WineRegistry(object):
         return os.path.join(drive_path, relpath)
 
 
-class WineRegistryKey(object):
+class WineRegistryKey:
     def __init__(self, key_def=None, path=None):
 
         self.subkeys = OrderedDict()
@@ -206,7 +206,6 @@ class WineRegistryKey(object):
             self.name = path
             self.raw_name = "[{}]".format(path.replace('/', '\\\\'))
             self.raw_timestamp = ' '.join(str(timestamp).split('.'))
-            key_def = "{} {}".format(self.raw_name, self.raw_timestamp)
 
             windows_timestamp = WindowsFileTime.from_unix_timestamp(timestamp)
             self.metas["time"] = windows_timestamp.to_hex()
@@ -299,7 +298,7 @@ class WineRegistryKey(object):
 
     def get_subkey(self, name):
         if name not in self.subkeys:
-            return
+            return None
         value = self.subkeys[name]
         if value.startswith("\"") and value.endswith("\""):
             return value[1:-1]
