@@ -2,7 +2,6 @@
 import os
 import re
 import subprocess
-import io
 from enum import Enum
 
 class vulkan_available(Enum):
