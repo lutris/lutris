@@ -596,7 +596,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
-
         """Stop running game."""
         if self.running_game:
             self.running_game.stop()
