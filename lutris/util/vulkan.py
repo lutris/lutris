@@ -16,7 +16,7 @@ def vulkan_check():
     for line in subprocess.check_output(["ldconfig", "-p"]).splitlines():
         line = str(line)
         if 'libvulkan' in line:
-            if 'x86-64' in line:
+            if not 'x86-64' in line:
                 has_32_bit = True
             else:
                 has_64_bit = True
