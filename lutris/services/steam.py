@@ -88,11 +88,13 @@ class AppManifest:
 
     def get_install_path(self):
         if not self.installdir:
-            return
+            return None
         install_path = fix_path_case(os.path.join(self.steamapps_path, "common",
                                                   self.installdir))
         if install_path:
             return install_path
+
+        return None
 
     def get_platform(self):
         steamapps_paths = get_steamapps_paths()
@@ -162,7 +164,7 @@ def get_appmanifest_from_appid(steamapps_path, appid):
         raise ValueError("Missing mandatory appid")
     appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
     if not os.path.exists(appmanifest_path):
-        return
+        return None
     return AppManifest(appmanifest_path)
 
 
@@ -170,14 +172,14 @@ def get_path_from_appmanifest(steamapps_path, appid):
     """Return the path where a Steam game is installed."""
     appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
     if not appmanifest:
-        return
+        return None
     return appmanifest.get_install_path()
 
 
 def mark_as_installed(steamid, runner_name, game_info):
     for key in ['name', 'slug']:
         assert game_info[key]
-    logger.info("Setting %s as installed" % game_info['name'])
+    logger.info("Setting %s as installed", game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
         steamid=int(steamid),
@@ -201,7 +203,7 @@ def mark_as_uninstalled(game_info):
     for key in ('id', 'name'):
         if key not in game_info:
             raise ValueError("Missing %s field in %s" % (key, game_info))
-    logger.info('Setting %s as uninstalled' % game_info['name'])
+    logger.info('Setting %s as uninstalled', game_info['name'])
     game_id = pga.add_or_update(
         id=game_info['id'],
         runner='',
@@ -229,7 +231,7 @@ def sync_with_lutris(platform='linux'):
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not='')
     proton_ids = ["858280", "930400", "961940", "228980"]
-    steamids_in_lutris = set([str(game['steamid']) for game in steam_games_in_lutris])
+    steamids_in_lutris = {str(game['steamid']) for game in steam_games_in_lutris}
     seen_ids = set()  # Set of Steam appids seen while browsing AppManifests
 
     for steamapps_path in steamapps_paths[platform]:

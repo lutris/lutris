@@ -310,7 +310,6 @@ def get_pids_using_file(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
     fuser_path = None
-    fuser_output = ""
     path_candidates = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
     for candidate in path_candidates:
         fuser_path = os.path.join(candidate, 'fuser')
@@ -327,10 +326,9 @@ def get_terminal_apps():
     """Return the list of installed terminal emulators"""
     if INSTALLED_TERMINALS:
         return INSTALLED_TERMINALS
-    else:
-        for exe in TERMINAL_CANDIDATES:
-            if find_executable(exe):
-                INSTALLED_TERMINALS.append(exe)
+    for exe in TERMINAL_CANDIDATES:
+        if find_executable(exe):
+            INSTALLED_TERMINALS.append(exe)
     return INSTALLED_TERMINALS
 
 

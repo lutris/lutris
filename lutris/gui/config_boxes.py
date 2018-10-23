@@ -350,12 +350,14 @@ class ConfigBox(VBox):
             config_key = option['default_path']
             default_path = self.lutris_config.system_config.get(config_key)
             if default_path and os.path.exists(default_path):
-                file_chooser.set_current_folder(default_path)
+                file_chooser.entry.set_text(default_path)
 
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
-                path =  os.path.expanduser(path)
+                path = os.path.expanduser(path)
+                if not os.path.isabs(path):
+                    path = os.path.join(self.game.directory, path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)

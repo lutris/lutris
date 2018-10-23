@@ -19,11 +19,10 @@ def is_7zip_supported(path, extractor):
     )
     if extractor:
         return extractor.lower() in supported_extractors
-    else:
-        _base, ext = os.path.splitext(path)
-        if ext:
-            ext = ext.lstrip('.').lower()
-            return ext in supported_extractors
+    _base, ext = os.path.splitext(path)
+    if ext:
+        ext = ext.lstrip('.').lower()
+        return ext in supported_extractors
 
 
 def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
@@ -44,7 +43,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
          path.endswith('.tbz') or
          extractor == 'bz2'):
         opener, mode = tarfile.open, 'r:bz2'
-    elif(is_7zip_supported(path, extractor)):
+    elif is_7zip_supported(path, extractor):
         opener = '7zip'
     else:
         raise RuntimeError(
@@ -82,7 +81,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
                 shutil.move(source_path, destination_path)
         shutil.rmtree(temp_dir)
     logger.debug("Finished extracting %s", path)
-    return (path, to_directory)
+    return path, to_directory
 
 
 def _do_extract(archive, dest, opener, mode=None, extractor=None):

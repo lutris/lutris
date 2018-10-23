@@ -80,6 +80,9 @@ class FileChooserEntry(Gtk.Box):
     def get_text(self):
         return self.entry.get_text()
 
+    def get_filename(self):
+        return self.entry.get_text()
+
     def _open_filechooser(self, widget, default_path):
         if default_path:
             self.file_chooser_dlg.set_current_folder(

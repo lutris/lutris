@@ -38,9 +38,8 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(
-    name="", type="", not_null=False, default=None, indexed=False
-):
+def field_to_string(name="", type="", indexed=False):  # pylint: disable=redefined-builtin
+    """Converts a python based table definition to it's SQL statement"""
     field_query = "%s %s" % (name, type)
     if indexed:
         field_query += " PRIMARY KEY"
@@ -90,6 +89,7 @@ def migrate_games():
         {'name': 'configpath', 'type': 'TEXT'},
         {'name': 'has_custom_banner', 'type': 'INTEGER'},
         {'name': 'has_custom_icon', 'type': 'INTEGER'},
+        {'name': 'playtime', 'type': 'TEXT'},
     ]
     return migrate('games', schema)
 
@@ -241,28 +241,34 @@ def add_games_bulk(games):
 def add_or_update(**params):
     slug = params.get('slug')
     name = params.get('name')
-    id = params.get('id')
-    assert any([slug, name, id])
+    game_id = params.get('id')
+    assert any([slug, name, game_id])
     if 'id' in params:
         game = get_game_by_field(params['id'], 'id')
     else:
         if not slug:
             slug = slugify(name)
         game = get_game_by_field(slug, 'slug')
-    if game and game['runner'] == params.get('runner'):
+    if (
+            game and
+            (
+                game['runner'] == params.get('runner') or
+                not all([params.get('runner'), game['runner']])
+            )
+    ):
         game_id = game['id']
         sql.db_update(PGA_DB, "games", params, ('id', game_id))
         return game_id
     return add_game(**params)
 
 
-def delete_game(id):
+def delete_game(game_id):
     """Delete a game from the PGA."""
-    sql.db_delete(PGA_DB, "games", 'id', id)
+    sql.db_delete(PGA_DB, "games", 'id', game_id)
 
 
-def set_uninstalled(id):
-    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''}, ('id', id))
+def set_uninstalled(game_id):
+    sql.db_update(PGA_DB, 'games', {'installed': 0, 'runner': ''}, ('id', game_id))
 
 
 def add_source(uri):
@@ -296,12 +302,10 @@ def check_for_file(game, file_id):
             source = source[7:]
         else:
             protocol = source[:7]
-            logger.warn(
-                "PGA source protocol {} not implemented".format(protocol)
-            )
+            logger.warning("PGA source protocol %s not implemented", protocol)
             continue
         if not os.path.exists(source):
-            logger.info("PGA source {} unavailable".format(source))
+            logger.info("PGA source %s unavailable", source)
             continue
         game_dir = os.path.join(source, game)
         if not os.path.exists(game_dir):
@@ -324,6 +328,18 @@ def get_used_runners():
     return [result[0] for result in results if result[0]]
 
 
+def get_used_runners_game_count():
+    """Return a dictionary listing for each runner in use, how many games are using it."""
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = ("select runner, count(*) from games "
+                 "where runner is not null "
+                 "group by runner "
+                 "order by runner")
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return {result[0]: result[1] for result in results if result[0]}
+
+
 def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(PGA_DB) as cursor:
@@ -332,3 +348,18 @@ def get_used_platforms():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
+
+
+def get_used_platforms_game_count():
+    """Return a dictionary listing for each platform in use, how many games are using it."""
+    with sql.db_cursor(PGA_DB) as cursor:
+        # The extra check for 'installed is 1' is needed because
+        # the platform lists don't show uninstalled games, but the platform of a game
+        # is remembered even after the game is uninstalled.
+        query = ("select platform, count(*) from games "
+                 "where platform is not null and platform is not '' and installed is 1 "
+                 "group by platform "
+                 "order by platform")
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return {result[0]: result[1] for result in results if result[0]}

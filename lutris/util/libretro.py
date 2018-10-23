@@ -42,12 +42,12 @@ class RetroConfig:
         return value
 
     def __getitem__(self, key):
-        for (k, value) in self.config:
+        for k, value in self.config:
             if key == k:
                 return self.deserialize_value(value)
 
     def __setitem__(self, key, value):
-        for index, (k, v) in enumerate(self.config):
+        for index, k, _ in enumerate(self.config):
             if key == k:
                 self.config[index] = (key, self.serialize_value(value))
                 return

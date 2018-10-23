@@ -4,7 +4,7 @@
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
 Name:           lutris
-Version:        0.4.20
+Version:        0.4.21
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -23,7 +23,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
-Recommends:     wine
+Recommends:     wine-core
 %endif
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject

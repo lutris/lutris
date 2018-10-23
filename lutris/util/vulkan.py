@@ -1,6 +1,9 @@
 """Vulkan helper module"""
 import os
+import re
+import subprocess
 from enum import Enum
+
 
 class vulkan_available(Enum):
     NONE = 0
@@ -8,13 +11,17 @@ class vulkan_available(Enum):
     SIXTY_FOUR = 2
     ALL = 3
 
+
 def vulkan_check():
-    vulkan_lib = os.path.isfile("/usr/lib/libvulkan.so")
-    vulkan_lib32 = os.path.isfile("/usr/lib32/libvulkan.so")
-    vulkan_lib_multi = os.path.isfile("/usr/lib/x86_64-linux-gnu/libvulkan.so")
-    vulkan_lib32_multi = os.path.isfile("/usr/lib32/i386-linux-gnu/libvulkan.so")
-    has_32_bit = vulkan_lib32 or vulkan_lib32_multi
-    has_64_bit = vulkan_lib or vulkan_lib_multi
+    has_64_bit = False
+    has_32_bit = False
+    for line in subprocess.check_output(["ldconfig", "-p"]).splitlines():
+        line = str(line)
+        if 'libvulkan' in line:
+            if 'x86-64' in line:
+                has_64_bit = True
+            else:
+                has_32_bit = True
 
     if not (has_64_bit or has_32_bit):
         return vulkan_available.NONE

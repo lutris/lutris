@@ -41,10 +41,13 @@ def get_dxvk_versions():
     with open(versions_path, "r") as dxvk_tags:
         dxvk_json = json.load(dxvk_tags)
         dxvk_versions = [x['name'].replace('v', '') for x in dxvk_json]
-
     return dxvk_versions
 
+
 def init_dxvk_versions():
+    global DXVK_VERSIONS
+    global DXVK_LATEST
+    global DXVK_PAST_RELEASES
     try:
         DXVK_VERSIONS = get_dxvk_versions()
     except Exception as ex:  # pylint: disable= broad-except

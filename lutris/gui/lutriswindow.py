@@ -1,5 +1,5 @@
 """Main window for the Lutris interface."""
-# pylint: disable=E0611
+# pylint: disable=no-member
 import os
 import math
 import time
@@ -78,8 +78,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
-        self.filter_installed = \
-            settings.read_setting('filter_installed') == 'true'
+        self.filter_installed = settings.read_setting('filter_installed') == 'true'
         self.show_installed_first = \
             settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
@@ -158,6 +157,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
+
+        self.gui_needs_update = True
 
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
@@ -322,15 +323,19 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.icon_type = default
         return self.icon_type
 
-    def switch_splash_screen(self):
-        if len(self.game_list) == 0:
-            self.splash_box.show()
-            self.sidebar_paned.hide()
-            self.games_scrollwindow.hide()
-        else:
+    def switch_splash_screen(self, force=None):
+        """Toggle the state of the splash screen based on the library contents"""
+        if not self.splash_box.get_visible() and len(self.game_list):
+            return
+        if len(self.game_list) or force is True:
             self.splash_box.hide()
             self.sidebar_paned.show()
             self.games_scrollwindow.show()
+        else:
+            logger.debug('Showing splash screen')
+            self.splash_box.show()
+            self.sidebar_paned.hide()
+            self.games_scrollwindow.hide()
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
@@ -366,8 +371,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     for p in range(math.ceil(len(added_ids) / page_size))
                 ])
                 self.game_list += added_games
-                self.view.populate_games(added_games)
                 self.switch_splash_screen()
+                self.view.populate_games(added_games)
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
@@ -381,10 +386,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
-            # XXX this migth not work if the game has no 'item' set
+            # XXX this might not work if the game has no 'item' set
+            logger.debug("Updating row for ID %s" % game_id)
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
+            logger.info("Setting up view for first run")
+            for game_id in added:
+                logger.debug("Adding %s", game_id)
+                self.add_game_to_view(game_id)
             icons_sync = AsyncCall(self.sync_icons, callback=None)
             self.threads_stoppers.append(icons_sync.stop_request.set)
             self.set_status("")
@@ -394,13 +404,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
+        game_slugs = [game['slug'] for game in self.game_list]
+        if not game_slugs:
+            return
+        logger.debug("Syncing %d icons" % len(game_slugs))
         try:
-            resources.fetch_icons([game['slug'] for game in self.game_list],
-                                  callback=self.on_image_downloaded)
+            GLib.idle_add(
+                resources.fetch_icons, game_slugs,
+                self.on_image_downloaded
+            )
         except TypeError as ex:
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
+        
+        #update row at game exit
+        if text == "Game has quit" and self.gui_needs_update:
+                self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
+                            
         for child_widget in self.status_box.get_children():
             child_widget.destroy()
         label = Gtk.Label(text)
@@ -413,12 +434,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
                 self.set_status("Preparing to launch %s" % name)
+                self.gui_needs_update = True
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
+                self.gui_needs_update = False
                 self.actions['stop-game'].props.enabled = False
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
                 self.actions['stop-game'].props.enabled = True
+                self.gui_needs_update = True
         return True
 
     # ---------
@@ -446,7 +470,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             username = credentials["username"]
         self.toggle_connection(True, username)
         self.sync_library()
-        self.connect_link.hide()
+        self.connect_link.set_sensitive(False)
         self.actions['synchronize'].props.enabled = True
 
     @GtkTemplate.Callback
@@ -677,7 +701,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         def do_add_game():
             self.view.add_game_by_id(game_id)
-            self.switch_splash_screen()
+            self.switch_splash_screen(force=True)
             self.sidebar_treeview.update()
             return False
 

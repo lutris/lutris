@@ -1,3 +1,30 @@
+lutris (0.4.21) bionic; urgency=medium
+
+  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
+  * Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
+  * Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
+  * Added check for the presence of executable after the installation finished.
+  * Added an option to sort installed games first
+  * Added a discouraging warning if Lutris was launched as root.
+  * Added a "--version" command line option.
+  * Added an error message if requested DXVK version does not exist.
+  * Improved behavior of Lutris' background process.
+  * Improved UI when changing game's identifier.
+  * Wine's own Virtual Desktop configuration is now respected.
+  * Merge command now has a 'copy' alias.
+  * Executable selection how has a text field.
+  * Blacklisted Proton and SteamWorks from showing up as games.
+  * Sidebar now shows number of installed games per runner and platform.
+  * Visual improvements to wine download dialog
+  * Fixed an issue when DXVK versions didn't get updated if dxvk directory wasn't present.
+  * Fixed an issue when the watcher would sync Steam games even if the feature was disabled.
+  * Fixed missing warning for existing prefix during installation process if the path contained "~".
+  * Prevent Steam games from being synced from the AppManifest watcher if Steam sync if off
+  * Games load properly when launching Lutris for the first time
+  * Minor improvements to wording in some menus.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Oct 2018 17:39:31 -0700
+
 lutris (0.4.20) bionic; urgency=medium
 
   * Fix detection of winetricks path

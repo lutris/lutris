@@ -11,8 +11,10 @@ import contextlib
 from collections import defaultdict
 from itertools import chain
 
-from gi.repository import GLib
+
 from textwrap import dedent
+from gi.repository import GLib
+
 
 from lutris import settings
 from lutris import runtime
@@ -37,15 +39,19 @@ class LutrisThread(threading.Thread):
     """Run the game in a separate thread."""
     debug_output = True
 
-    def __init__(self, command, runner=None, env={}, rootpid=None, term=None,
-                 watch=True, cwd=None, include_processes=[], exclude_processes=[], log_buffer=None):
+    def __init__(self, command, runner=None, env=None, rootpid=None, term=None,
+                 watch=True, cwd=None, include_processes=None, exclude_processes=None, log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
         self.ready_state = True
-        self.env = env
+        if env is None:
+            self.env = {}
+        else:
+            self.env = env
         self.original_env = {}
         self.command = command
         self.runner = runner
+        self.stop_func = lambda: True
         self.game_process = None
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
@@ -59,13 +65,17 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
-        if isinstance(include_processes, str):
+        if include_processes is None:
+            include_processes = []
+        elif isinstance(include_processes, str):
             include_processes = shlex.split(include_processes)
-        if isinstance(exclude_processes, str):
+        if exclude_processes is None:
+            exclude_processes = []
+        elif isinstance(exclude_processes, str):
             exclude_processes = shlex.split(exclude_processes)
         # process names from /proc only contain 15 characters
         self.include_processes = [x[0:15] for x in include_processes]
-        self.exclude_processes = [x[0:15] for x in (EXCLUDED_PROCESSES + exclude_processes)]
+        self.exclude_processes = [x[0:15] for x in EXCLUDED_PROCESSES + exclude_processes]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
 
@@ -77,8 +87,8 @@ class LutrisThread(threading.Thread):
 
         self.cwd = self.set_cwd(cwd)
         self.env_string = ''
-        for (k, v) in self.env.items():
-            self.env_string += '%s="%s" ' % (k, v)
+        for key, value in self.env.items():
+            self.env_string += '%s="%s" ' % (key, value)
 
         self.command_string = ' '.join(
             ['"%s"' % token for token in self.command]
@@ -113,8 +123,8 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread."""
-        logger.debug("Command env: " + self.env_string)
-        logger.debug("Running command: " + self.command_string)
+        logger.debug("Command env: %s", self.env_string)
+        logger.debug("Running command: %s", self.command_string)
 
         if self.terminal and system.find_executable(self.terminal):
             self.game_process = self.run_in_terminal()
@@ -182,9 +192,9 @@ class LutrisThread(threading.Thread):
                 os.makedirs(self.cwd)
 
             if self.watch:
-                pipe=subprocess.PIPE
+                pipe = subprocess.PIPE
             else:
-                pipe=None
+                pipe = None
 
             return subprocess.Popen(command, bufsize=1,
                                     stdout=pipe, stderr=subprocess.STDOUT,
@@ -288,8 +298,7 @@ class LutrisThread(threading.Thread):
                 processes['external'].append(str(child))
                 continue
 
-            if (child.name and child.name in self.exclude_processes and
-               child.name not in self.include_processes):
+            if child.name and child.name in self.exclude_processes and child.name not in self.include_processes:
                 processes['excluded'].append(str(child))
                 continue
             num_watched_children += 1
@@ -321,7 +330,7 @@ class LutrisThread(threading.Thread):
         for key in processes:
             if processes[key] != self.monitored_processes[key]:
                 self.monitored_processes[key] = processes[key]
-                logger.debug("Processes {}: {}".format(key, ', '.join(processes[key]) or 'none'))
+                logger.debug("Processes %s: %s", key, ', '.join(processes[key]) or 'none')
 
         if self.runner and hasattr(self.runner, 'watch_game_process'):
             if not self.runner.watch_game_process():

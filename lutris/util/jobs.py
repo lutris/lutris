@@ -7,7 +7,7 @@ from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    def __init__(self, function, callback=None, *args, **kwargs):
+    def __init__(self, func, callback=None, *args, **kwargs):
         """Execute `function` in a new thread then schedule `callback` for
         execution in the main loop.
         """
@@ -15,7 +15,7 @@ class AsyncCall(threading.Thread):
 
         super(AsyncCall, self).__init__(target=self.target, args=args,
                                         kwargs=kwargs)
-        self.function = function
+        self.function = func
         self.callback = callback if callback else lambda r, e: None
         self.daemon = kwargs.pop('daemon', True)
 

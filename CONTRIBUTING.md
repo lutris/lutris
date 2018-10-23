@@ -1,9 +1,5 @@
-*************************************************************
-/!\ This document is an early draft. It might be full of lies
-*************************************************************
-
-Contributing to Lutris (draft)
-==============================
+Contributing to Lutris
+======================
 
 Finding issues to work on
 -------------------------
@@ -53,6 +49,11 @@ files for new dependencies, for example Debian based distros will have their
 dependencies listed in `debian/control` and in `lutris.spec` for RPM based
 ones.
 
+Under NO circumstances should you use a virtualenv or install dependencies with
+pip. The PyGOject introspection libraries are not regular python packages and
+it is not possible to pip install them or use them from a virtualenv. Make
+sure to always use PyGOject from your distribution's package manager.
+
 Formatting your code
 --------------------
 
@@ -61,6 +62,9 @@ developers from going back and fixing your code, please make your code pass the
 pylint checks. We highly recommend that you install a pylint plugin for your
 code editor. Once you have pylint set up to check the code, you can configure
 it to use 120 characters max per line instead of 80.
+
+You can help fixing formatting issues or other code smells by having a look at
+the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
 Writing tests
 -------------

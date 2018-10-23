@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import json
 import logging
 import os
@@ -29,6 +30,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import pga
 from lutris.config import check_config
+from lutris.settings import VERSION
 from lutris.util.dxvk import init_dxvk_versions
 from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
@@ -84,6 +86,12 @@ class Application(Gtk.Application):
             )
         else:
             logger.warning("This version of Gtk doesn't support set_option_context_summary")
+        self.add_main_option('version',
+                             ord('v'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Print the version of Lutris and exit'),
+                             None)
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
@@ -194,6 +202,13 @@ class Application(Gtk.Application):
 
         # Text only commands
 
+        # Print Lutris version and exit
+        if options.contains('version'):
+            executable_name=os.path.basename(sys.argv[0])
+            print(executable_name + "-" + VERSION)
+            logger.setLevel(logging.NOTSET)
+            return 0
+            
         # List game
         if options.contains('list-games'):
             game_list = pga.get_games()

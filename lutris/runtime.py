@@ -19,7 +19,8 @@ class RuntimeUpdater:
     def is_updating(self):
         return self.current_updates > 0
 
-    def get_created_at(self, name):
+    @staticmethod
+    def get_created_at(name):
         path = os.path.join(RUNTIME_DIR, name)
         if not os.path.exists(path):
             return time.gmtime(0)
@@ -39,8 +40,10 @@ class RuntimeUpdater:
 
         for runtime in self._iter_runtimes():
             self.download_runtime(runtime)
+        return None
 
-    def _iter_runtimes(self):
+    @staticmethod
+    def _iter_runtimes():
         request = http.Request(RUNTIME_URL)
         response = request.get()
         runtimes = response.json or []
@@ -95,8 +98,8 @@ class RuntimeUpdater:
         return True
 
     def on_downloaded(self, path):
-        dir, filename = os.path.split(path)
-        folder = os.path.join(dir, filename[:filename.find('.')])
+        directory, filename = os.path.split(path)
+        folder = os.path.join(directory, filename[:filename.find('.')])
         system.remove_folder(folder)
         jobs.AsyncCall(extract_archive, self.on_extracted, path, RUNTIME_DIR,
                        merge_single=False)
