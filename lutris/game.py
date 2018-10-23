@@ -16,6 +16,7 @@ from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
+from lutris.util.timer import Timer
 
 
 class Game:
@@ -58,6 +59,9 @@ class Game:
         self.original_outputs = None
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
+
+        self.timer = Timer()
+        self.playtime = game_data.get('playtime') or ''
 
     def __repr__(self):
         return self.__unicode__()
@@ -173,7 +177,8 @@ class Game:
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            playtime = self.playtime,
         )
 
     def prelaunch(self):
@@ -218,6 +223,9 @@ class Game:
             self.do_play(True)
 
     def do_play(self, prelaunched, error=None):
+
+        self.timer.start_t()
+
         if error:
             logger.error(error)
             dialogs.ErrorDialog(str(error))
@@ -433,6 +441,10 @@ class Game:
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
+
+        self.timer.end_t()
+        self.playtime = self.timer.increment(self.playtime)
+
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
             logger.debug("Game thread still running, stopping it (state: %s)", self.state)

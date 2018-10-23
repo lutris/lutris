@@ -21,7 +21,7 @@ from lutris.util.log import logger
     COL_SLUG,
     COL_NAME,
     COL_ICON,
-    COL_YEAR,
+    COL_YEAR, 
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
@@ -29,8 +29,10 @@ from lutris.util.log import logger
     COL_LASTPLAYED_TEXT,
     COL_INSTALLED,
     COL_INSTALLED_AT,
-    COL_INSTALLED_AT_TEXT
-) = list(range(13))
+    COL_INSTALLED_AT_TEXT,
+    COL_PLAYTIME,
+    COL_PLAYTIME_TEXT
+) = list(range(15))
 
 COLUMN_NAMES = {
     COL_NAME: 'name',
@@ -38,7 +40,8 @@ COLUMN_NAMES = {
     COL_RUNNER_HUMAN_NAME: 'runner',
     COL_PLATFORM: 'platform',
     COL_LASTPLAYED_TEXT: 'lastplayed',
-    COL_INSTALLED_AT_TEXT: 'installed_at'
+    COL_INSTALLED_AT_TEXT: 'installed_at',
+    COL_PLAYTIME_TEXT: 'playtime'
 }
 
 
@@ -59,7 +62,7 @@ class GameStore(GObject.Object):
         self.modelfilter = None
         self.runner_names = {}
 
-        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str)
+        self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str, str, str)
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
         else:
@@ -176,6 +179,9 @@ class GameStore(GObject.Object):
 
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
+        playtime_text = ''
+        if game['playtime']:
+            playtime_text = game['playtime']
         self.store.append((
             game['id'],
             game['slug'],
@@ -189,7 +195,9 @@ class GameStore(GObject.Object):
             lastplayed_text,
             game['installed'],
             game['installed_at'],
-            installed_at_text
+            installed_at_text,
+            game['playtime'],
+            playtime_text
         ))
         self.sort_view(self.show_installed_first)
 
@@ -282,6 +290,7 @@ class GameView(object):
         row = self.get_row_by_id(game['id'])
         if row:
             row[COL_YEAR] = str(game['year'])
+            row[COL_PLAYTIME_TEXT] = game['playtime']
             self.update_image(game['id'], row[COL_INSTALLED])
 
     def update_image(self, game_id, is_installed=False):
@@ -353,6 +362,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
         self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
+        self.set_column(default_text_cell, "Play Time", COL_PLAYTIME_TEXT, 100)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
