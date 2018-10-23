@@ -59,6 +59,9 @@ class Game:
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
+        self.timer = Timer()
+        self.playtime = game_data.get('playtime') or ''
+
     def __repr__(self):
         return self.__unicode__()
 
@@ -173,7 +176,8 @@ class Game:
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            playtime = self.playtime,
         )
 
     def prelaunch(self):
@@ -218,6 +222,9 @@ class Game:
             self.do_play(True)
 
     def do_play(self, prelaunched, error=None):
+
+        self.timer.start_t()
+
         if error:
             logger.error(error)
             dialogs.ErrorDialog(str(error))

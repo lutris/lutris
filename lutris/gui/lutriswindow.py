@@ -586,6 +586,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
+        
+        #Update game row (In particular play time)
+        self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
+        
         """Stop running game."""
         if self.running_game:
             self.running_game.stop()
