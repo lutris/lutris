@@ -2,7 +2,6 @@
 """Module that actually runs the games."""
 import os
 import time
-import datetime
 import shlex
 import subprocess
 
@@ -17,7 +16,7 @@ from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
-from lutris.util.timer import Timer
+
 
 class Game:
     """This class takes cares of loading the configuration for a game
@@ -59,9 +58,6 @@ class Game:
         self.original_outputs = None
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
-
-        self.timer = Timer()
-        self.playtime = game_data.get('playtime') or ''
 
     def __repr__(self):
         return self.__unicode__()
@@ -177,10 +173,8 @@ class Game:
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id,
-            playtime = self.playtime
+            id=self.id
         )
-        
 
     def prelaunch(self):
         """Verify that the current game can be launched."""
@@ -224,9 +218,6 @@ class Game:
             self.do_play(True)
 
     def do_play(self, prelaunched, error=None):
-        
-        self.timer.start_t()
-        
         if error:
             logger.error(error)
             dialogs.ErrorDialog(str(error))
@@ -441,13 +432,6 @@ class Game:
         self.state = self.STATE_STOPPED
 
     def on_game_quit(self):
-        
-        self.timer.end_t()
-        if self.playtime == '':
-            self.playtime = str(self.timer.duration())
-        else:
-            self.playtime = (str(datetime.datetime.strptime(self.playtime,"%H:%M:%S") + self.timer.duration())).split()[1]
-
         """Restore some settings and cleanup after game quit."""
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
@@ -456,7 +440,6 @@ class Game:
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-
         self.save(metadata_only=True)
 
         os.chdir(os.path.expanduser('~'))
