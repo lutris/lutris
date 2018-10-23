@@ -16,6 +16,7 @@ from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
+from lutris.util.timer import Timer
 
 
 class Game:
