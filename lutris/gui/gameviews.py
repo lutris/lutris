@@ -385,7 +385,6 @@ class GameListView(Gtk.TreeView, GameView):
         width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
         column.set_fixed_width(int(width) if width else default_width)
         self.append_column(column)
-        
         column.connect("notify::width", self.on_column_width_changed)
         return column
 
