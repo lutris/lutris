@@ -158,6 +158,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
+        self.gui_needs_update = True
+
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
         Action.__new__.__defaults__ = (None, None, True, None, None)
@@ -415,6 +417,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
+        
+        #update row at game exit
+        if text == "Game has quit" and self.gui_needs_update:
+                self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
+                            
         for child_widget in self.status_box.get_children():
             child_widget.destroy()
         label = Gtk.Label(text)
@@ -427,12 +434,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
                 self.set_status("Preparing to launch %s" % name)
+                self.gui_needs_update = True
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
+                self.gui_needs_update = False
                 self.actions['stop-game'].props.enabled = False
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.set_status("Playing %s" % name)
                 self.actions['stop-game'].props.enabled = True
+                self.gui_needs_update = True
         return True
 
     # ---------
@@ -586,10 +596,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_game_stop(self, *args):
-        
-        #Update game row (In particular play time)
-        self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
-        
         """Stop running game."""
         if self.running_game:
             self.running_game.stop()
