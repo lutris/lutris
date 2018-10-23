@@ -433,6 +433,10 @@ class Game:
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
+
+        self.timer.end_t()
+        self.playtime = self.timer.increment(self.playtime)
+
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
             logger.debug("Game thread still running, stopping it (state: %s)", self.state)
