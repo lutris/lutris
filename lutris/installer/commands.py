@@ -334,7 +334,7 @@ class CommandsMixin:
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
-        return (src.rstrip('/'), dst.rstrip('/'))
+        return src.rstrip('/'), dst.rstrip('/')
 
     def substitute_vars(self, data):
         """Subsitute variable names found in given file."""
