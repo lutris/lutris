@@ -164,7 +164,6 @@ system_options = [
     {
         'option': 'pre_script',
         'type': 'file',
-        'default': os.path.expanduser('~/Games'),
         'label': 'Script to launch at game start',
         'advanced': True,
         'help': ("Path to a script to execute at game start")
