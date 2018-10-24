@@ -350,7 +350,8 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def set_path_chooser(self, callback_on_changed, action=None,
                          default_path=None):
         """Display a file/folder chooser."""
-        
+
+        self.install_button.set_visible(False)
         self.continue_button.show()
         self.continue_button.set_sensitive(False)
         
@@ -368,8 +369,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if callback_on_changed:
             self.location_entry.entry.connect(
                 'changed', self.continue_guard, action)
-        else:
-            self.install_button.set_visible(False)
+
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
     def on_file_selected(self, widget):
