@@ -4,7 +4,6 @@ import os
 import time
 import shlex
 import subprocess
-from threading import Thread
 
 from gi.repository import GLib, Gtk
 
@@ -18,6 +17,7 @@ from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+from lutris.script_thread import ScriptThread
 
 
 class Game:
@@ -64,7 +64,7 @@ class Game:
         self.timer = Timer()
         self.playtime = game_data.get('playtime') or ''
 
-        self.pre_script_thread = None
+        self.pre_script_thread = ScriptThread(self.runner)
     def __repr__(self):
         return self.__unicode__()
 
@@ -375,7 +375,7 @@ class Game:
             self.desktop_effects(False)
 
         if self.runner.system_config.get('pre_script'):
-            self.pre_script_thread_start()
+            self.pre_script_thread.start()
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
@@ -508,29 +508,3 @@ class Game:
             logger.info("Steam game %s updating, setting game thread as not ready",
                         appmanifest.steamid)
             self.game_thread.ready_state = False
-
-    def call_process_with_err(self, arg):
-        """Handle subprocess errors in the new thread"""
-
-        try:
-            return subprocess.call(arg)
-
-        except PermissionError:
-            logger.error(
-                "Unable to execute script , script is not executable")
-        except OSError:
-            logger.error(
-                "Unable to execute script maybe its missing Shebang")
-
-    def pre_script_thread_start(self):
-        """Execute script in a new thread"""
-
-        script = self.runner.system_config.get('pre_script')
-        if os.path.isfile(script):
-            self.pre_script_thread = Thread(target=self.call_process_with_err,
-                                            args=[self.runner.system_config.get('pre_script')])
-
-            self.pre_script_thread.start()
-        else:
-            logger.error(
-                "Script not found at %s", script)
