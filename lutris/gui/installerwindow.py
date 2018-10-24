@@ -349,10 +349,11 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def set_path_chooser(self, callback_on_changed, action=None,
                          default_path=None):
-
+        """Display a file/folder chooser."""
+        
         self.continue_button.show()
         self.continue_button.set_sensitive(False)
-        """Display a file/folder chooser."""
+        
         if action == 'file':
             title = 'Select file'
             action = Gtk.FileChooserAction.OPEN
