@@ -17,6 +17,7 @@ from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+from lutris.util.script_thread import ScriptThread
 
 
 class Game:
@@ -63,6 +64,7 @@ class Game:
         self.timer = Timer()
         self.playtime = game_data.get('playtime') or ''
 
+        self.pre_script_thread = ScriptThread(self.runner)
     def __repr__(self):
         return self.__unicode__()
 
@@ -371,6 +373,9 @@ class Game:
 
         if self.runner.system_config.get('disable_compositor'):
             self.desktop_effects(False)
+
+        if self.runner.system_config.get('pre_script'):
+            self.pre_script_thread.start()
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
