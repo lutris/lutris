@@ -337,8 +337,8 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         loc = self.location_entry.get_text()
         loc = os.path.expanduser(loc)
-        if (action == Gtk.FileChooserAction.OPEN and os.path.isfile(loc)
-                or action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(loc)):
+        if ((action == Gtk.FileChooserAction.OPEN and os.path.isfile(loc))
+                or (action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(loc))):
 
             self.continue_button.set_sensitive(True)
             self.continue_button.connect('clicked', self.on_file_selected)
