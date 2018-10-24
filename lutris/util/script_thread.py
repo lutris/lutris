@@ -33,4 +33,4 @@ class ScriptThread():
             self.pre_script_thread.start()
         else:
             logger.error(
-                "Cannot find script")
+                "Script not found at %s", script)
