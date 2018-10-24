@@ -510,7 +510,7 @@ class Game:
             self.game_thread.ready_state = False
 
     def call_process_with_err(self, arg):
-        """Handle subprocess errors in the new theread"""
+        """Handle subprocess errors in the new thread"""
 
         try:
             return subprocess.call(arg)
