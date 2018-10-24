@@ -1,4 +1,4 @@
-# application.py
+# pylint: disable=no-member
 #
 # Copyright (C) 2016 Patrick Griffis <tingping@tingping.se>
 #
@@ -15,32 +15,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import json
 import logging
 import os
 import signal
+import sys
 import gettext
 from gettext import gettext as _
 
-import gi
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gio, GLib, Gtk
+import gi  # isort:skip
+gi.require_version('Gdk', '3.0')  # NOQA # isort:skip
+gi.require_version('Gtk', '3.0')  # NOQA # isort:skip
 
+from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.config import check_config
-from lutris.settings import VERSION
-from lutris.util.dxvk import init_dxvk_versions
-from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
+from lutris.platforms import update_platforms
+from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
+from lutris.settings import VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
+from lutris.util.dxvk import init_dxvk_versions
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
-from lutris.services.steam import (AppManifest, get_appmanifests,
-                                   get_steamapps_paths)
 
 from .lutriswindow import LutrisWindow
 
@@ -80,8 +79,9 @@ class Application(Gtk.Application):
         if hasattr(self, 'set_option_context_summary'):
             self.set_option_context_summary(
                 'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
-                'If several games share the same identifier you can use the '
-                'numerical ID (displayed when running lutris --list-games) and add lutris:rungameid/numerical-id.\n'
+                'If several games share the same identifier you can use the numerical ID '
+                '(displayed when running lutris --list-games) and add '
+                'lutris:rungameid/numerical-id.\n'
                 'To install a game, add lutris:install/game-identifier.'
             )
         else:
@@ -204,11 +204,11 @@ class Application(Gtk.Application):
 
         # Print Lutris version and exit
         if options.contains('version'):
-            executable_name=os.path.basename(sys.argv[0])
+            executable_name = os.path.basename(sys.argv[0])
             print(executable_name + "-" + VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
-            
+
         # List game
         if options.contains('list-games'):
             game_list = pga.get_games()
