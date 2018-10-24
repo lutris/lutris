@@ -1,3 +1,9 @@
+lutris (0.4.21.1) bionic; urgency=medium
+
+  * Fix detection of libvulkan
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 23 Oct 2018 19:31:14 -0700
+
 lutris (0.4.21) bionic; urgency=medium
 
   * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
