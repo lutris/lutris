@@ -164,9 +164,9 @@ system_options = [
     {
         'option': 'pre_script',
         'type': 'file',
-        'label': 'Script to launch at game start',
+        'label': 'Pre Launch Script',
         'advanced': True,
-        'help': ("Path to a script to execute at game start")
+        'help': ("Choose a script to execute at game start")
     },
     {
         'option': 'prefix_command',
