@@ -162,6 +162,14 @@ system_options = [
         'help': "Environment variables loaded at run time"
     },
     {
+        'option': 'pre_script',
+        'type': 'file',
+        'default': os.path.expanduser('~/Games'),
+        'label': 'Script to launch at game start',
+        'advanced': True,
+        'help': ("Path to a script to execute at game start")
+    },
+    {
         'option': 'prefix_command',
         'type': 'string',
         'label': 'Command prefix',
