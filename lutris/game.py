@@ -533,4 +533,4 @@ class Game:
             self.pre_script_thread.start()
         else:
             logger.error(
-                "Script not found at ", script)
+                "Script not found at %s", script)
