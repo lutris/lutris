@@ -531,3 +531,6 @@ class Game:
                                             args=[self.runner.system_config.get('pre_script')])
 
             self.pre_script_thread.start()
+        else:
+            logger.error(
+                "Script not found at %s" % script)
