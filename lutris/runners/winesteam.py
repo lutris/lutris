@@ -39,8 +39,7 @@ def is_running():
         # If process is defunct, don't consider it as running
         process = Process(pid)
         return process.state != 'Z'
-    else:
-        return False
+    return False
 
 
 def kill():
@@ -70,7 +69,7 @@ class winesteam(wine.wine):
             'option': 'args',
             'type': 'string',
             'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game")
+            'help': "Command line arguments used when launching the game"
         },
         {
             'option': 'prefix',
@@ -105,7 +104,7 @@ class winesteam(wine.wine):
             'type': 'file',
             'label': 'Steamless binary',
             'advanced': True,
-            'help': ("Steamless binary for running the game directly")
+            'help': "Steamless binary for running the game directly"
         },
     ]
 
@@ -128,7 +127,7 @@ class winesteam(wine.wine):
                 'label': "Stop Steam after game exits",
                 'type': 'bool',
                 'default': True,
-                'help': ("Shut down Steam after the game has quit.")
+                'help': "Shut down Steam after the game has quit."
             },
             {
                 'option': 'run_without_steam',
@@ -192,7 +191,7 @@ class winesteam(wine.wine):
     @property
     def game_path(self):
         if not self.appid:
-            return
+            return None
         return self.get_game_path_from_appid(self.appid)
 
     @property
@@ -206,11 +205,8 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        args = [self.get_executable(), self.get_steam_path()]
-
         # Try to fix Steam's browser. Never worked but it's supposed to...
-        args.append('-no-cef-sandbox')
-        args.append('-console')
+        args = [self.get_executable(), self.get_steam_path(), '-no-cef-sandbox', '-console']
 
         steam_args = self.runner_config.get('args') or ''
         if steam_args:
@@ -219,13 +215,14 @@ class winesteam(wine.wine):
 
         return args
 
-    def get_open_command(self, registry):
+    @staticmethod
+    def get_open_command(registry):
         """Return Steam's Open command, useful for locating steam when it has
            been installed but not yet launched"""
         value = registry.query("Software/Classes/steam/Shell/Open/Command",
                                "default")
         if not value:
-            return
+            return None
         parts = value.split("\"")
         return parts[1].strip('\\')
 
@@ -233,7 +230,7 @@ class winesteam(wine.wine):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
-            return
+            return None
         return read_config(steam_data_dir)
 
     @property
@@ -261,8 +258,8 @@ class winesteam(wine.wine):
         for prefix in candidates:
             # Try the default install path
             for default_path in [
-                "drive_c/Program Files (x86)/Steam/Steam.exe",
-                "drive_c/Program Files/Steam/Steam.exe",
+                    "drive_c/Program Files (x86)/Steam/Steam.exe",
+                    "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
                 if os.path.exists(steam_path):
@@ -348,7 +345,7 @@ class winesteam(wine.wine):
         steam_config = self.get_steam_config()
         if steam_config:
             i = 1
-            while ('BaseInstallFolder_%s' % i) in steam_config:
+            while 'BaseInstallFolder_%s' % i in steam_config:
                 path = steam_config['BaseInstallFolder_%s' % i] + '/steamapps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
@@ -424,8 +421,7 @@ class winesteam(wine.wine):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
 
-        launch_info = {}
-        launch_info['env'] = self.get_env(os_env=False)
+        launch_info = {'env': self.get_env(os_env=False)}
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])

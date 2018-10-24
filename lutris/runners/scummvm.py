@@ -116,8 +116,7 @@ class scummvm(Runner):
         command.append("--path=%s" % self.game_path)
         command.append(self.game_config.get('game_id'))
 
-        launch_info = {'command': command}
-        launch_info['ld_library_path'] = self.libs_dir
+        launch_info = {'command': command, 'ld_library_path': self.libs_dir}
 
         return launch_info
 

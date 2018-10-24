@@ -134,9 +134,9 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
                      "your wine installation is most likely broken", wine_path)
         return
 
-    if install_gecko is 'False':
+    if install_gecko == 'False':
         overrides['mshtml'] = 'disabled'
-    if install_mono is 'False':
+    if install_mono == 'False':
         overrides['mscoree'] = 'disabled'
 
     wineenv = {
@@ -146,7 +146,7 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     }
 
     system.execute([wineboot_path], env=wineenv)
-    for i in range(20):
+    for _ in range(20):
         time.sleep(.25)
         if os.path.exists(os.path.join(prefix, 'user.reg')):
             break
@@ -174,7 +174,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         }
     command = [os.path.join(wine_root, "wineserver"), "-k"]
 
-    logger.debug("Killing all wine processes: %s" % command)
+    logger.debug("Killing all wine processes: %s", command)
     logger.debug("\tWine prefix: %s", prefix)
     logger.debug("\tWine arch: %s", arch)
     if initial_pids:
@@ -281,12 +281,11 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,
     command += shlex.split(args)
     if blocking:
         return system.execute(command, env=wineenv, cwd=working_dir)
-    else:
-        thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
-                              include_processes=include_processes,
-                              exclude_processes=exclude_processes)
-        thread.start()
-        return thread
+    thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
+                          include_processes=include_processes,
+                          exclude_processes=exclude_processes)
+    thread.start()
+    return thread
 
 
 def winetricks(app, prefix=None, arch=None, silent=True,
@@ -341,8 +340,7 @@ def detect_arch(prefix_path=None, wine_path=None):
         return arch
     if wine_path and os.path.exists(wine_path + '64'):
         return 'win64'
-    else:
-        return 'win32'
+    return 'win32'
 
 
 def detect_prefix_arch(prefix_path=None):
@@ -441,13 +439,14 @@ def get_wine_version_exe(version):
 def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
 
+
 def is_esync_limit_set():
     nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
     nolimit = int(nolimit)
     if nolimit < 1048576:
         return False
-    else:
-        return True
+    return True
+
 
 def get_default_version():
     """Return the default version of wine. Prioritize 64bit builds"""
@@ -465,11 +464,11 @@ def get_system_wine_version(wine_path="wine"):
         wine_stats = os.stat(wine_path)
         if wine_stats.st_size < 2000:
             # This version is a script, ignore it
-            return
+            return None
     try:
         version = subprocess.check_output([wine_path, "--version"]).decode().strip()
     except OSError:
-        return
+        return None
     else:
         if version.startswith('wine-'):
             version = version[5:]
@@ -481,10 +480,11 @@ def support_legacy_version(version):
     info. Call this to keep existing games compatible with previous
     configurations."""
     if not version:
-        return
+        return None
     if version not in ('custom', 'system') and '-' not in version:
         version += '-i386'
     return version
+
 
 def is_version_esync(version, path):
     command = path + " --version"
@@ -495,6 +495,7 @@ def is_version_esync(version, path):
         return True
     return False
 
+
 def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
@@ -502,18 +503,19 @@ def get_real_executable(windows_executable, working_dir=None):
     exec_name = windows_executable.lower()
 
     if exec_name.endswith(".msi"):
-        return ('msiexec', ['/i', windows_executable], working_dir)
+        return 'msiexec', ['/i', windows_executable], working_dir
 
     if exec_name.endswith(".bat"):
         if not working_dir or os.path.dirname(windows_executable) == working_dir:
             working_dir = os.path.dirname(windows_executable) or None
             windows_executable = os.path.basename(windows_executable)
-        return ('cmd', ['/C', windows_executable], working_dir)
+        return 'cmd', ['/C', windows_executable], working_dir
 
     if exec_name.endswith(".lnk"):
-        return ('start', ['/unix', windows_executable], working_dir)
+        return 'start', ['/unix', windows_executable], working_dir
 
-    return (windows_executable, [], working_dir)
+    return windows_executable, [], working_dir
+
 
 def display_vulkan_error(option, on_launch):
     if option == vulkan_available.NONE:
@@ -540,27 +542,30 @@ def display_vulkan_error(option, on_launch):
         return True
     return False
 
+
 def esync_display_limit_warning():
     ErrorDialog("Your limits are not set correctly."
                 " Please increase them as described here:"
                 " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
                 "How-to:-Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>")
 
+
 def esync_display_version_warning(on_launch):
     setting = 'hide-wine-non-esync-version-warning'
     if on_launch:
-        checkbox_message= "Launch anyway and do not show this message again."
+        checkbox_message = "Launch anyway and do not show this message again."
     else:
-        checkbox_message= "Enable anyway and do not show this message again."
+        checkbox_message = "Enable anyway and do not show this message again."
 
     DontShowAgainDialog(setting,
                         "Incompatible Wine version detected",
                         secondary_message="The wine build you have selected does not seem to support Esync.\n"
                         "Please switch to an esync-capable version.",
                         checkbox_message=checkbox_message)
-    if settings.read_setting(setting) == 'True':#
+    if settings.read_setting(setting) == 'True':
         return True
     return False
+
 
 # pylint: disable=C0103
 class wine(Runner):
@@ -791,7 +796,7 @@ class wine(Runner):
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
                 'choices': display.get_unique_resolutions,
-                'help': ("The size of the virtual desktop in pixels.")
+                'help': "The size of the virtual desktop in pixels."
             },
             {
                 'option': 'MouseWarpOverride',
@@ -943,7 +948,7 @@ class wine(Runner):
                 'option': 'sandbox_dir',
                 'type': 'directory_chooser',
                 'label': 'Sandbox directory',
-                'help': ("Custom directory for desktop integration folders.")
+                'help': "Custom directory for desktop integration folders."
             }
         ]
 
@@ -970,8 +975,7 @@ class wine(Runner):
             return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        else:
-            return super(wine, self).working_dir
+        return super(wine, self).working_dir
 
     @property
     def wine_arch(self):
@@ -998,8 +1002,7 @@ class wine(Runner):
             return system.find_executable(WINE_PATHS[version])
         elif version == 'custom':
             return self.runner_config.get('custom_wine_path', '')
-        else:
-            return os.path.join(WINE_DIR, version, 'bin/wine')
+        return os.path.join(WINE_DIR, version, 'bin/wine')
 
     def get_executable(self, version=None, fallback=True):
         """Return the path to the Wine executable.
@@ -1250,8 +1253,7 @@ class wine(Runner):
         if not os.path.exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
-        launch_info = {}
-        launch_info['env'] = self.get_env(os_env=False)
+        launch_info = {'env':  self.get_env(os_env=False)}
 
         if 'WINEESYNC' in launch_info['env']:
             if launch_info['env']['WINEESYNC'] == "1":

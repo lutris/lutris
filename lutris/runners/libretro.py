@@ -79,8 +79,10 @@ LIBRETRO_CORES = [
 def get_core_choices():
     return [(core[0], core[1]) for core in LIBRETRO_CORES]
 
+
 def get_default_config_path(path=''):
     return os.path.join(settings.RUNNER_DIR, 'retroarch', path)
+
 
 class libretro(Runner):
     human_name = "Libretro"
@@ -129,7 +131,8 @@ class libretro(Runner):
                     return core[2]
         return ''
 
-    def get_core_path(self, core):
+    @staticmethod
+    def get_core_path(core):
         return os.path.join(settings.RUNNER_DIR,
                             'retroarch/cores/{}_libretro.so'.format(core))
 
@@ -170,7 +173,8 @@ class libretro(Runner):
     def get_config_file(self):
         return self.runner_config.get('config_file') or get_default_config_path('retroarch.cfg')
 
-    def get_system_directory(self, retro_config):
+    @staticmethod
+    def get_system_directory(retro_config):
         """Return the system directory used for storing BIOS and firmwares."""
         system_directory = retro_config['system_directory']
         if not system_directory or system_directory == 'default':
@@ -236,10 +240,9 @@ class libretro(Runner):
                             checksum_status = 'Checksum failed'
                     else:
                         checksum_status = 'No checksum info'
-                    logger.info("Firmware '{}' found ({})".format(firmware_filename,
-                                                                  checksum_status))
+                    logger.info("Firmware '%s' found (%s)", firmware_filename, checksum_status)
                 else:
-                    logger.warning("Firmware '{}' not found!".format(firmware_filename))
+                    logger.warning("Firmware '%s' not found!", firmware_filename)
 
                 # Before closing issue #431
                 # TODO check for firmware*_opt and display an error message if

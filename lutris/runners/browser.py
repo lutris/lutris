@@ -4,7 +4,6 @@ from lutris.runners.runner import Runner
 
 class browser(Runner):
     human_name = "Browser"
-    description = "Runs browser games"
     platforms = ["Web"]
     description = "Runs games in the browser"
     game_options = [
@@ -12,7 +11,7 @@ class browser(Runner):
             "option": "main_file",
             "type": "string",
             "label": "Full address (URL)",
-            'help': ("The full address of the game's web page.")
+            'help': "The full address of the game's web page."
         }
     ]
     runner_options = [

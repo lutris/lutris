@@ -15,13 +15,13 @@ class zdoom(Runner):
             'option': 'main_file',
             'type': 'file',
             'label': 'WAD file',
-            'help': ("The game data, commonly called a WAD file.")
+            'help': "The game data, commonly called a WAD file."
         },
         {
             'option': 'args',
             'type': 'string',
             'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game.")
+            'help': "Command line arguments used when launching the game."
         },
         {
             'option': 'files',
@@ -34,14 +34,14 @@ class zdoom(Runner):
             'option': 'warp',
             'type': 'string',
             'label': 'Warp to map',
-            'help': ("Starts the game on the given map.")
+            'help': "Starts the game on the given map."
         },
         {
             'option': 'savedir',
             'type': 'directory_chooser',
             'label': 'Save path',
-            'help': ("User-specified path where save files should be located.")
-        }        
+            'help': "User-specified path where save files should be located."
+        }
     ]
     runner_options = [
         {
@@ -131,20 +131,20 @@ class zdoom(Runner):
         if config:
             command.append("-config")
             command.append(config)
-            
+
         # Append the warp arguments.
         warp = self.game_config.get('warp')
         if warp:
             command.append("-warp")
             for warparg in warp.split(' '):
                 command.append(warparg)
-    
+
         # Append directory for save games, if provided.
         savedir = self.game_config.get('savedir')
         if savedir:
             command.append("-savedir")
             command.append(savedir)
-                
+
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
         if wad:
@@ -166,10 +166,10 @@ class zdoom(Runner):
             command.append("-file")
             for pwad in pwads:
                 command.append(pwad)
-        
+
         # Append additional arguments, if provided.
         args = self.game_config.get('args') or ''
         for arg in shlex.split(args):
             command.append(arg)
-        
+
         return {'command': command}

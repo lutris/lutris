@@ -102,7 +102,8 @@ class reicast(Runner):
         self.joypads = joypad_list
         return joypad_list
 
-    def write_config(self, config):
+    @staticmethod
+    def write_config(config):
         parser = ConfigParser()
 
         config_path = os.path.expanduser('~/.reicast/emu.cfg')

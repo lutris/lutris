@@ -123,7 +123,8 @@ class Runner:
         """Return the working directory to use when running the game."""
         return os.path.expanduser("~/")
 
-    def killall_on_exit(self):
+    @staticmethod
+    def killall_on_exit():
         return True
 
     def get_platform(self):
@@ -249,8 +250,7 @@ class Runner:
                 version = None
             if version:
                 return self.install(version=version)
-            else:
-                return self.install()
+            return self.install()
         return False
 
     def is_installed(self):
@@ -304,14 +304,7 @@ class Runner:
                      self.name, version, downloader, callback)
         runner_info = self.get_runner_info(version)
         if not runner_info:
-            raise RunnerInstallationError(
-                '{} is not available for the {} architecture'.format(
-                    self.name, self.arch
-                )
-            )
-            dialogs.ErrorDialog(
-            )
-            return False
+            raise RunnerInstallationError('{} is not available for the {} architecture'.format(self.name, self.arch))
         opts = {}
         if downloader:
             opts['downloader'] = downloader
@@ -355,16 +348,18 @@ class Runner:
         """GObject callback received by downloader"""
         self.extract(**user_data)
 
-    def extract(self, archive=None, dest=None, merge_single=None,
+    @staticmethod
+    def extract(archive=None, dest=None, merge_single=None,
                 callback=None):
         if not os.path.exists(archive):
-            raise RunnerInstallationError("Failed to extract {}", archive)
+            raise RunnerInstallationError("Failed to extract {}".format(archive))
         extract_archive(archive, dest, merge_single=merge_single)
         os.remove(archive)
         if callback:
             callback()
 
-    def remove_game_data(self, game_path=None):
+    @staticmethod
+    def remove_game_data(game_path=None):
         system.remove_folder(game_path)
 
     def can_uninstall(self):

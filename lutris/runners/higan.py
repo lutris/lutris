@@ -1,5 +1,5 @@
-from lutris.runners.runner import Runner
 from os.path import expanduser
+from lutris.runners.runner import Runner
 
 
 class higan(Runner):

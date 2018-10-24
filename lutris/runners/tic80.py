@@ -8,7 +8,7 @@ class tic80(Runner):
     platforms = ['TIC-80']
     runner_executable = 'tic80/tic80'
     game_options = [
-    	{
+        {
             'option': 'main_file',
             'type': 'file',
             'label': 'ROM file',

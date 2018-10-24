@@ -18,7 +18,7 @@ def dosexec(config_file=None, executable=None, args=None, exit=True,
             working_dir = os.path.dirname(executable)
     else:
         raise ValueError("Neither a config file or an executable were provided")
-    logger.debug("Running dosbox with {}".format(run_with))
+    logger.debug("Running dosbox with %s", run_with)
     working_dir = system.create_folder(working_dir)
     dosbox_runner = dosbox()
     command = [dosbox_runner.get_executable()]
@@ -49,7 +49,6 @@ class dosbox(Runner):
     human_name = "DOSBox"
     description = "MS-Dos emulator"
     platforms = ["MS-DOS"]
-    description = "DOS Emulator"
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
@@ -122,14 +121,14 @@ class dosbox(Runner):
             "label": "Exit Dosbox with the game",
             "type": "bool",
             "default": True,
-            'help': ("Shut down Dosbox when the game is quit.")
+            'help': "Shut down Dosbox when the game is quit."
         },
         {
             "option": "fullscreen",
             "label": "Open game in fullscreen",
             "type": "bool",
             "default": False,
-            'help': ("Tells Dosbox to launch the game in fullscreen.")
+            'help': "Tells Dosbox to launch the game in fullscreen."
         }
     ]
 
