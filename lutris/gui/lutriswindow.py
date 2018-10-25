@@ -183,7 +183,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'stop-game': Action(self.on_game_stop, enabled=False),
             'start-game': Action(self.on_game_run, enabled=False),
             'remove-game': Action(self.on_remove_game, enabled=False),
-            'play-script': Action(self.on_scripts_mgr_btn_clicked, enabled=False),
+            'play-script': Action(self.on_play_script, enabled=False),
 
             'preferences': Action(self.on_preferences_activate),
             'manage-runners': Action(lambda *x: RunnersDialog()),
@@ -290,7 +290,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
         self.view.connect("remove-game", self.on_remove_game)
-        self.view.connect("play-script", self.on_scripts_mgr_btn_clicked)
+        self.view.connect("play-script", self.on_play_script)
         
 
     @staticmethod
@@ -694,7 +694,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return True
     
     @GtkTemplate.Callback
-    def on_scripts_mgr_btn_clicked(self, *args):
+    def on_play_script(self, *args):
         """Play Script"""
         game = pga.get_game_by_field(self.view.selected_game, 'id')
         ScriptThread(game['playscript']).start()
