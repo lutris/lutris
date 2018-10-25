@@ -123,6 +123,21 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="script_manager_button">
+                <property name="name">Script Manager</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Play script</property>
+                <property name="action_name">win.open-scripts-mgr</property>
+                <property name="label" translatable="yes">Scripts</property>
+                <property name="icon_name">emblem-documents</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkSeparatorToolItem" id="toolbutton1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>

@@ -3,11 +3,13 @@ import subprocess
 from threading import Thread
 
 from lutris.util.log import logger
+from lutris.gui import dialogs
 
 
 class ScriptThread():
-    def __init__(self, runner):
-        self.runner = runner
+    def __init__(self, script):
+        self.script = script
+        self.script_thread = None
 
     def call_process_with_err(self, arg):
         """Handle subprocess errors in the new thread"""
@@ -16,21 +18,28 @@ class ScriptThread():
             return subprocess.call(arg)
 
         except PermissionError:
-            logger.error(
-                "Unable to execute script , script is not executable")
+            error = "Unable to execute " + arg + ", script is not executable"
+            logger.error(error)
+            dialogs.ErrorDialog(error)
         except OSError:
-            logger.error(
-                "Unable to execute script maybe its missing Shebang")
+            error = "Unable to execute " + arg + ", script maybe missing Shebang"
+            logger.error(error)
+            dialogs.ErrorDialog(error)
 
     def start(self):
         """Execute script in a new thread"""
 
-        script = self.runner.system_config.get('pre_script')
-        if os.path.isfile(script):
-            self.pre_script_thread = Thread(target=self.call_process_with_err,
-                                            args=[self.runner.system_config.get('pre_script')])
+        if self.script is None or not os.path.isfile(self.script):
+            error = "Script not found"
+            logger.error(error)
+            dialogs.ErrorDialog(error)
 
-            self.pre_script_thread.start()
         else:
-            logger.error(
-                "Script not found at %s", script)
+            self.script_thread = Thread(target=self.call_process_with_err,
+                                        args=[self.script])
+
+            self.script_thread.start()
+
+    def join(self):
+        """Execute script in the calling thread"""
+        self.script_thread.join()

@@ -162,11 +162,32 @@ system_options = [
         'help': "Environment variables loaded at run time"
     },
     {
+        'option': 'play_script',
+        'type': 'file',
+        'label': 'Play Script',
+        'advanced': True,
+        'help': ("Choose a script to execute with script icon")
+    },
+    {
         'option': 'pre_script',
         'type': 'file',
         'label': 'Pre Launch Script',
         'advanced': True,
         'help': ("Choose a script to execute at game start")
+    },
+    {
+        'option': 'wait_for_script_completion',
+        'label': "Wait for script completion before starting the game",
+        'type': 'bool',
+        'default': False,
+        'advanced': True,
+    },
+    {
+        'option': 'post_script',
+        'type': 'file',
+        'label': 'Post Launch Script',
+        'advanced': True,
+        'help': ("Choose a script to execute at game stop")
     },
     {
         'option': 'prefix_command',

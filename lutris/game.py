@@ -63,8 +63,9 @@ class Game:
 
         self.timer = Timer()
         self.playtime = game_data.get('playtime') or ''
+        
+        self.playscript = game_data.get('playscript') or ''
 
-        self.pre_script_thread = ScriptThread(self.runner)
     def __repr__(self):
         return self.__unicode__()
 
@@ -181,6 +182,7 @@ class Game:
             steamid=self.steamid,
             id=self.id,
             playtime = self.playtime,
+            playscript = self.playscript,
         )
 
     def prelaunch(self):
@@ -374,8 +376,13 @@ class Game:
         if self.runner.system_config.get('disable_compositor'):
             self.desktop_effects(False)
 
-        if self.runner.system_config.get('pre_script'):
-            self.pre_script_thread.start()
+        # Check for pre game script
+        pre_script = self.runner.system_config.get("pre_script")
+        if pre_script:
+            pre_script_thread = ScriptThread(pre_script)
+            pre_script_thread.start()
+            if self.runner.system_config.get("wait_for_script_completion"):
+                pre_script_thread.join()
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
@@ -449,6 +456,11 @@ class Game:
 
         self.timer.end_t()
         self.playtime = self.timer.increment(self.playtime)
+
+        # Check for post game script
+        post_script = self.runner.system_config.get("post_script")
+        if post_script:
+            ScriptThread(post_script).start()
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:

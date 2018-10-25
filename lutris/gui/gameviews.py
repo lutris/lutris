@@ -217,6 +217,7 @@ class GameView(object):
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "play-script": (GObject.SIGNAL_RUN_FIRST, None, ())
     }
     selected_game = None
     current_path = None

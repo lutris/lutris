@@ -38,7 +38,7 @@ from lutris.gui.config_dialogs import (
 from lutris.gui.gameviews import (
     GameListView, GameGridView, ContextualMenu, GameStore
 )
-
+from lutris.util.script_thread import ScriptThread
 
 @GtkTemplate(ui=os.path.join(datapath.get(), 'ui', 'lutris-window.ui'))
 class LutrisWindow(Gtk.ApplicationWindow):
@@ -183,6 +183,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             'stop-game': Action(self.on_game_stop, enabled=False),
             'start-game': Action(self.on_game_run, enabled=False),
             'remove-game': Action(self.on_remove_game, enabled=False),
+            'play-script': Action(self.on_scripts_mgr_btn_clicked, enabled=False),
 
             'preferences': Action(self.on_preferences_activate),
             'manage-runners': Action(lambda *x: RunnersDialog()),
@@ -289,6 +290,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
         self.view.connect("remove-game", self.on_remove_game)
+        self.view.connect("play-script", self.on_scripts_mgr_btn_clicked)
+        
 
     @staticmethod
     def check_update():
@@ -634,6 +637,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         sensitive = True if self.view.selected_game else False
         self.actions['start-game'].props.enabled = sensitive
         self.actions['remove-game'].props.enabled = sensitive
+        self.actions['play-script'].props.enabled = sensitive
 
     def on_game_installed(self, view, game_id):
         if type(game_id) != int:
@@ -688,7 +692,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
         return True
-
+    
+    @GtkTemplate.Callback
+    def on_scripts_mgr_btn_clicked(self, *args):
+        """Play Script"""
+        game = pga.get_game_by_field(self.view.selected_game, 'id')
+        ScriptThread(game['playscript']).start()
+        
+        
     def add_game_to_view(self, game_id, is_async=True):
         """Add a given game to the current view
 
@@ -717,6 +728,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                             callback=self.remove_game_from_view,
                             parent=self)
 
+        
     def remove_game_from_view(self, game_id, from_library=False):
         def do_remove_game():
             self.view.remove_game(game_id)
