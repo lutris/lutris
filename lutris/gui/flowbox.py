@@ -255,4 +255,3 @@ class GameFlowBox(FlowBox):
         key = event.keyval
         if key == Gdk.KEY_Delete:
             self.emit("remove-game")
-            self.emit("play-script")
