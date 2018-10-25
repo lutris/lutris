@@ -1,0 +1,75 @@
+
+Game: Blizzard App
+Game: Origin
+Game: Overwatch
+Game: The Sims 2
+Game: World of Warcraft
+
+Game: Blizzard App
+Game: Origin
+Game: Overwatch
+Game: The Sims 2
+Game: World of Warcraft
+Styling conventions 
+==================
+
+Should I edit the script of a game I like?
+=======================
+
+Good reasons (75% of beign accepted)
+----------------------------------
+* The script is unmaintained and/or it's not working anymore, 
+  so it needs to be rewritten.
+* The installer haven't been updated in the last week, 
+  and there are some new patches that can improve the game's performance.
+* Periodic wine and DXVK updates: If you actually tested them.
+
+Proceed with caution (25% of beign accepted)
+----------------------------------
+
+* The script is already maintained, but I'd like to add some feature that I personally like: 
+Be aware that even if you are personally interested on x feature, maybe it's not a reason good enough to add extra complexity to the script.
+
+Bad reasons (5% of beign accepted)
+---------------------------------- 
+
+* A cool feature that is only gonna work for this installer (Unless there's a powerful reason for it). 
+  IE: "I wan't to make possible to choose if DXVK_HUD is vissible for this game while you install it". 
+  Even if it looks like a good idea on first instance, newbye users might not care about it, 
+  and advanced users already know how to do it.
+
+A moderator rejected my script
+----------------------------------
+
+* First of all, they don't hate you. Mods love contributors.
+* By following the rules described in this document, you are maximizing the chances to be accepted.
+* Please, don't make 100 editions just because your first edition wasn't accepted. 
+  Maybe the game you are trying to contribute already have a huge number of contributors. 
+  If you are really commited to help others, try to contribute to games which are not so popular, or unnatended games.
+  
+How many edits are too much?
+----------------------------------
+Ideally you should submit ONE edit for moderation per game, and per day, as maximum (unless you need to submit a hotfix). But you can contribute to as many games as you want. 
+
+The game I want to edit is locked
+----------------------------------
+Locked games already have a main contributor who usually is a well known and active member of the comunity. So they will fix the installer as soon as they notice. If you think they are not aware of a problem, you can contact them on Discord, or open a new issue on Lutris.
+
+How to properly edit an installer
+=======================
+
+Description
+----------------------------------
+Ideally, this paragraph should be empty. Use it only to give short and useful information. Example [1](https://i.imgur.com/A6mL8hI.png).
+
+Technical notes
+----------------------------------
+If the game need some kind of manual tweak, you can speak about it here. Examples: [1](https://i.imgur.com/zaTzFHQ.png), [2](https://i.imgur.com/0f5TYdo.png).
+
+Reason
+----------------------------------
+This paragraph is meant to help Lutris moderators to understand what you are trying to do. Example [1](https://i.imgur.com/F0tmrhy.png).
+
+Tips:
+* Try to avoid confusing, or redundant info.
+* If you are editing something really obvious, it's better to leave this field empty.
