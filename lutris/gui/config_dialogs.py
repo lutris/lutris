@@ -374,10 +374,8 @@ class GameDialogCommon(object):
             self.game.steamid = self.lutris_config.game_config['appid']
         
         # Check if game has playscript key
-        if any(k for k in self.lutris_config.system_config if k == 'play_script'):
+        if 'play_script' in self.lutris_config.system_config:
             self.game.playscript = self.lutris_config.system_config['play_script']
-        else:
-            self.game.playscript = ''
             
         self.game.set_platform_from_runner()
         self.game.save()
