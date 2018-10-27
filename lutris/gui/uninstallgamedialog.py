@@ -10,7 +10,8 @@ class UninstallGameDialog(GtkBuilderDialog):
     glade_file = 'dialog-uninstall-game.ui'
     dialog_object = 'uninstall-game-dialog'
 
-    def substitute_label(self, widget, name, replacement):
+    @staticmethod
+    def substitute_label(widget, name, replacement):
         if hasattr(widget, 'get_text'):
             get_text = widget.get_text
             set_text = widget.set_text

@@ -268,6 +268,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     self.add_game_to_view(game_id)
                 else:
                     self.view.set_installed(Game(game_id))
+
     @staticmethod
     def set_dark_theme(is_dark):
         gtksettings = Gtk.Settings.get_default()
@@ -325,9 +326,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def switch_splash_screen(self, force=None):
         """Toggle the state of the splash screen based on the library contents"""
-        if not self.splash_box.get_visible() and len(self.game_list):
+        if not self.splash_box.get_visible() and self.game_list:
             return
-        if len(self.game_list) or force is True:
+        if self.game_list or force is True:
             self.splash_box.hide()
             self.sidebar_paned.show()
             self.games_scrollwindow.show()
@@ -387,7 +388,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def update_existing_games(self, added, updated, first_run=False):
         for game_id in updated.difference(added):
             # XXX this might not work if the game has no 'item' set
-            logger.debug("Updating row for ID %s" % game_id)
+            logger.debug("Updating row for ID %s", game_id)
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
@@ -407,7 +408,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game_slugs = [game['slug'] for game in self.game_list]
         if not game_slugs:
             return
-        logger.debug("Syncing %d icons" % len(game_slugs))
+        logger.debug("Syncing %d icons", len(game_slugs))
         try:
             GLib.idle_add(
                 resources.fetch_icons, game_slugs,
@@ -417,11 +418,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
-        
-        #update row at game exit
+
+        # update row at game exit
         if text == "Game has quit" and self.gui_needs_update:
-                self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
-                            
+            self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
+
         for child_widget in self.status_box.get_children():
             child_widget.destroy()
         label = Gtk.Label(text)
@@ -573,7 +574,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         # Wait two seconds to avoid running a game twice
         if time.time() - self.game_launch_time < 2:
-            return
+            return None
         self.game_launch_time = time.time()
         return self.view.selected_game
 
@@ -582,7 +583,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not game_id:
             game_id = self._get_current_game_id()
         if not game_id:
-            return
+            return None
         self.running_game = Game(game_id)
         if self.running_game.is_installed:
             self.running_game.play()
@@ -636,10 +637,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions['remove-game'].props.enabled = sensitive
 
     def on_game_installed(self, view, game_id):
-        if type(game_id) != int:
+        if not isinstance(game_id, int):
             raise ValueError("game_id must be an int")
         if not self.view.has_game_id(game_id):
-            logger.debug("Adding new installed game to view (%d)" % game_id)
+            logger.debug("Adding new installed game to view (%d)", game_id)
             self.add_game_to_view(game_id, is_async=False)
 
         game = Game(game_id)
@@ -649,7 +650,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                       [game.slug], self.on_image_downloaded)
 
     def on_image_downloaded(self, game_slugs):
-        logger.debug("Updated images for %d games" % len(game_slugs))
+        logger.debug("Updated images for %d games", len(game_slugs))
 
         for game_slug in game_slugs:
             games = pga.get_games_where(slug=game_slug)
