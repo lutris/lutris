@@ -35,6 +35,7 @@ LIBRETRO_CORES = [
     ('Hatari (Atari ST/STE/TT/Falcon)', 'hatari', 'Atari ST/STE/TT/Falcon'),
     ('higan accuracy(Super Nintendo)', 'higan_sfc', 'Nintendo SNES'),
     ('higan balanced(Super Nintendo)', 'higan_sfc_balanced', 'Nintendo SNES'),
+    ('Kronos (Sega Saturn)', 'kronos', 'Sega Saturn'),
     ('MAME (Arcade)', 'mame', 'Arcade'),
     ('Mednafen GBA (Game Boy Advance)', 'mednafen_gba', 'Nintendo Game Boy Advance'),
     ('Mednafen NGP (SNK Neo Geo Pocket)', 'mednafen_ngp', 'SNK Neo Geo Pocket'),
