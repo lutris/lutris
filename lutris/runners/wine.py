@@ -430,8 +430,12 @@ def get_wine_versions():
                 versions.append(dirname)
     
     proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
+    
     for version in proton_versions:
-        versions.append(version)
+        # Avoid Games with Proton in their names
+        _wine = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
+        if os.path.isfile(_wine):
+            versions.append(version)
     return versions
 
 
