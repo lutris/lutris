@@ -30,6 +30,7 @@ WINE_PATHS = {
     'wine-development': '/usr/lib/wine-development/wine',
     'system': 'wine',
 }
+PROTON_PATH = os.path.expanduser("~/.local/share/Steam/steamapps/common")
 
 
 def set_regedit(path, key, value='', type='REG_SZ', wine_path=None,
@@ -427,6 +428,10 @@ def get_wine_versions():
         for dirname in dirs:
             if is_version_installed(dirname):
                 versions.append(dirname)
+    
+    proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
+    for version in proton_versions:
+        versions.append(version)
     return versions
 
 
@@ -482,7 +487,8 @@ def support_legacy_version(version):
     configurations."""
     if not version:
         return
-    if version not in ('custom', 'system') and '-' not in version:
+    if version not in ('custom', 'system')\
+            and '-' not in version and 'Proton' not in version:
         version += '-i386'
     return version
 
@@ -491,7 +497,7 @@ def is_version_esync(version, path):
     wine_ver = str(subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read())
     if wine_ver.lower().find('esync') != -1:
         return True
-    if version.lower().find('esync') != -1:
+    if version.lower().find('esync') != -1 or 'Proton' in version:
         return True
     return False
 
@@ -996,6 +1002,8 @@ class wine(Runner):
     def get_path_for_version(self, version):
         if version in WINE_PATHS.keys():
             return system.find_executable(WINE_PATHS[version])
+        elif 'Proton' in version:
+            return os.path.join(PROTON_PATH, version, 'dist/bin/wine')
         elif version == 'custom':
             return self.runner_config.get('custom_wine_path', '')
         else:
