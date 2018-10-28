@@ -1,29 +1,29 @@
 Styling conventions 
 ==================
 
-
 Should I edit the script of a game I like?
 =======================
-Good reasons (75% of beign accepted)
+
+Good reasons (75% chance of being accepted)
 ----------------------------------
 * The script is unmaintained and/or it's not working anymore, 
   so it needs to be rewritten.
-* The installer haven't been updated in the last week, 
+* The installer hasn't been updated in the last week, 
   and there are some new patches that can improve the game's performance.
 * Periodic wine and DXVK updates: If you actually tested them.
 
-Proceed with caution (25% of beign accepted)
+Proceed with caution (25% chance of being accepted)
 ----------------------------------
 
 * The script is already maintained, but I'd like to add some feature that I personally like: 
 Be aware that even if you are personally interested on x feature, maybe it's not a reason good enough to add extra complexity to the script.
 
-Bad reasons (5% of beign accepted)
+Bad reasons (5% chance of being accepted)
 ---------------------------------- 
 
 * A cool feature that is only gonna work for this installer (Unless there's a powerful reason for it). 
   IE: "I wan't to make possible to choose if DXVK_HUD is vissible for this game while you install it". 
-  Even if it looks like a good idea on first instance, newbye users might not care about it, 
+  Even if it looks like a good idea on first instance, new users might not care about it, 
   and advanced users already know how to do it.
 
 A moderator rejected my script
@@ -32,8 +32,8 @@ A moderator rejected my script
 * First of all, they don't hate you. Mods love contributors.
 * By following the rules described in this document, you are maximizing the chances to be accepted.
 * Please, don't make 100 editions just because your first edition wasn't accepted. 
-  Maybe the game you are trying to contribute already have a huge number of contributors. 
-  If you are really commited to help others, try to contribute to games which are not so popular, or unnatended games.
+  Maybe the game you are trying to contribute already has a huge number of contributors. 
+  If you are really commited to help others, try to contribute to games which are not so popular, or unattended games.
   
 How many edits are too much?
 ----------------------------------
@@ -52,7 +52,7 @@ Ideally, this paragraph should be empty. Use it only to give short and useful in
 
 Technical notes
 ----------------------------------
-If the game need some kind of manual tweak, you can speak about it here. Examples: [1](https://i.imgur.com/zaTzFHQ.png), [2](https://i.imgur.com/0f5TYdo.png).
+If the game needs some kind of manual tweak, you can speak about it here. Examples: [1](https://i.imgur.com/zaTzFHQ.png), [2](https://i.imgur.com/0f5TYdo.png).
 
 Reason
 ----------------------------------
