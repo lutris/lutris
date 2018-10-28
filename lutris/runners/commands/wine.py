@@ -1,19 +1,24 @@
 """Wine commands for installers"""
 # pylint: disable=too-many-arguments
 import os
-import time
 import shlex
+import time
 
-from lutris import settings
-from lutris import runtime
+from lutris import runtime, settings
 from lutris.config import LutrisConfig
+from lutris.runners import import_runner
+from lutris.thread import LutrisThread
 from lutris.util import datapath, system
 from lutris.util.log import logger
+from lutris.util.wine import (
+    WINE_DIR,
+    detect_arch,
+    detect_prefix_arch,
+    get_overrides_env,
+    get_real_executable,
+    use_lutris_runtime
+)
 from lutris.util.wineprefix import WinePrefixManager
-from lutris.util.wine import (detect_arch, detect_prefix_arch, get_real_executable,
-                              WINE_DIR, use_lutris_runtime, get_overrides_env)
-from lutris.thread import LutrisThread
-from lutris.runners import import_runner
 
 
 def set_regedit(path, key, value='', type='REG_SZ',  # pylint: disable=redefined-builtin

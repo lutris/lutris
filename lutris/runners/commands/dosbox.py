@@ -1,8 +1,9 @@
 """DOSBox installer commands"""
 import os
-from lutris.util.log import logger
-from lutris.util import system
+
 from lutris.runners import import_runner
+from lutris.util import system
+from lutris.util.log import logger
 
 
 def dosexec(config_file=None, executable=None, args=None,

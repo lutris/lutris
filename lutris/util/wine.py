@@ -3,14 +3,12 @@ import os
 import subprocess
 from collections import OrderedDict
 
-from lutris import runtime
-from lutris import settings
+from lutris import runtime, settings
+from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.vulkan import vulkan_available
-from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.dialogs import DontShowAgainDialog
 
 MIN_NUMBER_FILES_OPEN = 1048576
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -120,9 +118,8 @@ def get_wine_versions():
     proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
 
     for version in proton_versions:
-        # Avoid Games with Proton in their names
-        _wine = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
-        if os.path.isfile(_wine):
+        proton_path = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
+        if os.path.isfile(proton_path):
             versions.append(version)
     return versions
 
@@ -178,8 +175,8 @@ def support_legacy_version(version):
     configurations."""
     if not version:
         return
-    if version not in ('custom', 'system')\
-            and '-' not in version and 'Proton' not in version:
+    if version not in ('custom', 'system') and '-' not in version and 'Proton' not in version:
+        logger.error("Legacy wine format used: %s", version)
         version += '-i386'
     return version
 

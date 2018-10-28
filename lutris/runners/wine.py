@@ -5,27 +5,43 @@ import shlex
 import shutil
 
 from lutris import runtime
-from lutris.util import datapath, display, system
+from lutris.gui.dialogs import FileDialog
+from lutris.runners.runner import Runner
+from lutris.util import datapath, display, dxvk, system, vulkan
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
+from lutris.util.vulkan import vulkan_available
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
-from lutris.util import dxvk
-from lutris.util import vulkan
-from lutris.util.vulkan import vulkan_available
 from lutris.util.wine import (
-    get_real_executable, detect_arch, WINE_DIR,
-    get_wine_versions, get_system_wine_version, is_esync_limit_set, WINE_PATHS,
-    is_version_esync, esync_display_limit_warning, esync_display_version_warning,
-    display_vulkan_error, get_default_version, support_legacy_version, PROTON_PATH,
-    get_overrides_env
+    PROTON_PATH,
+    WINE_DIR,
+    WINE_PATHS,
+    detect_arch,
+    display_vulkan_error,
+    esync_display_limit_warning,
+    esync_display_version_warning,
+    get_default_version,
+    get_overrides_env,
+    get_real_executable,
+    get_system_wine_version,
+    get_wine_versions,
+    is_esync_limit_set,
+    is_version_esync,
+    support_legacy_version
 )
-from lutris.runners.commands.wine import (
-    winecfg, wineexec, winetricks, joycpl, create_prefix, winekill, set_regedit,
-    eject_disc, delete_registry_key, set_regedit_file
+from lutris.runners.commands.wine import (  # pylint: disable=unused-import
+    create_prefix,
+    delete_registry_key,
+    eject_disc,
+    joycpl,
+    set_regedit,
+    set_regedit_file,
+    winecfg,
+    wineexec,
+    winekill,
+    winetricks
 )
-from lutris.runners.runner import Runner
-from lutris.gui.dialogs import FileDialog
 
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
 
