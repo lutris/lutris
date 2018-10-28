@@ -1,3 +1,4 @@
+"""Wine runner"""
 import os
 import time
 import shlex
@@ -23,6 +24,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs import DontShowAgainDialog
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+MIN_NUMBER_FILES_OPEN = 1048576
 MIN_SAFE_VERSION = '3.0'  # Wine installers must run with at least this version
 WINE_PATHS = {
     'winehq-devel': '/opt/wine-devel/bin/wine',
@@ -428,9 +430,9 @@ def get_wine_versions():
         for dirname in dirs:
             if is_version_installed(dirname):
                 versions.append(dirname)
-    
+
     proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
-    
+
     for version in proton_versions:
         # Avoid Games with Proton in their names
         _wine = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
@@ -450,13 +452,12 @@ def get_wine_version_exe(version):
 def is_version_installed(version):
     return os.path.isfile(get_wine_version_exe(version))
 
+
 def is_esync_limit_set():
+    """Checks if the number of files open is acceptable for esync usage."""
     nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
-    nolimit = int(nolimit)
-    if nolimit < 1048576:
-        return False
-    else:
-        return True
+    return int(nolimit) >= MIN_NUMBER_FILES_OPEN
+
 
 def get_default_version():
     """Return the default version of wine. Prioritize 64bit builds"""
