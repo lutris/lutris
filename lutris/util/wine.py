@@ -1,17 +1,16 @@
 """Utilities for manipulating Wine"""
 import os
-import logging
 import subprocess
+from collections import OrderedDict
 
 from lutris import runtime
 from lutris import settings
 from lutris.util import system
+from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.vulkan import vulkan_available
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs import DontShowAgainDialog
-
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 MIN_NUMBER_FILES_OPEN = 1048576
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -272,3 +271,39 @@ def esync_display_version_warning(on_launch):
                         "Please switch to an esync-capable version.",
                         checkbox_message=checkbox_message)
     return settings.read_setting(setting) == 'True'
+
+
+def get_overrides_env(overrides):
+    """
+    Output a string of dll overrides usable with WINEDLLOVERRIDES
+    See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
+    """
+    if not overrides:
+        return ''
+    override_buckets = OrderedDict([
+        ('n,b', []),
+        ('b,n', []),
+        ('b', []),
+        ('n', []),
+        ('d', []),
+        ('', [])
+    ])
+    for dll, value in overrides.items():
+        if not value:
+            value = ''
+        value = value.replace(' ', '')
+        value = value.replace('builtin', 'b')
+        value = value.replace('native', 'n')
+        value = value.replace('disabled', '')
+        try:
+            override_buckets[value].append(dll)
+        except KeyError:
+            logger.error('Invalid override value %s', value)
+            continue
+
+    override_strings = []
+    for value, dlls in override_buckets.items():
+        if not dlls:
+            continue
+        override_strings.append("{}={}".format(','.join(sorted(dlls)), value))
+    return ';'.join(override_strings)
