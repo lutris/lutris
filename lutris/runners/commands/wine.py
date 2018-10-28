@@ -12,8 +12,8 @@ from lutris.util.log import logger
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.wine import (detect_arch, detect_prefix_arch, get_real_executable,
                               WINE_DIR, use_lutris_runtime, get_overrides_env)
-from lutris.runners import wine
 from lutris.thread import LutrisThread
+from lutris.runners import import_runner
 
 
 def set_regedit(path, key, value='', type='REG_SZ',  # pylint: disable=redefined-builtin
@@ -73,6 +73,7 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
         os.rmdir(prefix)
 
     if not wine_path:
+        wine = import_runner('wine')
         wine_path = wine().get_executable()
     if not wine_path:
         logger.error("Wine not found, can't create prefix")
@@ -114,6 +115,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
     initial_pids = initial_pids or []
 
     if not wine_path:
+        wine = import_runner('wine')
         wine_path = wine().get_executable()
     wine_root = os.path.dirname(wine_path)
     if not env:
@@ -175,6 +177,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,  # pyl
     """
     executable = str(executable) if executable else ''
     if not wine_path:
+        wine = import_runner('wine')
         wine_path = wine().get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
@@ -230,6 +233,7 @@ def wineexec(executable, args="", wine_path=None, prefix=None, arch=None,  # pyl
     command += shlex.split(args)
     if blocking:
         return system.execute(command, env=wineenv, cwd=working_dir)
+    wine = import_runner('wine')
     thread = LutrisThread(command, runner=wine(), env=wineenv, cwd=working_dir,
                           include_processes=include_processes,
                           exclude_processes=exclude_processes)
@@ -247,6 +251,7 @@ def winetricks(app, prefix=None, arch=None, silent=True,
     if wine_path:
         winetricks_wine = wine_path
     else:
+        wine = import_runner('wine')
         winetricks_wine = wine().get_executable()
     if arch not in ('win32', 'win64'):
         arch = detect_arch(prefix, winetricks_wine)
@@ -262,6 +267,7 @@ def winecfg(wine_path=None, prefix=None, arch='win32', config=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
+        wine = import_runner('wine')
         wine_path = wine().get_executable()
 
     winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
