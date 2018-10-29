@@ -16,15 +16,28 @@ class RuntimeUpdater:
     status_updater = None
     cancellables = []
 
+    def __init__(self):
+        self.name = None
+
+    @property
+    def local_runtime_path(self):
+        if not self.name:
+            return None
+        return os.path.join(RUNTIME_DIR, self.name)
+
     def is_updating(self):
         return self.current_updates > 0
 
-    @staticmethod
-    def get_created_at(name):
-        path = os.path.join(RUNTIME_DIR, name)
-        if not os.path.exists(path):
-            return time.gmtime(0)
-        return time.gmtime(os.path.getctime(path))
+    def get_updated_at(self):
+        if not os.path.exists(self.local_runtime_path):
+            return None
+        return time.gmtime(os.path.getmtime(self.local_runtime_path))
+
+    def set_updated_at(self):
+        if not os.path.exists(self.local_runtime_path):
+            logger.error("No local runtime path in %s", self.local_runtime_path)
+            return None
+        os.utime(self.local_runtime_path)
 
     def update(self, status_updater=None):
         if RUNTIME_DISABLED:
@@ -67,15 +80,29 @@ class RuntimeUpdater:
             yield runtime
 
     def download_runtime(self, runtime):
-        name = runtime['name']
-        created_at = runtime['created_at']
-        created_at = time.strptime(created_at[:created_at.find('.')],
-                                   "%Y-%m-%dT%H:%M:%S")
-        if self.get_created_at(name) >= created_at:
+        self.name = runtime['name']
+        if self.name != 'p7zip':
             return
+        remote_updated_at = runtime['created_at']
+        remote_updated_at = time.strptime(
+            remote_updated_at[:remote_updated_at.find('.')],
+            "%Y-%m-%dT%H:%M:%S"
+        )
+        local_updated_at = self.get_updated_at()
+
+        if local_updated_at and local_updated_at >= remote_updated_at:
+            logger.debug(
+                "Runtime %s is already up to date (locally updated on %s, remote created on %s)",
+                self.name,
+                time.strftime("%c", local_updated_at),
+                time.strftime("%c", remote_updated_at)
+            )
+            return
+
+        updated_interval = time.mktime(local_updated_at) - time.mktime(remote_updated_at)
+        logger.debug("Runtime %s was updated %s hours ago", self.name, updated_interval / 3600)
         if self.status_updater:
-            self.status_updater("Updating Runtime")
-        logger.debug('Updating runtime %s', name)
+            self.status_updater("Updating Runtime (%s)" % self.name)
         url = runtime['url']
         archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
         self.current_updates += 1
@@ -98,23 +125,34 @@ class RuntimeUpdater:
         return True
 
     def on_downloaded(self, path):
-        directory, filename = os.path.split(path)
-        folder = os.path.join(directory, filename[:filename.find('.')])
-        system.remove_folder(folder)
+        """Actions taken once a runtime is downloaded
+
+        Arguments:
+            path (str): local path to the runtime archive
+        """
+        directory, _filename = os.path.split(path)
+
+        # Delete the existing runtime path
+        initial_path = os.path.join(directory, self.name)
+        system.remove_folder(initial_path)
+
+        # Extract the runtime archive
         jobs.AsyncCall(extract_archive, self.on_extracted, path, RUNTIME_DIR,
                        merge_single=False)
 
     def on_extracted(self, result, error):
         self.current_updates -= 1
         if error:
-            logger.debug("Runtime update failed")
+            logger.error("Runtime update failed")
+            logger.error(error)
             return
-        archive_path = result[0]
+        archive_path, destination_path = result
+        logger.debug("Finished extracting %s to %s", archive_path, destination_path)
         os.unlink(archive_path)
+        self.set_updated_at()
 
         if self.status_updater and self.current_updates == 0:
             self.status_updater("Runtime updated")
-        logger.debug("Runtime updated")
 
 
 def get_env(prefer_system_libs=True, wine_path=None):
