@@ -38,8 +38,7 @@ def is_running():
         # If process is defunct, don't consider it as running
         process = Process(pid)
         return process.state != 'Z'
-    else:
-        return False
+    return False
 
 
 def kill():
