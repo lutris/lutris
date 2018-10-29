@@ -19,6 +19,9 @@ WINE_PATHS = {
     'wine-development': '/usr/lib/wine-development/wine',
     'system': 'wine',
 }
+
+ESYNC_LIMIT_CHECK=os.environ.get('ESYNC_LIMIT_CHECK', '').lower()
+
 def get_proton():
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
     for path in [os.path.join(p,'common') for p in steam().get_steamapps_dirs() ]:
@@ -147,6 +150,9 @@ def is_version_installed(version):
 
 def is_esync_limit_set():
     """Checks if the number of files open is acceptable for esync usage."""
+    if ESYNC_LIMIT_CHECK in ('0', 'off'):
+        logger.info("fd limit check for esync was manually disabled")
+        return True
     nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
     return int(nolimit) >= MIN_NUMBER_FILES_OPEN
 
