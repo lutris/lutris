@@ -115,12 +115,13 @@ def get_wine_versions():
             if is_version_installed(dirname):
                 versions.append(dirname)
 
-    proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
-
-    for version in proton_versions:
-        proton_path = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
-        if os.path.isfile(proton_path):
-            versions.append(version)
+    if os.path.isdir(PROTON_PATH):
+        proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
+    
+        for version in proton_versions:
+            proton_path = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
+            if os.path.isfile(proton_path):
+                versions.append(version)
     return versions
 
 
