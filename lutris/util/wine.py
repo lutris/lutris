@@ -9,6 +9,7 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.util.vulkan import vulkan_available
+from lutris.runners.steam import steam
 
 MIN_NUMBER_FILES_OPEN = 1048576
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -18,8 +19,17 @@ WINE_PATHS = {
     'wine-development': '/usr/lib/wine-development/wine',
     'system': 'wine',
 }
-PROTON_PATH = os.path.expanduser("~/.local/share/Steam/steamapps/common")
+def get_proton():
+    """Get the Folder that contains all the Proton versions. Can probably be improved"""
+    for path in [os.path.join(p,'common') for p in steam().get_steamapps_dirs() ]:
+        if os.path.isdir(path):
+            proton_versions = [p for p in os.listdir(path) if "Proton" in p]
+            for version in proton_versions:
+                if os.path.exists(os.path.join(path, version, 'dist/bin/wine')):
+                    return path
+    return None
 
+PROTON_PATH = get_proton()
 
 def detect_arch(prefix_path=None, wine_path=None):
     """Given a Wine prefix path, return its architecture"""
@@ -99,7 +109,6 @@ def is_installed_systemwide():
             return True
     return False
 
-
 def get_wine_versions():
     """Return the list of Wine versions installed"""
     versions = []
@@ -115,9 +124,8 @@ def get_wine_versions():
             if is_version_installed(dirname):
                 versions.append(dirname)
 
-    if os.path.isdir(PROTON_PATH):
+    if PROTON_PATH:
         proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
-    
         for version in proton_versions:
             proton_path = os.path.join(PROTON_PATH, version, 'dist/bin/wine')
             if os.path.isfile(proton_path):
