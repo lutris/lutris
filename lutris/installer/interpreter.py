@@ -676,8 +676,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def cleanup(self):
         os.chdir(os.path.expanduser('~'))
-        if os.path.exists(self.cache_path):
-            shutil.rmtree(self.cache_path)
+        system.remove_folder(self.cache_path)
 
     # --------------
     # Revert install
@@ -691,8 +690,7 @@ class ScriptInterpreter(CommandsMixin):
             self.abort_current_task()
 
         if self.reversion_data.get('created_main_dir'):
-            if os.path.exists(self.target_path):
-                shutil.rmtree(self.target_path)
+            system.remove_folder(self.target_path)
 
     # -------------
     # Utility stuff
