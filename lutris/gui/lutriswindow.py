@@ -417,11 +417,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
-        
+
         #update row at game exit
         if text == "Game has quit" and self.gui_needs_update:
                 self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
-                            
+
         for child_widget in self.status_box.get_children():
             child_widget.destroy()
         label = Gtk.Label(text)
@@ -472,6 +472,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sync_library()
         self.connect_link.set_sensitive(False)
         self.actions['synchronize'].props.enabled = True
+        self.actions['register-account'].props.enabled = False
 
     @GtkTemplate.Callback
     def on_disconnect(self, *args):
