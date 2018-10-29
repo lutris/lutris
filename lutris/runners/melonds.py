@@ -5,7 +5,7 @@ from lutris.runners.runner import Runner
 class melonds(Runner):
     human_name = "melonDS"
     description = "Nintendo DS Emulator"
-    platforms = ['melonDS']
+    platforms = ['Nintendo DS']
     runner_executable = 'melonDS/melonDS'
     game_options = [
     	{
