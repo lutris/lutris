@@ -1,3 +1,4 @@
+"""Runtime handling module"""
 import os
 import time
 
@@ -11,83 +12,45 @@ from lutris.util.log import logger
 RUNTIME_DISABLED = os.environ.get('LUTRIS_RUNTIME', '').lower() in ('0', 'off')
 
 
-class RuntimeUpdater:
-    current_updates = 0
-    status_updater = None
-    cancellables = []
-
-    def __init__(self):
-        self.name = None
+class Runtime:
+    """Class for manipulating runtime folders"""
+    def __init__(self, name, updater):
+        self.name = name
+        self.updater = updater
 
     @property
     def local_runtime_path(self):
+        """Return the local path for the runtime folder"""
         if not self.name:
             return None
         return os.path.join(RUNTIME_DIR, self.name)
 
-    def is_updating(self):
-        return self.current_updates > 0
-
     def get_updated_at(self):
+        """Return the modification date of the runtime folder"""
         if not os.path.exists(self.local_runtime_path):
             return None
         return time.gmtime(os.path.getmtime(self.local_runtime_path))
 
     def set_updated_at(self):
+        """Set the creation and modification time to now"""
         if not os.path.exists(self.local_runtime_path):
             logger.error("No local runtime path in %s", self.local_runtime_path)
             return None
         os.utime(self.local_runtime_path)
 
-    def update(self, status_updater=None):
-        if RUNTIME_DISABLED:
-            logger.debug("Runtime disabled, not updating it.")
-            return []
-
-        if self.is_updating():
-            logger.debug("Runtime already updating")
-            return []
-
-        if status_updater:
-            self.status_updater = status_updater
-
-        for runtime in self._iter_runtimes():
-            self.download_runtime(runtime)
-        return None
-
-    @staticmethod
-    def _iter_runtimes():
-        request = http.Request(RUNTIME_URL)
-        response = request.get()
-        runtimes = response.json or []
-        for runtime in runtimes:
-
-            # Skip 32bit runtimes on 64 bit systems except the lib32 one
-            if(runtime['architecture'] == 'i386' and
-               system.IS_64BIT and
-               runtime['name'] != 'lib32'):
-                logger.debug('Skipping runtime %s for %s',
-                             runtime['name'], runtime['architecture'])
-                continue
-
-            # Skip 64bit runtimes on 32 bit systems
-            if(runtime['architecture'] == 'x86_64' and
-               not system.IS_64BIT):
-                logger.debug('Skipping runtime %s for %s',
-                             runtime['name'], runtime['architecture'])
-                continue
-
-            yield runtime
-
-    def download_runtime(self, runtime):
-        self.name = runtime['name']
-        remote_updated_at = runtime['created_at']
-        remote_updated_at = time.strptime(
-            remote_updated_at[:remote_updated_at.find('.')],
-            "%Y-%m-%dT%H:%M:%S"
-        )
+    def should_update(self, remote_updated_at):
+        """Determine if the current runtime should be updated"""
         local_updated_at = self.get_updated_at()
+        if not local_updated_at:
+            logger.warning("Runtime %s is not available locally", self.name)
+            return True
 
+        logger.debug(
+            "Runtime %s locally updated on %s, remote created on %s)",
+            self.name,
+            time.strftime("%c", local_updated_at),
+            time.strftime("%c", remote_updated_at)
+        )
         if local_updated_at and local_updated_at >= remote_updated_at:
             logger.debug(
                 "Runtime %s is already up to date (locally updated on %s, remote created on %s)",
@@ -95,19 +58,28 @@ class RuntimeUpdater:
                 time.strftime("%c", local_updated_at),
                 time.strftime("%c", remote_updated_at)
             )
-            return
-
+            return False
         updated_interval = time.mktime(local_updated_at) - time.mktime(remote_updated_at)
         logger.debug("Runtime %s was updated %s hours ago", self.name, updated_interval / 3600)
-        if self.status_updater:
-            self.status_updater("Updating Runtime (%s)" % self.name)
-        url = runtime['url']
+
+        return True
+
+    def download(self, remote_runtime_info):
+        """Downloads a runtime locally"""
+        remote_updated_at = remote_runtime_info['created_at']
+        remote_updated_at = time.strptime(
+            remote_updated_at[:remote_updated_at.find('.')],
+            "%Y-%m-%dT%H:%M:%S"
+        )
+        if not self.should_update(remote_updated_at):
+            return None
+
+        url = remote_runtime_info['url']
         archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
-        self.current_updates += 1
         downloader = Downloader(url, archive_path, overwrite=True)
-        self.cancellables.append(downloader.cancel)
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
+        return downloader
 
     def check_download_progress(self, downloader):
         """Call download.check_progress(), return True if download finished."""
@@ -139,7 +111,7 @@ class RuntimeUpdater:
                        merge_single=False)
 
     def on_extracted(self, result, error):
-        self.current_updates -= 1
+        """Callback method when a runtime has extracted"""
         if error:
             logger.error("Runtime update failed")
             logger.error(error)
@@ -148,7 +120,70 @@ class RuntimeUpdater:
         logger.debug("Finished extracting %s to %s", archive_path, destination_path)
         os.unlink(archive_path)
         self.set_updated_at()
+        self.updater.notify_finish(self)
 
+
+class RuntimeUpdater:
+    """Class handling the runtime updates"""
+    current_updates = 0
+    status_updater = None
+    cancellables = []
+
+    def is_updating(self):
+        """Return True if the update process is running"""
+        return self.current_updates > 0
+
+    def update(self, status_updater=None):
+        """Launch the update process"""
+        if RUNTIME_DISABLED:
+            logger.debug("Runtime disabled, not updating it.")
+            return []
+
+        if self.is_updating():
+            logger.debug("Runtime already updating")
+            return []
+
+        if status_updater:
+            self.status_updater = status_updater
+
+        if self.status_updater:
+            self.status_updater("Updating Runtime")
+        for remote_runtime in self._iter_remote_runtimes():
+            runtime = Runtime(remote_runtime['name'], self)
+            downloader = runtime.download(remote_runtime)
+            if downloader:
+                self.current_updates += 1
+                self.cancellables.append(downloader.cancel)
+        return None
+
+    @staticmethod
+    def _iter_remote_runtimes():
+        request = http.Request(RUNTIME_URL)
+        response = request.get()
+        runtimes = response.json or []
+        for runtime in runtimes:
+
+            # Skip 32bit runtimes on 64 bit systems except the lib32 one
+            if(runtime['architecture'] == 'i386' and
+               system.IS_64BIT and
+               runtime['name'] != 'lib32'):
+                logger.debug('Skipping runtime %s for %s',
+                             runtime['name'], runtime['architecture'])
+                continue
+
+            # Skip 64bit runtimes on 32 bit systems
+            if(runtime['architecture'] == 'x86_64' and
+               not system.IS_64BIT):
+                logger.debug('Skipping runtime %s for %s',
+                             runtime['name'], runtime['architecture'])
+                continue
+
+            yield runtime
+
+    def notify_finish(self, runtime):
+        """A runtime has finished downloading"""
+        logger.debug("Runtime %s is now updated and available", runtime.name)
+        self.current_updates -= 1
         if self.status_updater and self.current_updates == 0:
             self.status_updater("Runtime updated")
 
