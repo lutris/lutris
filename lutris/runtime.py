@@ -81,8 +81,6 @@ class RuntimeUpdater:
 
     def download_runtime(self, runtime):
         self.name = runtime['name']
-        if self.name != 'p7zip':
-            return
         remote_updated_at = runtime['created_at']
         remote_updated_at = time.strptime(
             remote_updated_at[:remote_updated_at.find('.')],
