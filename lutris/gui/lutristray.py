@@ -21,7 +21,7 @@ class LutrisTray(Gtk.StatusIcon):
 
         self.load_menu()
 
-        self.connect('activate', self.on_left_click)
+        self.connect('activate', self.on_activate)
         self.connect('popup-menu', self.on_right_click)
 
     def load_menu(self):
@@ -38,12 +38,9 @@ class LutrisTray(Gtk.StatusIcon):
         self.menu.append(quit_menu)
         self.menu.show_all()
 
-    def on_left_click(self, _widget, _event=None):
+    def on_activate(self, _widget, _event=None):
         """Callback to show or hide the window"""
-        if self.application.window.is_active():
-            self.application.window.iconify()
-        else:
-            self.application.window.present()
+        self.application.window.present()
 
     def on_right_click(self, status, button, time):
         self.menu.popup(None, None, None, None, button, time)
