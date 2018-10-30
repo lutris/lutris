@@ -178,7 +178,13 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
-        if read_setting('show-tray'):
+        self.set_tray_icon(read_setting('show_tray_icon', default='false') == 'true')
+
+    def set_tray_icon(self, active=False):
+        """Creates or destroys a tray icon for the application"""
+        if self.tray:
+            self.tray.set_visible(active)
+        else:
             self.tray = LutrisTray(application=self)
 
     def do_activate(self):

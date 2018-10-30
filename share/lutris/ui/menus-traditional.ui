@@ -90,8 +90,14 @@
       </section>
       <section>
         <item>
-          <attribute name="label">Side panel</attribute>
+          <attribute name="label">Show side panel</attribute>
           <attribute name="action">win.show-side-bar</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label">Show tray icon</attribute>
+          <attribute name="action">win.show-tray-icon</attribute>
         </item>
       </section>
     </submenu>

@@ -84,7 +84,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
-        self.use_dark_theme = settings.read_setting('dark_theme') == 'true'
+        self.use_dark_theme = settings.read_setting('dark_theme', default='false').lower() == 'true'
+        self.show_tray_icon = settings.read_setting('show_tray_icon', default='false').lower() == 'true'
 
         # Sync local lutris library with current Steam games and desktop games
         for service in get_services_synced_at_startup():
@@ -205,6 +206,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
                                 default=self.icon_type),
             'use-dark-theme': Action(self.on_dark_theme_state_change, type='b',
                                      default=self.use_dark_theme),
+            'show-tray-icon': Action(self.on_tray_icon_toggle, type='b',
+                                     default=self.show_tray_icon),
             'show-side-bar': Action(self.on_sidebar_state_change, type='b',
                                     default=self.sidebar_visible, accel='F9'),
         }
@@ -835,11 +838,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback to handle siderbar toggle"""
         action.set_state(value)
         self.sidebar_visible = value.get_boolean()
-        if self.sidebar_visible:
-            settings.write_setting('sidebar_visible', 'true')
-        else:
-            settings.write_setting('sidebar_visible', 'false')
+        setting = 'true' if self.sidebar_visible else 'false'
+        settings.write_setting('sidebar_visible', setting)
         self.show_sidebar()
+
+    def on_tray_icon_toggle(self, action, value):
+        """Callback for handling tray icon toggle"""
+        action.set_state(value)
+        settings.write_setting('show_tray_icon', value)
+        self.application.set_tray_icon(value)
 
     def show_sidebar(self):
         """Displays the sidebar"""
