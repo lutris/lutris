@@ -2,7 +2,6 @@
 """Install a game by following its install script."""
 import os
 import time
-import shutil
 import yaml
 
 from gi.repository import GLib
