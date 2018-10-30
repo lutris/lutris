@@ -186,7 +186,7 @@ class Application(Gtk.Application):
             self.tray.set_visible(active)
         else:
             self.tray = LutrisTray(application=self)
-
+            self.tray.set_visible(active)
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
