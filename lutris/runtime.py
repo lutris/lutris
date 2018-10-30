@@ -45,12 +45,6 @@ class Runtime:
             logger.warning("Runtime %s is not available locally", self.name)
             return True
 
-        logger.debug(
-            "Runtime %s locally updated on %s, remote created on %s)",
-            self.name,
-            time.strftime("%c", local_updated_at),
-            time.strftime("%c", remote_updated_at)
-        )
         if local_updated_at and local_updated_at >= remote_updated_at:
             logger.debug(
                 "Runtime %s is already up to date (locally updated on %s, remote created on %s)",
@@ -59,6 +53,13 @@ class Runtime:
                 time.strftime("%c", remote_updated_at)
             )
             return False
+
+        logger.debug(
+            "Runtime %s locally updated on %s, remote created on %s)",
+            self.name,
+            time.strftime("%c", local_updated_at),
+            time.strftime("%c", remote_updated_at)
+        )
         updated_interval = time.mktime(local_updated_at) - time.mktime(remote_updated_at)
         logger.debug("Runtime %s was updated %s hours ago", self.name, updated_interval / 3600)
 
