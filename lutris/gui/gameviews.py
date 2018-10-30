@@ -21,7 +21,7 @@ from lutris.util.log import logger
     COL_SLUG,
     COL_NAME,
     COL_ICON,
-    COL_YEAR, 
+    COL_YEAR,
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
@@ -211,7 +211,7 @@ class GameStore(GObject.Object):
             self.emit('icons-changed', icon_type)  # Obsolete, only for GridView
 
 
-class GameView(object):
+class GameView:
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -304,7 +304,7 @@ class GameView(object):
                                               is_installed)
             row[COL_ICON] = game_pixbuf
             row[COL_INSTALLED] = is_installed
-            if type(self) is GameGridView:
+            if isinstance(self, GameGridView):
                 GLib.idle_add(self.queue_draw)
 
     def popup_contextual_menu(self, view, event):
@@ -314,9 +314,9 @@ class GameView(object):
         try:
             view.current_path = view.get_path_at_pos(event.x, event.y)
             if view.current_path:
-                if type(view) is GameGridView:
+                if isinstance(view, GameGridView):
                     view.select_path(view.current_path)
-                elif type(view) is GameListView:
+                elif isinstance(view, GameListView):
                     view.set_cursor(view.current_path[0])
         except ValueError:
             (_, path) = view.get_selection().get_selected()
@@ -370,7 +370,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.connect('row-activated', self.on_row_activated)
         self.get_selection().connect('changed', self.on_cursor_changed)
 
-    def set_text_cell(self):
+    @staticmethod
+    def set_text_cell():
         text_cell = Gtk.CellRendererText()
         text_cell.set_padding(10, 0)
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
@@ -403,10 +404,10 @@ class GameListView(Gtk.TreeView, GameView):
         """Return the currently selected game's id."""
         selection = self.get_selection()
         if not selection:
-            return
+            return None
         model, select_iter = selection.get_selected()
         if not select_iter:
-            return
+            return None
         return model.get_value(select_iter, COL_ID)
 
     def set_selected_game(self, game_id):
@@ -422,7 +423,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.selected_game = self.get_selected_game()
         self.emit("game-activated")
 
-    def on_column_width_changed(self, col, *args):
+    @staticmethod
+    def on_column_width_changed(col, *args):
         col_name = col.get_title()
         if col_name:
             settings.write_setting(col_name.replace(' ', '') + '_column_width',
@@ -555,7 +557,7 @@ class ContextualMenu(Gtk.Menu):
             'browse': not is_installed or runner_slug == 'browser',
         }
         for menuitem in self.get_children():
-            if type(menuitem) is not Gtk.ImageMenuItem:
+            if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue
             action = menuitem.action_id
             visible = not hiding_condition.get(action)

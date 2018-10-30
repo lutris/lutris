@@ -34,7 +34,7 @@ from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
 from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
-from lutris.settings import VERSION
+from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.dxvk import init_dxvk_versions
@@ -42,6 +42,7 @@ from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 
 from .lutriswindow import LutrisWindow
+from lutris.gui.lutristray import LutrisTray
 
 
 class Application(Gtk.Application):
@@ -60,6 +61,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.tray = None
         self.css_provider = Gtk.CssProvider.new()
 
         if os.geteuid() == 0:
@@ -176,6 +178,8 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
+        if read_setting('show-tray'):
+            self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:
@@ -304,7 +308,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
 
-            logger.info("Launching %s" % db_game['name'])
+            logger.info("Launching %s", db_game['name'])
 
             # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
             if not db_game['installed']:
@@ -323,7 +327,8 @@ class Application(Gtk.Application):
                 return False
         return True
 
-    def get_lutris_action(self, url):
+    @staticmethod
+    def get_lutris_action(url):
         installer_info = {
             'game_slug': None,
             'revision': None,
@@ -383,12 +388,13 @@ class Application(Gtk.Application):
                         )
                     )
 
-    def execute_command(self, command):
+    @staticmethod
+    def execute_command(command):
         """
             Execute an arbitrary command in a Lutris context
             with the runtime enabled and monitored by LutrisThread
         """
-        logger.info("Running command '{}'".format(command))
+        logger.info("Running command '%s'", command)
         thread = exec_in_thread(command)
         try:
             GLib.MainLoop().run()

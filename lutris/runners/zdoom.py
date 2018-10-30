@@ -40,7 +40,7 @@ class zdoom(Runner):
             'option': 'savedir',
             'type': 'directory_chooser',
             'label': 'Save path',
-            'help': "User-specified path where save files should be located."
+            'help': ("User-specified path where save files should be located.")
         }
     ]
     runner_options = [

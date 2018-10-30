@@ -369,4 +369,4 @@ class Runner:
     def uninstall(self):
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
-            shutil.rmtree(runner_path)
+            system.remove_folder(runner_path)

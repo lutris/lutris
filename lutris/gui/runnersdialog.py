@@ -1,5 +1,4 @@
 # -*- coding:Utf-8 -*-
-import os
 
 from gi.repository import Gtk, GObject, Gdk
 
@@ -200,7 +199,8 @@ class RunnersDialog(Gtk.Window):
             runner.uninstall()
             self.refresh_button.emit('clicked')
 
-    def on_runner_open_clicked(self, widget):
+    @staticmethod
+    def on_runner_open_clicked(widget):
         open_uri('file://' + settings.RUNNER_DIR)
 
     def on_refresh_clicked(self, widget):
