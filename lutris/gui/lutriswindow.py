@@ -664,7 +664,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""
-        if isinstance(game_id, int):
+        if not isinstance(game_id, int):
             raise ValueError("game_id must be an int")
         if not self.view.has_game_id(game_id):
             logger.debug("Adding new installed game to view (%d)", game_id)
