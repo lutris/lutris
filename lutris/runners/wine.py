@@ -653,7 +653,7 @@ class wine(Runner):
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
         wine_path = self.get_executable()
-        if WINE_DIR in wine_path:
+        if WINE_DIR or PROTON_PATH in wine_path:
             wine_root = os.path.dirname(os.path.dirname(wine_path))
         else:
             wine_root = None
