@@ -87,7 +87,3 @@ class LutrisTray(Gtk.StatusIcon):
         selected_platform = data[0]
         self.application.window.set_selected_filter(None, selected_platform)
         self.application.window.present()
-
-
-def has_tray_support():
-    return True

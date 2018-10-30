@@ -43,7 +43,7 @@ from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 
 from .lutriswindow import LutrisWindow
-from lutris.gui.lutristray import LutrisTray, has_tray_support
+from lutris.gui.lutristray import LutrisTray
 
 
 class Application(Gtk.Application):
@@ -179,8 +179,7 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
-        if has_tray_support():
-            self.tray = LutrisTray(application=self)
+        self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:
