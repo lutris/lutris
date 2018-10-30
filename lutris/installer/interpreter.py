@@ -2,7 +2,6 @@
 """Install a game by following its install script."""
 import os
 import time
-import shutil
 import yaml
 
 from gi.repository import GLib
@@ -553,6 +552,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def _finish_install(self):
         game = self.script.get('game')
+        launcher_value = None
         if game:
             launcher, launcher_value = _get_game_launcher(game)
         path = None
@@ -676,8 +676,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def cleanup(self):
         os.chdir(os.path.expanduser('~'))
-        if os.path.exists(self.cache_path):
-            shutil.rmtree(self.cache_path)
+        system.remove_folder(self.cache_path)
 
     # --------------
     # Revert install
@@ -691,8 +690,7 @@ class ScriptInterpreter(CommandsMixin):
             self.abort_current_task()
 
         if self.reversion_data.get('created_main_dir'):
-            if os.path.exists(self.target_path):
-                shutil.rmtree(self.target_path)
+            system.remove_folder(self.target_path)
 
     # -------------
     # Utility stuff
@@ -700,6 +698,11 @@ class ScriptInterpreter(CommandsMixin):
 
     def _substitute(self, template_string):
         """Replace path aliases with real paths."""
+        if template_string.lower() == 'true':
+            return True
+        if template_string.lower() == 'false':
+            return False
+
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,

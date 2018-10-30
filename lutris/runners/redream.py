@@ -5,7 +5,6 @@ from lutris.gui.dialogs import QuestionDialog, FileDialog
 from lutris import settings
 
 
-
 class redream(Runner):
     human_name = "Redream"
     description = "Sega Dreamcast emulator"

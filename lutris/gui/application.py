@@ -34,7 +34,7 @@ from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
 from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
-from lutris.settings import VERSION
+from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.dxvk import init_dxvk_versions
@@ -42,6 +42,7 @@ from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 
 from .lutriswindow import LutrisWindow
+from lutris.gui.lutristray import LutrisTray
 
 
 class Application(Gtk.Application):
@@ -60,6 +61,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.tray = None
         self.css_provider = Gtk.CssProvider.new()
 
         if os.geteuid() == 0:
@@ -176,6 +178,8 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
+        if read_setting('show-tray'):
+            self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:

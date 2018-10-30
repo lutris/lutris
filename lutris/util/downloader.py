@@ -89,11 +89,11 @@ class Downloader:
             self.file_pointer.close()
             return
 
-        logger.debug("Download finished")
+        logger.debug("Finished downloading %s", self.url)
         while self.queue.qsize():
             self.check_progress()
         if not self.downloaded_size:
-            logger.debug("Downloaded file is empty")
+            logger.warning("Downloaded file is empty")
 
         if not self.full_size:
             self.progress_fraction = 1.0
