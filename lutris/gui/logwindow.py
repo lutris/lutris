@@ -19,7 +19,9 @@ class LogTextView(Gtk.TextView):
         adj = self.get_vadjustment()
         if adj.get_value() == self.scroll_max or self.scroll_max == 0:
             adj.set_value(adj.get_upper() - adj.get_page_size())
-        self.scroll_max = adj.get_upper() - adj.get_page_size()
+            self.scroll_max = adj.get_value()
+        else:
+            self.scroll_max = adj.get_upper() - adj.get_page_size()
 
 
 class LogWindow(Dialog):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runner for the Steam platform"""
 import os
 import time
@@ -15,16 +14,16 @@ from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log, read_config
 from lutris.services.steam import get_path_from_appmanifest
 from lutris.util.wineregistry import WineRegistry
-
-# Redefine wine installer tasks
-set_regedit = wine.set_regedit
-set_regedit_file = wine.set_regedit_file
-delete_registry_key = wine.delete_registry_key
-create_prefix = wine.create_prefix
-wineexec = wine.wineexec
-winetricks = wine.winetricks
-winecfg = wine.winecfg
-winekill = wine.winekill
+from lutris.runners.commands.wine import (  # pylint: disable=unused-import
+    set_regedit,
+    set_regedit_file,
+    delete_registry_key,
+    create_prefix,
+    wineexec,
+    winetricks,
+    winecfg,
+    winekill
+)
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
