@@ -82,7 +82,7 @@ class ConfigBox(VBox):
 
             # Set tooltip's "Default" part
             default = option.get('default')
-            self.tooltip_default = default if type(default) is str else None
+            self.tooltip_default = default if isinstance(default, str) else None
 
             # Generate option widget
             self.option_widget = None
@@ -104,7 +104,7 @@ class ConfigBox(VBox):
 
             # Tooltip
             helptext = option.get("help")
-            if type(self.tooltip_default) is str:
+            if isinstance(self.tooltip_default, str):
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += "<b>Default</b>: " + self.tooltip_default
             if value != default and option_key not in self.raw_config:
@@ -205,7 +205,7 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(checkbox, True, True, 5)
         self.option_widget = checkbox
 
-    #Checkbox with callback
+    # Checkbox with callback
     def generate_checkbox_with_callback(self, option, value=None):
         """Generate a checkbox. With callback"""
         checkbox = Gtk.CheckButton(label=option["label"])
@@ -256,7 +256,7 @@ class ConfigBox(VBox):
         """Generate a combobox (drop-down menu)."""
         liststore = Gtk.ListStore(str, str)
         for choice in choices:
-            if type(choice) is str:
+            if isinstance(choice, str):
                 choice = [choice, choice]
             if choice[1] == default and not has_entry:
                 # Do not add default label to editable dropdowns since this gets
@@ -294,7 +294,8 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(combobox, True, True, 0)
         self.option_widget = combobox
 
-    def on_combobox_scroll(self, combobox, event):
+    @staticmethod
+    def on_combobox_scroll(combobox, event):
         """Do not change options when scrolling
         with cursor inside a ComboBox."""
         combobox.stop_emission_by_name('scroll-event')
@@ -365,8 +366,7 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
-        file_chooser.entry.connect('changed', self._on_chooser_file_set,
-                                            option_name)
+        file_chooser.entry.connect('changed', self._on_chooser_file_set, option_name)
 
     def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
@@ -426,7 +426,7 @@ class ConfigBox(VBox):
         vbox.pack_end(button, False, False, 0)
 
         if value:
-            if type(value) == str:
+            if isinstance(value, str):
                 self.files = [value]
             else:
                 self.files = value
@@ -496,7 +496,8 @@ class ConfigBox(VBox):
                 model.remove(treeiter)
                 self.raw_config[option].pop(row_index)
 
-    def on_query_tooltip(self, widget, x, y, keybmode, tooltip, text):
+    @staticmethod
+    def on_query_tooltip(widget, x, y, keybmode, tooltip, text):
         """Prepare a custom tooltip with a fixed width"""
         label = Label(text)
         label.set_use_markup(True)
@@ -544,7 +545,8 @@ class ConfigBox(VBox):
                                    option.get('default'))
         self.wrapper.show_all()
 
-    def set_style_property(self, property_, value, wrapper):
+    @staticmethod
+    def set_style_property(property_, value, wrapper):
         """Add custom style."""
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(

@@ -314,7 +314,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
 
-            logger.info("Launching %s" % db_game['name'])
+            logger.info("Launching %s", db_game['name'])
 
             # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
             if not db_game['installed']:
@@ -333,7 +333,8 @@ class Application(Gtk.Application):
                 return False
         return True
 
-    def get_lutris_action(self, url):
+    @staticmethod
+    def get_lutris_action(url):
         installer_info = {
             'game_slug': None,
             'revision': None,
@@ -393,12 +394,13 @@ class Application(Gtk.Application):
                         )
                     )
 
-    def execute_command(self, command):
+    @staticmethod
+    def execute_command(command):
         """
             Execute an arbitrary command in a Lutris context
             with the runtime enabled and monitored by LutrisThread
         """
-        logger.info("Running command '{}'".format(command))
+        logger.info("Running command '%s'", command)
         thread = exec_in_thread(command)
         try:
             GLib.MainLoop().run()

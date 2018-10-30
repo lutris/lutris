@@ -12,7 +12,7 @@ class dgen(Runner):
         'option': 'main_file',
         'type': 'file',
         'label': 'ROM file',
-        'help': ("The game data, commonly called a ROM image.")
+        'help': "The game data, commonly called a ROM image."
     }]
     runner_options = [
         {

@@ -117,7 +117,7 @@ class GameFlowBox(FlowBox):
         """
         children = self.get_selected_children()
         if not children:
-            return
+            return None
         game_item = children[0].get_children()[0]
         return game_item.game.id
 
@@ -155,7 +155,8 @@ class GameFlowBox(FlowBox):
                 return False
         return True
 
-    def sort_func(self, child1, child2):
+    @staticmethod
+    def sort_func(child1, child2):
         game1 = child1.get_children()[0]
         game2 = child2.get_children()[0]
         if game1.name.lower() > game2.name.lower():

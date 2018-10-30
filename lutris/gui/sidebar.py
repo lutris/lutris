@@ -99,13 +99,13 @@ class SidebarTreeView(Gtk.TreeView):
         """Return the selected runner's name."""
         selection = self.get_selection()
         if not selection:
-            return
+            return None
         model, iter = selection.get_selected()
         if not iter:
-            return
+            return None
         type = model.get_value(iter, TYPE)
         slug = model.get_value(iter, SLUG)
-        return (type, slug)
+        return type, slug
 
     def filter_rule(self, model, iter, data):
         if not model[iter][0]:

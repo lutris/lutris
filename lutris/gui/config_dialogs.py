@@ -17,7 +17,7 @@ DIALOG_WIDTH = 780
 DIALOG_HEIGHT = 560
 
 
-class GameDialogCommon(object):
+class GameDialogCommon:
     no_runner_label = "Select a runner in the Game Info tab"
 
     @staticmethod

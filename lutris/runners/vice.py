@@ -137,7 +137,8 @@ class vice(Runner):
         root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
         return os.path.join(root_dir, 'lib64/vice', paths[machine])
 
-    def get_option_prefix(self, machine):
+    @staticmethod
+    def get_option_prefix(machine):
         prefixes = {
             'c64': 'VICII',
             'c128': 'VICII',
@@ -148,7 +149,8 @@ class vice(Runner):
         }
         return prefixes[machine]
 
-    def get_joydevs(self, machine):
+    @staticmethod
+    def get_joydevs(machine):
         joydevs = {
             'c64': 2,
             'c128': 2,
@@ -159,7 +161,8 @@ class vice(Runner):
         }
         return joydevs[machine]
 
-    def get_rom_args(self, machine, rom):
+    @staticmethod
+    def get_rom_args(machine, rom):
         args = []
 
         if rom.endswith('.crt'):
@@ -171,7 +174,7 @@ class vice(Runner):
                 'plus4': "-cart",
                 'cmbii': None,
             }
-            if (crt_option[machine]):
+            if crt_option[machine]:
                 args.append(crt_option[machine])
 
         args.append(rom)

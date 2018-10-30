@@ -10,7 +10,6 @@ from lutris.util import display, extract, system
 
 # pylint: disable=C0103
 class atari800(Runner):
-    description = "Runs Atari 8bit games"
     human_name = "Atari800"
     platforms = ['Atari 8bit computers']  # FIXME try to determine the actual computer used
     runner_executable = 'atari800/bin/atari800'
@@ -37,6 +36,7 @@ class atari800(Runner):
         }
     ]
 
+    @staticmethod
     def get_resolutions():
         try:
             screen_resolutions = [(resolution, resolution)
@@ -105,8 +105,8 @@ class atari800(Runner):
         good_bios = {}
         for filename in os.listdir(bios_path):
             real_hash = system.get_md5_hash(os.path.join(bios_path, filename))
-            for bios_file in self.bios_checksums.keys():
-                if real_hash == self.bios_checksums[bios_file]:
+            for bios_file, checksum in self.bios_checksums.items():
+                if real_hash == checksum:
                     logging.debug("%s Checksum : OK", filename)
                     good_bios[bios_file] = filename
         return good_bios
@@ -133,9 +133,9 @@ class atari800(Runner):
         if not system.path_exists(bios_path):
             return {'error': 'NO_BIOS'}
         good_bios = self.find_good_bioses(bios_path)
-        for bios in good_bios.keys():
+        for bios, filename in good_bios.items():
             arguments.append("-%s" % bios)
-            arguments.append(os.path.join(bios_path, good_bios[bios]))
+            arguments.append(os.path.join(bios_path, filename))
 
         rom = self.game_config.get('main_file') or ''
         if not system.path_exists(rom):

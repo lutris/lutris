@@ -128,14 +128,14 @@ class mess(Runner):
             'option': 'main_file',
             'type': 'file',
             'label': 'ROM file',
-            'help': ("The game data, commonly called a ROM image.")
+            'help': "The game data, commonly called a ROM image."
         },
         {
             'option': 'machine',
             'type': 'choice_with_entry',
             'label': "Machine",
             'choices': machine_choices,
-            'help': ("The emulated machine.")
+            'help': "The emulated machine."
         },
         {
             'option': 'device',

@@ -21,7 +21,7 @@ class snes9x(Runner):
             "type": "file",
             "default_path": "game_path",
             "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image.")
+            'help': "The game data, commonly called a ROM image."
         }
     ]
 

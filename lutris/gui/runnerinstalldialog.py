@@ -106,7 +106,8 @@ class RunnerInstallDialog(Dialog):
         return os.path.join(settings.RUNNER_DIR, self.runner,
                             "{}-{}".format(version, arch))
 
-    def get_dest_path(self, row):
+    @staticmethod
+    def get_dest_path(row):
         url = row[2]
         filename = os.path.basename(url)
         return os.path.join(settings.CACHE_DIR, filename)
@@ -176,7 +177,8 @@ class RunnerInstallDialog(Dialog):
         dst = self.get_runner_path(version, architecture)
         jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
 
-    def extract(self, src, dst, row):
+    @staticmethod
+    def extract(src, dst, row):
         extract_archive(src, dst)
         return src, row
 
