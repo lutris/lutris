@@ -157,7 +157,7 @@ def is_esync_limit_set():
     if ESYNC_LIMIT_CHECK in ('0', 'off'):
         logger.info("fd limit check for esync was manually disabled")
         return True
-    nolimit = subprocess.Popen("ulimit -Hn", shell=True, stdout=subprocess.PIPE).stdout.read()
+    nolimit = subprocess.Popen(["ulimit", "-Hn"], stdout=subprocess.PIPE).stdout.read()
     return int(nolimit) >= MIN_NUMBER_FILES_OPEN
 
 
