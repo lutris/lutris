@@ -1,14 +1,14 @@
-import pprint
+"""Module for the tray icon"""
 from gi.repository import Gtk
 
 from lutris.gui import dialogs
 from lutris import runners
 from lutris import pga
 from lutris.gui.widgets.utils import get_runner_icon
-from lutris.util.system import get_desktop_environment
 
 
 class LutrisTray(Gtk.StatusIcon):
+    """Lutris tray icon"""
     def __init__(self, application, **kwargs):
         super().__init__()
         self.set_tooltip_text('Lutris')
@@ -27,11 +27,6 @@ class LutrisTray(Gtk.StatusIcon):
 
     def load_menu(self):
         self.menu = Gtk.Menu()
-
-        about = Gtk.MenuItem()
-        about.set_label("About")
-        about.connect("activate", self.show_about_dialog)
-        self.menu.append(about)
 
         self.menu.append(Gtk.SeparatorMenuItem())
         self.add_runners()
