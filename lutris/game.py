@@ -357,7 +357,8 @@ class Game:
                                 "won't be able to keep track of the game status. "
                                 "If this game requires the process monitor to be "
                                 "disabled in order to run, please submit an "
-                                "issue.</b>")
+                                "issue.</b><br/>"
+                                "To disable this message, re-enable the process monitor")
         process_watch = not monitoring_disabled
 
         if self.runner.system_config.get('disable_compositor'):
