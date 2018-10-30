@@ -693,7 +693,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
         return True
     
-    @GtkTemplate.Callback
     def on_play_script(self, *args):
         """Play Script"""
         game = pga.get_game_by_field(self.view.selected_game, 'id')
