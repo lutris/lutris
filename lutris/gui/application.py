@@ -27,6 +27,7 @@ import gi  # isort:skip
 gi.require_version('Gdk', '3.0')  # NOQA # isort:skip
 gi.require_version('Gtk', '3.0')  # NOQA # isort:skip
 
+
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.config import check_config
@@ -42,6 +43,7 @@ from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 
 from .lutriswindow import LutrisWindow
+from lutris.gui.lutristray import LutrisTray, has_tray_support
 
 
 class Application(Gtk.Application):
@@ -60,6 +62,7 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_('Lutris'))
         self.window = None
+        self.tray = None
         self.css_provider = Gtk.CssProvider.new()
 
         if os.geteuid() == 0:
@@ -176,6 +179,8 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
+        if has_tray_support():
+            self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:
