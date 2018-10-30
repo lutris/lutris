@@ -371,12 +371,7 @@ class GameDialogCommon(object):
         self.game.directory = runner.game_path
         self.game.is_installed = True
         if self.runner_name in ('steam', 'winesteam'):
-            self.game.steamid = self.lutris_config.game_config['appid']
-        
-        # Check if game has playscript key
-        if 'play_script' in self.lutris_config.system_config:
-            self.game.playscript = self.lutris_config.system_config['play_script']
-            
+            self.game.steamid = self.lutris_config.game_config['appid']           
         self.game.set_platform_from_runner()
         self.game.save()
         self.destroy()
