@@ -692,12 +692,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             callback=lambda: self.add_game_to_view(dialog.game.id)
         )
         return True
-    
+        
     def on_play_script(self, *args):
         """Play Script"""
-        game = pga.get_game_by_field(self.view.selected_game, 'id')
-        ScriptThread(game['playscript']).start()
-        
+        game = Game(self.view.selected_game)
+        play_script = game.runner.system_config.get("play_script")
+        ScriptThread(play_script).start()        
         
     def add_game_to_view(self, game_id, is_async=True):
         """Add a given game to the current view
