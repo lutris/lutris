@@ -64,7 +64,6 @@ class Game:
         self.timer = Timer()
         self.playtime = game_data.get('playtime') or ''
 
-
     def __repr__(self):
         return self.__unicode__()
 
