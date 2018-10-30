@@ -12,42 +12,6 @@ games.
 These runners (with the exception of Steam and web browsers) are provided and
 managed by Lutris, so you don't need to install them with your package manager.
 
-Lutris currently supports the following programs:
-
-* Linux (Native games)
-* Steam
-* Web
-* Wine
-* Wine + Steam
-* Libretro
-* DOSBox
-* MAME
-* MESS
-* ScummVM
-* ResidualVM
-* Adventure Game Studio
-* Mednafen
-* FS-UAE
-* Vice
-* Stella
-* Atari800
-* Hatari
-* Virtual Jaguar
-* Snes9x
-* Mupen64Plus
-* Dolphin
-* PCSX2
-* PPSSPP
-* Osmose
-* Reicast
-* Frotz
-* jzIntv
-* O2EM
-* ZDoom
-* Citra
-* DeSmuME
-* DGen
-
 
 Installer scripts
 =================
