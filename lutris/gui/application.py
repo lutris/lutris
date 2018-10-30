@@ -27,7 +27,6 @@ import gi  # isort:skip
 gi.require_version('Gdk', '3.0')  # NOQA # isort:skip
 gi.require_version('Gtk', '3.0')  # NOQA # isort:skip
 
-
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.config import check_config
