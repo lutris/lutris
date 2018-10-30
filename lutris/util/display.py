@@ -174,10 +174,12 @@ def get_xrandr_version():
 
 def get_providers():
     """Return the list of available graphic cards"""
-
-    providers = list()
-    providers_cmd = subprocess.Popen(
-        ["lspci"], stdout=subprocess.PIPE).communicate()[0].decode()
+    providers = []
+    lspci_cmd = system.find_executable('lspci')
+    if not lspci_cmd:
+        logger.warning("lspci is not installed, unable to list graphics providers")
+        return providers
+    providers_cmd = subprocess.Popen([lspci_cmd], stdout=subprocess.PIPE).communicate()[0].decode()
     for provider in providers_cmd.strip().split("\n"):
         if "VGA" in provider:
             providers.append(provider)

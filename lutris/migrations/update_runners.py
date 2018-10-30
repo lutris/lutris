@@ -1,6 +1,7 @@
 import os
 import shutil
 from lutris.settings import RUNNER_DIR
+from lutris.util import system
 
 
 def migrate():
@@ -13,4 +14,4 @@ def migrate():
                        'mupen64plus', 'nulldc', 'o2em', 'osmose',
                        'reicast', 'ResidualVM', 'residualvm', 'scummvm',
                        'snes9x', 'stella', 'vice', 'virtualjaguar', 'zdoom']:
-            shutil.rmtree(path)
+            system.remove_folder(path)

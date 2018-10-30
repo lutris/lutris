@@ -8,7 +8,7 @@ from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
 from lutris.util.log import logger
 from lutris.util.system import open_uri
-from lutris.util.log import logger
+# from lutris.util.log import logger
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -225,8 +225,8 @@ class PgaSourceDialog(GtkBuilderDialog):
     glade_file = 'dialog-pga-sources.ui'
     dialog_object = 'pga_dialog'
 
-    def __init__(self):
-        super(PgaSourceDialog, self).__init__()
+    def __init__(self, parent=None):
+        super(PgaSourceDialog, self).__init__(parent=parent)
 
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
