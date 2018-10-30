@@ -3,7 +3,6 @@ import subprocess
 from threading import Thread
 
 from lutris.util.log import logger
-from lutris.gui import dialogs
 
 
 class ScriptThread(Thread):
@@ -21,13 +20,11 @@ class ScriptThread(Thread):
             return subprocess.call(arg)
 
         except PermissionError:
-            error = "Unable to execute " + arg + ", script is not executable"
-            logger.error(error)
-            dialogs.ErrorDialog(error)
+            logger.error(
+                "Unable to execute %s, script is not executable", arg)
         except OSError:
-            error = "Unable to execute " + arg + ", script maybe missing Shebang"
-            logger.error(error)
-            dialogs.ErrorDialog(error)
+            logger.error(
+                "Unable to execute %s, script maybe missing Shebang", arg)
 
     def start(self):
         """Execute script in a new thread"""
@@ -35,7 +32,6 @@ class ScriptThread(Thread):
         if self.script is None or not os.path.isfile(self.script):
             error = "Script not found"
             logger.error(error)
-            dialogs.ErrorDialog(error)
 
         else:
             super().start()
