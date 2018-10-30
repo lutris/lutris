@@ -596,7 +596,7 @@ class wine(Runner):
         dxvk_manager = dxvk.DXVKManager(self.prefix_path, arch=self.wine_arch, version=version)
 
         # manual version only sets the dlls to native
-        if version != 'manual':
+        if version.lower() != 'manual':
             if enable:
                 if not dxvk_manager.is_available():
                     dxvk_manager.download()
