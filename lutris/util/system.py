@@ -229,7 +229,7 @@ def merge_folders(source, destination):
             except OSError:
                 pass
         for filename in filenames:
-            logger.debug("Copying %s", filename)
+            # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename),
@@ -238,11 +238,13 @@ def merge_folders(source, destination):
 
 def remove_folder(path):
     """Delete a folder specified by path"""
-    if os.path.exists(path):
-        logger.debug("Removing folder %s", path)
-        if os.path.samefile(os.path.expanduser('~'), path):
-            raise RuntimeError("Lutris tried to erase home directory!")
-        shutil.rmtree(path)
+    if not os.path.exists(path):
+        logger.warning("Non existent path: %s", path)
+        return
+    logger.debug("Removing folder %s", path)
+    if os.path.samefile(os.path.expanduser('~'), path):
+        raise RuntimeError("Lutris tried to erase home directory!")
+    shutil.rmtree(path)
 
 
 def create_folder(path):

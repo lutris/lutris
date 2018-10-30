@@ -66,10 +66,11 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
         shutil.move(temp_path, to_directory)
         os.removedirs(temp_dir)
     else:
-        for f in os.listdir(temp_path):
-            logger.debug("Moving element %s of archive", f)
-            source_path = os.path.join(temp_path, f)
-            destination_path = os.path.join(to_directory, f)
+        for archive_file in os.listdir(temp_path):
+            source_path = os.path.join(temp_path, archive_file)
+            destination_path = os.path.join(to_directory, archive_file)
+            logger.debug("Moving extracted files from %s to %s", source_path, destination_path)
+
             if os.path.exists(destination_path):
                 logger.warning("Overwrite existing path %s", destination_path)
                 if os.path.isfile(destination_path):
@@ -79,7 +80,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
                     system.merge_folders(source_path, destination_path)
             else:
                 shutil.move(source_path, destination_path)
-        shutil.rmtree(temp_dir)
+        system.remove_folder(temp_dir)
     logger.debug("Finished extracting %s", path)
     return path, to_directory
 
