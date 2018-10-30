@@ -20,11 +20,12 @@ WINE_PATHS = {
     'system': 'wine',
 }
 
-ESYNC_LIMIT_CHECK=os.environ.get('ESYNC_LIMIT_CHECK', '').lower()
+ESYNC_LIMIT_CHECK = os.environ.get('ESYNC_LIMIT_CHECK', '').lower()
+
 
 def get_proton():
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    for path in [os.path.join(p,'common') for p in steam().get_steamapps_dirs() ]:
+    for path in [os.path.join(p, 'common') for p in steam().get_steamapps_dirs()]:
         if os.path.isdir(path):
             proton_versions = [p for p in os.listdir(path) if "Proton" in p]
             for version in proton_versions:
@@ -32,7 +33,9 @@ def get_proton():
                     return path
     return None
 
+
 PROTON_PATH = get_proton()
+
 
 def detect_arch(prefix_path=None, wine_path=None):
     """Given a Wine prefix path, return its architecture"""
@@ -111,6 +114,7 @@ def is_installed_systemwide():
                 return False
             return True
     return False
+
 
 def get_wine_versions():
     """Return the list of Wine versions installed"""
