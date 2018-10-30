@@ -6,7 +6,6 @@ from gi.repository import GLib, Gtk, GObject
 from lutris import api, pga, runtime, settings
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
-from lutris.util.log import logger
 from lutris.util.system import open_uri
 # from lutris.util.log import logger
 
@@ -310,7 +309,7 @@ class ClientLoginDialog(GtkBuilderDialog):
     def get_credentials(self):
         username = self.username_entry.get_text()
         password = self.password_entry.get_text()
-        return (username, password)
+        return username, password
 
     def on_username_entry_activate(self, widget):
         if all(self.get_credentials()):
@@ -338,7 +337,8 @@ class ClientUpdateDialog(GtkBuilderDialog):
     glade_file = 'dialog-client-update.ui'
     dialog_object = "client_update_dialog"
 
-    def on_open_downloads_clicked(self, _widget):
+    @staticmethod
+    def on_open_downloads_clicked(_widget):
         open_uri("http://lutris.net")
 
 

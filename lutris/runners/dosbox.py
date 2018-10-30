@@ -10,7 +10,6 @@ class dosbox(Runner):
     human_name = "DOSBox"
     description = "MS-Dos emulator"
     platforms = ["MS-DOS"]
-    description = "DOS Emulator"
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
@@ -83,14 +82,14 @@ class dosbox(Runner):
             "label": "Exit Dosbox with the game",
             "type": "bool",
             "default": True,
-            'help': ("Shut down Dosbox when the game is quit.")
+            'help': "Shut down Dosbox when the game is quit."
         },
         {
             "option": "fullscreen",
             "label": "Open game in fullscreen",
             "type": "bool",
             "default": False,
-            'help': ("Tells Dosbox to launch the game in fullscreen.")
+            'help': "Tells Dosbox to launch the game in fullscreen."
         }
     ]
 

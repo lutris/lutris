@@ -62,7 +62,7 @@ class steam(Runner):
             'type': 'file',
             'label': 'Steamless binary',
             'advanced': True,
-            'help': ("Steamless binary for running the game directly")
+            'help': "Steamless binary for running the game directly"
         },
     ]
     runner_options = [
@@ -150,7 +150,7 @@ class steam(Runner):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
-            return
+            return None
         return read_config(steam_data_dir)
 
     @property
@@ -182,11 +182,10 @@ class steam(Runner):
     def get_executable(self):
         if self.runner_config.get('lsi_steam') and system.find_executable('lsi-steam'):
             return system.find_executable('lsi-steam')
-        else:
-            runner_executable = self.runner_config.get('runner_executable')
-            if runner_executable and os.path.isfile(runner_executable):
-                return runner_executable
-            return system.find_executable(self.runner_executable)
+        runner_executable = self.runner_config.get('runner_executable')
+        if runner_executable and os.path.isfile(runner_executable):
+            return runner_executable
+        return system.find_executable(self.runner_executable)
 
     @property
     def working_dir(self):
@@ -243,7 +242,7 @@ class steam(Runner):
         steam_config = self.get_steam_config()
         if steam_config:
             i = 1
-            while ('BaseInstallFolder_%s' % i) in steam_config:
+            while 'BaseInstallFolder_%s' % i in steam_config:
                 path = steam_config['BaseInstallFolder_%s' % i] + '/SteamApps'
                 path = system.fix_path_case(path)
                 if path and os.path.isdir(path):
@@ -279,12 +278,12 @@ class steam(Runner):
             if is_running():
                 shutdown()
                 time.sleep(5)
-        command = [self.get_executable(), "steam://install/%s" % (appid)]
+        command = [self.get_executable(), "steam://install/%s" % appid]
         subprocess.Popen(command)
 
     def prelaunch(self):
         def check_shutdown(is_running, times=10):
-            for i in range(1, times):
+            for _ in range(1, times):
                 time.sleep(1)
                 if not is_running():
                     return True
@@ -346,7 +345,7 @@ class steam(Runner):
 
     def watch_game_process(self):
         if not self.appid or not hasattr(self, 'game_launch_time'):
-            return
+            return None
         state_log = get_app_state_log(self.steam_data_dir, self.appid,
                                       self.game_launch_time)
         if not state_log:
@@ -372,7 +371,7 @@ class steam(Runner):
         if appid is None:
             raise RuntimeError('No appid given for uninstallation '
                                '(game config=%s)' % self.game_config)
-        logger.debug("Launching Steam uninstall of game %s" % appid)
+        logger.debug("Launching Steam uninstall of game %s", appid)
         command = [self.get_executable(), 'steam://uninstall/%s' % appid]
         thread = LutrisThread(command, runner=self, env=self.get_env(), watch=False)
         thread.start()

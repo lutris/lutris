@@ -428,6 +428,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game_slugs = [game['slug'] for game in self.game_list]
         if not game_slugs:
             return
+        logger.debug("Syncing %d icons", len(game_slugs))
         try:
             GLib.idle_add(
                 resources.fetch_icons, game_slugs,
@@ -602,7 +603,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         # Wait two seconds to avoid running a game twice
         if time.time() - self.game_launch_time < 2:
-            return
+            return None
         self.game_launch_time = time.time()
         return self.view.selected_game
 
@@ -611,7 +612,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not game_id:
             game_id = self._get_current_game_id()
         if not game_id:
-            return
+            return None
         self.running_game = Game(game_id)
         if self.running_game.is_installed:
             self.running_game.play()

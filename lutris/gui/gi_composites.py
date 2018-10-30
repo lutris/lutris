@@ -37,7 +37,7 @@ class GtkTemplateWarning(UserWarning):
 
 def _connect_func(builder, obj, signal_name, handler_name,
                   connect_object, flags, cls):
-    '''Handles GtkBuilder signal connect events'''
+    """Handles GtkBuilder signal connect events"""
 
     if connect_object is None:
         extra = ()
@@ -66,7 +66,7 @@ def _connect_func(builder, obj, signal_name, handler_name,
 
 
 def _register_template(cls, template_bytes):
-    '''Registers the template for the widget and hooks init_template'''
+    """Registers the template for the widget and hooks init_template"""
 
     # This implementation won't work if there are nested templates, but
     # we can't do that anyways due to PyGObject limitations so it's ok
@@ -106,7 +106,7 @@ def _register_template(cls, template_bytes):
 
 
 def _init_template(self, cls, base_init_template):
-    '''This would be better as an override for Gtk.Widget'''
+    """This would be better as an override for Gtk.Widget"""
 
     # TODO: could disallow using a metaclass.. but this is good enough
     # .. if you disagree, feel free to fix it and issue a PR :)
@@ -141,29 +141,29 @@ def _init_template(self, cls, base_init_template):
 
 
 # TODO: Make it easier for IDE to introspect this
-class _Child(object):
-    '''
+class _Child:
+    """
         Assign this to an attribute in your class definition and it will
         be replaced with a widget defined in the UI file when init_template
         is called
-    '''
+    """
 
     __slots__ = []
 
     @staticmethod
     def widgets(count):
-        '''
+        """
             Allows declaring multiple widgets with less typing::
 
                 button    \
                 label1    \
                 label2    = GtkTemplate.Child.widgets(3)
-        '''
+        """
         return [_Child() for _ in range(count)]
 
 
-class _GtkTemplate(object):
-    '''
+class _GtkTemplate:
+    """
         Use this class decorator to signify that a class is a composite
         widget which will receive widgets and connect to signals as
         defined in a UI template. You must call init_template to
@@ -205,16 +205,16 @@ class _GtkTemplate(object):
 
         .. note:: Due to limitations in PyGObject, you may not inherit from
                   python objects that use the GtkTemplate decorator.
-    '''
+    """
 
     __ui_path__ = None
 
     @staticmethod
     def Callback(f):
-        '''
+        """
             Decorator that designates a method to be attached to a signal from
             the template
-        '''
+        """
         f._gtk_callback = True
         return f
 
@@ -222,7 +222,7 @@ class _GtkTemplate(object):
 
     @staticmethod
     def set_ui_path(*path):
-        '''
+        """
             If using file paths instead of resources, call this *before*
             loading anything that uses GtkTemplate, or it will fail to load
             your template file
@@ -232,7 +232,7 @@ class _GtkTemplate(object):
 
             TODO: Alternatively, could wait until first class instantiation
                   before registering templates? Would need a metaclass...
-        '''
+        """
         _GtkTemplate.__ui_path__ = abspath(join(*path))
 
     def __init__(self, ui):

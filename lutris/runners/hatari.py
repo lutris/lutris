@@ -60,7 +60,7 @@ class hatari(Runner):
             "type": "bool",
             "label": "Scale up display by 2 (Atari ST/STE)",
             'default': True,
-            'help': ("Double the screen size in windowed mode.")
+            'help': "Double the screen size in windowed mode."
         },
         {
             "option": "borders",

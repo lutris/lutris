@@ -278,7 +278,7 @@ class wine(Runner):
                 'label': 'Virtual desktop resolution',
                 'type': 'choice_with_entry',
                 'choices': display.get_unique_resolutions,
-                'help': ("The size of the virtual desktop in pixels.")
+                'help': "The size of the virtual desktop in pixels."
             },
             {
                 'option': 'MouseWarpOverride',
@@ -430,7 +430,7 @@ class wine(Runner):
                 'option': 'sandbox_dir',
                 'type': 'directory_chooser',
                 'label': 'Sandbox directory',
-                'help': ("Custom directory for desktop integration folders.")
+                'help': "Custom directory for desktop integration folders."
             }
         ]
 

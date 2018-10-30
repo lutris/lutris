@@ -24,13 +24,14 @@ class CellRendererButton(Gtk.CellRenderer):
         Gtk.CellRenderer.__init__(self)
         self.layout = layout
 
-    def do_get_size(self, widget, cell_area=None):
+    @staticmethod
+    def do_get_size(widget, cell_area=None):
         height = 20
         max_width = 100
         if cell_area:
             return (cell_area.x, cell_area.y,
                     max(cell_area.width, max_width), cell_area.height)
-        return (0, 0, max_width, height)
+        return 0, 0, max_width, height
 
     def do_render(self, cr, widget, bg_area, cell_area, flags):
         context = widget.get_style_context()

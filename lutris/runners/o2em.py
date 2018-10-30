@@ -39,7 +39,7 @@ class o2em(Runner):
         "type": "file",
         "label": "ROM file",
         "default_path": 'game_path',
-        'help': ("The game data, commonly called a ROM image.")
+        'help': "The game data, commonly called a ROM image."
     }]
     runner_options = [
         {

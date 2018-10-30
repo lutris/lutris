@@ -15,13 +15,13 @@ class zdoom(Runner):
             'option': 'main_file',
             'type': 'file',
             'label': 'WAD file',
-            'help': ("The game data, commonly called a WAD file.")
+            'help': "The game data, commonly called a WAD file."
         },
         {
             'option': 'args',
             'type': 'string',
             'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game.")
+            'help': "Command line arguments used when launching the game."
         },
         {
             'option': 'files',
@@ -34,7 +34,7 @@ class zdoom(Runner):
             'option': 'warp',
             'type': 'string',
             'label': 'Warp to map',
-            'help': ("Starts the game on the given map.")
+            'help': "Starts the game on the given map."
         },
         {
             'option': 'savedir',

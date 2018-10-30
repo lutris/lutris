@@ -19,7 +19,7 @@ class web(Runner):
             "option": "main_file",
             "type": "string",
             "label": "Full URL or HTML file path",
-            'help': ("The full address of the game's web page or path to a HTML file.")
+            'help': "The full address of the game's web page or path to a HTML file."
         }
     ]
     runner_options = [
@@ -28,14 +28,14 @@ class web(Runner):
             "label": "Open in fullscreen",
             "type": "bool",
             "default": False,
-            'help': ("Launch the game in fullscreen.")
+            'help': "Launch the game in fullscreen."
         },
         {
             "option": "maximize_window",
             "label": "Open window maximized",
             "type": "bool",
             "default": False,
-            'help': ("Maximizes the window when game starts.")
+            'help': "Maximizes the window when game starts."
         },
         {
             'option': 'window_size',
@@ -44,21 +44,21 @@ class web(Runner):
             'choices': ["640x480", "800x600", "1024x768",
                         "1280x720", "1280x1024", "1920x1080"],
             'default': '800x600',
-            'help': ("The initial size of the game window when not opened.")
+            'help': "The initial size of the game window when not opened."
         },
         {
             "option": "disable_resizing",
             "label": "Disable window resizing (disables fullscreen and maximize)",
             "type": "bool",
             "default": False,
-            'help': ("You can't resize this window.")
+            'help': "You can't resize this window."
         },
         {
             "option": "frameless",
             "label": "Borderless window",
             "type": "bool",
             "default": False,
-            'help': ("The window has no borders/frame.")
+            'help': "The window has no borders/frame."
         },
         {
             "option": "disable_menu_bar",
@@ -73,7 +73,7 @@ class web(Runner):
             "label": "Disable page scrolling and hide scrollbars",
             "type": "bool",
             "default": False,
-            'help': ("Disables scrolling on the page.")
+            'help': "Disables scrolling on the page."
         },
         {
             "option": "hide_cursor",
@@ -106,14 +106,14 @@ class web(Runner):
             "label": "Enable Adobe Flash Player",
             "type": "bool",
             "default": False,
-            'help': ("Enable Adobe Flash Player.")
+            'help': "Enable Adobe Flash Player."
         },
         {
             "option": "devtools",
             "label": "Debug with Developer Tools",
             "type": "bool",
             "default": False,
-            'help': ("Let's you debug the page."),
+            'help': "Let's you debug the page.",
             'advanced': True
         },
         {
@@ -121,7 +121,7 @@ class web(Runner):
             'label': 'Open in web browser (old behavior)',
             'type': 'bool',
             'default': False,
-            'help': ("Launch the game in a web browser.")
+            'help': "Launch the game in a web browser."
         },
         {
             'option': 'custom_browser_executable',
@@ -163,9 +163,9 @@ class web(Runner):
                              "verify the game's configuration."), }
 
         # check if it's an url or a file
-        isUrl = urlparse(url).scheme is not ''
+        is_url = urlparse(url).scheme != ''
 
-        if not isUrl:
+        if not is_url:
             if not os.path.exists(url):
                 return {'error': 'CUSTOM',
                         'text': ("The file " + url + " does not exist, \n"
@@ -198,18 +198,9 @@ class web(Runner):
         if not os.path.exists(icon):
             icon = DEFAULT_ICON
 
-        command = [self.get_executable()]
-
-        command.append(os.path.join(settings.RUNNER_DIR,
-                                    'web/electron/resources/app.asar'))
-
-        command.append(url)
-
-        command.append("--name")
-        command.append(game_data.get('name'))
-
-        command.append("--icon")
-        command.append(icon)
+        command = [self.get_executable(), os.path.join(settings.RUNNER_DIR,
+                                                       'web/electron/resources/app.asar'), url, "--name",
+                   game_data.get('name'), "--icon", icon]
 
         if self.runner_config.get("fullscreen"):
             command.append("--fullscreen")

@@ -46,7 +46,7 @@ class fsuae(Runner):
             "type": "multiple",
             "label": "Additionnal floppies",
             'default_path': 'game_path',
-            'help': ("The additional floppy disk image(s).")
+            'help': "The additional floppy disk image(s)."
         }
     ]
 
@@ -57,7 +57,7 @@ class fsuae(Runner):
             "type": "choice",
             "choices": model_choices,
             'default': 'A500',
-            'help': ("Specify the Amiga model you want to emulate.")
+            'help': "Specify the Amiga model you want to emulate."
         },
         {
             "option": "kickstart_file",
@@ -131,8 +131,7 @@ class fsuae(Runner):
             return 'cdrom_drive'
         elif disk_path.lower().endswith('.hdf'):
             return 'hard_drive'
-        else:
-            return 'floppy_drive'
+        return 'floppy_drive'
 
     def get_params(self):
         params = []

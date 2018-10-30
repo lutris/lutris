@@ -37,7 +37,7 @@ class linux(Runner):
             "type": "file",
             "label": "Preload library",
             'advanced': True,
-            'help': ("A library to load before running the game's executable.")
+            'help': "A library to load before running the game's executable."
         },
         {
             "option": "ld_library_path",
@@ -86,8 +86,7 @@ class linux(Runner):
             return os.path.expanduser(option)
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        else:
-            return super(linux, self).working_dir
+        return super(linux, self).working_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
