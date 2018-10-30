@@ -191,15 +191,17 @@ def get_providers():
 
 
 def get_compositor_commands():
+    """Nominated for the worst function in lutris"""
     start_compositor = None
     stop_compositor = None
-    if os.environ.get('DESKTOP_SESSION') == "plasma":
+    desktop_session = os.environ.get('DESKTOP_SESSION')
+    if desktop_session == "plasma":
         stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
         start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
-    elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
+    elif desktop_session == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
         stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
         start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
-    elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
+    elif desktop_session == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
         stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
         start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
     return start_compositor, stop_compositor
