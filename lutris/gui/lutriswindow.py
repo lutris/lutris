@@ -91,7 +91,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
-        self.game_store = GameStore([], self.icon_type, self.filter_installed, self.show_installed_first)
+        self.game_store = GameStore(
+            [],
+            self.icon_type,
+            self.filter_installed,
+            self.show_installed_first
+        )
         self.view = self.get_view(view_type)
         super().__init__(default_width=width,
                          default_height=height,
@@ -227,9 +232,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def current_view_type(self):
+        """Returns which kind of view is currently presented (grid or list)"""
         return 'grid' if isinstance(self.view, GameGridView) else 'list'
 
     def on_steam_game_changed(self, operation, path):
+        """Action taken when a Steam AppManifest file is updated"""
         appmanifest = steam.AppManifest(path)
         if self.running_game and 'steam' in self.running_game.runner_name:
             self.running_game.notify_steam_game_changed(appmanifest)
@@ -268,12 +275,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     self.add_game_to_view(game_id)
                 else:
                     self.view.set_installed(Game(game_id))
+
     @staticmethod
     def set_dark_theme(is_dark):
+        """Enables or disbales dark theme"""
         gtksettings = Gtk.Settings.get_default()
         gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
 
     def get_view(self, view_type):
+        """Return the appropriate widget for the current view"""
         if view_type == 'grid':
             return GameGridView(self.game_store)
         else:
@@ -306,6 +316,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @staticmethod
     def get_view_type():
+        """Return the type of view saved by the user"""
         view_type = settings.read_setting('view_type')
         if view_type in ['grid', 'list']:
             return view_type
@@ -325,9 +336,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def switch_splash_screen(self, force=None):
         """Toggle the state of the splash screen based on the library contents"""
-        if not self.splash_box.get_visible() and len(self.game_list):
+        if not self.splash_box.get_visible() and self.game_list:
             return
-        if len(self.game_list) or force is True:
+        if self.game_list or force is True:
             self.splash_box.hide()
             self.sidebar_paned.show()
             self.games_scrollwindow.show()
@@ -347,7 +358,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.contextual_menu = self.menu
         self.connect_signals()
         scrollwindow_children = self.games_scrollwindow.get_children()
-        if len(scrollwindow_children):
+        if scrollwindow_children:
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
@@ -360,6 +371,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def sync_library(self):
         """Synchronize games with local stuff and server."""
         def update_gui(result, error):
+            if error:
+                logger.error("Failed to synchrone library: %s", error)
+                return
             if result:
                 added_ids, updated_ids = result
 
@@ -381,13 +395,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         AsyncCall(sync_from_remote, update_gui)
 
     def open_sync_dialog(self):
+        """Opens the service sync dialog"""
         sync_dialog = SyncServiceDialog(parent=self)
         sync_dialog.run()
 
     def update_existing_games(self, added, updated, first_run=False):
+        """???"""
         for game_id in updated.difference(added):
             # XXX this might not work if the game has no 'item' set
-            logger.debug("Updating row for ID %s" % game_id)
+            logger.debug("Updating row for ID %s", game_id)
             self.view.update_row(pga.get_game_by_field(game_id, 'id'))
 
         if first_run:
@@ -400,14 +416,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.set_status("")
 
     def update_runtime(self):
+        """Check that the runtime is up to date"""
         self.runtime_updater.update(self.set_status)
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
+        """Download missing icons"""
         game_slugs = [game['slug'] for game in self.game_list]
         if not game_slugs:
             return
-        logger.debug("Syncing %d icons" % len(game_slugs))
         try:
             GLib.idle_add(
                 resources.fetch_icons, game_slugs,
@@ -417,10 +434,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             logger.exception("Invalid game list:\n%s\nException: %s", self.game_list, ex)
 
     def set_status(self, text):
-
-        #update row at game exit
+        """Sets the statusbar text"""
+        # update row at game exit
+        # XXX This is NOT a proper way to do it!!!!!!
+        # FIXME This is ugly and will cause issues!@@!
         if text == "Game has quit" and self.gui_needs_update:
-                self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
+            self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
 
         for child_widget in self.status_box.get_children():
             child_widget.destroy()
@@ -450,6 +469,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     # ---------
 
     def on_dark_theme_state_change(self, action, value):
+        """Callback for theme switching action"""
         action.set_state(value)
         self.use_dark_theme = value.get_boolean()
         setting_value = 'true' if self.use_dark_theme else 'false'
@@ -464,6 +484,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return True
 
     def on_connect_success(self, dialog, credentials):
+        """Callback for user connect success"""
         if isinstance(credentials, str):
             username = credentials
         else:
@@ -476,6 +497,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_disconnect(self, *args):
+        """Callback from user disconnect"""
         api.disconnect()
         self.toggle_connection(False)
         self.connect_link.show()
