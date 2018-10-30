@@ -12,6 +12,7 @@ TYPE = 0
 SLUG = 1
 ICON = 2
 LABEL = 3
+GAMECOUNT = 4
 
 
 class SidebarTreeView(Gtk.TreeView):
@@ -20,7 +21,7 @@ class SidebarTreeView(Gtk.TreeView):
         self.installed_runners = []
         self.active_platforms = []
 
-        self.model = Gtk.TreeStore(str, str, GdkPixbuf.Pixbuf, str)
+        self.model = Gtk.TreeStore(str, str, GdkPixbuf.Pixbuf, str, str)
         self.model_filter = self.model.filter_new()
         self.model_filter.set_visible_func(self.filter_rule)
         self.set_model(self.model_filter)
@@ -51,6 +52,12 @@ class SidebarTreeView(Gtk.TreeView):
         column.pack_start(text_renderer2, True)
         column.add_attribute(text_renderer2, "text", LABEL)
 
+        # Gamecount
+        text_renderer3 = Gtk.CellRendererText()
+        text_renderer3.set_alignment(1.0, 0.5)
+        column.pack_start(text_renderer3, True)
+        column.add_attribute(text_renderer3, "text", GAMECOUNT)
+
         self.append_column(column)
         self.set_headers_visible(False)
         self.set_fixed_height_mode(True)
@@ -70,23 +77,23 @@ class SidebarTreeView(Gtk.TreeView):
 
     def load_runners(self):
         """Append runners to the model."""
-        self.runner_node = self.model.append(None, ['runners', '', None, "All runners"])
+        self.runner_node = self.model.append(None, ['runners', '', None, "All runners", None])
         for slug in self.runners:
             self.add_runner(slug)
 
     def add_runner(self, slug):
         name = runners.import_runner(slug).human_name
         icon = get_runner_icon(slug, format='pixbuf', size=(16, 16))
-        self.model.append(self.runner_node, ['runners', slug, icon, name])
+        self.model.append(self.runner_node, ['runners', slug, icon, name, None])
 
     def load_platforms(self):
         """Update platforms in the model."""
-        self.platform_node = self.model.append(None, ['platforms', '', None, "All platforms"])
+        self.platform_node = self.model.append(None, ['platforms', '', None, "All platforms", None])
         for platform in self.platforms:
             self.add_platform(platform)
 
     def add_platform(self, name):
-        self.model.append(self.platform_node, ['platforms', name, None, name])
+        self.model.append(self.platform_node, ['platforms', name, None, name, None])
 
     def get_selected_filter(self):
         """Return the selected runner's name."""
@@ -110,11 +117,30 @@ class SidebarTreeView(Gtk.TreeView):
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
+        self.update_runners_game_count(pga.get_used_runners_game_count())
         self.active_platforms = pga.get_used_platforms()
+        self.update_platforms_game_count(pga.get_used_platforms_game_count())
         self.model_filter.refilter()
         self.expand_all()
         # Return False here because this method is called with GLib.idle_add
         return False
+
+    def update_runners_game_count(self, counts):
+        runner_iter = self.model.iter_children(self.runner_node)
+        self.update_iter_game_counts(runner_iter, counts)
+
+    def update_platforms_game_count(self, counts):
+        platform_iter = self.model.iter_children(self.platform_node)
+        self.update_iter_game_counts(platform_iter, counts)
+
+    def update_iter_game_counts(self, model_iter, counts):
+        while model_iter is not None:
+            slug = self.model.get_value(model_iter, SLUG)
+            count = counts.get(slug, 0)
+            count_display = "({0})".format(count)
+            self.model.set_value(model_iter, GAMECOUNT, count_display)
+
+            model_iter = self.model.iter_next(model_iter)
 
     def popup_contextual_menu(self, view, event):
         if event.button != 3:

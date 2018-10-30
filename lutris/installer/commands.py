@@ -263,6 +263,10 @@ class CommandsMixin:
             return
         self._killable_process(system.merge_folders, src, dst)
 
+    def copy(self, params):
+        """Alias for merge"""
+        self.merge(params)
+
     def move(self, params):
         """Move a file or directory into a destination folder."""
         self._check_required_params(['src', 'dst'], params, 'move')
@@ -330,7 +334,7 @@ class CommandsMixin:
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
-        return (src.rstrip('/'), dst.rstrip('/'))
+        return src.rstrip('/'), dst.rstrip('/')
 
     def substitute_vars(self, data):
         """Subsitute variable names found in given file."""

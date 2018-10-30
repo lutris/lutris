@@ -1,4 +1,5 @@
 import os
+import shlex
 from lutris.util import display
 from lutris.runners.runner import Runner
 
@@ -17,6 +18,12 @@ class zdoom(Runner):
             'help': ("The game data, commonly called a WAD file.")
         },
         {
+            'option': 'args',
+            'type': 'string',
+            'label': 'Arguments',
+            'help': ("Command line arguments used when launching the game.")
+        },
+        {
             'option': 'files',
             'type': 'multiple',
             'label': 'PWAD files',
@@ -28,6 +35,12 @@ class zdoom(Runner):
             'type': 'string',
             'label': 'Warp to map',
             'help': ("Starts the game on the given map.")
+        },
+        {
+            'option': 'savedir',
+            'type': 'directory_chooser',
+            'label': 'Save path',
+            'help': ("User-specified path where save files should be located.")
         }
     ]
     runner_options = [
@@ -56,12 +69,19 @@ class zdoom(Runner):
             "default": '',
             "choices": {
                 ("None", ''),
-                ("I'm Too Young To Die (0)", '0'),
-                ("Hey, Not Too Rough (1)", '1'),
-                ("Hurt Me Plenty (2)", '2'),
-                ("Ultra-Violence (3)", '3'),
-                ("Nightmare! (4)", '4'),
+                ("I'm Too Young To Die (1)", '1'),
+                ("Hey, Not Too Rough (2)", '2'),
+                ("Hurt Me Plenty (3)", '3'),
+                ("Ultra-Violence (4)", '4'),
+                ("Nightmare! (5)", '5'),
             }
+        },
+        {
+            "option": "config",
+            "label": "Config file",
+            "type": "file",
+            'help': ("Used to load a user-created configuration file. If specified, "
+                     "the file must contain the wad directory list or launch will fail.")
         }
     ]
 
@@ -106,12 +126,24 @@ class zdoom(Runner):
             command.append("-skill")
             command.append(skill)
 
+        # Append directory for configuration file, if provided.
+        config = self.runner_config.get('config')
+        if config:
+            command.append("-config")
+            command.append(config)
+
         # Append the warp arguments.
         warp = self.game_config.get('warp')
         if warp:
             command.append("-warp")
             for warparg in warp.split(' '):
                 command.append(warparg)
+
+        # Append directory for save games, if provided.
+        savedir = self.game_config.get('savedir')
+        if savedir:
+            command.append("-savedir")
+            command.append(savedir)
 
         # Append the wad file to load, if provided.
         wad = self.game_config.get('main_file')
@@ -134,5 +166,10 @@ class zdoom(Runner):
             command.append("-file")
             for pwad in pwads:
                 command.append(pwad)
+
+        # Append additional arguments, if provided.
+        args = self.game_config.get('args') or ''
+        for arg in shlex.split(args):
+            command.append(arg)
 
         return {'command': command}

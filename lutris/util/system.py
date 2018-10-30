@@ -233,7 +233,7 @@ def merge_folders(source, destination):
             except OSError:
                 pass
         for filename in filenames:
-            logger.debug("Copying %s", filename)
+            # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename),
@@ -242,11 +242,13 @@ def merge_folders(source, destination):
 
 def remove_folder(path):
     """Delete a folder specified by path"""
-    if os.path.exists(path):
-        logger.debug("Removing folder %s", path)
-        if os.path.samefile(os.path.expanduser('~'), path):
-            raise RuntimeError("Lutris tried to erase home directory!")
-        shutil.rmtree(path)
+    if not os.path.exists(path):
+        logger.warning("Non existent path: %s", path)
+        return
+    logger.debug("Removing folder %s", path)
+    if os.path.samefile(os.path.expanduser('~'), path):
+        raise RuntimeError("Lutris tried to erase home directory!")
+    shutil.rmtree(path)
 
 
 def create_folder(path):
@@ -314,7 +316,6 @@ def get_pids_using_file(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
     fuser_path = None
-    fuser_output = ""
     path_candidates = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
     for candidate in path_candidates:
         fuser_path = os.path.join(candidate, 'fuser')
@@ -331,10 +332,9 @@ def get_terminal_apps():
     """Return the list of installed terminal emulators"""
     if INSTALLED_TERMINALS:
         return INSTALLED_TERMINALS
-    else:
-        for exe in TERMINAL_CANDIDATES:
-            if find_executable(exe):
-                INSTALLED_TERMINALS.append(exe)
+    for exe in TERMINAL_CANDIDATES:
+        if find_executable(exe):
+            INSTALLED_TERMINALS.append(exe)
     return INSTALLED_TERMINALS
 
 
@@ -358,10 +358,12 @@ def reverse_expanduser(path):
 
 
 def path_exists(path):
-    """Wrapper around os.path.exists that doesn't crash with empty values"""
+    """Wrapper around os.path.exists that doesn't crash with empty values
+    Also return True for broken symlinks.
+    """
     if not path:
         return False
-    return os.path.exists(path)
+    return os.path.exists(path) or os.path.islink(path)
 
 
 def path_is_empty(path):

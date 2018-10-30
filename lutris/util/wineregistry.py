@@ -64,7 +64,7 @@ class WindowsFileTime:
         return datetime.fromtimestamp(self.to_unix_timestamp())
 
 
-class WineRegistry(object):
+class WineRegistry:
     version_header = "WINE REGISTRY Version "
     relative_to_header = ";; All keys relative to "
 
@@ -85,7 +85,8 @@ class WineRegistry(object):
         if self.reg_filename:
             return os.path.dirname(self.reg_filename)
 
-    def get_raw_registry(self, reg_filename):
+    @staticmethod
+    def get_raw_registry(reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
         if not os.path.exists(reg_filename):
             return []
@@ -162,6 +163,16 @@ class WineRegistry(object):
             return
         key.subkeys.clear()
 
+    def clear_subkeys(self, path, keys):
+        """Remove some subkeys from a key"""
+        key = self.keys.get(path)
+        if not key:
+            return
+        for subkey in list(key.subkeys.keys()):
+            if subkey not in keys:
+                continue
+            key.subkeys.pop(subkey)
+
     def get_unix_path(self, windows_path):
         windows_path = windows_path.replace('\\\\', '/')
         if not self.prefix_path:
@@ -183,7 +194,7 @@ class WineRegistry(object):
         return os.path.join(drive_path, relpath)
 
 
-class WineRegistryKey(object):
+class WineRegistryKey:
     def __init__(self, key_def=None, path=None):
 
         self.subkeys = OrderedDict()
@@ -195,7 +206,6 @@ class WineRegistryKey(object):
             self.name = path
             self.raw_name = "[{}]".format(path.replace('/', '\\\\'))
             self.raw_timestamp = ' '.join(str(timestamp).split('.'))
-            key_def = "{} {}".format(self.raw_name, self.raw_timestamp)
 
             windows_timestamp = WindowsFileTime.from_unix_timestamp(timestamp)
             self.metas["time"] = windows_timestamp.to_hex()
@@ -217,6 +227,11 @@ class WineRegistryKey(object):
         return "{0} {1}".format(self.raw_name, self.raw_timestamp)
 
     def parse(self, line):
+        """Parse a registry line, populating meta and subkeys"""
+        if len(line) < 4:
+            # Line is too short, nothing to parse
+            return
+
         if line.startswith('#'):
             self.add_meta(line)
         elif line.startswith('"'):
@@ -224,12 +239,13 @@ class WineRegistryKey(object):
                 key, value = re.split(re.compile(r"(?<![^\\]\\\")="), line, maxsplit=1)
             except ValueError as ex:
                 logger.error("Unable to parse line %s", line)
-                raise
+                logger.exception(ex)
+                return
             key = key[1:-1]
             self.subkeys[key] = value
         elif line.startswith('@'):
-            k, v = line.split('=', 1)
-            self.subkeys['default'] = v
+            key, value = line.split('=', 1)
+            self.subkeys['default'] = value
 
     def add_to_last(self, line):
         last_subkey = list(self.subkeys.keys())[-1]
@@ -282,7 +298,7 @@ class WineRegistryKey(object):
 
     def get_subkey(self, name):
         if name not in self.subkeys:
-            return
+            return None
         value = self.subkeys[name]
         if value.startswith("\"") and value.endswith("\""):
             return value[1:-1]

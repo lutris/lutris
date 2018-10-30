@@ -10,14 +10,14 @@ XRANDR_CACHE_SET_AT = None
 XGAMMA_FOUND = None
 
 
-def cached(function):
+def cached(func):
     def wrapper():
         global XRANDR_CACHE
         global XRANDR_CACHE_SET_AT
 
         if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
             return XRANDR_CACHE
-        XRANDR_CACHE = function()
+        XRANDR_CACHE = func()
         XRANDR_CACHE_SET_AT = time.time()
         return XRANDR_CACHE
     return wrapper
@@ -34,11 +34,9 @@ def get_outputs():
     """Return list of tuples containing output name and geometry."""
     outputs = []
     vid_modes = get_vidmodes()
-    display=None
-    mode=None
-    position=None
-    rotate=None
-    refresh_rate=None
+    display = None
+    position = None
+    rotate = None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
@@ -58,17 +56,18 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                rotate="normal"
-            geo_split=geom.split('+')
-            position=geo_split[1] + "x" + geo_split[2]
-            display=parts[0]
+                rotate = "normal"
+            geo_split = geom.split('+')
+            position = geo_split[1] + "x" + geo_split[2]
+            display = parts[0]
         elif '*' in line:
-            mode=parts[0]
+            mode = parts[0]
             for number in parts:
                 if '*' in number:
-                    refresh_rate=number[:5]
+                    refresh_rate = number[:5]
                     outputs.append((display, mode, position, rotate, refresh_rate))
     return outputs
+
 
 def get_output_names():
     return [output[0] for output in get_outputs()]
@@ -85,7 +84,7 @@ def get_resolutions():
     resolution_list = []
     for line in get_vidmodes():
         if line.startswith("  "):
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     return resolution_list
@@ -101,13 +100,12 @@ def get_current_resolution(monitor=0):
     resolution = list()
     for line in get_vidmodes():
         if line.startswith("  ") and "*" in line:
-            resolution_match = re.match('.*?(\d+x\d+).*', line)
+            resolution_match = re.match(r'.*?(\d+x\d+).*', line)
             if resolution_match:
                 resolution.append(resolution_match.groups()[0])
     if monitor == 'all':
         return resolution
-    else:
-        return resolution[monitor]
+    return resolution[monitor]
 
 
 def change_resolution(resolution):
@@ -123,21 +121,18 @@ def change_resolution(resolution):
         logger.debug("Switching resolution to %s", resolution)
 
         if resolution not in get_resolutions():
-            logger.warning("Resolution %s doesn't exist." % resolution)
+            logger.warning("Resolution %s doesn't exist.", resolution)
         else:
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
             display_name = display[0]
-            logger.debug("Switching to %s on %s", display[1], display[0])
-            display_mode=display[1]
-            position=display[2]
-            refresh_rate=display[4]
+            display_mode = display[1]
+            logger.debug("Switching to %s on %s", display_mode, display_name)
+            position = display[2]
+            refresh_rate = display[4]
 
-            if (
-                len(display) > 2 and
-                display[3] in ('normal', 'left', 'right', 'inverted')
-            ):
+            if len(display) > 2 and display[3] in ('normal', 'left', 'right', 'inverted'):
                 rotation = display[3]
             else:
                 rotation = "normal"
@@ -179,17 +174,13 @@ def get_xrandr_version():
 
 def get_providers():
     """Return the list of available graphic cards"""
-    pattern = "name:"
-    providers = list()
-    version = get_xrandr_version()
-
-    if version["major"] == 1 and version["minor"] >= 4:
-        xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
-                                         stdout=subprocess.PIPE).communicate()[0].decode()
-        for line in xrandr_output.split("\n"):
-            if line.find("Provider ") != 0:
-                continue
-            position = line.find(pattern) + len(pattern)
-            providers.append(line[position:].strip())
-
+    providers = []
+    lspci_cmd = system.find_executable('lspci')
+    if not lspci_cmd:
+        logger.warning("lspci is not installed, unable to list graphics providers")
+        return providers
+    providers_cmd = subprocess.Popen([lspci_cmd], stdout=subprocess.PIPE).communicate()[0].decode()
+    for provider in providers_cmd.strip().split("\n"):
+        if "VGA" in provider:
+            providers.append(provider)
     return providers

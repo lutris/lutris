@@ -3,7 +3,6 @@
 import os
 import time
 import yaml
-import shutil
 
 from gi.repository import GLib
 
@@ -45,8 +44,7 @@ def fetch_script(game_slug, revision=None):
 
     if key:
         return response[key]
-    else:
-        return response
+    return response
 
 
 def read_script(filename):
@@ -58,6 +56,28 @@ def read_script(filename):
     if 'results' in scripts:
         return scripts['results']
     return scripts
+
+
+def _get_game_launcher(script):
+    """Return the key and value of the launcher"""
+    launcher_value = None
+
+    # exe64 can be provided to specify an executable for 64bit systems
+    exe = 'exe64' if 'exe64' in script and system.IS_64BIT else 'exe'
+
+    for launcher in (exe, 'iso', 'rom', 'disk', 'main_file'):
+        if launcher not in script:
+            continue
+        launcher_value = script[launcher]
+
+        if launcher == "exe64":
+            launcher = "exe"  # If exe64 is used, rename it to exe
+
+        break
+
+    if not launcher_value:
+        launcher = None
+    return launcher, launcher_value
 
 
 class ScriptInterpreter(CommandsMixin):
@@ -171,7 +191,8 @@ class ScriptInterpreter(CommandsMixin):
             self.errors.append('Scripts can\'t have both extends and requires')
         return not bool(self.errors)
 
-    def _get_installed_dependency(self, dependency):
+    @staticmethod
+    def _get_installed_dependency(dependency):
         """Return whether a dependency is installed"""
         game = pga.get_game_by_field(dependency, field='installer_slug')
 
@@ -200,7 +221,7 @@ class ScriptInterpreter(CommandsMixin):
             else:
                 if not system.find_executable(dependency):
                     raise ScriptingError(
-                        "This installer requires %s on your system" % (dependency)
+                        "This installer requires %s on your system" % dependency
                     )
 
     def _check_dependency(self):
@@ -256,7 +277,6 @@ class ScriptInterpreter(CommandsMixin):
                 except PermissionError:
                     raise ScriptingError("Lutris does not have necessary permissions to install to choosen game dir:", self.target_path)
                 self.reversion_data['created_main_dir'] = True
-
 
         if len(self.game_files) < len(self.files):
             logger.info(
@@ -360,9 +380,7 @@ class ScriptInterpreter(CommandsMixin):
             'file_id': file_id
         }
 
-        logger.debug(
-            "Getting Steam data for appid %s" % self.steam_data['appid']
-        )
+        logger.debug("Getting Steam data for appid %s", self.steam_data['appid'])
 
         self.parent.clean_widgets()
         self.parent.add_spinner()
@@ -421,7 +439,7 @@ class ScriptInterpreter(CommandsMixin):
             self.install_runner(runner)
 
     def install_runner(self, runner):
-        logger.debug('Installing {}'.format(runner.name))
+        logger.debug('Installing %s', runner.name)
         try:
             runner.install(
                 version=self._get_runner_version(),
@@ -507,7 +525,8 @@ class ScriptInterpreter(CommandsMixin):
         else:
             self._finish_install()
 
-    def _get_command_name_and_params(self, command_data):
+    @staticmethod
+    def _get_command_name_and_params(command_data):
         if isinstance(command_data, dict):
             command_name = list(command_data.keys())[0]
             command_params = command_data[command_name]
@@ -532,31 +551,24 @@ class ScriptInterpreter(CommandsMixin):
     # ----------------
 
     def _finish_install(self):
-        self.parent.set_status("Writing configuration")
-        self._write_config()
-        self.parent.set_status("Installation finished !")
-        self.parent.on_install_finished()
-
-    def _get_game_launcher(self):
-        """Return the key and value of the launcher"""
+        game = self.script.get('game')
         launcher_value = None
+        if game:
+            launcher, launcher_value = _get_game_launcher(game)
+        path = None
+        if launcher_value:
+            path = self._substitute(launcher_value)
+            if not os.path.isabs(path):
+                path = os.path.join(self.target_path, launcher_value)
 
-        # exe64 can be provided to specify an executable for 64bit systems
-        exe = 'exe64' if 'exe64' in self.script and system.IS_64BIT else 'exe'
-
-        for launcher in [exe, 'iso', 'rom', 'disk', 'main_file']:
-            if launcher not in self.script:
-                continue
-            launcher_value = self.script[launcher]
-
-            if launcher == "exe64":
-                launcher = "exe"  # If exe64 is used, rename it to exe
-
-            break
-
-        if not launcher_value:
-            launcher = None
-        return (launcher, launcher_value)
+        if path and not os.path.isfile(path):
+            self.parent.set_status("Installation didn't complete successfully")
+            self.parent.on_install_error("Installation failed! Specified executable not found.")
+        else:
+            self.parent.set_status("Writing configuration")
+            self._write_config()
+            self.parent.set_status("Installation finished !")
+            self.parent.on_install_finished()
 
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
@@ -611,8 +623,8 @@ class ScriptInterpreter(CommandsMixin):
         # Game options such as exe or main_file can be added at the root of the
         # script as a shortcut, this integrates them into the game config
         # properly
-        launcher, launcher_value = self._get_game_launcher()
-        if type(launcher_value) == list:
+        launcher, launcher_value = _get_game_launcher(self.script)
+        if isinstance(launcher_value, list):
             game_files = []
             for game_file in launcher_value:
                 if game_file in self.game_files:
@@ -625,9 +637,7 @@ class ScriptInterpreter(CommandsMixin):
                 launcher_value = (
                     self.game_files[launcher_value]
                 )
-            elif self.target_path and os.path.exists(
-                os.path.join(self.target_path, launcher_value)
-            ):
+            elif self.target_path and os.path.exists(os.path.join(self.target_path, launcher_value)):
                 launcher_value = os.path.join(self.target_path, launcher_value)
             config['game'][launcher] = launcher_value
 
@@ -653,9 +663,7 @@ class ScriptInterpreter(CommandsMixin):
             if isinstance(value, list):
                 config[key] = [self._substitute(i) for i in value]
             elif isinstance(value, dict):
-                config[key] = dict(
-                    [(k, self._substitute(v)) for (k, v) in value.items()]
-                )
+                config[key] = {k: self._substitute(v) for (k, v) in value.items()}
             elif isinstance(value, bool):
                 config[key] = value
             else:
@@ -668,8 +676,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def cleanup(self):
         os.chdir(os.path.expanduser('~'))
-        if os.path.exists(self.cache_path):
-            shutil.rmtree(self.cache_path)
+        system.remove_folder(self.cache_path)
 
     # --------------
     # Revert install
@@ -683,8 +690,7 @@ class ScriptInterpreter(CommandsMixin):
             self.abort_current_task()
 
         if self.reversion_data.get('created_main_dir'):
-            if os.path.exists(self.target_path):
-                shutil.rmtree(self.target_path)
+            system.remove_folder(self.target_path)
 
     # -------------
     # Utility stuff
@@ -692,6 +698,11 @@ class ScriptInterpreter(CommandsMixin):
 
     def _substitute(self, template_string):
         """Replace path aliases with real paths."""
+        if template_string.lower() == 'true':
+            return True
+        if template_string.lower() == 'false':
+            return False
+
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,
@@ -781,8 +792,7 @@ class ScriptInterpreter(CommandsMixin):
             logger.debug('Steam game has finished installing')
             self._on_steam_game_installed()
             return False
-        else:
-            return True
+        return True
 
     def _on_steam_game_installed(self, *args):
         """Fired whenever a Steam game has finished installing."""

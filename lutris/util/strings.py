@@ -11,8 +11,8 @@ def slugify(value):
     value = str(value)
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = value.decode('utf-8')
-    value = str(re.sub('[^\w\s-]', '', value)).strip().lower()
-    return re.sub('[-\s]+', '-', value)
+    value = str(re.sub(r'[^\w\s-]', '', value)).strip().lower()
+    return re.sub(r'[-\s]+', '-', value)
 
 
 def add_url_tags(text):
@@ -50,11 +50,11 @@ def parse_version(version):
     """
     version_match = re.search(r'(\d[\d\.]+\d)', version)
     if not version_match:
-        return ([], '', '')
+        return [], '', ''
     version_number = version_match.groups()[0]
     prefix = version[0:version_match.span()[0]]
     suffix = version[version_match.span()[1]:]
-    return ([int(p) for p in version_number.split('.')], prefix, suffix)
+    return [int(p) for p in version_number.split('.')], prefix, suffix
 
 
 def version_sort(versions, reverse=False):

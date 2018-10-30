@@ -21,7 +21,7 @@ def update_platforms():
     for pga_game in pga_games:
         if pga_game.get('platform') or not pga_game['runner']:
             continue
-        game = Game(id=pga_game['id'])
+        game = Game(game_id=pga_game['id'])
         game.set_platform_from_runner()
         game.save(metadata_only=True)
 

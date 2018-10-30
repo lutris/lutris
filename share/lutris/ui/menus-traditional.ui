@@ -16,7 +16,7 @@
           <attribute name="action">win.synchronize</attribute>
         </item>
         <item>
-          <attribute name="label">Import games</attribute>
+          <attribute name="label">Configure game import</attribute>
           <attribute name="action">win.sync-local</attribute>
         </item>
         <item>
@@ -41,6 +41,10 @@
         <item>
           <attribute name="label">I_nstalled games only</attribute>
           <attribute name="action">win.show-installed-only</attribute>
+        </item>
+        <item>
+          <attribute name="label">Installed games _first</attribute>
+          <attribute name="action">win.show-installed-first</attribute>
         </item>
       </section>
       <section>

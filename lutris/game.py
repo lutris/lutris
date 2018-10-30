@@ -10,15 +10,16 @@ from gi.repository import GLib, Gtk
 from lutris import pga
 from lutris import runtime
 from lutris.services import xdg
-from lutris.runners import import_runner, InvalidRunner
+from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.thread import LutrisThread, HEARTBEAT_DELAY
 from lutris.gui import dialogs
+from lutris.util.timer import Timer
 
 
-class Game(object):
+class Game:
     """This class takes cares of loading the configuration for a game
        and running it.
     """
@@ -26,8 +27,8 @@ class Game(object):
     STATE_STOPPED = 'stopped'
     STATE_RUNNING = 'running'
 
-    def __init__(self, id=None):
-        self.id = id
+    def __init__(self, game_id=None):
+        self.id = game_id
         self.runner = None
         self.game_thread = None
         self.heartbeat = None
@@ -36,7 +37,7 @@ class Game(object):
         self.state = self.STATE_IDLE
         self.exit_main_loop = False
 
-        game_data = pga.get_game_by_field(id, 'id')
+        game_data = pga.get_game_by_field(game_id, 'id')
         self.slug = game_data.get('slug') or ''
         self.runner_name = game_data.get('runner') or ''
         self.directory = game_data.get('directory') or ''
@@ -59,6 +60,9 @@ class Game(object):
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
+        self.timer = Timer()
+        self.playtime = game_data.get('playtime') or ''
+
     def __repr__(self):
         return self.__unicode__()
 
@@ -68,16 +72,17 @@ class Game(object):
             value += " (%s)" % self.runner_name
         return value
 
-    def show_error_message(self, message):
+    @staticmethod
+    def show_error_message(message):
         """Display an error message based on the runner's output."""
-        if "CUSTOM" == message['error']:
+        if message['error'] == "CUSTOM":
             message_text = message['text'].replace('&', '&amp;')
             dialogs.ErrorDialog(message_text)
-        elif "RUNNER_NOT_INSTALLED" == message['error']:
+        elif message['error'] == "RUNNER_NOT_INSTALLED":
             dialogs.ErrorDialog('Error the runner is not installed')
-        elif "NO_BIOS" == message['error']:
+        elif message['error'] == "NO_BIOS":
             dialogs.ErrorDialog("A bios file is required to run this game")
-        elif "FILE_NOT_FOUND" == message['error']:
+        elif message['error'] == "FILE_NOT_FOUND":
             filename = message['file']
             if filename:
                 message_text = "The file {} could not be found".format(
@@ -86,8 +91,7 @@ class Game(object):
             else:
                 message_text = "No file provided"
             dialogs.ErrorDialog(message_text)
-
-        elif "NOT_EXECUTABLE" == message['error']:
+        elif message['error'] == "NOT_EXECUTABLE":
             message_text = message['file'].replace('&', '&amp;')
             dialogs.ErrorDialog("The file %s is not executable" % message_text)
 
@@ -128,11 +132,11 @@ class Game(object):
 
             if not (self.compositor_disabled or self.stop_compositor == ""):
                 system.execute(self.stop_compositor, shell=True)
-                self.compositor_disabled = True;
+                self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
         if from_disk and self.runner:
-            logger.debug("Removing game %s from disk" % self.id)
+            logger.debug("Removing game %s from disk", self.id)
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
@@ -141,7 +145,7 @@ class Game(object):
             from_library = True
 
         if from_library:
-            logger.debug("Removing game %s from library" % self.id)
+            logger.debug("Removing game %s from library", self.id)
             pga.delete_game(self.id)
         else:
             pga.set_uninstalled(self.id)
@@ -173,7 +177,8 @@ class Game(object):
             installed=self.is_installed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
-            id=self.id
+            id=self.id,
+            playtime = self.playtime,
         )
 
     def prelaunch(self):
@@ -186,11 +191,19 @@ class Game(object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                logger.warning("Runtime updates: {}".format(
-                    runtime_updater.current_updates)
-                )
+                logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
+        if "wine" in self.runner_name and not wine.get_system_wine_version():
+            dialogs.DontShowAgainDialog(
+                'hide-wine-systemwide-install-warning',
+                "Wine is not installed on your system.",
+                secondary_message="Having Wine installed on your system guarantees that "
+                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
+                "follow the instructions given in the <a "
+                "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+                "install Wine."
+            )
         return True
 
     def play(self):
@@ -209,8 +222,16 @@ class Game(object):
         else:
             self.do_play(True)
 
-    def do_play(self, prelaunched, _error=None):
+    def do_play(self, prelaunched, error=None):
+
+        self.timer.start_t()
+
+        if error:
+            logger.error(error)
+            dialogs.ErrorDialog(str(error))
         if not prelaunched:
+            logger.error("Game prelaunch unsuccessful")
+            dialogs.ErrorDialog("An error prevented the game from running")
             self.state = self.STATE_STOPPED
             return
         system_config = self.runner.system_config
@@ -220,7 +241,7 @@ class Game(object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s" % (self.name, gameplay_info))
+        logger.debug("Launching %s: %s", self.name, gameplay_info)
         if 'error' in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
@@ -341,7 +362,11 @@ class Game(object):
 
         monitoring_disabled = system_config.get('disable_monitoring')
         if monitoring_disabled:
-            show_obnoxious_process_monitor_message()
+            dialogs.ErrorDialog("<b>The process monitor is disabled, Lutris "
+                                "won't be able to keep track of the game status. "
+                                "If this game requires the process monitor to be "
+                                "disabled in order to run, please submit an "
+                                "issue.</b>")
         process_watch = not monitoring_disabled
 
         if self.runner.system_config.get('disable_compositor'):
@@ -381,7 +406,8 @@ class Game(object):
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
         self.xboxdrv_thread.start()
 
-    def xboxdrv_stop(self):
+    @staticmethod
+    def xboxdrv_stop():
         os.system("pkexec xboxdrvctl --shutdown")
         if os.path.exists("/usr/share/lutris/bin/resetxpad"):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")
@@ -415,6 +441,10 @@ class Game(object):
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
+
+        self.timer.end_t()
+        self.playtime = self.timer.increment(self.playtime)
+
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
             logger.debug("Game thread still running, stopping it (state: %s)", self.state)
@@ -464,6 +494,8 @@ class Game(object):
 
     def notify_steam_game_changed(self, appmanifest):
         """Receive updates from Steam games and set the thread's ready state accordingly"""
+        if not self.game_thread:
+            return
         if 'Fully Installed' in appmanifest.states and not self.game_thread.ready_state:
             logger.info("Steam game %s is fully installed", appmanifest.steamid)
             self.game_thread.ready_state = True
@@ -471,21 +503,3 @@ class Game(object):
             logger.info("Steam game %s updating, setting game thread as not ready",
                         appmanifest.steamid)
             self.game_thread.ready_state = False
-
-
-def show_obnoxious_process_monitor_message():
-    """Display an annoying message for people who disable the process monitor"""
-    for _ in range(5):
-        logger.critical("")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("   ***  YOU HAVE THE PROCESS MONITOR DISABLED!!!!!  ***")
-    logger.critical("   ****************************************************")
-    logger.critical("   ****************************************************")
-    logger.critical("THIS OPTION WAS IMPLEMENTED AS A WORKAROUND FOR A BUG THAT HAS BEEN FIXED!!11!!1")
-    logger.critical("RUNNING GAMES WITH THE PROCESS MONITOR DISABLED IS NOT SUPPORTED!!!")
-    logger.critical("YOU ARE DISCOURAGED FROM REPORTING ISSUES WITH THE PROCESS MONITOR DISABLED!!!")
-    logger.critical("THIS OPTION WILL BE REMOVED IN A FUTURE RELEASE!!!!!!!")
-    logger.critical("IF YOU THINK THIS OPTION CAN BE USEFUL FOR ANY MEANS PLEASE LET US KNOW!!!!")
-    for _ in range(5):
-        logger.critical("")

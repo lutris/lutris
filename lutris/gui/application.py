@@ -1,4 +1,4 @@
-# application.py
+# pylint: disable=no-member
 #
 # Copyright (C) 2016 Patrick Griffis <tingping@tingping.se>
 #
@@ -19,26 +19,28 @@ import json
 import logging
 import os
 import signal
+import sys
 import gettext
 from gettext import gettext as _
 
-import gi
+import gi  # isort:skip
+gi.require_version('Gdk', '3.0')  # NOQA # isort:skip
+gi.require_version('Gtk', '3.0')  # NOQA # isort:skip
 
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
+
 from gi.repository import Gio, GLib, Gtk
-
 from lutris import pga
 from lutris.config import check_config
-from lutris.platforms import update_platforms
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
+from lutris.platforms import update_platforms
+from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
+from lutris.settings import VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
+from lutris.util.dxvk import init_dxvk_versions
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
-from lutris.services.steam import (AppManifest, get_appmanifests,
-                                   get_steamapps_paths)
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray, has_tray_support
@@ -54,6 +56,7 @@ class Application(Gtk.Application):
         gettext.textdomain("lutris")
 
         check_config()
+        init_dxvk_versions()
         migrate()
         update_platforms()
 
@@ -61,6 +64,9 @@ class Application(Gtk.Application):
         self.window = None
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
+
+        if os.geteuid() == 0:
+            ErrorDialog("Running Lutris as root is not recommended and may cause unexpected issues")
 
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), 'ui', 'lutris.css'))
@@ -76,12 +82,19 @@ class Application(Gtk.Application):
         if hasattr(self, 'set_option_context_summary'):
             self.set_option_context_summary(
                 'Run a game directly by adding the parameter lutris:rungame/game-identifier.\n'
-                'If several games share the same identifier you can use the '
-                'numerical ID (displayed when running lutris --list-games) and add lutris:rungameid/numerical-id.\n'
+                'If several games share the same identifier you can use the numerical ID '
+                '(displayed when running lutris --list-games) and add '
+                'lutris:rungameid/numerical-id.\n'
                 'To install a game, add lutris:install/game-identifier.'
             )
         else:
             logger.warning("This version of Gtk doesn't support set_option_context_summary")
+        self.add_main_option('version',
+                             ord('v'),
+                             GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             _('Print the version of Lutris and exit'),
+                             None)
         self.add_main_option('debug',
                              ord('d'),
                              GLib.OptionFlags.NONE,
@@ -178,7 +191,7 @@ class Application(Gtk.Application):
                 self.css_provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
-        self.window.present()
+            GLib.timeout_add(300, self.refresh_status)
 
     @staticmethod
     def _print(command_line, string):
@@ -193,6 +206,13 @@ class Application(Gtk.Application):
             logger.setLevel(logging.DEBUG)
 
         # Text only commands
+
+        # Print Lutris version and exit
+        if options.contains('version'):
+            executable_name = os.path.basename(sys.argv[0])
+            print(executable_name + "-" + VERSION)
+            logger.setLevel(logging.NOTSET)
+            return 0
 
         # List game
         if options.contains('list-games'):
@@ -276,34 +296,36 @@ class Application(Gtk.Application):
                 action = 'install'
 
         if action == 'install':
+            self.window.present()
             self.window.on_install_clicked(game_slug=game_slug,
                                            installer_file=installer_file,
                                            revision=revision)
         elif action in ('rungame', 'rungameid'):
             if not db_game or not db_game['id']:
-                logger.info("No game found in library, shutting down")
-                self.do_shutdown()
+                if self.window.is_visible():
+                    logger.info("No game found in library")
+                else:
+                    logger.info("No game found in library, shutting down")
+                    self.do_shutdown()
                 return 0
 
             logger.info("Launching %s" % db_game['name'])
 
-            # If game is installed, run it without showing the GUI
-            # Also set a timer to shut down lutris when game ends
-            if db_game['installed']:
-                self.window.hide()
-                self.window.on_game_run(game_id=db_game['id'])
-                GLib.timeout_add(300, self.refresh_status)
-            # If game is not installed, show the GUI
-            else:
-                self.window.on_game_run(game_id=db_game['id'])
+            # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
+            if not db_game['installed']:
+                self.window.present()
+            self.window.on_game_run(game_id=db_game['id'])
 
+        else:
+            self.window.present()
 
         return 0
 
     def refresh_status(self):
-        if self.window.running_game.state == self.window.running_game.STATE_STOPPED:
-            self.do_shutdown()
-            return False
+        if self.window.running_game is None or self.window.running_game.state == self.window.running_game.STATE_STOPPED:
+            if not self.window.is_visible():
+                self.do_shutdown()
+                return False
         return True
 
     def get_lutris_action(self, url):
