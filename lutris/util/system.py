@@ -45,10 +45,6 @@ INSTALLED_TERMINALS = []
 
 IS_64BIT = sys.maxsize > 2**32
 
-NO_TRAY_SUPPORT = [
-    'gnome',
-]
-
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
     """

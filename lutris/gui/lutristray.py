@@ -5,7 +5,7 @@ from lutris.gui import dialogs
 from lutris import runners
 from lutris import pga
 from lutris.gui.widgets.utils import get_runner_icon
-from lutris.util.system import get_desktop_environment, NO_TRAY_SUPPORT
+from lutris.util.system import get_desktop_environment
 
 
 class LutrisTray(Gtk.StatusIcon):
@@ -90,4 +90,4 @@ class LutrisTray(Gtk.StatusIcon):
 
 
 def has_tray_support():
-    return False if get_desktop_environment() in NO_TRAY_SUPPORT else True
+    return True
