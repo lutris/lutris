@@ -166,7 +166,7 @@ system_options = [
         'type': 'file',
         'label': 'Play Script',
         'advanced': True,
-        'help': ("Choose a script to execute with script icon")
+        'help': ("Choose a script to execute with play script icon")
     },
     {
         'option': 'pre_script',
