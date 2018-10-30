@@ -34,7 +34,7 @@ from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
 from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
-from lutris.settings import VERSION
+from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.dxvk import init_dxvk_versions
@@ -178,7 +178,8 @@ class Application(Gtk.Application):
         )
         menubar = builder.get_object('menubar')
         self.set_menubar(menubar)
-        self.tray = LutrisTray(application=self)
+        if read_setting('show-tray'):
+            self.tray = LutrisTray(application=self)
 
     def do_activate(self):
         if not self.window:
