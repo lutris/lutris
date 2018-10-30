@@ -120,17 +120,8 @@ class Game:
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
-            if os.environ.get('DESKTOP_SESSION') == "plasma":
-                self.stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
-                self.start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
-            elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
-                self.stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
-                self.start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
-            elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
-                self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
-                self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
-
-            if not (self.compositor_disabled or self.stop_compositor == ""):
+            self.start_compositor, self.stop_compositor = display.get_compositor_commands()
+            if not (self.compositor_disabled or not self.stop_compositor):
                 system.execute(self.stop_compositor, shell=True)
                 self.compositor_disabled = True
 

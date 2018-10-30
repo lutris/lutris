@@ -1,3 +1,5 @@
+"""Module to deal with various aspects of displays"""
+import os
 import re
 import time
 import subprocess
@@ -11,9 +13,11 @@ XGAMMA_FOUND = None
 
 
 def cached(func):
+    """Something that does not belong here"""
     def wrapper():
-        global XRANDR_CACHE
-        global XRANDR_CACHE_SET_AT
+        """What does it feel being WRONG"""
+        global XRANDR_CACHE  # Fucked up shit
+        global XRANDR_CACHE_SET_AT  # Moar fucked up globals
 
         if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
             return XRANDR_CACHE
@@ -184,3 +188,18 @@ def get_providers():
         if "VGA" in provider:
             providers.append(provider)
     return providers
+
+
+def get_compositor_commands():
+    start_compositor = None
+    stop_compositor = None
+    if os.environ.get('DESKTOP_SESSION') == "plasma":
+        stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
+        start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
+    elif os.environ.get('DESKTOP_SESSION') == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
+        stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
+        start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
+    elif os.environ.get('DESKTOP_SESSION') == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
+        stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
+        start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
+    return start_compositor, stop_compositor
