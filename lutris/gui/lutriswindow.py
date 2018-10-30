@@ -867,7 +867,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             selected_runner = slug
         self.set_selected_filter(selected_runner, selected_platform)
 
-    def set_selected_filteor(self, runner, platform):
+    def set_selected_filter(self, runner, platform):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner
         self.selected_platform = platform
