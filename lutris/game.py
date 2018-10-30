@@ -181,7 +181,6 @@ class Game:
             steamid=self.steamid,
             id=self.id,
             playtime = self.playtime,
-            playscript = self.playscript,
         )
 
     def prelaunch(self):
