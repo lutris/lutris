@@ -13,7 +13,6 @@ class ScriptThread(Thread):
         super().__init__(target=self.call_process_with_err,
                          args=[script])
         self.script = script
-        self.script_thread = None
 
     def call_process_with_err(self, arg):
         """Handle subprocess errors in the new thread"""
