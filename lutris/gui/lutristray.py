@@ -51,7 +51,7 @@ class LutrisTray(Gtk.StatusIcon):
         self.application.do_shutdown()
 
     def add_runners(self):
-        """?"""
+        """Why the hell"""
         self.installed_runners = runners.get_installed()
         for runner in self.installed_runners:
             menu_item = Gtk.ImageMenuItem()
@@ -62,7 +62,7 @@ class LutrisTray(Gtk.StatusIcon):
             self.menu.append(menu_item)
 
     def add_platforms(self):
-        """?"""
+        """No"""
         self.active_platforms = pga.get_used_platforms()
         for platform in self.active_platforms:
             menu_item = Gtk.MenuItem()
@@ -71,13 +71,13 @@ class LutrisTray(Gtk.StatusIcon):
             self.menu.append(menu_item)
 
     def on_runner_selected(self, _widget, *data):
-        """?"""
+        """WTF"""
         selected_runner = data[0]
         self.application.window.set_selected_filter(selected_runner, None)
         self.application.window.present()
 
     def on_platform_selected(self, _widget, *data):
-        """?"""
+        """WTH"""
         selected_platform = data[0]
         self.application.window.set_selected_filter(None, selected_platform)
         self.application.window.present()
