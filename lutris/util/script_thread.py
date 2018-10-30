@@ -6,8 +6,12 @@ from lutris.util.log import logger
 from lutris.gui import dialogs
 
 
-class ScriptThread():
+class ScriptThread(Thread):
+    """Execute a given script in a new thread and handle the exceptions that might occur"""
+
     def __init__(self, script):
+        super().__init__(target=self.call_process_with_err,
+                         args=[script])
         self.script = script
         self.script_thread = None
 
@@ -35,11 +39,4 @@ class ScriptThread():
             dialogs.ErrorDialog(error)
 
         else:
-            self.script_thread = Thread(target=self.call_process_with_err,
-                                        args=[self.script])
-
-            self.script_thread.start()
-
-    def join(self):
-        """Execute script in the calling thread"""
-        self.script_thread.join()
+            super().start()
