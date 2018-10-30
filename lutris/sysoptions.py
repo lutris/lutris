@@ -177,7 +177,7 @@ system_options = [
     },
     {
         'option': 'wait_for_script_completion',
-        'label': "Wait for script completion before starting the game",
+        'label': "Wait for Pre Launch Script to finish executing before starting the game",
         'type': 'bool',
         'default': False,
         'advanced': True,
