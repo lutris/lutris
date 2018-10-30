@@ -292,7 +292,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("remove-game", self.on_remove_game)
         self.view.connect("play-script", self.on_play_script)
         
-
     @staticmethod
     def check_update():
         """Verify availability of client update."""
