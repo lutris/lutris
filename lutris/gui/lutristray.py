@@ -1,7 +1,6 @@
 """Module for the tray icon"""
 from gi.repository import Gtk
 
-from lutris.gui import dialogs
 from lutris import runners
 from lutris import pga
 from lutris.gui.widgets.utils import get_runner_icon
@@ -26,22 +25,21 @@ class LutrisTray(Gtk.StatusIcon):
         self.connect('popup-menu', self.on_right_click)
 
     def load_menu(self):
+        """Instanciates the menu attached to the tray icon"""
         self.menu = Gtk.Menu()
-
-        self.menu.append(Gtk.SeparatorMenuItem())
         self.add_runners()
         self.menu.append(Gtk.SeparatorMenuItem())
         self.add_platforms()
         self.menu.append(Gtk.SeparatorMenuItem())
 
-        quit = Gtk.MenuItem()
-        quit.set_label("Quit")
-        quit.connect("activate", self.quit_application)
-        self.menu.append(quit)
-
+        quit_menu = Gtk.MenuItem()
+        quit_menu.set_label("Quit")
+        quit_menu.connect("activate", self.quit_application)
+        self.menu.append(quit_menu)
         self.menu.show_all()
 
-    def on_left_click(self, widget, event=None):
+    def on_left_click(self, _widget, _event=None):
+        """Callback to show or hide the window"""
         if self.application.window.is_active():
             self.application.window.iconify()
         else:
@@ -50,10 +48,7 @@ class LutrisTray(Gtk.StatusIcon):
     def on_right_click(self, status, button, time):
         self.menu.popup(None, None, None, None, button, time)
 
-    def show_about_dialog(self, widget):
-        dialogs.AboutDialog(parent=self.application.window)
-
-    def quit_application(self, widget):
+    def quit_application(self, _widget):
         self.application.do_shutdown()
 
     def add_runners(self):
