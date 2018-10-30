@@ -116,7 +116,7 @@ class Game:
         else:
             self.runner = runner_class(self.config)
 
-    def desktop_effects(self, enable):
+    def set_desktop_compositing(self, enable):
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
@@ -362,7 +362,7 @@ class Game:
         process_watch = not monitoring_disabled
 
         if self.runner.system_config.get('disable_compositor'):
-            self.desktop_effects(False)
+            self.set_desktop_compositing(False)
 
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
@@ -453,7 +453,7 @@ class Game:
             display.change_resolution(self.original_outputs)
 
         if self.compositor_disabled:
-            self.desktop_effects(True)
+            self.set_desktop_compositing(True)
 
         if self.runner.system_config.get('use_us_layout'):
             subprocess.Popen(['setxkbmap'], env=os.environ).communicate()
