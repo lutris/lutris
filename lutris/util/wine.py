@@ -1,6 +1,7 @@
 """Utilities for manipulating Wine"""
 import os
 import subprocess
+import resource
 from collections import OrderedDict
 
 from lutris import runtime, settings
@@ -157,8 +158,8 @@ def is_esync_limit_set():
     if ESYNC_LIMIT_CHECK in ('0', 'off'):
         logger.info("fd limit check for esync was manually disabled")
         return True
-    nolimit = subprocess.Popen(["ulimit", "-Hn"], stdout=subprocess.PIPE).stdout.read()
-    return int(nolimit) >= MIN_NUMBER_FILES_OPEN
+    _soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    return hard_limit >= MIN_NUMBER_FILES_OPEN
 
 
 def get_default_version():
