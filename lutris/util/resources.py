@@ -1,5 +1,5 @@
+"""Module for handling game media (banners and icons)"""
 import os
-import shutil
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
 from gi.repository import GLib
@@ -8,6 +8,7 @@ from lutris import settings
 from lutris import api
 from lutris.util.log import logger
 from lutris.util.http import Request
+from lutris.util import system
 
 BANNER = "banner"
 ICON = "icon"
@@ -65,7 +66,9 @@ def fetch_icons(game_slugs, callback=None):
 
     updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
     downloads = banner_downloads + icon_downloads
-    logger.debug("Downloading %d files", len(downloads))
+    if downloads:
+        logger.debug("Downloading %d files", len(downloads))
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         futs = [executor.submit(download_media, url, dest_path)
                 for url, dest_path in downloads]
@@ -80,7 +83,7 @@ def fetch_icons(game_slugs, callback=None):
 
 def udpate_desktop_icons():
     # Update Icon for GTK+ desktop manager
-    gtk_update_icon_cache = shutil.which("gtk-update-icon-cache")
+    gtk_update_icon_cache = system.find_executable("gtk-update-icon-cache")
     if gtk_update_icon_cache:
         os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), 'icons', 'hicolor'))
 
