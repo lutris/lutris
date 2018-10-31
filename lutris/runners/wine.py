@@ -161,7 +161,7 @@ class wine(Runner):
         def esync_limit_callback(config):
             limits_set = is_esync_limit_set()
             wine_path = self.get_path_for_version(config['version'])
-            wine_ver = is_version_esync(config['version'], wine_path)
+            wine_ver = is_version_esync(wine_path)
 
             if not limits_set and not wine_ver:
                 esync_display_version_warning(False)
@@ -743,7 +743,7 @@ class wine(Runner):
 
         if 'WINEESYNC' in launch_info['env'].get('WINEESYNC') == "1":
             limit_set = is_esync_limit_set()
-            wine_ver = is_version_esync(self.runner_config['version'], self.get_executable())
+            wine_ver = is_version_esync(self.get_executable())
 
             if not limit_set and not wine_ver:
                 esync_display_version_warning(True)

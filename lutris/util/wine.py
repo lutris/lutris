@@ -201,24 +201,20 @@ def support_legacy_version(version):
     return version
 
 
-def is_version_esync(version, path):
-    """Determines is a Wine build has both build and path, I have no fucking
-    clue why both version and path are given to this function, seems redundant.
+def is_version_esync(path):
+    """Determines if a Wine build is Esync capable
 
     Params:
-        version: The Wine version name
-        path: the path to the Wine version name (WHYYYYYYYY???????)
-
+        path: the path to the Wine version
 
     Returns:
         bool: True is the build is Esync capable
     """
-    version = version.lower()
+    version = path.lower()
     if 'esync' in version or 'proton' in version:
         return True
 
-    command = path + " --version"
-    wine_ver = str(subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read())
+    wine_ver = str(subprocess.check_output([path, "--version"]))
     return 'esync' in wine_ver.lower()
 
 
