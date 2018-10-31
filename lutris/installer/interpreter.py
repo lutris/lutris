@@ -666,6 +666,8 @@ class ScriptInterpreter(CommandsMixin):
                 config[key] = {k: self._substitute(v) for (k, v) in value.items()}
             elif isinstance(value, bool):
                 config[key] = value
+            elif isinstance(value, int):
+                config[key] = value
             else:
                 config[key] = self._substitute(value)
         return config
