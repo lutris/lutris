@@ -3,7 +3,7 @@ from gi.repository import Gtk
 
 from lutris import runners
 from lutris import pga
-from lutris.gui.widgets.utils import get_runner_icon
+from lutris.gui.widgets.utils import get_runner_icon, get_pixbuf_for_game
 
 
 class LutrisTray(Gtk.StatusIcon):
@@ -27,6 +27,8 @@ class LutrisTray(Gtk.StatusIcon):
     def load_menu(self):
         """Instanciates the menu attached to the tray icon"""
         self.menu = Gtk.Menu()
+        self.add_games()
+        self.menu.append(Gtk.SeparatorMenuItem())
         self.add_runners()
         self.menu.append(Gtk.SeparatorMenuItem())
         self.add_platforms()
@@ -50,6 +52,30 @@ class LutrisTray(Gtk.StatusIcon):
         """Callback to quit the program"""
         self.application.do_shutdown()
 
+    @staticmethod
+    def game_oder_key(game):
+        if game["lastplayed"] is None and game["installed_at"] is None:
+            return 0
+        elif game["lastplayed"] is None:
+            return game["installed_at"]
+        elif game["installed_at"] is None:
+            return game["lastplayed"]
+        else:
+            return max(game["lastplayed"], game["installed_at"])
+
+    def add_games(self):
+        """Adds installed games in order of last use"""
+        number_of_games_in_menu = 10
+        installed_games = pga.get_games(filter_installed=True)
+        installed_games.sort(key=self.game_oder_key, reverse=True)
+        for game in installed_games[:number_of_games_in_menu]:
+            menu_item = Gtk.ImageMenuItem()
+            menu_item.set_label(game["name"])
+            game_icon = get_pixbuf_for_game(game["slug"], "icon_small")
+            menu_item.set_image(Gtk.Image.new_from_pixbuf(game_icon))
+            menu_item.connect("activate", self.on_game_selected, game["id"])
+            self.menu.append(menu_item)
+
     def add_runners(self):
         """Why the hell"""
         self.installed_runners = runners.get_installed()
@@ -69,6 +95,9 @@ class LutrisTray(Gtk.StatusIcon):
             menu_item.set_label(platform)
             menu_item.connect('activate', self.on_platform_selected, platform)
             self.menu.append(menu_item)
+
+    def on_game_selected(self, _widget, *data):
+        self.application.window.on_game_run(game_id=data[0])
 
     def on_runner_selected(self, _widget, *data):
         """WTF"""
