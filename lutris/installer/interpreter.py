@@ -15,6 +15,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
 from lutris.util.http import Request
+from lutris.util.wine import get_wine_version_exe
 
 from lutris.config import LutrisConfig, make_game_config_id
 
@@ -829,5 +830,5 @@ class ScriptInterpreter(CommandsMixin):
 
     def eject_wine_disc(self):
         prefix = self.target_path
-        wine_path = wine.get_wine_version_exe(self._get_runner_version())
+        wine_path = get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, prefix)

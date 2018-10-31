@@ -14,6 +14,7 @@ from lutris import runtime
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
+from lutris.util.wine import get_wine_version_exe
 from lutris.util import selective_merge
 
 from lutris.runners import wine, import_task
@@ -377,7 +378,7 @@ class CommandsMixin:
 
         if runner_name.startswith('wine'):
             if wine_version:
-                data['wine_path'] = wine.get_wine_version_exe(wine_version)
+                data['wine_path'] = get_wine_version_exe(wine_version)
 
         for key in data:
             value = data[key]
