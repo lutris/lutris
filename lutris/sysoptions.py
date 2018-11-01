@@ -54,7 +54,7 @@ def get_optirun_choices():
     return choices
 
 
-system_options = [
+system_options = [  # pylint: disable=invalid-name
     {
         'option': 'game_path',
         'type': 'directory_chooser',
@@ -168,6 +168,20 @@ system_options = [
         'advanced': True,
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
+    },
+    {
+        'option': 'prelaunch_command',
+        'type': 'file',
+        'label': 'Pre-launch command',
+        'advanced': True,
+        'help': "Script to execute before the game starts"
+    },
+    {
+        'option': 'postexit_command',
+        'type': 'file',
+        'label': 'Post-exit command',
+        'advanced': True,
+        'help': "Script to execute when the game exits"
     },
     {
         'option': 'include_processes',

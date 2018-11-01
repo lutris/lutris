@@ -31,6 +31,7 @@ class Game:
         self.id = game_id
         self.runner = None
         self.game_thread = None
+        self.prelaunch_thread = None
         self.heartbeat = None
         self.config = None
         self.killswitch = None
@@ -169,7 +170,7 @@ class Game:
             configpath=self.config.game_config_id,
             steamid=self.steamid,
             id=self.id,
-            playtime = self.playtime,
+            playtime=self.playtime,
         )
 
     def prelaunch(self):
@@ -364,6 +365,15 @@ class Game:
         if self.runner.system_config.get('disable_compositor'):
             self.set_desktop_compositing(False)
 
+        prelaunch_command = self.runner.system_config.get("prelaunch_command")
+        if system.path_exists(prelaunch_command):
+            self.prelaunch_thread = LutrisThread(
+                [prelaunch_command],
+                include_processes=[os.path.basename(prelaunch_command)],
+            )
+            self.prelaunch_thread.start()
+            logger.info("Running %s in the background", prelaunch_command)
+
         self.game_thread = LutrisThread(launch_arguments,
                                         runner=self.runner,
                                         env=env,
@@ -436,6 +446,19 @@ class Game:
 
         self.timer.end_t()
         self.playtime = self.timer.increment(self.playtime)
+
+        if self.prelaunch_thread:
+            logger.info("Stopping prelaunch script")
+            self.prelaunch_thread.stop()
+
+        # Check for post game script
+        postexit_command = self.runner.system_config.get("postexit_command")
+        if system.path_exists(postexit_command):
+            logger.info("Running post-exit command: %s", postexit_command)
+            postexit_thread = LutrisThread(
+                [postexit_command], include_processes=[os.path.basename(postexit_command)]
+            )
+            postexit_thread.start()
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
