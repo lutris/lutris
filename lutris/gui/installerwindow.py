@@ -20,7 +20,7 @@ from lutris.util import jobs
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
-
+from lutris.util.wine import get_system_wine_version, get_default_version
 
 class InstallerWindow(Gtk.ApplicationWindow):
     """GUI for the install process."""
@@ -91,10 +91,11 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
         self.play_button = self.add_button("_Launch game", self.launch_game)
-        self.close_button = self.add_button("_Close", self.close)
+        self.close_button = self.add_button("_Close", self.close)        
+        self.wine_choices = None
 
         self.continue_handler = None
-
+        
         self.get_scripts()
 
         # l33t haxx to make Window.present() actually work.
@@ -110,7 +111,41 @@ class InstallerWindow(Gtk.ApplicationWindow):
             button.connect('clicked', handler)
         self.action_buttons.add(button)
         return button
+    
+    def add_radio_buttons(self, buttons_list):
+        """Retruns a radio buttons list created from a list of tuple (button_label, button_tooltip)"""
+        radiobuttons = []
+        radiogroup = Gtk.RadioButton.new(None)
+        for (label, tooltip) in buttons_list:
+            radiobutton = Gtk.RadioButton.new_with_label_from_widget(radiogroup, label)
+            radiobutton.set_tooltip_text(tooltip)
+            radiobuttons.append(radiobutton)
+        # default to first choice
+        radiobuttons[0].set_active(True)
+        return radiobuttons
 
+    def add_wine_choices(self):
+        """ Add wine choice in the installer window"""
+        if self.interpreter.runner == 'wine' \
+                or self.interpreter.runner == 'winesteam':
+            choices = []
+
+            if self.interpreter._get_runner_version():
+                choices.append(("Recommended", self.interpreter._get_runner_version()))
+
+            if get_default_version():
+                choices.append(("Default", get_default_version()))
+            
+            if get_system_wine_version():
+                choices.append(("System", get_system_wine_version()))
+                  
+            self.wine_choices = self.add_radio_buttons(choices)            
+            # render choices
+            if len(self.wine_choices) > 1:
+                self.set_message("Select Wine version:")
+                for wine_choice in self.wine_choices:
+                    self.widget_box.pack_start(wine_choice, False, False, 5)
+                    wine_choice.show()
     # ---------------------------
     # "Get installer" stage
     # ---------------------------
@@ -270,6 +305,8 @@ class InstallerWindow(Gtk.ApplicationWindow):
         ))
         self.select_install_folder()
 
+        self.add_wine_choices()
+                
     # --------------------------
     # "Select install dir" stage
     # --------------------------
@@ -322,7 +359,12 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
         button.hide()
-        self.interpreter.check_runner_install()
+        # if its a wine or a winesteam game check for selected wine choice
+        if self.wine_choices:
+            wine_choice = [ver for ver in self.wine_choices if ver.get_active()][0].get_label()
+            self.interpreter.check_runner_install(wine_choice)
+        else:
+            self.interpreter.check_runner_install(wine_choice=None)
 
     def ask_user_for_file(self, message):
         self.clean_widgets()

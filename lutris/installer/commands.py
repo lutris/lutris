@@ -377,7 +377,8 @@ class CommandsMixin:
 
         if runner_name.startswith('wine'):
             if wine_version:
-                data['wine_path'] = wine.get_wine_version_exe(wine_version)
+                data['wine_path'] = wine.wine().get_path_for_version(wine_version)
+                
 
         for key in data:
             value = data[key]

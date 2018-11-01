@@ -25,7 +25,7 @@ from lutris.runners import (
     wine, winesteam, steam, import_runner,
     InvalidRunner, NonInstallableRunnerError, RunnerInstallationError
 )
-
+from lutris.util.wine import get_default_version
 
 def fetch_script(game_slug, revision=None):
     """Download install script(s) for matching game_slug."""
@@ -395,7 +395,7 @@ class ScriptInterpreter(CommandsMixin):
             self.steam_data['platform'] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
 
-    def check_runner_install(self):
+    def check_runner_install(self, wine_choice):
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner
         dependencies (wine for winesteam) or runners used for installer tasks.
@@ -422,7 +422,7 @@ class ScriptInterpreter(CommandsMixin):
                 params['core'] = self.script['game']['core']
             if self.runner.startswith('wine'):
                 params['min_version'] = wine.MIN_SAFE_VERSION
-                version = self._get_runner_version()
+                version = self.get_wine_choice(wine_choice)
                 if version:
                     params['version'] = version
                     # Force the wine version to be installed
@@ -831,3 +831,18 @@ class ScriptInterpreter(CommandsMixin):
         prefix = self.target_path
         wine_path = wine.get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, prefix)
+    
+    def get_wine_choice(self, choice):
+        if choice == 'Default':
+            version = get_default_version()
+            self.script[self.runner]['version'] = version        
+            return version
+        
+        if choice == 'System':
+            version = choice.lower()
+            self.script[self.runner]['version'] = version
+            return version
+        
+        # if 'Recommended' == choice 
+        return self._get_runner_version()
+    
