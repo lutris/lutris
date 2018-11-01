@@ -52,29 +52,23 @@ class LutrisTray(Gtk.StatusIcon):
         """Callback to quit the program"""
         self.application.do_shutdown()
 
-    @staticmethod
-    def game_oder_key(game):
-        if game["lastplayed"] is None and game["installed_at"] is None:
-            return 0
-        elif game["lastplayed"] is None:
-            return game["installed_at"]
-        elif game["installed_at"] is None:
-            return game["lastplayed"]
-        else:
-            return max(game["lastplayed"], game["installed_at"])
+    def _make_menu_item_for_game(self, game):
+        menu_item = Gtk.ImageMenuItem()
+        menu_item.set_label(game["name"])
+        game_icon = get_pixbuf_for_game(game["slug"], "icon_small")
+        menu_item.set_image(Gtk.Image.new_from_pixbuf(game_icon))
+        menu_item.connect("activate", self.on_game_selected, game["id"])
+        return menu_item
 
     def add_games(self):
         """Adds installed games in order of last use"""
         number_of_games_in_menu = 10
         installed_games = pga.get_games(filter_installed=True)
-        installed_games.sort(key=self.game_oder_key, reverse=True)
+        installed_games.sort(
+            key=lambda game: max(game["lastplayed"] or 0, game["installed_at"] or 0),
+            reverse=True)
         for game in installed_games[:number_of_games_in_menu]:
-            menu_item = Gtk.ImageMenuItem()
-            menu_item.set_label(game["name"])
-            game_icon = get_pixbuf_for_game(game["slug"], "icon_small")
-            menu_item.set_image(Gtk.Image.new_from_pixbuf(game_icon))
-            menu_item.connect("activate", self.on_game_selected, game["id"])
-            self.menu.append(menu_item)
+            self.menu.append(self._make_menu_item_for_game(game))
 
     def add_runners(self):
         """Why the hell"""
