@@ -843,6 +843,6 @@ class ScriptInterpreter(CommandsMixin):
             self.script[self.runner]['version'] = version
             return version
         
-        # if 'Recommended' == choice 
+        # if choice == 'Recommended' 
         return self._get_runner_version()
     
