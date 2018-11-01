@@ -698,9 +698,9 @@ class ScriptInterpreter(CommandsMixin):
 
     def _substitute(self, template_string):
         """Replace path aliases with real paths."""
-        if template_string.lower() == 'true':
+        if str(template_string).lower() == 'true':
             return True
-        if template_string.lower() == 'false':
+        if str(template_string).lower() == 'false':
             return False
 
         replacements = {
