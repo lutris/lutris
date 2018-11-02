@@ -411,7 +411,7 @@ class Game:
         command = [
             "pkexec", "xboxdrv", "--daemon", "--detach-kernel-driver",
             "--dbus", "session", "--silent"
-        ] + config.split()
+        ] + shlex.split(config)
         logger.debug("[xboxdrv] %s", ' '.join(command))
         self.xboxdrv_thread = LutrisThread(command, include_processes=['xboxdrv'])
         self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
