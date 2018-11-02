@@ -5,7 +5,7 @@ from collections import defaultdict
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.steam import vdf_parse
-from lutris.util.system import fix_path_case
+from lutris.util.system import fix_path_case, path_exists
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
@@ -42,9 +42,13 @@ class AppManifest:
         self.appmanifest_path = appmanifest_path
         self.steamapps_path, filename = os.path.split(appmanifest_path)
         self.steamid = re.findall(r'(\d+)', filename)[-1]
-        if os.path.exists(appmanifest_path):
+        self.appmanifest_data = {}
+
+        if path_exists(appmanifest_path):
             with open(appmanifest_path, "r") as appmanifest_file:
                 self.appmanifest_data = vdf_parse(appmanifest_file, {})
+        else:
+            logger.error("Path to AppManifest file %s doesn't exist", appmanifest_path)
 
     def __repr__(self):
         return "<AppManifest: %s>" % self.appmanifest_path
