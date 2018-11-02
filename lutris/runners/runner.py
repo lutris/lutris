@@ -1,8 +1,6 @@
-# -*- coding:Utf-8 -*-
-"""Generic runner."""
+"""Base module for runners"""
 import os
 import platform
-import shutil
 
 from gi.repository import Gtk
 
@@ -24,9 +22,9 @@ def get_arch():
     machine = platform.machine()
     if '64' in machine:
         return 'x86_64'
-    elif '86' in machine:
+    if '86' in machine:
         return 'i386'
-    elif 'armv7' in machine:
+    if 'armv7' in machine:
         return 'armv7'
 
 
