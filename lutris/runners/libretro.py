@@ -168,7 +168,8 @@ class libretro(Runner):
 
     def get_run_data(self):
         return {
-            'command': [self.get_executable()] + self.get_runner_parameters()
+            'command': [self.get_executable()] + self.get_runner_parameters(),
+            'env': self.get_env()
         }
 
     def get_config_file(self):
