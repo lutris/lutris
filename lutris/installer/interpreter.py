@@ -432,8 +432,7 @@ class ScriptInterpreter(CommandsMixin):
             if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
 
-        wine_install = [r for r in self.runners_to_install if r.name == 'wine']
-        if wine_install and not get_system_wine_version():
+        if self.runner.startswith('wine') and not get_system_wine_version():
             WineNotInstalledWarning(parent=self.parent)
         self.install_runners()
 
