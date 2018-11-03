@@ -60,9 +60,6 @@ class Runtime:
             time.strftime("%c", local_updated_at),
             time.strftime("%c", remote_updated_at)
         )
-        updated_interval = time.mktime(local_updated_at) - time.mktime(remote_updated_at)
-        logger.debug("Runtime %s was updated %s hours ago", self.name, updated_interval / 3600)
-
         return True
 
     def download(self, remote_runtime_info):
