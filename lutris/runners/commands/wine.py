@@ -47,7 +47,7 @@ def set_regedit(path, key, value='', type='REG_SZ',  # pylint: disable=redefined
 
 def set_regedit_file(filename, wine_path=None, prefix=None, arch='win32'):
     """Apply a regedit file to the Windows registry."""
-    if arch == 'win64' and wine_path and os.path.exists(wine_path + '64'):
+    if arch == 'win64' and wine_path and system.path_exists(wine_path + '64'):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
         # will prevent some registry keys from being created. Most likely to be
         # a bug in Wine. see: https://github.com/lutris/lutris/issues/804
@@ -103,7 +103,7 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     system.execute([wineboot_path], env=wineenv)
     for loop_index in range(50):
         time.sleep(.25)
-        if os.path.exists(os.path.join(prefix, 'user.reg')):
+        if system.path_exists(os.path.join(prefix, 'user.reg')):
             break
         if loop_index == 20:
             logger.warning("Wine prefix creation is taking longer than expected...")
@@ -147,7 +147,7 @@ def winekill(prefix, arch='win32', wine_path=None, env=None, initial_pids=None):
         num_cycles += 1
         running_processes = [
             pid for pid in initial_pids
-            if os.path.exists("/proc/%s" % pid)
+            if system.path_exists("/proc/%s" % pid)
         ]
 
         if not running_processes:

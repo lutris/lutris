@@ -4,7 +4,7 @@ import shlex
 from urllib.parse import urlparse
 
 from lutris.runners.runner import Runner
-from lutris.util import datapath
+from lutris.util import datapath, system
 from lutris import pga, settings
 
 DEFAULT_ICON = os.path.join(datapath.get(), 'media/default_icon.png')
@@ -166,7 +166,7 @@ class web(Runner):
         is_url = urlparse(url).scheme != ''
 
         if not is_url:
-            if not os.path.exists(url):
+            if not system.path_exists(url):
                 return {'error': 'CUSTOM',
                         'text': ("The file " + url + " does not exist, \n"
                                  "verify the game's configuration."), }
@@ -195,7 +195,7 @@ class web(Runner):
             return {'command': command}
 
         icon = datapath.get_icon_path(game_data.get('slug'))
-        if not os.path.exists(icon):
+        if not system.path_exists(icon):
             icon = DEFAULT_ICON
 
         command = [self.get_executable(), os.path.join(settings.RUNNER_DIR,

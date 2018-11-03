@@ -5,6 +5,7 @@ from lutris import pga
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
+from lutris.util import system
 
 NAME = "ScummVM"
 INSTALLER_SLUG = 'system-scummvm'
@@ -46,7 +47,7 @@ def mark_as_uninstalled(game_info):
 
 
 def get_scummvm_games():
-    if not os.path.exists(SCUMMVM_CONFIG_FILE):
+    if not system.path_exists(SCUMMVM_CONFIG_FILE):
         logger.info("No ScummVM config found")
         return []
     config = ConfigParser()

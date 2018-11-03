@@ -10,7 +10,7 @@ from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
 from lutris.util.system import path_exists
-
+from lutris.util import system
 
 CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
@@ -33,7 +33,7 @@ def get_dxvk_versions():
 
     # Download tags if the versions_path does not exist or is more than a day old
     if (
-            not os.path.exists(versions_path) or
+            not system.path_exists(versions_path) or
             os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
     ):
         urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
@@ -92,7 +92,7 @@ class DXVKManager:
         Very basic check to see if a dll exists and is over 256K. If this is the
         case, then consider the DLL to be from DXVK
         """
-        if os.path.exists(dll_path):
+        if system.path_exists(dll_path):
             dll_stats = os.stat(dll_path)
             dll_size = dll_stats.st_size
         else:
@@ -101,7 +101,7 @@ class DXVKManager:
 
     def is_available(self):
         """Return whether DXVK is cached locally"""
-        return os.path.exists(self.dxvk_path)
+        return system.path_exists(self.dxvk_path)
 
     def download(self):
         """Download DXVK to the local cache"""
@@ -114,7 +114,7 @@ class DXVKManager:
         downloader.start()
         while downloader.check_progress() < 1:
             time.sleep(0.3)
-        if not os.path.exists(dxvk_archive_path):
+        if not system.path_exists(dxvk_archive_path):
             logger.error("DXVK %s not downloaded")
             return
         if os.stat(dxvk_archive_path).st_size:
@@ -130,11 +130,11 @@ class DXVKManager:
         logger.info("Replacing %s/%s with DXVK version", system_dir, dll)
         if not self.is_dxvk_dll(wine_dll_path):
             # Backing up original version (may not be needed)
-            if os.path.exists(wine_dll_path):
+            if system.path_exists(wine_dll_path):
                 shutil.move(wine_dll_path, wine_dll_path + ".orig")
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
-        if os.path.exists(dxvk_dll_path):
+        if system.path_exists(dxvk_dll_path):
             if path_exists(wine_dll_path):
                 os.remove(wine_dll_path)
             os.symlink(dxvk_dll_path, wine_dll_path)
@@ -146,7 +146,7 @@ class DXVKManager:
             logger.info("Removing DXVK dll %s/%s", system_dir, dll)
             os.remove(wine_dll_path)
         # Restoring original version (may not be needed)
-        if os.path.exists(wine_dll_path + '.orig'):
+        if system.path_exists(wine_dll_path + '.orig'):
             shutil.move(wine_dll_path + '.orig', wine_dll_path)
 
     def _iter_dxvk_dlls(self):
@@ -167,7 +167,7 @@ class DXVKManager:
 
     def enable(self):
         """Enable DXVK for the current prefix"""
-        if not os.path.exists(self.dxvk_path):
+        if not system.path_exists(self.dxvk_path):
             logger.error("DXVK %s is not available locally", self.version)
             return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():

@@ -246,7 +246,7 @@ class winesteam(wine.wine):
         custom_path = self.runner_config.get('steam_path') or ''
         if custom_path:
             custom_path = os.path.abspath(os.path.expanduser(os.path.join(custom_path, 'Steam.exe')))
-            if os.path.exists(custom_path):
+            if system.path_exists(custom_path):
                 return custom_path
 
         candidates = [
@@ -261,12 +261,12 @@ class winesteam(wine.wine):
                     "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
-                if os.path.exists(steam_path):
+                if system.path_exists(steam_path):
                     return steam_path
 
             # Try from the registry key
             user_reg = os.path.join(prefix, "user.reg")
-            if not os.path.exists(user_reg):
+            if not system.path_exists(user_reg):
                 continue
             registry = WineRegistry(user_reg)
             steam_path = registry.query("Software/Valve/Steam", "SteamExe")
@@ -311,7 +311,7 @@ class winesteam(wine.wine):
             logger.warning('wine is not installed')
             return False
         steam_path = self.get_steam_path()
-        if not os.path.exists(self.get_default_prefix()):
+        if not system.path_exists(self.get_default_prefix()):
             return False
         return system.path_exists(steam_path)
 
@@ -364,7 +364,7 @@ class winesteam(wine.wine):
             arch = self.default_arch
         wine_path = self.get_executable()
 
-        if not os.path.exists(os.path.dirname(prefix_dir)):
+        if not system.path_exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
 
@@ -377,7 +377,7 @@ class winesteam(wine.wine):
         if not arch or arch == 'auto':
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
-        if not os.path.exists(prefix):
+        if not system.path_exists(prefix):
             self.create_prefix(prefix, arch=arch)
         return prefix
 
@@ -428,7 +428,7 @@ class winesteam(wine.wine):
         steamless_binary = self.game_config.get('steamless_binary')
         if self.runner_config['run_without_steam'] and steamless_binary:
             # Start without steam
-            if not os.path.exists(steamless_binary):
+            if not system.path_exists(steamless_binary):
                 return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
             command = [self.get_executable()]
             runner_args = self.runner_config.get('args') or ''

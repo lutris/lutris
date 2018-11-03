@@ -2,6 +2,7 @@
 import os
 from lutris import settings
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class mupen64plus(Runner):
@@ -45,7 +46,7 @@ class mupen64plus(Runner):
         else:
             arguments.append('--windowed')
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append(rom)
         return {'command': arguments}

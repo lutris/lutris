@@ -112,9 +112,9 @@ class vice(Runner):
         def on_runner_installed(*args):
             config_path = system.create_folder('~/.vice')
             lib_dir = os.path.join(settings.RUNNER_DIR, 'vice/lib/vice')
-            if not os.path.exists(lib_dir):
+            if not system.path_exists(lib_dir):
                 lib_dir = os.path.join(settings.RUNNER_DIR, 'vice/lib64/vice')
-            if not os.path.exists(lib_dir):
+            if not system.path_exists(lib_dir):
                 logger.error('Missing lib folder in the Vice runner')
             else:
                 system.merge_folders(lib_dir, config_path)
@@ -186,7 +186,7 @@ class vice(Runner):
         rom = self.game_config.get('main_file')
         if not rom:
             return {'error': 'CUSTOM', 'text': 'No rom provided'}
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
         params = [self.get_executable(machine)]

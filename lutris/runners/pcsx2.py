@@ -1,5 +1,5 @@
-import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class pcsx2(Runner):
@@ -32,7 +32,7 @@ class pcsx2(Runner):
             arguments.append('--fullscreen')
 
         iso = self.game_config.get('main_file') or ''
-        if not os.path.exists(iso):
+        if not system.path_exists(iso):
             return {'error': 'FILE_NOT_FOUND', 'file': iso}
         arguments.append(iso)
         return {'command': arguments}

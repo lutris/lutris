@@ -1,6 +1,6 @@
 import os
 import shlex
-from lutris.util import display
+from lutris.util import display, system
 from lutris.runners.runner import Runner
 
 
@@ -93,11 +93,11 @@ class zdoom(Runner):
     def get_executable(self):
         executable = super(zdoom, self).get_executable()
         executable_dir = os.path.dirname(executable)
-        if not os.path.exists(executable_dir):
+        if not system.path_exists(executable_dir):
             return executable
-        if not os.path.exists(executable):
+        if not system.path_exists(executable):
             gzdoom_executable = os.path.join(executable_dir, 'gzdoom')
-            if os.path.exists(gzdoom_executable):
+            if system.path_exists(gzdoom_executable):
                 return gzdoom_executable
         return executable
 

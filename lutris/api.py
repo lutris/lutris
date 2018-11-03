@@ -8,7 +8,7 @@ import urllib.error
 import socket
 
 from lutris import settings
-from lutris.util import http
+from lutris.util import http, system
 from lutris.util.log import logger
 
 
@@ -16,7 +16,7 @@ API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
 
 
 def read_api_key():
-    if not os.path.exists(API_KEY_FILE_PATH):
+    if not system.path_exists(API_KEY_FILE_PATH):
         return None
     with open(API_KEY_FILE_PATH, 'r') as token_file:
         api_string = token_file.read()
@@ -46,7 +46,7 @@ def connect(username, password):
 
 
 def disconnect():
-    if not os.path.exists(API_KEY_FILE_PATH):
+    if not system.path_exists(API_KEY_FILE_PATH):
         return
     os.remove(API_KEY_FILE_PATH)
 

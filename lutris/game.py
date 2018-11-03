@@ -238,7 +238,7 @@ class Game:
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
-            if os.path.exists(path):
+            if system.path_exists(path):
                 with open(path, "r") as f:
                     sdl_gamecontrollerconfig = f.read()
             env['SDL_GAMECONTROLLERCONFIG'] = sdl_gamecontrollerconfig
@@ -262,7 +262,7 @@ class Game:
             audio.reset_pulse()
 
         self.killswitch = system_config.get('killswitch')
-        if self.killswitch and not os.path.exists(self.killswitch):
+        if self.killswitch and not system.path_exists(self.killswitch):
             # Prevent setting a killswitch to a file that doesn't exists
             self.killswitch = None
 
@@ -415,7 +415,7 @@ class Game:
     @staticmethod
     def xboxdrv_stop():
         os.system("pkexec xboxdrvctl --shutdown")
-        if os.path.exists("/usr/share/lutris/bin/resetxpad"):
+        if system.path_exists("/usr/share/lutris/bin/resetxpad"):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")
 
     def beat(self):
@@ -429,7 +429,7 @@ class Game:
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
         killswitch_engage = (
-            self.killswitch and not os.path.exists(self.killswitch)
+            self.killswitch and not system.path_exists(self.killswitch)
         )
         if not self.game_thread.is_running or killswitch_engage:
             logger.debug("Game thread stopped")

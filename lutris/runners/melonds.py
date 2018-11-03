@@ -1,5 +1,5 @@
-import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class melonds(Runner):
@@ -8,7 +8,7 @@ class melonds(Runner):
     platforms = ['Nintendo DS']
     runner_executable = 'melonDS/melonDS'
     game_options = [
-    	{
+        {
             'option': 'main_file',
             'type': 'file',
             'label': 'ROM file',
@@ -18,6 +18,6 @@ class melonds(Runner):
 
     def play(self):
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         return {'command': [self.get_executable(), rom]}

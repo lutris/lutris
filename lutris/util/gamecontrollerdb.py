@@ -1,5 +1,5 @@
 import os
-from lutris.util import datapath
+from lutris.util import datapath, system
 from lutris.util.log import logger
 
 
@@ -36,7 +36,7 @@ class GameControllerDB:
     db_path = os.path.join(datapath.get(), 'controllers/gamecontrollerdb.txt')
 
     def __init__(self):
-        if not os.path.exists(self.db_path):
+        if not system.path_exists(self.db_path):
             raise OSError("Path to gamecontrollerdb.txt not provided or invalid")
         self.controllers = {}
         self.parsedb()

@@ -3,6 +3,7 @@ import re
 from collections import OrderedDict
 from datetime import datetime
 from lutris.util.log import logger
+from lutris.util import system
 
 (
     REG_NONE,
@@ -75,7 +76,7 @@ class WineRegistry:
         self.keys = OrderedDict()
         self.reg_filename = reg_filename
         if reg_filename:
-            if not os.path.exists(reg_filename):
+            if not system.path_exists(reg_filename):
                 logger.error("Unexisting registry %s", reg_filename)
             self.parse_reg_file(reg_filename)
 
@@ -88,7 +89,7 @@ class WineRegistry:
     @staticmethod
     def get_raw_registry(reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
-        if not os.path.exists(reg_filename):
+        if not system.path_exists(reg_filename):
             return []
         with open(reg_filename, 'r') as reg_file:
             registry_content = reg_file.readlines()
@@ -178,7 +179,7 @@ class WineRegistry:
         if not self.prefix_path:
             return
         drives_path = os.path.join(self.prefix_path, "dosdevices")
-        if not os.path.exists(drives_path):
+        if not system.path_exists(drives_path):
             return
         letter, relpath = windows_path.split(':', 1)
         relpath = relpath.strip('/')

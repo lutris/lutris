@@ -1,4 +1,4 @@
-import os
+from lutris.util import system
 
 
 class RetroConfig:
@@ -11,7 +11,7 @@ class RetroConfig:
     def __init__(self, config_path):
         if not config_path:
             raise ValueError("Config path is mandatory")
-        if not os.path.exists(config_path):
+        if not system.path_exists(config_path):
             raise OSError("Specified config file {} does not exist".format(config_path))
         self.config_path = config_path
         self.config = []

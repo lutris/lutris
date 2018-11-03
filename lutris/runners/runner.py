@@ -254,7 +254,7 @@ class Runner:
     def is_installed(self):
         """Return True if runner is installed else False."""
         executable = self.get_executable()
-        if executable and os.path.exists(executable):
+        if executable and system.path_exists(executable):
             return True
 
     def get_runner_info(self, version=None):
@@ -349,7 +349,7 @@ class Runner:
     @staticmethod
     def extract(archive=None, dest=None, merge_single=None,
                 callback=None):
-        if not os.path.exists(archive):
+        if not system.path_exists(archive):
             raise RunnerInstallationError("Failed to extract {}".format(archive))
         extract_archive(archive, dest, merge_single=merge_single)
         os.remove(archive)

@@ -1,5 +1,5 @@
-import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class dolphin(Runner):
@@ -38,6 +38,6 @@ class dolphin(Runner):
 
     def play(self):
         iso = self.game_config.get('main_file') or ''
-        if not os.path.exists(iso):
+        if not system.path_exists(iso):
             return {'error': 'FILE_NOT_FOUND', 'file': iso}
         return {'command': [self.get_executable(), '-e', iso]}

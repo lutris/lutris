@@ -1,6 +1,6 @@
 import os
 from lutris.util.log import logger
-from lutris.util.system import kill_pid
+from lutris.util.system import kill_pid, path_exists
 
 
 class InvalidPid(Exception):
@@ -25,7 +25,7 @@ class Process:
 
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
-        if not os.path.exists(stat_filename):
+        if not path_exists(stat_filename):
             return None
         with open(stat_filename) as stat_file:
             try:

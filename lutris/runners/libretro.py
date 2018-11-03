@@ -141,14 +141,14 @@ class libretro(Runner):
         return self.game_config['core']
 
     def is_retroarch_installed(self):
-        return os.path.exists(self.get_executable())
+        return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
         if self.game_config.get('core') and core is None:
             core = self.game_config['core']
         if not core or self.runner_config.get('runner_executable'):
             return self.is_retroarch_installed()
-        is_core_installed = os.path.exists(self.get_core_path(core))
+        is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
     def install(self, version=None, downloader=None, callback=None):
@@ -187,7 +187,7 @@ class libretro(Runner):
         config_file = self.get_config_file()
 
         # Create retroarch.cfg if it doesn't exist.
-        if not os.path.exists(config_file):
+        if not system.path_exists(config_file):
             f = open(config_file, 'w')
             f.write('# Lutris RetroArch Configuration')
             f.close()
@@ -216,7 +216,7 @@ class libretro(Runner):
         core = self.game_config.get('core')
         info_file = os.path.join(get_default_config_path('info'),
                                  '{}_libretro.info'.format(core))
-        if os.path.exists(info_file):
+        if system.path_exists(info_file):
             core_config = RetroConfig(info_file)
             try:
                 firmware_count = int(core_config['firmware_count'])
@@ -233,7 +233,7 @@ class libretro(Runner):
             for index in range(firmware_count):
                 firmware_filename = core_config['firmware%d_path' % index]
                 firmware_path = os.path.join(system_path, firmware_filename)
-                if os.path.exists(firmware_path):
+                if system.path_exists(firmware_path):
                     if firmware_filename in checksums:
                         checksum = system.get_md5_hash(firmware_path)
                         if checksum == checksums[firmware_filename]:
@@ -285,7 +285,7 @@ class libretro(Runner):
                 'error': 'CUSTOM',
                 'text': 'No game file specified'
             }
-        if not os.path.exists(file):
+        if not system.path_exists(file):
             return {
                 'error': 'FILE_NOT_FOUND',
                 'file': file

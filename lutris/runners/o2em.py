@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class o2em(Runner):
@@ -89,7 +90,7 @@ class o2em(Runner):
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):
-            if not os.path.exists(self.bios_path):
+            if not system.path_exists(self.bios_path):
                 os.makedirs(self.bios_path)
             if callback:
                 callback()
@@ -109,7 +110,7 @@ class o2em(Runner):
         if "controller2" in self.runner_config:
             arguments.append("-s2=%s" % self.runner_config["controller2"])
         rom_path = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom_path):
+        if not system.path_exists(rom_path):
             return {'error': 'FILE_NOT_FOUND', 'file': rom_path}
         romdir = os.path.dirname(rom_path)
         romfile = os.path.basename(rom_path)
