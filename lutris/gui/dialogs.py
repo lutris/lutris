@@ -7,7 +7,7 @@ from lutris import api, pga, runtime, settings
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
 from lutris.util.system import open_uri
-# from lutris.util.log import logger
+from lutris.util.log import logger
 
 
 class GtkBuilderDialog(GObject.Object):
