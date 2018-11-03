@@ -313,8 +313,11 @@ class LutrisThread(threading.Thread):
 
     def watch_children(self):
         """Poke at the running process(es)."""
-        if not self.game_process or not self.is_running:
+        if not self.game_process:
             logger.error('No game process available')
+            return False
+        if not self.is_running:
+            logger.error('Game is not running')
             return False
 
         if not self.ready_state:
@@ -349,10 +352,8 @@ class LutrisThread(threading.Thread):
                     logger.warning("Thread aborting now")
         else:
             self.cycles_without_children = 0
-        max_cycles_reached = (self.cycles_without_children >=
-                              MAX_CYCLES_WITHOUT_CHILDREN)
 
-        if num_children == 0 or max_cycles_reached:
+        if self.cycles_without_children >= MAX_CYCLES_WITHOUT_CHILDREN:
             self.is_running = False
 
             # Remove logger early to avoid issues with zombie processes
