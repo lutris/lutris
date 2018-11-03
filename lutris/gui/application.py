@@ -37,7 +37,6 @@ from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_p
 from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath
-from lutris.util.dxvk import init_dxvk_versions
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 
@@ -55,7 +54,6 @@ class Application(Gtk.Application):
         gettext.textdomain("lutris")
 
         check_config()
-        init_dxvk_versions()
         migrate()
         update_platforms()
 
