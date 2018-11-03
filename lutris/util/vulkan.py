@@ -1,6 +1,4 @@
 """Vulkan helper module"""
-import os
-import re
 import subprocess
 from enum import Enum
 
