@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # It is pitch black. You are likely to be eaten by a grue.
 
-import os
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class frotz(Runner):
@@ -33,7 +33,7 @@ class frotz(Runner):
         story = self.game_config.get('story') or ''
         if not self.is_installed():
             return {'error': 'RUNNER_NOT_INSTALLED'}
-        if not os.path.exists(story):
+        if not system.path_exists(story):
             return {'error': 'FILE_NOT_FOUND', 'file': story}
         command = [self.get_executable(), story]
         return {'command': command}

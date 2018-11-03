@@ -27,13 +27,13 @@ class Runtime:
 
     def get_updated_at(self):
         """Return the modification date of the runtime folder"""
-        if not os.path.exists(self.local_runtime_path):
+        if not system.path_exists(self.local_runtime_path):
             return None
         return time.gmtime(os.path.getmtime(self.local_runtime_path))
 
     def set_updated_at(self):
         """Set the creation and modification time to now"""
-        if not os.path.exists(self.local_runtime_path):
+        if not system.path_exists(self.local_runtime_path):
             logger.error("No local runtime path in %s", self.local_runtime_path)
             return None
         os.utime(self.local_runtime_path)
@@ -234,17 +234,17 @@ def get_paths(prefer_system_libs=True, wine_path=None):
             # This prioritizes system libraries over
             # the Lutris and Steam runtimes.
             paths.append("/usr/lib")
-            if os.path.exists("/usr/lib32"):
+            if system.path_exists("/usr/lib32"):
                 paths.append("/usr/lib32")
-            if os.path.exists("/usr/lib64"):
+            if system.path_exists("/usr/lib64"):
                 paths.append("/usr/lib64")
-            if os.path.exists("/lib/x86_64-linux-gnu"):
+            if system.path_exists("/lib/x86_64-linux-gnu"):
                 paths.append("/lib/x86_64-linux-gnu")
-            if os.path.exists("/lib/i386-linux-gnu"):
+            if system.path_exists("/lib/i386-linux-gnu"):
                 paths.append("/lib/i386-linux-gnu")
-            if os.path.exists("/usr/lib/x86_64-linux-gnu"):
+            if system.path_exists("/usr/lib/x86_64-linux-gnu"):
                 paths.append("/usr/lib/x86_64-linux-gnu")
-            if os.path.exists("/usr/lib/i386-linux-gnu"):
+            if system.path_exists("/usr/lib/i386-linux-gnu"):
                 paths.append("/usr/lib/i386-linux-gnu")
 
         # Then resolve absolute paths for the runtime

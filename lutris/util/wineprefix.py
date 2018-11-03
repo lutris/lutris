@@ -1,7 +1,7 @@
 import os
 from lutris.util.wineregistry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad
+from lutris.util import joypad, system
 
 desktop_folders = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 
@@ -66,7 +66,7 @@ class WinePrefixManager:
         else:
             desktop_dir = os.path.expanduser(desktop_dir)
 
-        if os.path.exists(user_dir):
+        if system.path_exists(user_dir):
             # Replace desktop integration symlinks
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)

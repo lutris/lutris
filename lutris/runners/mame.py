@@ -1,6 +1,7 @@
 import os
 import subprocess
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class mame(Runner):
@@ -35,7 +36,7 @@ class mame(Runner):
         return self.config_dir
 
     def prelaunch(self):
-        if not os.path.exists(os.path.join(self.config_dir, "mame.ini")):
+        if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
             try:
                 os.makedirs(self.config_dir)
             except OSError:

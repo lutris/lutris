@@ -1,5 +1,5 @@
-import os
 import configparser
+from lutris.util import system
 
 
 class SettingsIO:
@@ -7,7 +7,7 @@ class SettingsIO:
     def __init__(self, config_file):
         self.config_file = config_file
         self.config = configparser.ConfigParser()
-        if os.path.exists(self.config_file):
+        if system.path_exists(self.config_file):
             self.config.read([self.config_file])
 
     def read_setting(self, key, section='lutris', default=None):

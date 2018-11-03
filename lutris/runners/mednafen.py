@@ -1,9 +1,9 @@
-import os
 import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
+from lutris.util import system
 
 
 class mednafen(Runner):
@@ -335,7 +335,7 @@ class mednafen(Runner):
             for control in controls:
                 options.append(control)
 
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
         command = [self.get_executable()]

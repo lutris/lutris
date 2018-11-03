@@ -311,7 +311,7 @@ class steam(Runner):
         steamless_binary = self.game_config.get('steamless_binary')
         if self.runner_config['run_without_steam'] and steamless_binary:
             # Start without steam
-            if not os.path.exists(steamless_binary):
+            if not system.path_exists(steamless_binary):
                 return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
             self.original_steampid = None
             command = [steamless_binary]

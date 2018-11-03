@@ -1,6 +1,5 @@
-import os
-
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class desmume(Runner):
@@ -19,7 +18,7 @@ class desmume(Runner):
         """Run the game."""
         arguments = [self.get_executable()]
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         arguments.append(rom)
         return {"command": arguments}

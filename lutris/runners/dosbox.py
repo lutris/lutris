@@ -4,6 +4,7 @@ from lutris.runners.commands.dosbox import (
     dosexec,
     makeconfig
 )
+from lutris.util import system
 
 
 class dosbox(Runner):
@@ -116,7 +117,7 @@ class dosbox(Runner):
 
     def play(self):
         main_file = self.main_file
-        if not os.path.exists(main_file):
+        if not system.path_exists(main_file):
             return {'error': "FILE_NOT_FOUND", 'file': main_file}
         args = self.game_config.get('args') or ''
 

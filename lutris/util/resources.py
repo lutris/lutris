@@ -25,10 +25,10 @@ def get_icon_path(game, icon_type):
 def has_icon(game, icon_type):
     if icon_type == BANNER:
         icon_path = get_icon_path(game, BANNER)
-        return os.path.exists(icon_path)
+        return system.path_exists(icon_path)
     elif icon_type == ICON:
         icon_path = get_icon_path(game, ICON)
-        return os.path.exists(icon_path)
+        return system.path_exists(icon_path)
     return False
 
 
@@ -92,7 +92,7 @@ def udpate_desktop_icons():
 
 def download_media(url, dest, overwrite=False):
     logger.debug("Downloading %s to %s", url, dest)
-    if os.path.exists(dest):
+    if system.path_exists(dest):
         if overwrite:
             os.remove(dest)
         else:

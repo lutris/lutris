@@ -1,6 +1,6 @@
-import os
 from collections import OrderedDict
 from configparser import RawConfigParser
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 
@@ -131,7 +131,7 @@ class X360ce:
             self.config['PAD{}'.format(i)] = {}
 
     def load(self, path):
-        if not os.path.exists(path):
+        if not system.path_exists(path):
             logger.error("X360ce path %s does not exists")
             return
         self.config.read(path)

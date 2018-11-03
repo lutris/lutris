@@ -71,7 +71,7 @@ def extract_archive(path, to_directory='.', merge_single=True, extractor=None):
             destination_path = os.path.join(to_directory, archive_file)
             logger.debug("Moving extracted files from %s to %s", source_path, destination_path)
 
-            if os.path.exists(destination_path):
+            if system.path_exists(destination_path):
                 logger.warning("Overwrite existing path %s", destination_path)
                 if os.path.isfile(destination_path):
                     os.remove(destination_path)

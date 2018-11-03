@@ -5,6 +5,7 @@ import xml.etree.ElementTree as etree
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 from lutris import settings
+from lutris.util import system
 
 SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
@@ -55,9 +56,9 @@ class snes9x(Runner):
 
     def set_option(self, option, value):
         config_file = os.path.expanduser("~/.snes9x/snes9x.xml")
-        if not os.path.exists(config_file):
+        if not system.path_exists(config_file):
             subprocess.Popen([self.get_executable(), '-help'])
-        if not os.path.exists(config_file):
+        if not system.path_exists(config_file):
             logger.error("Snes9x config file creation failed")
             return
         tree = etree.parse(config_file)
@@ -72,6 +73,6 @@ class snes9x(Runner):
             self.set_option(option_name, self.runner_config.get(option_name))
 
         rom = self.game_config.get('main_file') or ''
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         return {'command': [self.get_executable(), rom]}

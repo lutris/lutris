@@ -27,7 +27,7 @@ def dosexec(config_file=None, executable=None, args=None,
     if config_file:
         command += ['-conf', config_file]
     if executable:
-        if not os.path.exists(executable):
+        if not system.path_exists(executable):
             raise OSError("Can't find file {}".format(executable))
         command += [executable]
     if args:

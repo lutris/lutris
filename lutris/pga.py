@@ -7,7 +7,7 @@ from itertools import chain
 
 from lutris.util.strings import slugify
 from lutris.util.log import logger
-from lutris.util import sql
+from lutris.util import sql, system
 from lutris import settings
 
 PGA_DB = settings.PGA_DB
@@ -117,7 +117,7 @@ def set_config_paths():
             continue
         game_config_path = os.path.join(settings.CONFIG_DIR,
                                         "games/%s.yml" % game['slug'])
-        if os.path.exists(game_config_path):
+        if system.path_exists(game_config_path):
             logger.debug('Setting configpath to %s', game['slug'])
             sql.db_update(
                 PGA_DB,
@@ -304,11 +304,11 @@ def check_for_file(game, file_id):
             protocol = source[:7]
             logger.warning("PGA source protocol %s not implemented", protocol)
             continue
-        if not os.path.exists(source):
+        if not system.path_exists(source):
             logger.info("PGA source %s unavailable", source)
             continue
         game_dir = os.path.join(source, game)
-        if not os.path.exists(game_dir):
+        if not system.path_exists(game_dir):
             continue
         game_files = os.listdir(game_dir)
         for game_file in game_files:

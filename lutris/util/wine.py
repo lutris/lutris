@@ -30,7 +30,7 @@ def get_proton():
         if os.path.isdir(path):
             proton_versions = [p for p in os.listdir(path) if "Proton" in p]
             for version in proton_versions:
-                if os.path.exists(os.path.join(path, version, 'dist/bin/wine')):
+                if system.path_exists(os.path.join(path, version, 'dist/bin/wine')):
                     return path
     return None
 
@@ -43,7 +43,7 @@ def detect_arch(prefix_path=None, wine_path=None):
     arch = detect_prefix_arch(prefix_path)
     if arch:
         return arch
-    if wine_path and os.path.exists(wine_path + '64'):
+    if wine_path and system.path_exists(wine_path + '64'):
         return 'win64'
     return 'win32'
 
@@ -75,10 +75,10 @@ def detect_prefix_arch(prefix_path=None):
 def set_drive_path(prefix, letter, path):
     """Changes the path to a Wine drive"""
     dosdevices_path = os.path.join(prefix, "dosdevices")
-    if not os.path.exists(dosdevices_path):
+    if not system.path_exists(dosdevices_path):
         raise OSError("Invalid prefix path %s" % prefix)
     drive_path = os.path.join(dosdevices_path, letter + ":")
-    if os.path.exists(drive_path):
+    if system.path_exists(drive_path):
         os.remove(drive_path)
     logger.debug("Linking %s to %s", drive_path, path)
     os.symlink(path, drive_path)
@@ -108,8 +108,8 @@ def is_installed_systemwide():
         if system.find_executable(build):
             if (
                     build == 'wine' and
-                    os.path.exists('/usr/lib/wine/wine64') and
-                    not os.path.exists('/usr/lib/wine/wine')
+                    system.path_exists('/usr/lib/wine/wine64') and
+                    not system.path_exists('/usr/lib/wine/wine')
             ):
                 logger.warning("wine32 is missing from system")
                 return False
@@ -126,7 +126,7 @@ def get_wine_versions():
         if version:
             versions.append(build)
 
-    if os.path.exists(WINE_DIR):
+    if system.path_exists(WINE_DIR):
         dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
         for dirname in dirs:
             if is_version_installed(dirname):
@@ -174,7 +174,7 @@ def get_default_version():
 
 def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
-    if os.path.exists(wine_path) and os.path.isabs(wine_path):
+    if system.path_exists(wine_path) and os.path.isabs(wine_path):
         wine_stats = os.stat(wine_path)
         if wine_stats.st_size < 2000:
             # This version is a script, ignore it
