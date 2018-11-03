@@ -163,7 +163,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
         Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
         self.connect("delete-event", lambda *x: self.destroy())
 
-        self.action = None
+        self.action = "play"
         self.action_confirmed = False
 
         self.set_size_request(320, 120)
@@ -187,9 +187,11 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.run()
 
     def on_button_toggled(self, button, action):
+        logger.debug("Action set to %s", action)
         self.action = action
 
     def on_confirm(self, button):
+        logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
         self.destroy()
 
