@@ -101,10 +101,12 @@ def create_prefix(prefix, wine_path=None, arch='win32', overrides={},
     }
 
     system.execute([wineboot_path], env=wineenv)
-    for _ in range(20):
+    for loop_index in range(50):
         time.sleep(.25)
         if os.path.exists(os.path.join(prefix, 'user.reg')):
             break
+        if loop_index == 20:
+            logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, 'user.reg')):
         logger.error('No user.reg found after prefix creation. '
                      'Prefix might not be valid')
