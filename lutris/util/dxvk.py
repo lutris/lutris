@@ -31,12 +31,7 @@ def get_dxvk_versions():
         os.mkdir(dxvk_path)
     versions_path = os.path.join(dxvk_path, 'dxvk_versions.json')
 
-    # Download tags if the versions_path does not exist or is more than a day old
-    if (
-            not system.path_exists(versions_path) or
-            os.path.getmtime(versions_path) + CACHE_MAX_AGE < time.time()
-    ):
-        urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
+    urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
 
     with open(versions_path, "r") as dxvk_tags:
         dxvk_json = json.load(dxvk_tags)

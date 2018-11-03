@@ -21,6 +21,7 @@ from lutris.util.system import open_uri
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
+from lutris.util.dxvk import init_dxvk_versions
 
 from lutris.services import get_services_synced_at_startup, steam, xdg
 
@@ -166,7 +167,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
         self.gui_needs_update = True
-
+        self.config_menu_first_access = True
+ 
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
         Action.__new__.__defaults__ = (None, None, True, None, None)
@@ -783,6 +785,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
+        if self.config_menu_first_access:
+            self.config_menu_first_access = False
+            init_dxvk_versions()
         game = Game(self.view.selected_game)
 
         def on_dialog_saved():
