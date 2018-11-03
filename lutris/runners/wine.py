@@ -498,7 +498,7 @@ class wine(Runner):
             return
 
         wine_path = self.get_path_for_version(version)
-        if os.path.exists(wine_path):
+        if system.path_exists(wine_path):
             return wine_path
 
         if fallback:
@@ -609,7 +609,7 @@ class wine(Runner):
                 self.dll_overrides[dll] = 'n'
 
     def prelaunch(self):
-        if not os.path.exists(os.path.join(self.prefix_path, 'user.reg')):
+        if not system.path_exists(os.path.join(self.prefix_path, 'user.reg')):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get('autoconf_joypad', True):
@@ -696,7 +696,7 @@ class wine(Runner):
             xinput_dest_path = os.path.join(x360ce_path, dll_file)
             xinput_arch = self.runner_config.get('xinput-arch') or self.wine_arch
             dll_path = os.path.join(datapath.get(), 'controllers/{}-{}'.format(mode, xinput_arch))
-            if not os.path.exists(xinput_dest_path):
+            if not system.path_exists(xinput_dest_path):
                 source_file = dll_file if mode == 'dumbxinputemu' else 'xinput1_3.dll'
                 shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
 
@@ -734,7 +734,7 @@ class wine(Runner):
                 if not display_vulkan_error(result, True):
                     return {'error': 'VULKAN_NOT_FOUND'}
 
-        if not os.path.exists(game_exe):
+        if not system.path_exists(game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': game_exe}
 
         launch_info = {
