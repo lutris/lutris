@@ -295,7 +295,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button.grab_focus()
         self.install_button.show()
 
-    def on_target_changed(self, text_entry):
+    def on_target_changed(self, text_entry, _):
         """Set the installation target for the game."""
         path = text_entry.get_text()
         self.interpreter.target_path = os.path.expanduser(path)
@@ -368,7 +368,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.location_entry.show_all()
         if callback_on_changed:
             self.location_entry.entry.connect(
-                'changed', self.continue_guard, action)
+                'changed', callback_on_changed, action)
 
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
