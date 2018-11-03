@@ -187,15 +187,10 @@ class Game:
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         if "wine" in self.runner_name and not wine.get_system_wine_version():
-            dialogs.DontShowAgainDialog(
-                'hide-wine-systemwide-install-warning',
-                "Wine is not installed on your system.",
-                secondary_message="Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
-                "install Wine."
-            )
+            # TODO find a reference to the root window or better yet a way not
+            # to have Gtk dependent code in this class.
+            root_window = None
+            dialogs.WineNotInstalledWarning(parent=root_window)
         return True
 
     def play(self):

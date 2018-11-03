@@ -389,3 +389,18 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         if dont_show_checkbutton.get_active():
             settings.write_setting(setting, True)
         self.destroy()
+
+
+class WineNotInstalledWarning(DontShowAgainDialog):
+    """Display a warning if Wine is not detected on the system"""
+    def __init__(self, parent=None):
+        super().__init__(
+            'hide-wine-systemwide-install-warning',
+            "Wine is not installed on your system.",
+            secondary_message="Having Wine installed on your system guarantees that "
+            "Wine builds from Lutris will have all required dependencies.\n\nPlease "
+            "follow the instructions given in the <a "
+            "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+            "install Wine.",
+            parent=parent
+        )
