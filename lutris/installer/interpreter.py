@@ -9,13 +9,14 @@ from gi.repository import GLib
 from lutris import pga
 from lutris import settings
 from lutris.game import Game
+from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.util import system
 from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log
 from lutris.util.http import Request
-from lutris.util.wine import get_wine_version_exe
+from lutris.util.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
 
@@ -430,6 +431,10 @@ class ScriptInterpreter(CommandsMixin):
                     params['fallback'] = False
             if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
+
+        wine_install = [r for r in self.runners_to_install if r.name == 'wine']
+        if wine_install and not get_system_wine_version():
+            WineNotInstalledWarning(parent=self.parent)
         self.install_runners()
 
     def install_runners(self):
