@@ -15,6 +15,7 @@ class WinePrefixManager:
 
     def setup_defaults(self):
         self.override_dll("winemenubuilder.exe", "")
+        self.desktop_integration()
 
     def get_registry_path(self, key):
         if key.startswith(self.hkcu_prefix):
