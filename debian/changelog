@@ -1,3 +1,9 @@
+lutris (0.4.22) bionic; urgency=medium
+
+  * TODO
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 03 Nov 2018 00:01:19 -0700
+
 lutris (0.4.21.1) bionic; urgency=medium
 
   * Fix detection of libvulkan
