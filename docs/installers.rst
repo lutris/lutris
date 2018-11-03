@@ -206,7 +206,7 @@ Example:
 ::
 
     - move:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Copying and merging directories
@@ -228,7 +228,7 @@ Example:
 ::
 
     - merge:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Extracting archives
@@ -248,7 +248,7 @@ Example:
 ::
 
     - extract:
-        file: $game-archive
+        file: game_archive
         dst: $GAMEDIR/datadir/
 
 Making a file executable
@@ -277,7 +277,7 @@ Example:
 
     - execute:
         args: --argh
-        file: $great-id
+        file: great_id
         terminal: true
         env:
           key: value
@@ -559,7 +559,7 @@ Currently, the following tasks are implemented:
 
         - task:
             name: dosexec
-            executable: $file_id
+            executable: file_id
             config: $GAMEDIR/game_install.conf
             args: -scaler normal3x -conf more_conf.conf
 
@@ -734,7 +734,7 @@ Example gog wine game, alternative (requires innoextract):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-          args: --gog -d "$CACHE" "$setup"
+          args: --gog -d "$CACHE" setup
           description: Extracting game data
           file: innoextract
       - move:
@@ -798,7 +798,7 @@ Example gog linux game, alternative (requires unzip):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-          args: $installer -d "$GAMEDIR" "data/noarch/*"
+          args: installer -d "$GAMEDIR" "data/noarch/*"
           description: Extracting game data, it will take a while...
           file: unzip
       - rename:
