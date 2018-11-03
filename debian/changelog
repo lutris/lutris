@@ -1,6 +1,14 @@
 lutris (0.4.22) bionic; urgency=medium
 
-  * TODO
+  * Use lspci instead of xrandr to detect video cards
+  * Use ldconfig to check for libvulkan presence
+  * Add experimental playtime support
+  * Detect Proton and add it to Wine versions
+  * Fix runtime being downloaded when not needed
+  * Add experimental tray icon with last games played
+  * Add support for Feral Gamemode
+  * Prevent process monitor to quit games prematurely
+  * Code cleanup
 
  -- Mathieu Comandon <strycore@gmail.com>  Sat, 03 Nov 2018 00:01:19 -0700
 
