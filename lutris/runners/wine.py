@@ -7,10 +7,10 @@ import shutil
 from lutris import runtime
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
-from lutris.util import datapath, display, dxvk, system, vulkan
+from lutris.util import datapath, display, dxvk, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
-from lutris.util.vulkan import vulkan_available
+from lutris.util.vkquery import is_vulkan_supported
 from lutris.util.wineprefix import WinePrefixManager
 from lutris.util.x360ce import X360ce
 from lutris.util.wine import (
@@ -179,9 +179,8 @@ class wine(Runner):
             return True
 
         def dxvk_vulkan_callback(config):
-            result = vulkan.vulkan_check()
-            if result != vulkan_available.ALL:
-                if not display_vulkan_error(result, False):
+            if not is_vulkan_supported():
+                if not display_vulkan_error(False):
                     return False
             return True
 
@@ -729,9 +728,8 @@ class wine(Runner):
         using_dxvk = self.runner_config.get('dxvk')
 
         if using_dxvk:
-            result = vulkan.vulkan_check()
-            if result != vulkan_available.ALL:
-                if not display_vulkan_error(result, True):
+            if not is_vulkan_supported():
+                if not display_vulkan_error(True):
                     return {'error': 'VULKAN_NOT_FOUND'}
 
         if not system.path_exists(game_exe):

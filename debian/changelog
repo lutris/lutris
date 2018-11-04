@@ -1,7 +1,7 @@
 lutris (0.4.22) bionic; urgency=medium
 
   * Use lspci instead of xrandr to detect video cards
-  * Use ldconfig to check for libvulkan presence
+  * Detect if Vulkan is supported by the system for DXVK games
   * Add experimental playtime support
   * Detect Proton and add it to Wine versions
   * Fix runtime being downloaded when not needed

@@ -9,7 +9,6 @@ from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import version_sort
-from lutris.util.vulkan import vulkan_available
 from lutris.runners.steam import steam
 
 MIN_NUMBER_FILES_OPEN = 1048576
@@ -239,14 +238,7 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 
-def display_vulkan_error(option, on_launch):
-    if option == vulkan_available.NONE:
-        message = "No Vulkan loader was detected."
-    if option == vulkan_available.SIXTY_FOUR:
-        message = "32-bit Vulkan loader was not detected."
-    if option == vulkan_available.THIRTY_TWO:
-        message = "64-bit Vulkan loader was not detected."
-
+def display_vulkan_error(on_launch):
     if on_launch:
         checkbox_message = "Launch anyway and do not show this message again."
     else:
@@ -254,7 +246,7 @@ def display_vulkan_error(option, on_launch):
 
     setting = 'hide-no-vulkan-warning'
     DontShowAgainDialog(setting,
-                        message,
+                        "No Vulkan loader was detected.",
                         secondary_message="Please follow the installation "
                         "procedures as described in\n"
                         "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"

@@ -8,7 +8,7 @@
   <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
   <developer_name>Lutris Team</developer_name>
   <url type="homepage">https://lutris.net</url>
-  <url type="donate">https://www.patreon.com/lutris</url>
+  <url type="donation">https://www.patreon.com/lutris</url>
   <url type="help">https://forums.lutris.net</url>
   <url type="faq">https://lutris.net/faq</url>
   <url type="translate">https://github.com/lutris/lutris/wiki/Translations</url>
