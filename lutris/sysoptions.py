@@ -179,6 +179,13 @@ system_options = [  # pylint: disable=invalid-name
                  "execution command.")
     },
     {
+        'option': 'ondemand_command',
+        'type': 'file',
+        'label': 'On-demand command',
+        'advanced': True,
+        'help': ("Script to execute from the game's contextual menu")
+    },
+    {
         'option': 'prelaunch_command',
         'type': 'file',
         'label': 'Pre-launch command',
