@@ -26,6 +26,7 @@ DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
+    logger.info("Updating DXVK versions")
     dxvk_path = os.path.join(RUNTIME_DIR, 'dxvk')
     if not os.path.isdir(dxvk_path):
         os.mkdir(dxvk_path)
