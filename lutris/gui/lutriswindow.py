@@ -16,11 +16,13 @@ from lutris.runtime import RuntimeUpdater
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
-from lutris.util.system import open_uri
+from lutris.util.system import open_uri, path_exists
 
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util.steam import SteamWatcher
+
+from lutris.thread import LutrisThread
 
 from lutris.services import get_services_synced_at_startup, steam, xdg
 
@@ -124,6 +126,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             ('install', "Install", self.on_install_clicked),
             ('add', "Add manually", self.on_add_manually),
             ('configure', "Configure", self.on_edit_game_configuration),
+            ('execute-script', "Execute script", self.on_execute_script_clicked),
             ('browse', "Browse files", self.on_browse_files),
             ('desktop-shortcut', "Create desktop shortcut",
              self.create_desktop_shortcut),
@@ -166,7 +169,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
         self.gui_needs_update = True
-
+ 
     def _init_actions(self):
         Action = namedtuple('Action', ('callback', 'type', 'enabled', 'default', 'accel'))
         Action.__new__.__defaults__ = (None, None, True, None, None)
@@ -794,6 +797,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         if game.is_installed:
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
+
+    def on_execute_script_clicked(self, _widget):
+        """Execute the game's associated script"""
+        game = Game(self.view.selected_game)
+        ondemand_command = game.runner.system_config.get(
+            "ondemand_command")
+        if path_exists(ondemand_command):
+            LutrisThread([ondemand_command],
+                         include_processes=[
+                             os.path.basename(ondemand_command)],
+                         ).start()
+            logger.info("Running %s in the background", ondemand_command)
 
     def on_viewtype_state_change(self, action, val):
         """Callback to handle view type switch"""
