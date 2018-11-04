@@ -246,9 +246,9 @@ def display_vulkan_error(on_launch):
 
     setting = 'hide-no-vulkan-warning'
     DontShowAgainDialog(setting,
-                        "No Vulkan loader was detected.",
-                        secondary_message="Please follow the installation "
-                        "procedures as described in\n"
+                        "Vulkan is not installed or is not supported by your system",
+                        secondary_message="If you have compatible hardware, please follow "
+                        "the installation procedures as described in\n"
                         "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
                         "How-to:-DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>",
                         checkbox_message=checkbox_message)

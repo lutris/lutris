@@ -41,9 +41,8 @@ def fetch_icons(game_slugs, callback=None):
     if not missing_media_slugs:
         logger.debug("No icon are missing")
         return
-    logger.debug("Requesting missing icons from API")
+    logger.debug("Requesting missing icons from API for %d games", len(missing_media_slugs))
     results = api.get_games(game_slugs=missing_media_slugs)
-    logger.debug("Got %d icons", len(results))
 
     new_icon = False
     banner_downloads = []
