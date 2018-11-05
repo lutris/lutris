@@ -14,7 +14,6 @@ managed by Lutris, so you don't need to install them with your package manager.
 Scripts written by the community allow access to a library of games.
 Using scripts, games can be played without manual setup.
 
-
 Installer scripts
 =================
 
