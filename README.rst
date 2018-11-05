@@ -90,21 +90,20 @@ identifier on the command line such as::
 
     lutris lutris:quake
 
-This will install the game if it is not already installed; otherwise it will
-launch the game (unless the ``--reinstall`` flag is passed).
+This will install the game if it is not already installed, otherwise it will
+launch the game. The game will always be installed if the ``--reinstall`` flag is passed.
 
 Planned features
 ================
 
-Lutris is far from complete, and some of the more interesting features have yet
+Lutris is far from complete, and some features have yet
 to be implemented.
 
 Here's what to expect from future versions of Lutris:
 
 * GOG and Humble Bundle integration
 * TOSEC database integration
-* Management of personal game data, i.e. syncing games across devices using private cloud storage
-* Save syncing
+* Management of personal game data (i.e. syncing games across devices using private cloud storage)
 * Community features (friends list, chat, multiplayer game scheduling, etc.)
 * Controller configuration GUI (with xboxdrv support)
 
