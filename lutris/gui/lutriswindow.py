@@ -811,8 +811,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "ondemand_command")
         if path_exists(ondemand_command):
             LutrisThread([ondemand_command],
-                         include_processes=[
-                             os.path.basename(ondemand_command)],
+                         include_processes=[os.path.basename(ondemand_command)],
+                         cwd=game.directory
                          ).start()
             logger.info("Running %s in the background", ondemand_command)
 
