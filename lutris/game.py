@@ -374,6 +374,7 @@ class Game:
             self.prelaunch_thread = LutrisThread(
                 [prelaunch_command],
                 include_processes=[os.path.basename(prelaunch_command)],
+                cwd=self.directory
             )
             self.prelaunch_thread.start()
             logger.info("Running %s in the background", prelaunch_command)
@@ -455,19 +456,22 @@ class Game:
             logger.info("Stopping prelaunch script")
             self.prelaunch_thread.stop()
 
+        self.heartbeat = None
+        if self.state != self.STATE_STOPPED:
+            logger.debug("Game thread still running, stopping it (state: %s)", self.state)
+            self.stop()
+        
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
         if system.path_exists(postexit_command):
             logger.info("Running post-exit command: %s", postexit_command)
             postexit_thread = LutrisThread(
-                [postexit_command], include_processes=[os.path.basename(postexit_command)]
+                [postexit_command],
+                include_processes=[os.path.basename(postexit_command)],
+                cwd=self.directory
             )
             postexit_thread.start()
 
-        self.heartbeat = None
-        if self.state != self.STATE_STOPPED:
-            logger.debug("Game thread still running, stopping it (state: %s)", self.state)
-            self.stop()
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
