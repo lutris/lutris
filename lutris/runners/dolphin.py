@@ -1,6 +1,6 @@
 from lutris.runners.runner import Runner
 from lutris.util import system
-
+import os
 
 class dolphin(Runner):
     description = "Gamecube and Wii emulator"
@@ -28,7 +28,18 @@ class dolphin(Runner):
             )
         }
     ]
-    runner_options = []
+    runner_options = [
+        {
+            'option': 'rom_directory',
+            'type': 'directory_chooser',
+            'label': 'rom directory',
+            'default': os.path.expanduser('~/roms'),
+            'scope': ['runner'],
+            'help': ('The folder where your dolphin games are stored\n'
+                'Lutris can scan folder recursively\n'
+                'You can sync from the game import menu')
+        }
+    ]
 
     def get_platform(self):
         selected_platform = self.game_config.get('platform')
