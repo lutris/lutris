@@ -1,17 +1,17 @@
-import os
+from mmap import mmap
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
-from mmap import mmap
 from lutris.util.scanfolder import scan_folder
-from lxml import etree
 
 NAME = "dolphin"
 INSTALLER_SLUG = "dolphin"
 TDB_DB_CACHE = None
 
-def add_or_update(rom,config):
+def add_dolphin_rom(rom, config):
+    """ add a dolhin rom to the database ( update if game already exist )
+    rom and config are list, respectively for the rom data and the runner config """
     logger.info("adding %s."%str(rom["name"]))
 
     config_id = make_game_config_id(rom["slug"])
@@ -19,17 +19,21 @@ def add_or_update(rom,config):
 
     pga.add_or_update(**rom)
 
-    gameConfig = LutrisConfig(
-        runner_slug = "dolphin",
+    game_config = LutrisConfig(
+        runner_slug="dolphin",
         game_config_id=config_id
     )
-    gameConfig.raw_game_config.update(config)
-    gameConfig.save()
+    game_config.raw_game_config.update(config)
+    game_config.save()
 
 
 def rom_read_data(location):
+    """ extract data from the dolphin rom location at location.
+    return the tuple of data and of config, to be applied to a game in Lutris """
     # TODO: extract the image of the rom
-    def scan_to_00(mm,start):
+    def scan_to_00(mm, start):
+        """ read bytes from the mm mmap, beggining at the start offset and ending at the first 0x00.
+        return a bytes object """
         buff = b""
         achar = None
         number = start
@@ -40,30 +44,31 @@ def rom_read_data(location):
             number += 1
         return buff
 
-    def bytes_to_str(b):
-        return str(b)[2:-1]
+    def bytes_to_str(byte):
+        """ transform bytes to string with the default codec """
+        return str(byte)[2:-1]
 
-    romType = None
+    rom_type = None
 
-    romType = get_rom_type(location)
-    assert type(romType) == str
+    rom_type = get_rom_type(location)
+    assert isinstance(rom_type, str)
 
-    rom = open(location,"r+b")
+    rom = open(location, "r+b")
     mm = mmap(rom.fileno(), 0)
     data = {"installer_slug":INSTALLER_SLUG,
-        "runner":"dolphin",
-        "installed":1,}
+            "runner":"dolphin",
+            "installed":1,}
     config = {"main_file":location}
 
-    if romType == "wbfs file":
+    if rom_type == "wbfs file":
         assert mm[0:4] == b"WBFS"
-        data["name"] = bytes_to_str(scan_to_00(mm,0x220))
-        data["slug"] = bytes_to_str(scan_to_00(mm,0x200))
+        data["name"] = bytes_to_str(scan_to_00(mm, 0x220))
+        data["slug"] = bytes_to_str(scan_to_00(mm, 0x200))
         config['platform'] = 1
-    elif romType == "iso file":
+    elif rom_type == "iso file":
         assert mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3"
-        data["name"] = bytes_to_str(scan_to_00(mm,0x20))
-        data["slug"] = bytes_to_str(scan_to_00(mm,0x0))
+        data["name"] = bytes_to_str(scan_to_00(mm, 0x20))
+        data["slug"] = bytes_to_str(scan_to_00(mm, 0x0))
         config['platform'] = 1
 
     data["slug"] = slugify(data["slug"])
@@ -73,6 +78,7 @@ def rom_read_data(location):
 
 
 def get_rom_type(location):
+    """return the type of rom at location based on the file extansion, False if nothing is found"""
     extension = location.split(".")[-1]
     if extension in ["wbfs"]:
         return "wbfs file"
@@ -82,18 +88,17 @@ def get_rom_type(location):
 
 
 def sync_with_lutris():
-    roms_games = {
-        game['slug']: game
-        for game in pga.get_games_where(installer_slug=INSTALLER_SLUG,
-                                        installed=1)
-    }
+    #dolphin_games = {
+    #    game['slug']: game
+    #    for game in pga.get_games_where(installer_slug=INSTALLER_SLUG,
+    #                                    installed=1)
+    #}
 
     runner_config = LutrisConfig(runner_slug="dolphin")
-    scanDir = []
-    scanDir = [runner_config.raw_config["dolphin"]["rom_directory"]]
+    scan_directory = [runner_config.raw_config["dolphin"]["rom_directory"]]
     roms = []
     roms_slug = []
-    for element in scan_folder(scanDir):
+    for element in scan_folder(scan_directory):
         if get_rom_type(element) != False:
             try:
                 rom, config = rom_read_data(element)
@@ -102,7 +107,7 @@ def sync_with_lutris():
             except:
                 logger.error("failed to add the dolphin rom at %s." % element)
 
-    for romDouble in roms:
-        rom, config = romDouble
+    for rom_double in roms:
+        rom, config = rom_double
         if not rom in roms_slug:
-            add_or_update(rom,config)
+            add_dolphin_rom(rom, config)
