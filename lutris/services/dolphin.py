@@ -12,7 +12,7 @@ INSTALLER_SLUG = "dolphin"
 TDB_DB_CACHE = None
 
 def add_or_update(rom,config):
-    logger.info("updating or adding %s."%str(rom["name"]))
+    logger.info("adding %s."%str(rom["name"]))
 
     config_id = make_game_config_id(rom["slug"])
     rom["configpath"] = config_id
@@ -77,18 +77,22 @@ def sync_with_lutris():
         for game in pga.get_games_where(installer_slug=INSTALLER_SLUG,
                                         installed=1)
     }
-    
+
     runner_config = LutrisConfig(runner_slug="dolphin")
     scanDir = []
     scanDir = [runner_config.raw_config["dolphin"]["rom_directory"]]
     roms = []
+    roms_slug = []
     for element in scan_folder(scanDir):
         if get_rom_type(element) != False:
             try:
-                roms.append(rom_read_data(element))
+                rom, config = rom_read_data(element)
+                roms.append((rom, config))
+                roms_slug.append(rom["slug"])
             except:
                 logger.error("failed to add the dolphin rom at %s." % element)
 
     for romDouble in roms:
         rom, config = romDouble
-        add_or_update(rom,config)
+        if not rom in roms_slug:
+            add_or_update(rom,config)
