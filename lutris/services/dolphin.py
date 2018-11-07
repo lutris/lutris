@@ -9,7 +9,6 @@ from lxml import etree
 
 NAME = "dolphin"
 INSTALLER_SLUG = "dolphin"
-SYNCDIR=["/home/marius/roms"]
 TDB_DB_CACHE = None
 
 def add_or_update(rom,config):
@@ -50,14 +49,14 @@ def rom_read_data(location):
 
     rom = open(location,"r+b")
     mm = mmap(rom.fileno(), 0)
-    data = {"installer_slug":INSTALLER_SLUG}
+    data = {"installer_slug":INSTALLER_SLUG,
+        "runner":"dolphin"}
     config = {}
 
     if romType == "wbfs file":
         assert mm[0:4] == b"WBFS"
         data["name"] = bytes_to_str(scan_to_00(mm,0x220))
         data["slug"] = bytes_to_str(scan_to_00(mm,0x200))
-        data["runner"] = "dolphin"
         data["installed"] = 1
         config["main_file"] = location
     else:
@@ -78,14 +77,18 @@ def sync_with_lutris():
         for game in pga.get_games_where(installer_slug=INSTALLER_SLUG,
                                         installed=1)
     }
-
-    roms = [] # metadata of roms : dict with keyword ( "name", "runner" )
-    for element in scan_folder(SYNCDIR):
+    
+    runner_config = LutrisConfig(runner_slug="dolphin")
+    scanDir = []
+    scanDir = [runner_config.raw_config["dolphin"]["rom_directory"]]
+    roms = []
+    for element in scan_folder(scanDir):
         if get_rom_type(element) != False:
-            roms.append(rom_read_data(element))
+            try:
+                roms.append(rom_read_data(element))
+            except:
+                logger.error("failed to add the dolphin rom at %s." % element)
 
     for romDouble in roms:
         rom, config = romDouble
         add_or_update(rom,config)
-
-    print("-----------------")
