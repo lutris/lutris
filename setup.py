@@ -2,7 +2,7 @@
 import os
 import sys
 from setuptools import setup
-from lutris.settings import VERSION
+from lutris import __version__ as VERSION
 
 if sys.version_info < (3, 4):
     sys.exit('Python 3.4 is required to run Lutris')
