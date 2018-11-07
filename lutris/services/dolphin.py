@@ -59,10 +59,12 @@ def rom_read_data(location):
         assert mm[0:4] == b"WBFS"
         data["name"] = bytes_to_str(scan_to_00(mm,0x220))
         data["slug"] = bytes_to_str(scan_to_00(mm,0x200))
+        config['platform'] = 1
     elif romType == "iso file":
         assert mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3"
         data["name"] = bytes_to_str(scan_to_00(mm,0x20))
         data["slug"] = bytes_to_str(scan_to_00(mm,0x0))
+        config['platform'] = 1
 
     data["slug"] = slugify(data["slug"])
 
