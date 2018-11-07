@@ -28,6 +28,7 @@ def add_or_update(rom,config):
 
 
 def rom_read_data(location):
+    # TODO: extract the image of the rom
     def scan_to_00(mm,start):
         buff = b""
         achar = None
@@ -50,24 +51,31 @@ def rom_read_data(location):
     rom = open(location,"r+b")
     mm = mmap(rom.fileno(), 0)
     data = {"installer_slug":INSTALLER_SLUG,
-        "runner":"dolphin"}
-    config = {}
+        "runner":"dolphin",
+        "installed":1,}
+    config = {"main_file":location}
 
     if romType == "wbfs file":
         assert mm[0:4] == b"WBFS"
         data["name"] = bytes_to_str(scan_to_00(mm,0x220))
         data["slug"] = bytes_to_str(scan_to_00(mm,0x200))
-        data["installed"] = 1
-        config["main_file"] = location
-    else:
-        raise
+    elif romType == "iso file":
+        assert mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3"
+        data["name"] = bytes_to_str(scan_to_00(mm,0x20))
+        data["slug"] = bytes_to_str(scan_to_00(mm,0x0))
+
+    data["slug"] = slugify(data["slug"])
+
 
     return data, config
 
 
 def get_rom_type(location):
-    if location.split(".")[-1] in ["wbfs"]:
+    extension = location.split(".")[-1]
+    if extension in ["wbfs"]:
         return "wbfs file"
+    elif extension in ["iso"]:
+        return "iso file"
     return False
 
 
