@@ -1,5 +1,6 @@
 lutris (0.4.23) bionic; urgency=medium
 
+  * Prevent monitor from quitting games that open a 2nd process
   * Run on-demand scripts from game directory
   * Tell the user what executable is expected after a failed install
   * Fix a circular import causing issues on some distributions
