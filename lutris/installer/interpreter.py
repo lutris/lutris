@@ -568,7 +568,7 @@ class ScriptInterpreter(CommandsMixin):
 
         if path and not os.path.isfile(path):
             self.parent.set_status("Installation didn't complete successfully")
-            self.parent.on_install_error("Installation failed! Specified executable not found.")
+            self.parent.on_install_error("Game executable not found in %s" % path)
         else:
             self.parent.set_status("Writing configuration")
             self._write_config()
