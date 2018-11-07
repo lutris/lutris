@@ -240,6 +240,13 @@ class LutrisThread(threading.Thread):
         self.original_env = {}
 
     def stop(self, killall=False):
+        """Stops the current game process and cleans up the thread"""
+        # Remove logger early to avoid issues with zombie processes
+        # (unconfirmed)
+        if self.stdout_monitor:
+            logger.debug("Detaching logger")
+            GLib.source_remove(self.stdout_monitor)
+
         for thread in self.attached_threads:
             logger.debug("Stopping thread %s", thread)
             thread.stop()
@@ -312,7 +319,11 @@ class LutrisThread(threading.Thread):
         return processes, num_children, num_watched_children, terminated_children
 
     def watch_children(self):
-        """Poke at the running process(es)."""
+        """Poke at the running process(es).
+
+        Return:
+            bool: True to keep monitoring, False to stop (Used by GLib.timeout_add)
+        """
         if not self.game_process:
             logger.error('No game process available')
             return False
@@ -356,12 +367,6 @@ class LutrisThread(threading.Thread):
         if self.cycles_without_children >= MAX_CYCLES_WITHOUT_CHILDREN:
             self.is_running = False
 
-            # Remove logger early to avoid issues with zombie processes
-            # (unconfirmed)
-            if self.stdout_monitor:
-                logger.debug("Detaching logger")
-                GLib.source_remove(self.stdout_monitor)
-
             resume_stop = self.stop()
             if not resume_stop:
                 logger.info("Full shutdown prevented")
@@ -379,21 +384,12 @@ class LutrisThread(threading.Thread):
             return False
 
         if terminated_children and terminated_children == num_watched_children:
-            logger.debug("Waiting for processes to exit")
             try:
+                # Really not sure if that's necessary...
                 self.game_process.wait(2)
             except subprocess.TimeoutExpired:
                 logger.warning("Processes are still running")
-                return True
-            if self.stdout_monitor:
-                logger.debug("Removing stdout monitor")
-                GLib.source_remove(self.stdout_monitor)
-            logger.debug("Thread is no longer running")
-            self.is_running = False
-            self.restore_environment()
-            return False
         return True
-
 
 def exec_in_thread(command):
     """Execute arbitrary command in a Lutris thread
