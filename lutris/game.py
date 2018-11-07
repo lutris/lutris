@@ -341,9 +341,10 @@ class Game:
         if gamemode:
             env['LD_PRELOAD'] = ':'.join([
                 path for path in
-                [env.get('LD_PRELOAD'), "/usr/$LIB/libgamemodeauto.so.0"]
+                [env.get('LD_PRELOAD'), system.GAMEMODE_PATH]
                 if path
             ])
+
         # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get('ld_library_path')
         if game_ld_libary_path:
