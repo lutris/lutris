@@ -1,3 +1,12 @@
+lutris (0.4.23) bionic; urgency=medium
+
+  * Run on-demand scripts from game directory
+  * Tell the user what executable is expected after a failed install
+  * Fix a circular import causing issues on some distributions
+  * Add missing dependency for openSUSE Tumbleweed
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 06 Nov 2018 19:10:19 -0800
+
 lutris (0.4.22) bionic; urgency=medium
 
   * Use lspci instead of xrandr to detect video cards
