@@ -37,7 +37,7 @@ BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
-Requires:       python3-PyYAML, cabextract
+Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
