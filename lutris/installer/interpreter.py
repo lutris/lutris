@@ -856,7 +856,6 @@ class ScriptInterpreter(CommandsMixin):
         )
         self.prepare_game_files()
 
-<<<<<<< HEAD
     def _download_steam_data(self, file_uri, file_id):
         """Download the game files from Steam to use them outside of Steam.
 
@@ -936,9 +935,8 @@ class ScriptInterpreter(CommandsMixin):
             if installer['id'] == self.gog_data['installerid']:
                 return (True, installer)
         return (False, "")
-=======
+
     def eject_wine_disc(self):
         prefix = self.target_path
         wine_path = get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, prefix)
->>>>>>> master

@@ -119,7 +119,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.icon_type,
             self.filter_installed,
             self.view_sorting,
-            self.view_sorting_ascending
+            self.view_sorting_ascending,
             self.show_installed_first
         )
         self.view = self.get_view(view_type)
@@ -400,12 +400,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             return
         if self.game_list or force is True:
             self.splash_box.hide()
-            self.sidebar_paned.show()
+            self.main_box.show()
             self.games_scrollwindow.show()
         else:
             logger.debug('Showing splash screen')
             self.splash_box.show()
-            self.sidebar_paned.hide()
+            self.main_box.hide()
             self.games_scrollwindow.hide()
 
     def switch_view(self, view_type):
@@ -515,12 +515,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # FIXME This is ugly and will cause issues!@@!
         if text == "Game has quit" and self.gui_needs_update:
             self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
-
-        for child_widget in self.status_box.get_children():
-            child_widget.destroy()
-        label = Gtk.Label(text)
-        label.show()
-        self.status_box.add(label)
 
     def refresh_status(self):
         """Refresh status bar."""
@@ -1018,11 +1012,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         action.set_state(value)
         settings.write_setting('show_tray_icon', value)
         self.application.set_tray_icon(value)
-
-    def show_sidebar(self):
-        """Displays the sidebar"""
-        width = 180 if self.sidebar_visible else 0
-        self.sidebar_paned.set_position(width)
 
     # def on_sidebar_changed(self, widget):
     #     """Callback to handle selected runner/platforms updates in sidebar"""

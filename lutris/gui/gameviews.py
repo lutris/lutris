@@ -71,7 +71,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.modelfilter = None
         self.runner_names = {}
-
+        self.store = []
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str, str, str)
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
@@ -101,18 +101,9 @@ class GameStore(GObject.Object):
             names[runner] = runner_inst.human_name
         return names
 
-    def _fill_store_generator(self, games, batch=100):
-        """Generator to fill the model in batches."""
-        loop = 0
+    def fill_store(self, games):
         for game in games:
             self.add_game(game)
-            # Yield to GTK main loop once in a while
-            loop += 1
-            if (loop % batch) == 0:
-                # Returning True to GLib.idle_add makes it run the callback
-                # again. (Yeah, the GTK doc isn't clear about this feature :)
-                yield True
-        yield False
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
@@ -228,7 +219,7 @@ class GameStore(GObject.Object):
             game['playtime'],
             playtime_text
         ))
-        self.sort_view(self.show_installed_first)
+        # self.sort_view(self.show_installed_first)
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:

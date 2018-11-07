@@ -145,23 +145,8 @@ class Game(GObject.Object):
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
-<<<<<<< HEAD
-            session = os.environ.get('DESKTOP_SESSION')
-            if session == "plasma":
-                self.stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
-                self.start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
-            elif session == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
-                self.stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
-                self.start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
-            elif session == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
-                self.stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
-                self.start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
-
-            if not (self.compositor_disabled or self.stop_compositor == ""):
-=======
             self.start_compositor, self.stop_compositor = display.get_compositor_commands()
             if not (self.compositor_disabled or not self.stop_compositor):
->>>>>>> master
                 system.execute(self.stop_compositor, shell=True)
                 self.compositor_disabled = True
 
@@ -229,22 +214,11 @@ class Game(GObject.Object):
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         if "wine" in self.runner_name and not wine.get_system_wine_version():
-<<<<<<< HEAD
-            dialogs.DontShowAgainDialog(
-                'hide-wine-systemwide-install-warning',
-                "Wine is not installed on your system.",
-                secondary_message="Having Wine installed on your system guarantees that "
-                "Wine builds from Lutris will have all required dependencies. Please "
-                "follow the instructions given in the <a "
-                "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
-                "install Wine"
-            )
-=======
+
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
             dialogs.WineNotInstalledWarning(parent=root_window)
->>>>>>> master
         return True
 
     def play(self):

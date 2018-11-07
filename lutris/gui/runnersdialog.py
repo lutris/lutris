@@ -1,16 +1,12 @@
-from gi.repository import Gtk, GObject, Gdk
+from gi.repository import Gtk, GObject
 
 from lutris import runners
 from lutris import settings
 from lutris.util.system import open_uri
-from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
-from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.widgets.utils import get_icon
-from lutris.util.system import open_uri
-from lutris.util.log import logger
 
 
 class RunnersDialog(Gtk.Dialog):
