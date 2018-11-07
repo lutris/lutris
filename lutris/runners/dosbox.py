@@ -1,55 +1,16 @@
-# -*- coding: utf-8 -*-
 import os
-from lutris.util.log import logger
-from lutris.util import system
 from lutris.runners.runner import Runner
-
-
-def dosexec(config_file=None, executable=None, args=None, exit=True,
-            working_dir=None):
-    """Execute Dosbox with given config_file."""
-    if config_file:
-        run_with = "config {}".format(config_file)
-        if not working_dir:
-            working_dir = os.path.dirname(config_file)
-    elif executable:
-        run_with = "executable {}".format(executable)
-        if not working_dir:
-            working_dir = os.path.dirname(executable)
-    else:
-        raise ValueError("Neither a config file or an executable were provided")
-    logger.debug("Running dosbox with {}".format(run_with))
-    working_dir = system.create_folder(working_dir)
-    dosbox_runner = dosbox()
-    command = [dosbox_runner.get_executable()]
-    if config_file:
-        command += ['-conf', config_file]
-    if executable:
-        if not os.path.exists(executable):
-            raise OSError("Can't find file {}".format(executable))
-        command += [executable]
-    if args:
-        command += args.split()
-    if exit:
-        command.append('-exit')
-    system.execute(command, cwd=working_dir)
-
-
-def makeconfig(path, drives, commands):
-    system.create_folder(os.path.dirname(path))
-    with open(path, 'w') as config_file:
-        config_file.write('[autoexec]\n')
-        for drive in drives:
-            config_file.write("mount {} \"{}\"\n".format(drive, drives[drive]))
-        for command in commands:
-            config_file.write("{}\n".format(command))
+from lutris.runners.commands.dosbox import (
+    dosexec,
+    makeconfig
+)
+from lutris.util import system
 
 
 class dosbox(Runner):
     human_name = "DOSBox"
     description = "MS-Dos emulator"
     platforms = ["MS-DOS"]
-    description = "DOS Emulator"
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
@@ -122,14 +83,14 @@ class dosbox(Runner):
             "label": "Exit Dosbox with the game",
             "type": "bool",
             "default": True,
-            'help': ("Shut down Dosbox when the game is quit.")
+            'help': "Shut down Dosbox when the game is quit."
         },
         {
             "option": "fullscreen",
             "label": "Open game in fullscreen",
             "type": "bool",
             "default": False,
-            'help': ("Tells Dosbox to launch the game in fullscreen.")
+            'help': "Tells Dosbox to launch the game in fullscreen."
         }
     ]
 
@@ -156,7 +117,7 @@ class dosbox(Runner):
 
     def play(self):
         main_file = self.main_file
-        if not os.path.exists(main_file):
+        if not system.path_exists(main_file):
             return {'error': "FILE_NOT_FOUND", 'file': main_file}
         args = self.game_config.get('args') or ''
 

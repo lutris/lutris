@@ -26,10 +26,10 @@ Examples:
 ::
 
     files:
-    - file1: http://site.com/gamesetup.exe
+    - file1: https://example.com/gamesetup.exe
     - file2: "N/A:Select the game's setup file"
     - file3:
-        url: http://site.com/url-that-doesnt-resolve-to-a-proper-filename
+        url: https://example.com/url-that-doesnt-resolve-to-a-proper-filename
         filename: actual_local_filename.zip
         referer: www.mywebsite.com
 
@@ -206,13 +206,14 @@ Example:
 ::
 
     - move:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Copying and merging directories
 -------------------------------
 
-Both merging and copying actions are done with the ``merge`` directive.
+Both merging and copying actions are done with the ``merge`` or the ``copy`` directive.
+It is not important which of these directives is used because ``copy`` is just an alias for ``merge``.
 Whether the action does a merge or copy depends on the existence of the
 destination directory. When merging into an existing directory, original files
 with the same name as the ones present in the merged directory will be
@@ -227,7 +228,7 @@ Example:
 ::
 
     - merge:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Extracting archives
@@ -247,7 +248,7 @@ Example:
 ::
 
     - extract:
-        file: $game-archive
+        file: game_archive
         dst: $GAMEDIR/datadir/
 
 Making a file executable
@@ -276,7 +277,7 @@ Example:
 
     - execute:
         args: --argh
-        file: $great-id
+        file: great_id
         terminal: true
         env:
           key: value
@@ -569,7 +570,7 @@ Currently, the following tasks are implemented:
 
         - task:
             name: dosexec
-            executable: $file_id
+            executable: file_id
             config: $GAMEDIR/game_install.conf
             args: -scaler normal3x -conf more_conf.conf
 
@@ -636,7 +637,7 @@ Example Linux game:
         working_dir: $GAMEDIR
 
       files:
-      - myfile: http://example.com/mygame.zip
+      - myfile: https://example.com/mygame.zip
 
       installer:
       - chmodx: $GAMEDIR/mygame
@@ -666,10 +667,10 @@ Example wine game:
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -681,7 +682,11 @@ Example wine game:
           WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
-Example gog wine game, some installer crash with with /SILENT or /VERYSILENT option (Cuphead and Star Wars: Battlefront II for example), (most options can be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline, there is undocumented gog option ``/nogui``, you need to use it when you use ``/silent`` and ``/suppressmsgboxes`` parameters):
+Example gog wine game, some installer crash with with /SILENT or /VERYSILENT
+option (Cuphead and Star Wars: Battlefront II for example), (most options can
+be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline,
+there is undocumented gog option ``/NOGUI``, you need to use it when you use
+``/SILENT`` and ``/SUPPRESSMSGBOXES`` parameters):
 
 ::
 
@@ -702,11 +707,11 @@ Example gog wine game, some installer crash with with /SILENT or /VERYSILENT opt
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -740,7 +745,7 @@ Example gog wine game, alternative (requires innoextract):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-          args: --gog -d "$CACHE" "$setup"
+          args: --gog -d "$CACHE" setup
           description: Extracting game data
           file: innoextract
       - move:
@@ -779,9 +784,9 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
       installer:
       - chmodx: installer
       - execute:
-        executable: installer
-        description: Installing game, it will take a while...
-        args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
+          file: installer
+          description: Installing game, it will take a while...
+          args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
       system:
         terminal: true
 
@@ -804,12 +809,12 @@ Example gog linux game, alternative (requires unzip):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-        args: $installer -d "$GAMEDIR" "data/noarch/*"
-        description: Extracting game data, it will take a while...
-        file: unzip
+          args: installer -d "$GAMEDIR" "data/noarch/*"
+          description: Extracting game data, it will take a while...
+          file: unzip
       - rename:
-        dst: $GAMEDIR/Game
-        src: $GAMEDIR/data/noarch
+          dst: $GAMEDIR/Game
+          src: $GAMEDIR/data/noarch
       system:
         terminal: true
 
@@ -832,10 +837,10 @@ Example winesteam game:
         arch: win64
       installer:
       - task:
-        description: Setting up wine prefix
-        name: create_prefix
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          description: Setting up wine prefix
+          name: create_prefix
+          prefix: $GAMEDIR/prefix
+          arch: win64
       winesteam:
         Desktop: true
         WineDesktop: 1024x768
@@ -877,7 +882,7 @@ When submitting the installer script to lutris.net, only copy the script part. R
       args: --some-arg
 
     files:
-    - myfile: http://example.com
+    - myfile: https://example.com
 
     installer:
     - chmodx: $GAMEDIR/mygame

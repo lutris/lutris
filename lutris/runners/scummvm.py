@@ -4,6 +4,7 @@ import subprocess
 
 from lutris import settings
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class scummvm(Runner):
@@ -76,7 +77,7 @@ class scummvm(Runner):
     @property
     def libs_dir(self):
         path = os.path.join(settings.RUNNER_DIR, 'scummvm/lib')
-        return path if os.path.exists(path) else ''
+        return path if system.path_exists(path) else ''
 
     def get_command(self):
         return [
@@ -116,8 +117,7 @@ class scummvm(Runner):
         command.append("--path=%s" % self.game_path)
         command.append(self.game_config.get('game_id'))
 
-        launch_info = {'command': command}
-        launch_info['ld_library_path'] = self.libs_dir
+        launch_info = {'command': command, 'ld_library_path': self.libs_dir}
 
         return launch_info
 

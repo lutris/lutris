@@ -1,8 +1,81 @@
-lutris (0.5.0-alpha) bionic; urgency=medium
+lutris (0.4.23) bionic; urgency=medium
 
-  * Experimental packages
+  * Prevent monitor from quitting games that open a 2nd process
+  * Run on-demand scripts from game directory
+  * Tell the user what executable is expected after a failed install
+  * Fix a circular import causing issues on some distributions
+  * Add missing dependency for openSUSE Tumbleweed
 
- -- Mathieu Comandon <strycore@gmail.com>  Tue, 31 Jul 2018 19:23:31 -0700
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 06 Nov 2018 19:10:19 -0800
+
+lutris (0.4.22) bionic; urgency=medium
+
+  * Use lspci instead of xrandr to detect video cards
+  * Detect if Vulkan is supported by the system for DXVK games
+  * Add experimental playtime support
+  * Detect Proton and add it to Wine versions
+  * Fix runtime being downloaded when not needed
+  * Add experimental tray icon with last games played
+  * Add support for Feral Gamemode
+  * Prevent process monitor to quit games prematurely
+  * Code cleanup
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 03 Nov 2018 00:01:19 -0700
+
+lutris (0.4.21.1) bionic; urgency=medium
+
+  * Fix detection of libvulkan
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 23 Oct 2018 19:31:14 -0700
+
+lutris (0.4.21) bionic; urgency=medium
+
+  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
+  * Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
+  * Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
+  * Added check for the presence of executable after the installation finished.
+  * Added an option to sort installed games first
+  * Added a discouraging warning if Lutris was launched as root.
+  * Added a "--version" command line option.
+  * Added an error message if requested DXVK version does not exist.
+  * Improved behavior of Lutris' background process.
+  * Improved UI when changing game's identifier.
+  * Wine's own Virtual Desktop configuration is now respected.
+  * Merge command now has a 'copy' alias.
+  * Executable selection how has a text field.
+  * Blacklisted Proton and SteamWorks from showing up as games.
+  * Sidebar now shows number of installed games per runner and platform.
+  * Visual improvements to wine download dialog
+  * Fixed an issue when DXVK versions didn't get updated if dxvk directory wasn't present.
+  * Fixed an issue when the watcher would sync Steam games even if the feature was disabled.
+  * Fixed missing warning for existing prefix during installation process if the path contained "~".
+  * Prevent Steam games from being synced from the AppManifest watcher if Steam sync if off
+  * Games load properly when launching Lutris for the first time
+  * Minor improvements to wording in some menus.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Oct 2018 17:39:31 -0700
+
+lutris (0.4.20) bionic; urgency=medium
+
+  * Fix detection of winetricks path
+  * Improve visual feedback on wine download dialog
+  * Add skill and command-line arguments for Zdoom
+  * Add option to disable joypad auto-configuration
+  * Restore refresh rate on monitor reset
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 24 Sep 2018 20:46:46 -0700
+
+lutris (0.4.19) bionic; urgency=medium
+
+  * Prioritize winetricks from the runtime
+  * Populate DXVK versions with github releases
+  * Add support for DirectX 10 with DXVK
+  * Fix detection of xgamma
+  * Add 24BPP option for Xephyr
+  * Restore Alsa option for Wine
+  * Prepend additional system paths to runtime
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 04 Sep 2018 18:48:52 -0700
 
 lutris (0.4.18) bionic; urgency=medium
 

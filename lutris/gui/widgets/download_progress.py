@@ -65,7 +65,7 @@ class DownloadProgressBox(Gtk.Box):
                 from lutris.gui.dialogs import ErrorDialog
                 ErrorDialog(ex.args[0])
                 self.emit('cancel', {})
-                return
+                return None
 
         timer_id = GLib.timeout_add(100, self._progress)
         self.cancel_button.set_sensitive(True)

@@ -1,9 +1,10 @@
 import os
 import time
 
-from gi.repository import GLib, Gio
 from collections import OrderedDict
+from gi.repository import GLib, Gio
 from lutris.util.log import logger
+from lutris.util import system
 
 
 def get_default_acf(appid, name):
@@ -73,15 +74,15 @@ def vdf_write(vdf_path, config):
 
 def read_config(steam_data_dir):
     config_filename = os.path.join(steam_data_dir, 'config/config.vdf')
-    if not os.path.exists(config_filename):
-        return
+    if not system.path_exists(config_filename):
+        return None
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
         config = config['InstallConfigStore']['Software']['Valve']['Steam']
     except KeyError as e:
         logger.error("Steam config %s is empty: %s", config_filename, e)
-        return
+        return None
     else:
         return config
 

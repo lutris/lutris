@@ -1,11 +1,11 @@
-import os
 from collections import OrderedDict
 from configparser import RawConfigParser
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 
 
-class X360ce():
+class X360ce:
     default_options = OrderedDict([
         ('UseInitBeep', 1),
         ('Log', 0),
@@ -131,7 +131,7 @@ class X360ce():
             self.config['PAD{}'.format(i)] = {}
 
     def load(self, path):
-        if not os.path.exists(path):
+        if not system.path_exists(path):
             logger.error("X360ce path %s does not exists")
             return
         self.config.read(path)
@@ -147,7 +147,8 @@ class X360ce():
         for index, (device, mappings) in enumerate(controllers[::-1]):
             self.load_mappings(device, mappings, index + 1)
 
-    def convert_sdl_key(self, sdl_key):
+    @staticmethod
+    def convert_sdl_key(sdl_key):
         # Buttons
         if sdl_key.startswith('b'):
             return str(int(sdl_key[1:]) + 1)

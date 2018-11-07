@@ -1,4 +1,5 @@
 """Widget generators and their signal handlers"""
+# pylint: disable=no-member
 import os
 from gi.repository import Gtk, Gdk
 
@@ -18,6 +19,8 @@ class ConfigBox(VBox):
         self.game = game
         self.config = None
         self.raw_config = None
+        self.option_widget = None
+        self.wrapper = None
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -86,7 +89,7 @@ class ConfigBox(VBox):
 
             # Set tooltip's "Default" part
             default = option.get('default')
-            self.tooltip_default = default if type(default) is str else None
+            self.tooltip_default = default if isinstance(default, str) else None
 
             # Generate option widget
             self.option_widget = None
@@ -108,7 +111,7 @@ class ConfigBox(VBox):
 
             # Tooltip
             helptext = option.get("help")
-            if type(self.tooltip_default) is str:
+            if isinstance(self.tooltip_default, str):
                 helptext = helptext + '\n\n' if helptext else ''
                 helptext += "<b>Default</b>: " + self.tooltip_default
             if value != default and option_key not in self.raw_config:
@@ -161,6 +164,9 @@ class ConfigBox(VBox):
         elif option_type == 'bool':
             self.generate_checkbox(option, value)
             self.tooltip_default = 'Enabled' if default else 'Disabled'
+        elif option_type == 'extended_bool':
+            self.generate_checkbox_with_callback(option, value)
+            self.tooltip_default = 'Enabled' if default else 'Disabled'
         elif option_type == 'range':
             self.generate_range(option_key,
                                 option["min"],
@@ -206,9 +212,33 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(checkbox, True, True, 5)
         self.option_widget = checkbox
 
+    # Checkbox with callback
+    def generate_checkbox_with_callback(self, option, value=None):
+        """Generate a checkbox. With callback"""
+        checkbox = Gtk.CheckButton(label=option["label"])
+        if option['active'] is True:
+            checkbox.set_sensitive(True)
+        else:
+            checkbox.set_sensitive(False)
+        if value is True:
+            checkbox.set_active(value)
+        checkbox.connect("toggled", self.checkbox_toggle_with_callback, option['option'], option['callback'], option['callback_on'])
+        self.wrapper.pack_start(checkbox, True, True, 5)
+        self.option_widget = checkbox
+
     def checkbox_toggle(self, widget, option_name):
         """Action for the checkbox's toggled signal."""
         self.option_changed(widget, option_name, widget.get_active())
+
+    def checkbox_toggle_with_callback(self, widget, option_name, callback, callback_on=None):
+        """Action for the checkbox's toggled signal. With callback method"""
+        if widget.get_active() == callback_on or callback_on is None:
+            if callback(self.config):
+                self.option_changed(widget, option_name, widget.get_active())
+            else:
+                widget.set_active(False)
+        else:
+            self.option_changed(widget, option_name, widget.get_active())
 
     # Entry
     def generate_entry(self, option_name, label, value=None):
@@ -233,7 +263,7 @@ class ConfigBox(VBox):
         """Generate a combobox (drop-down menu)."""
         liststore = Gtk.ListStore(str, str)
         for choice in choices:
-            if type(choice) is str:
+            if isinstance(choice, str):
                 choice = [choice, choice]
             if choice[1] == default and not has_entry:
                 # Do not add default label to editable dropdowns since this gets
@@ -263,12 +293,20 @@ class ConfigBox(VBox):
                 combobox.set_active_id(default)
 
         combobox.connect('changed', self.on_combobox_change, option_name)
+        combobox.connect('scroll-event', self.on_combobox_scroll)
         label = Label(label)
         label.set_alignment(0.5, 0.5)
         combobox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(combobox, True, True, 0)
         self.option_widget = combobox
+
+    @staticmethod
+    def on_combobox_scroll(combobox, event):
+        """Do not change options when scrolling
+        with cursor inside a ComboBox."""
+        combobox.stop_emission_by_name('scroll-event')
+        return False
 
     def on_combobox_change(self, combobox, option):
         """Action triggered on combobox 'changed' signal."""
@@ -309,34 +347,39 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a file."""
         option_name = option['option']
         label = Label(option['label'])
-        file_chooser = Gtk.FileChooserButton("Choose a file for %s" % label)
+        file_chooser = FileChooserEntry(
+            title='Select file',
+            action=Gtk.FileChooserAction.OPEN,
+            default_path=path  # reverse_expanduser(path)
+        )
         file_chooser.set_size_request(200, 30)
 
         if 'default_path' in option:
             config_key = option['default_path']
             default_path = self.lutris_config.system_config.get(config_key)
             if default_path and os.path.exists(default_path):
-                file_chooser.set_current_folder(default_path)
+                file_chooser.entry.set_text(default_path)
 
-        file_chooser.set_action(Gtk.FileChooserAction.OPEN)
-        file_chooser.connect("file-set", self.on_chooser_file_set,
-                             option_name)
         if path:
             # If path is relative, complete with game dir
             if not os.path.isabs(path):
-                path = os.path.join(self.game.directory, path)
-            file_chooser.unselect_all()
-            file_chooser.select_filename(path)
-        label.set_alignment(0.5, 0.5)
+                path = os.path.expanduser(path)
+                if not os.path.isabs(path):
+                    path = os.path.join(self.game.directory, path)
+            file_chooser.entry.set_text(path)
+
         file_chooser.set_valign(Gtk.Align.CENTER)
+        label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
+        file_chooser.entry.connect('changed', self._on_chooser_file_set, option_name)
 
-    def on_chooser_file_set(self, widget, option):
+    def _on_chooser_file_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        filename = widget.get_filename()
-        self.option_changed(widget, option, filename)
+        if not os.path.isabs(entry.get_text()):
+            entry.set_text(os.path.expanduser(entry.get_text()))
+        self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
     def generate_directory_chooser(self, option_name, label_text, value=None):
@@ -347,7 +390,7 @@ class ConfigBox(VBox):
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             default_path=reverse_expanduser(value)
         )
-        directory_chooser.entry.connect('changed', self.on_chooser_dir_set,
+        directory_chooser.entry.connect('changed', self._on_chooser_dir_set,
                                         option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         label.set_alignment(0.5, 0.5)
@@ -355,10 +398,9 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.option_widget = directory_chooser
 
-    def on_chooser_dir_set(self, entry, option):
+    def _on_chooser_dir_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        filename = entry.get_text()
-        self.option_changed(entry.get_parent(), option, filename)
+        self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):
@@ -391,7 +433,7 @@ class ConfigBox(VBox):
         vbox.pack_end(button, False, False, 0)
 
         if value:
-            if type(value) == str:
+            if isinstance(value, str):
                 self.files = [value]
             else:
                 self.files = value
@@ -461,7 +503,8 @@ class ConfigBox(VBox):
                 model.remove(treeiter)
                 self.raw_config[option].pop(row_index)
 
-    def on_query_tooltip(self, widget, x, y, keybmode, tooltip, text):
+    @staticmethod
+    def on_query_tooltip(widget, x, y, keybmode, tooltip, text):
         """Prepare a custom tooltip with a fixed width"""
         label = Label(text)
         label.set_use_markup(True)
@@ -509,7 +552,8 @@ class ConfigBox(VBox):
                                    option.get('default'))
         self.wrapper.show_all()
 
-    def set_style_property(self, property_, value, wrapper):
+    @staticmethod
+    def set_style_property(property_, value, wrapper):
         """Add custom style."""
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(
@@ -534,11 +578,8 @@ class GameBox(ConfigBox):
                 runner = game.runner
             if runner:
                 self.options = runner.game_options
-            else:
-                self.options = []
         else:
             logger.warning("No runner in game supplied to GameBox")
-            self.options = []
         self.generate_widgets('game')
 
 
@@ -552,8 +593,6 @@ class RunnerBox(ConfigBox):
             runner = None
         if runner:
             self.options = runner.get_runner_options()
-        else:
-            self.options = []
 
         if lutris_config.level == 'game':
             self.generate_top_info_box(

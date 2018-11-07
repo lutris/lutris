@@ -13,7 +13,6 @@ from gi.repository import Gtk, Gdk
 
 from lutris.util.log import logger
 
-
 TERMINAL_CANDIDATES = [
     'xterm',
     'gnome-terminal',
@@ -242,7 +241,7 @@ def merge_folders(source, destination):
             except OSError:
                 pass
         for filename in filenames:
-            logger.debug("Copying %s", filename)
+            # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
             shutil.copy(os.path.join(dirpath, filename),
@@ -251,11 +250,13 @@ def merge_folders(source, destination):
 
 def remove_folder(path):
     """Delete a folder specified by path"""
-    if os.path.exists(path):
-        logger.debug("Removing folder %s", path)
-        if os.path.samefile(os.path.expanduser('~'), path):
-            raise RuntimeError("Lutris tried to erase home directory!")
-        shutil.rmtree(path)
+    if not os.path.exists(path):
+        logger.warning("Non existent path: %s", path)
+        return
+    logger.debug("Removing folder %s", path)
+    if os.path.samefile(os.path.expanduser('~'), path):
+        raise RuntimeError("Lutris tried to erase home directory!")
+    shutil.rmtree(path)
 
 
 def create_folder(path):
@@ -343,10 +344,9 @@ def get_terminal_apps():
     """Return the list of installed terminal emulators"""
     if INSTALLED_TERMINALS:
         return INSTALLED_TERMINALS
-    else:
-        for exe in TERMINAL_CANDIDATES:
-            if find_executable(exe):
-                INSTALLED_TERMINALS.append(exe)
+    for exe in TERMINAL_CANDIDATES:
+        if find_executable(exe):
+            INSTALLED_TERMINALS.append(exe)
     return INSTALLED_TERMINALS
 
 
@@ -369,11 +369,20 @@ def reverse_expanduser(path):
     return path
 
 
-def path_exists(path):
-    """Wrapper around os.path.exists that doesn't crash with empty values"""
+def path_exists(path, check_symlinks=False):
+    """Wrapper around system.path_exists that doesn't crash with empty values
+
+    Params:
+        path (str): File to the file to check
+        check_symlinks (bool): If the path is a broken symlink, return False
+    """
     if not path:
         return False
-    return os.path.exists(path)
+    if os.path.exists(path):
+        return True
+    if os.path.islink(path):
+        logger.warning("%s is a broken link")
+        return not check_symlinks
 
 
 def path_is_empty(path):
@@ -399,3 +408,50 @@ def open_uri(uri):
     """Opens a local or remote URI with the default application"""
     reset_library_preloads()
     Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+
+
+def get_desktop_environment():
+    # From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
+    # and http://ubuntuforums.org/showthread.php?t=652320
+    # and http://ubuntuforums.org/showthread.php?t=652320
+    # and http://ubuntuforums.org/showthread.php?t=1139057
+    deskop_environments = [
+        "gnome", "unity", "cinnamon", "mate", "xfce4", "lxde", "fluxbox",
+        "blackbox", "openbox", "icewm", "jwm", "afterstep", "trinity", "kde"
+    ]
+    desktop_session = os.environ.get("DESKTOP_SESSION", '').lower()
+    if desktop_session:  # easier to match if we doesn't have to deal with caracter cases
+        if desktop_session in deskop_environments:
+            return desktop_session
+        # Special cases
+        # Canonical sets $DESKTOP_SESSION to Lubuntu rather than LXDE if using LXDE.
+        if desktop_session.startswith("lubuntu"):
+            return "lxde"
+        if desktop_session.startswith("razor"):  # e.g. razorkwin
+            return "razor-qt"
+        if desktop_session.startswith("wmaker"):  # e.g. wmaker-common
+            return "windowmaker"
+    if os.environ.get('KDE_FULL_SESSION') == 'true':
+        return "kde"
+    if os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+        if "deprecated" not in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+            return "gnome2"
+    # From http://ubuntuforums.org/showthread.php?t=652320
+    elif is_running("xfce-mcs-manage"):
+        return "xfce4"
+    elif is_running("ksmserver"):
+        return "kde"
+    return "unknown"
+
+
+def is_running(process):
+    # From http://www.bloggerpolis.com/2011/05/how-to-check-if-a-process-is-running-using-python/
+    # and http://richarddingwall.name/2009/06/18/windows-equivalents-of-ps-and-kill-commands/
+    try:  # Linux/Unix
+        s = subprocess.Popen(["ps", "axw"], stdout=subprocess.PIPE)
+    except:  # Windows
+        s = subprocess.Popen(["tasklist", "/v"], stdout=subprocess.PIPE)
+    for x in s.stdout:
+        if re.search(process, x):
+            return True
+    return False

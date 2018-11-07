@@ -226,12 +226,12 @@ class InstallerWindow(Gtk.ApplicationWindow):
             return label
 
         self.description_label = _create_label(
-            "<i><b>{}</b></i>".format(self.scripts[0]['description'])
+            "<b>{}</b>".format(self.scripts[0]['description'])
         )
         self.installer_choice_box.pack_start(self.description_label, True, True, 10)
 
         self.notes_label = _create_label(
-            "<i>{}</i>".format(self.scripts[0]['notes'])
+            "{}".format(self.scripts[0]['notes'])
         )
         notes_scrolled_area = Gtk.ScrolledWindow()
         try:
@@ -255,10 +255,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]['description']
         self.description_label.set_markup(
-            "<i><b>{}</b></i>".format(self._escape_text(description))
+            "<b>{}</b>".format(self._escape_text(description))
         )
         self.notes_label.set_markup(
-            "<i>{}</i>".format(self._escape_text(self.scripts[script_index]['notes']))
+            "{}".format(self._escape_text(self.scripts[script_index]['notes']))
         )
         if btn.get_active():
             self.installer_choice = script_index
@@ -302,7 +302,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button.grab_focus()
         self.install_button.show()
 
-    def on_target_changed(self, text_entry):
+    def on_target_changed(self, text_entry, _):
         """Set the installation target for the game."""
         path = text_entry.get_text()
         self.interpreter.target_path = os.path.expanduser(path)
@@ -313,6 +313,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if not self.location_entry:
             return
         path = self.location_entry.get_text()
+
+        # replace ~ with full path so os.path.exists and os.listdir work correctly
+        path = os.path.expanduser(path)
+
         if os.path.exists(path) and os.listdir(path):
             self.non_empty_label.show()
         else:
@@ -335,11 +339,30 @@ class InstallerWindow(Gtk.ApplicationWindow):
             path = self.selected_directory
         else:
             path = os.path.expanduser('~')
-        self.set_path_chooser(None, 'file', default_path=path)
+        self.set_path_chooser(self.continue_guard, 'file', default_path=path)
+
+    def continue_guard(self, _, action):
+
+        loc = self.location_entry.get_text()
+        loc = os.path.expanduser(loc)
+        if ((action == Gtk.FileChooserAction.OPEN and os.path.isfile(loc))
+                or (action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(loc))):
+
+            self.continue_button.set_sensitive(True)
+            self.continue_button.connect('clicked', self.on_file_selected)
+            self.continue_button.grab_focus()
+
+        else:
+            self.continue_button.set_sensitive(False)
 
     def set_path_chooser(self, callback_on_changed, action=None,
                          default_path=None):
         """Display a file/folder chooser."""
+
+        self.install_button.set_visible(False)
+        self.continue_button.show()
+        self.continue_button.set_sensitive(False)
+        
         if action == 'file':
             title = 'Select file'
             action = Gtk.FileChooserAction.OPEN
@@ -352,12 +375,9 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.location_entry = FileChooserEntry(title, action, default_path)
         self.location_entry.show_all()
         if callback_on_changed:
-            self.location_entry.entry.connect('changed', callback_on_changed)
-        else:
-            self.install_button.set_visible(False)
-            self.continue_button.connect('clicked', self.on_file_selected)
-            self.continue_button.grab_focus()
-            self.continue_button.show()
+            self.location_entry.entry.connect(
+                'changed', callback_on_changed, action)
+
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
     def on_file_selected(self, widget):

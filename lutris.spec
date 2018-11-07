@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.0-alpha
+Version:        0.4.23
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -25,7 +25,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract, gnome-deskop3
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
-Recommends:     wine
+Recommends:     wine-core
 %endif
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
@@ -38,12 +38,8 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
-Requires:       python3-gobject, python3-PyYAML, cabextract
-%endif
-
-# Add Gdk dependency for Tumbleweed (package unavailable for other releases)
-%if 0%{?suse_version} > 1500
-Requires: python3-gobject-Gdk
+Requires:       (python3-gobject-Gdk or python3-gobject)
+Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}

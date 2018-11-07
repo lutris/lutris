@@ -1,13 +1,13 @@
 import os
 from lutris.util.log import logger
-from lutris.util.system import kill_pid
+from lutris.util.system import kill_pid, path_exists
 
 
 class InvalidPid(Exception):
     pass
 
 
-class Process(object):
+class Process:
     def __init__(self, pid, parent=None):
         try:
             self.pid = int(pid)
@@ -25,14 +25,14 @@ class Process(object):
 
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
-        if not os.path.exists(stat_filename):
-            return
+        if not path_exists(stat_filename):
+            return None
         with open(stat_filename) as stat_file:
             try:
                 _stat = stat_file.readline()
             except (ProcessLookupError, FileNotFoundError):
                 logger.warning('Unable to read stat for process %s', self.pid)
-                return
+                return None
         if parsed:
             return _stat[_stat.rfind(")") + 1:].split()
         return _stat
@@ -70,6 +70,7 @@ class Process(object):
         _stat = self.get_stat(parsed=False)
         if _stat:
             return _stat[_stat.find("(") + 1:_stat.rfind(")")]
+        return None
 
     @property
     def state(self):
@@ -81,6 +82,7 @@ class Process(object):
         _stat = self.get_stat()
         if _stat:
             return _stat[0]
+        return None
 
     @property
     def ppid(self):
@@ -88,6 +90,7 @@ class Process(object):
         _stat = self.get_stat()
         if _stat:
             return _stat[1]
+        return None
 
     @property
     def pgrp(self):
@@ -95,6 +98,7 @@ class Process(object):
         _stat = self.get_stat()
         if _stat:
             return _stat[2]
+        return None
 
     @property
     def cmdline(self):

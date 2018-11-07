@@ -41,7 +41,7 @@ IGNORED_CATEGORIES = (
 def mark_as_installed(appid, runner_name, game_info):
     for key in ['name', 'slug']:
         assert game_info[key]
-    logger.info("Setting %s as installed" % game_info['name'])
+    logger.info("Setting %s as installed", game_info['name'])
     config_id = (game_info.get('config_path') or make_game_config_id(game_info['slug']))
     game_id = pga.add_or_update(
         name=game_info['name'],
@@ -69,11 +69,8 @@ def mark_as_installed(appid, runner_name, game_info):
 
 
 def mark_as_uninstalled(game_info):
-    logger.info('Uninstalling %s' % game_info['name'])
-    return pga.add_or_update(
-        id=game_info['id'],
-        installed=0
-    )
+    logger.info('Uninstalling %s', game_info['name'])
+    return pga.add_or_update(id=game_info['id'], installed=0)
 
 
 def sync_with_lutris():
@@ -88,10 +85,10 @@ def sync_with_lutris():
     for name, appid, exe, args in get_games():
         slug = slugify(name) or slugify(appid)
         if not all([name, slug, appid]):
-            logger.error("Failed to load desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
+            logger.error("Failed to load desktop game \"%s\" (app: %s, slug: %s)", name, appid, slug)
             continue
         else:
-            logger.info("Found desktop game \"{}\" (app: {}, slug: {})".format(name, appid, slug))
+            logger.info("Found desktop game \"%s\" (app: %s, slug: %s)", name, appid, slug)
         seen.add(slug)
 
         if slug not in desktop_games.keys():
@@ -131,8 +128,6 @@ def get_games():
         except UnicodeDecodeError:
             logger.error("Failed to read ID for app %s (non UTF-8 encoding). Reverting to executable name.", app)
             appid = app.get_executable()
-        exe = None
-        args = []
 
         # must be in Game category
         categories = app.get_categories()
@@ -143,11 +138,12 @@ def get_games():
             continue
 
         # contains a blacklisted category
-        ok = True
+        has_blacklisted = False
         for category in categories:
             if category in map(str.lower, IGNORED_CATEGORIES):
-                ok = False
-        if not ok:
+                has_blacklisted = True
+                break
+        if has_blacklisted:
             continue
 
         # game is blacklisted

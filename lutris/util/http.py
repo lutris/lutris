@@ -10,9 +10,9 @@ from lutris.settings import SITE_URL, VERSION, PROJECT
 from lutris.util.log import logger
 
 
-class Request(object):
+class Request:
     def __init__(self, url, timeout=30, stop_request=None,
-                 thread_queue=None, headers={}, cookies=None):
+                 thread_queue=None, headers=None, cookies=None):
 
         if not url:
             raise ValueError('An URL is required!')
@@ -34,6 +34,8 @@ class Request(object):
             'User-Agent': self.user_agent
         }
         self.response_headers = None
+        if headers is None:
+            headers = {}
         if not isinstance(headers, dict):
             raise TypeError('HTTP headers needs to be a dict ({})'.format(headers))
         self.headers.update(headers)
@@ -50,21 +52,26 @@ class Request(object):
                                       platform.machine())
 
     def get(self, data=None):
+        logger.debug("GET %s", self.url)
         req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
             else:
                 request = urllib.request.urlopen(req, timeout=self.timeout)
-        except (urllib.error.HTTPError, CertificateError) as e:
-            logger.error("Unavailable url (%s): %s", self.url, e)
-        except (socket.timeout, urllib.error.URLError) as e:
-            logger.error("Unable to connect to server (%s): %s", self.url, e)
+        except (urllib.error.HTTPError, CertificateError) as error:
+            logger.error("Unavailable url (%s): %s", self.url, error)
+        except (socket.timeout, urllib.error.URLError) as error:
+            logger.error("Unable to connect to server (%s): %s", self.url, error)
         else:
+            # Response code is available with getcode but should 200 if there
+            # is no exception
+            # logger.debug("Got response code: %s", request.getcode())
             try:
                 total_size = request.info().get('Content-Length').strip()
                 total_size = int(total_size)
             except AttributeError:
+                logger.warning("Failed to read response's content length")
                 total_size = 0
 
             self.response_headers = request.getheaders()
@@ -76,7 +83,7 @@ class Request(object):
                     return self
                 try:
                     chunk = request.read(self.buffer_size)
-                except socket.timeout as e:
+                except socket.timeout:
                     logger.error("Request timed out")
                     self.content = ''
                     return self
@@ -112,8 +119,10 @@ class Request(object):
                 raise ValueError("Invalid response ({}:{}): {}".format(
                     self.url, self.status_code, self.text[:80]
                 ))
+        return None
 
     @property
     def text(self):
         if self.content:
             return self.content.decode()
+        return None

@@ -18,7 +18,7 @@ DIALOG_WIDTH = 780
 DIALOG_HEIGHT = 560
 
 
-class GameDialogCommon(object):
+class GameDialogCommon:
     no_runner_label = "Select a runner in the Game Info tab"
 
     @staticmethod
@@ -82,9 +82,9 @@ class GameDialogCommon(object):
         self.slug_entry.connect('activate', self.on_slug_entry_activate)
         box.pack_start(self.slug_entry, True, True, 0)
 
-        slug_change_button = Gtk.Button("Change")
-        slug_change_button.connect('clicked', self.on_slug_change_clicked)
-        box.pack_start(slug_change_button, False, False, 20)
+        self.slug_change_button = Gtk.Button("Change")
+        self.slug_change_button.connect('clicked', self.on_slug_change_clicked)
+        box.pack_start(self.slug_change_button, False, False, 20)
 
         return box
 
@@ -196,6 +196,7 @@ class GameDialogCommon(object):
 
     def on_slug_change_clicked(self, widget):
         if self.slug_entry.get_sensitive() is False:
+            widget.set_label("Apply")
             self.slug_entry.set_sensitive(True)
         else:
             self.change_game_slug()
@@ -206,6 +207,7 @@ class GameDialogCommon(object):
     def change_game_slug(self):
         self.slug = self.slug_entry.get_text()
         self.slug_entry.set_sensitive(False)
+        self.slug_change_button.set_label("Change")
 
     def on_install_runners_clicked(self, _button):
         runners_dialog = gui.runnersdialog.RunnersDialog()
@@ -335,6 +337,9 @@ class GameDialogCommon(object):
             return False
         if not name:
             ErrorDialog("Please fill in the name")
+            return False
+        if self.runner_name in ('steam', 'winesteam') and self.lutris_config.game_config.get('appid') is None:
+            ErrorDialog("Steam AppId not provided")
             return False
         return True
 

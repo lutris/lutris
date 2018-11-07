@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runner for the Steam platform"""
 import os
 import time
@@ -15,16 +14,16 @@ from lutris.util.log import logger
 from lutris.util.steam import get_app_state_log, read_config
 from lutris.services.steam import get_path_from_appmanifest
 from lutris.util.wineregistry import WineRegistry
-
-# Redefine wine installer tasks
-set_regedit = wine.set_regedit
-set_regedit_file = wine.set_regedit_file
-delete_registry_key = wine.delete_registry_key
-create_prefix = wine.create_prefix
-wineexec = wine.wineexec
-winetricks = wine.winetricks
-winecfg = wine.winecfg
-winekill = wine.winekill
+from lutris.runners.commands.wine import (  # pylint: disable=unused-import
+    set_regedit,
+    set_regedit_file,
+    delete_registry_key,
+    create_prefix,
+    wineexec,
+    winetricks,
+    winecfg,
+    winekill
+)
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
@@ -39,8 +38,7 @@ def is_running():
         # If process is defunct, don't consider it as running
         process = Process(pid)
         return process.state != 'Z'
-    else:
-        return False
+    return False
 
 
 def kill():
@@ -70,7 +68,7 @@ class winesteam(wine.wine):
             'option': 'args',
             'type': 'string',
             'label': 'Arguments',
-            'help': ("Command line arguments used when launching the game")
+            'help': "Command line arguments used when launching the game"
         },
         {
             'option': 'prefix',
@@ -105,7 +103,7 @@ class winesteam(wine.wine):
             'type': 'file',
             'label': 'Steamless binary',
             'advanced': True,
-            'help': ("Steamless binary for running the game directly")
+            'help': "Steamless binary for running the game directly"
         },
     ]
 
@@ -128,7 +126,7 @@ class winesteam(wine.wine):
                 'label': "Stop Steam after game exits",
                 'type': 'bool',
                 'default': True,
-                'help': ("Shut down Steam after the game has quit.")
+                'help': "Shut down Steam after the game has quit."
             },
             {
                 'option': 'run_without_steam',
@@ -192,7 +190,7 @@ class winesteam(wine.wine):
     @property
     def game_path(self):
         if not self.appid:
-            return
+            return None
         return self.get_game_path_from_appid(self.appid)
 
     @property
@@ -200,16 +198,14 @@ class winesteam(wine.wine):
         """Return the working directory to use when running the game."""
         if self.runner_config['run_without_steam']:
             steamless_binary = self.game_config.get('steamless_binary')
-            if (os.path.isfile(steamless_binary)):
+            if steamless_binary and os.path.isfile(steamless_binary):
                 return os.path.dirname(steamless_binary)
         return os.path.expanduser("~/")
 
     @property
     def launch_args(self):
-        args = [self.get_executable(), self.get_steam_path()]
-
         # Try to fix Steam's browser. Never worked but it's supposed to...
-        args.append('-no-cef-sandbox')
+        args = [self.get_executable(), self.get_steam_path(), '-no-cef-sandbox', '-console']
 
         steam_args = self.runner_config.get('args') or ''
         if steam_args:
@@ -218,13 +214,14 @@ class winesteam(wine.wine):
 
         return args
 
-    def get_open_command(self, registry):
+    @staticmethod
+    def get_open_command(registry):
         """Return Steam's Open command, useful for locating steam when it has
            been installed but not yet launched"""
         value = registry.query("Software/Classes/steam/Shell/Open/Command",
                                "default")
         if not value:
-            return
+            return None
         parts = value.split("\"")
         return parts[1].strip('\\')
 
@@ -232,7 +229,7 @@ class winesteam(wine.wine):
         """Return the "Steam" part of Steam's config.vfd as a dict"""
         steam_data_dir = self.steam_data_dir
         if not steam_data_dir:
-            return
+            return None
         return read_config(steam_data_dir)
 
     @property
@@ -249,7 +246,7 @@ class winesteam(wine.wine):
         custom_path = self.runner_config.get('steam_path') or ''
         if custom_path:
             custom_path = os.path.abspath(os.path.expanduser(os.path.join(custom_path, 'Steam.exe')))
-            if os.path.exists(custom_path):
+            if system.path_exists(custom_path):
                 return custom_path
 
         candidates = [
@@ -260,16 +257,16 @@ class winesteam(wine.wine):
         for prefix in candidates:
             # Try the default install path
             for default_path in [
-                "drive_c/Program Files (x86)/Steam/Steam.exe",
-                "drive_c/Program Files/Steam/Steam.exe",
+                    "drive_c/Program Files (x86)/Steam/Steam.exe",
+                    "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
-                if os.path.exists(steam_path):
+                if system.path_exists(steam_path):
                     return steam_path
 
             # Try from the registry key
             user_reg = os.path.join(prefix, "user.reg")
-            if not os.path.exists(user_reg):
+            if not system.path_exists(user_reg):
                 continue
             registry = WineRegistry(user_reg)
             steam_path = registry.query("Software/Valve/Steam", "SteamExe")
@@ -314,7 +311,7 @@ class winesteam(wine.wine):
             logger.warning('wine is not installed')
             return False
         steam_path = self.get_steam_path()
-        if not os.path.exists(self.get_default_prefix()):
+        if not system.path_exists(self.get_default_prefix()):
             return False
         return system.path_exists(steam_path)
 
@@ -347,7 +344,7 @@ class winesteam(wine.wine):
         steam_config = self.get_steam_config()
         if steam_config:
             i = 1
-            while ('BaseInstallFolder_%s' % i) in steam_config:
+            while 'BaseInstallFolder_%s' % i in steam_config:
                 path = steam_config['BaseInstallFolder_%s' % i] + '/steamapps'
                 linux_path = self.parse_wine_path(path, self.prefix_path)
                 linux_path = system.fix_path_case(linux_path)
@@ -367,7 +364,7 @@ class winesteam(wine.wine):
             arch = self.default_arch
         wine_path = self.get_executable()
 
-        if not os.path.exists(os.path.dirname(prefix_dir)):
+        if not system.path_exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
 
@@ -380,7 +377,7 @@ class winesteam(wine.wine):
         if not arch or arch == 'auto':
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
-        if not os.path.exists(prefix):
+        if not system.path_exists(prefix):
             self.create_prefix(prefix, arch=arch)
         return prefix
 
@@ -423,8 +420,7 @@ class winesteam(wine.wine):
         self.game_launch_time = time.localtime()
         game_args = self.game_config.get('args') or ''
 
-        launch_info = {}
-        launch_info['env'] = self.get_env(os_env=False)
+        launch_info = {'env': self.get_env(os_env=False)}
 
         if self.runner_config.get('x360ce-path'):
             self.setup_x360ce(self.runner_config['x360ce-path'])
@@ -432,7 +428,7 @@ class winesteam(wine.wine):
         steamless_binary = self.game_config.get('steamless_binary')
         if self.runner_config['run_without_steam'] and steamless_binary:
             # Start without steam
-            if not os.path.exists(steamless_binary):
+            if not system.path_exists(steamless_binary):
                 return {'error': 'FILE_NOT_FOUND', 'file': steamless_binary}
             command = [self.get_executable()]
             runner_args = self.runner_config.get('args') or ''

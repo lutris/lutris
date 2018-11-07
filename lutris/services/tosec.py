@@ -167,7 +167,7 @@ class TOSEC:
                 'AND md5 = ? AND sha1 = ?',
                 rom_info
             )
-            for row in rom_rows:
+            for _ in rom_rows:
                 rom_exists = True
             if not rom_exists:
                 rom_info.append(game_id)
@@ -189,8 +189,8 @@ class TOSEC:
         return True
 
     def get_rom_id(self, rom):
-        input = open(rom, "rb")
-        data = input.read()
+        opened_rom = open(rom, "rb")
+        data = opened_rom.read()
 
         md5 = hashlib.md5(data).hexdigest()
         sha1 = hashlib.sha1(data).hexdigest()
@@ -260,23 +260,23 @@ def get_games_from_words(words):
         else:
             if word == "(":
                 # Add a new depth in the dictionaries tree
-                dict = game
+                dict_game = game
                 for element in path.split(" "):
                     if element != "":
-                        dict = dict[element]
-                dict[tag] = {}
+                        dict_game = dict_game[element]
+                dict_game[tag] = {}
                 if path == "":
                     path = tag
                 else:
                     path = path + " " + tag
             else:
-                dict = game
+                dict_game = game
                 for element in path.split(" "):
-                    dict = dict[element]
-                dict[tag] = word
+                    dict_game = dict_game[element]
+                dict_game[tag] = word
             tag = None
 
-    return (clrmamepro, games)
+    return clrmamepro, games
 
 
 def split_game_title(game):
@@ -294,7 +294,7 @@ def split_game_title(game):
         title = result.group(1)
         game_flags = result.group(2)
         rom_flags = result.group(3)
-    return (title, game_flags, rom_flags)
+    return title, game_flags, rom_flags
 
 
 def datefromiso(isoformat):

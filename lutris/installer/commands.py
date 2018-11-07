@@ -14,6 +14,7 @@ from lutris import runtime
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
+from lutris.util.wine import get_wine_version_exe
 from lutris.util import selective_merge
 
 from lutris.runners import wine, import_task
@@ -263,6 +264,10 @@ class CommandsMixin:
             return
         self._killable_process(system.merge_folders, src, dst)
 
+    def copy(self, params):
+        """Alias for merge"""
+        self.merge(params)
+
     def move(self, params):
         """Move a file or directory into a destination folder."""
         self._check_required_params(['src', 'dst'], params, 'move')
@@ -330,7 +335,7 @@ class CommandsMixin:
         dst = self._substitute(dst_ref)
         if not dst:
             raise ScriptingError("Wrong value for 'dst' param", dst_ref)
-        return (src.rstrip('/'), dst.rstrip('/'))
+        return src.rstrip('/'), dst.rstrip('/')
 
     def substitute_vars(self, data):
         """Subsitute variable names found in given file."""
@@ -372,7 +377,7 @@ class CommandsMixin:
         if runner_name.startswith('wine'):
             wine_version = self._get_runner_version()
             if wine_version:
-                data['wine_path'] = wine.get_wine_version_exe(wine_version)
+                data['wine_path'] = get_wine_version_exe(wine_version)
 
         for key in data:
             value = data[key]

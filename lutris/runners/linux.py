@@ -3,6 +3,7 @@ import os
 import shlex
 import stat
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class linux(Runner):
@@ -37,7 +38,7 @@ class linux(Runner):
             "type": "file",
             "label": "Preload library",
             'advanced': True,
-            'help': ("A library to load before running the game's executable.")
+            'help': "A library to load before running the game's executable."
         },
         {
             "option": "ld_library_path",
@@ -86,8 +87,7 @@ class linux(Runner):
             return os.path.expanduser(option)
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        else:
-            return super(linux, self).working_dir
+        return super(linux, self).working_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""
@@ -97,7 +97,7 @@ class linux(Runner):
         """Run native game."""
         launch_info = {}
 
-        if not self.game_exe or not os.path.exists(self.game_exe):
+        if not self.game_exe or not system.path_exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         # Quit if the file is not executable
@@ -105,7 +105,7 @@ class linux(Runner):
         if not mode & stat.S_IXUSR:
             return {'error': 'NOT_EXECUTABLE', 'file': self.game_exe}
 
-        if not os.path.exists(self.game_exe):
+        if not system.path_exists(self.game_exe):
             return {'error': 'FILE_NOT_FOUND', 'file': self.game_exe}
 
         ld_preload = self.game_config.get('ld_preload')

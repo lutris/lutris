@@ -51,8 +51,8 @@ def get_icon(icon_name, format='image', size=None, icon_type='runner'):
     filename = icon_name.lower().replace(' ', '') + '.png'
     icon_path = os.path.join(datapath.get(), 'media/' + icon_type + '_icons', filename)
     if not os.path.exists(icon_path):
-        # The icon doesn't exist, so return nothing.
-        return
+        logger.error("Unable to find icon '%s'", icon_path)
+        return None
     if format == 'image':
         icon = Gtk.Image()
         icon.set_from_file(icon_path)
@@ -83,7 +83,7 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
         icon_path = datapath.get_icon_path(game_slug)
     else:
         logger.error("Invalid icon type '%s'", icon_type)
-        return
+        return None
 
     size = IMAGE_SIZES[icon_type]
 
@@ -94,5 +94,3 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
                          0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 100)
         return transparent_pixbuf
     return pixbuf
-
-

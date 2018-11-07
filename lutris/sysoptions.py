@@ -6,6 +6,44 @@ from lutris import runners
 # from lutris.util.log import logger
 from lutris.util import display, system
 
+DISPLAYS = None
+
+def get_displays():
+    global DISPLAYS
+    if not DISPLAYS:
+        DISPLAYS = display.get_output_names()
+    return DISPLAYS
+
+
+def get_resolution_choices():
+    resolutions = display.get_resolutions()
+    resolution_choices = list(zip(resolutions, resolutions))
+    resolution_choices.insert(0, ("Keep current", 'off'))
+    return resolution_choices
+
+
+def get_output_choices():
+    displays = get_displays()
+    output_choices = list(zip(displays, displays))
+    output_choices.insert(0, ("Off", 'off'))
+    return output_choices
+
+
+def get_output_list():
+    choices = [
+        ('Off', 'off'),
+    ]
+    displays = get_displays()
+    for index, _ in enumerate(displays):
+        # Display name can't be used because they might not be in the right order
+        # Using DISPLAYS to get the number of connected monitors
+        choices.append(("Monitor {}".format(index + 1), str(index)))
+    return choices
+
+
+def get_dri_prime():
+    return len(display.get_providers()) > 1
+
 
 def get_optirun_choices():
     choices = [('Off', 'off')]
@@ -16,7 +54,7 @@ def get_optirun_choices():
     return choices
 
 
-system_options = [
+system_options = [  # pylint: disable=invalid-name
     {
         'option': 'game_path',
         'type': 'directory_chooser',
@@ -63,6 +101,14 @@ system_options = [
                  "activating your NVIDIA graphic chip for high 3D "
                  "performance. primusrun normally has better performance, but"
                  "optirun/virtualgl works better for more games.")
+    },
+    {
+        'option': 'gamemode',
+        'type': 'bool',
+        'default': bool(system.GAMEMODE_PATH),
+        'condition': bool(system.GAMEMODE_PATH),
+        'label': 'Enable Feral gamemode',
+        'help': 'Request a set of optimisations be temporarily applied to the host OS'
     },
     {
         'option': 'dri_prime',
@@ -138,6 +184,27 @@ system_options = [
         'advanced': True,
         'help': ("Command line instructions to add in front of the game's "
                  "execution command.")
+    },
+    {
+        'option': 'ondemand_command',
+        'type': 'file',
+        'label': 'On-demand command',
+        'advanced': True,
+        'help': ("Script to execute from the game's contextual menu")
+    },
+    {
+        'option': 'prelaunch_command',
+        'type': 'file',
+        'label': 'Pre-launch command',
+        'advanced': True,
+        'help': "Script to execute before the game starts"
+    },
+    {
+        'option': 'postexit_command',
+        'type': 'file',
+        'label': 'Post-exit command',
+        'advanced': True,
+        'help': "Script to execute when the game exits"
     },
     {
         'option': 'include_processes',
@@ -265,7 +332,8 @@ system_options = [
         'choices': (
             ('Off', 'off'),
             ('8BPP (256 colors)', '8bpp'),
-            ('16BPP (65536 colors)', '16bpp')
+            ('16BPP (65536 colors)', '16bpp'),
+            ('24BPP (16M colors)', '24bpp'),
         ),
         'default': 'off',
         'advanced': True,

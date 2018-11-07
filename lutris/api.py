@@ -1,3 +1,4 @@
+"""Functions to interact with the Lutris REST API"""
 import os
 import re
 import json
@@ -7,7 +8,7 @@ import urllib.error
 import socket
 
 from lutris import settings
-from lutris.util import http
+from lutris.util import http, system
 from lutris.util.log import logger
 
 
@@ -15,8 +16,8 @@ API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, 'auth-token')
 
 
 def read_api_key():
-    if not os.path.exists(API_KEY_FILE_PATH):
-        return
+    if not system.path_exists(API_KEY_FILE_PATH):
+        return None
     with open(API_KEY_FILE_PATH, 'r') as token_file:
         api_string = token_file.read()
     username, token = api_string.split(":")
@@ -45,7 +46,7 @@ def connect(username, password):
 
 
 def disconnect():
-    if not os.path.exists(API_KEY_FILE_PATH):
+    if not system.path_exists(API_KEY_FILE_PATH):
         return
     os.remove(API_KEY_FILE_PATH)
 
@@ -65,8 +66,7 @@ def get_library():
     response_data = response.json
     if response_data:
         return response_data['games']
-    else:
-        return []
+    return []
 
 
 def get_runners(runner_name):
@@ -75,7 +75,8 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_games(game_slugs=None, page=1):
+def get_game_api_page(game_slugs, page):
+    """Read a single page of games from the API and return the response"""
     url = settings.SITE_URL + "/api/games"
 
     if int(page) > 1:
@@ -88,24 +89,30 @@ def get_games(game_slugs=None, page=1):
         payload = None
     response.get(data=payload)
     response_data = response.json
+    logger.info("Loaded %s games from page %s",
+                len(response_data.get('results')), page)
 
     if not response_data:
         logger.warning('Unable to get games from API')
         return None
+    return response_data
 
+
+def get_games(game_slugs=None, page='1'):
+    response_data = get_game_api_page(game_slugs, page)
     results = response_data.get('results', [])
     while response_data.get('next'):
         page_match = re.search(r'page=(\d+)', response_data['next'])
         if page_match:
-            page = page_match.group(1)
+            next_page = page_match.group(1)
         else:
             logger.error("No page found in %s", response_data['next'])
             break
-        page_result = get_games(game_slugs=game_slugs, page=page)
-        if not page_result:
-            logger.warning("Unable to get response for page %s", page)
+        logger.debug("Current page is %s, next page is %s", page, next_page)
+        response_data = get_game_api_page(game_slugs=game_slugs, page=next_page)
+        if not response_data.get('results'):
+            logger.warning("Unable to get response for page %s", next_page)
             break
         else:
-            results += page_result
-
+            results += response_data.get('results')
     return results

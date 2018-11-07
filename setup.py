@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import sys
 from setuptools import setup
@@ -26,8 +26,8 @@ setup(
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
     packages=['lutris', 'lutris.gui', 'lutris.gui.widgets', 'lutris.util',
-              'lutris.runners', 'lutris.services', 'lutris.installer',
-              'lutris.migrations'],
+              'lutris.runners', 'lutris.runners.commands', 'lutris.services',
+              'lutris.installer', 'lutris.migrations'],
     scripts=['bin/lutris'],
     data_files=data_files,
     zip_safe=False,

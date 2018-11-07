@@ -1,9 +1,9 @@
-import os
 import subprocess
 from lutris.runners.runner import Runner
 from lutris.util.display import get_current_resolution
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
+from lutris.util import system
 
 
 class mednafen(Runner):
@@ -58,7 +58,7 @@ class mednafen(Runner):
             "type": "choice",
             "label": "Machine type",
             "choices": machine_choices,
-            'help': ("The emulated machine.")
+            'help': "The emulated machine."
         }
     ]
     runner_options = [
@@ -144,11 +144,12 @@ class mednafen(Runner):
         for joy in joy_list:
             index = joy.find("Unique ID:")
             joy_id = joy[index + 11:]
-            logger.debug('Joystick found id %s ' % joy_id)
+            logger.debug('Joystick found id %s ', joy_id)
             joy_ids.append(joy_id)
         return joy_ids
 
-    def set_joystick_controls(self, joy_ids, machine):
+    @staticmethod
+    def set_joystick_controls(joy_ids, machine):
         """ Setup joystick mappings per machine """
 
         # Get the controller mappings
@@ -329,12 +330,12 @@ class mednafen(Runner):
                    "-" + machine + ".videoip", "1"]
         joy_ids = self.find_joysticks()
         dont_map_controllers = self.runner_config.get('dont_map_controllers')
-        if (len(joy_ids) > 0) and not dont_map_controllers:
+        if joy_ids and not dont_map_controllers:
             controls = self.set_joystick_controls(joy_ids, machine)
             for control in controls:
                 options.append(control)
 
-        if not os.path.exists(rom):
+        if not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
 
         command = [self.get_executable()]

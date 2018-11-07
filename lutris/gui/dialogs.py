@@ -169,7 +169,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
         Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
         self.connect("delete-event", lambda *x: self.destroy())
 
-        self.action = None
+        self.action = "play"
         self.action_confirmed = False
 
         self.set_size_request(320, 120)
@@ -193,9 +193,11 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.run()
 
     def on_button_toggled(self, button, action):
+        logger.debug("Action set to %s", action)
         self.action = action
 
     def on_confirm(self, button):
+        logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
         self.destroy()
 
@@ -230,8 +232,8 @@ class PgaSourceDialog(GtkBuilderDialog):
     glade_file = 'dialog-pga-sources.ui'
     dialog_object = 'pga_dialog'
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super(PgaSourceDialog, self).__init__(parent=parent)
 
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
@@ -315,7 +317,7 @@ class ClientLoginDialog(GtkBuilderDialog):
     def get_credentials(self):
         username = self.username_entry.get_text()
         password = self.password_entry.get_text()
-        return (username, password)
+        return username, password
 
     def on_username_entry_activate(self, widget):
         if all(self.get_credentials()):
@@ -343,7 +345,8 @@ class ClientUpdateDialog(GtkBuilderDialog):
     glade_file = 'dialog-client-update.ui'
     dialog_object = "client_update_dialog"
 
-    def on_open_downloads_clicked(self, _widget):
+    @staticmethod
+    def on_open_downloads_clicked(_widget):
         open_uri("http://lutris.net")
 
 
@@ -426,7 +429,7 @@ class InstallerSourceDialog(Gtk.Dialog):
 
 class DontShowAgainDialog(Gtk.MessageDialog):
     """Display a message to the user and offer an option not to display this dialog again."""
-    def __init__(self, setting, message, secondary_message=None, parent=None):
+    def __init__(self, setting, message, secondary_message=None, parent=None, checkbox_message=None):
         super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         if settings.read_setting(setting) == 'True':
@@ -440,7 +443,10 @@ class DontShowAgainDialog(Gtk.MessageDialog):
             self.props.secondary_use_markup = True
             self.props.secondary_text = secondary_message
 
-        dont_show_checkbutton = Gtk.CheckButton("Do not display this message again.")
+        if not checkbox_message:
+            checkbox_message = "Do not display this message again."
+
+        dont_show_checkbutton = Gtk.CheckButton(checkbox_message)
         dont_show_checkbutton.props.halign = Gtk.Align.CENTER
         dont_show_checkbutton.show()
 
@@ -451,3 +457,18 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         if dont_show_checkbutton.get_active():
             settings.write_setting(setting, True)
         self.destroy()
+
+
+class WineNotInstalledWarning(DontShowAgainDialog):
+    """Display a warning if Wine is not detected on the system"""
+    def __init__(self, parent=None):
+        super().__init__(
+            'hide-wine-systemwide-install-warning',
+            "Wine is not installed on your system.",
+            secondary_message="Having Wine installed on your system guarantees that "
+            "Wine builds from Lutris will have all required dependencies.\n\nPlease "
+            "follow the instructions given in the <a "
+            "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+            "install Wine.",
+            parent=parent
+        )

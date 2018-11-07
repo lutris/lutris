@@ -1,10 +1,11 @@
 """Handle the game, runner and global system configurations."""
 
 import os
+from os.path import join
 import sys
 import time
 import yaml
-from os.path import join
+
 
 from gi.repository import Gio
 
@@ -68,12 +69,14 @@ def read_yaml_from_file(filename):
     """Read filename and return parsed yaml"""
     if not path_exists(filename):
         return {}
-    try:
-        content = open(filename, 'r').read()
-        yaml_content = yaml.load(content) or {}
-    except (yaml.scanner.ScannerError, yaml.parser.ParserError):
-        logger.error("error parsing file %s", filename)
-        yaml_content = {}
+
+    with open(filename, 'r') as yaml_file:
+        try:
+            yaml_content = yaml.safe_load(yaml_file) or {}
+        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
+            logger.error("error parsing file %s", filename)
+            yaml_content = {}
+
     return yaml_content
 
 
@@ -85,7 +88,7 @@ def write_yaml_to_file(filepath, config):
         filehandler.write(yaml_config)
 
 
-class LutrisConfig(object):
+class LutrisConfig:
     """Class where all the configuration handling happens.
 
     Description
@@ -177,14 +180,14 @@ class LutrisConfig(object):
     @property
     def runner_config_path(self):
         if not self.runner_slug:
-            return
+            return None
         return os.path.join(settings.CONFIG_DIR, "runners/%s.yml" %
                             self.runner_slug)
 
     @property
     def game_config_path(self):
         if not self.game_config_id or self.game_config_id == TEMP_CONFIG:
-            return
+            return None
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" %
                             self.game_config_id)
 
@@ -236,7 +239,7 @@ class LutrisConfig(object):
 
         self.raw_config = raw_config
 
-    def remove(self, game=None):
+    def remove(self):
         """Delete the configuration file from disk."""
         if path_exists(self.game_config_path):
             os.remove(self.game_config_path)
@@ -272,14 +275,13 @@ class LutrisConfig(object):
 
     def options_as_dict(self, options_type):
         """Convert the option list to a dict with option name as keys"""
-        options = {}
         if options_type == 'system':
             options = (sysoptions.with_runner_overrides(self.runner_slug)
                        if self.runner_slug
                        else sysoptions.system_options)
         else:
             if not self.runner_slug:
-                return
+                return None
             attribute_name = options_type + '_options'
 
             try:

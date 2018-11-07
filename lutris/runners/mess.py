@@ -2,6 +2,7 @@ import os
 from lutris import settings
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class mess(Runner):
@@ -128,14 +129,14 @@ class mess(Runner):
             'option': 'main_file',
             'type': 'file',
             'label': 'ROM file',
-            'help': ("The game data, commonly called a ROM image.")
+            'help': "The game data, commonly called a ROM image."
         },
         {
             'option': 'machine',
             'type': 'choice_with_entry',
             'label': "Machine",
             'choices': machine_choices,
-            'help': ("The emulated machine.")
+            'help': "The emulated machine."
         },
         {
             'option': 'device',
@@ -217,17 +218,17 @@ class mess(Runner):
 
     def play(self):
         rompath = self.runner_config.get('rompath') or ''
-        if not os.path.exists(rompath):
+        if not system.path_exists(rompath):
             logger.warning("BIOS path provided in %s doesn't exist", rompath)
             rompath = os.path.join(settings.RUNNER_DIR, "mess/bios")
-        if not os.path.exists(rompath):
+        if not system.path_exists(rompath):
             logger.error("Couldn't find %s", rompath)
             return {'error': 'NO_BIOS'}
         machine = self.game_config.get('machine')
         if not machine:
             return {'error': 'INCOMPLETE_CONFIG'}
         rom = self.game_config.get('main_file') or ''
-        if rom and not os.path.exists(rom):
+        if rom and not system.path_exists(rom):
             return {'error': 'FILE_NOT_FOUND', 'file': rom}
         device = self.game_config.get('device')
         command = [self.get_executable()]

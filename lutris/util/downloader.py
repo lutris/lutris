@@ -6,7 +6,7 @@ from lutris.util import http, jobs
 from lutris.util.log import logger
 
 
-class Downloader():
+class Downloader:
     """Non-blocking downloader.
 
     Do start() then check_progress() at regular intervals.
@@ -47,14 +47,13 @@ class Downloader():
 
     def start(self):
         """Start download job."""
-        logger.debug("Starting download of:\n " + self.url)
+        logger.debug("Starting download of:\n %s", self.url)
         self.state = self.DOWNLOADING
         self.last_check_time = time.time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, 'wb')
-        self.thread = jobs.AsyncCall(self.async_download, self.on_done,
-                                     self.url, self.queue)
+        self.thread = jobs.AsyncCall(self.async_download, self.on_done, self.url, self.queue)
         self.stop_request = self.thread.stop_request
 
     def check_progress(self):
@@ -90,11 +89,11 @@ class Downloader():
             self.file_pointer.close()
             return
 
-        logger.debug("Download finished")
+        logger.debug("Finished downloading %s", self.url)
         while self.queue.qsize():
             self.check_progress()
         if not self.downloaded_size:
-            logger.debug("Downloaded file is empty")
+            logger.warning("Downloaded file is empty")
 
         if not self.full_size:
             self.progress_fraction = 1.0
@@ -180,7 +179,7 @@ class Downloader():
         average_time_left = (
             (self.full_size - self.downloaded_size) / self.average_speed
         )
-        m, s = divmod(average_time_left, 60)
-        h, m = divmod(m, 60)
+        minutes, seconds = divmod(average_time_left, 60)
+        hours, minutes = divmod(minutes, 60)
         self.time_left_check_time = time.time()
-        return '%d:%02d:%02d' % (h, m, s)
+        return '%d:%02d:%02d' % (hours, minutes, seconds)

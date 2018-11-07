@@ -1,3 +1,5 @@
+"""Module to deal with various aspects of displays"""
+import os
 import re
 import subprocess
 import time
@@ -16,14 +18,17 @@ XRANDR_CACHE = None
 XRANDR_CACHE_SET_AT = None
 XGAMMA_FOUND = None
 
-def cached(function):
+
+def cached(func):
+    """Something that does not belong here"""
     def wrapper():
-        global XRANDR_CACHE
-        global XRANDR_CACHE_SET_AT
+        """What does it feel being WRONG"""
+        global XRANDR_CACHE  # Fucked up shit
+        global XRANDR_CACHE_SET_AT  # Moar fucked up globals
 
         if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
             return XRANDR_CACHE
-        XRANDR_CACHE = function()
+        XRANDR_CACHE = func()
         XRANDR_CACHE_SET_AT = time.time()
         return XRANDR_CACHE
     return wrapper
@@ -43,10 +48,9 @@ def get_outputs():
     """Return list of namedtuples containing output 'name', 'geometry', 'rotation' and wether it is the 'primary' display."""
     outputs = []
     vid_modes = get_vidmodes()
-    position=None
-    rotate=None
-    primary=None
-    name=None
+    display = None
+    position = None
+    rotate = None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
@@ -68,16 +72,16 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                rotate = 'normal'
-            geom_parts = geom.split('+')
-            position=geom_parts[1] + "x" + geom_parts[2]
-            name=parts[0]
+                rotate = "normal"
+            geo_split = geom.split('+')
+            position = geo_split[1] + "x" + geo_split[2]
+            display = parts[0]
         elif '*' in line:
-            mode=parts[0]
+            mode = parts[0]
             for number in parts:
                 if '*' in number:
-                    hertz=number[:5]
-                    outputs.append(Output(name=name, mode=mode, position=position, rotation=rotate, primary=primary, rate=hertz))
+                    refresh_rate = number[:5]
+                    outputs.append((display, mode, position, rotate, refresh_rate))
     return outputs
 
 def get_output_names():
@@ -144,23 +148,23 @@ def change_resolution(resolution):
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
-            logger.debug("Switching to %s on %s", display.mode, display.name)
+            display_name = display[0]
+            display_mode = display[1]
+            logger.debug("Switching to %s on %s", display_mode, display_name)
+            position = display[2]
+            refresh_rate = display[4]
 
-            if (
-                display.rotation is not None and
-                display.rotation in ('normal', 'left', 'right', 'inverted')
-            ):
-                rotation = display.rotation
+            if len(display) > 2 and display[3] in ('normal', 'left', 'right', 'inverted'):
+                rotation = display[3]
             else:
                 rotation = "normal"
-            logger.info("Switching resolution of %s to %s", display.name, display.mode)
             subprocess.Popen([
                 "xrandr",
-                "--output", display.name,
-                "--mode", display.mode,
-                "--pos", display.position,
+                "--output", display_name,
+                "--mode", display_mode,
+                "--pos", position,
                 "--rotate", rotation,
-                "--rate", display.rate
+                "--rate", refresh_rate
             ]).communicate()
 
 
@@ -207,25 +211,6 @@ def get_graphics_adapaters():
             if 'VGA' in line
         ]
     ]
-
-
-def get_providers():
-    """Return the list of available graphic cards"""
-    pattern = "name:"
-    providers = []
-    version = get_xrandr_version()
-
-    if version["major"] == 1 and version["minor"] >= 4:
-        logger.debug("Retrieving providers from XrandR")
-        xrandr_output = subprocess.Popen(["xrandr", "--listproviders"],
-                                         stdout=subprocess.PIPE).communicate()[0].decode()
-        for line in xrandr_output.split("\n"):
-            if line.find("Provider ") != 0:
-                continue
-            position = line.find(pattern) + len(pattern)
-            providers.append(line[position:].strip())
-
-    return providers
 
 
 class LegacyDisplayManager:
@@ -308,3 +293,33 @@ def get_output_list():
         # Using DISPLAYS to get the number of connected monitors
         choices.append((output, str(index)))
     return choices
+
+def get_providers():
+    """Return the list of available graphic cards"""
+    providers = []
+    lspci_cmd = system.find_executable('lspci')
+    if not lspci_cmd:
+        logger.warning("lspci is not installed, unable to list graphics providers")
+        return providers
+    providers_cmd = subprocess.Popen([lspci_cmd], stdout=subprocess.PIPE).communicate()[0].decode()
+    for provider in providers_cmd.strip().split("\n"):
+        if "VGA" in provider:
+            providers.append(provider)
+    return providers
+
+
+def get_compositor_commands():
+    """Nominated for the worst function in lutris"""
+    start_compositor = None
+    stop_compositor = None
+    desktop_session = os.environ.get('DESKTOP_SESSION')
+    if desktop_session == "plasma":
+        stop_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend"
+        start_compositor = "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
+    elif desktop_session == "mate" and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == 'true':
+        stop_compositor = "gsettings set org.mate.Marco.general compositing-manager false"
+        start_compositor = "gsettings set org.mate.Marco.general compositing-manager true"
+    elif desktop_session == "xfce" and system.execute("xfconf-query --channel=xfwm4 --property=/general/use_compositing", shell=True) == 'true':
+        stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
+        start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
+    return start_compositor, stop_compositor

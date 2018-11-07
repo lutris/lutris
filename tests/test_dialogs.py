@@ -37,7 +37,13 @@ class TestGameDialog(TestCase):
         return self.dlg.vbox.get_children()[0]
 
     def get_viewport(self, index):
-        scrolled_window = self.get_notebook().get_children()[index]
+        children = self.get_notebook().get_children()
+        try:
+            scrolled_window = children[index]
+        except IndexError:
+            print("No viewport for index %s" % index)
+            print(children)
+            raise
         viewport = scrolled_window.get_children()[0]
         return viewport.get_children()[0]
 
@@ -72,7 +78,7 @@ class TestGameDialog(TestCase):
         self.assertEqual(game_box.game.runner_name, 'linux')
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_field = exe_box.get_children()[1]
-        self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
+        self.assertEqual(exe_field.__class__.__name__, 'FileChooserEntry')
 
     def test_can_add_game(self):
         name_entry = self.dlg.name_entry
@@ -85,8 +91,7 @@ class TestGameDialog(TestCase):
         self.assertEqual(exe_label.get_text(), "Executable")
         test_exe = os.path.abspath(__file__)
         exe_field = exe_box.get_children()[1]
-        exe_field.set_file(Gio.File.new_for_path(test_exe))
-        exe_field.emit('file-set')
+        exe_field.entry.set_text(test_exe)
         self.assertEqual(exe_field.get_filename(), test_exe)
 
         add_button = self.get_buttons().get_children()[1]
