@@ -140,6 +140,7 @@ class ConfigBox(VBox):
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
         option_type = option['type']
+        option_size = option.get('size', None)
 
         if option_key in self.raw_config:
             self.set_style_property('font-weight', 'bold', self.wrapper)
@@ -176,7 +177,7 @@ class ConfigBox(VBox):
             if 'label' not in option:
                 raise ValueError("Option %s has no label" % option)
             self.generate_entry(option_key,
-                                option["label"], value)
+                                option["label"], value, option_size)
         elif option_type == 'directory_chooser':
             self.generate_directory_chooser(option_key,
                                             option["label"],
@@ -241,7 +242,7 @@ class ConfigBox(VBox):
             self.option_changed(widget, option_name, widget.get_active())
 
     # Entry
-    def generate_entry(self, option_name, label, value=None):
+    def generate_entry(self, option_name, label, value=None, option_size=None):
         """Generate an entry box."""
         label = Label(label)
         entry = Gtk.Entry()
@@ -250,7 +251,10 @@ class ConfigBox(VBox):
         entry.connect("changed", self.entry_changed, option_name)
         label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(entry, True, True, 0)
+        if option_size == 'small':
+            self.wrapper.pack_start(entry, False, False, 0)
+        else:
+            self.wrapper.pack_start(entry, True, True, 0)
         self.option_widget = entry
 
     def entry_changed(self, entry, option_name):
