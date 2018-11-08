@@ -88,7 +88,7 @@ class DXVKManager:
         Very basic check to see if a dll exists and is over 256K. If this is the
         case, then consider the DLL to be from DXVK
         """
-        if system.path_exists(dll_path):
+        if system.path_exists(dll_path, check_symlinks=True):
             dll_stats = os.stat(dll_path)
             dll_size = dll_stats.st_size
         else:

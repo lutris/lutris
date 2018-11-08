@@ -365,13 +365,20 @@ def reverse_expanduser(path):
     return path
 
 
-def path_exists(path):
+def path_exists(path, check_symlinks=False):
     """Wrapper around system.path_exists that doesn't crash with empty values
-    Also return True for broken symlinks.
+
+    Params:
+        path (str): File to the file to check
+        check_symlinks (bool): If the path is a broken symlink, return False
     """
     if not path:
         return False
-    return os.path.exists(path) or os.path.islink(path)
+    if os.path.exists(path):
+        return True
+    if os.path.islink(path):
+        logger.warning("%s is a broken link")
+        return not check_symlinks
 
 
 def path_is_empty(path):

@@ -4,7 +4,7 @@
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
 Name:           lutris
-Version:        0.4.22
+Version:        0.4.23
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -37,7 +37,7 @@ BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
-Requires:       python3-PyYAML, cabextract
+Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
