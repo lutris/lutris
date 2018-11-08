@@ -455,3 +455,18 @@ def is_running(process):
         if re.search(process, x):
             return True
     return False
+
+
+def check_ntfs(path):
+    """Returns True if the given path is located on a NTFS partition"""
+
+    out = None
+
+    df_cmd = find_executable('df')
+    if df_cmd and path:
+        out = subprocess.check_output(
+            [df_cmd, "-T", path]).decode("UTF-8")
+
+    if out and "fuseblk" in out:
+        return True
+    return False

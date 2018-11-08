@@ -12,7 +12,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, ErrorDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
@@ -328,6 +328,11 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
+        if system.check_ntfs(self.location_entry.get_text()):
+            ErrorDialog(
+                "<b>Using NTFS partition causes major issues.</b>\n\n"
+                "Please select a diffrent location.")
+            return
         button.hide()
         self.source_button.hide()
         self.interpreter.check_runner_install()

@@ -13,6 +13,7 @@ from lutris.gui.widgets.utils import (get_pixbuf_for_game, get_pixbuf,
                                       BANNER_SIZE, ICON_SIZE)
 from lutris.util.strings import slugify
 from lutris.util import datapath, resources
+from lutris.util.system import check_ntfs
 
 DIALOG_WIDTH = 780
 DIALOG_HEIGHT = 560
@@ -369,6 +370,13 @@ class GameDialogCommon:
         self.game.year = year
         self.game.runner_name = self.runner_name
         self.game.config = self.lutris_config
+
+        if check_ntfs(self.game.config.game_config.get('main_file', None)):
+            ErrorDialog(
+                "<b>Using NTFS partition causes major issues.</b>\n\n"
+                "Please select a diffrent location.")
+            return False
+
         self.game.directory = runner.game_path
         self.game.is_installed = True
         if self.runner_name in ('steam', 'winesteam'):
