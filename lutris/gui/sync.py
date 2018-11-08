@@ -19,7 +19,8 @@ class ServiceSyncRow(Gtk.HBox):
         name = service.NAME
 
         icon = get_runner_icon(self.identifier)
-        self.pack_start(icon, False, False, 0)
+        if icon != None:
+            self.pack_start(icon, False, False, 0)
 
         label = Gtk.Label(xalign=0)
         label.set_markup("<b>{}</b>".format(name))
