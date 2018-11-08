@@ -29,7 +29,7 @@ def add_dolphin_rom(rom, config):
 
 def rom_read_data(location):
     """ extract data from the dolphin rom location at location.
-    return the tuple of data and of config, to be applied to a game in Lutris """
+    return a dict with "data" and "config", to be applied to a game in Lutris """
     # TODO: extract the image of the rom
     def scan_to_00(mm, start):
         """ read bytes from the mm mmap, beggining at the start offset and ending at the first 0x00.
@@ -48,11 +48,6 @@ def rom_read_data(location):
         """ transform bytes to string with the default codec """
         return str(byte)[2:-1]
 
-    rom_type = None
-
-    rom_type = get_rom_type(location)
-    assert isinstance(rom_type, str)
-
     rom = open(location, "r+b")
     mm = mmap(rom.fileno(), 0)
     data = {"installer_slug":INSTALLER_SLUG,
@@ -60,31 +55,21 @@ def rom_read_data(location):
             "installed":1,}
     config = {"main_file":location}
 
-    if rom_type == "wbfs file":
-        assert mm[0:4] == b"WBFS"
+    # the most of the scan of the game
+    if mm[0:4] == b"WBFS": # wii WBFS file
         data["name"] = bytes_to_str(scan_to_00(mm, 0x220))
         data["slug"] = bytes_to_str(scan_to_00(mm, 0x200))
         config['platform'] = 1
-    elif rom_type == "iso file":
-        assert mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3"
+    elif mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3": # wii iso file
         data["name"] = bytes_to_str(scan_to_00(mm, 0x20))
         data["slug"] = bytes_to_str(scan_to_00(mm, 0x0))
         config['platform'] = 1
+    else:
+        return False
 
     data["slug"] = slugify(data["slug"])
+    return {"data":data, "config":config}
 
-
-    return data, config
-
-
-def get_rom_type(location):
-    """return the type of rom at location based on the file extansion, False if nothing is found"""
-    extension = location.split(".")[-1]
-    if extension in ["wbfs"]:
-        return "wbfs file"
-    elif extension in ["iso"]:
-        return "iso file"
-    return False
 
 
 def sync_with_lutris():
@@ -98,16 +83,17 @@ def sync_with_lutris():
     scan_directory = [runner_config.raw_config["dolphin"]["rom_directory"]]
     roms = []
     roms_slug = []
-    for element in scan_folder(scan_directory):
-        if get_rom_type(element) != False:
-            try:
-                rom, config = rom_read_data(element)
-                roms.append((rom, config))
-                roms_slug.append(rom["slug"])
-            except:
-                logger.error("failed to add the dolphin rom at %s." % element)
 
-    for rom_double in roms:
-        rom, config = rom_double
+    for element in scan_folder(scan_directory):
+        result = rom_read_data(element)
+        if result != False:
+            try:
+                roms.append(result)
+                roms_slug.append(result["data"]["slug"])
+            except:
+                logger.error("failed to add the rom at %s." % element)
+
+    for rom_data in roms:
+        rom, config = rom_data["data"], rom_data["config"]
         if not rom in roms_slug:
             add_dolphin_rom(rom, config)
