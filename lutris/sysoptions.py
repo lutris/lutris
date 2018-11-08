@@ -186,9 +186,9 @@ system_options = [  # pylint: disable=invalid-name
                  "execution command.")
     },
     {
-        'option': 'ondemand_command',
+        'option': 'manual_command',
         'type': 'file',
-        'label': 'On-demand command',
+        'label': 'Manual command',
         'advanced': True,
         'help': ("Script to execute from the game's contextual menu")
     },

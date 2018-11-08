@@ -915,14 +915,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
         game = Game(self.view.selected_game)
-        ondemand_command = game.runner.system_config.get(
-            "ondemand_command")
-        if path_exists(ondemand_command):
-            LutrisThread([ondemand_command],
-                         include_processes=[os.path.basename(ondemand_command)],
+        manual_command = game.runner.system_config.get(
+            "manual_command")
+        if path_exists(manual_command):
+            LutrisThread([manual_command],
+                         include_processes=[os.path.basename(manual_command)],
                          cwd=game.directory
                          ).start()
-            logger.info("Running %s in the background", ondemand_command)
+            logger.info("Running %s in the background", manual_command)
 
     def on_viewtype_state_change(self, action, val):
         """Callback to handle view type switch"""

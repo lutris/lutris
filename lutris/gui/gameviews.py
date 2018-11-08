@@ -562,6 +562,12 @@ class ContextualMenu(Gtk.Menu):
             self.add_menuitems(runner_entries)
         self.show_all()
 
+        def manual_script_not_set():
+            game = Game(game_id)
+            if not game.runner.system_config.get("manual_command", None):
+                return True
+            return False
+
         # Hide some items
         hiding_condition = {
             'add': is_installed,
@@ -587,11 +593,18 @@ class ContextualMenu(Gtk.Menu):
             ),
             'browse': not is_installed or runner_slug == 'browser',
         }
+        # desactivate some items
+        desactivate_condition = {
+            'execute-script': manual_script_not_set(),
+        }
+
         for menuitem in self.get_children():
             if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue
             action = menuitem.action_id
             visible = not hiding_condition.get(action)
+            sensitive = not desactivate_condition.get(action)
+            menuitem.set_sensitive(sensitive)
             menuitem.set_visible(visible)
 
         super().popup(None, None, None, None,
