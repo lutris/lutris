@@ -103,6 +103,14 @@ system_options = [  # pylint: disable=invalid-name
                  "optirun/virtualgl works better for more games.")
     },
     {
+        'option': 'fps_limit',
+        'type': 'string',
+        'size': 'small',
+        'label': 'Fps limit',
+        'condition': bool(system.find_executable("strangle")),
+        'help': 'Limit the game\'s fps to desired number'
+    },
+    {
         'option': 'gamemode',
         'type': 'bool',
         'default': bool(system.find_lib("libgamemodeauto.so.0")),

@@ -362,6 +362,11 @@ class Game(GObject.Object):
         if pulse_latency:
             env['PULSE_LATENCY_MSEC'] = '60'
 
+        fps_limit = system_config.get("fps_limit") or ''
+        if fps_limit:
+            strangle_cmd = system.find_executable("strangle")
+            launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
+
         prefix_command = system_config.get("prefix_command") or ''
         if prefix_command:
             launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
