@@ -48,7 +48,7 @@ def rom_read_data(location):
         """ transform bytes to string with the default codec """
         return str(byte)[2:-1]
 
-    rom = open(location, "r+b")
+    rom = open(location, "r+")
     mm = mmap(rom.fileno(), 0)
     data = {"installer_slug":INSTALLER_SLUG,
             "installed":1}
