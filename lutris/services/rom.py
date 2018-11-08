@@ -57,12 +57,12 @@ def rom_read_data(location):
     # the most of the scan of the game
     if mm[0:4] == b"WBFS": # wii WBFS file
         data["name"] = bytes_to_str(scan_to_00(mm, 0x220))
-        data["slug"] = bytes_to_str(scan_to_00(mm, 0x200))
+        data["slug"] = "wii-"+bytes_to_str(scan_to_00(mm, 0x200))
         data["runner"] = "dolphin"
         config['platform'] = 1
     elif mm[0x18:0x1C] == b"\x5D\x1C\x9E\xA3": # wii iso file
         data["name"] = bytes_to_str(scan_to_00(mm, 0x20))
-        data["slug"] = bytes_to_str(scan_to_00(mm, 0x0))
+        data["slug"] = "wii-"+bytes_to_str(scan_to_00(mm, 0x0))
         data["runner"] = "dolphin"
         config['platform'] = 1
     else:
