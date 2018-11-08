@@ -1,7 +1,7 @@
 from importlib import import_module
 from lutris.settings import read_setting
 
-__all__ = ['steam', 'winesteam', 'xdg', 'scummvm','dolphin']
+__all__ = ['steam', 'winesteam', 'xdg', 'scummvm','rom']
 
 
 def import_service(name):
