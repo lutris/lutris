@@ -1,26 +1,28 @@
 import os
+from lutris.util.log import logger
 
 def scan_folder(folder):
-    """do a recursive browse of the folder string / list of string. return as a list with all file under this folder."""
-    if type(folder) == list:
-        folderToScan = folder
-    elif type(folder) == str:
-        folderToScan = [folder]
+    """do a recursive browse of the folder string / list of string.
+    return as a list with all file under this folder."""
+    if isinstance(folder, list):
+        folder_to_scan = folder
+    elif isinstance(folder, str):
+        folder_to_scan = [folder]
     else:
         raise BaseException
 
-    fileScanned = []
+    file_scanned = []
 
-    while len(folderToScan) > 0:
-        selected = folderToScan[-1]
-        selected = folderToScan.pop()
+    while len(folder_to_scan) > 0:
+        selected = folder_to_scan[-1]
+        selected = folder_to_scan.pop()
         for element in os.listdir(selected):
-            completeURL = selected + "/" + element
-            if os.path.isfile(completeURL):
-                fileScanned.append(completeURL)
-            elif os.path.isdir(completeURL):
-                folderToScan.append(completeURL)
+            complete_url = selected + "/" + element
+            if os.path.isfile(complete_url):
+                file_scanned.append(complete_url)
+            elif os.path.isdir(complete_url):
+                folder_to_scan.append(complete_url)
             else:
-                raise
+                logger.error("unknow type of file at %s", complete_url)
 
-    return fileScanned
+    return file_scanned
