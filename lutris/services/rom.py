@@ -27,26 +27,27 @@ def add_rom(rom, config):
     game_config.save()
 
 
+def scan_to_00(mm, start):
+    """ read bytes from the mm mmap, beggining at the start offset and ending at the first 0x00.
+    return a bytes object """
+    buff = b""
+    achar = None
+    number = start
+    while achar != 0:
+        achar = mm[number]
+        if achar != 0:
+            buff += bytes((achar,))
+        number += 1
+    return buff
+
+def bytes_to_str(byte):
+    """ transform bytes to string with the default codec """
+    return str(byte)[2:-1]
+
 def rom_read_data(location):
     """ extract data from the rom location at location.
     return a dict with "data" and "config", to be applied to a game in Lutris """
     # TODO: extract the image of the rom
-    def scan_to_00(mm, start):
-        """ read bytes from the mm mmap, beggining at the start offset and ending at the first 0x00.
-        return a bytes object """
-        buff = b""
-        achar = None
-        number = start
-        while achar != 0:
-            achar = mm[number]
-            if achar != 0:
-                buff += bytes((achar,))
-            number += 1
-        return buff
-
-    def bytes_to_str(byte):
-        """ transform bytes to string with the default codec """
-        return str(byte)[2:-1]
 
     data = {"installer_slug":INSTALLER_SLUG,
             "installed":1}
