@@ -362,12 +362,18 @@ class GameDialogCommon:
         if self.lutris_config.game_config_id == TEMP_CONFIG:
             self.lutris_config.game_config_id = self.get_config_id()
 
+        # Delete the old copy of the game if the runner changes
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
+        if self.game.platform != runner.get_platform():
+            self.game.remove()
+            self.game.runner_name = self.runner_name
+        else:
+            self.game.runner_name = self.runner_name
+
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
-        self.game.runner_name = self.runner_name
         self.game.config = self.lutris_config
         self.game.directory = runner.game_path
         self.game.is_installed = True
