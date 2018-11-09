@@ -46,17 +46,6 @@ INSTALLED_TERMINALS = []
 # Detect if system is 64bit capable
 IS_64BIT = sys.maxsize > 2**32
 
-# Path to Feral gamemode library
-GAMEMODE_PATH = next(
-    (
-        path for path in map(
-            lambda x: os.path.join(x, 'libgamemodeauto.so'),
-            ['/usr/lib/x86_64-linux-gnu', '/usr/lib']
-        ) if os.path.exists(path)
-    ),
-    None
-)
-
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
     """
@@ -455,3 +444,18 @@ def is_running(process):
         if re.search(process, x):
             return True
     return False
+
+
+def find_lib(libname):
+    """Returns a list of absoulte paths found in the system of a given library"""
+    lib_paths = []
+    ldconfig_cmd = find_executable("ldconfig")
+    if ldconfig_cmd:
+        ldconfig_out = subprocess.check_output(
+            [ldconfig_cmd, "-p"]).decode("UTF-8")
+        for out in ldconfig_out.splitlines():
+            if libname in out:
+                lib_paths.append(out.split("=> ")[1])
+    else:
+        logger.error("ldconfig not found, can't search for lib %s", libname)
+    return lib_paths
