@@ -1,9 +1,9 @@
 from mmap import mmap
+import os
 from lutris import pga
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
-from lutris.util.scanfolder import scan_folder
 
 NAME = "rom"
 INSTALLER_SLUG = "rom"
@@ -81,18 +81,23 @@ def sync_with_lutris():
     #}
 
     system_config = LutrisConfig()
-    scan_directory = [system_config.system_config["rom_directory"]]
+    scan_directory = system_config.system_config["rom_directory"]
     roms = []
     roms_slug = []
 
-    for element in scan_folder(scan_directory):
-        result = rom_read_data(element)
-        if result != False:
+    for scanned_folder in os.walk(scan_directory,followlinks=True):
+        folder, subfolder, files = scanned_folder
+        for scanned_file in files:
+            element = folder + "/" + scanned_file
             try:
-                roms.append(result)
-                roms_slug.append(result["data"]["slug"])
+                result = rom_read_data(element)
             except:
                 logger.error("failed to add the rom at %s." % element)
+                result = False
+            if result != False:
+                roms.append(result)
+                roms_slug.append(result["data"]["slug"])
+
 
     for rom_data in roms:
         rom, config = rom_data["data"], rom_data["config"]
