@@ -191,7 +191,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
-        self.gui_needs_update = True
         self.config_menu_first_access = True
 
 
@@ -479,7 +478,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         for game_id in updated.difference(added):
             # XXX this might not work if the game has no 'item' set
             logger.debug("Updating row for ID %s", game_id)
-            self.view.update_row(pga.get_game_by_field(game_id, 'id'))
+            game = pga.get_game_by_field(game_id, 'id')
+            self.view.update_row(game['id'], game['year'], game['playtime'])
 
         if first_run:
             logger.info("Setting up view for first run")
@@ -510,29 +510,23 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def set_status(self, text):
         """Sets the statusbar text"""
-        # update row at game exit
-        # XXX This is NOT a proper way to do it!!!!!!
-        # FIXME This is ugly and will cause issues!@@!
-        if text == "Game has quit" and self.gui_needs_update:
-            self.view.update_row(pga.get_game_by_field(self.running_game.id, 'id'))
-
     def refresh_status(self):
         """Refresh status bar."""
         if self.running_game:
             name = self.running_game.name
             if self.running_game.state == self.running_game.STATE_IDLE:
                 self.set_status("Preparing to launch %s" % name)
-                self.gui_needs_update = True
             elif self.running_game.state == self.running_game.STATE_STOPPED:
                 self.set_status("Game has quit")
-                self.gui_needs_update = False
-                self.actions['stop-game'].props.enabled = False
+                if self.actions['stop-game'].props.enabled:
+                    self.actions['stop-game'].props.enabled = False
                 self.infobar_revealer.set_reveal_child(False)
+                    self.view.update_row(
+                        self.running_game.id, self.running_game.year, self.running_game.playtime)
             elif self.running_game.state == self.running_game.STATE_RUNNING:
                 self.actions['stop-game'].props.enabled = True
                 self.infobar_label.props.label = '{} running'.format(name)
                 self.infobar_revealer.set_reveal_child(True)
-                self.gui_needs_update = True
         return True
 
     def on_dark_theme_state_change(self, action, value):
@@ -736,6 +730,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.running_game:
             self.running_game.stop()
             self.actions['stop-game'].props.enabled = False
+            self.view.update_row(
+                self.running_game.id, self.running_game.year, self.running_game.playtime)
 
     def on_install_clicked(self, *_args, game_slug=None, installer_file=None, revision=None):
         """Install a game"""

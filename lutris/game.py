@@ -85,8 +85,8 @@ class Game(GObject.Object):
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
-        self.timer = Timer()
-        self.playtime = game_data.get('playtime') or ''
+        self.timer = Timer("playtime")
+        self.playtime = game_data.get('playtime') or '0.0 hrs'
 
     def __repr__(self):
         return self.__unicode__()
@@ -502,12 +502,16 @@ class Game(GObject.Object):
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
         self.state = self.STATE_STOPPED
+        if not self.timer.finsihed:
+            self.timer.end_t()
+            self.playtime = self.timer + self.playtime
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
 
-        self.timer.end_t()
-        self.playtime = self.timer.increment(self.playtime)
+        if not self.timer.finsihed:
+            self.timer.end_t()
+            self.playtime = self.timer + self.playtime
 
         if self.prelaunch_thread:
             logger.info("Stopping prelaunch script")

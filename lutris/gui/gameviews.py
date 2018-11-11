@@ -199,7 +199,7 @@ class GameStore(GObject.Object):
 
         pixbuf = get_pixbuf_for_game(game['slug'], self.icon_type,
                                      game['installed'])
-        playtime_text = ''
+        playtime_text = '0.0 hrs'
         if game['playtime']:
             playtime_text = game['playtime']
         self.store.append((
@@ -302,16 +302,13 @@ class GameView:
         row[COL_PLATFORM] = ''
         self.update_image(game.id, is_installed=False)
 
-    def update_row(self, game):
-        """Update game informations.
-
-        :param dict game: Dict holding game details
-        """
-        row = self.get_row_by_id(game['id'])
+    def update_row(self, game_id, game_year, game_playtime):
+        """Update game informations."""
+        row = self.get_row_by_id(game_id)
         if row:
-            row[COL_YEAR] = str(game['year'])
-            row[COL_PLAYTIME_TEXT] = game['playtime']
-            self.update_image(game['id'], row[COL_INSTALLED])
+            row[COL_YEAR] = str(game_year)
+            row[COL_PLAYTIME_TEXT] = game_playtime
+            self.update_image(game_id, row[COL_INSTALLED])
 
     def update_image(self, game_id, is_installed=False):
         """Update game icon."""
