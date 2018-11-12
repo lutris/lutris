@@ -3,8 +3,8 @@ from lutris.gui.widgets.dialogs import Dialog
 
 
 class LogTextView(Gtk.TextView):
-    def __init__(self, buffer):
-        super(LogTextView, self).__init__()
+    def __init__(self, buffer, autoscroll=True):
+        super().__init__()
 
         self.set_buffer(buffer)
         self.set_editable(False)
@@ -13,7 +13,8 @@ class LogTextView(Gtk.TextView):
         self.scroll_max = 0
         self.set_wrap_mode(Gtk.WrapMode.CHAR)
         self.get_style_context().add_class('lutris-logview')
-        self.connect("size-allocate", self.autoscroll)
+        if autoscroll:
+            self.connect("size-allocate", self.autoscroll)
 
     def autoscroll(self, *args):
         adj = self.get_vadjustment()
@@ -26,8 +27,8 @@ class LogTextView(Gtk.TextView):
 
 class LogWindow(Dialog):
     def __init__(self, title, buffer, parent):
-        super(LogWindow, self).__init__(title, parent, 0,
-                                        ('_OK', Gtk.ResponseType.OK))
+        super().__init__(title, parent, 0,
+                         ('_OK', Gtk.ResponseType.OK))
         self.set_size_request(640, 480)
         self.grid = Gtk.Grid()
         self.buffer = buffer

@@ -1,24 +1,22 @@
-# -*- coding:Utf-8 -*-
-
-from gi.repository import Gtk, GObject, Gdk
+from gi.repository import Gtk, GObject
 
 from lutris import runners
 from lutris import settings
 from lutris.util.system import open_uri
-from lutris.gui.widgets.utils import get_runner_icon
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
+from lutris.gui.widgets.utils import get_icon
 
 
-class RunnersDialog(Gtk.Window):
+class RunnersDialog(Gtk.Dialog):
     """Dialog to manage the runners."""
     __gsignals__ = {
         "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self):
-        GObject.GObject.__init__(self)
+    def __init__(self, **kwargs):
+        super().__init__(use_header_bar=1, **kwargs)
 
         self.runner_labels = {}
 
@@ -27,51 +25,47 @@ class RunnersDialog(Gtk.Window):
         height = int(settings.read_setting('runners_manager_height') or 500)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
-        self.set_border_width(10)
-        self.set_position(Gtk.WindowPosition.CENTER)
-        self.vbox = Gtk.VBox()
-        self.add(self.vbox)
+        self._vbox = self.get_content_area()
+        self._header = self.get_header_bar()
+
+        # Signals
+        self.connect('destroy', self.on_destroy)
+        self.connect('configure-event', self.on_resize)
 
         # Scrolled window
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.NEVER,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        self.vbox.pack_start(scrolled_window, True, True, 0)
-        self.show_all()
+        self._vbox.pack_start(scrolled_window, True, True, 0)
 
         # Runner list
         self.runner_list = sorted(runners.__all__)
         self.runner_listbox = Gtk.ListBox(visible=True, selection_mode=Gtk.SelectionMode.NONE)
         self.runner_listbox.set_header_func(self._listbox_header_func)
 
-        self.populate_runners()
-
         scrolled_window.add(self.runner_listbox)
 
-        # Bottom bar
-        buttons_box = Gtk.Box()
-        buttons_box.show()
-        open_runner_button = Gtk.Button("Open Runners Folder")
-        open_runner_button.show()
-        open_runner_button.connect('clicked', self.on_runner_open_clicked)
-        buttons_box.pack_start(open_runner_button, False, False, 0)
+        # Header buttons
+        buttons_box = Gtk.Box(spacing=6)
 
-        self.refresh_button = Gtk.Button("Refresh")
+        self.refresh_button = Gtk.Button.new_from_icon_name('view-refresh-symbolic', Gtk.IconSize.BUTTON)
+        self.refresh_button.props.tooltip_text = 'Refresh runners'
         self.refresh_button.show()
         self.refresh_button.connect('clicked', self.on_refresh_clicked)
-        buttons_box.pack_start(self.refresh_button, False, False, 10)
+        buttons_box.add(self.refresh_button)
 
-        close_button = Gtk.Button("Close")
-        close_button.show()
-        close_button.connect('clicked', self.on_close_clicked)
-        buttons_box.pack_start(close_button, False, False, 0)
+        open_runner_button = Gtk.Button.new_from_icon_name('folder-symbolic', Gtk.IconSize.BUTTON)
+        open_runner_button.props.tooltip_text = 'Open Runners Folder'
+        open_runner_button.connect('clicked', self.on_runner_open_clicked)
+        buttons_box.add(open_runner_button)
+        buttons_box.show_all()
+        self._header.add(buttons_box)
 
-        # Signals
-        self.connect('destroy', self.on_destroy)
-        self.connect('configure-event', self.on_resize)
+        self.show_all()
 
-        self.vbox.pack_start(buttons_box, False, False, 5)
+        # Run this after show_all, else all hidden buttons gets shown
+        self.populate_runners()
 
     @staticmethod
     def _listbox_header_func(row, before):
@@ -84,10 +78,10 @@ class RunnersDialog(Gtk.Window):
         platform = ', '.join(sorted(list(set(runner.platforms))))
         description = runner.description
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box()
         hbox.show()
         # Icon
-        icon = get_runner_icon(runner_name)
+        icon = get_icon(runner_name)
         icon.show()
         icon.set_alignment(0.5, 0.1)
         hbox.pack_start(icon, False, False, 10)

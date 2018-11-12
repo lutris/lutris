@@ -9,7 +9,6 @@ from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
 from lutris.util.extract import extract_archive
 from lutris.util.downloader import Downloader
-from lutris.util.system import path_exists
 from lutris.util import system
 
 CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
@@ -131,7 +130,7 @@ class DXVKManager:
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
         if system.path_exists(dxvk_dll_path):
-            if path_exists(wine_dll_path):
+            if system.path_exists(wine_dll_path):
                 os.remove(wine_dll_path)
             os.symlink(dxvk_dll_path, wine_dll_path)
 

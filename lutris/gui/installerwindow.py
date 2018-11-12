@@ -12,7 +12,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
 from lutris.gui.config_dialogs import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
@@ -30,6 +30,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def __init__(self, game_slug=None, installer_file=None, revision=None, parent=None, application=None):
         Gtk.ApplicationWindow.__init__(self, application=application)
         self.set_default_icon_name('lutris')
+        self.set_show_menubar(False)
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
@@ -46,7 +47,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_show_menubar(False)
 
-        self.vbox = Gtk.VBox()
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.vbox)
 
         # Default signals
@@ -65,9 +66,11 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.vbox.pack_start(self.status_label, False, False, 15)
 
         # Main widget box
-        self.widget_box = Gtk.VBox()
-        self.widget_box.set_margin_right(25)
-        self.widget_box.set_margin_left(25)
+        self.widget_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_right=25,
+            margin_left=25,
+        )
         self.vbox.pack_start(self.widget_box, True, True, 15)
 
         self.location_entry = None
@@ -77,7 +80,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         # Buttons
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
-        self.action_buttons = Gtk.HBox()
+        self.action_buttons = Gtk.Box()
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 20)
 
@@ -88,6 +91,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.action_buttons.add(self.cancel_button)
 
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
+        self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
         self.play_button = self.add_button("_Launch game", self.launch_game)
@@ -136,6 +140,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
+        self.source_button.hide()
         self.eject_button.hide()
 
         self.choose_installer()
@@ -186,7 +191,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.title_label.set_markup('<b>Select which version to install</b>')
-        self.installer_choice_box = Gtk.VBox()
+        self.installer_choice_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.installer_choice = 0
         radio_group = None
 
@@ -234,6 +239,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         except AttributeError:
             logger.debug("set_propagate_natural_height not available")
         notes_scrolled_area.set_min_content_height(100)
+        notes_scrolled_area.set_overlay_scrolling(False)
         notes_scrolled_area.add(self.notes_label)
         self.installer_choice_box.pack_start(notes_scrolled_area, True, True, 10)
 
@@ -292,6 +298,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
+        self.source_button.show()
         self.install_button.grab_focus()
         self.install_button.show()
 
@@ -322,6 +329,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
         button.hide()
+        self.source_button.hide()
         self.interpreter.check_runner_install()
 
     def ask_user_for_file(self, message):
@@ -580,6 +588,13 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if self.interpreter:
             self.interpreter.revert()
         self.destroy()
+
+    # -------------
+    # View Source
+    # -------------
+
+    def on_source_clicked(self, _button):
+        InstallerSourceDialog(self.interpreter.script_pretty, self.interpreter.game_name, self)
 
     # -------------
     # Utility stuff

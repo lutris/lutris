@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """Module that actually runs the games."""
 import os
+import json
 import time
 import shlex
 import subprocess
+from functools import wraps
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, GObject
 
 from lutris import pga
 from lutris import runtime
+from lutris.exceptions import LutrisError, GameConfigError
 from lutris.services import xdg
 from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
@@ -19,7 +22,23 @@ from lutris.gui import dialogs
 from lutris.util.timer import Timer
 
 
-class Game:
+def watch_lutris_errors(function):
+    """Decorator used to catch LutrisError exceptions and send events"""
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        """Catch all LutrisError exceptions and emit an event."""
+        try:
+            return function(*args, **kwargs)
+        except LutrisError as ex:
+            game = args[0]
+            logger.error("Unable to run %s", game.name)
+            game.emit('game-error', ex.message)
+
+    return wrapper
+
+
+class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
@@ -27,7 +46,12 @@ class Game:
     STATE_STOPPED = 'stopped'
     STATE_RUNNING = 'running'
 
+    __gsignals__ = {
+        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
     def __init__(self, game_id=None):
+        super().__init__()
         self.id = game_id
         self.runner = None
         self.game_thread = None
@@ -146,9 +170,12 @@ class Game:
         return from_library
 
     def set_platform_from_runner(self):
+        """Set the game's platform from the runner"""
         if not self.runner:
             return
         self.platform = self.runner.get_platform()
+        if not self.platform:
+            logger.warning("Can't get platform for runner %s", self.runner.human_name)
 
     def save(self, metadata_only=False):
         """
@@ -187,6 +214,7 @@ class Game:
                 dialogs.ErrorDialog("Runtime currently updating",
                                     "Game might not work as expected")
         if "wine" in self.runner_name and not wine.get_system_wine_version():
+
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -205,10 +233,17 @@ class Game:
             return
 
         if hasattr(self.runner, 'prelaunch'):
-            jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+            logger.debug("Running %s prelaunch", self.runner)
+            try:
+                jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+            except Exception as ex:
+                logger.error(ex)
+                raise
+
         else:
             self.do_play(True)
 
+    @watch_lutris_errors
     def do_play(self, prelaunched, error=None):
 
         self.timer.start_t()
@@ -224,7 +259,7 @@ class Game:
         system_config = self.runner.system_config
         self.original_outputs = sorted(
             display.get_outputs(),
-            key=lambda e: e[0] == system_config.get('display')
+            key=lambda e: e.name == system_config.get('display')
         )
 
         gameplay_info = self.runner.play()
@@ -233,6 +268,7 @@ class Game:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             return
+        logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
         env = {}
         sdl_gamecontrollerconfig = system_config.get('sdl_gamecontrollerconfig')
@@ -248,9 +284,27 @@ class Game:
 
         restrict_to_display = system_config.get('display')
         if restrict_to_display != 'off':
-            display.turn_off_except(restrict_to_display)
-            time.sleep(3)
-            self.resolution_changed = True
+            if restrict_to_display == 'primary':
+                restrict_to_display = None
+                for output in self.original_outputs:
+                    if output.primary:
+                        restrict_to_display = output.name
+                        break
+                if not restrict_to_display:
+                    logger.warning('No primary display set')
+            else:
+                found = False
+                for output in self.original_outputs:
+                    if output.name == restrict_to_display:
+                        found = True
+                        break
+                if not found:
+                    logger.warning('Selected display %s not found', restrict_to_display)
+                    restrict_to_display = None
+            if restrict_to_display:
+                display.turn_off_except(restrict_to_display)
+                time.sleep(3)
+                self.resolution_changed = True
 
         resolution = system_config.get('resolution')
         if resolution != 'off':
@@ -279,14 +333,17 @@ class Game:
 
         xephyr = system_config.get('xephyr') or 'off'
         if xephyr != 'off':
-            if xephyr == '8bpp':
-                xephyr_depth = '8'
-            else:
-                xephyr_depth = '16'
+            if not system.find_executable('Xephyr'):
+                raise GameConfigError(
+                    "Unable to find Xephyr, install it or disable the Xephyr option"
+                )
+
+            xephyr_depth = '8' if xephyr == '8bpp' else '16'
             xephyr_resolution = system_config.get('xephyr_resolution') or '640x480'
             xephyr_command = ['Xephyr', ':2', '-ac', '-screen',
                               xephyr_resolution + 'x' + xephyr_depth, '-glamor',
                               '-reset', '-terminate', '-fullscreen']
+
             xephyr_thread = LutrisThread(xephyr_command)
             xephyr_thread.start()
             time.sleep(3)
@@ -460,7 +517,7 @@ class Game:
         if self.state != self.STATE_STOPPED:
             logger.debug("Game thread still running, stopping it (state: %s)", self.state)
             self.stop()
-        
+
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
         if system.path_exists(postexit_command):

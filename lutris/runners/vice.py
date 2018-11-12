@@ -89,7 +89,7 @@ class vice(Runner):
             for index, choice in enumerate(self.machine_choices):
                 if choice[1] == machine:
                     return self.platforms[index]
-        return ''
+        return self.platforms[0]  # Default to C64
 
     def get_executable(self, machine=None):
         if not machine:

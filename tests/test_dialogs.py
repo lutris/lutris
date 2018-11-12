@@ -58,7 +58,7 @@ class TestGameDialog(TestCase):
             button_hbox = notebook.get_children()[1]
         else:
             button_hbox = button_box.get_children()[1]
-        self.assertEqual(button_hbox.__class__, Gtk.HBox)
+        self.assertEqual(button_hbox.__class__, Gtk.Box)
         return button_hbox
 
     def test_dialog(self):

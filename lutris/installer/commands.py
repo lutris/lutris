@@ -373,10 +373,9 @@ class CommandsMixin:
         runner_name, task_name = self._get_task_runner_and_name(data.pop('name'))
 
         wine_version = None
-        if runner_name == 'wine':
-            wine_version = self._get_runner_version()
 
         if runner_name.startswith('wine'):
+            wine_version = self._get_runner_version()
             if wine_version:
                 data['wine_path'] = get_wine_version_exe(wine_version)
 
@@ -392,8 +391,11 @@ class CommandsMixin:
                 value = self._substitute(data[key])
             data[key] = value
 
-        if runner_name in ['wine', 'winesteam'] and 'prefix' not in data:
-            data['prefix'] = self.target_path
+        if 'prefix' not in data:
+            if runner_name == 'wine':
+                data['prefix'] = wine.wine.prefix_path
+            elif runner_name == 'winesteam':
+                data['prefix'] = self._get_steam_runner().prefix_path
 
         task = import_task(runner_name, task_name)
         thread = task(**data)
@@ -463,7 +465,10 @@ class CommandsMixin:
 
     def write_config(self, params):
         """Write a key-value pair into an INI type config file."""
-        self._check_required_params(['file', 'section', 'key', 'value'],
+        if params.get('data', None):
+            self._check_required_params(['file', 'data'], params, 'write_config')
+        else:
+            self._check_required_params(['file', 'section', 'key', 'value'],
                                     params, 'write_config')
         # Get file
         config_file_path = self._get_file(params['file'])
@@ -473,17 +478,28 @@ class CommandsMixin:
         if not os.path.exists(basedir):
             os.makedirs(basedir)
 
+        merge = params.get('merge', True)
+
         parser = EvilConfigParser(allow_no_value=True,
                                   dict_type=MultiOrderedDict,
                                   strict=False)
         parser.optionxform = str  # Preserve text case
-        parser.read(config_file_path)
+        if merge:
+            parser.read(config_file_path)
 
-        value = self._substitute(params['value'])
+        data = {}
+        if params.get('data', None):
+            data = params['data']
+        else:
+            data[params['section']] = {}
+            data[params['section']][params['key']] = params['value']
 
-        if not parser.has_section(params['section']):
-            parser.add_section(params['section'])
-        parser.set(params['section'], params['key'], value)
+        for section, keys in data.items():
+            if not parser.has_section(section):
+                parser.add_section(section)
+            for key, value in keys.items():
+                value = self._substitute(value)
+                parser.set(section, key, value)
 
         with open(config_file_path, 'wb') as config_file:
             parser.write(config_file)

@@ -324,11 +324,15 @@ def get_pids_using_file(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
     fuser_path = None
-    path_candidates = ['/bin', '/sbin', '/usr/bin', '/usr/sbin']
-    for candidate in path_candidates:
-        fuser_path = os.path.join(candidate, 'fuser')
-        if os.path.exists(fuser_path):
-            break
+    fuser_output = ""
+    fuser_path = find_executable("fuser")
+    if not fuser_path:
+        # Some distributions don't include sbin folders in $PATH
+        path_candidates = ['/sbin', '/usr/sbin']
+        for candidate in path_candidates:
+            fuser_path = os.path.join(candidate, 'fuser')
+            if os.path.exists(fuser_path):
+                break
     if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
         return set([])

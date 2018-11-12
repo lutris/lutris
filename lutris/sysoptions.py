@@ -8,7 +8,6 @@ from lutris.util import display, system
 
 DISPLAYS = None
 
-
 def get_displays():
     global DISPLAYS
     if not DISPLAYS:
@@ -84,6 +83,14 @@ system_options = [  # pylint: disable=invalid-name
                  "your display too bright. Select this option to correct it.")
     },
     {
+        'option': 'gamemode',
+        'type': 'bool',
+        'default': bool(system.GAMEMODE_PATH),
+        'condition': bool(system.GAMEMODE_PATH),
+        'label': 'Enable Feral gamemode',
+        'help': 'Request a set of optimisations be temporarily applied to the host OS'
+    },
+    {
         'option': 'optimus',
         'type': 'choice',
         'default': 'off',
@@ -107,7 +114,7 @@ system_options = [  # pylint: disable=invalid-name
         'option': 'dri_prime',
         'type': 'bool',
         'default': False,
-        'condition': get_dri_prime,
+        'condition': display.USE_DRI_PRIME,
         'label': 'Use PRIME (hybrid graphics on laptops)',
         'help': ("If you have open source graphic drivers (Mesa), selecting this "
                  "option will run the game with the 'DRI_PRIME=1' environment variable, "
@@ -118,7 +125,7 @@ system_options = [  # pylint: disable=invalid-name
         'option': 'sdl_video_fullscreen',
         'type': 'choice',
         'label': 'Fullscreen SDL games to display',
-        'choices': get_output_list,
+        'choices': display.get_output_list,
         'default': 'off',
         'help': ("Hint SDL games to use a specific monitor when going "
                  "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
@@ -128,7 +135,7 @@ system_options = [  # pylint: disable=invalid-name
         'option': 'display',
         'type': 'choice',
         'label': 'Turn off monitors except',
-        'choices': get_output_choices,
+        'choices': display.get_output_choices,
         'default': 'off',
         'help': ("Only keep the selected screen active while the game is "
                  "running. \n"
@@ -139,7 +146,7 @@ system_options = [  # pylint: disable=invalid-name
         'option': 'resolution',
         'type': 'choice',
         'label': 'Switch resolution to',
-        'choices': get_resolution_choices,
+        'choices': display.get_resolution_choices,
         'default': 'off',
         'help': "Switch to this screen resolution while the game is running."
     },

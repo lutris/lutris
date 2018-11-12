@@ -1,13 +1,15 @@
-"""Module for handling game media (banners and icons)"""
+"""Utility module to handle media resources"""
+import shutil
 import os
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
 from gi.repository import GLib
 
-from lutris import settings
-from lutris import api
-from lutris.util.log import logger
+from lutris import api, settings
 from lutris.util.http import Request
+from lutris.util.log import logger
+
+from gi.repository import GLib
 from lutris.util import system
 
 BANNER = "banner"
@@ -43,6 +45,8 @@ def fetch_icons(game_slugs, callback=None):
         return
     logger.debug("Requesting missing icons from API for %d games", len(missing_media_slugs))
     results = api.get_games(game_slugs=missing_media_slugs)
+    if not results:
+        logger.warning("Unable to get games, check your network connectivity")
 
     new_icon = False
     banner_downloads = []
@@ -107,7 +111,8 @@ def parse_installer_url(url):
     action = None
     try:
         parsed_url = urlparse(url, scheme="lutris")
-    except:
+    except Exception:  # pylint: disable=broad-except
+        logger.warning("Unable to parse url %s", url)
         return False
     if parsed_url.scheme != "lutris":
         return False

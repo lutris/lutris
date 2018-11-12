@@ -6,6 +6,8 @@ import yaml
 
 from gi.repository import GLib
 
+from json import dumps
+
 from lutris import pga
 from lutris import settings
 from lutris.game import Game
@@ -22,6 +24,8 @@ from lutris.config import LutrisConfig, make_game_config_id
 
 from lutris.installer.errors import ScriptingError
 from lutris.installer.commands import CommandsMixin
+
+from lutris.services.gog import is_connected as is_gog_connected, connect as connect_gog, GogService
 
 from lutris.runners import (
     wine, winesteam, steam, import_runner,
@@ -96,9 +100,12 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
+        self.gog_data = {}
         self.script = installer.get('script')
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
+
+        self.script_pretty = dumps(self.script, indent=4)
 
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
@@ -159,7 +166,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner in ('steam', 'winesteam'):
             # Steam games installs in their steamapps directory
             return False
-        if self.files:
+        if self.files or self.script['game']['gog']:
             return True
         command_names = [list(c.keys())[0] for c in self.script.get('installer', [])]
         if 'insert-disc' in command_names:
@@ -267,6 +274,27 @@ class ScriptInterpreter(CommandsMixin):
     # "Get the files" stage
     # ---------------------
 
+    def prepare_game_files(self):
+        # Add gog installer to files
+        if self.script["game"].get("gog", False):
+            data = self.get_gog_downloadlink()
+            gogUrl = data[0]
+            self.gog_data["os"] = data[1]
+            file = {
+                "installer": {
+                    "url": gogUrl,
+                    "filename": gogUrl.split("?")[0].split("/")[-1]
+                }
+            }
+            self.files.append(file)
+
+            if self.gog_data["os"] == "linux":
+                file = {
+                    "unzip": "http://lutris.net/files/tools/unzip.tar.gz"
+                }
+                self.files.append(file)
+        self.iter_game_files()
+
     def iter_game_files(self):
         if self.files:
             # Create cache dir if needed
@@ -306,14 +334,21 @@ class ScriptInterpreter(CommandsMixin):
         - filename : force destination filename when url is present or path
                      of local file.
         """
+        if not isinstance(game_file, dict):
+            raise ScriptingError("Invalid file, check the installer script",
+                                 game_file)
         # Setup file_id, file_uri and local filename
         file_id = list(game_file.keys())[0]
-        if isinstance(game_file[file_id], dict):
-            filename = game_file[file_id]['filename']
-            file_uri = game_file[file_id]['url']
-            referer = game_file[file_id].get('referer')
+        file_meta = game_file[file_id]
+        if isinstance(file_meta, dict):
+            for field in ('url', 'filename'):
+                if field not in file_meta:
+                    raise ScriptingError('missing field `%s` for file `%s`' % (field, file_id))
+            file_uri = file_meta['url']
+            filename = file_meta['filename']
+            referer = file_meta.get('referer')
         else:
-            file_uri = game_file[file_id]
+            file_uri = file_meta
             filename = os.path.basename(file_uri)
             referer = None
 
@@ -356,47 +391,6 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file, referer=referer)
 
-    def _download_steam_data(self, file_uri, file_id):
-        """Download the game files from Steam to use them outside of Steam.
-
-        file_uri: Colon separated game info containing:
-                   - $STEAM or $WINESTEAM depending on the version of Steam
-                     Since Steam for Linux can download games for any
-                     platform, using $WINESTEAM has little value except in
-                     some cases where the game needs to be started by Steam
-                     in order to get a CD key (ie. Doom 3 or UT2004)
-                   - The Steam appid
-                   - The relative path of files to retrieve
-        file_id: The lutris installer internal id for the game files
-        """
-        try:
-            parts = file_uri.split(":", 2)
-            steam_rel_path = parts[2].strip()
-        except IndexError:
-            raise ScriptingError("Malformed steam path: %s" % file_uri)
-        if steam_rel_path == "/":
-            steam_rel_path = "."
-        self.steam_data = {
-            'appid': parts[1],
-            'steam_rel_path': steam_rel_path,
-            'file_id': file_id
-        }
-
-        logger.debug("Getting Steam data for appid %s", self.steam_data['appid'])
-
-        self.parent.clean_widgets()
-        self.parent.add_spinner()
-        if parts[0] == '$WINESTEAM':
-            self.parent.set_status('Getting Wine Steam game data')
-            self.steam_data['platform'] = "windows"
-            self.install_steam_game(winesteam.winesteam,
-                                    is_game_files=True)
-        else:
-            # Getting data from Linux Steam
-            self.parent.set_status('Getting Steam game data')
-            self.steam_data['platform'] = "linux"
-            self.install_steam_game(steam.steam, is_game_files=True)
-
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner
@@ -438,7 +432,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def install_runners(self):
         if not self.runners_to_install:
-            self.iter_game_files()
+            self.prepare_game_files()
         else:
             runner = self.runners_to_install.pop(0)
             self.install_runner(runner)
@@ -470,7 +464,7 @@ class ScriptInterpreter(CommandsMixin):
                 "Can't continue installation without file", file_id
             )
         self.game_files[file_id] = file_path
-        self.iter_game_files()
+        self.prepare_game_files()
 
     # ---------------
     # "Commands" stage
@@ -499,6 +493,36 @@ class ScriptInterpreter(CommandsMixin):
                 if self.runner == 'winesteam' else 'linux'
             commands.insert(0, 'install_steam_game')
             self.script['installer'] = commands
+
+        # Add gog installation to commands, if it's a GOG and linux game
+        if self.gog_data and self.gog_data["os"] == "linux":
+            commands = self.script.get('installer', [])
+            gogcommands = []
+            gogcommands.append({
+                "extract": {
+                    "dst": "$CACHE",
+                    "file": "$unzip"
+                }
+            })
+            gogcommands.append({
+                "execute": {
+                    "args": '$installer -d "$GAMEDIR" "data/noarch/*"',
+                    "description": "Extracting game data, it will take a while...",
+                    "file": "$CACHE/unzip"
+                }
+            })
+            gogcommands.append({
+                "rename": {
+                    "dst": "$GAMEDIR/Game",
+                    "src": "$GAMEDIR/data/noarch"
+                }
+            })
+            gogcommands.extend(commands)
+            self.script['installer'] = gogcommands
+
+            if not self.script.get('exe', False):
+                self.script['exe'] = "Game/start.sh"
+
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
@@ -725,6 +749,11 @@ class ScriptInterpreter(CommandsMixin):
     def _get_last_user_input(self):
         return self.user_inputs[-1]['value'] if self.user_inputs else ''
 
+    def eject_wine_disc(self):
+        prefix = self.target_path
+        wine_path = wine.get_wine_version_exe(self._get_runner_version())
+        wine.eject_disc(wine_path, prefix)
+
     # -----------
     # Steam stuff
     # -----------
@@ -825,7 +854,87 @@ class ScriptInterpreter(CommandsMixin):
                 data_path, self.steam_data['steam_rel_path']
             )
         )
-        self.iter_game_files()
+        self.prepare_game_files()
+
+    def _download_steam_data(self, file_uri, file_id):
+        """Download the game files from Steam to use them outside of Steam.
+
+        file_uri: Colon separated game info containing:
+                   - $STEAM or $WINESTEAM depending on the version of Steam
+                     Since Steam for Linux can download games for any
+                     platform, using $WINESTEAM has little value except in
+                     some cases where the game needs to be started by Steam
+                     in order to get a CD key (ie. Doom 3 or UT2004)
+                   - The Steam appid
+                   - The relative path of files to retrieve
+        file_id: The lutris installer internal id for the game files
+        """
+        try:
+            parts = file_uri.split(":", 2)
+            steam_rel_path = parts[2].strip()
+        except IndexError:
+            raise ScriptingError("Malformed steam path: %s" % file_uri)
+        if steam_rel_path == "/":
+            steam_rel_path = "."
+        self.steam_data = {
+            'appid': parts[1],
+            'steam_rel_path': steam_rel_path,
+            'file_id': file_id
+        }
+
+        logger.debug(
+            "Getting Steam data for appid %s" % self.steam_data['appid']
+        )
+
+        self.parent.clean_widgets()
+        self.parent.add_spinner()
+        if parts[0] == '$WINESTEAM':
+            self.parent.set_status('Getting Wine Steam game data')
+            self.steam_data['platform'] = "windows"
+            self.install_steam_game(winesteam.winesteam,
+                                    is_game_files=True)
+        else:
+            # Getting data from Linux Steam
+            self.parent.set_status('Getting Steam game data')
+            self.steam_data['platform'] = "linux"
+            self.install_steam_game(steam.steam, is_game_files=True)
+
+    # -----------
+    # GOG stuff
+    # -----------
+
+    def get_gog_downloadlink(self):
+        """Get url of a gog installer."""
+        self.gog_data = self.script['game']['gog']
+
+        if not is_gog_connected():
+            connect_gog()
+
+        gog_service = GogService()
+        game_details = gog_service.get_game_details(self.gog_data['appid'])
+        installer = self._get_gog_installer(game_details)
+        if installer[0]:
+            installer = installer[1]
+            for game_file in installer.get('files', []):
+                downlink = game_file.get("downlink")
+                if not downlink:
+                    logger.error("No download information for %s", installer)
+                    continue
+
+                download_info = gog_service.get_download_info(downlink)
+                return (download_info['downlink'], installer["os"])
+        else:
+            logger.error("Installer with id %s not found!", self.gog_data['installerid'])
+            raise ScriptingError("Given installer id not existing!")
+
+    def _get_gog_installer(self, game_details):
+        installers = game_details['downloads']['installers']
+        for _, installer in enumerate(installers):
+            logger.debug("Found gog installer with id: %s", installer['id'])
+            print(installer)
+            if installer['id'] == self.gog_data['installerid']:
+                return (True, installer)
+        return (False, "")
 
     def eject_wine_disc(self):
         prefix = self.target_path

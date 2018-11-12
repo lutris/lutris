@@ -1,19 +1,25 @@
 """Commonly used dialogs"""
 # pylint: disable=no-member
 import os
-from gi.repository import GLib, Gtk, GObject
 
 from lutris import api, pga, runtime, settings
+from lutris.gui.logwindow import LogTextView
+from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
-from lutris.util.system import open_uri
 from lutris.util.log import logger
+from lutris.util.system import open_uri
+
+import gi
+gi.require_version('WebKit2', '4.0')
+
+from gi.repository import GLib, GObject, Gtk, WebKit2
 
 
 class GtkBuilderDialog(GObject.Object):
 
     def __init__(self, parent=None, **kwargs):
-        super(GtkBuilderDialog, self).__init__()
+        super().__init__()
         ui_filename = os.path.join(datapath.get(), 'ui',
                                    self.glade_file)
         if not os.path.exists(ui_filename):
@@ -55,7 +61,7 @@ class AboutDialog(GtkBuilderDialog):
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
     def __init__(self, message, parent=None):
-        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -64,7 +70,7 @@ class NoticeDialog(Gtk.MessageDialog):
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
     def __init__(self, message, secondary=None, parent=None):
-        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary)
@@ -91,7 +97,7 @@ class QuestionDialog(Gtk.MessageDialog):
 class DirectoryDialog(Gtk.FileChooserDialog):
     """Ask the user to select a directory."""
     def __init__(self, message, parent=None):
-        super(DirectoryDialog, self).__init__(
+        super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             buttons=('_Cancel', Gtk.ResponseType.CLOSE,
@@ -109,7 +115,7 @@ class FileDialog(Gtk.FileChooserDialog):
         self.filename = None
         if not message:
             message = "Please choose a file"
-        super(FileDialog, self).__init__(
+        super().__init__(
             message, None, Gtk.FileChooserAction.OPEN,
             ('_Cancel', Gtk.ResponseType.CANCEL,
              '_OK', Gtk.ResponseType.OK)
@@ -168,7 +174,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
 
         self.set_size_request(320, 120)
         self.set_border_width(12)
-        vbox = Gtk.VBox(spacing=6)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
@@ -297,7 +303,7 @@ class ClientLoginDialog(GtkBuilderDialog):
     }
 
     def __init__(self, parent):
-        super(ClientLoginDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parent = parent
         self.username_entry = self.builder.get_object('username_entry')
@@ -358,6 +364,66 @@ class NoInstallerDialog(Gtk.MessageDialog):
                          "Write installer", self.NEW_INSTALLER,
                          "Close", self.EXIT)
         self.result = self.run()
+        self.destroy()
+
+
+class WebConnectDialog(Dialog):
+    """Login form for external services"""
+
+    def __init__(self, service, parent=None):
+
+        self.context = WebKit2.WebContext.new()
+        WebKit2.CookieManager.set_persistent_storage(self.context.get_cookie_manager(),
+                                                     service.credentials_path,
+                                                     WebKit2.CookiePersistentStorage(0))
+        self.service = service
+
+        super(WebConnectDialog, self).__init__(title=service.name, parent=parent)
+        self.set_border_width(0)
+        self.set_default_size(390, 425)
+
+        self.webview = WebKit2.WebView.new_with_context(self.context)
+        self.webview.load_uri(service.login_url)
+        self.webview.connect('load-changed', self.on_navigation)
+        self.vbox.pack_start(self.webview, True, True, 0)
+
+        self.show_all()
+
+    def on_navigation(self, widget, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            uri = widget.get_uri()
+            if uri.startswith(self.service.redirect_uri):
+                self.service.request_token(uri)
+                self.destroy()
+
+
+class InstallerSourceDialog(Gtk.Dialog):
+    """Show install script source"""
+
+    def __init__(self, code, name, parent):
+        Gtk.Dialog.__init__(self, "Install script for {}".format(name), parent=parent)
+        self.set_size_request(500, 350)
+        self.set_border_width(0)
+
+        self.scrolled_window = Gtk.ScrolledWindow()
+        self.scrolled_window.set_hexpand(True)
+        self.scrolled_window.set_vexpand(True)
+
+        source_buffer = Gtk.TextBuffer()
+        source_buffer.set_text(code)
+
+        source_box = LogTextView(source_buffer, autoscroll=False)
+
+        self.get_content_area().add(self.scrolled_window)
+        self.scrolled_window.add(source_box)
+
+        close_button = Gtk.Button("OK")
+        close_button.connect('clicked', self.on_close)
+        self.get_content_area().add(close_button)
+
+        self.show_all()
+
+    def on_close(self, *args):
         self.destroy()
 
 

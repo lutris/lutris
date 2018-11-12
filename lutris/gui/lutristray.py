@@ -1,9 +1,8 @@
 """Module for the tray icon"""
 from gi.repository import Gtk
 
-from lutris import runners
 from lutris import pga
-from lutris.gui.widgets.utils import get_runner_icon, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
 class LutrisTray(Gtk.StatusIcon):

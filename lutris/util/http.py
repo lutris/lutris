@@ -12,7 +12,7 @@ from lutris.util.log import logger
 
 class Request:
     def __init__(self, url, timeout=30, stop_request=None,
-                 thread_queue=None, headers=None):
+                 thread_queue=None, headers=None, cookies=None):
 
         if not url:
             raise ValueError('An URL is required!')
@@ -33,11 +33,17 @@ class Request:
         self.headers = {
             'User-Agent': self.user_agent
         }
+        self.response_headers = None
         if headers is None:
             headers = {}
         if not isinstance(headers, dict):
             raise TypeError('HTTP headers needs to be a dict ({})'.format(headers))
         self.headers.update(headers)
+        if cookies:
+            cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
+            self.opener = urllib.request.build_opener(cookie_processor)
+        else:
+            self.opener = None
 
     @property
     def user_agent(self):
@@ -49,7 +55,10 @@ class Request:
         logger.debug("GET %s", self.url)
         req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         try:
-            request = urllib.request.urlopen(req, timeout=self.timeout)
+            if self.opener:
+                request = self.opener.open(req, timeout=self.timeout)
+            else:
+                request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as error:
             logger.error("Unavailable url (%s): %s", self.url, error)
         except (socket.timeout, urllib.error.URLError) as error:
@@ -65,6 +74,8 @@ class Request:
                 logger.warning("Failed to read response's content length")
                 total_size = 0
 
+            self.response_headers = request.getheaders()
+            self.status_code = request.getcode()
             chunks = []
             while 1:
                 if self.stop_request and self.stop_request.is_set():
@@ -87,6 +98,7 @@ class Request:
                     break
             request.close()
             self.content = b''.join(chunks)
+            self.info = request.info()
         return self
 
     def post(self, data):
@@ -101,7 +113,12 @@ class Request:
     @property
     def json(self):
         if self.content:
-            return json.loads(self.text)
+            try:
+                return json.loads(self.text)
+            except json.decoder.JSONDecodeError:
+                raise ValueError("Invalid response ({}:{}): {}".format(
+                    self.url, self.status_code, self.text[:80]
+                ))
         return None
 
     @property

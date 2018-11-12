@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   id="root"
+   version="1.1"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="ppsspp-symbolic.svg"
+   inkscape:export-filename="C:\dev\promo\icon_regular_36.png"
+   inkscape:export-xdpi="6.3299999"
+   inkscape:export-ydpi="6.3299999"
+   viewBox="0 0 512 512">
+  <defs
+     id="defs4854" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.2089844"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1246"
+     inkscape:window-height="815"
+     inkscape:window-x="311"
+     inkscape:window-y="133"
+     inkscape:window-maximized="0"
+     scale-x="1" />
+  <metadata
+     id="metadata4857">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Outline"
+     style="display:inline">
+    <path
+       style="fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="M 285.46094,15.486328 123.79492,52.3125 l 29.27735,128.41211 99.32617,63.30859 62.34179,-100.13281 z m -12.70117,21.455078 22.41992,98.330074 -49.83008,77.7168 -78.38867,-48.51172 -22.41797,-98.328122 z"
+       id="rect4891-8-0"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="m 141.85938,197.79297 -128.472661,29.26562 36.84375,161.5918 128.470701,-29.26562 63.33789,-99.2793 z m -8.63282,19.55273 77.75196,49.80664 -48.53321,78.35157 -98.373044,22.4082 -29.220704,-128.1582 z"
+       id="rect4891-4-1"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="M 258.80273,270.89062 196.46094,371.02344 225.74023,499.4375 387.40625,462.61133 358.12891,334.19727 Z m 7.04883,31.04493 78.38867,48.51172 22.41797,98.32812 -128.21679,29.20703 -22.41993,-98.33008 z"
+       id="rect4891-8-4-2"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="m 463.00977,125.80859 -128.47266,29.26563 -63.33789,99.2793 100.17969,62.3125 128.47265,-29.26368 z m -13.8418,20.73829 29.21875,128.16015 -98.37305,22.4082 -77.7539,-49.80859 48.5332,-78.35156 z"
+       id="rect4891-4-9-5"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
+     inkscape:label="Buttons"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-540.36218)"
+     style="display:inline">
+    <path
+       style="opacity:0.8;fill-opacity:1"
+       d="m 272.76031,577.30374 22.41883,98.32905 -49.83024,77.71707 -78.38798,-48.51051 -22.41883,-98.32906 z"
+       id="rect4891-0-5-9"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="D:\Dev\Emulatorer\potemkin\android\source_assets\image\dir.png"
+       inkscape:export-xdpi="135"
+       inkscape:export-ydpi="135" />
+    <path
+       style="opacity:0.8;fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="m 34.851569,780.11548 98.374381,-22.40849 77.75293,49.80726 -48.5329,78.35185 -98.374381,22.40849 z"
+       id="rect4891-0-3-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="D:\Dev\Emulatorer\potemkin\android\source_assets\image\dir.png"
+       inkscape:export-xdpi="135"
+       inkscape:export-ydpi="135" />
+    <path
+       style="opacity:0.8;fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="m 238.44059,1018.3443 -22.41883,-98.32904 49.83024,-77.71708 78.38798,48.51052 22.41884,98.32905 z"
+       id="rect4891-0-5-2-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="D:\Dev\Emulatorer\potemkin\android\source_assets\image\dir.png"
+       inkscape:export-xdpi="135"
+       inkscape:export-ydpi="135" />
+    <path
+       style="opacity:0.8;fill-opacity:1;stroke:none;stroke-width:1.10065675"
+       d="m 478.38717,815.06837 -98.3744,22.4085 -77.75291,-49.80727 48.53289,-78.35184 98.3744,-22.4085 z"
+       id="rect4891-0-3-3-8"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="D:\Dev\Emulatorer\potemkin\android\source_assets\image\dir.png"
+       inkscape:export-xdpi="135"
+       inkscape:export-ydpi="135" />
+  </g>
+</svg>

@@ -15,6 +15,7 @@ from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SM
 
 from lutris.services import xdg
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 (
     COL_ID,
@@ -43,14 +44,23 @@ COLUMN_NAMES = {
     COL_INSTALLED_AT_TEXT: 'installed_at',
     COL_PLAYTIME_TEXT: 'playtime'
 }
+sortings = {
+    'name': COL_NAME,
+    'year': COL_YEAR,
+    'runner': COL_RUNNER_HUMAN_NAME,
+    'platform': COL_PLATFORM,
+    'lastplayed': COL_LASTPLAYED,
+    'installed_at': COL_INSTALLED_AT
+}
 
 
 class GameStore(GObject.Object):
     __gsignals__ = {
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,))
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool,))
     }
 
-    def __init__(self, games, icon_type, filter_installed, show_installed_first=False):
+    def __init__(self, games, icon_type, filter_installed, sort_key, sort_ascending, show_installed_first=False):
         super(GameStore, self).__init__()
         self.games = games
         self.icon_type = icon_type
@@ -61,7 +71,7 @@ class GameStore(GObject.Object):
         self.filter_platform = None
         self.modelfilter = None
         self.runner_names = {}
-
+        self.store = []
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str, str, str)
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
@@ -69,6 +79,9 @@ class GameStore(GObject.Object):
             self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
+        self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
+        self.sort_view(sort_key, sort_ascending)
+        self.modelsort.connect('sort-column-changed', self.on_sort_column_changed)
         if games:
             self.fill_store(games)
 
@@ -81,29 +94,16 @@ class GameStore(GObject.Object):
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
 
+    def populate_runner_names(self):
+        names = {}
+        for runner in runners.__all__:
+            runner_inst = runners.import_runner(runner)
+            names[runner] = runner_inst.human_name
+        return names
+
     def fill_store(self, games):
-        """Fill the model asynchronously and in steps.
-
-        Each iteration on `loader` adds a batch of games to the model as a low
-        priority operation so they get displayed before adding the next batch.
-        This is an optimization to avoid having to wait for all games to be
-        loaded in the model before the list is drawn on the window.
-        """
-        loader = self._fill_store_generator(games)
-        GLib.idle_add(loader.__next__)
-
-    def _fill_store_generator(self, games, batch=100):
-        """Generator to fill the model in batches."""
-        loop = 0
         for game in games:
             self.add_game(game)
-            # Yield to GTK main loop once in a while
-            loop += 1
-            if (loop % batch) == 0:
-                # Returning True to GLib.idle_add makes it run the callback
-                # again. (Yeah, the GTK doc isn't clear about this feature :)
-                yield True
-        yield False
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter the game list."""
@@ -125,13 +125,34 @@ class GameStore(GObject.Object):
                 return False
         return True
 
-    def sort_view(self, show_installed_first=False):
-        self.show_installed_first = show_installed_first
-        self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
-        self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
-        if show_installed_first:
-            self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
-            self.modelfilter.get_model().set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+    def sort_view(self, key='name', ascending=True):
+        self.modelsort.set_sort_column_id(
+            COL_NAME,
+            Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
+        )
+        self.modelsort.set_sort_column_id(
+            sortings[key],
+            Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
+        )
+
+    # def sort_view(self, show_installed_first=False):
+    #     self.show_installed_first = show_installed_first
+    #     self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+    #     self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+    #     if show_installed_first:
+    #         self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+    #         self.modelfilter.get_model().set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+
+    def on_sort_column_changed(self, model):
+        if self.prevent_sort_update:
+            return
+        (col, direction) = model.get_sort_column_id()
+        key = next((c for c, k in sortings.items() if k == col), None)
+        ascending = direction == Gtk.SortType.ASCENDING
+        self.prevent_sort_update = True
+        self.sort_view(key, ascending)
+        self.prevent_sort_update = False
+        self.emit('sorting-changed', key, ascending)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""
@@ -144,30 +165,29 @@ class GameStore(GObject.Object):
             ))
         self.add_game(game)
 
-    def add_game(self, game):
-        name = game['name'].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        runner = None
-        platform = ''
-        runner_name = game['runner']
-        runner_human_name = ''
-        if runner_name:
+    def get_runner_info(self, game):
+        if not game['runner']:
+            return
+        runner_human_name = self.runner_names.get(game['runner'], '')
+        platform = game['platform']
+        if not platform and game['installed']:
             game_inst = Game(game['id'])
-            if not game_inst.is_installed:
-                return
-            if runner_name in self.runner_names:
-                runner_human_name = self.runner_names[runner_name]
-            else:
-                try:
-                    runner = runners.import_runner(runner_name)
-                except runners.InvalidRunner:
-                    game['installed'] = False
-                else:
-                    runner_human_name = runner.human_name
-                    self.runner_names[runner_name] = runner_human_name
             platform = game_inst.platform
             if not platform:
                 game_inst.set_platform_from_runner()
                 platform = game_inst.platform
+                logger.debug("Setting platform for %s: %s", game['name'], platform)
+
+        return runner_human_name, platform
+
+    def add_game(self, game):
+        platform = ''
+        runner_human_name = ''
+        runner_info = self.get_runner_info(game)
+        if runner_info:
+            runner_human_name, platform = runner_info
+        else:
+            game['installed'] = False
 
         lastplayed_text = ''
         if game['lastplayed']:
@@ -184,22 +204,22 @@ class GameStore(GObject.Object):
             playtime_text = game['playtime']
         self.store.append((
             game['id'],
-            game['slug'],
-            name,
+            gtk_safe(game['slug']),
+            gtk_safe(game['name']),
             pixbuf,
-            str(game['year'] or ''),
-            runner_name,
-            runner_human_name,
-            platform,
+            gtk_safe(str(game['year'] or '')),
+            gtk_safe(game['runner']),
+            gtk_safe(runner_human_name),
+            gtk_safe(platform),
             game['lastplayed'],
-            lastplayed_text,
+            gtk_safe(lastplayed_text),
             game['installed'],
             game['installed_at'],
-            installed_at_text,
+            gtk_safe(installed_at_text),
             game['playtime'],
             playtime_text
         ))
-        self.sort_view(self.show_installed_first)
+        # self.sort_view(self.show_installed_first)
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
@@ -340,20 +360,22 @@ class GameListView(Gtk.TreeView, GameView):
 
     def __init__(self, store):
         self.game_store = store
-        self.model = self.game_store.modelfilter.sort_new_with_model()
-        super(GameListView, self).__init__(self.model)
+        self.model = self.game_store.modelsort
+        super().__init__(self.model)
         self.set_rules_hint(True)
 
         # Icon column
         image_cell = Gtk.CellRendererPixbuf()
         column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
         column.set_reorderable(True)
+        column.set_sort_indicator(False)
         self.append_column(column)
 
         # Text columns
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
+
         self.set_column(name_cell, "Name", COL_NAME, 200)
         self.set_column(default_text_cell, "Year", COL_YEAR, 60)
         self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
@@ -377,10 +399,11 @@ class GameListView(Gtk.TreeView, GameView):
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
-    def set_column(self, cell, header, column_id, default_width):
+    def set_column(self, cell, header, column_id, default_width, sort_id=None):
         column = Gtk.TreeViewColumn(header, cell, markup=column_id)
         column.set_sort_indicator(True)
-        column.set_sort_column_id(column_id)
+        column.set_sort_column_id(column_id if sort_id is None else sort_id)
+        self.set_column_sort(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
         width = settings.read_setting('%s_column_width' % COLUMN_NAMES[column_id], 'list view')
@@ -389,14 +412,22 @@ class GameListView(Gtk.TreeView, GameView):
         column.connect("notify::width", self.on_column_width_changed)
         return column
 
-    def set_sort_with_column(self, col, sort_col):
-        """Set to sort a column by using another column.
-        """
+    def set_column_sort(self, col):
+        """Sort a column and fallback to sorting by name and runner."""
 
         def sort_func(model, row1, row2, user_data):
-            v1 = model.get_value(row1, sort_col)
-            v2 = model.get_value(row2, sort_col)
-            return -1 if v1 < v2 else 0 if v1 == v2 else 1
+            v1 = model.get_value(row1, col)
+            v2 = model.get_value(row2, col)
+            diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            if diff is 0:
+                v1 = model.get_value(row1, COL_NAME)
+                v2 = model.get_value(row2, COL_NAME)
+                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            if diff is 0:
+                v1 = model.get_value(row1, COL_RUNNER_HUMAN_NAME)
+                v2 = model.get_value(row2, COL_RUNNER_HUMAN_NAME)
+                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
+            return diff
 
         self.model.set_sort_func(col, sort_func)
 
@@ -436,8 +467,8 @@ class GameGridView(Gtk.IconView, GameView):
 
     def __init__(self, store):
         self.game_store = store
-        self.model = self.game_store.modelfilter
-        super(GameGridView, self).__init__(model=self.model)
+        self.model = self.game_store.modelsort
+        super().__init__(model=self.model)
 
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
@@ -485,7 +516,7 @@ class GameGridView(Gtk.IconView, GameView):
 
 class ContextualMenu(Gtk.Menu):
     def __init__(self, main_entries):
-        super(ContextualMenu, self).__init__()
+        super().__init__()
         self.main_entries = main_entries
 
     def add_menuitems(self, entries):
@@ -563,5 +594,5 @@ class ContextualMenu(Gtk.Menu):
             visible = not hiding_condition.get(action)
             menuitem.set_visible(visible)
 
-        super(ContextualMenu, self).popup(None, None, None, None,
+        super().popup(None, None, None, None,
                                           event.button, event.time)

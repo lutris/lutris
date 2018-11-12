@@ -20,7 +20,7 @@ class RunnerInstallDialog(Dialog):
     COL_PROGRESS = 4
 
     def __init__(self, title, parent, runner):
-        super(RunnerInstallDialog, self).__init__(
+        super().__init__(
             title, parent, 0, ('_OK', Gtk.ResponseType.OK)
         )
         width, height = (460, 380)

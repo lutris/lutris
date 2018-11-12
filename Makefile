@@ -10,12 +10,12 @@ test:
 	nosetests
 
 deb-source: clean
-	gbp buildpackage -S
+	gbp buildpackage -S --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 
 deb: clean
-	gbp buildpackage
+	gbp buildpackage --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 

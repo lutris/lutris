@@ -26,7 +26,7 @@ IGNORED_GAMES = (
     "lutris", "mame", "dosbox", "playonlinux", "org.gnome.Games", "retroarch",
     "steam", "steam-runtime", "steam-valve", "steam-native", "PlayOnLinux",
     "fs-uae-arcade", "PCSX2", "ppsspp", "qchdman", "qmc2-sdlmame", "qmc2-arcade",
-    "sc-controller", "epsxe"
+    "sc-controller", "epsxe", "lsi-settings"
 )
 
 IGNORED_EXECUTABLES = (
