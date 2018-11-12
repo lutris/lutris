@@ -1,6 +1,7 @@
 from importlib import import_module
 from lutris.settings import read_setting
 
+
 __all__ = ['steam', 'winesteam', 'xdg', 'scummvm', 'gog','rom']
 
 
