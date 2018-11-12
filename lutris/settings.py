@@ -7,7 +7,6 @@ from lutris import __version__
 
 PROJECT = "Lutris"
 VERSION = __version__
->>>>>>> upstream/next
 COPYRIGHT = "(c) 2010-2018 Lutris Gaming Platform"
 AUTHORS = ["Mathieu Comandon <strycore@gmail.com>",
            "Pascal Reinhard (Xodetaetl) <dev@xod.me"]
