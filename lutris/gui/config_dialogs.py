@@ -374,6 +374,7 @@ class GameDialogCommon:
         if self.runner_name in ('steam', 'winesteam'):
             self.game.steamid = self.lutris_config.game_config['appid']
         self.game.set_platform_from_runner()
+        self.game.playtime = "%.1f hrs" % self.game.playtime
         self.game.save()
         self.destroy()
         self.saved = True
