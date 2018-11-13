@@ -85,8 +85,9 @@ class Game(GObject.Object):
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
-        self.timer = Timer()
-        self.playtime = game_data.get('playtime') or ''
+        self.timer = Timer('seconds')
+        self.playtime = game_data.get('playtime') or "0.0 hrs"
+        self.playtime = float(self.playtime.split()[0])
 
     def __repr__(self):
         return self.__unicode__()
@@ -246,7 +247,7 @@ class Game(GObject.Object):
     @watch_lutris_errors
     def do_play(self, prelaunched, error=None):
 
-        self.timer.start_t()
+        self.timer.start()
 
         if error:
             logger.error(error)
@@ -502,12 +503,16 @@ class Game(GObject.Object):
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None, killall=self.runner.killall_on_exit())
         self.state = self.STATE_STOPPED
+        if not self.timer.finished:
+            self.timer.end()
+            self.playtime = self.timer.duration + self.playtime
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
 
-        self.timer.end_t()
-        self.playtime = self.timer.increment(self.playtime)
+        if not self.timer.finished:
+            self.timer.end()
+            self.playtime = self.timer.duration + self.playtime
 
         if self.prelaunch_thread:
             logger.info("Stopping prelaunch script")
