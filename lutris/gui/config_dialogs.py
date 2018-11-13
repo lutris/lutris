@@ -367,9 +367,7 @@ class GameDialogCommon:
         runner = runner_class(self.lutris_config)
         if self.game.platform != runner.get_platform():
             self.game.remove()
-            self.game.runner_name = self.runner_name
-        else:
-            self.game.runner_name = self.runner_name
+        self.game.runner_name = self.runner_name
 
         self.game.name = name
         self.game.slug = self.slug
