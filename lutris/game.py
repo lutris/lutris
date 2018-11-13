@@ -84,7 +84,7 @@ class Game(GObject.Object):
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
-        self.timer = Timer('seconds')
+        self.timer = Timer('hours')
         self.playtime = game_data.get('playtime') or "0.0 hrs"
         self.playtime = float(self.playtime.split()[0])
 
