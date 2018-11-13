@@ -4,7 +4,7 @@ import datetime
 class Timer:
     """Simple Timer class to time code"""
 
-    def __init__(self, format):
+    def __init__(self, format='hours'):
         self.format = format
         self._start = None
         self._end = None
@@ -22,21 +22,23 @@ class Timer:
     @property
     def duration(self):
         if not self._start:
-            result = 0
+            dur = 0
 
         elif not self.finished:
             now = datetime.datetime.now()
-            result = (now - self._start).seconds
+            dur = (now - self._start).seconds
 
         else:
-            result = (self._end - self._start).seconds
+            dur = (self._end - self._start).seconds
 
-        # Retrun time in the specified format
+        return self._convert_time(dur)
+
+    def _convert_time(self, dur):
         if self.format == 'seconds':
-            return result
+            return dur
         if self.format == 'minutes':
-            return result / 60
+            return dur / 60
         if self.format == 'hours':
-            return result / 3600
+            return dur / 3600
         if self.format == 'days':
-            return result / 86400
+            return dur / 86400
