@@ -22,6 +22,18 @@ class pcsx2(Runner):
             'type': 'bool',
             'label': 'Fullscreen',
             'default': False,
+        },
+        {
+            'option': 'full_boot',
+            'type': 'bool',
+            'label': 'Fullboot',
+            'default': False,
+        },
+        {
+            'option': 'nogui',
+            'type': 'bool',
+            'label': 'No GUI',
+            'default': False,
         }
     ]
 
@@ -30,6 +42,10 @@ class pcsx2(Runner):
 
         if self.runner_config.get('fullscreen'):
             arguments.append('--fullscreen')
+        if self.runner_config.get('full_boot'):
+            arguments.append('--fullboot')
+        if self.runner_config.get('nogui'):
+            arguments.append('--nogui')
 
         iso = self.game_config.get('main_file') or ''
         if not system.path_exists(iso):
