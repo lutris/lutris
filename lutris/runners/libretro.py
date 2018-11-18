@@ -61,6 +61,7 @@ LIBRETRO_CORES = [
     ('ProSystem (Atari 7800)', 'prosystem', 'Atari 7800'),
     ('Redream (Sega Dreamcast)', 'redream', 'Sega Dreamcast'),
     ('Reicast (Sega Dreamcast)', 'reicast', 'Sega Dreamcast'),
+    ('RPG Maker 2000/2003 (EasyRPG)', 'easyrpg', 'RPG Maker 2000/2003 Game Engine'),
     ('Snes9x (Super Nintendo)', 'snes9x', 'Nintendo SNES'),
     ('Snes9x2010 (Super Nintendo)', 'snes9x2010', 'Nintendo SNES'),
     ('Stella (Atari 2600)', 'stella', 'Atari 2600'),
