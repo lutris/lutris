@@ -20,9 +20,7 @@ class RunnerInstallDialog(Dialog):
     COL_PROGRESS = 4
 
     def __init__(self, title, parent, runner):
-        super().__init__(
-            title, parent, 0, ('_OK', Gtk.ResponseType.OK)
-        )
+        super().__init__(title, parent, 0, ("_OK", Gtk.ResponseType.OK))
         width, height = (460, 380)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
@@ -30,19 +28,20 @@ class RunnerInstallDialog(Dialog):
         self.runner = runner
         self.runner_info = api.get_runners(self.runner)
         if not self.runner_info:
-            ErrorDialog('Unable to get runner versions, check your internet connection',
-                        parent=parent)
+            ErrorDialog(
+                "Unable to get runner versions, check your internet connection",
+                parent=parent,
+            )
             return
-        label = Gtk.Label("%s version management" % self.runner_info['name'])
+        label = Gtk.Label("%s version management" % self.runner_info["name"])
         self.vbox.add(label)
         self.runner_store = self.get_store()
         scrolled_window = Gtk.ScrolledWindow()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
-        self.connect('response', self.on_response)
+        self.connect("response", self.on_response)
 
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                   Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         scrolled_window.add(self.treeview)
 
@@ -62,21 +61,23 @@ class RunnerInstallDialog(Dialog):
         treeview.append_column(installed_column)
 
         version_column = Gtk.TreeViewColumn(None, renderer_text)
-        version_column.add_attribute(renderer_text, 'text', self.COL_VER)
-        version_column.set_property('min-width', 80)
+        version_column.add_attribute(renderer_text, "text", self.COL_VER)
+        version_column.set_property("min-width", 80)
         treeview.append_column(version_column)
 
-        arch_column = Gtk.TreeViewColumn(None, renderer_text,
-                                         text=self.COL_ARCH)
-        arch_column.set_property('min-width', 50)
+        arch_column = Gtk.TreeViewColumn(None, renderer_text, text=self.COL_ARCH)
+        arch_column.set_property("min-width", 50)
         treeview.append_column(arch_column)
 
-        progress_column = Gtk.TreeViewColumn(None, self.renderer_progress,
-                                             value=self.COL_PROGRESS,
-                                             visible=self.COL_PROGRESS)
-        progress_column.set_property('fixed-width', 60)
-        progress_column.set_property('min-width', 60)
-        progress_column.set_property('resizable', False)
+        progress_column = Gtk.TreeViewColumn(
+            None,
+            self.renderer_progress,
+            value=self.COL_PROGRESS,
+            visible=self.COL_PROGRESS,
+        )
+        progress_column.set_property("fixed-width", 60)
+        progress_column.set_property("min-width", 60)
+        progress_column.set_property("resizable", False)
         treeview.append_column(progress_column)
 
         return treeview
@@ -84,27 +85,28 @@ class RunnerInstallDialog(Dialog):
     def get_store(self):
         liststore = Gtk.ListStore(str, str, str, bool, int)
         for version_info in reversed(self.get_versions()):
-            version = version_info['version']
-            architecture = version_info['architecture']
+            version = version_info["version"]
+            architecture = version_info["architecture"]
             progress = 0
-            is_installed = os.path.exists(
-                self.get_runner_path(version, architecture)
-            )
+            is_installed = os.path.exists(self.get_runner_path(version, architecture))
             liststore.append(
-                [version_info['version'],
-                 version_info['architecture'],
-                 version_info['url'],
-                 is_installed,
-                 progress]
+                [
+                    version_info["version"],
+                    version_info["architecture"],
+                    version_info["url"],
+                    is_installed,
+                    progress,
+                ]
             )
         return liststore
 
     def get_versions(self):
-        return self.runner_info['versions']
+        return self.runner_info["versions"]
 
     def get_runner_path(self, version, arch):
-        return os.path.join(settings.RUNNER_DIR, self.runner,
-                            "{}-{}".format(version, arch))
+        return os.path.join(
+            settings.RUNNER_DIR, self.runner, "{}-{}".format(version, arch)
+        )
 
     @staticmethod
     def get_dest_path(row):
@@ -115,10 +117,12 @@ class RunnerInstallDialog(Dialog):
     def on_installed_toggled(self, widget, path):
         row = self.runner_store[path]
         if row[self.COL_VER] in self.installing:
-            confirm_dlg = QuestionDialog({
-                "question": "Do you want to cancel the download?",
-                "title": "Download starting"
-            })
+            confirm_dlg = QuestionDialog(
+                {
+                    "question": "Do you want to cancel the download?",
+                    "title": "Download starting",
+                }
+            )
             if confirm_dlg.result == confirm_dlg.YES:
                 self.cancel_install(row)
         elif row[self.COL_INSTALLED]:
@@ -196,6 +200,7 @@ class RunnerInstallDialog(Dialog):
 
 if __name__ == "__main__":
     import signal
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     RunnerInstallDialog("test", None, "wine")
     GObject.threads_init()

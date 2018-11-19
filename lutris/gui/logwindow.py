@@ -12,7 +12,7 @@ class LogTextView(Gtk.TextView):
         self.set_left_margin(10)
         self.scroll_max = 0
         self.set_wrap_mode(Gtk.WrapMode.CHAR)
-        self.get_style_context().add_class('lutris-logview')
+        self.get_style_context().add_class("lutris-logview")
         if autoscroll:
             self.connect("size-allocate", self.autoscroll)
 
@@ -27,14 +27,14 @@ class LogTextView(Gtk.TextView):
 
 class LogWindow(Dialog):
     def __init__(self, title, buffer, parent):
-        super().__init__(title, parent, 0,
-                         ('_OK', Gtk.ResponseType.OK))
+        super().__init__(title, parent, 0, ("_OK", Gtk.ResponseType.OK))
         self.set_size_request(640, 480)
         self.grid = Gtk.Grid()
         self.buffer = buffer
         self.logtextview = LogTextView(self.buffer)
 
-        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True,
-                                            child=self.logtextview)
+        scrolledwindow = Gtk.ScrolledWindow(
+            hexpand=True, vexpand=True, child=self.logtextview
+        )
         self.vbox.add(scrolledwindow)
         self.show_all()

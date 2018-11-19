@@ -7,12 +7,11 @@ from lutris.util.jobs import AsyncCall
 
 
 class ServiceSyncRow(Gtk.Box):
-
     def __init__(self, service, dialog):
         super().__init__()
         self.set_spacing(20)
 
-        self.identifier = service.__name__.split('.')[-1]
+        self.identifier = service.__name__.split(".")[-1]
         name = service.NAME
 
         icon = get_icon(self.identifier)
@@ -29,7 +28,7 @@ class ServiceSyncRow(Gtk.Box):
 
         if hasattr(service, "connect"):
             self.connect_button = Gtk.Button()
-            self.connect_button.connect('clicked', self.on_connect_clicked, service)
+            self.connect_button.connect("clicked", self.on_connect_clicked, service)
             self._connect_button_toggle(service.is_connected())
             actions.pack_start(self.connect_button, False, False, 0)
 
@@ -37,15 +36,17 @@ class ServiceSyncRow(Gtk.Box):
             self.sync_switch = Gtk.Switch()
             self.sync_switch.set_tooltip_text("Sync when Lutris starts")
             self.sync_switch.props.valign = Gtk.Align.CENTER
-            self.sync_switch.connect('notify::active', self.on_switch_changed)
+            self.sync_switch.connect("notify::active", self.on_switch_changed)
 
-            if read_setting('sync_at_startup', self.identifier) == 'True':
+            if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
             actions.pack_start(self.sync_switch, False, False, 0)
 
             self.sync_button = Gtk.Button("Sync")
             self.sync_button.set_tooltip_text("Sync now")
-            self.sync_button.connect('clicked', self.on_sync_button_clicked, service.sync_with_lutris)
+            self.sync_button.connect(
+                "clicked", self.on_sync_button_clicked, service.sync_with_lutris
+            )
             actions.pack_start(self.sync_button, False, False, 0)
 
             if hasattr(service, "connect") and not service.is_connected():
@@ -84,11 +85,10 @@ class ServiceSyncRow(Gtk.Box):
 
     def on_switch_changed(self, switch, data):
         state = switch.get_active()
-        write_setting('sync_at_startup', state, self.identifier)
+        write_setting("sync_at_startup", state, self.identifier)
 
 
 class SyncServiceDialog(Gtk.Dialog):
-
     def __init__(self, parent=None):
         super().__init__(title="Import local games", parent=parent, use_header_bar=1)
         self.connect("delete-event", lambda *x: self.destroy())
@@ -99,8 +99,10 @@ class SyncServiceDialog(Gtk.Dialog):
         self.get_content_area().add(box_outer)
 
         description_label = Gtk.Label()
-        description_label.set_markup("You can choose which local game sources will get synced each\n"
-                                     "time Lutris starts, or launch an immediate import of games.")
+        description_label.set_markup(
+            "You can choose which local game sources will get synced each\n"
+            "time Lutris starts, or launch an immediate import of games."
+        )
         box_outer.pack_start(description_label, False, False, 5)
 
         separator = Gtk.Separator()
