@@ -20,12 +20,13 @@ from lutris.util.system import open_uri, path_exists
 
 from lutris.util import http
 from lutris.util import datapath
+from lutris.util import xdgshortcuts
 from lutris.util.steam.watcher import SteamWatcher
-from lutris.util.dxvk import init_dxvk_versions
+from lutris.util.wine.dxvk import init_dxvk_versions
 
 from lutris.thread import LutrisThread
 
-from lutris.services import get_services_synced_at_startup, steam, xdg
+from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.gui import dialogs
 from lutris.gui.sidebar import (
@@ -483,7 +484,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 added_games = chain.from_iterable(
                     [
                         pga.get_games_where(
-                            id__in=list(added_ids)[page * size : page * size + size]
+                            id__in=list(added_ids)[page * size: page * size + size]
                         )
                         for page in range(math.ceil(len(added_ids) / size))
                     ]
@@ -1010,22 +1011,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def create_menu_shortcut(self, *_args):
         """Add the selected game to the system's Games menu."""
         game = Game(self.view.selected_game)
-        xdg.create_launcher(game.slug, game.id, game.name, menu=True)
+        xdgshortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
 
     def create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""
         game = Game(self.view.selected_game)
-        xdg.create_launcher(game.slug, game.id, game.name, desktop=True)
+        xdgshortcuts.create_launcher(game.slug, game.id, game.name, desktop=True)
 
     def remove_menu_shortcut(self, *_args):
         """Remove an XDG menu shortcut"""
         game = Game(self.view.selected_game)
-        xdg.remove_launcher(game.slug, game.id, menu=True)
+        xdgshortcuts.remove_launcher(game.slug, game.id, menu=True)
 
     def remove_desktop_shortcut(self, *_args):
         """Remove a .desktop shortcut"""
         game = Game(self.view.selected_game)
-        xdg.remove_launcher(game.slug, game.id, desktop=True)
+        xdgshortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
     def on_sidebar_state_change(self, action, value):
         """Callback to handle siderbar toggle"""

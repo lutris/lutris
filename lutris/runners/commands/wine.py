@@ -10,7 +10,7 @@ from lutris.runners import import_runner
 from lutris.thread import LutrisThread
 from lutris.util import datapath, system
 from lutris.util.log import logger
-from lutris.util.wine import (
+from lutris.util.wine.wine import (
     WINE_DIR,
     detect_arch,
     detect_prefix_arch,
@@ -18,7 +18,7 @@ from lutris.util.wine import (
     get_real_executable,
     use_lutris_runtime,
 )
-from lutris.util.wineprefix import WinePrefixManager
+from lutris.util.wine.prefix import WinePrefixManager
 
 
 def set_regedit(

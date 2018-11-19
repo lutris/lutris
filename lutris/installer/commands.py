@@ -14,7 +14,7 @@ from lutris import runtime
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
-from lutris.util.wine import get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version_exe
 from lutris.util import selective_merge
 
 from lutris.runners import wine, import_task

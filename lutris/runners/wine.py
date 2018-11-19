@@ -7,13 +7,14 @@ import shutil
 from lutris import runtime
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
-from lutris.util import datapath, display, dxvk, system
+from lutris.util import datapath, display, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
 from lutris.util.vkquery import is_vulkan_supported
-from lutris.util.wineprefix import WinePrefixManager
-from lutris.util.x360ce import X360ce
-from lutris.util.wine import (
+from lutris.util.wine.prefix import WinePrefixManager
+from lutris.util.wine.x360ce import X360ce
+from lutris.util.wine import dxvk
+from lutris.util.wine.wine import (
     PROTON_PATH,
     WINE_DIR,
     WINE_PATHS,

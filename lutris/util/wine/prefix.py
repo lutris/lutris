@@ -1,5 +1,5 @@
 import os
-from lutris.util.wineregistry import WineRegistry
+from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
 from lutris.util import joypad, system
 
