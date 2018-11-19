@@ -42,15 +42,19 @@ def get_vidmodes():
                                      stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
 
+
 Output = namedtuple('Output', ('name', 'mode', 'position', 'rotation', 'primary', 'rate'))
 
+
 def get_outputs():
-    """Return list of namedtuples containing output 'name', 'geometry', 'rotation' and wether it is the 'primary' display."""
+    """Return list of namedtuples containing output 'name', 'geometry',
+    'rotation' and wether it is the 'primary' display."""
     outputs = []
     vid_modes = get_vidmodes()
-    display = None
     position = None
     rotate = None
+    primary = None
+    name = None
     if not vid_modes:
         logger.error("xrandr didn't return anything")
         return []
@@ -72,17 +76,25 @@ def get_outputs():
             if geom.startswith('('):  # Screen turned off, no geometry
                 continue
             if rotate.startswith('('):  # Screen not rotated, no need to include
-                rotate = "normal"
-            geo_split = geom.split('+')
-            position = geo_split[1] + "x" + geo_split[2]
-            display = parts[0]
+                rotate = 'normal'
+            geom_parts = geom.split('+')
+            position = geom_parts[1] + "x" + geom_parts[2]
+            name = parts[0]
         elif '*' in line:
             mode = parts[0]
             for number in parts:
                 if '*' in number:
-                    refresh_rate = number[:5]
-                    outputs.append((display, mode, position, rotate, refresh_rate))
+                    hertz = number[:5]
+                    outputs.append(Output(
+                        name=name,
+                        mode=mode,
+                        position=position,
+                        rotation=rotate,
+                        primary=primary,
+                        rate=hertz
+                    ))
     return outputs
+
 
 def get_output_names():
     """Return output names from XrandR"""
@@ -148,23 +160,23 @@ def change_resolution(resolution):
             subprocess.Popen(["xrandr", "-s", resolution])
     else:
         for display in resolution:
-            display_name = display[0]
-            display_mode = display[1]
-            logger.debug("Switching to %s on %s", display_mode, display_name)
-            position = display[2]
-            refresh_rate = display[4]
+            logger.debug("Switching to %s on %s", display.mode, display.name)
 
-            if len(display) > 2 and display[3] in ('normal', 'left', 'right', 'inverted'):
-                rotation = display[3]
+            if (
+                display.rotation is not None and
+                display.rotation in ('normal', 'left', 'right', 'inverted')
+            ):
+                rotation = display.rotation
             else:
                 rotation = "normal"
+            logger.info("Switching resolution of %s to %s", display.name, display.mode)
             subprocess.Popen([
                 "xrandr",
-                "--output", display_name,
-                "--mode", display_mode,
-                "--pos", position,
+                "--output", display.name,
+                "--mode", display.mode,
+                "--pos", display.position,
                 "--rotate", rotation,
-                "--rate", refresh_rate
+                "--rate", display.rate
             ]).communicate()
 
 
@@ -293,6 +305,7 @@ def get_output_list():
         # Using DISPLAYS to get the number of connected monitors
         choices.append((output, str(index)))
     return choices
+
 
 def get_providers():
     """Return the list of available graphic cards"""
