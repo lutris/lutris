@@ -8,7 +8,9 @@ from lutris.runners.runner import Runner
 from lutris.thread import LutrisThread
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.steam import get_app_state_log, get_default_acf, read_config, to_vdf
+from lutris.util.steam.log import get_app_state_log
+from lutris.util.steam.config import get_default_acf, read_config
+from lutris.util.steam.vdf import to_vdf
 from lutris.services.steam import get_path_from_appmanifest
 
 

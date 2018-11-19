@@ -16,7 +16,7 @@ from lutris.util import system
 from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.steam import get_app_state_log
+from lutris.util.steam.log import get_app_state_log
 from lutris.util.http import Request
 from lutris.util.wine import get_wine_version_exe, get_system_wine_version
 

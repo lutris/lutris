@@ -139,11 +139,6 @@ class GogService:
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
         return self.make_request(url)
 
-    def get_games_list(self):
-        """I don't know."""
-        url = self.api_url + "/products"
-        return self.make_api_request(url)
-
     def get_game_details(self, product_id):
         """Return game information for a given game"""
         logger.info("Getting game details for %s", product_id)

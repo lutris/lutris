@@ -20,7 +20,7 @@ from lutris.util.system import open_uri, path_exists
 
 from lutris.util import http
 from lutris.util import datapath
-from lutris.util.steam import SteamWatcher
+from lutris.util.steam.watcher import SteamWatcher
 from lutris.util.dxvk import init_dxvk_versions
 
 from lutris.thread import LutrisThread
@@ -458,7 +458,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
-        other_view = "list" if view_type is "grid" else "grid"
+        other_view = "list" if view_type == "grid" else "grid"
         self.viewtype_icon.set_from_icon_name(
             "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
         )

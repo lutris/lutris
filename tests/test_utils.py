@@ -2,7 +2,7 @@ import os
 from collections import OrderedDict
 from unittest import TestCase
 from lutris.util import system
-from lutris.util import steam
+from lutris.util.steam import vdf
 from lutris.util import strings
 from lutris.util import fileio
 
@@ -57,7 +57,7 @@ class TestSteamUtils(TestCase):
 \t"StateFlags"\t\t"4"
 \t"appID"\t\t"13240"
 }"""
-        vdf_data = steam.to_vdf(dict_data)
+        vdf_data = vdf.to_vdf(dict_data)
         self.assertEqual(vdf_data.strip(), expected_vdf.strip())
 
 
