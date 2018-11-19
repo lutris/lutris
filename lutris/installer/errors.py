@@ -7,6 +7,7 @@ from lutris.gui.dialogs import ErrorDialog
 class ScriptingError(Exception):
     """Custom exception for scripting errors, can be caught by modifying
     excepthook."""
+
     def __init__(self, message, faulty_data=None):
         self.message = message
         self.faulty_data = faulty_data

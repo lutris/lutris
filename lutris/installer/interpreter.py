@@ -25,11 +25,20 @@ from lutris.config import LutrisConfig, make_game_config_id
 from lutris.installer.errors import ScriptingError
 from lutris.installer.commands import CommandsMixin
 
-from lutris.services.gog import is_connected as is_gog_connected, connect as connect_gog, GogService
+from lutris.services.gog import (
+    is_connected as is_gog_connected,
+    connect as connect_gog,
+    GogService,
+)
 
 from lutris.runners import (
-    wine, winesteam, steam, import_runner,
-    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError
+    wine,
+    winesteam,
+    steam,
+    import_runner,
+    InvalidRunner,
+    NonInstallableRunnerError,
+    RunnerInstallationError,
 )
 
 
@@ -40,7 +49,7 @@ def fetch_script(game_slug, revision=None):
         key = None
     else:
         installer_url = settings.INSTALLER_URL % game_slug
-        key = 'results'
+        key = "results"
     logger.debug("Fetching installer %s", installer_url)
     request = Request(installer_url)
     request.get()
@@ -56,11 +65,11 @@ def fetch_script(game_slug, revision=None):
 def read_script(filename):
     """Return scripts from a local file"""
     logger.debug("Loading script(s) from %s", filename)
-    scripts = yaml.safe_load(open(filename, 'r').read())
+    scripts = yaml.safe_load(open(filename, "r").read())
     if isinstance(scripts, list):
         return scripts
-    if 'results' in scripts:
-        return scripts['results']
+    if "results" in scripts:
+        return scripts["results"]
     return scripts
 
 
@@ -69,9 +78,9 @@ def _get_game_launcher(script):
     launcher_value = None
 
     # exe64 can be provided to specify an executable for 64bit systems
-    exe = 'exe64' if 'exe64' in script and system.IS_64BIT else 'exe'
+    exe = "exe64" if "exe64" in script and system.IS_64BIT else "exe"
 
-    for launcher in (exe, 'iso', 'rom', 'disk', 'main_file'):
+    for launcher in (exe, "iso", "rom", "disk", "main_file"):
         if launcher not in script:
             continue
         launcher_value = script[launcher]
@@ -88,6 +97,7 @@ def _get_game_launcher(script):
 
 class ScriptInterpreter(CommandsMixin):
     """Convert raw installer script data into actions."""
+
     def __init__(self, installer, parent):
         self.error = None
         self.errors = []
@@ -101,7 +111,7 @@ class ScriptInterpreter(CommandsMixin):
         self.user_inputs = []
         self.steam_data = {}
         self.gog_data = {}
-        self.script = installer.get('script')
+        self.script = installer.get("script")
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
 
@@ -110,20 +120,22 @@ class ScriptInterpreter(CommandsMixin):
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
 
-        self.version = installer['version']
-        self.slug = installer['slug']
-        self.year = installer.get('year')
-        self.runner = installer['runner']
-        self.game_name = self.script.get('custom-name') or installer['name']
-        self.game_slug = installer['game_slug']
-        self.steamid = installer.get('steamid')
+        self.version = installer["version"]
+        self.slug = installer["slug"]
+        self.year = installer.get("year")
+        self.runner = installer["runner"]
+        self.game_name = self.script.get("custom-name") or installer["name"]
+        self.game_slug = installer["game_slug"]
+        self.steamid = installer.get("steamid")
 
         if not self.is_valid():
-            raise ScriptingError("Invalid script: \n{}".format("\n".join(self.errors)), self.script)
+            raise ScriptingError(
+                "Invalid script: \n{}".format("\n".join(self.errors)), self.script
+            )
 
-        self.files = self.script.get('files', [])
-        self.requires = self.script.get('requires')
-        self.extends = self.script.get('extends')
+        self.files = self.script.get("files", [])
+        self.requires = self.script.get("requires")
+        self.extends = self.script.get("extends")
 
         self._check_binary_dependencies()
         self._check_dependency()
@@ -132,30 +144,28 @@ class ScriptInterpreter(CommandsMixin):
 
         # If the game is in the library and uninstalled, the first installation
         # updates it
-        existing_game = pga.get_game_by_field(self.game_slug, 'slug')
-        if existing_game and not existing_game['installed']:
-            self.game_id = existing_game['id']
+        existing_game = pga.get_game_by_field(self.game_slug, "slug")
+        if existing_game and not existing_game["installed"]:
+            self.game_id = existing_game["id"]
         else:
             self.game_id = None
 
     def get_default_target(self):
         """Return default installation dir"""
         config = LutrisConfig(runner_slug=self.runner)
-        games_dir = config.system_config.get('game_path',
-                                             os.path.expanduser('~'))
+        games_dir = config.system_config.get("game_path", os.path.expanduser("~"))
         return os.path.expanduser(os.path.join(games_dir, self.game_slug))
 
     @property
     def cache_path(self):
-        return os.path.join(settings.CACHE_DIR,
-                            "installer/%s" % self.game_slug)
+        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
 
     @property
     def should_create_target(self):
         return (
-            not os.path.exists(self.target_path) and
-            'nocreatedir' not in self.script and
-            self.creates_game_folder
+            not os.path.exists(self.target_path)
+            and "nocreatedir" not in self.script
+            and self.creates_game_folder
         )
 
     @property
@@ -163,13 +173,13 @@ class ScriptInterpreter(CommandsMixin):
         if self.requires:
             # Game is an extension of an existing game, folder exists
             return False
-        if self.runner in ('steam', 'winesteam'):
+        if self.runner in ("steam", "winesteam"):
             # Steam games installs in their steamapps directory
             return False
-        if self.files or self.script.get('game', {}).get('gog'):
+        if self.files or self.script.get("game", {}).get("gog"):
             return True
-        command_names = [list(c.keys())[0] for c in self.script.get('installer', [])]
-        if 'insert-disc' in command_names:
+        command_names = [list(c.keys())[0] for c in self.script.get("installer", [])]
+        if "insert-disc" in command_names:
             return True
         return False
 
@@ -186,28 +196,28 @@ class ScriptInterpreter(CommandsMixin):
             return False
 
         # Check that installers contains all required fields
-        for field in ('runner', 'game_name', 'game_slug'):
+        for field in ("runner", "game_name", "game_slug"):
             if not hasattr(self, field) or not getattr(self, field):
                 self.errors.append("Missing field '%s'" % field)
 
         # Check that libretro installers have a core specified
-        if self.runner == 'libretro':
-            if 'game' not in self.script or 'core' not in self.script['game']:
-                self.errors.append('Missing libretro core in game section')
+        if self.runner == "libretro":
+            if "game" not in self.script or "core" not in self.script["game"]:
+                self.errors.append("Missing libretro core in game section")
 
         # Check that installers don't contain both 'requires' and 'extends'
-        if self.script.get('requires') and self.script.get('extends'):
-            self.errors.append('Scripts can\'t have both extends and requires')
+        if self.script.get("requires") and self.script.get("extends"):
+            self.errors.append("Scripts can't have both extends and requires")
         return not bool(self.errors)
 
     @staticmethod
     def _get_installed_dependency(dependency):
         """Return whether a dependency is installed"""
-        game = pga.get_game_by_field(dependency, field='installer_slug')
+        game = pga.get_game_by_field(dependency, field="installer_slug")
 
         if not game:
-            game = pga.get_game_by_field(dependency, 'slug')
-        if bool(game) and bool(game['directory']):
+            game = pga.get_game_by_field(dependency, "slug")
+        if bool(game) and bool(game["directory"]):
             return game
 
     def _check_binary_dependencies(self):
@@ -216,7 +226,7 @@ class ScriptInterpreter(CommandsMixin):
         This reads a `require-binaries` entry in the script, parsed the same way as
         the `requires` entry.
         """
-        binary_dependencies = unpack_dependencies(self.script.get('require-binaries'))
+        binary_dependencies = unpack_dependencies(self.script.get("require-binaries"))
         for dependency in binary_dependencies:
             if isinstance(dependency, tuple):
                 installed_binaries = {
@@ -225,7 +235,8 @@ class ScriptInterpreter(CommandsMixin):
                 }
                 if not any(installed_binaries.values()):
                     raise ScriptingError(
-                        "This installer requires %s on your system" % ' or '.join(dependency)
+                        "This installer requires %s on your system"
+                        % " or ".join(dependency)
                     )
             else:
                 if not system.find_executable(dependency):
@@ -250,25 +261,19 @@ class ScriptInterpreter(CommandsMixin):
                 dependency_choices = [
                     self._get_installed_dependency(dep) for dep in dependency
                 ]
-                installed_games = [
-                    dep for dep in dependency_choices if dep
-                ]
+                installed_games = [dep for dep in dependency_choices if dep]
                 if not installed_games:
-                    raise ScriptingError(
-                        error_message.format(' or '.join(dependency))
-                    )
+                    raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
-                    self.target_path = installed_games[0]['directory']
-                    self.requires = installed_games[0]['installer_slug']
+                    self.target_path = installed_games[0]["directory"]
+                    self.requires = installed_games[0]["installer_slug"]
             else:
                 game = self._get_installed_dependency(dependency)
                 if not game:
-                    raise ScriptingError(
-                        error_message.format(dependency)
-                    )
+                    raise ScriptingError(error_message.format(dependency))
                 if index == 0:
-                    self.target_path = game['directory']
-                    self.requires = game['installer_slug']
+                    self.target_path = game["directory"]
+                    self.requires = game["installer_slug"]
 
     # ---------------------
     # "Get the files" stage
@@ -283,15 +288,13 @@ class ScriptInterpreter(CommandsMixin):
             file = {
                 "installer": {
                     "url": gogUrl,
-                    "filename": gogUrl.split("?")[0].split("/")[-1]
+                    "filename": gogUrl.split("?")[0].split("/")[-1],
                 }
             }
             self.files.append(file)
 
             if self.gog_data["os"] == "linux":
-                file = {
-                    "unzip": "http://lutris.net/files/tools/unzip.tar.gz"
-                }
+                file = {"unzip": "http://lutris.net/files/tools/unzip.tar.gz"}
                 self.files.append(file)
         self.iter_game_files()
 
@@ -305,20 +308,23 @@ class ScriptInterpreter(CommandsMixin):
                 try:
                     os.makedirs(self.target_path)
                 except PermissionError:
-                    raise ScriptingError("Lutris does not have necessary permissions to install to choosen game dir:", self.target_path)
-                self.reversion_data['created_main_dir'] = True
+                    raise ScriptingError(
+                        "Lutris does not have necessary permissions to install to choosen game dir:",
+                        self.target_path,
+                    )
+                self.reversion_data["created_main_dir"] = True
 
         if len(self.game_files) < len(self.files):
             logger.info(
-                "Downloading file %d of %d",
-                len(self.game_files) + 1, len(self.files)
+                "Downloading file %d of %d", len(self.game_files) + 1, len(self.files)
             )
             file_index = len(self.game_files)
             try:
                 current_file = self.files[file_index]
             except KeyError:
-                raise ScriptingError("Error getting file %d in %s",
-                                     file_index, self.files)
+                raise ScriptingError(
+                    "Error getting file %d in %s", file_index, self.files
+                )
             self._download_file(current_file)
         else:
             self.current_command = 0
@@ -335,18 +341,19 @@ class ScriptInterpreter(CommandsMixin):
                      of local file.
         """
         if not isinstance(game_file, dict):
-            raise ScriptingError("Invalid file, check the installer script",
-                                 game_file)
+            raise ScriptingError("Invalid file, check the installer script", game_file)
         # Setup file_id, file_uri and local filename
         file_id = list(game_file.keys())[0]
         file_meta = game_file[file_id]
         if isinstance(file_meta, dict):
-            for field in ('url', 'filename'):
+            for field in ("url", "filename"):
                 if field not in file_meta:
-                    raise ScriptingError('missing field `%s` for file `%s`' % (field, file_id))
-            file_uri = file_meta['url']
-            filename = file_meta['filename']
-            referer = file_meta.get('referer')
+                    raise ScriptingError(
+                        "missing field `%s` for file `%s`" % (field, file_id)
+                    )
+            file_uri = file_meta["url"]
+            filename = file_meta["filename"]
+            referer = file_meta.get("referer")
         else:
             file_uri = file_meta
             filename = os.path.basename(file_uri)
@@ -360,7 +367,9 @@ class ScriptInterpreter(CommandsMixin):
             return
 
         if not filename:
-            raise ScriptingError("No filename provided, please provide 'url' and 'filename' parameters in the script")
+            raise ScriptingError(
+                "No filename provided, please provide 'url' and 'filename' parameters in the script"
+            )
 
         # Check for file availability in PGA
         pga_uri = pga.check_for_file(self.game_slug, file_id)
@@ -387,7 +396,7 @@ class ScriptInterpreter(CommandsMixin):
             os.remove(dest_file)
 
         # Change parent's status
-        self.parent.set_status('')
+        self.parent.set_status("")
         self.game_files[file_id] = dest_file
         self.parent.start_download(file_uri, dest_file, referer=referer)
 
@@ -402,11 +411,11 @@ class ScriptInterpreter(CommandsMixin):
             required_runners.append(runner.depends_on())
         required_runners.append(runner())
 
-        for command in self.script.get('installer', []):
+        for command in self.script.get("installer", []):
             command_name, command_params = self._get_command_name_and_params(command)
-            if command_name == 'task':
+            if command_name == "task":
                 runner_name, _task_name = self._get_task_runner_and_name(
-                    command_params['name']
+                    command_params["name"]
                 )
                 runner_names = [r.name for r in required_runners]
                 if runner_name not in runner_names:
@@ -414,19 +423,19 @@ class ScriptInterpreter(CommandsMixin):
 
         for runner in required_runners:
             params = {}
-            if self.runner == 'libretro':
-                params['core'] = self.script['game']['core']
-            if self.runner.startswith('wine'):
-                params['min_version'] = wine.MIN_SAFE_VERSION
+            if self.runner == "libretro":
+                params["core"] = self.script["game"]["core"]
+            if self.runner.startswith("wine"):
+                params["min_version"] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:
-                    params['version'] = version
+                    params["version"] = version
                     # Force the wine version to be installed
-                    params['fallback'] = False
+                    params["fallback"] = False
             if not runner.is_installed(**params):
                 self.runners_to_install.append(runner)
 
-        if self.runner.startswith('wine') and not get_system_wine_version():
+        if self.runner.startswith("wine") and not get_system_wine_version():
             WineNotInstalledWarning(parent=self.parent)
         self.install_runners()
 
@@ -438,12 +447,12 @@ class ScriptInterpreter(CommandsMixin):
             self.install_runner(runner)
 
     def install_runner(self, runner):
-        logger.debug('Installing %s', runner.name)
+        logger.debug("Installing %s", runner.name)
         try:
             runner.install(
                 version=self._get_runner_version(),
                 downloader=self.parent.start_download,
-                callback=self.install_runners
+                callback=self.install_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
@@ -454,15 +463,13 @@ class ScriptInterpreter(CommandsMixin):
             runner = import_runner(runner_name)
         except InvalidRunner:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError('Invalid runner provided %s' % runner_name)
+            raise ScriptingError("Invalid runner provided %s" % runner_name)
         return runner
 
     def file_selected(self, file_path):
         file_id = self.current_file_id
         if not file_path or not os.path.exists(file_path):
-            raise ScriptingError(
-                "Can't continue installation without file", file_id
-            )
+            raise ScriptingError("Can't continue installation without file", file_id)
         self.game_files[file_id] = file_path
         self.prepare_game_files()
 
@@ -479,68 +486,63 @@ class ScriptInterpreter(CommandsMixin):
             os.mkdir(self.cache_path)
 
         # Add steam installation to commands if it's a Steam game
-        if self.runner in ('steam', 'winesteam'):
+        if self.runner in ("steam", "winesteam"):
             try:
-                self.steam_data['appid'] = self.script['game']['appid']
+                self.steam_data["appid"] = self.script["game"]["appid"]
             except KeyError:
                 raise ScriptingError("Missing appid for steam game")
 
-            if 'arch' in self.script['game']:
-                self.steam_data['arch'] = self.script['game']['arch']
+            if "arch" in self.script["game"]:
+                self.steam_data["arch"] = self.script["game"]["arch"]
 
-            commands = self.script.get('installer', [])
-            self.steam_data['platform'] = 'windows' \
-                if self.runner == 'winesteam' else 'linux'
-            commands.insert(0, 'install_steam_game')
-            self.script['installer'] = commands
+            commands = self.script.get("installer", [])
+            self.steam_data["platform"] = (
+                "windows" if self.runner == "winesteam" else "linux"
+            )
+            commands.insert(0, "install_steam_game")
+            self.script["installer"] = commands
 
         # Add gog installation to commands, if it's a GOG and linux game
         if self.gog_data and self.gog_data["os"] == "linux":
-            commands = self.script.get('installer', [])
+            commands = self.script.get("installer", [])
             gogcommands = []
-            gogcommands.append({
-                "extract": {
-                    "dst": "$CACHE",
-                    "file": "$unzip"
+            gogcommands.append({"extract": {"dst": "$CACHE", "file": "$unzip"}})
+            gogcommands.append(
+                {
+                    "execute": {
+                        "args": '$installer -d "$GAMEDIR" "data/noarch/*"',
+                        "description": "Extracting game data, it will take a while...",
+                        "file": "$CACHE/unzip",
+                    }
                 }
-            })
-            gogcommands.append({
-                "execute": {
-                    "args": '$installer -d "$GAMEDIR" "data/noarch/*"',
-                    "description": "Extracting game data, it will take a while...",
-                    "file": "$CACHE/unzip"
-                }
-            })
-            gogcommands.append({
-                "rename": {
-                    "dst": "$GAMEDIR/Game",
-                    "src": "$GAMEDIR/data/noarch"
-                }
-            })
+            )
+            gogcommands.append(
+                {"rename": {"dst": "$GAMEDIR/Game", "src": "$GAMEDIR/data/noarch"}}
+            )
             gogcommands.extend(commands)
-            self.script['installer'] = gogcommands
+            self.script["installer"] = gogcommands
 
-            if not self.script.get('exe', False):
-                self.script['exe'] = "Game/start.sh"
+            if not self.script.get("exe", False):
+                self.script["exe"] = "Game/start.sh"
 
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
-        if result == 'STOP' or self.cancelled:
+        if result == "STOP" or self.cancelled:
             return
 
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
         self.parent.continue_button.hide()
 
-        commands = self.script.get('installer', [])
+        commands = self.script.get("installer", [])
         if exception:
             self.parent.on_install_error(repr(exception))
         elif self.current_command < len(commands):
             try:
                 command = commands[self.current_command]
             except KeyError:
-                raise ScriptingError('Installer commands are not formatted correctly')
+                raise ScriptingError("Installer commands are not formatted correctly")
             self.current_command += 1
             method, params = self._map_command(command)
             if isinstance(params, dict):
@@ -549,7 +551,7 @@ class ScriptInterpreter(CommandsMixin):
                 status_text = None
             if status_text:
                 self.parent.set_status(status_text)
-            logger.debug('Installer command: %s', command)
+            logger.debug("Installer command: %s", command)
             AsyncCall(method, self._iter_commands, params)
         else:
             self._finish_install()
@@ -571,8 +573,7 @@ class ScriptInterpreter(CommandsMixin):
         method."""
         command_name, command_params = self._get_command_name_and_params(command_data)
         if not hasattr(self, command_name):
-            raise ScriptingError('The command "%s" does not exist.'
-                                 % command_name)
+            raise ScriptingError('The command "%s" does not exist.' % command_name)
         return getattr(self, command_name), command_params
 
     # ----------------
@@ -580,7 +581,7 @@ class ScriptInterpreter(CommandsMixin):
     # ----------------
 
     def _finish_install(self):
-        game = self.script.get('game')
+        game = self.script.get("game")
         launcher_value = None
         if game:
             launcher, launcher_value = _get_game_launcher(game)
@@ -602,24 +603,23 @@ class ScriptInterpreter(CommandsMixin):
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
         if self.extends:
-            logger.info('This is an extension to %s, not creating a new game entry',
-                        self.extends)
+            logger.info(
+                "This is an extension to %s, not creating a new game entry",
+                self.extends,
+            )
             return
         configpath = make_game_config_id(self.slug)
         config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
 
         if self.requires:
             # Load the base game config
-            required_game = pga.get_game_by_field(self.requires, field='installer_slug')
+            required_game = pga.get_game_by_field(self.requires, field="installer_slug")
             base_config = LutrisConfig(
-                runner_slug=self.runner,
-                game_config_id=required_game['configpath']
+                runner_slug=self.runner, game_config_id=required_game["configpath"]
             )
             config = base_config.game_level
         else:
-            config = {
-                'game': {},
-            }
+            config = {"game": {}}
 
         self.game_id = pga.add_or_update(
             name=self.game_name,
@@ -632,7 +632,7 @@ class ScriptInterpreter(CommandsMixin):
             year=self.year,
             steamid=self.steamid,
             configpath=configpath,
-            id=self.game_id
+            id=self.game_id,
         )
 
         game = Game(self.game_id)
@@ -642,12 +642,10 @@ class ScriptInterpreter(CommandsMixin):
         logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
 
         # Config update
-        if 'system' in self.script:
-            config['system'] = self._substitute_config(self.script['system'])
+        if "system" in self.script:
+            config["system"] = self._substitute_config(self.script["system"])
         if self.runner in self.script and self.script[self.runner]:
-            config[self.runner] = self._substitute_config(
-                self.script[self.runner]
-            )
+            config[self.runner] = self._substitute_config(self.script[self.runner])
 
         # Game options such as exe or main_file can be added at the root of the
         # script as a shortcut, this integrates them into the game config
@@ -660,23 +658,25 @@ class ScriptInterpreter(CommandsMixin):
                     game_files.append(self.game_files[game_file])
                 else:
                     game_files.append(game_file)
-            config['game'][launcher] = game_files
+            config["game"][launcher] = game_files
         elif launcher_value:
             if launcher_value in self.game_files:
-                launcher_value = (
-                    self.game_files[launcher_value]
-                )
-            elif self.target_path and os.path.exists(os.path.join(self.target_path, launcher_value)):
+                launcher_value = self.game_files[launcher_value]
+            elif self.target_path and os.path.exists(
+                os.path.join(self.target_path, launcher_value)
+            ):
                 launcher_value = os.path.join(self.target_path, launcher_value)
-            config['game'][launcher] = launcher_value
+            config["game"][launcher] = launcher_value
 
-        if 'game' in self.script:
-            config['game'].update(self.script['game'])
-            config['game'] = self._substitute_config(config['game'])
+        if "game" in self.script:
+            config["game"].update(self.script["game"])
+            config["game"] = self._substitute_config(config["game"])
 
             # steamless_binary64 can be used to specify 64 bit non-steam binaries
-            if system.IS_64BIT and 'steamless_binary64' in config['game']:
-                config['game']['steamless_binary'] = config['game']['steamless_binary64']
+            if system.IS_64BIT and "steamless_binary64" in config["game"]:
+                config["game"]["steamless_binary"] = config["game"][
+                    "steamless_binary64"
+                ]
 
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
@@ -704,7 +704,7 @@ class ScriptInterpreter(CommandsMixin):
     # --------------------
 
     def cleanup(self):
-        os.chdir(os.path.expanduser('~'))
+        os.chdir(os.path.expanduser("~"))
         system.remove_folder(self.cache_path)
 
     # --------------
@@ -718,7 +718,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.abort_current_task:
             self.abort_current_task()
 
-        if self.reversion_data.get('created_main_dir'):
+        if self.reversion_data.get("created_main_dir"):
             system.remove_folder(self.target_path)
 
     # -------------
@@ -733,21 +733,21 @@ class ScriptInterpreter(CommandsMixin):
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
             "DISC": self.game_disc,
-            "USER": os.getenv('USER'),
+            "USER": os.getenv("USER"),
             "INPUT": self._get_last_user_input(),
             "VERSION": self.version,
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
-            alias = input_data['alias']
+            alias = input_data["alias"]
             if alias:
-                replacements[alias] = input_data['value']
+                replacements[alias] = input_data["value"]
 
         replacements.update(self.game_files)
         return system.substitute(template_string, replacements)
 
     def _get_last_user_input(self):
-        return self.user_inputs[-1]['value'] if self.user_inputs else ''
+        return self.user_inputs[-1]["value"] if self.user_inputs else ""
 
     def eject_wine_disc(self):
         prefix = self.target_path
@@ -767,26 +767,22 @@ class ScriptInterpreter(CommandsMixin):
 
         # Check if Steam is installed, save the method's arguments so it can
         # be called again once Steam is installed.
-        self.steam_data['callback_args'] = (runner_class, is_game_files)
+        self.steam_data["callback_args"] = (runner_class, is_game_files)
 
         steam_runner = self._get_steam_runner(runner_class)
-        self.steam_data['is_game_files'] = is_game_files
-        appid = self.steam_data['appid']
+        self.steam_data["is_game_files"] = is_game_files
+        appid = self.steam_data["appid"]
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
             steam_runner.config = LutrisConfig(runner_slug=steam_runner.name)
-            if 'arch' in self.steam_data:
-                steam_runner.config.game_config['arch'] = self.steam_data['arch']
+            if "arch" in self.steam_data:
+                steam_runner.config.game_config["arch"] = self.steam_data["arch"]
             AsyncCall(steam_runner.install_game, None, appid, is_game_files)
 
             self.install_start_time = time.localtime()
-            self.steam_poll = GLib.timeout_add(
-                2000, self._monitor_steam_game_install
-            )
-            self.abort_current_task = (
-                lambda: steam_runner.remove_game_data(appid=appid)
-            )
-            return 'STOP'
+            self.steam_poll = GLib.timeout_add(2000, self._monitor_steam_game_install)
+            self.abort_current_task = lambda: steam_runner.remove_game_data(appid=appid)
+            return "STOP"
         elif is_game_files:
             self._append_steam_data_to_files(runner_class)
         else:
@@ -794,12 +790,12 @@ class ScriptInterpreter(CommandsMixin):
 
     def _get_steam_runner(self, runner_class=None):
         if not runner_class:
-            if self.runner == 'steam':
+            if self.runner == "steam":
                 runner_class = steam.steam
-            elif self.runner == 'winesteam':
+            elif self.runner == "winesteam":
                 runner_class = winesteam.winesteam
-            elif self.steam_data['is_game_files']:
-                if self.steam_data['platform'] == 'windows':
+            elif self.steam_data["is_game_files"]:
+                if self.steam_data["platform"] == "windows":
                     runner_class = winesteam.winesteam
                 else:
                     runner_class = steam.steam
@@ -808,17 +804,18 @@ class ScriptInterpreter(CommandsMixin):
     def _monitor_steam_game_install(self):
         if self.cancelled:
             return False
-        appid = self.steam_data['appid']
+        appid = self.steam_data["appid"]
         steam_runner = self._get_steam_runner()
-        states = get_app_state_log(steam_runner.steam_data_dir, appid,
-                                   self.install_start_time)
+        states = get_app_state_log(
+            steam_runner.steam_data_dir, appid, self.install_start_time
+        )
         if states != self.prev_states:
             logger.debug("Steam installation status:")
             logger.debug(states)
         self.prev_states = states
 
-        if states and states[-1].startswith('Fully Installed'):
-            logger.debug('Steam game has finished installing')
+        if states and states[-1].startswith("Fully Installed"):
+            logger.debug("Steam game has finished installing")
             self._on_steam_game_installed()
             return False
         return True
@@ -826,8 +823,8 @@ class ScriptInterpreter(CommandsMixin):
     def _on_steam_game_installed(self, *args):
         """Fired whenever a Steam game has finished installing."""
         self.abort_current_task = None
-        if self.steam_data['is_game_files']:
-            if self.steam_data['platform'] == 'windows':
+        if self.steam_data["is_game_files"]:
+            if self.steam_data["platform"] == "windows":
                 runner_class = winesteam.winesteam
             else:
                 runner_class = steam.steam
@@ -841,18 +838,14 @@ class ScriptInterpreter(CommandsMixin):
             steam_runner = self._get_steam_runner()
         else:
             steam_runner = runner_class()
-        return steam_runner.get_game_path_from_appid(
-            self.steam_data['appid']
-        )
+        return steam_runner.get_game_path_from_appid(self.steam_data["appid"])
 
     def _append_steam_data_to_files(self, runner_class):
         data_path = self._get_steam_game_path(runner_class)
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
-        self.game_files[self.steam_data['file_id']] = os.path.abspath(
-            os.path.join(
-                data_path, self.steam_data['steam_rel_path']
-            )
+        self.game_files[self.steam_data["file_id"]] = os.path.abspath(
+            os.path.join(data_path, self.steam_data["steam_rel_path"])
         )
         self.prepare_game_files()
 
@@ -877,26 +870,23 @@ class ScriptInterpreter(CommandsMixin):
         if steam_rel_path == "/":
             steam_rel_path = "."
         self.steam_data = {
-            'appid': parts[1],
-            'steam_rel_path': steam_rel_path,
-            'file_id': file_id
+            "appid": parts[1],
+            "steam_rel_path": steam_rel_path,
+            "file_id": file_id,
         }
 
-        logger.debug(
-            "Getting Steam data for appid %s" % self.steam_data['appid']
-        )
+        logger.debug("Getting Steam data for appid %s" % self.steam_data["appid"])
 
         self.parent.clean_widgets()
         self.parent.add_spinner()
-        if parts[0] == '$WINESTEAM':
-            self.parent.set_status('Getting Wine Steam game data')
-            self.steam_data['platform'] = "windows"
-            self.install_steam_game(winesteam.winesteam,
-                                    is_game_files=True)
+        if parts[0] == "$WINESTEAM":
+            self.parent.set_status("Getting Wine Steam game data")
+            self.steam_data["platform"] = "windows"
+            self.install_steam_game(winesteam.winesteam, is_game_files=True)
         else:
             # Getting data from Linux Steam
-            self.parent.set_status('Getting Steam game data')
-            self.steam_data['platform'] = "linux"
+            self.parent.set_status("Getting Steam game data")
+            self.steam_data["platform"] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
 
     # -----------
@@ -905,34 +895,36 @@ class ScriptInterpreter(CommandsMixin):
 
     def get_gog_downloadlink(self):
         """Get url of a gog installer."""
-        self.gog_data = self.script['game']['gog']
+        self.gog_data = self.script["game"]["gog"]
 
         if not is_gog_connected():
             connect_gog()
 
         gog_service = GogService()
-        game_details = gog_service.get_game_details(self.gog_data['appid'])
+        game_details = gog_service.get_game_details(self.gog_data["appid"])
         installer = self._get_gog_installer(game_details)
         if installer[0]:
             installer = installer[1]
-            for game_file in installer.get('files', []):
+            for game_file in installer.get("files", []):
                 downlink = game_file.get("downlink")
                 if not downlink:
                     logger.error("No download information for %s", installer)
                     continue
 
                 download_info = gog_service.get_download_info(downlink)
-                return (download_info['downlink'], installer["os"])
+                return (download_info["downlink"], installer["os"])
         else:
-            logger.error("Installer with id %s not found!", self.gog_data['installerid'])
+            logger.error(
+                "Installer with id %s not found!", self.gog_data["installerid"]
+            )
             raise ScriptingError("Given installer id not existing!")
 
     def _get_gog_installer(self, game_details):
-        installers = game_details['downloads']['installers']
+        installers = game_details["downloads"]["installers"]
         for _, installer in enumerate(installers):
-            logger.debug("Found gog installer with id: %s", installer['id'])
+            logger.debug("Found gog installer with id: %s", installer["id"])
             print(installer)
-            if installer['id'] == self.gog_data['installerid']:
+            if installer["id"] == self.gog_data["installerid"]:
                 return (True, installer)
         return (False, "")
 
