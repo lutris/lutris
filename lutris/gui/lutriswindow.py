@@ -32,8 +32,8 @@ from lutris.gui import dialogs
 from lutris.gui.sidebar import (
     SidebarListBox,
 )  # NOQA FIXME Removing this unused import causes a crash
-from lutris.gui.logwindow import LogWindow
-from lutris.gui.sync import SyncServiceDialog
+from lutris.gui.logdialog import LogDialog
+from lutris.gui.sync import SyncServiceWindow
 from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -506,8 +506,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def open_sync_dialog(self):
         """Opens the service sync dialog"""
-        sync_dialog = SyncServiceDialog(parent=self)
-        sync_dialog.run()
+        SyncServiceWindow(parent=self)
+        # XXX keep a reference to the sync window?
 
     def update_existing_games(self, added, updated, first_run=False):
         """???"""
@@ -860,7 +860,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             dialogs.ErrorDialog("No game log available", parent=self)
             return
         log_title = u"Log for {}".format(self.running_game)
-        log_window = LogWindow(
+        log_window = LogDialog(
             title=log_title, buffer=self.running_game.log_buffer, parent=self
         )
         log_window.run()

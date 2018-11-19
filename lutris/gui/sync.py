@@ -6,20 +6,29 @@ from lutris.settings import read_setting, write_setting
 from lutris.util.jobs import AsyncCall
 
 
-class ServiceSyncRow(Gtk.Box):
+class ServiceSyncBox(Gtk.Box):
+    """Display components to import games from a service"""
     def __init__(self, service, _dialog):
-        super().__init__()
-        self.set_spacing(20)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        self.set_spacing(12)
 
+        self.service = service
         self.identifier = service.__name__.split(".")[-1]
         self.name = service.NAME
 
         label = Gtk.Label()
-        label.set_xalign(0)
         label.set_markup("<b>{}</b>".format(self.name))
-        self.pack_start(label, True, True, 0)
+        self.pack_start(label, False, False, 10)
 
-        actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        spinner = Gtk.Spinner()
+        spinner.start()
+
+        spinner_alignment = Gtk.Alignment()
+        spinner_alignment.set(0.5, 0.5, 0.1, 0.1)
+        spinner_alignment.add(spinner)
+        self.pack_start(spinner_alignment, True, True, 10)
+
+        actions = Gtk.Box()
         self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "connect"):
@@ -48,6 +57,9 @@ class ServiceSyncRow(Gtk.Box):
             if hasattr(service, "connect") and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
                 self.sync_button.set_sensitive(False)
+
+        if hasattr(service, "load_games"):
+            self.load_games()
 
     def get_icon(self):
         icon = get_icon(self.identifier)
@@ -89,6 +101,11 @@ class ServiceSyncRow(Gtk.Box):
         state = switch.get_active()
         write_setting("sync_at_startup", state, self.identifier)
 
+    def load_games(self):
+        children = self.get_children()
+        for child in children:
+            print(child)
+
 
 class SyncServiceDialog(Gtk.Window):
     def __init__(self, parent=None):
@@ -103,6 +120,6 @@ class SyncServiceDialog(Gtk.Window):
         self.add(notebook)
 
         for service in get_services():
-            sync_row = ServiceSyncRow(service, self)
+            sync_row = ServiceSyncBox(service, self)
             notebook.append_page(sync_row, sync_row.get_icon())
         self.show_all()

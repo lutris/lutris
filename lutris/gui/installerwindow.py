@@ -13,7 +13,7 @@ from lutris.gui.config_dialogs import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.logwindow import LogTextView
+from lutris.gui.logdialog import LogTextView
 from lutris.util import jobs
 from lutris.util import system
 from lutris.util import xdgshortcuts
