@@ -9,16 +9,16 @@ from lutris.util import system
 
 def get_default_acf(appid, name):
     userconfig = OrderedDict()
-    userconfig['name'] = name
-    userconfig['gameid'] = appid
+    userconfig["name"] = name
+    userconfig["gameid"] = appid
 
     appstate = OrderedDict()
-    appstate['appID'] = appid
-    appstate['Universe'] = "1"
-    appstate['StateFlags'] = "1026"
-    appstate['installdir'] = name
-    appstate['UserConfig'] = userconfig
-    return {'AppState': appstate}
+    appstate["appID"] = appid
+    appstate["Universe"] = "1"
+    appstate["StateFlags"] = "1026"
+    appstate["installdir"] = name
+    appstate["UserConfig"] = userconfig
+    return {"AppState": appstate}
 
 
 def vdf_parse(steam_config_file, config):
@@ -28,17 +28,21 @@ def vdf_parse(steam_config_file, config):
         try:
             line = steam_config_file.readline()
         except UnicodeDecodeError:
-            logger.error("Error while reading Steam VDF file %s. Returning %s", steam_config_file, config)
+            logger.error(
+                "Error while reading Steam VDF file %s. Returning %s",
+                steam_config_file,
+                config,
+            )
             return config
         if not line or line.strip() == "}":
             return config
-        while not line.strip().endswith("\""):
+        while not line.strip().endswith('"'):
             nextline = steam_config_file.readline()
             if not nextline:
                 break
             line = line[:-1] + nextline
 
-        line_elements = line.strip().split("\"")
+        line_elements = line.strip().split('"')
         if len(line_elements) == 3:
             key = line_elements[1]
             steam_config_file.readline()  # skip '{'
@@ -57,12 +61,12 @@ def to_vdf(dict_data, level=0):
     for key in dict_data:
         value = dict_data[key]
         if isinstance(value, dict):
-            vdf_data += "%s\"%s\"\n" % ("\t" * level, key)
+            vdf_data += '%s"%s"\n' % ("\t" * level, key)
             vdf_data += "%s{\n" % ("\t" * level)
             vdf_data += to_vdf(value, level + 1)
             vdf_data += "%s}\n" % ("\t" * level)
         else:
-            vdf_data += "%s\"%s\"\t\t\"%s\"\n" % ("\t" * level, key, value)
+            vdf_data += '%s"%s"\t\t"%s"\n' % ("\t" * level, key, value)
     return vdf_data
 
 
@@ -73,13 +77,13 @@ def vdf_write(vdf_path, config):
 
 
 def read_config(steam_data_dir):
-    config_filename = os.path.join(steam_data_dir, 'config/config.vdf')
+    config_filename = os.path.join(steam_data_dir, "config/config.vdf")
     if not system.path_exists(config_filename):
         return None
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        config = config['InstallConfigStore']['Software']['Valve']['Steam']
+        config = config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
     except KeyError as e:
         logger.error("Steam config %s is empty: %s", config_filename, e)
         return None
@@ -94,7 +98,7 @@ def _get_last_content_log(steam_data_dir):
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             line = f.readline()
             while line:
                 # Strip old logs
@@ -115,7 +119,7 @@ def get_app_log(steam_data_dir, appid, start_time=None):
     :param start_time: Time tuple, log entries older than this are dumped.
     """
     if start_time:
-        start_time = time.strftime('%Y-%m-%d %T', start_time)
+        start_time = time.strftime("%Y-%m-%d %T", start_time)
 
     app_log = []
     for line in _get_last_content_log(steam_data_dir):
@@ -136,7 +140,7 @@ def get_app_state_log(steam_data_dir, appid, start_time=None):
     """
     state_log = []
     for line in get_app_log(steam_data_dir, appid, start_time):
-        line = line.split(' : ')
+        line = line.split(" : ")
         if len(line) == 1:
             continue
         if line[0].endswith("state changed"):
@@ -152,14 +156,14 @@ class SteamWatcher:
             path = Gio.File.new_for_path(steam_path)
             try:
                 monitor = path.monitor_directory(Gio.FileMonitorFlags.NONE)
-                logger.debug('Watching Steam folder %s', steam_path)
-                monitor.connect('changed', self._on_directory_changed)
+                logger.debug("Watching Steam folder %s", steam_path)
+                monitor.connect("changed", self._on_directory_changed)
                 self.monitors.append(monitor)
             except GLib.Error as e:
                 logger.exception(e)
 
     def _on_directory_changed(self, monitor, _file, other_file, event_type):
         path = _file.get_path()
-        if not path.endswith('.acf'):
+        if not path.endswith(".acf"):
             return
         self.callback(event_type, path)

@@ -14,11 +14,21 @@ from lutris.util import system
 CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 DXVK_VERSIONS = [
-    "0.90", "0.81", "0.80",
-    "0.72", "0.71", "0.65",
-    "0.64", "0.63", "0.62",
-    "0.54", "0.53", "0.52",
-    "0.42", "0.31", "0.21"
+    "0.90",
+    "0.81",
+    "0.80",
+    "0.72",
+    "0.71",
+    "0.65",
+    "0.64",
+    "0.63",
+    "0.62",
+    "0.54",
+    "0.53",
+    "0.52",
+    "0.42",
+    "0.31",
+    "0.21",
 ]
 DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
@@ -26,16 +36,16 @@ DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 def get_dxvk_versions():
     """Get DXVK versions from GitHub"""
     logger.info("Updating DXVK versions")
-    dxvk_path = os.path.join(RUNTIME_DIR, 'dxvk')
+    dxvk_path = os.path.join(RUNTIME_DIR, "dxvk")
     if not os.path.isdir(dxvk_path):
         os.mkdir(dxvk_path)
-    versions_path = os.path.join(dxvk_path, 'dxvk_versions.json')
+    versions_path = os.path.join(dxvk_path, "dxvk_versions.json")
 
     urllib.request.urlretrieve(DXVK_TAGS_URL, versions_path)
 
     with open(versions_path, "r") as dxvk_tags:
         dxvk_json = json.load(dxvk_tags)
-        dxvk_versions = [x['name'].replace('v', '') for x in dxvk_json]
+        dxvk_versions = [x["name"].replace("v", "") for x in dxvk_json]
     return dxvk_versions
 
 
@@ -56,12 +66,13 @@ class UnavailableDXVKVersion(RuntimeError):
 
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
+
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
-    base_dir = os.path.join(RUNTIME_DIR, 'dxvk')
-    dxvk_dlls = ('dxgi', 'd3d11', 'd3d10core', 'd3d10_1', 'd3d10')
+    base_dir = os.path.join(RUNTIME_DIR, "dxvk")
+    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d10_1", "d3d10")
     latest_version = DXVK_LATEST
 
-    def __init__(self, prefix, arch='win64', version=None):
+    def __init__(self, prefix, arch="win64", version=None):
         self.prefix = prefix
         if not os.path.isdir(self.base_dir):
             os.makedirs(self.base_dir)
@@ -121,7 +132,7 @@ class DXVKManager:
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Copies DXVK dlls to the appropriate destination"""
-        wine_dll_path = os.path.join(system_dir, '%s.dll' % dll)
+        wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         logger.info("Replacing %s/%s with DXVK version", system_dir, dll)
         if not self.is_dxvk_dll(wine_dll_path):
             # Backing up original version (may not be needed)
@@ -136,25 +147,23 @@ class DXVKManager:
 
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
-        wine_dll_path = os.path.join(system_dir, '%s.dll' % dll)
+        wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if self.is_dxvk_dll(wine_dll_path):
             logger.info("Removing DXVK dll %s/%s", system_dir, dll)
             os.remove(wine_dll_path)
         # Restoring original version (may not be needed)
-        if system.path_exists(wine_dll_path + '.orig'):
-            shutil.move(wine_dll_path + '.orig', wine_dll_path)
+        if system.path_exists(wine_dll_path + ".orig"):
+            shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
     def _iter_dxvk_dlls(self):
-        windows_path = os.path.join(self.prefix, 'drive_c/windows')
-        if self.wine_arch == 'win64':
+        windows_path = os.path.join(self.prefix, "drive_c/windows")
+        if self.wine_arch == "win64":
             system_dirs = {
-                'x64': os.path.join(windows_path, 'system32'),
-                'x32': os.path.join(windows_path, 'syswow64')
+                "x64": os.path.join(windows_path, "system32"),
+                "x32": os.path.join(windows_path, "syswow64"),
             }
-        elif self.wine_arch == 'win32':
-            system_dirs = {
-                'x32': os.path.join(windows_path, 'system32'),
-            }
+        elif self.wine_arch == "win32":
+            system_dirs = {"x32": os.path.join(windows_path, "system32")}
 
         for dxvk_arch, system_dir in system_dirs.items():
             for dll in self.dxvk_dlls:

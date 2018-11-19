@@ -16,11 +16,10 @@ class AsyncCall(threading.Thread):
         self.source_id = None
         self.stop_request = threading.Event()
 
-        super(AsyncCall, self).__init__(target=self.target, args=args,
-                                        kwargs=kwargs)
+        super(AsyncCall, self).__init__(target=self.target, args=args, kwargs=kwargs)
         self.function = func
         self.callback = callback if callback else lambda r, e: None
-        self.daemon = kwargs.pop('daemon', True)
+        self.daemon = kwargs.pop("daemon", True)
 
         self.start()
 
@@ -31,8 +30,7 @@ class AsyncCall(threading.Thread):
         try:
             result = self.function(*args, **kwargs)
         except Exception as ex:  # pylint: disable=broad-except
-            logger.error("Error while completing task %s: %s",
-                         self.function, ex)
+            logger.error("Error while completing task %s: %s", self.function, ex)
             error = ex
             if self.debug_traceback:
                 ex_type, ex_value, trace = sys.exc_info()

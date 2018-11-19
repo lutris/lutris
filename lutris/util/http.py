@@ -11,34 +11,39 @@ from lutris.util.log import logger
 
 
 class Request:
-    def __init__(self, url, timeout=30, stop_request=None,
-                 thread_queue=None, headers=None, cookies=None):
+    def __init__(
+        self,
+        url,
+        timeout=30,
+        stop_request=None,
+        thread_queue=None,
+        headers=None,
+        cookies=None,
+    ):
 
         if not url:
-            raise ValueError('An URL is required!')
+            raise ValueError("An URL is required!")
 
-        if url.startswith('//'):
-            url = 'https:' + url
+        if url.startswith("//"):
+            url = "https:" + url
 
-        if url.startswith('/'):
+        if url.startswith("/"):
             url = SITE_URL + url
 
         self.url = url
         self.status_code = None
-        self.content = ''
+        self.content = ""
         self.timeout = timeout
         self.stop_request = stop_request
         self.thread_queue = thread_queue
         self.buffer_size = 32 * 1024  # Bytes
         self.downloaded_size = 0
-        self.headers = {
-            'User-Agent': self.user_agent
-        }
+        self.headers = {"User-Agent": self.user_agent}
         self.response_headers = None
         if headers is None:
             headers = {}
         if not isinstance(headers, dict):
-            raise TypeError('HTTP headers needs to be a dict ({})'.format(headers))
+            raise TypeError("HTTP headers needs to be a dict ({})".format(headers))
         self.headers.update(headers)
         if cookies:
             cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
@@ -48,9 +53,9 @@ class Request:
 
     @property
     def user_agent(self):
-        return '{}/{} ({} {})'.format(PROJECT, VERSION,
-                                      ' '.join(platform.dist()),
-                                      platform.machine())
+        return "{}/{} ({} {})".format(
+            PROJECT, VERSION, " ".join(platform.dist()), platform.machine()
+        )
 
     def get(self, data=None):
         logger.debug("GET %s", self.url)
@@ -69,7 +74,7 @@ class Request:
             # is no exception
             # logger.debug("Got response code: %s", request.getcode())
             try:
-                total_size = request.info().get('Content-Length').strip()
+                total_size = request.info().get("Content-Length").strip()
                 total_size = int(total_size)
             except AttributeError:
                 logger.warning("Failed to read response's content length")
@@ -82,25 +87,23 @@ class Request:
             chunks = []
             while 1:
                 if self.stop_request and self.stop_request.is_set():
-                    self.content = ''
+                    self.content = ""
                     return self
                 try:
                     chunk = request.read(self.buffer_size)
                 except socket.timeout:
                     logger.error("Request timed out")
-                    self.content = ''
+                    self.content = ""
                     return self
                 self.downloaded_size += len(chunk)
                 if self.thread_queue:
-                    self.thread_queue.put(
-                        (chunk, self.downloaded_size, total_size)
-                    )
+                    self.thread_queue.put((chunk, self.downloaded_size, total_size))
                 else:
                     chunks.append(chunk)
                 if not chunk:
                     break
             request.close()
-            self.content = b''.join(chunks)
+            self.content = b"".join(chunks)
             self.info = request.info()
         return self
 
@@ -110,7 +113,7 @@ class Request:
     def write_to_file(self, path):
         content = self.content
         if content:
-            with open(path, 'wb') as dest_file:
+            with open(path, "wb") as dest_file:
                 dest_file.write(content)
 
     @property
@@ -119,9 +122,11 @@ class Request:
             try:
                 return json.loads(self.text)
             except json.decoder.JSONDecodeError:
-                raise ValueError("Invalid response ({}:{}): {}".format(
-                    self.url, self.status_code, self.text[:80]
-                ))
+                raise ValueError(
+                    "Invalid response ({}:{}): {}".format(
+                        self.url, self.status_code, self.text[:80]
+                    )
+                )
         return None
 
     @property

@@ -13,16 +13,16 @@ from lutris.util import system
     REG_DWORD,
     REG_DWORD_BIG_ENDIAN,
     REG_LINK,
-    REG_MULTI_SZ
+    REG_MULTI_SZ,
 ) = range(8)
 
 DATA_TYPES = {
-    '\"': REG_SZ,
-    'str:\"': REG_SZ,
-    'str(2):\"': REG_EXPAND_SZ,
-    'str(7):\"': REG_MULTI_SZ,
-    'hex': REG_BINARY,
-    'dword': REG_DWORD,
+    '"': REG_SZ,
+    'str:"': REG_SZ,
+    'str(2):"': REG_EXPAND_SZ,
+    'str(7):"': REG_MULTI_SZ,
+    "hex": REG_BINARY,
+    "dword": REG_DWORD,
 }
 
 
@@ -31,6 +31,7 @@ class WindowsFileTime:
 
     See: https://msdn.microsoft.com/en-us/library/ms724284(v=vs.85).aspx
     """
+
     ticks_per_seconds = 10000000  # 1 tick every 100 nanoseconds
     epoch_delta = 11644473600  # 3600 * 24 * ((1970 - 1601) * 365 + 89)
 
@@ -46,7 +47,7 @@ class WindowsFileTime:
         return WindowsFileTime(timestamp)
 
     def to_hex(self):
-        return '{:x}'.format(self.timestamp)
+        return "{:x}".format(self.timestamp)
 
     @classmethod
     def from_unix_timestamp(cls, timestamp):
@@ -70,7 +71,7 @@ class WineRegistry:
     relative_to_header = ";; All keys relative to "
 
     def __init__(self, reg_filename=None):
-        self.arch = 'win32'
+        self.arch = "win32"
         self.version = 2
         self.relative_to = "\\\\User\\\\S-1-5-21-0-0-0-1000"
         self.keys = OrderedDict()
@@ -91,7 +92,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, 'r') as reg_file:
+        with open(reg_filename, "r") as reg_file:
             registry_content = reg_file.readlines()
         return registry_content
 
@@ -100,21 +101,21 @@ class WineRegistry:
         current_key = None
         add_next_to_value = False
         for line in registry_lines:
-            line = line.rstrip('\n')  # Remove trailing newlines
+            line = line.rstrip("\n")  # Remove trailing newlines
 
             if line.startswith(self.version_header):
-                self.version = int(line[len(self.version_header):])
+                self.version = int(line[len(self.version_header) :])
                 continue
 
             if line.startswith(self.relative_to_header):
-                self.relative_to = line[len(self.relative_to_header):]
+                self.relative_to = line[len(self.relative_to_header) :]
                 continue
 
-            if line.startswith('#arch'):
-                self.arch = line.split('=')[1]
+            if line.startswith("#arch"):
+                self.arch = line.split("=")[1]
                 continue
 
-            if line.startswith('['):
+            if line.startswith("["):
                 current_key = WineRegistryKey(key_def=line)
                 self.keys[current_key.name] = current_key
                 continue
@@ -124,7 +125,7 @@ class WineRegistry:
                     current_key.add_to_last(line)
                 else:
                     current_key.parse(line)
-                add_next_to_value = line.endswith('\\')
+                add_next_to_value = line.endswith("\\")
 
     def render(self):
         content = ""
@@ -142,7 +143,7 @@ class WineRegistry:
             path = self.reg_filename
         if not path:
             raise OSError("No filename provided")
-        with open(path, 'w') as registry_file:
+        with open(path, "w") as registry_file:
             registry_file.write(self.render())
 
     def query(self, path, subkey):
@@ -175,14 +176,14 @@ class WineRegistry:
             key.subkeys.pop(subkey)
 
     def get_unix_path(self, windows_path):
-        windows_path = windows_path.replace('\\\\', '/')
+        windows_path = windows_path.replace("\\\\", "/")
         if not self.prefix_path:
             return
         drives_path = os.path.join(self.prefix_path, "dosdevices")
         if not system.path_exists(drives_path):
             return
-        letter, relpath = windows_path.split(':', 1)
-        relpath = relpath.strip('/')
+        letter, relpath = windows_path.split(":", 1)
+        relpath = relpath.strip("/")
         drive_link = os.path.join(drives_path, letter.lower() + ":")
         try:
             drive_path = os.readlink(drive_link)
@@ -205,17 +206,17 @@ class WineRegistryKey:
             # Key is created by path, it's a new key
             timestamp = datetime.now().timestamp()
             self.name = path
-            self.raw_name = "[{}]".format(path.replace('/', '\\\\'))
-            self.raw_timestamp = ' '.join(str(timestamp).split('.'))
+            self.raw_name = "[{}]".format(path.replace("/", "\\\\"))
+            self.raw_timestamp = " ".join(str(timestamp).split("."))
 
             windows_timestamp = WindowsFileTime.from_unix_timestamp(timestamp)
             self.metas["time"] = windows_timestamp.to_hex()
         else:
             # Existing key loaded from file
-            self.raw_name, self.raw_timestamp = re.split(re.compile(r'(?<=[^\\]\]) '),
-                                                         key_def,
-                                                         maxsplit=1)
-            self.name = self.raw_name.replace('\\\\', '/').strip("[]")
+            self.raw_name, self.raw_timestamp = re.split(
+                re.compile(r"(?<=[^\\]\]) "), key_def, maxsplit=1
+            )
+            self.name = self.raw_name.replace("\\\\", "/").strip("[]")
 
         # Parse timestamp either as int or float
         ts_parts = self.raw_timestamp.strip().split()
@@ -233,7 +234,7 @@ class WineRegistryKey:
             # Line is too short, nothing to parse
             return
 
-        if line.startswith('#'):
+        if line.startswith("#"):
             self.add_meta(line)
         elif line.startswith('"'):
             try:
@@ -244,9 +245,9 @@ class WineRegistryKey:
                 return
             key = key[1:-1]
             self.subkeys[key] = value
-        elif line.startswith('@'):
-            key, value = line.split('=', 1)
-            self.subkeys['default'] = value
+        elif line.startswith("@"):
+            key, value = line.split("=", 1)
+            self.subkeys["default"] = value
 
     def add_to_last(self, line):
         last_subkey = list(self.subkeys.keys())[-1]
@@ -254,17 +255,17 @@ class WineRegistryKey:
 
     def render(self):
         """Return the content of the key in the wine .reg format"""
-        content = self.raw_name + ' ' + self.raw_timestamp + "\n"
+        content = self.raw_name + " " + self.raw_timestamp + "\n"
         for key, value in self.metas.items():
             if value is None:
                 content += "#{}\n".format(key)
             else:
                 content += "#{}={}\n".format(key, value)
         for key, value in self.subkeys.items():
-            if key == 'default':
-                key = '@'
+            if key == "default":
+                key = "@"
             else:
-                key = "\"{}\"".format(key)
+                key = '"{}"'.format(key)
             content += "{}={}\n".format(key, value)
         return content
 
@@ -272,15 +273,15 @@ class WineRegistryKey:
         if isinstance(value, int):
             return "dword:{:08x}".format(value)
         elif isinstance(value, str):
-            return "\"{}\"".format(value)
+            return '"{}"'.format(value)
         else:
             raise NotImplementedError("TODO")
 
     def add_meta(self, meta_line):
-        if not meta_line.startswith('#'):
+        if not meta_line.startswith("#"):
             raise ValueError("Key metas should start with '#'")
         meta_line = meta_line[1:]
-        parts = meta_line.split('=')
+        parts = meta_line.split("=")
         if len(parts) == 2:
             key = parts[0]
             value = parts[1]
@@ -301,9 +302,9 @@ class WineRegistryKey:
         if name not in self.subkeys:
             return None
         value = self.subkeys[name]
-        if value.startswith("\"") and value.endswith("\""):
+        if value.startswith('"') and value.endswith('"'):
             return value[1:-1]
-        elif value.startswith('dword:'):
+        elif value.startswith("dword:"):
             return int(value[6:], 16)
         else:
             raise ValueError("Handle %s" % value)

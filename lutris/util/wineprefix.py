@@ -8,6 +8,7 @@ desktop_folders = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictu
 
 class WinePrefixManager:
     """Class to allow modification of Wine prefixes without the use of Wine"""
+
     hkcu_prefix = "HKEY_CURRENT_USER"
 
     def __init__(self, path):
@@ -19,13 +20,13 @@ class WinePrefixManager:
 
     def get_registry_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            return os.path.join(self.path, 'user.reg')
+            return os.path.join(self.path, "user.reg")
         else:
             raise ValueError("Unsupported key '{}'".format(key))
 
     def get_key_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1:]
+            return key[len(self.hkcu_prefix) + 1 :]
         else:
             raise ValueError(
                 "The key {} is currently not supported by WinePrefixManager".format(key)
@@ -58,7 +59,7 @@ class WinePrefixManager:
     def desktop_integration(self, desktop_dir=None):
         """Overwrite desktop integration"""
 
-        user = os.getenv('USER')
+        user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
 
         if not desktop_dir:
@@ -103,7 +104,7 @@ class WinePrefixManager:
         self.set_registry_key(
             self.hkcu_prefix + "/Software/Wine/WineDbg",
             "ShowCrashDialog",
-            1 if enabled else 0
+            1 if enabled else 0,
         )
 
     def set_virtual_desktop(self, enabled):
@@ -111,11 +112,11 @@ class WinePrefixManager:
         The Lutris virtual desktop is refered to as 'WineDesktop', in Wine the
         virtual desktop name is 'default'.
         """
-        logger.debug('Virtual desktop: %s', enabled)
+        logger.debug("Virtual desktop: %s", enabled)
 
-        path = self.hkcu_prefix + '/Software/Wine/Explorer'
+        path = self.hkcu_prefix + "/Software/Wine/Explorer"
         if enabled:
-            self.set_registry_key(path, 'Desktop', 'WineDesktop')
+            self.set_registry_key(path, "Desktop", "WineDesktop")
         else:
             self.clear_registry_key(path)
 
@@ -123,25 +124,25 @@ class WinePrefixManager:
         """Sets the desktop size if one is given but do not reset the key if
         one isn't.
         """
-        path = self.hkcu_prefix + '/Software/Wine/Explorer/Desktops'
+        path = self.hkcu_prefix + "/Software/Wine/Explorer/Desktops"
         if desktop_size:
-            self.set_registry_key(path, 'WineDesktop', desktop_size)
+            self.set_registry_key(path, "WineDesktop", desktop_size)
 
     def use_xvid_mode(self, enabled):
         """Set this to "Y" to allow wine switch the resolution using XVidMode extension."""
         self.set_registry_key(
             self.hkcu_prefix + "/Software/Wine/X11 Driver",
             "UseXVidMode",
-            "Y" if enabled else "N"
+            "Y" if enabled else "N",
         )
 
     def configure_joypads(self):
         joypads = joypad.get_joypads()
-        key = self.hkcu_prefix + '/Software/Wine/DirectInput/Joysticks'
+        key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"
         self.clear_registry_key(key)
         for device, joypad_name in joypads:
-            if 'event' in device:
+            if "event" in device:
                 disabled_joypad = "{} (js)".format(joypad_name)
             else:
                 disabled_joypad = "{} (event)".format(joypad_name)
-            self.set_registry_key(key, disabled_joypad, 'disabled')
+            self.set_registry_key(key, disabled_joypad, "disabled")

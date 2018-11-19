@@ -13,11 +13,8 @@ class Downloader:
     Download is done when check_progress() returns 1.0.
     Stop with cancel().
     """
-    (INIT,
-     DOWNLOADING,
-     CANCELLED,
-     ERROR,
-     COMPLETED) = list(range(5))
+
+    (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
     def __init__(self, url, dest, overwrite=False, referer=None):
         self.url = url
@@ -35,7 +32,7 @@ class Downloader:
         self.progress_percentage = 0
         self.speed = 0
         self.average_speed = 0
-        self.time_left = '00:00:00'  # Based on average speed
+        self.time_left = "00:00:00"  # Based on average speed
 
         self.last_check_time = 0
         self.last_speeds = []
@@ -52,16 +49,17 @@ class Downloader:
         self.last_check_time = time.time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
-        self.file_pointer = open(self.dest, 'wb')
-        self.thread = jobs.AsyncCall(self.async_download, self.on_done, self.url, self.queue)
+        self.file_pointer = open(self.dest, "wb")
+        self.thread = jobs.AsyncCall(
+            self.async_download, self.on_done, self.url, self.queue
+        )
         self.stop_request = self.thread.stop_request
 
     def check_progress(self):
         """Append last downloaded chunk to dest file and store stats.
 
         :return: progress (between 0.0 and 1.0)"""
-        if not self.queue.qsize() or self.state in [self.CANCELLED,
-                                                    self.ERROR]:
+        if not self.queue.qsize() or self.state in [self.CANCELLED, self.ERROR]:
             return self.progress_fraction
 
         downloaded_size, full_size = self.write_queue()
@@ -104,16 +102,15 @@ class Downloader:
     def async_download(self, url, queue, stop_request=None):
         headers = {}
         if self.referer:
-            headers['Referer'] = self.referer
-        request = http.Request(url,
-                               stop_request=stop_request,
-                               headers=headers,
-                               thread_queue=queue)
+            headers["Referer"] = self.referer
+        request = http.Request(
+            url, stop_request=stop_request, headers=headers, thread_queue=queue
+        )
         return request.get()
 
     def write_queue(self):
         """Append download queue to destination file."""
-        buffered_chunk = b''
+        buffered_chunk = b""
         while self.queue.qsize():
             chunk, received_bytes, total_bytes = self.queue.get()
             buffered_chunk += chunk
@@ -133,9 +130,7 @@ class Downloader:
         self.last_check_time = time.time()
 
         if self.full_size:
-            self.progress_fraction = (
-                float(self.downloaded_size) / float(self.full_size)
-            )
+            self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
             self.progress_percentage = self.progress_fraction * 100
 
     def get_speed(self):
@@ -170,16 +165,14 @@ class Downloader:
     def get_average_time_left(self):
         """Return average download time left as string."""
         if not self.full_size:
-            return '???'
+            return "???"
 
         elapsed_time = time.time() - self.time_left_check_time
         if elapsed_time < 1:  # Minimum delay
             return self.time_left
 
-        average_time_left = (
-            (self.full_size - self.downloaded_size) / self.average_speed
-        )
+        average_time_left = (self.full_size - self.downloaded_size) / self.average_speed
         minutes, seconds = divmod(average_time_left, 60)
         hours, minutes = divmod(minutes, 60)
         self.time_left_check_time = time.time()
-        return '%d:%02d:%02d' % (hours, minutes, seconds)
+        return "%d:%02d:%02d" % (hours, minutes, seconds)

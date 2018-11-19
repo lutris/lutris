@@ -25,13 +25,14 @@ class WebkitCookieJar(MozillaCookieJar):
                 # support HttpOnly cookies (as stored by curl or old Firefox).
                 if sline.startswith("#HttpOnly_"):
                     line = sline[10:]
-                elif (sline.startswith("#") or sline == ""):
+                elif sline.startswith("#") or sline == "":
                     continue
 
-                domain, domain_specified, path, secure, expires, name, value = \
-                    line.split("\t")
-                secure = (secure == "TRUE")
-                domain_specified = (domain_specified == "TRUE")
+                domain, domain_specified, path, secure, expires, name, value = line.split(
+                    "\t"
+                )
+                secure = secure == "TRUE"
+                domain_specified = domain_specified == "TRUE"
                 if name == "":
                     # cookies.txt regards 'Set-Cookie: foo' as a cookie
                     # with no name, whereas http.cookiejar regards it as a
@@ -48,16 +49,24 @@ class WebkitCookieJar(MozillaCookieJar):
                     discard = True
 
                 # assume path_specified is false
-                c = Cookie(0, name, value,
-                           None, False,
-                           domain, domain_specified, initial_dot,
-                           path, False,
-                           secure,
-                           expires,
-                           discard,
-                           None,
-                           None,
-                           {})
+                c = Cookie(
+                    0,
+                    name,
+                    value,
+                    None,
+                    False,
+                    domain,
+                    domain_specified,
+                    initial_dot,
+                    path,
+                    False,
+                    secure,
+                    expires,
+                    discard,
+                    None,
+                    None,
+                    {},
+                )
                 if not ignore_discard and c.discard:
                     continue
                 if not ignore_expires and c.is_expired(now):
@@ -68,5 +77,6 @@ class WebkitCookieJar(MozillaCookieJar):
             raise
         except Exception:
             _warn_unhandled_exception()
-            raise OSError("invalid Netscape format cookies file %r: %r" %
-                          (filename, line))
+            raise OSError(
+                "invalid Netscape format cookies file %r: %r" % (filename, line)
+            )

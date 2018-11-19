@@ -31,15 +31,15 @@ class Process:
             try:
                 _stat = stat_file.readline()
             except (ProcessLookupError, FileNotFoundError):
-                logger.warning('Unable to read stat for process %s', self.pid)
+                logger.warning("Unable to read stat for process %s", self.pid)
                 return None
         if parsed:
-            return _stat[_stat.rfind(")") + 1:].split()
+            return _stat[_stat.rfind(")") + 1 :].split()
         return _stat
 
     def get_thread_ids(self):
         """Return a list of thread ids opened by process."""
-        basedir = '/proc/{}/task/'.format(self.pid)
+        basedir = "/proc/{}/task/".format(self.pid)
         if os.path.isdir(basedir):
             try:
                 return [tid for tid in os.listdir(basedir)]
@@ -50,12 +50,12 @@ class Process:
 
     def get_children_pids_of_thread(self, tid):
         """Return pids of child processes opened by thread `tid` of process."""
-        children_path = '/proc/{}/task/{}/children'.format(self.pid, tid)
+        children_path = "/proc/{}/task/{}/children".format(self.pid, tid)
         try:
             with open(children_path) as children_file:
                 children_content = children_file.read()
         except FileNotFoundError:
-            children_content = ''
+            children_content = ""
         return children_content.strip().split()
 
     def get_children(self):
@@ -69,7 +69,7 @@ class Process:
         """Filename of the executable."""
         _stat = self.get_stat(parsed=False)
         if _stat:
-            return _stat[_stat.find("(") + 1:_stat.rfind(")")]
+            return _stat[_stat.find("(") + 1 : _stat.rfind(")")]
         return None
 
     @property
@@ -103,14 +103,14 @@ class Process:
     @property
     def cmdline(self):
         """Return command line used to run the process `pid`."""
-        cmdline_path = '/proc/{}/cmdline'.format(self.pid)
+        cmdline_path = "/proc/{}/cmdline".format(self.pid)
         with open(cmdline_path) as cmdline_file:
-            _cmdline = cmdline_file.read().replace('\x00', ' ')
+            _cmdline = cmdline_file.read().replace("\x00", " ")
         return _cmdline
 
     @property
     def cwd(self):
-        cwd_path = '/proc/%d/cwd' % int(self.pid)
+        cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
 
     def kill(self, killed_processes=None):

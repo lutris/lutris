@@ -5,30 +5,26 @@ import logging.handlers
 from gi.repository import GLib
 
 
-CACHE_DIR = os.path.realpath(
-    os.path.join(GLib.get_user_cache_dir(), "lutris")
-)
+CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris"))
 if not os.path.isdir(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
 # Formatters
 FILE_FORMATTER = logging.Formatter(
-    '[%(levelname)s:%(asctime)s:%(module)s]: %(message)s'
+    "[%(levelname)s:%(asctime)s:%(module)s]: %(message)s"
 )
 
-SIMPLE_FORMATTER = logging.Formatter(
-    '%(asctime)s: %(message)s'
-)
+SIMPLE_FORMATTER = logging.Formatter("%(asctime)s: %(message)s")
 
 DEBUG_FORMATTER = logging.Formatter(
-    '%(levelname)-8s %(asctime)s [%(module)s.%(funcName)s:%(lineno)s]:%(message)s'
+    "%(levelname)-8s %(asctime)s [%(module)s.%(funcName)s:%(lineno)s]:%(message)s"
 )
 
 # Log file setup
 LOG_FILENAME = os.path.join(CACHE_DIR, "lutris.log")
-loghandler = logging.handlers.RotatingFileHandler(LOG_FILENAME,
-                                                  maxBytes=20971520,
-                                                  backupCount=5)
+loghandler = logging.handlers.RotatingFileHandler(
+    LOG_FILENAME, maxBytes=20971520, backupCount=5
+)
 loghandler.setFormatter(FILE_FORMATTER)
 
 logger = logging.getLogger(__name__)

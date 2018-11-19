@@ -14,47 +14,49 @@ from gi.repository import Gtk, Gdk
 from lutris.util.log import logger
 
 TERMINAL_CANDIDATES = [
-    'xterm',
-    'gnome-terminal',
-    'konsole',
-    'xfce4-terminal',
-    'pantheon-terminal',
-    'terminator',
-    'mate-terminal',
-    'urxvt',
-    'cool-retro-term',
-    'Eterm',
-    'guake',
-    'lilyterm',
-    'lxterminal',
-    'roxterm',
-    'rxvt',
-    'aterm',
-    'sakura',
-    'st',
-    'terminology',
-    'termite',
-    'tilix',
-    'wterm',
-    'kitty',
-    'yuakuake',
+    "xterm",
+    "gnome-terminal",
+    "konsole",
+    "xfce4-terminal",
+    "pantheon-terminal",
+    "terminator",
+    "mate-terminal",
+    "urxvt",
+    "cool-retro-term",
+    "Eterm",
+    "guake",
+    "lilyterm",
+    "lxterminal",
+    "roxterm",
+    "rxvt",
+    "aterm",
+    "sakura",
+    "st",
+    "terminology",
+    "termite",
+    "tilix",
+    "wterm",
+    "kitty",
+    "yuakuake",
 ]
 
 # Global variable holder for currently installed terminals
 INSTALLED_TERMINALS = []
 
 # Detect if system is 64bit capable
-IS_64BIT = sys.maxsize > 2**32
+IS_64BIT = sys.maxsize > 2 ** 32
 
 # Path to Feral gamemode library
 GAMEMODE_PATH = next(
     (
-        path for path in map(
-            lambda x: os.path.join(x, 'libgamemodeauto.so'),
-            ['/usr/lib/x86_64-linux-gnu', '/usr/lib']
-        ) if os.path.exists(path)
+        path
+        for path in map(
+            lambda x: os.path.join(x, "libgamemodeauto.so"),
+            ["/usr/lib/x86_64-linux-gnu", "/usr/lib"],
+        )
+        if os.path.exists(path)
     ),
-    None
+    None,
 )
 
 
@@ -82,13 +84,13 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
         return
 
     if not quiet:
-        logger.debug("Executing %s", ' '.join(command))
+        logger.debug("Executing %s", " ".join(command))
 
     # Set up environment
     existing_env = os.environ.copy()
     if env:
         if not quiet:
-            logger.debug(' '.join('{}={}'.format(k, v) for k, v in env.items()))
+            logger.debug(" ".join("{}={}".format(k, v) for k, v in env.items()))
         env = {k: v for k, v in env.items() if v is not None}
         existing_env.update(env)
 
@@ -98,7 +100,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
         stderr_handler = subprocess.PIPE
         stderr_needs_closing = False
     else:
-        stderr_handler = open(os.devnull, 'w')
+        stderr_handler = open(os.devnull, "w")
         stderr_needs_closing = True
     try:
         stdout, stderr = subprocess.Popen(
@@ -106,25 +108,26 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             shell=shell,
             stdout=subprocess.PIPE,
             stderr=stderr_handler,
-            env=existing_env, cwd=cwd
+            env=existing_env,
+            cwd=cwd,
         ).communicate()
     except (OSError, TypeError) as ex:
-        logger.error('Could not run command %s (env: %s): %s', command, env, ex)
+        logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return
     finally:
         if stderr_needs_closing:
             stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.decode(errors='replace').strip()
+    return stdout.decode(errors="replace").strip()
 
 
 def get_md5_hash(filename):
     """Return the md5 hash of a file."""
     md5 = hashlib.md5()
     try:
-        with open(filename, 'rb') as _file:
-            for chunk in iter(lambda: _file.read(8192), b''):
+        with open(filename, "rb") as _file:
+            for chunk in iter(lambda: _file.read(8192), b""):
                 md5.update(chunk)
     except IOError:
         print("Error reading %s" % filename)
@@ -146,7 +149,7 @@ def get_pid(program, multiple=False):
     :param bool multiple: If True and multiple instances of the program exist,
         return all of them; if False only return the first one.
     """
-    pids = execute(['pgrep', program])
+    pids = execute(["pgrep", program])
     if not pids.strip():
         return
     pids = pids.split()
@@ -157,7 +160,7 @@ def get_pid(program, multiple=False):
 
 def get_all_pids():
     """Return all pids of currently running processes"""
-    return [int(pid) for pid in os.listdir('/proc') if pid.isdigit()]
+    return [int(pid) for pid in os.listdir("/proc") if pid.isdigit()]
 
 
 def kill_pid(pid):
@@ -176,25 +179,24 @@ def kill_pid(pid):
 def get_command_line(pid):
     """Return command line used to run the process `pid`."""
     cmdline = None
-    cmdline_path = '/proc/{}/cmdline'.format(pid)
+    cmdline_path = "/proc/{}/cmdline".format(pid)
     if os.path.exists(cmdline_path):
         with open(cmdline_path) as cmdline_file:
             cmdline = cmdline_file.read()
-            cmdline = cmdline.replace('\x00', ' ')
+            cmdline = cmdline.replace("\x00", " ")
     return cmdline
 
 
 def python_identifier(unsafe_string):
     """Converts a string to something that can be used as a python variable"""
     if not isinstance(unsafe_string, str):
-        logger.error("Cannot convert %s to a python identifier",
-                     type(unsafe_string))
+        logger.error("Cannot convert %s to a python identifier", type(unsafe_string))
         return
 
     def _dashrepl(matchobj):
-        return matchobj.group(0).replace('-', '_')
+        return matchobj.group(0).replace("-", "_")
 
-    return re.sub(r'(\${)([\w-]*)(})', _dashrepl, unsafe_string)
+    return re.sub(r"(\${)([\w-]*)(})", _dashrepl, unsafe_string)
 
 
 def substitute(string_template, variables):
@@ -213,11 +215,10 @@ def substitute(string_template, variables):
     # We support dashes in identifiers but they are not valid in python
     # identifers, which is a requirement for the templating engine we use
     # Replace the dashes with underscores in the mapping and template
-    variables = dict((k.replace('-', '_'), v) for k, v in variables.items())
+    variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
         string_template = string_template.replace(
-            '${}'.format(identifier),
-            '${}'.format(identifier.replace('-', '_'))
+            "${}".format(identifier), "${}".format(identifier.replace("-", "_"))
         )
 
     template = string.Template(string_template)
@@ -231,7 +232,7 @@ def merge_folders(source, destination):
     logger.debug("Merging %s into %s", source, destination)
     source = os.path.abspath(source)
     for (dirpath, dirnames, filenames) in os.walk(source):
-        source_relpath = dirpath[len(source):].strip('/')
+        source_relpath = dirpath[len(source) :].strip("/")
         dst_abspath = os.path.join(destination, source_relpath)
         for dirname in dirnames:
             new_dir = os.path.join(dst_abspath, dirname)
@@ -244,8 +245,9 @@ def merge_folders(source, destination):
             # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
-            shutil.copy(os.path.join(dirpath, filename),
-                        os.path.join(dst_abspath, filename))
+            shutil.copy(
+                os.path.join(dirpath, filename), os.path.join(dst_abspath, filename)
+            )
 
 
 def remove_folder(path):
@@ -254,7 +256,7 @@ def remove_folder(path):
         logger.warning("Non existent path: %s", path)
         return
     logger.debug("Removing folder %s", path)
-    if os.path.samefile(os.path.expanduser('~'), path):
+    if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
     shutil.rmtree(path)
 
@@ -274,16 +276,16 @@ def is_removeable(path, excludes=None):
     if not path_exists(path) or path in excludes:
         return False
 
-    parts = path.strip('/').split('/')
-    if parts[0] in ('usr', 'var', 'lib', 'etc', 'boot', 'sbin', 'bin'):
+    parts = path.strip("/").split("/")
+    if parts[0] in ("usr", "var", "lib", "etc", "boot", "sbin", "bin"):
         # Path is part of the system folders
         return False
 
-    if parts[0] == 'home':
+    if parts[0] == "home":
         if len(parts) <= 2:
             # Path is a home folder
             return False
-        if parts[2] == '.wine':
+        if parts[2] == ".wine":
             # Protect main .wine folder
             return False
 
@@ -294,7 +296,7 @@ def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
     if os.path.exists(path):
         return path
-    parts = path.strip('/').split('/')
+    parts = path.strip("/").split("/")
     current_path = "/"
     for part in parts:
         if not os.path.exists(current_path):
@@ -314,7 +316,7 @@ def fix_path_case(path):
                 continue
 
     # Only return the path if we got the same number of elements
-    if len(parts) == len(current_path.strip('/').split('/')):
+    if len(parts) == len(current_path.strip("/").split("/")):
         return current_path
 
 
@@ -328,9 +330,9 @@ def get_pids_using_file(path):
     fuser_path = find_executable("fuser")
     if not fuser_path:
         # Some distributions don't include sbin folders in $PATH
-        path_candidates = ['/sbin', '/usr/sbin']
+        path_candidates = ["/sbin", "/usr/sbin"]
         for candidate in path_candidates:
-            fuser_path = os.path.join(candidate, 'fuser')
+            fuser_path = os.path.join(candidate, "fuser")
             if os.path.exists(fuser_path):
                 break
     if not fuser_path:
@@ -362,10 +364,10 @@ def reverse_expanduser(path):
     """Replace '/home/username' with '~' in given path."""
     if not path:
         return path
-    user_path = os.path.expanduser('~')
+    user_path = os.path.expanduser("~")
     if path.startswith(user_path):
-        path = path[len(user_path):].strip('/')
-        return '~/' + path
+        path = path[len(user_path) :].strip("/")
+        return "~/" + path
     return path
 
 
@@ -399,7 +401,7 @@ def stacktrace():
 
 def reset_library_preloads():
     """Remove library preloads from environment"""
-    for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
+    for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
             del os.environ[key]
 
@@ -416,11 +418,25 @@ def get_desktop_environment():
     # and http://ubuntuforums.org/showthread.php?t=652320
     # and http://ubuntuforums.org/showthread.php?t=1139057
     deskop_environments = [
-        "gnome", "unity", "cinnamon", "mate", "xfce4", "lxde", "fluxbox",
-        "blackbox", "openbox", "icewm", "jwm", "afterstep", "trinity", "kde"
+        "gnome",
+        "unity",
+        "cinnamon",
+        "mate",
+        "xfce4",
+        "lxde",
+        "fluxbox",
+        "blackbox",
+        "openbox",
+        "icewm",
+        "jwm",
+        "afterstep",
+        "trinity",
+        "kde",
     ]
-    desktop_session = os.environ.get("DESKTOP_SESSION", '').lower()
-    if desktop_session:  # easier to match if we doesn't have to deal with caracter cases
+    desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
+    if (
+        desktop_session
+    ):  # easier to match if we doesn't have to deal with caracter cases
         if desktop_session in deskop_environments:
             return desktop_session
         # Special cases
@@ -431,10 +447,10 @@ def get_desktop_environment():
             return "razor-qt"
         if desktop_session.startswith("wmaker"):  # e.g. wmaker-common
             return "windowmaker"
-    if os.environ.get('KDE_FULL_SESSION') == 'true':
+    if os.environ.get("KDE_FULL_SESSION") == "true":
         return "kde"
-    if os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-        if "deprecated" not in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+    if os.environ.get("GNOME_DESKTOP_SESSION_ID"):
+        if "deprecated" not in os.environ.get("GNOME_DESKTOP_SESSION_ID"):
             return "gnome2"
     # From http://ubuntuforums.org/showthread.php?t=652320
     elif is_running("xfce-mcs-manage"):
@@ -462,8 +478,7 @@ def find_lib(libname):
     lib_paths = []
     ldconfig_cmd = find_executable("ldconfig")
     if ldconfig_cmd:
-        ldconfig_out = subprocess.check_output(
-            [ldconfig_cmd, "-p"]).decode("UTF-8")
+        ldconfig_out = subprocess.check_output([ldconfig_cmd, "-p"]).decode("UTF-8")
         for out in ldconfig_out.splitlines():
             if libname in out:
                 lib_paths.append(out.split("=> ")[1])
