@@ -136,7 +136,7 @@ class SidebarListBox(Gtk.ListBox):
 
         self.add(SidebarRow(None, 'platform', 'All', None))
         for platform in self.platforms:
-            icon = Gtk.Image.new_from_icon_name(platform.lower().replace(' ', '') + '-platform-symbolic',
+            icon = Gtk.Image.new_from_icon_name(platform.lower().replace(' ', '') + '-symbolic',
                                                 Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, 'platform', platform, icon))
 
