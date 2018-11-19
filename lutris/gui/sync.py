@@ -1,6 +1,7 @@
 """Window for importing games from third party services"""
 from gi.repository import Gtk, Gio
-from lutris.gui.widgets.utils import get_icon
+from gi.repository.GdkPixbuf import Pixbuf
+from lutris.gui.widgets.utils import get_icon, get_pixbuf
 from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
@@ -24,22 +25,22 @@ class ServiceSyncBox(Gtk.Box):
         label.set_markup("<b>{}</b>".format(self.name))
         self.pack_start(label, False, False, 10)
 
-        spinner = Gtk.Spinner()
-        spinner.start()
-
-        spinner_alignment = Gtk.Alignment()
-        spinner_alignment.set(0.5, 0.5, 0.1, 0.1)
-        spinner_alignment.add(spinner)
-        self.pack_start(spinner_alignment, True, True, 10)
-
-        actions = Gtk.Box()
-        self.pack_start(actions, False, False, 0)
+        center_alignment = Gtk.Alignment()
+        center_alignment.set(0.5, 0.5, 0.1, 0.1)
 
         if hasattr(service, "connect"):
             self.connect_button = Gtk.Button()
             self.connect_button.connect("clicked", self.on_connect_clicked, service)
             self._connect_button_toggle(service.is_connected())
-            actions.pack_start(self.connect_button, False, False, 0)
+            center_alignment.add(self.connect_button)
+        else:
+            spinner = Gtk.Spinner()
+            spinner.start()
+            center_alignment.add(spinner)
+        self.pack_start(center_alignment, True, True, 10)
+
+        actions = Gtk.Box()
+        self.pack_start(actions, False, False, 10)
 
         if hasattr(service, "sync_with_lutris"):
             self.sync_switch = Gtk.Switch()
@@ -49,14 +50,14 @@ class ServiceSyncBox(Gtk.Box):
 
             if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
-            actions.pack_start(self.sync_switch, False, False, 0)
+            actions.pack_start(self.sync_switch, False, False, 10)
 
             self.sync_button = Gtk.Button("Sync")
             self.sync_button.set_tooltip_text("Sync now")
             self.sync_button.connect(
                 "clicked", self.on_sync_button_clicked, service.sync_with_lutris
             )
-            actions.pack_start(self.sync_button, False, False, 0)
+            actions.pack_start(self.sync_button, False, False, 10)
 
             if hasattr(service, "connect") and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
@@ -121,6 +122,10 @@ class ServiceSyncBox(Gtk.Box):
         # renderer_toggle.connect("toggled", self.on_installed_toggled)
         treeview.append_column(import_column)
 
+        image_cell = Gtk.CellRendererPixbuf()
+        icon_column = Gtk.TreeViewColumn("", image_cell, pixbuf=3)
+        treeview.append_column(icon_column)
+
         name_column = Gtk.TreeViewColumn(None, renderer_text)
         name_column.add_attribute(renderer_text, "text", 2)
         name_column.set_property("min-width", 80)
@@ -132,7 +137,7 @@ class ServiceSyncBox(Gtk.Box):
             bool,  # import
             str,  # appid
             str,  # name
-            str,  # icon
+            Pixbuf,  # icon
             str,  # exe
             str,  # args
         )
@@ -142,7 +147,7 @@ class ServiceSyncBox(Gtk.Box):
                     False,
                     game.appid,
                     game.name,
-                    game.icon,
+                    get_pixbuf(game.icon, (32, 32)),
                     game.exe,
                     game.args
                 ]

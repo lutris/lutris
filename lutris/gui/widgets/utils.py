@@ -3,6 +3,7 @@ from gi.repository import GdkPixbuf, GLib, Gtk
 
 from lutris.util.log import logger
 from lutris.util import datapath
+from lutris.util import system
 
 
 UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(), "media/unavailable.png")
@@ -25,18 +26,20 @@ IMAGE_SIZES = {
 
 def get_pixbuf(image, size, fallback=None):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
-    x, y = size
-    if not os.path.exists(image):
-        image = fallback
-    try:
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, x, y)
-    except GLib.GError:
-        if fallback:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, x, y)
-        else:
-            raise
-    return pixbuf
+    width, heigth = size
+    if system.path_exists(image):
+        try:
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, heigth)
+        except GLib.GError:
+            logger.error("Unable to load icon from image %s", image)
+    if system.path_exists(fallback):
+        return GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
+    return get_stock_icon(image, width)
 
+
+def get_stock_icon(name, size):
+    theme = Gtk.IconTheme.get_default()
+    return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
 
 def get_icon(icon_name, format="image", size=None, icon_type="runner"):
     """Return an icon based on the given name, format, size and type.
