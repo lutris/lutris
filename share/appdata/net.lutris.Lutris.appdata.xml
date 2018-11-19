@@ -8,7 +8,7 @@
   <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
   <developer_name>Lutris Team</developer_name>
   <url type="homepage">https://lutris.net</url>
-  <url type="donation">https://www.patreon.com/lutris</url>
+  <url type="donation">https://lutris.net/donate</url>
   <url type="help">https://forums.lutris.net</url>
   <url type="faq">https://lutris.net/faq</url>
   <url type="translate">https://github.com/lutris/lutris/wiki/Translations</url>
@@ -26,6 +26,6 @@
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <releases>
-    <release version="0.4.20" date="2018-09-24"/>
+    <release version="0.4.23" date="2018-11-07"/>
   </releases>
 </application>
