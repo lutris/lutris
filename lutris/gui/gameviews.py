@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import time
 
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib

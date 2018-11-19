@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Threading module, used to launch games while monitoring them."""
 
 import os

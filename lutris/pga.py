@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os

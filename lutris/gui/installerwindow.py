@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import time
 import re
@@ -362,7 +361,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button.set_visible(False)
         self.continue_button.show()
         self.continue_button.set_sensitive(False)
-        
+
         if action == 'file':
             title = 'Select file'
             action = Gtk.FileChooserAction.OPEN

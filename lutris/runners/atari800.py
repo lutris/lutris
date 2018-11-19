@@ -1,4 +1,3 @@
-# -*- coding:Utf-8 -*-
 import os.path
 import logging
 

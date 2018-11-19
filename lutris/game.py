@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module that actually runs the games."""
 import os
 import json

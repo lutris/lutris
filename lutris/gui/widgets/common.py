@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Misc widgets used in the GUI."""
 import os
 

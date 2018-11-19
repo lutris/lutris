@@ -1,4 +1,3 @@
-# -*- coding:Utf-8 -*-
 """Internal settings."""
 import os
 from gi.repository import GLib
