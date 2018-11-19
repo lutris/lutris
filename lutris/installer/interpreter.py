@@ -166,7 +166,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner in ('steam', 'winesteam'):
             # Steam games installs in their steamapps directory
             return False
-        if self.files or self.script['game']['gog']:
+        if self.files or self.script.get('game', {}).get('gog'):
             return True
         command_names = [list(c.keys())[0] for c in self.script.get('installer', [])]
         if 'insert-disc' in command_names:
