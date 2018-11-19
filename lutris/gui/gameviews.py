@@ -73,6 +73,7 @@ class GameStore(GObject.Object):
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
         else:
             self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+        self.prevent_sort_update = False # prevent recursion with signals
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
