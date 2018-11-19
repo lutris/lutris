@@ -69,9 +69,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
-        self.modelfilter = None
-        self.runner_names = {}
-        self.store = []
+        self.runner_names = self.populate_runner_names()
         self.store = Gtk.ListStore(int, str, str, Pixbuf, str, str, str, str, int, str, bool, int, str, str, str)
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
@@ -134,14 +132,6 @@ class GameStore(GObject.Object):
             sortings[key],
             Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
         )
-
-    # def sort_view(self, show_installed_first=False):
-    #     self.show_installed_first = show_installed_first
-    #     self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
-    #     self.modelfilter.get_model().set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
-    #     if show_installed_first:
-    #         self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
-    #         self.modelfilter.get_model().set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
 
     def on_sort_column_changed(self, model):
         if self.prevent_sort_update:
