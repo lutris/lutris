@@ -1,12 +1,12 @@
 from importlib import import_module
 from lutris.settings import read_setting
 
-__all__ = ['steam', 'winesteam', 'xdg', 'scummvm', 'gog']
+
+__all__ = ['steam', 'winesteam', 'xdg', 'scummvm', 'gog','rom']
 
 
 class AuthenticationError(Exception):
     pass
-
 
 def import_service(name):
     return import_module('lutris.services.%s' % name)
