@@ -11,7 +11,7 @@ from gi.repository import GLib, Gtk, GObject
 from lutris import pga
 from lutris import runtime
 from lutris.exceptions import LutrisError, GameConfigError
-from lutris.services import xdg
+from lutris.util import xdgshortcuts
 from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
@@ -169,7 +169,7 @@ class Game(GObject.Object):
         else:
             pga.set_uninstalled(self.id)
         self.config.remove()
-        xdg.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         return from_library
 
     def set_platform_from_runner(self):

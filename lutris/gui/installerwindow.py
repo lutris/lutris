@@ -6,7 +6,6 @@ import webbrowser
 from gi.repository import Gtk, Pango
 
 from lutris import api, pga, settings
-from lutris.services import xdg
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
@@ -17,6 +16,7 @@ from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.logwindow import LogTextView
 from lutris.util import jobs
 from lutris.util import system
+from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags
 
@@ -577,9 +577,9 @@ class InstallerWindow(Gtk.ApplicationWindow):
         create_menu_shortcut = self.menu_shortcut_box.get_active()
 
         if create_desktop_shortcut:
-            xdg.create_launcher(game_slug, game_id, game_name, desktop=True)
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True)
         if create_menu_shortcut:
-            xdg.create_launcher(game_slug, game_id, game_name, menu=True)
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
         settings.write_setting("create_desktop_shortcut", create_desktop_shortcut)
         settings.write_setting("create_menu_shortcut", create_menu_shortcut)
