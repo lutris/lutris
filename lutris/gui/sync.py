@@ -19,6 +19,7 @@ class ServiceSyncBox(Gtk.Box):
 
         self.service = service
         self.identifier = service.__name__.split(".")[-1]
+        self.icon_name = service.ICON
         self.name = service.NAME
 
         label = Gtk.Label()
@@ -43,21 +44,21 @@ class ServiceSyncBox(Gtk.Box):
         self.pack_start(actions, False, False, 10)
 
         if hasattr(service, "sync_with_lutris"):
+            self.sync_button = Gtk.Button("Import games")
+            self.sync_button.set_tooltip_text("Sync now")
+            self.sync_button.connect(
+                "clicked", self.on_sync_button_clicked, service.sync_with_lutris
+            )
+            actions.pack_start(self.sync_button, False, False, 10)
+
             self.sync_switch = Gtk.Switch()
-            self.sync_switch.set_tooltip_text("Sync when Lutris starts")
             self.sync_switch.props.valign = Gtk.Align.CENTER
             self.sync_switch.connect("notify::active", self.on_switch_changed)
 
             if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
             actions.pack_start(self.sync_switch, False, False, 10)
-
-            self.sync_button = Gtk.Button("Sync")
-            self.sync_button.set_tooltip_text("Sync now")
-            self.sync_button.connect(
-                "clicked", self.on_sync_button_clicked, service.sync_with_lutris
-            )
-            actions.pack_start(self.sync_button, False, False, 10)
+            actions.pack_start(Gtk.Label("Sync (Re-import all games at startup)"), False, False, 10)
 
             if hasattr(service, "connect") and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
@@ -67,7 +68,8 @@ class ServiceSyncBox(Gtk.Box):
             self.load_games()
 
     def get_icon(self):
-        icon = get_icon(self.identifier)
+        """Return the icon for the service (used in tabs)"""
+        icon = get_icon(self.icon_name)
         if icon:
             return icon
         return Gtk.Label(self.name)
@@ -113,13 +115,14 @@ class ServiceSyncBox(Gtk.Box):
 
     def get_treeview(self, model):
         treeview = Gtk.TreeView(model=model)
-        treeview.set_headers_visible(False)
+        treeview.set_headers_visible(True)
 
         renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", self.on_import_toggled)
+
         renderer_text = Gtk.CellRendererText()
 
-        import_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0)
-        # renderer_toggle.connect("toggled", self.on_installed_toggled)
+        import_column = Gtk.TreeViewColumn("Import", renderer_toggle, active=0)
         treeview.append_column(import_column)
 
         image_cell = Gtk.CellRendererPixbuf()
@@ -132,7 +135,12 @@ class ServiceSyncBox(Gtk.Box):
         treeview.append_column(name_column)
         return treeview
 
+    def on_import_toggled(self, widget, game_index):
+        """Toggle state for import"""
+        self.store[game_index][0] = not self.store[game_index][0]
+
     def get_store(self, games):
+        """Return a ListStore for the games to import"""
         liststore = Gtk.ListStore(
             bool,  # import
             str,  # appid
@@ -157,8 +165,8 @@ class ServiceSyncBox(Gtk.Box):
     def load_games(self):
         """Load the list of games in a treeview"""
         games = self.service.load_games()
-        store = self.get_store(games)
-        treeview = self.get_treeview(store)
+        self.store = self.get_store(games)
+        treeview = self.get_treeview(self.store)
         spinner = self.get_content_widget()
         spinner.destroy()
         self.pack_start(treeview, True, True, 10)

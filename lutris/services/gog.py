@@ -12,7 +12,7 @@ from lutris.gui.dialogs import WebConnectDialog
 
 
 NAME = "GOG"
-
+ICON = "gog"
 
 class GogService:
     """Service class for GOG"""

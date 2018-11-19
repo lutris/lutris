@@ -6,6 +6,7 @@ from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
 
 NAME = "rom"
+ICON = "dolphin"
 INSTALLER_SLUG = "rom"
 TDB_DB_CACHE = None
 

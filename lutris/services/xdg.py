@@ -16,6 +16,7 @@ from lutris.config import make_game_config_id, LutrisConfig
 
 
 NAME = "Desktop games"
+ICON = "linux"
 INSTALLER_SLUG = "desktopapp"
 
 IGNORED_GAMES = (

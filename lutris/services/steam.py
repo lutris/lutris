@@ -10,6 +10,7 @@ from lutris.config import make_game_config_id, LutrisConfig
 from lutris.util.steam.appmanifest import AppManifest
 
 NAME = "Steam"
+ICON = "steam"
 
 
 def get_appmanifests(steamapps_path):

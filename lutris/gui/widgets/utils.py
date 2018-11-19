@@ -38,8 +38,10 @@ def get_pixbuf(image, size, fallback=None):
 
 
 def get_stock_icon(name, size):
+    """Return a picxbuf from a stock icon name"""
     theme = Gtk.IconTheme.get_default()
     return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
+
 
 def get_icon(icon_name, format="image", size=None, icon_type="runner"):
     """Return an icon based on the given name, format, size and type.
