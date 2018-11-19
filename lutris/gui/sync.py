@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GLib, Gio
+from gi.repository import Gtk, Gio
 from lutris.gui.widgets.utils import get_icon
 from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
@@ -7,20 +7,16 @@ from lutris.util.jobs import AsyncCall
 
 
 class ServiceSyncRow(Gtk.Box):
-    def __init__(self, service, dialog):
+    def __init__(self, service, _dialog):
         super().__init__()
         self.set_spacing(20)
 
         self.identifier = service.__name__.split(".")[-1]
-        name = service.NAME
-
-        icon = get_icon(self.identifier)
-        if icon != None:
-            self.pack_start(icon, False, False, 0)
+        self.name = service.NAME
 
         label = Gtk.Label()
         label.set_xalign(0)
-        label.set_markup("<b>{}</b>".format(name))
+        label.set_markup("<b>{}</b>".format(self.name))
         self.pack_start(label, True, True, 0)
 
         actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -52,6 +48,12 @@ class ServiceSyncRow(Gtk.Box):
             if hasattr(service, "connect") and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
                 self.sync_button.set_sensitive(False)
+
+    def get_icon(self):
+        icon = get_icon(self.identifier)
+        if icon:
+            return icon
+        return Gtk.Label(self.name)
 
     def on_connect_clicked(self, button, service):
         if service.is_connected():
@@ -88,27 +90,19 @@ class ServiceSyncRow(Gtk.Box):
         write_setting("sync_at_startup", state, self.identifier)
 
 
-class SyncServiceDialog(Gtk.Dialog):
+class SyncServiceDialog(Gtk.Window):
     def __init__(self, parent=None):
-        super().__init__(title="Import local games", parent=parent, use_header_bar=1)
+        super().__init__(title="Import local games", parent=parent)
         self.connect("delete-event", lambda *x: self.destroy())
+
         self.set_border_width(10)
-        self.set_size_request(512, 0)
+        self.set_size_request(640, 480)
 
-        box_outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.get_content_area().add(box_outer)
-
-        description_label = Gtk.Label()
-        description_label.set_markup(
-            "You can choose which local game sources will get synced each\n"
-            "time Lutris starts, or launch an immediate import of games."
-        )
-        box_outer.pack_start(description_label, False, False, 5)
-
-        separator = Gtk.Separator()
-        box_outer.pack_start(separator, False, False, 0)
+        notebook = Gtk.Notebook()
+        notebook.set_tab_pos(Gtk.PositionType.LEFT)
+        self.add(notebook)
 
         for service in get_services():
             sync_row = ServiceSyncRow(service, self)
-            box_outer.pack_start(sync_row, False, True, 0)
-        box_outer.show_all()
+            notebook.append_page(sync_row, sync_row.get_icon())
+        self.show_all()
