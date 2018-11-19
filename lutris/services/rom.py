@@ -53,11 +53,7 @@ def rom_read_data(location):
     return a dict with "data" and "config", to be applied to a game in Lutris """
     # TODO: extract the image of the rom
 
-    data = {
-        "installer_slug": INSTALLER_SLUG,
-        "installed": 1,
-        "runner": "dolphin"
-    }
+    data = {"installer_slug": INSTALLER_SLUG, "installed": 1, "runner": "dolphin"}
     config = {"main_file": location}
 
     with open(location, "r+") as rom:
