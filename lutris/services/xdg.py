@@ -24,6 +24,7 @@ IGNORED_GAMES = (
     "dosbox",
     "playonlinux",
     "org.gnome.Games",
+    "com.github.tkashkin.gamehub",
     "retroarch",
     "steam",
     "steam-runtime",
