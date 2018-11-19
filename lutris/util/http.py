@@ -24,6 +24,7 @@ class Request:
             url = SITE_URL + url
 
         self.url = url
+        self.status_code = None
         self.content = ''
         self.timeout = timeout
         self.stop_request = stop_request
@@ -76,6 +77,8 @@ class Request:
 
             self.response_headers = request.getheaders()
             self.status_code = request.getcode()
+            if self.status_code > 299:
+                logger.warning("Request responded with code %s", self.status_code)
             chunks = []
             while 1:
                 if self.stop_request and self.stop_request.is_set():
