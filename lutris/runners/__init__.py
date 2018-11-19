@@ -3,23 +3,53 @@
 
 __all__ = (
     # Native
-    "linux", "steam", "browser", "web",
+    "linux",
+    "steam",
+    "browser",
+    "web",
     # Microsoft based
-    "wine", "winesteam", "dosbox",
+    "wine",
+    "winesteam",
+    "dosbox",
     # Multi-system
-    "mame", "mess", "mednafen", "scummvm", "residualvm", "libretro", "ags", "higan",
+    "mame",
+    "mess",
+    "mednafen",
+    "scummvm",
+    "residualvm",
+    "libretro",
+    "ags",
+    "higan",
     # Commdore
-    "fsuae", "vice",
+    "fsuae",
+    "vice",
     # Atari
-    "stella", "atari800", "hatari", "virtualjaguar",
+    "stella",
+    "atari800",
+    "hatari",
+    "virtualjaguar",
     # Nintendo
-    "snes9x", "mupen64plus", "dolphin", "desmume", "citra", "melonds",
+    "snes9x",
+    "mupen64plus",
+    "dolphin",
+    "desmume",
+    "citra",
+    "melonds",
     # Sony
-    "ppsspp", "pcsx2", "rpcs3",
+    "ppsspp",
+    "pcsx2",
+    "rpcs3",
     # Sega
-    "osmose", "dgen", "reicast", "redream",
+    "osmose",
+    "dgen",
+    "reicast",
+    "redream",
     # Misc legacy systems
-    "frotz", "jzintv", "o2em", "zdoom", "tic80"
+    "frotz",
+    "jzintv",
+    "o2em",
+    "zdoom",
+    "tic80",
 )
 
 
@@ -41,8 +71,9 @@ class NonInstallableRunnerError(Exception):
 def get_runner_module(runner_name):
     if runner_name not in __all__:
         raise InvalidRunner("Invalid runner name '%s'" % runner_name)
-    return __import__('lutris.runners.%s' % runner_name,
-                      globals(), locals(), [runner_name], 0)
+    return __import__(
+        "lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0
+    )
 
 
 def import_runner(runner_name):

@@ -10,8 +10,10 @@ from lutris.util import display, extract, system
 # pylint: disable=C0103
 class atari800(Runner):
     human_name = "Atari800"
-    platforms = ['Atari 8bit computers']  # FIXME try to determine the actual computer used
-    runner_executable = 'atari800/bin/atari800'
+    platforms = [
+        "Atari 8bit computers"
+    ]  # FIXME try to determine the actual computer used
+    runner_executable = "atari800/bin/atari800"
     bios_url = (
         "http://kent.dl.sourceforge.net/project/atari800/"
         "ROM/Original%20XL%20ROM/xf25.zip"
@@ -22,27 +24,30 @@ class atari800(Runner):
         "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
         "osa_rom": "",
         "osb_rom": "a3e8d617c95d08031fe1b20d541434b2",
-        "5200_rom": ""
+        "5200_rom": "",
     }
     game_options = [
         {
             "option": "main_file",
             "type": "file",
             "label": "ROM file",
-            'help': ("The game data, commonly called a ROM image. \n"
-                     "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
-                     "and PRO.")
+            "help": (
+                "The game data, commonly called a ROM image. \n"
+                "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
+                "and PRO."
+            ),
         }
     ]
 
     @staticmethod
     def get_resolutions():
         try:
-            screen_resolutions = [(resolution, resolution)
-                                  for resolution in display.get_resolutions()]
+            screen_resolutions = [
+                (resolution, resolution) for resolution in display.get_resolutions()
+            ]
         except OSError:
             screen_resolutions = []
-        screen_resolutions.insert(0, ('Desktop resolution', 'desktop'))
+        screen_resolutions.insert(0, ("Desktop resolution", "desktop"))
         return screen_resolutions
 
     runner_options = [
@@ -50,40 +55,44 @@ class atari800(Runner):
             "option": "bios_path",
             "type": "directory_chooser",
             "label": "Bios location",
-            'help': ("A folder containing the Atari 800 bios files.\n"
-                     "They are provided by Lutris so you shouldn't have to "
-                     "change this.")
+            "help": (
+                "A folder containing the Atari 800 bios files.\n"
+                "They are provided by Lutris so you shouldn't have to "
+                "change this."
+            ),
         },
         {
             "option": "machine",
             "type": "choice",
-            "choices": [("Emulate Atari 800", "atari"),
-                        ("Emulate Atari 800 XL", "xl"),
-                        ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
-                        ("Emulate Atari 320 XE (Rambo)", "rambo"),
-                        ("Emulate Atari 5200", "5200")],
+            "choices": [
+                ("Emulate Atari 800", "atari"),
+                ("Emulate Atari 800 XL", "xl"),
+                ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
+                ("Emulate Atari 320 XE (Rambo)", "rambo"),
+                ("Emulate Atari 5200", "5200"),
+            ],
             "default": "atari",
-            "label": "Machine"
+            "label": "Machine",
         },
         {
             "option": "fullscreen",
             "type": "bool",
             "default": False,
-            "label": "Fullscreen"
+            "label": "Fullscreen",
         },
         {
             "option": "resolution",
             "type": "choice",
             "choices": get_resolutions,
-            "default": 'desktop',
-            "label": "Fullscreen resolution"
-        }
+            "default": "desktop",
+            "label": "Fullscreen resolution",
+        },
     ]
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):
             config_path = system.create_folder("~/.atari800")
-            bios_archive = os.path.join(config_path, 'atari800-bioses.zip')
+            bios_archive = os.path.join(config_path, "atari800-bioses.zip")
             dlg = DownloadDialog(self.bios_url, bios_archive)
             dlg.run()
             if not system.path_exists(bios_archive):
@@ -91,8 +100,8 @@ class atari800(Runner):
                 return
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)
-            config = LutrisConfig(runner_slug='atari800')
-            config.raw_runner_config.update({'bios_path': config_path})
+            config = LutrisConfig(runner_slug="atari800")
+            config.raw_runner_config.update({"bios_path": config_path})
             config.save()
             if callback:
                 callback()
@@ -119,26 +128,25 @@ class atari800(Runner):
 
         resolution = self.runner_config.get("resolution")
         if resolution:
-            if resolution == 'desktop':
+            if resolution == "desktop":
                 resolution = display.get_current_resolution()
-            width, height = resolution.split('x')
-            arguments += ["-fs-width", "%s" % width,
-                          "-fs-height", "%s" % height]
+            width, height = resolution.split("x")
+            arguments += ["-fs-width", "%s" % width, "-fs-height", "%s" % height]
 
         if self.runner_config.get("machine"):
             arguments.append("-%s" % self.runner_config["machine"])
 
         bios_path = self.runner_config.get("bios_path")
         if not system.path_exists(bios_path):
-            return {'error': 'NO_BIOS'}
+            return {"error": "NO_BIOS"}
         good_bios = self.find_good_bioses(bios_path)
         for bios, filename in good_bios.items():
             arguments.append("-%s" % bios)
             arguments.append(os.path.join(bios_path, filename))
 
-        rom = self.game_config.get('main_file') or ''
+        rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
-            return {'error': 'FILE_NOT_FOUND', 'file': rom}
+            return {"error": "FILE_NOT_FOUND", "file": rom}
         arguments.append(rom)
 
         return {"command": arguments}

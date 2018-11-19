@@ -20,16 +20,17 @@ def get_arch():
     from the API
     """
     machine = platform.machine()
-    if '64' in machine:
-        return 'x86_64'
-    if '86' in machine:
-        return 'i386'
-    if 'armv7' in machine:
-        return 'armv7'
+    if "64" in machine:
+        return "x86_64"
+    if "86" in machine:
+        return "i386"
+    if "armv7" in machine:
+        return "armv7"
 
 
 class Runner:
     """Generic runner (base class for other runners)."""
+
     multiple_versions = False
     platforms = []
     runnable_alone = False
@@ -48,7 +49,7 @@ class Runner:
         self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_field(
-                self.config.game_config_id, 'configpath'
+                self.config.game_config_id, "configpath"
             )
 
     def __lt__(self, other):
@@ -94,27 +95,27 @@ class Runner:
     @property
     def default_path(self):
         """Return the default path where games are installed."""
-        return self.system_config.get('game_path')
+        return self.system_config.get("game_path")
 
     @property
     def browse_dir(self):
         """Return the path to open with the Browse Files action."""
         for key in self.game_config:
-            if key in ['exe', 'main_file', 'rom', 'disk', 'iso']:
-                path = os.path.dirname(self.game_config.get(key) or '')
+            if key in ["exe", "main_file", "rom", "disk", "iso"]:
+                path = os.path.dirname(self.game_config.get(key) or "")
                 if not os.path.isabs(path):
                     path = os.path.join(self.game_path, path)
                 return path
 
-        if self.game_data.get('directory'):
-            return self.game_data.get('directory')
+        if self.game_data.get("directory"):
+            return self.game_data.get("directory")
 
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        if self.game_data.get('directory'):
-            return self.game_data.get('directory')
-        return self.system_config.get('game_path')
+        if self.game_data.get("directory"):
+            return self.game_data.get("directory")
+        return self.system_config.get("game_path")
 
     @property
     def working_dir(self):
@@ -131,21 +132,23 @@ class Runner:
     def get_runner_options(self):
         runner_options = self.runner_options[:]
         if self.runner_executable:
-            runner_options.append({
-                'option': 'runner_executable',
-                'type': 'file',
-                'label': 'Custom executable for the runner',
-                'advanced': True
-            })
+            runner_options.append(
+                {
+                    "option": "runner_executable",
+                    "type": "file",
+                    "label": "Custom executable for the runner",
+                    "advanced": True,
+                }
+            )
         return runner_options
 
     def get_executable(self):
-        if 'runner_executable' in self.runner_config:
-            runner_executable = self.runner_config['runner_executable']
+        if "runner_executable" in self.runner_config:
+            runner_executable = self.runner_config["runner_executable"]
             if os.path.isfile(runner_executable):
                 return runner_executable
         if not self.runner_executable:
-            raise ValueError('runner_executable not set for {}'.format(self.name))
+            raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
     def get_env(self, os_env=False):
@@ -154,25 +157,27 @@ class Runner:
         if os_env:
             env.update(os.environ.copy())
 
-        system_env = self.system_config.get('env') or {}
+        system_env = self.system_config.get("env") or {}
         env.update(system_env)
 
-        env["DRI_PRIME"] = "1" if self.system_config.get('dri_prime') else "0"
+        env["DRI_PRIME"] = "1" if self.system_config.get("dri_prime") else "0"
 
         runtime_ld_library_path = None
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if 'STEAM_RUNTIME' in runtime_env and 'STEAM_RUNTIME' not in env:
-                env['STEAM_RUNTIME'] = runtime_env['STEAM_RUNTIME']
-            if 'LD_LIBRARY_PATH' in runtime_env:
-                runtime_ld_library_path = runtime_env['LD_LIBRARY_PATH']
+            if "STEAM_RUNTIME" in runtime_env and "STEAM_RUNTIME" not in env:
+                env["STEAM_RUNTIME"] = runtime_env["STEAM_RUNTIME"]
+            if "LD_LIBRARY_PATH" in runtime_env:
+                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
-                ld_library_path = '$LD_LIBRARY_PATH'
-            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+                ld_library_path = "$LD_LIBRARY_PATH"
+            env["LD_LIBRARY_PATH"] = ":".join(
+                [runtime_ld_library_path, ld_library_path]
+            )
 
         return env
 
@@ -186,9 +191,7 @@ class Runner:
             dict
 
         """
-        return runtime.get_env(
-            self.system_config.get('prefer_system_libs', True)
-        )
+        return runtime.get_env(self.system_config.get("prefer_system_libs", True))
 
     def play(self):
         """Dummy method, must be implemented by derived runnners."""
@@ -201,7 +204,7 @@ class Runner:
         exe = self.get_executable()
         env = self.get_env()
 
-        return {'command': [exe], 'env': env}
+        return {"command": [exe], "env": env}
 
     def run(self, *args):
         """Run the runner alone."""
@@ -213,10 +216,10 @@ class Runner:
                 return
 
         command_data = self.get_run_data()
-        command = command_data.get('command')
-        env = (command_data.get('env') or {}).copy()
+        command = command_data.get("command")
+        env = (command_data.get("env") or {}).copy()
 
-        if hasattr(self, 'prelaunch'):
+        if hasattr(self, "prelaunch"):
             self.prelaunch()
 
         thread = LutrisThread(command, runner=self, env=env, watch=False)
@@ -226,7 +229,7 @@ class Runner:
         if runtime.RUNTIME_DISABLED:
             logger.info("Runtime disabled by environment")
             return False
-        if self.system_config.get('disable_runtime'):
+        if self.system_config.get("disable_runtime"):
             logger.info("Runtime disabled by system configuration")
             return False
         return True
@@ -236,13 +239,17 @@ class Runner:
 
         Return success of runner installation.
         """
-        dialog = dialogs.QuestionDialog({
-            'question': ("The required runner is not installed.\n"
-                         "Do you wish to install it now?"),
-            'title': "Required runner unavailable"
-        })
+        dialog = dialogs.QuestionDialog(
+            {
+                "question": (
+                    "The required runner is not installed.\n"
+                    "Do you wish to install it now?"
+                ),
+                "title": "Required runner unavailable",
+            }
+        )
         if Gtk.ResponseType.YES == dialog.result:
-            if hasattr(self, 'get_version'):
+            if hasattr(self, "get_version"):
                 version = self.get_version(use_default=False)
             else:
                 version = None
@@ -258,97 +265,101 @@ class Runner:
             return True
 
     def get_runner_info(self, version=None):
-        runner_api_url = '{}/api/runners/{}'.format(settings.SITE_URL, self.name)
-        logger.info("Getting runner information for %s%s", self.name, '(version: %s)' % version if version else '')
+        runner_api_url = "{}/api/runners/{}".format(settings.SITE_URL, self.name)
+        logger.info(
+            "Getting runner information for %s%s",
+            self.name,
+            "(version: %s)" % version if version else "",
+        )
         request = Request(runner_api_url)
         response = request.get()
         response_content = response.json
         if response_content:
-            versions = response_content.get('versions') or []
+            versions = response_content.get("versions") or []
             logger.debug("Got %s versions", len(versions))
             arch = self.arch
             if version:
-                if version.endswith('-i386') or version.endswith('-x86_64'):
-                    version, arch = version.rsplit('-', 1)
-                versions = [
-                    v for v in versions if v['version'] == version
-                ]
-            versions_for_arch = [
-                v for v in versions
-                if v['architecture'] == arch
-            ]
+                if version.endswith("-i386") or version.endswith("-x86_64"):
+                    version, arch = version.rsplit("-", 1)
+                versions = [v for v in versions if v["version"] == version]
+            versions_for_arch = [v for v in versions if v["architecture"] == arch]
             if len(versions_for_arch) == 1:
                 return versions_for_arch[0]
             elif len(versions_for_arch) > 1:
-                default_version = [
-                    v for v in versions_for_arch
-                    if v['default'] is True
-                ]
+                default_version = [v for v in versions_for_arch if v["default"] is True]
                 if default_version:
                     return default_version[0]
             elif len(versions) == 1 and system.IS_64BIT:
                 return versions[0]
             elif len(versions) > 1 and system.IS_64BIT:
-                default_version = [
-                    v for v in versions
-                    if v['default'] is True
-                ]
+                default_version = [v for v in versions if v["default"] is True]
                 if default_version:
                     return default_version[0]
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
-        logger.debug("Installing %s (version=%s, downloader=%s, callback=%s)",
-                     self.name, version, downloader, callback)
+        logger.debug(
+            "Installing %s (version=%s, downloader=%s, callback=%s)",
+            self.name,
+            version,
+            downloader,
+            callback,
+        )
         runner_info = self.get_runner_info(version)
         if not runner_info:
-            raise RunnerInstallationError('{} is not available for the {} architecture'.format(self.name, self.arch))
+            raise RunnerInstallationError(
+                "{} is not available for the {} architecture".format(
+                    self.name, self.arch
+                )
+            )
         opts = {}
         if downloader:
-            opts['downloader'] = downloader
+            opts["downloader"] = downloader
         if callback:
-            opts['callback'] = callback
-        if 'wine' in self.name:
-            version = runner_info['version']
-            opts['merge_single'] = True
-            dirname = '{}-{}'.format(version, runner_info['architecture'])
-            opts['dest'] = os.path.join(settings.RUNNER_DIR,
-                                        self.name, dirname)
-        if self.name == 'libretro' and version:
-            opts['merge_single'] = False
-            opts['dest'] = os.path.join(settings.RUNNER_DIR, 'retroarch/cores')
-        url = runner_info['url']
+            opts["callback"] = callback
+        if "wine" in self.name:
+            version = runner_info["version"]
+            opts["merge_single"] = True
+            dirname = "{}-{}".format(version, runner_info["architecture"])
+            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name, dirname)
+        if self.name == "libretro" and version:
+            opts["merge_single"] = False
+            opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
+        url = runner_info["url"]
         self.download_and_extract(url, **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
-        merge_single = opts.get('merge_single', False)
-        downloader = opts.get('downloader')
-        callback = opts.get('callback')
+        merge_single = opts.get("merge_single", False)
+        downloader = opts.get("downloader")
+        callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
         if downloader:
             extract_args = {
-                'archive': runner_archive,
-                'dest': dest,
-                'merge_single': merge_single,
-                'callback': callback
+                "archive": runner_archive,
+                "dest": dest,
+                "merge_single": merge_single,
+                "callback": callback,
             }
             downloader(url, runner_archive, self.on_downloaded, extract_args)
         else:
             dialog = dialogs.DownloadDialog(url, runner_archive)
             dialog.run()
-            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single,
-                         callback=callback)
+            self.extract(
+                archive=runner_archive,
+                dest=dest,
+                merge_single=merge_single,
+                callback=callback,
+            )
 
     def on_downloaded(self, widget, data, user_data):
         """GObject callback received by downloader"""
         self.extract(**user_data)
 
     @staticmethod
-    def extract(archive=None, dest=None, merge_single=None,
-                callback=None):
+    def extract(archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
             raise RunnerInstallationError("Failed to extract {}".format(archive))
         extract_archive(archive, dest, merge_single=merge_single)

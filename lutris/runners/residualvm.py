@@ -9,60 +9,50 @@ RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
 class residualvm(Runner):
     human_name = "ResidualVM"
     platforms = ["Linux"]  # TODO
-    description = ("Runs various 3D point-and-click adventure games, "
-                   "like Grim Fandango and Escape from Monkey Island.")
-    runner_executable = 'residualvm/residualvm'
+    description = (
+        "Runs various 3D point-and-click adventure games, "
+        "like Grim Fandango and Escape from Monkey Island."
+    )
+    runner_executable = "residualvm/residualvm"
     game_options = [
-        {
-            'option': 'game_id',
-            'type': 'string',
-            'label': "Game identifier"
-        },
-        {
-            'option': 'path',
-            'type': 'directory_chooser',
-            'label': "Game files location"
-        },
+        {"option": "game_id", "type": "string", "label": "Game identifier"},
+        {"option": "path", "type": "directory_chooser", "label": "Game files location"},
         {
             "option": "subtitles",
             "label": "Enable subtitles (if the game has voice)",
             "type": "bool",
-            'default': False,
-        }
+            "default": False,
+        },
     ]
     runner_options = [
         {
             "option": "fullscreen",
             "label": "Fullscreen mode",
             "type": "bool",
-            'default': False,
+            "default": False,
         },
         {
             "option": "renderer",
             "label": "Renderer",
             "type": "choice",
-            'choices': (
-                ('OpenGL', '0'),
-                ('OpenGL shaders', '1'),
-                ('Software', '2'),
-            ),
-            'default': 'OpenGL',
+            "choices": (("OpenGL", "0"), ("OpenGL shaders", "1"), ("Software", "2")),
+            "default": "OpenGL",
         },
         {
             "option": "show-fps",
             "label": "Display FPS information",
             "type": "bool",
-            'default': False,
-        }
+            "default": False,
+        },
     ]
 
     @property
     def game_path(self):
-        return self.game_config.get('path')
+        return self.game_config.get("path")
 
     def get_residualvm_data_dir(self):
         root_dir = os.path.dirname(self.get_executable())
-        return os.path.join(root_dir, 'data')
+        return os.path.join(root_dir, "data")
 
     def play(self):
         command = [
@@ -92,9 +82,9 @@ class residualvm(Runner):
         # /Options
 
         command.append("--path=%s" % self.game_path)
-        command.append(self.game_config.get('game_id'))
+        command.append(self.game_config.get("game_id"))
 
-        launch_info = {'command': command}
+        launch_info = {"command": command}
 
         return launch_info
 
@@ -114,7 +104,7 @@ class residualvm(Runner):
                     dir_limit = None
                 if dir_limit is not None:
                     game_dir = game[0:dir_limit]
-                    game_name = game[dir_limit + 1:len(game)].strip()
+                    game_name = game[dir_limit + 1 : len(game)].strip()
                     game_array.append([game_dir, game_name])
             # The actual list is below a separator
             if game.startswith("-----"):
