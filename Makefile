@@ -1,5 +1,4 @@
-VERSION=`grep "VERSION" lutris/settings.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
-GITBRANCH=master
+VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 
 cover:
 	rm tests/fixtures/pga.db -f
