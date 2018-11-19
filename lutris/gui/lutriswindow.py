@@ -228,8 +228,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                                           accel='<Primary>h'),
             'show-installed-first': Action(self.on_show_installed_first_state_change, type='b',
                                            default=self.show_installed_first),
-            'view-type': Action(self.on_viewtype_state_change, type='s',
-                                default=self.current_view_type),
+            'toggle-viewtype': Action(self.on_toggle_viewtype),
             'icon-type': Action(self.on_icontype_state_change, type='s',
                                 default=self.icon_type),
             'view-sorting': Action(self.on_view_sorting_state_change, type='s',
@@ -843,8 +842,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         def do_add_game():
             self.view.add_game_by_id(game_id)
             self.switch_splash_screen(force=True)
-            self.sidebar_treeview.update()
-            self.sidebar_listbox.update() # XXX
+            self.sidebar_listbox.update()
             return False
 
         if is_async:
@@ -931,10 +929,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if view_type != self.current_view_type:
             self.switch_view(view_type)
 
-    def on_icontype_state_change(self, action, value):
-        """Callback to handle icon size change"""
-        action.set_state(value)
-        self.icon_type = value.get_string()
+    def _set_icon_type(self, icon_type):
+        self.icon_type = icon_type
         if self.icon_type == self.game_store.icon_type:
             return
         if self.current_view_type == 'grid':

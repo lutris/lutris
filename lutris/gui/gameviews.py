@@ -420,6 +420,16 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.model.set_sort_func(col, sort_func)
 
+    def set_sort_with_column(self, col, sort_col):
+        """Set to sort a column by using another column"""
+
+        def sort_func(model, row1, row2, _user_data):
+            value1 = model.get_value(row1, sort_col)
+            value2 = model.get_value(row2, sort_col)
+            return -1 if value1 < value2 else 0 if value1 == value2 else 1
+
+        self.model.set_sort_func(col, sort_func)
+
     def get_selected_game(self):
         """Return the currently selected game's id."""
         selection = self.get_selection()
