@@ -4,6 +4,7 @@ import os
 import shlex
 import subprocess
 import re
+from collections import namedtuple
 
 from gi.repository import Gio
 
@@ -82,7 +83,9 @@ def sync_with_lutris():
     }
     seen = set()
 
-    for name, appid, exe, args in get_games():
+    for xdg_game in get_games():
+        name = xdg_game.name
+        appid = xdg_game.appid
         slug = slugify(name) or slugify(appid)
         if not all([name, slug, appid]):
             logger.error(
@@ -104,8 +107,8 @@ def sync_with_lutris():
                 "slug": slug,
                 "config_path": slug + "-" + INSTALLER_SLUG,
                 "installer_slug": INSTALLER_SLUG,
-                "exe": exe,
-                "args": args,
+                "exe": xdg_game.exe,
+                "args": xdg_game.args,
             }
             mark_as_installed(appid, "linux", game_info)
 
@@ -116,6 +119,9 @@ def sync_with_lutris():
 def iter_xdg_apps():
     for app in Gio.AppInfo.get_all():
         yield app
+
+
+XDGShortcut = namedtuple('XDGShortcut', ['appid', 'name', 'icon', 'exe', 'args'])
 
 
 def get_games():
@@ -139,6 +145,10 @@ def get_games():
             )
             appid = app.get_executable()
 
+        # Skip lutris created shortcuts
+        if appid.startswith("net.lutris"):
+            continue
+
         # must be in Game category
         categories = app.get_categories()
         if not categories:
@@ -148,11 +158,13 @@ def get_games():
             continue
 
         # contains a blacklisted category
-        has_blacklisted = False
-        for category in categories:
-            if category in map(str.lower, IGNORED_CATEGORIES):
-                has_blacklisted = True
-                break
+        has_blacklisted = bool(
+            [
+                category
+                for category in categories
+                if category in map(str.lower, IGNORED_CATEGORIES)
+            ]
+        )
         if has_blacklisted:
             continue
 
@@ -162,6 +174,7 @@ def get_games():
 
         # executable is blacklisted
         if app.get_executable().lower() in IGNORED_EXECUTABLES:
+            logger.debug("Skipping %s with executable %s", appid, app.get_executable())
             continue
 
         cli = shlex.split(app.get_commandline())
@@ -171,8 +184,13 @@ def get_games():
         args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), args))
 
         args = subprocess.list2cmdline(args)
-
         if not exe.startswith("/"):
             exe = system.find_executable(exe)
-        game_list.append((app.get_display_name(), appid, exe, args))
+        game_list.append(XDGShortcut(
+            appid=appid,
+            name=app.get_display_name(),
+            icon=app.get_icon().to_string(),
+            exe=exe,
+            args=args
+        ))
     return game_list
