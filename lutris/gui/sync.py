@@ -1,3 +1,4 @@
+"""Window for importing games from third party services"""
 from gi.repository import Gtk, Gio
 from lutris.gui.widgets.utils import get_icon
 from lutris.gui.dialogs import NoticeDialog
@@ -8,6 +9,9 @@ from lutris.util.jobs import AsyncCall
 
 class ServiceSyncBox(Gtk.Box):
     """Display components to import games from a service"""
+
+    content_index = 1
+
     def __init__(self, service, _dialog):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.set_spacing(12)
@@ -101,13 +105,62 @@ class ServiceSyncBox(Gtk.Box):
         state = switch.get_active()
         write_setting("sync_at_startup", state, self.identifier)
 
+    def get_content_widget(self):
+        for index, child in enumerate(self.get_children()):
+            if index == self.content_index:
+                return child
+
+    def get_treeview(self, model):
+        treeview = Gtk.TreeView(model=model)
+        treeview.set_headers_visible(False)
+
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_text = Gtk.CellRendererText()
+
+        import_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0)
+        # renderer_toggle.connect("toggled", self.on_installed_toggled)
+        treeview.append_column(import_column)
+
+        name_column = Gtk.TreeViewColumn(None, renderer_text)
+        name_column.add_attribute(renderer_text, "text", 2)
+        name_column.set_property("min-width", 80)
+        treeview.append_column(name_column)
+        return treeview
+
+    def get_store(self, games):
+        liststore = Gtk.ListStore(
+            bool,  # import
+            str,  # appid
+            str,  # name
+            str,  # icon
+            str,  # exe
+            str,  # args
+        )
+        for game in sorted(games, key=lambda x: x.name):
+            liststore.append(
+                [
+                    False,
+                    game.appid,
+                    game.name,
+                    game.icon,
+                    game.exe,
+                    game.args
+                ]
+            )
+        return liststore
+
     def load_games(self):
-        children = self.get_children()
-        for child in children:
-            print(child)
+        """Load the list of games in a treeview"""
+        games = self.service.load_games()
+        store = self.get_store(games)
+        treeview = self.get_treeview(store)
+        spinner = self.get_content_widget()
+        spinner.destroy()
+        self.pack_start(treeview, True, True, 10)
+        self.reorder_child(treeview, self.content_index)
 
 
-class SyncServiceDialog(Gtk.Window):
+class SyncServiceWindow(Gtk.Window):
     def __init__(self, parent=None):
         super().__init__(title="Import local games", parent=parent)
         self.connect("delete-event", lambda *x: self.destroy())

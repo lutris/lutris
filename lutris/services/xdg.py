@@ -84,7 +84,7 @@ def sync_with_lutris():
     }
     seen = set()
 
-    for xdg_game in get_games():
+    for xdg_game in load_games():
         name = xdg_game.name
         appid = xdg_game.appid
         slug = slugify(name) or slugify(appid)
@@ -125,7 +125,7 @@ def iter_xdg_apps():
 XDGShortcut = namedtuple('XDGShortcut', ['appid', 'name', 'icon', 'exe', 'args'])
 
 
-def get_games():
+def load_games():
     """Return the list of games stored in the XDG menu."""
     game_list = []
 
