@@ -16,7 +16,8 @@ class ServiceSyncRow(Gtk.Box):
         name = service.NAME
 
         icon = get_icon(self.identifier)
-        self.pack_start(icon, False, False, 0)
+        if icon != None:
+            self.pack_start(icon, False, False, 0)
 
         label = Gtk.Label()
         label.set_xalign(0)
