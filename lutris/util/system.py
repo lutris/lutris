@@ -46,6 +46,17 @@ INSTALLED_TERMINALS = []
 # Detect if system is 64bit capable
 IS_64BIT = sys.maxsize > 2**32
 
+# Path to Feral gamemode library
+GAMEMODE_PATH = next(
+    (
+        path for path in map(
+            lambda x: os.path.join(x, 'libgamemodeauto.so'),
+            ['/usr/lib/x86_64-linux-gnu', '/usr/lib']
+        ) if os.path.exists(path)
+    ),
+    None
+)
+
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
     """
