@@ -26,7 +26,6 @@ Depends: ${misc:Depends},
  gir1.2-webkit2-4.0,
  psmisc,
  cabextract,
- unrar,
  unzip,
  p7zip,
  curl
