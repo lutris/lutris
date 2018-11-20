@@ -117,7 +117,7 @@ class ServiceSyncBox(Gtk.Box):
 
     def get_treeview(self, model):
         treeview = Gtk.TreeView(model=model)
-        treeview.set_headers_visible(True)
+        treeview.set_headers_visible(False)
 
         renderer_toggle = Gtk.CellRendererToggle()
         renderer_toggle.connect("toggled", self.on_import_toggled)
@@ -168,11 +168,16 @@ class ServiceSyncBox(Gtk.Box):
         """Load the list of games in a treeview"""
         self.games = self.service.load_games()
         self.store = self.get_store(self.games)
+        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
+                                   Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         treeview = self.get_treeview(self.store)
         spinner = self.get_content_widget()
         spinner.destroy()
-        self.pack_start(treeview, True, True, 10)
-        self.reorder_child(treeview, self.content_index)
+        scrolled_window.add(treeview)
+        self.pack_start(scrolled_window, True, True, 10)
+        self.reorder_child(scrolled_window, self.content_index)
 
 
 class SyncServiceWindow(Gtk.Window):
