@@ -592,13 +592,12 @@ class ScriptInterpreter(CommandsMixin):
                 path = os.path.join(self.target_path, path)
 
         if path and not os.path.isfile(path):
-            self.parent.set_status("Installation didn't complete successfully")
-            self.parent.on_install_error("Game executable not found in %s" % path)
-        else:
-            self.parent.set_status("Writing configuration")
-            self._write_config()
-            self.parent.set_status("Installation finished !")
-            self.parent.on_install_finished()
+            self.parent.set_status("Can't find executable, install may not be complete")
+            logger.warning("No executable found at specified location %s", path)
+
+        self._write_config()
+        self.parent.set_status("Installation finished !")
+        self.parent.on_install_finished()
 
     def _write_config(self):
         """Write the game configuration in the DB and config file."""
