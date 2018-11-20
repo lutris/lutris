@@ -136,3 +136,10 @@ def get_path_from_appmanifest(steamapps_path, appid):
     if not appmanifest:
         return None
     return appmanifest.get_install_path()
+
+
+def get_appmanifests(steamapps_path):
+    """Return the list for all appmanifest files in a Steam library folder"""
+    return [
+        f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)
+    ]

@@ -1,6 +1,5 @@
 """Handle Steam configuration"""
 import os
-import re
 from collections import OrderedDict, defaultdict
 
 from lutris.util import system
@@ -39,13 +38,6 @@ def read_config(steam_data_dir):
         return None
     else:
         return config
-
-
-def get_appmanifests(steamapps_path):
-    """Return the list for all appmanifest files in a Steam library folder"""
-    return [
-        f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)
-    ]
 
 
 def get_steamapps_paths_for_platform(platform_name):

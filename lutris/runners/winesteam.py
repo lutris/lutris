@@ -13,7 +13,7 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
 from lutris.util.steam.config import read_config
-from lutris.services.steam import get_path_from_appmanifest
+from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
 from lutris.runners.commands.wine import (  # pylint: disable=unused-import
     set_regedit,

@@ -35,7 +35,8 @@ from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
-from lutris.services.steam import AppManifest, get_appmanifests, get_steamapps_paths
+from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
+from lutris.util.steam.config import get_steamapps_paths
 from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
 from lutris.util import datapath

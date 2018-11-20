@@ -11,7 +11,7 @@ from lutris.util import system
 from lutris.util.steam.log import get_app_state_log
 from lutris.util.steam.config import get_default_acf, read_config
 from lutris.util.steam.vdf import to_vdf
-from lutris.services.steam import get_path_from_appmanifest
+from lutris.util.steam.appmanifest import get_path_from_appmanifest
 
 
 def shutdown():
