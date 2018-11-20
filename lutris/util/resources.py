@@ -9,7 +9,6 @@ from lutris import api, settings
 from lutris.util.http import Request
 from lutris.util.log import logger
 
-from gi.repository import GLib
 from lutris.util import system
 
 BANNER = "banner"
@@ -17,6 +16,7 @@ ICON = "icon"
 
 
 def get_icon_path(game, icon_type):
+    """Return the absolute path for a game icon/banner"""
     if icon_type == BANNER:
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game)
     elif icon_type == ICON:
@@ -25,6 +25,7 @@ def get_icon_path(game, icon_type):
 
 
 def has_icon(game, icon_type):
+    """Return True if the game has the icon of `icon_type`"""
     if icon_type == BANNER:
         icon_path = get_icon_path(game, BANNER)
         return system.path_exists(icon_path)
@@ -35,6 +36,7 @@ def has_icon(game, icon_type):
 
 
 def fetch_icons(game_slugs, callback=None):
+    """Get missing icons from lutris.net"""
     no_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
     no_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
 
@@ -89,7 +91,7 @@ def fetch_icons(game_slugs, callback=None):
 
 
 def udpate_desktop_icons():
-    # Update Icon for GTK+ desktop manager
+    """Update Icon for GTK+ desktop manager"""
     gtk_update_icon_cache = system.find_executable("gtk-update-icon-cache")
     if gtk_update_icon_cache:
         os.system(
@@ -101,6 +103,7 @@ def udpate_desktop_icons():
 
 
 def download_media(url, dest, overwrite=False):
+    """Save a remote media locally"""
     logger.debug("Downloading %s to %s", url, dest)
     if system.path_exists(dest):
         if overwrite:

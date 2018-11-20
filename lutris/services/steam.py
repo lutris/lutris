@@ -128,7 +128,7 @@ def sync_appmanifest_state(appmanifest_path, update=None):
         mark_as_installed(appmanifest.steamid, runner_name, game_info)
 
 
-def sync_with_lutris(platform="linux"):
+def sync_with_lutris(games, platform="linux"):
     logger.debug("Syncing Steam for %s games to Lutris", platform.capitalize())
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not="")
@@ -164,13 +164,15 @@ def sync_with_lutris(platform="linux"):
                         break
                 if pga_entry:
                     sync_appmanifest_state(appmanifest_path, update=pga_entry)
+
+
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:
         for game in steam_games_in_lutris:
             runner = "steam" if platform == "linux" else "winesteam"
             if (
-                    str(game["steamid"]) == steamid and
-                    game["installed"] and
-                    game["runner"] == runner
+                    str(game["steamid"]) == steamid
+                    and game["installed"]
+                    and game["runner"] == runner
             ):
                 mark_as_uninstalled(game)

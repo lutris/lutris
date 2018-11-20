@@ -6,9 +6,12 @@ from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
 from lutris.services import AuthenticationError
 from lutris.util.http import Request
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
+from lutris.util.resources import download_media
 from lutris.gui.dialogs import WebConnectDialog
+from lutris.services import ServiceGame
 
 
 NAME = "GOG"
@@ -174,13 +177,35 @@ def disconnect():
     service = GogService()
     service.disconnect()
 
-
-def sync_with_lutris():
+def load_games():
     service = GogService()
     game_list = service.get_library()
-    file_name = os.path.expanduser("~/game-list")
-    with open(file_name, "w") as f:
-        f.write(json.dumps(game_list, indent=2))
+    games = []
+    for game in game_list['products']:
+        image_url = "https://%s_prof_game_100x60.jpg" % game['image']
+        image_hash = game['image'].split("/")[-1]
+        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
+        if not system.path_exists(cache_dir):
+            os.makedirs(cache_dir)
+        cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
+        if not system.path_exists(cache_path):
+            download_media(image_url, cache_path)
+
+        games.append(ServiceGame(
+            appid=str(game['id']),
+            name=game['title'],
+            icon=cache_path,
+            exe='',
+            args='',
+        ))
+
+    return games
+
+
+def sync_with_lutris(games):
+    """Sync GOG library"""
+    with open(os.path.expanduser("~/game-list"), "w") as f:
+        f.write(json.dumps(games, indent=2))
 
 
 def get_games():

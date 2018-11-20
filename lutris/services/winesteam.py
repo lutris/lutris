@@ -4,5 +4,5 @@ NAME = "Steam for Windows"
 ICON = "winesteam"
 
 
-def sync_with_lutris():
-    _sync_with_lutris(platform="windows")
+def sync_with_lutris(games):
+    _sync_with_lutris(games, platform="windows")

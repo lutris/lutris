@@ -1,5 +1,6 @@
 """Service package"""
 from importlib import import_module
+from collections import namedtuple
 from lutris.settings import read_setting
 
 
@@ -8,6 +9,9 @@ __all__ = ["xdg", "steam", "winesteam", "scummvm", "gog", "rom"]
 
 class AuthenticationError(Exception):
     """Raised when authentication to a service fails"""
+
+
+ServiceGame = namedtuple('ServiceGame', ['appid', 'name', 'icon', 'exe', 'args'])
 
 
 def import_service(name):

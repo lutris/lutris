@@ -34,7 +34,9 @@ def get_pixbuf(image, size, fallback=None):
             logger.error("Unable to load icon from image %s", image)
     if system.path_exists(fallback):
         return GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
-    return get_stock_icon(image, width)
+    if not image.startswith("/"):
+        return get_stock_icon(image, width)
+    return None
 
 
 def get_stock_icon(name, size):

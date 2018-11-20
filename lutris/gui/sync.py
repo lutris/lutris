@@ -21,6 +21,7 @@ class ServiceSyncBox(Gtk.Box):
         self.identifier = service.__name__.split(".")[-1]
         self.icon_name = service.ICON
         self.name = service.NAME
+        self.games = []
 
         label = Gtk.Label()
         label.set_markup("<b>{}</b>".format(self.name))
@@ -95,7 +96,8 @@ class ServiceSyncBox(Gtk.Box):
         self.connect_button.set_label("Disconnect" if is_connected else "Connect")
 
     def on_sync_button_clicked(self, button, sync_method):
-        AsyncCall(sync_method, callback=self.on_service_synced)
+        games = self.get_imported_games()
+        AsyncCall(sync_method, games, callback=self.on_service_synced)
 
     def on_service_synced(self, caller, data):
         parent = self.get_toplevel()
@@ -164,8 +166,8 @@ class ServiceSyncBox(Gtk.Box):
 
     def load_games(self):
         """Load the list of games in a treeview"""
-        games = self.service.load_games()
-        self.store = self.get_store(games)
+        self.games = self.service.load_games()
+        self.store = self.get_store(self.games)
         treeview = self.get_treeview(self.store)
         spinner = self.get_content_widget()
         spinner.destroy()

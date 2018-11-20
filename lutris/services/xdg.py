@@ -4,7 +4,6 @@ import os
 import shlex
 import subprocess
 import re
-from collections import namedtuple
 
 from gi.repository import Gio
 
@@ -13,7 +12,7 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.config import make_game_config_id, LutrisConfig
-
+from lutris.services import ServiceGame
 
 NAME = "Desktop games"
 ICON = "linux"
@@ -76,7 +75,7 @@ def mark_as_uninstalled(game_info):
     return pga.add_or_update(id=game_info["id"], installed=0)
 
 
-def sync_with_lutris():
+def sync_with_lutris(games):
     desktop_games = {
         game["slug"]: game
         for game in pga.get_games_where(
@@ -85,7 +84,7 @@ def sync_with_lutris():
     }
     seen = set()
 
-    for xdg_game in load_games():
+    for xdg_game in games:
         name = xdg_game.name
         appid = xdg_game.appid
         slug = slugify(name) or slugify(appid)
@@ -121,9 +120,6 @@ def sync_with_lutris():
 def iter_xdg_apps():
     for app in Gio.AppInfo.get_all():
         yield app
-
-
-XDGShortcut = namedtuple('XDGShortcut', ['appid', 'name', 'icon', 'exe', 'args'])
 
 
 def load_games():
@@ -188,7 +184,7 @@ def load_games():
         args = subprocess.list2cmdline(args)
         if not exe.startswith("/"):
             exe = system.find_executable(exe)
-        game_list.append(XDGShortcut(
+        game_list.append(ServiceGame(
             appid=appid,
             name=app.get_display_name(),
             icon=app.get_icon().to_string(),
