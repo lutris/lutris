@@ -31,7 +31,7 @@ STANDARD_CODES = {
     "[T+]": "NewerTranslation",
     "(-)": "Unknown Year",
     "[!]": "Verified Good Dump",
-    "(\d+)": "(# of Languages)",
+    r"(\d+)": "(# of Languages)",
     "(??k)": "ROM Size",
     "(Unl)": "Unlicensed",
     "[b]": "Bad Dump",
