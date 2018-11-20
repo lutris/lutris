@@ -1,77 +1,15 @@
 """Steam service"""
 import os
 import re
-from collections import defaultdict
 
 from lutris import pga
 from lutris.util.log import logger
-from lutris.util.system import path_exists
 from lutris.config import make_game_config_id, LutrisConfig
-from lutris.util.steam.appmanifest import AppManifest
+from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
+from lutris.util.steam.config import get_steamapps_paths
 
 NAME = "Steam"
 ICON = "steam"
-
-
-def get_appmanifests(steamapps_path):
-    """Return the list for all appmanifest files in a Steam library folder"""
-    return [
-        f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)
-    ]
-
-
-def get_steamapps_paths_for_platform(platform_name):
-    from lutris.runners import winesteam, steam
-
-    runners = {"linux": steam.steam, "windows": winesteam.winesteam}
-    runner = runners[platform_name]()
-    return runner.get_steamapps_dirs()
-
-
-def get_steamapps_paths(flat=False, platform=None):
-    base_platforms = ["linux", "windows"]
-    if flat:
-        steamapps_paths = []
-    else:
-        steamapps_paths = defaultdict(list)
-
-    if platform:
-        if platform not in base_platforms:
-            raise ValueError("Illegal value for Steam platform: %s" % platform)
-        platforms = [platform]
-    else:
-        platforms = base_platforms
-
-    for _platform in platforms:
-        folders = get_steamapps_paths_for_platform(_platform)
-        if flat:
-            steamapps_paths += folders
-        else:
-            steamapps_paths[_platform] = folders
-
-    return steamapps_paths
-
-
-def get_appmanifest_from_appid(steamapps_path, appid):
-    """Given the steam apps path and appid, return the corresponding appmanifest"""
-    if not steamapps_path:
-        raise ValueError("steamapps_path is mandatory")
-    if not path_exists(steamapps_path):
-        raise IOError("steamapps_path must be a valid directory")
-    if not appid:
-        raise ValueError("Missing mandatory appid")
-    appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
-    if not path_exists(appmanifest_path):
-        return None
-    return AppManifest(appmanifest_path)
-
-
-def get_path_from_appmanifest(steamapps_path, appid):
-    """Return the path where a Steam game is installed."""
-    appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
-    if not appmanifest:
-        return None
-    return appmanifest.get_install_path()
 
 
 def mark_as_installed(steamid, runner_name, game_info):
@@ -164,7 +102,6 @@ def sync_with_lutris(games, platform="linux"):
                         break
                 if pga_entry:
                     sync_appmanifest_state(appmanifest_path, update=pga_entry)
-
 
     unavailable_ids = steamids_in_lutris.difference(seen_ids)
     for steamid in unavailable_ids:

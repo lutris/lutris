@@ -29,9 +29,7 @@ from lutris.thread import LutrisThread
 from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.gui import dialogs
-from lutris.gui.sidebar import (
-    SidebarListBox,
-)  # NOQA FIXME Removing this unused import causes a crash
+from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
 from lutris.gui.logdialog import LogDialog
 from lutris.gui.sync import SyncServiceWindow
 from lutris.gui.gi_composites import GtkTemplate

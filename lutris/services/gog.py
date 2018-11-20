@@ -17,6 +17,7 @@ from lutris.services import ServiceGame
 NAME = "GOG"
 ICON = "gog"
 
+
 class GogService:
     """Service class for GOG"""
 
@@ -174,10 +175,13 @@ def connect(parent=None):
 
 
 def disconnect():
+    """Disconnect from GOG"""
     service = GogService()
     service.disconnect()
 
+
 def load_games():
+    """Load the user game library from the GOG API"""
     service = GogService()
     game_list = service.get_library()
     games = []
@@ -204,8 +208,8 @@ def load_games():
 
 def sync_with_lutris(games):
     """Sync GOG library"""
-    with open(os.path.expanduser("~/game-list"), "w") as f:
-        f.write(json.dumps(games, indent=2))
+    with open(os.path.expanduser("~/game-list"), "w") as list_file:
+        list_file.write(json.dumps(games, indent=2))
 
 
 def get_games():
@@ -214,7 +218,6 @@ def get_games():
 
     game_list = service.get_library()
     print(json.dumps(game_list, indent=2))
-    return
 
     game_details = service.get_game_details("1430740694")
     done = False

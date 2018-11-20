@@ -1,3 +1,4 @@
+"""Module to setup and interact with X360CE"""
 from collections import OrderedDict
 from configparser import RawConfigParser
 from lutris.util import system
@@ -16,7 +17,7 @@ class X360ce:
             ("InternetFeatures", 1),
             ("InternetAutoload", 1),
             ("AllowOnlyOneCopy", 1),
-            ("ProgramScanLocations", "C:\Program Files"),
+            ("ProgramScanLocations", "C:\\Program Files"),
             ("Version", 2),
             ("CombineEnabled", 0),
         ]

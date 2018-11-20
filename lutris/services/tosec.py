@@ -239,9 +239,9 @@ def get_games_from_words(words):
     tag = None
     for word in words:
         if last_path != "" and path == "":
-            if "game" in game:
+            if game.get("game"):
                 games.append(game["game"])
-            elif "clrmamepro" in game:
+            elif game.get("clrmamepro"):
                 clrmamepro = game["clrmamepro"]
             game = {}
         else:

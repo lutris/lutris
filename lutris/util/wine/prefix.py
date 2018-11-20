@@ -21,16 +21,14 @@ class WinePrefixManager:
     def get_registry_path(self, key):
         if key.startswith(self.hkcu_prefix):
             return os.path.join(self.path, "user.reg")
-        else:
-            raise ValueError("Unsupported key '{}'".format(key))
+        raise ValueError("Unsupported key '{}'".format(key))
 
     def get_key_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1 :]
-        else:
-            raise ValueError(
-                "The key {} is currently not supported by WinePrefixManager".format(key)
-            )
+            return key[len(self.hkcu_prefix) + 1:]
+        raise ValueError(
+            "The key {} is currently not supported by WinePrefixManager".format(key)
+        )
 
     def set_registry_key(self, key, subkey, value):
         registry = WineRegistry(self.get_registry_path(key))

@@ -104,11 +104,11 @@ class WineRegistry:
             line = line.rstrip("\n")  # Remove trailing newlines
 
             if line.startswith(self.version_header):
-                self.version = int(line[len(self.version_header) :])
+                self.version = int(line[len(self.version_header):])
                 continue
 
             if line.startswith(self.relative_to_header):
-                self.relative_to = line[len(self.relative_to_header) :]
+                self.relative_to = line[len(self.relative_to_header):]
                 continue
 
             if line.startswith("#arch"):
@@ -272,10 +272,9 @@ class WineRegistryKey:
     def render_value(self, value):
         if isinstance(value, int):
             return "dword:{:08x}".format(value)
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return '"{}"'.format(value)
-        else:
-            raise NotImplementedError("TODO")
+        raise NotImplementedError("TODO")
 
     def add_meta(self, meta_line):
         if not meta_line.startswith("#"):
@@ -304,7 +303,6 @@ class WineRegistryKey:
         value = self.subkeys[name]
         if value.startswith('"') and value.endswith('"'):
             return value[1:-1]
-        elif value.startswith("dword:"):
+        if value.startswith("dword:"):
             return int(value[6:], 16)
-        else:
-            raise ValueError("Handle %s" % value)
+        raise ValueError("Handle %s" % value)

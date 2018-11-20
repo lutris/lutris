@@ -1,5 +1,4 @@
 """Utility module to handle media resources"""
-import shutil
 import os
 import concurrent.futures
 from urllib.parse import urlparse, parse_qsl

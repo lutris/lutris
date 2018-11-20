@@ -140,7 +140,7 @@ class mednafen(Runner):
 
         for joy in joy_list:
             index = joy.find("Unique ID:")
-            joy_id = joy[index + 11 :]
+            joy_id = joy[index + 11:]
             logger.debug("Joystick found id %s ", joy_id)
             joy_ids.append(joy_id)
         return joy_ids

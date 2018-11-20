@@ -51,7 +51,7 @@ def get_scummvm_games():
         if section == "scummvm":
             continue
         scummvm_id = section
-        name = re.split(" \(.*\)$", config[section]["description"])[0]
+        name = re.split(r" \(.*\)$", config[section]["description"])[0]
         path = config[section]["path"]
         yield (scummvm_id, name, path)
 

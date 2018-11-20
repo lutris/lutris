@@ -5,6 +5,7 @@ from lutris.util.steam.vdf import vdf_parse
 from lutris.util.strings import slugify
 from lutris.util.log import logger
 from lutris.util.system import fix_path_case, path_exists
+from lutris.util.steam.config import get_steamapps_paths
 
 APP_STATE_FLAGS = [
     "Invalid",
@@ -113,3 +114,25 @@ class AppManifest:
             return "steam"
         else:
             return "winesteam"
+
+
+def get_appmanifest_from_appid(steamapps_path, appid):
+    """Given the steam apps path and appid, return the corresponding appmanifest"""
+    if not steamapps_path:
+        raise ValueError("steamapps_path is mandatory")
+    if not path_exists(steamapps_path):
+        raise IOError("steamapps_path must be a valid directory")
+    if not appid:
+        raise ValueError("Missing mandatory appid")
+    appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
+    if not path_exists(appmanifest_path):
+        return None
+    return AppManifest(appmanifest_path)
+
+
+def get_path_from_appmanifest(steamapps_path, appid):
+    """Return the path where a Steam game is installed."""
+    appmanifest = get_appmanifest_from_appid(steamapps_path, appid)
+    if not appmanifest:
+        return None
+    return appmanifest.get_install_path()

@@ -1,6 +1,6 @@
+"""Dolphin runner"""
 from lutris.runners.runner import Runner
 from lutris.util import system
-import os
 
 
 class dolphin(Runner):

@@ -309,7 +309,7 @@ class ScriptInterpreter(CommandsMixin):
                     os.makedirs(self.target_path)
                 except PermissionError:
                     raise ScriptingError(
-                        "Lutris does not have necessary permissions to install to choosen game dir:",
+                        "Lutris does not have the necessary permissions to install to path:",
                         self.target_path,
                     )
                 self.reversion_data["created_main_dir"] = True
@@ -750,9 +750,8 @@ class ScriptInterpreter(CommandsMixin):
         return self.user_inputs[-1]["value"] if self.user_inputs else ""
 
     def eject_wine_disc(self):
-        prefix = self.target_path
-        wine_path = wine.get_wine_version_exe(self._get_runner_version())
-        wine.eject_disc(wine_path, prefix)
+        wine_path = get_wine_version_exe(self._get_runner_version())
+        wine.eject_disc(wine_path, self.target_path)
 
     # -----------
     # Steam stuff
@@ -927,8 +926,3 @@ class ScriptInterpreter(CommandsMixin):
             if installer["id"] == self.gog_data["installerid"]:
                 return (True, installer)
         return (False, "")
-
-    def eject_wine_disc(self):
-        prefix = self.target_path
-        wine_path = get_wine_version_exe(self._get_runner_version())
-        wine.eject_disc(wine_path, prefix)

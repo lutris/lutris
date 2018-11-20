@@ -1,11 +1,11 @@
+"""Sidebar for the main window"""
 import os
-from gi.repository import Gtk, Pango, GObject, GdkPixbuf
+from gi.repository import Gtk, Pango, GObject
 
 from lutris import runners
 from lutris import platforms
 from lutris import pga
 from lutris.util import datapath
-from lutris.util.log import logger
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
