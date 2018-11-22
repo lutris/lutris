@@ -186,7 +186,7 @@ def load_games():
     game_list = service.get_library()
     games = []
     for game in game_list['products']:
-        image_url = "https://%s_prof_game_100x60.jpg" % game['image']
+        image_url = "https:%s_prof_game_100x60.jpg" % game['image']
         image_hash = game['image'].split("/")[-1]
         cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
         if not system.path_exists(cache_dir):
@@ -207,9 +207,9 @@ def load_games():
 
 
 def sync_with_lutris(games):
-    """Sync GOG library"""
-    with open(os.path.expanduser("~/game-list"), "w") as list_file:
-        list_file.write(json.dumps(games, indent=2))
+    """Import GOG games to the Lutris library"""
+    for game in games:
+        print(game)
 
 
 def get_games():
