@@ -22,6 +22,7 @@ class Downloader:
         self.overwrite = overwrite
         self.referer = referer
         self.stop_request = None
+        self.thread = None
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -34,6 +35,7 @@ class Downloader:
         self.average_speed = 0
         self.time_left = "00:00:00"  # Based on average speed
 
+        self.last_size = None
         self.last_check_time = 0
         self.last_speeds = []
         self.speed_check_time = 0

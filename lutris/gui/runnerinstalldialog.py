@@ -21,7 +21,7 @@ class RunnerInstallDialog(Dialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0, ("_OK", Gtk.ResponseType.OK))
-        width, height = (460, 380)
+        width, height = (640, 480)
         self.dialog_size = (width, height)
         self.set_default_size(width, height)
 
@@ -177,6 +177,7 @@ class RunnerInstallDialog(Dialog):
     def on_runner_downloaded(self, row):
         version = row[0]
         architecture = row[1]
+        logger.debug("Runner %s for %s has finished downloading", version, architecture)
         src = self.get_dest_path(row)
         dst = self.get_runner_path(version, architecture)
         jobs.AsyncCall(self.extract, self.on_extracted, src, dst, row)
@@ -186,8 +187,12 @@ class RunnerInstallDialog(Dialog):
         extract_archive(src, dst)
         return src, row
 
-    def on_extracted(self, xxx_todo_changeme, error):
-        (src, row) = xxx_todo_changeme
+    def on_extracted(self, row_info, error):
+        """Called when a runner archive is extracted"""
+        if error:
+            logger.error("Error while extracting archive")
+            # Should probably exit here
+        src, row = row_info
         os.remove(src)
         row[self.COL_PROGRESS] = 0
         row[self.COL_INSTALLED] = True
