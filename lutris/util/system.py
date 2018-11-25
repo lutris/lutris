@@ -485,3 +485,15 @@ def find_lib(libname):
     else:
         logger.error("ldconfig not found, can't search for lib %s", libname)
     return lib_paths
+
+
+def run_once(function):
+    """Decorator to use on functions intended to run only once"""
+    first_run = True
+
+    def fn_wrapper(*args):
+        nonlocal first_run
+        if first_run:
+            first_run = False
+            return function(*args)
+    return fn_wrapper
