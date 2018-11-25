@@ -212,7 +212,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
-        self.config_menu_first_access = True
 
     def _init_actions(self):
         Action = namedtuple(
@@ -867,6 +866,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
+        init_dxvk_versions()
         dialog = AddGameDialog(
             self,
             runner=self.selected_runner,
@@ -932,9 +932,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-        if self.config_menu_first_access:
-            self.config_menu_first_access = False
-            init_dxvk_versions()
+        init_dxvk_versions()
         game = Game(self.view.selected_game)
 
         def on_dialog_saved():

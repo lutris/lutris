@@ -48,7 +48,7 @@ def get_dxvk_versions():
         dxvk_versions = [x["name"].replace("v", "") for x in dxvk_json]
     return dxvk_versions
 
-
+@system.run_once
 def init_dxvk_versions():
     global DXVK_VERSIONS
     global DXVK_LATEST
