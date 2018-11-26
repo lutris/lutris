@@ -118,7 +118,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Sync local lutris library with current Steam games and desktop games
         for service in get_services_synced_at_startup():
-            service.sync_with_lutris()
+            service.sync_with_lutris([])
 
         # Window initialization
         self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
