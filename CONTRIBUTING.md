@@ -66,6 +66,11 @@ it to use 120 characters max per line instead of 80.
 You can help fixing formatting issues or other code smells by having a look at
 the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
+When writing docstrings, you should follow the Google style
+(See: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+
+Do *not* add type annotations.
+
 Writing tests
 -------------
 
