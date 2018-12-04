@@ -214,7 +214,7 @@ def is_version_esync(path):
         bool: True is the build is Esync capable
     """
     version = path.lower()
-    if "esync" in version or "proton" in version:
+    if "esync" in version or "tkg" in version or "proton" in version:
         return True
 
     wine_ver = str(subprocess.check_output([path, "--version"]))
