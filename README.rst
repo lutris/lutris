@@ -118,4 +118,3 @@ You can always reach us on:
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
-* Email: contact@lutris.net
