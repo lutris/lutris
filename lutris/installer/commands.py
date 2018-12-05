@@ -63,16 +63,6 @@ class CommandsMixin:
                         command_data,
                     )
 
-    def check_md5(self, data):
-        """Checks compare the MD5 checksum of `file` and compare it to `value`"""
-        self._check_required_params(["file", "value"], data, "check_md5")
-        filename = self._substitute(data["file"])
-        hash_string = self._killable_process(system.get_md5_hash, filename)
-
-        if hash_string != data["value"]:
-            raise ScriptingError("MD5 checksum mismatch", data)
-        self._iter_commands()
-
     def chmodx(self, filename):
         """Make filename executable"""
         filename = self._substitute(filename)

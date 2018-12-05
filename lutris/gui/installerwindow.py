@@ -404,7 +404,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         )
         self.download_progress.cancel_button.hide()
         callback = callback or self.on_download_complete
-        self.download_progress.connect("complete", callback, data)
+        self.download_progress.connect("complete", lambda *args: callback(self, *args))
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
