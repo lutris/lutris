@@ -3,6 +3,7 @@
 import os
 import time
 import yaml
+import hashlib
 
 from gi.repository import GLib
 
@@ -359,6 +360,8 @@ class ScriptInterpreter(CommandsMixin):
             filename = os.path.basename(file_uri)
             referer = None
 
+        checksum = file_meta.get("checksum")
+
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
         elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
@@ -398,7 +401,34 @@ class ScriptInterpreter(CommandsMixin):
         # Change parent's status
         self.parent.set_status("")
         self.game_files[file_id] = dest_file
-        self.parent.start_download(file_uri, dest_file, referer=referer)
+
+        if checksum is not None:
+            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_sha256(args, checksum, dest_file, file_uri), referer=referer)
+        else:
+            self.parent.start_download(file_uri, dest_file, referer=referer)
+
+
+    @staticmethod
+    def check_sha256(args, checksum, dest_file, dest_file_uri):
+        """Checks compare the MD5 checksum of `file` and compare it to `value`
+
+        Args:
+            checksum (str): The checksum to look for
+            dest_file (str): The path to the destination file
+            dest_file_uri (str): The uri for the destination file
+        """
+        hasher = hashlib.sha256()
+
+        with open(dest_file, "rb") as input:
+            for chunk in iter(lambda: input.read(4096), b""):
+                hasher.update(chunk)
+
+        hash_string = hasher.hexdigest()
+
+        if hash_string != checksum:
+            raise ScriptingError("SHA256 checksum mismatch", dest_file_uri)
+
+        args[0].on_download_complete(args[1], args[2])
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
