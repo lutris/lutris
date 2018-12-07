@@ -960,3 +960,4 @@ class ScriptInterpreter(CommandsMixin):
             if installer["id"] == self.gog_data["installerid"]:
                 return (True, installer)
         return (False, "")
+    
