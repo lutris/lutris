@@ -403,13 +403,13 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[file_id] = dest_file
 
         if checksum is not None:
-            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_sha256(args, checksum, dest_file, file_uri), referer=referer)
+            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_hash(args, checksum, dest_file, file_uri), referer=referer)
         else:
             self.parent.start_download(file_uri, dest_file, referer=referer)
 
 
     @staticmethod
-    def check_sha256(args, checksum, dest_file, dest_file_uri):
+    def check_hash(args, checksum, dest_file, dest_file_uri):
         """Checks compare the MD5 checksum of `file` and compare it to `value`
 
         Args:
@@ -417,16 +417,24 @@ class ScriptInterpreter(CommandsMixin):
             dest_file (str): The path to the destination file
             dest_file_uri (str): The uri for the destination file
         """
-        hasher = hashlib.sha256()
 
-        with open(dest_file, "rb") as input:
-            for chunk in iter(lambda: input.read(4096), b""):
+        hash_type = "sha256"
+
+        if ':' in checksum:
+            hash_args = checksum.split(':')
+            hash_type = hash_args[0]
+            checksum = hash_args[1]
+
+        hasher = hashlib.new(hash_type)
+
+        with open(dest_file, "rb") as data:
+            for chunk in iter(lambda: data.read(4096), b""):
                 hasher.update(chunk)
 
         hash_string = hasher.hexdigest()
 
         if hash_string != checksum:
-            raise ScriptingError("SHA256 checksum mismatch", dest_file_uri)
+            raise ScriptingError(hash_type + " checksum mismatch", dest_file_uri)
 
         args[0].on_download_complete(args[1], args[2])
 
