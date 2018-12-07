@@ -93,7 +93,15 @@ class WineRegistry:
         if not system.path_exists(reg_filename):
             return []
         with open(reg_filename, "r") as reg_file:
-            registry_content = reg_file.readlines()
+
+            try:
+                registry_content = reg_file.readlines()
+            except Exception:  # pylint: disable=broad-except
+                logger.exception(
+                    "Failed to registry read %s, please send attach this file in a bug report",
+                    reg_filename
+                )
+                registry_content = []
         return registry_content
 
     def parse_reg_file(self, reg_filename):
