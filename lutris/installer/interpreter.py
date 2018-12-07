@@ -403,12 +403,11 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[file_id] = dest_file
 
         if checksum:
-            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_hash(args, checksum, dest_file, file_uri), referer=referer)
+            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_hash(checksum, dest_file, file_uri), referer=referer)
         else:
             self.parent.start_download(file_uri, dest_file, referer=referer)
 
 
-    @staticmethod
     def check_hash(args, checksum, dest_file, dest_file_uri):
         """Checks the checksum of `file` and compare it to `value`
 
@@ -435,8 +434,6 @@ class ScriptInterpreter(CommandsMixin):
 
         if hash_string != checksum:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
-
-        args[0].on_download_complete(args[1], args[2])
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
