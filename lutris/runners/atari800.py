@@ -39,7 +39,6 @@ class atari800(Runner):
         }
     ]
 
-    @staticmethod
     def get_resolutions():
         try:
             screen_resolutions = [
