@@ -355,12 +355,12 @@ class ScriptInterpreter(CommandsMixin):
             file_uri = file_meta["url"]
             filename = file_meta["filename"]
             referer = file_meta.get("referer")
+            checksum = file_meta.get("checksum")
         else:
             file_uri = file_meta
             filename = os.path.basename(file_uri)
             referer = None
-
-        checksum = file_meta.get("checksum")
+            checksum = None
 
         if file_uri.startswith("/"):
             file_uri = "file://" + file_uri
@@ -402,7 +402,7 @@ class ScriptInterpreter(CommandsMixin):
         self.parent.set_status("")
         self.game_files[file_id] = dest_file
 
-        if checksum is not None:
+        if checksum:
             self.parent.start_download(file_uri, dest_file, lambda *args: self.check_hash(args, checksum, dest_file, file_uri), referer=referer)
         else:
             self.parent.start_download(file_uri, dest_file, referer=referer)
