@@ -181,16 +181,40 @@ class ServiceSyncBox(Gtk.Box):
         """Load the list of games in a treeview"""
         self.games = self.service.load_games()
         self.store = self.get_store()
+
+        self.current_filter = None
+        self.store_filter = self.store.filter_new()
+        self.store_filter.set_visible_func(self.store_filter_func)
+
+        search_entry = Gtk.Entry()
+        search_entry.connect("changed", self.on_search_entry_changed)
+
+        treeview = self.get_treeview(self.store_filter)
+
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
                                    Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        treeview = self.get_treeview(self.store)
+        scrolled_window.add(treeview)
+
         spinner = self.get_content_widget()
         spinner.destroy()
-        scrolled_window.add(treeview)
-        self.pack_start(scrolled_window, True, True, 0)
+
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.pack_start(search_entry, False, False, 0)
+        content.pack_start(scrolled_window, True, True, 0)
+
+        self.pack_start(content, True, True, 0)
         self.reorder_child(scrolled_window, self.content_index)
+
+    def store_filter_func(self, model, iter, _data):
+        if not self.current_filter:
+            return True
+        return self.current_filter.lower() in model[iter][self.COL_NAME].lower()
+
+    def on_search_entry_changed(self, widget):
+        self.current_filter = widget.props.text
+        self.store_filter.refilter()
 
     def get_imported_games(self):
         games = []
