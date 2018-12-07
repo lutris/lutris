@@ -410,20 +410,20 @@ class ScriptInterpreter(CommandsMixin):
 
     @staticmethod
     def check_hash(args, checksum, dest_file, dest_file_uri):
-        """Checks compare the MD5 checksum of `file` and compare it to `value`
+        """Checks the checksum of `file` and compare it to `value`
 
         Args:
-            checksum (str): The checksum to look for
+            checksum (str): The checksum to look for (type:hash)
             dest_file (str): The path to the destination file
             dest_file_uri (str): The uri for the destination file
         """
 
-        hash_type = "sha256"
+        if ':' not in checksum:
+            raise ScriptingError("Invalid checksum, expected format (type:hash) ", dest_file_uri)
 
-        if ':' in checksum:
-            hash_args = checksum.split(':')
-            hash_type = hash_args[0]
-            checksum = hash_args[1]
+        hash_args = checksum.split(':')
+        hash_type = hash_args[0]
+        checksum = hash_args[1]
 
         hasher = hashlib.new(hash_type)
 
@@ -434,7 +434,7 @@ class ScriptInterpreter(CommandsMixin):
         hash_string = hasher.hexdigest()
 
         if hash_string != checksum:
-            raise ScriptingError(hash_type.capitalize() + " checksum mismatch", dest_file_uri)
+            raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
 
         args[0].on_download_complete(args[1], args[2])
 
