@@ -434,7 +434,7 @@ class ScriptInterpreter(CommandsMixin):
         hash_string = hasher.hexdigest()
 
         if hash_string != checksum:
-            raise ScriptingError(hash_type + " checksum mismatch", dest_file_uri)
+            raise ScriptingError(hash_type.capitalize() + " checksum mismatch", dest_file_uri)
 
         args[0].on_download_complete(args[1], args[2])
 
