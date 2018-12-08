@@ -67,7 +67,7 @@ def get_schema(tablename):
 
 
 def field_to_string(
-    name="", type="", indexed=False
+        name="", type="", indexed=False
 ):  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
     field_query = "%s %s" % (name, type)
@@ -77,15 +77,26 @@ def field_to_string(
 
 
 def create_table(name, schema):
+    """Creates a new table in the database"""
     fields = ", ".join([field_to_string(**f) for f in schema])
-    fields = "(%s)" % fields
-    query = "CREATE TABLE IF NOT EXISTS %s %s" % (name, fields)
+    query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
     logger.debug("[PGAQuery] %s", query)
     with sql.db_cursor(PGA_DB) as cursor:
         cursor.execute(query)
 
 
 def migrate(table, schema):
+    """Compare a database table with the reference model and make necessary changes
+
+    This is very basic and only the needed features have been implemented (adding columns)
+
+    Args:
+        table (str): Name of the table to migrate
+        schema (dict): Reference schema for the table
+
+    Returns:
+        list: The list of column names that have been added
+    """
     existing_schema = get_schema(table)
     migrated_fields = []
     if existing_schema:
@@ -98,27 +109,12 @@ def migrate(table, schema):
         create_table(table, schema)
     return migrated_fields
 
+
 def syncdb():
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
-    migrated = migrate("games", DATABASE["games"])
-    if "configpath" in migrated:
-        set_config_paths()
-    migrate("sources", DATABASE["sources"])
-
-
-def set_config_paths():
-    for game in get_games():
-        if game.get("configpath"):
-            continue
-        game_config_path = os.path.join(
-            settings.CONFIG_DIR, "games/%s.yml" % game["slug"]
-        )
-        if system.path_exists(game_config_path):
-            logger.debug("Setting configpath to %s", game["slug"])
-            sql.db_update(
-                PGA_DB, "games", {"configpath": game["slug"]}, ("id", game["id"])
-            )
+    for table in DATABASE:
+        migrate(table, DATABASE[table])
 
 
 def get_games(

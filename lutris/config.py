@@ -59,7 +59,6 @@ def check_config(force_wipe=False):
     if force_wipe:
         os.remove(settings.PGA_DB)
     pga.syncdb()
-    pga.set_config_paths()
 
 
 def make_game_config_id(game_slug):
