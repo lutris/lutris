@@ -12,6 +12,35 @@ from lutris import settings
 PGA_DB = settings.PGA_DB
 
 
+DATABASE = {
+    'games': [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "name", "type": "TEXT"},
+        {"name": "slug", "type": "TEXT"},
+        {"name": "installer_slug", "type": "TEXT"},
+        {"name": "parent_slug", "type": "TEXT"},
+        {"name": "platform", "type": "TEXT"},
+        {"name": "runner", "type": "TEXT"},
+        {"name": "executable", "type": "TEXT"},
+        {"name": "directory", "type": "TEXT"},
+        {"name": "updated", "type": "DATETIME"},
+        {"name": "lastplayed", "type": "INTEGER"},
+        {"name": "installed", "type": "INTEGER"},
+        {"name": "installed_at", "type": "INTEGER"},
+        {"name": "year", "type": "INTEGER"},
+        {"name": "steamid", "type": "INTEGER"},
+        {"name": "configpath", "type": "TEXT"},
+        {"name": "has_custom_banner", "type": "INTEGER"},
+        {"name": "has_custom_icon", "type": "INTEGER"},
+        {"name": "playtime", "type": "TEXT"},
+    ],
+    "sources": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "uri", "type": "TEXT UNIQUE"},
+    ]
+}
+
+
 def get_schema(tablename):
     """
     Fields:
@@ -69,47 +98,13 @@ def migrate(table, schema):
         create_table(table, schema)
     return migrated_fields
 
-
-def migrate_games():
-    schema = [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "name", "type": "TEXT"},
-        {"name": "slug", "type": "TEXT"},
-        {"name": "installer_slug", "type": "TEXT"},
-        {"name": "parent_slug", "type": "TEXT"},
-        {"name": "platform", "type": "TEXT"},
-        {"name": "runner", "type": "TEXT"},
-        {"name": "executable", "type": "TEXT"},
-        {"name": "directory", "type": "TEXT"},
-        {"name": "updated", "type": "DATETIME"},
-        {"name": "lastplayed", "type": "INTEGER"},
-        {"name": "installed", "type": "INTEGER"},
-        {"name": "installed_at", "type": "INTEGER"},
-        {"name": "year", "type": "INTEGER"},
-        {"name": "steamid", "type": "INTEGER"},
-        {"name": "configpath", "type": "TEXT"},
-        {"name": "has_custom_banner", "type": "INTEGER"},
-        {"name": "has_custom_icon", "type": "INTEGER"},
-        {"name": "playtime", "type": "TEXT"},
-    ]
-    return migrate("games", schema)
-
-
-def migrate_sources():
-    schema = [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "uri", "type": "TEXT UNIQUE"},
-    ]
-    return migrate("sources", schema)
-
-
 def syncdb():
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
-    migrated = migrate_games()
+    migrated = migrate("games", DATABASE["games"])
     if "configpath" in migrated:
         set_config_paths()
-    migrate_sources()
+    migrate("sources", DATABASE["sources"])
 
 
 def set_config_paths():

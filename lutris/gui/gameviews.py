@@ -123,11 +123,12 @@ class GameStore(GObject.Object):
         return names
 
     def fill_store(self, games):
+        """Add games to the store"""
         for game in games:
             self.add_game(game)
 
     def filter_view(self, model, _iter, filter_data=None):
-        """Filter the game list."""
+        """Filter function for the game model"""
         if self.filter_installed:
             installed = model.get_value(_iter, COL_INSTALLED)
             if not installed:
