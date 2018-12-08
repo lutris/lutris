@@ -593,7 +593,8 @@ class ContextualMenu(Gtk.Menu):
 
         def manual_script_not_set():
             game = Game(game_id)
-            return not game.runner.system_config.get("manual_command", None)
+            if game.runner:
+                return not game.runner.system_config.get("manual_command")
 
         # Hide some items
         hiding_condition = {
