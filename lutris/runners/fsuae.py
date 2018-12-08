@@ -28,6 +28,13 @@ class fsuae(Runner):
         ("Amiga CD32", 'CD32'),
         ("Commodore CDTV", 'CDTV'),
     ]
+    memory_choices = [
+        ("0", "0"),
+        ("1 MB", "1024"),
+        ("2 MB", "2048"),
+        ("4 MB", "4096"),
+        ("8 MB", "8192"),
+    ]
     runner_executable = 'fs-uae/fs-uae'
     game_options = [
         {
@@ -58,6 +65,14 @@ class fsuae(Runner):
             "choices": model_choices,
             'default': 'A500',
             'help': "Specify the Amiga model you want to emulate."
+        },
+        {
+            "option": "fmemory",
+            "label": "Fast Memory",
+            "type": "choice",
+            "choices": memory_choices,
+            "default": "0",
+            "help": "Specify how much Fast Memory the Amiga model should have.",
         },
         {
             "option": "kickstart_file",
@@ -99,6 +114,14 @@ class fsuae(Runner):
                     return self.platforms[index]
         return ''
 
+    def get_memory(self):
+        fmemory = self.runner_config.get("fmemory")
+        if fmemory:
+            for index, fmemory1 in enumerate(self.memory_choices):
+                if fmemory1[1] == fmemory:
+                    return self.mem0ry[index]
+        return ""
+
     def insert_floppies(self):
         disks = []
         main_disk = self.game_config.get('main_file')
@@ -136,6 +159,7 @@ class fsuae(Runner):
     def get_params(self):
         params = []
         model = self.runner_config.get('model')
+        fmemory = self.runner_config.get("fmemory")
         kickstart_file = self.runner_config.get('kickstart_file')
         if kickstart_file:
             params.append("--kickstart_file=%s" % kickstart_file)
@@ -144,6 +168,8 @@ class fsuae(Runner):
             params.append('--kickstart_ext_file=%s' % kickstart_ext_file)
         if model:
             params.append('--amiga_model=%s' % model)
+        if fmemory:
+            params.append("--fast_memory=%s" % fmemory)
         if self.runner_config.get('gfx_fullscreen_amiga'):
             width = int(get_current_resolution().split('x')[0])
             params.append("--fullscreen")
