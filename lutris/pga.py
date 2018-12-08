@@ -11,9 +11,8 @@ from lutris import settings
 
 PGA_DB = settings.PGA_DB
 
-
 DATABASE = {
-    'games': [
+    "games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "name", "type": "TEXT"},
         {"name": "slug", "type": "TEXT"},
@@ -33,6 +32,17 @@ DATABASE = {
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "playtime", "type": "TEXT"},
+    ],
+    "store_games": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "store", "type": "TEXT"},
+        {"name": "appid", "type": "TEXT"},
+        {"name": "name", "type": "TEXT"},
+        {"name": "slug", "type": "TEXT"},
+        {"name": "icon", "type": "TEXT"},
+        {"name": "url", "type": "TEXT"},
+        {"name": "details", "type": "TEXT"},
+        {"name": "lutris_slug", "type": "TEXT"},
     ],
     "sources": [
         {"name": "id", "type": "INTEGER", "indexed": True},
@@ -103,6 +113,7 @@ def migrate(table, schema):
         columns = [col["name"] for col in existing_schema]
         for field in schema:
             if field["name"] not in columns:
+                logger.info("Migrating %s field %s", table, field["name"])
                 migrated_fields.append(field["name"])
                 sql.add_field(PGA_DB, table, field)
     else:

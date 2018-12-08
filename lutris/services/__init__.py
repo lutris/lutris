@@ -11,7 +11,7 @@ class AuthenticationError(Exception):
     """Raised when authentication to a service fails"""
 
 
-ServiceGame = namedtuple('ServiceGame', ['appid', 'name', 'icon', 'exe', 'args'])
+ServiceGame = namedtuple('ServiceGame', ['appid', 'store', 'name', 'icon', 'exe', 'args'])
 
 
 def import_service(name):

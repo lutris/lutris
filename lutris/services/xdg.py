@@ -63,7 +63,7 @@ def mark_as_installed(appid, runner_name, game_info):
 
     config = LutrisConfig(runner_slug=runner_name, game_config_id=config_id)
     config.raw_game_config.update(
-        {"appid": appid, "exe": game_info["exe"], "args": game_info["args"]}
+        {"appid": appid, "exe": game_info["details"]["exe"], "args": game_info["details"]["args"]}
     )
     config.raw_system_config.update({"disable_runtime": True})
     config.save()
@@ -108,8 +108,10 @@ def sync_with_lutris(games):
                 "slug": slug,
                 "config_path": slug + "-" + INSTALLER_SLUG,
                 "installer_slug": INSTALLER_SLUG,
-                "exe": xdg_game.exe,
-                "args": xdg_game.args,
+                "details": {
+                    "exe": xdg_game.exe,
+                    "args": xdg_game.args,
+                }
             }
             mark_as_installed(appid, "linux", game_info)
 
@@ -186,9 +188,9 @@ def load_games():
             exe = system.find_executable(exe)
         game_list.append(ServiceGame(
             appid=appid,
+            store="xdg",
             name=app.get_display_name(),
             icon=app.get_icon().to_string(),
-            exe=exe,
-            args=args
+            details={'exe': exe, 'args': args},
         ))
     return game_list

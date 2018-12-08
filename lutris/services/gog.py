@@ -2,6 +2,7 @@
 import os
 import time
 import json
+from pprint import pprint
 from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
 from lutris import pga
@@ -186,6 +187,8 @@ def load_games():
     """Load the user game library from the GOG API"""
     service = GogService()
     game_list = service.get_library()
+
+    pprint(game_list)
     games = []
     for game in game_list['products']:
         image_url = "https:%s_prof_game_100x60.jpg" % game['image']
@@ -199,6 +202,7 @@ def load_games():
 
         games.append(ServiceGame(
             appid=str(game['id']),
+            store="gog",
             name=game['title'],
             icon=cache_path,
             exe='',
@@ -228,8 +232,6 @@ def get_games():
     game_details = service.get_game_details("1430740694")
     done = False
     for installer in game_details["downloads"]["installers"]:
-        from pprint import pprint
-
         pprint(installer)
         for file in installer["files"]:
             if not done:
