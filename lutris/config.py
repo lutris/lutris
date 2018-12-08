@@ -3,11 +3,11 @@
 import os
 from os.path import join
 import time
-import yaml
 
 from lutris import pga, settings, sysoptions
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.system import path_exists, create_folder
+from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 from lutris.util.log import logger
 
 
@@ -41,29 +41,6 @@ def check_config():
 def make_game_config_id(game_slug):
     """Return an unique config id to avoid clashes between multiple games"""
     return "{}-{}".format(game_slug, int(time.time()))
-
-
-def read_yaml_from_file(filename):
-    """Read filename and return parsed yaml"""
-    if not path_exists(filename):
-        return {}
-
-    with open(filename, "r") as yaml_file:
-        try:
-            yaml_content = yaml.safe_load(yaml_file) or {}
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError):
-            logger.error("error parsing file %s", filename)
-            yaml_content = {}
-
-    return yaml_content
-
-
-def write_yaml_to_file(filepath, config):
-    if not filepath:
-        raise ValueError("Missing filepath")
-    yaml_config = yaml.dump(config, default_flow_style=False)
-    with open(filepath, "w") as filehandler:
-        filehandler.write(yaml_config)
 
 
 class LutrisConfig:
