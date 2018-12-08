@@ -36,7 +36,7 @@ def register_handler():
         logger.warning("Schema not installed, cannot register url-handler")
 
 
-def check_config(force_wipe=False):
+def check_config():
     """Check if initial configuration is correct."""
     directories = [
         settings.CONFIG_DIR,
@@ -56,8 +56,6 @@ def check_config(force_wipe=False):
     for directory in directories:
         create_folder(directory)
 
-    if force_wipe:
-        os.remove(settings.PGA_DB)
     pga.syncdb()
 
 
