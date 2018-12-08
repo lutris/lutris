@@ -4,8 +4,10 @@ import time
 import json
 from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
+from lutris import pga
 from lutris.services import AuthenticationError
 from lutris.util.http import Request
+from lutris.util.strings import slugify
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
@@ -202,14 +204,18 @@ def load_games():
             exe='',
             args='',
         ))
-
     return games
 
 
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""
     for game in games:
-        print(game)
+        logger.info("Adding GOG game %s", game["name"])
+        pga.add_or_update(
+            name=game["name"],
+            steamid=game["appid"],
+            slug=slugify(game["name"]),
+        )
 
 
 def get_games():

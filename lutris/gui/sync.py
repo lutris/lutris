@@ -197,20 +197,20 @@ class ServiceSyncBox(Gtk.Box):
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         scrolled_window.add(treeview)
 
-        spinner = self.get_content_widget()
-        spinner.destroy()
-
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.pack_start(search_entry, False, False, 0)
         content.pack_start(scrolled_window, True, True, 0)
 
-        self.pack_start(content, True, True, 0)
-        self.reorder_child(scrolled_window, self.content_index)
+        spinner = self.get_content_widget()
+        spinner.destroy()
 
-    def store_filter_func(self, model, iter, _data):
+        self.pack_start(content, True, True, 0)
+        self.reorder_child(content, self.content_index)
+
+    def store_filter_func(self, model, _iter, _data):
         if not self.current_filter:
             return True
-        return self.current_filter.lower() in model[iter][self.COL_NAME].lower()
+        return self.current_filter.lower() in model[_iter][self.COL_NAME].lower()
 
     def on_search_entry_changed(self, widget):
         self.current_filter = widget.props.text
