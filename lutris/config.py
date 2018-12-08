@@ -2,12 +2,8 @@
 
 import os
 from os.path import join
-import sys
 import time
 import yaml
-
-
-from gi.repository import Gio
 
 from lutris import pga, settings, sysoptions
 from lutris.runners import import_runner, InvalidRunner
@@ -17,23 +13,6 @@ from lutris.util.log import logger
 
 # Temporary config name for games that haven't been created yet
 TEMP_CONFIG = "TEMP_CONFIG"
-
-
-def register_handler():
-    """Register the lutris: protocol to open with the application."""
-    logger.debug("registering protocol")
-    executable = os.path.abspath(sys.argv[0])
-    base_key = "desktop.gnome.url-handlers.lutris"
-    schema_directory = "/usr/share/glib-2.0/schemas/"
-    schema_source = Gio.SettingsSchemaSource.new_from_directory(
-        schema_directory, None, True
-    )
-    schema = schema_source.lookup(base_key, True)
-    if schema:
-        settings = Gio.Settings.new(base_key)
-        settings.set_string("command", executable)
-    else:
-        logger.warning("Schema not installed, cannot register url-handler")
 
 
 def check_config():
