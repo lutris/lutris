@@ -803,7 +803,7 @@ class wine(Runner):
 
         launch_info = {"env": self.get_env(os_env=False)}
 
-        if "WINEESYNC" in launch_info["env"].get("WINEESYNC") == "1":
+        if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()
             wine_ver = is_version_esync(self.get_executable())
 
