@@ -133,18 +133,38 @@ class RunnersDialog(GtkBuilderDialog):
             if runner.multiple_versions:
                 builder = get_builder_from_file('runner-remove-all-versions-dialog.ui')
                 builder.connect_signals(self)
+                remove_confirm_button = builder.get_object('remove_confirm_button')
+                remove_confirm_button.connect("clicked", self.on_remove_all_clicked, runner, runner_label)
                 all_versions_label = builder.get_object('runner_all_versions_label')
-                all_versions_label.set_text(all_versions_label.get_text() % runner.human_name)
+                all_versions_label.set_markup(all_versions_label.get_label() % runner.human_name)
                 self.all_versions_dialog = builder.get_object('runner_remove_all_versions_dialog')
                 self.all_versions_dialog.set_parent(self.dialog)
                 self.all_versions_dialog.show()
             else:
-                runner.uninstall()
-                self.refresh_button.emit("clicked")
+                if runner.runner_confirm_removal:
+                    builder = get_builder_from_file('runner-remove-confirm-dialog.ui')
+                    builder.connect_signals(self)
+                    remove_confirm_button = builder.get_object('remove_confirm_button')
+                    remove_confirm_button.connect("clicked", self.on_remove_confirm_clicked, runner, runner_label)
+                    runner_remove_label = builder.get_object('runner_remove_label')
+                    runner_remove_label.set_markup(runner_remove_label.get_label() % runner.human_name)
+                    self.remove_confirm_dialog = builder.get_object('runner_remove_confirm_dialog')
+                    self.remove_confirm_dialog.set_parent(self.dialog)
+                    self.remove_confirm_dialog.show()
+                else:
+                    runner.uninstall()
+                    self.refresh_button.emit("clicked")
+
+    def on_remove_confirm_clicked(self, widget, runner, runner_label):
+        runner.uninstall()
+        self.refresh_button.emit("clicked")
 
     def on_remove_all_clicked(self, widget, runner, runner_label):
         runner.uninstall()
         self.refresh_button.emit("clicked")
+
+    def on_cancel_confirm_clicked(self, widget):
+        self.remove_confirm_dialog.destroy()
 
     def on_cancel_all_clicked(self, widget):
         self.all_versions_dialog.destroy()
