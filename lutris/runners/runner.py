@@ -40,6 +40,7 @@ class Runner:
     context_menu_entries = []
     depends_on = None
     runner_executable = None
+    runner_confirm_removal = False
 
     def __init__(self, config=None):
         """Initialize runner."""

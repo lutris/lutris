@@ -50,6 +50,7 @@ def kill():
 class winesteam(wine.wine):
     description = "Runs Steam for Windows games"
     multiple_versions = False
+    runner_confirm_removal = True
     human_name = "Wine Steam"
     platforms = ["Windows"]
     runnable_alone = True
