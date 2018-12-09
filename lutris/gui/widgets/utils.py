@@ -111,3 +111,13 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
         )
         return transparent_pixbuf
     return pixbuf
+
+
+def get_builder_from_file(glade_file):
+    ui_filename = os.path.join(datapath.get(), "ui", glade_file)
+    if not os.path.exists(ui_filename):
+        raise ValueError("ui file does not exists: %s" % ui_filename)
+
+    builder = Gtk.Builder()
+    builder.add_from_file(ui_filename)
+    return builder
