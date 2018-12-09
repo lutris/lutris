@@ -1,73 +1,34 @@
+import os
+
 from gi.repository import Gtk, GObject
+from lutris.util import datapath
 
 from lutris import runners
 from lutris import settings
 from lutris.util.system import open_uri
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
-from lutris.gui.widgets.utils import get_icon
+from lutris.gui.widgets.utils import get_icon, ICON_SIZE, get_builder_from_file
 
 
-class RunnersDialog(Gtk.Dialog):
+class RunnersDialog(GtkBuilderDialog):
     """Dialog to manage the runners."""
+    glade_file = "runners-dialog.ui"
+    dialog_object = "runners_dialog"
+    runner_entry_ui = os.path.join(datapath.get(), "ui", 'runner-entry.ui')
 
     __gsignals__ = {"runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ())}
 
-    def __init__(self, **kwargs):
-        super().__init__(use_header_bar=1, **kwargs)
-
-        self.runner_labels = {}
-
-        self.set_title("Manage runners")
-        width = int(settings.read_setting("runners_manager_width") or 700)
-        height = int(settings.read_setting("runners_manager_height") or 500)
+    def initialize(self, **kwargs):
+        width = int(settings.read_setting("runners_manager_width") or 800)
+        height = int(settings.read_setting("runners_manager_height") or 800)
         self.dialog_size = (width, height)
-        self.set_default_size(width, height)
-        self._vbox = self.get_content_area()
-        self._header = self.get_header_bar()
+        self.dialog.resize(width, height)
 
-        # Signals
-        self.connect("destroy", self.on_destroy)
-        self.connect("configure-event", self.on_resize)
-
-        # Scrolled window
-        scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        self._vbox.pack_start(scrolled_window, True, True, 0)
-
-        # Runner list
-        self.runner_list = sorted(runners.__all__)
-        self.runner_listbox = Gtk.ListBox(
-            visible=True, selection_mode=Gtk.SelectionMode.NONE
-        )
+        self.runner_listbox = self.builder.get_object('runners_listbox')
         self.runner_listbox.set_header_func(self._listbox_header_func)
-
-        scrolled_window.add(self.runner_listbox)
-
-        # Header buttons
-        buttons_box = Gtk.Box(spacing=6)
-
-        self.refresh_button = Gtk.Button.new_from_icon_name(
-            "view-refresh-symbolic", Gtk.IconSize.BUTTON
-        )
-        self.refresh_button.props.tooltip_text = "Refresh runners"
-        self.refresh_button.show()
-        self.refresh_button.connect("clicked", self.on_refresh_clicked)
-        buttons_box.add(self.refresh_button)
-
-        open_runner_button = Gtk.Button.new_from_icon_name(
-            "folder-symbolic", Gtk.IconSize.BUTTON
-        )
-        open_runner_button.props.tooltip_text = "Open Runners Folder"
-        open_runner_button.connect("clicked", self.on_runner_open_clicked)
-        buttons_box.add(open_runner_button)
-        buttons_box.show_all()
-        self._header.add(buttons_box)
-
-        self.show_all()
-
+        self.runner_list = sorted(runners.__all__)
         # Run this after show_all, else all hidden buttons gets shown
         self.populate_runners()
 
@@ -80,67 +41,36 @@ class RunnersDialog(Gtk.Dialog):
         # Get runner details
         runner = runners.import_runner(runner_name)()
         platform = ", ".join(sorted(list(set(runner.platforms))))
-        description = runner.description
 
-        hbox = Gtk.Box()
+        builder = Gtk.Builder()
+        builder.add_from_file(self.runner_entry_ui)
+        hbox = builder.get_object('runner_entry')
         hbox.show()
+
         # Icon
-        icon = get_icon(runner_name)
-        icon.show()
-        icon.set_alignment(0.5, 0.1)
-        hbox.pack_start(icon, False, False, 10)
+        runner_icon = builder.get_object('runner_icon')
+        runner_icon.set_from_pixbuf(get_icon(runner_name, format='pixbuf', size=ICON_SIZE))
 
         # Label
-        runner_label = Gtk.Label()
-        runner_label.show()
+        runner_name = builder.get_object('runner_name')
+        runner_name.set_text(runner.human_name)
+        runner_description = builder.get_object('runner_description')
+        runner_description.set_text(runner.description)
+        runner_platform = builder.get_object('runner_platform')
+        runner_platform.set_text(platform)
+        runner_label = builder.get_object('runner_label')
         if not runner.is_installed():
             runner_label.set_sensitive(False)
-        runner_label.set_markup(
-            "<b>%s</b>\n%s\n <i>Supported platforms : %s</i>"
-            % (runner.human_name, description, platform)
-        )
-        runner_label.set_width_chars(40)
-        runner_label.set_max_width_chars(40)
-        runner_label.set_property("wrap", True)
-        runner_label.set_line_wrap(True)
-        runner_label.set_alignment(0.0, 0.1)
-        runner_label.set_padding(5, 0)
-        self.runner_labels[runner] = runner_label
-        hbox.pack_start(runner_label, True, True, 5)
 
         # Buttons
-        self.versions_button = Gtk.Button("Manage versions")
-        self.versions_button.set_size_request(120, 30)
-        self.versions_button.set_valign(Gtk.Align.CENTER)
-        self.versions_button.connect(
-            "clicked", self.on_versions_clicked, runner, runner_label
-        )
-        hbox.pack_start(self.versions_button, False, False, 5)
-
-        self.install_button = Gtk.Button("Install")
-        self.install_button.set_size_request(80, 30)
-        self.install_button.set_valign(Gtk.Align.CENTER)
-        self.install_button.connect(
-            "clicked", self.on_install_clicked, runner, runner_label
-        )
-        hbox.pack_start(self.install_button, False, False, 5)
-
-        self.remove_button = Gtk.Button("Remove")
-        self.remove_button.set_size_request(90, 30)
-        self.remove_button.set_valign(Gtk.Align.CENTER)
-        self.remove_button.connect(
-            "clicked", self.on_remove_clicked, runner, runner_label
-        )
-        hbox.pack_start(self.remove_button, False, False, 5)
-
-        self.configure_button = Gtk.Button("Configure")
-        self.configure_button.set_size_request(90, 30)
-        self.configure_button.set_valign(Gtk.Align.CENTER)
-        self.configure_button.connect(
-            "clicked", self.on_configure_clicked, runner, runner_label
-        )
-        hbox.pack_start(self.configure_button, False, False, 5)
-
+        self.versions_button = builder.get_object('manage_versions')
+        self.versions_button.connect("clicked", self.on_versions_clicked, runner, runner_label)
+        self.install_button = builder.get_object('install_runner')
+        self.install_button.connect("clicked", self.on_install_clicked, runner, runner_label)
+        self.remove_button = builder.get_object('remove_runner')
+        self.remove_button.connect("clicked", self.on_remove_clicked, runner, runner_label)
+        self.configure_button = builder.get_object('configure_runner')
+        self.configure_button.connect("clicked", self.on_configure_clicked, runner, runner_label)
         self.set_button_display(runner)
 
         return hbox
@@ -170,11 +100,12 @@ class RunnersDialog(Gtk.Dialog):
             else:
                 self.remove_button.hide()
 
+
         self.configure_button.show()
 
     def on_versions_clicked(self, widget, runner, runner_label):
         dlg_title = "Manage %s versions" % runner.name
-        versions_dialog = RunnerInstallDialog(dlg_title, self, runner.name)
+        versions_dialog = RunnerInstallDialog(dlg_title, self.dialog, runner.name)
         versions_dialog.connect("destroy", self.set_install_state, runner, runner_label)
 
     def on_install_clicked(self, widget, runner, runner_label):
@@ -194,16 +125,32 @@ class RunnersDialog(Gtk.Dialog):
             self.refresh_button.emit("clicked")
 
     def on_configure_clicked(self, widget, runner, runner_label):
-        config_dialog = RunnerConfigDialog(runner, parent=self)
+        config_dialog = RunnerConfigDialog(runner, parent=self.dialog)
         config_dialog.connect("destroy", self.set_install_state, runner, runner_label)
 
     def on_remove_clicked(self, widget, runner, runner_label):
         if runner.is_installed():
-            runner.uninstall()
-            self.refresh_button.emit("clicked")
+            if runner.multiple_versions:
+                builder = get_builder_from_file('runner-remove-all-versions-dialog.ui')
+                builder.connect_signals(self)
+                all_versions_label = builder.get_object('runner_all_versions_label')
+                all_versions_label.set_text(all_versions_label.get_text() % runner.human_name)
+                self.all_versions_dialog = builder.get_object('runner_remove_all_versions_dialog')
+                self.all_versions_dialog.set_parent(self.dialog)
+                self.all_versions_dialog.show()
+            else:
+                runner.uninstall()
+                self.refresh_button.emit("clicked")
+
+    def on_remove_all_clicked(self, widget, runner, runner_label):
+        runner.uninstall()
+        self.refresh_button.emit("clicked")
+
+    def on_cancel_all_clicked(self, widget):
+        self.all_versions_dialog.destroy()
 
     @staticmethod
-    def on_runner_open_clicked(widget):
+    def on_folder_clicked(widget):
         open_uri("file://" + settings.RUNNER_DIR)
 
     def on_refresh_clicked(self, widget):
@@ -223,7 +170,7 @@ class RunnersDialog(Gtk.Dialog):
 
     def on_resize(self, widget, *args):
         """Store the dialog's new size."""
-        self.dialog_size = self.get_size()
+        self.dialog_size = self.dialog.get_size()
 
     def on_destroy(self, widget):
         # Save window size
