@@ -18,8 +18,7 @@ class ServiceSyncBox(Gtk.Box):
     COL_APPID = 1
     COL_NAME = 2
     COL_ICON = 3
-    COL_EXE = 4
-    COL_ARGS = 5
+    COL_DETAILS = 4
 
     def __init__(self, service, _dialog):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
@@ -221,8 +220,7 @@ class ServiceSyncBox(Gtk.Box):
                 games.append({
                     'appid': game[self.COL_APPID],
                     'name': game[self.COL_NAME],
-                    'exe': game[self.COL_EXE],
-                    'args': game[self.COL_ARGS],
+                    'details': game[self.COL_DETAILS],
                 })
         return games
 

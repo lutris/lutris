@@ -6,6 +6,7 @@ from pprint import pprint
 from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
 from lutris import pga
+from lutris import api
 from lutris.services import AuthenticationError
 from lutris.util.http import Request
 from lutris.util.strings import slugify
@@ -212,13 +213,17 @@ def load_games():
 
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""
-    for game in games:
-        logger.info("Adding GOG game %s", game["name"])
-        pga.add_or_update(
-            name=game["name"],
-            steamid=game["appid"],
-            slug=slugify(game["name"]),
-        )
+    gog_ids = [game["appid"] for game in games]
+    lutris_games = api.get_api_games(gog_ids, query_type="gogid")
+    for game in lutris_games:
+        game_data = {
+            "name": game["name"],
+            "slug": game["slug"],
+            "year": game["year"],
+            "updated": game["updated"],
+            "gogid": game["gogid"],
+        }
+        pga.add_or_update(**game_data)
 
 
 def get_games():
