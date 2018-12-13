@@ -75,6 +75,7 @@ class ServiceSyncBox(Gtk.Box):
         if hasattr(service, "load_games"):
             self.load_games()
 
+
     def get_icon(self):
         """Return the icon for the service (used in tabs)"""
         icon = get_icon(self.icon_name)
@@ -176,7 +177,12 @@ class ServiceSyncBox(Gtk.Box):
 
     def load_games(self):
         """Load the list of games in a treeview"""
-        self.games = self.service.load_games()
+        try:
+            self.games = self.service.load_games()
+        except Exception as ex:
+            logger.exception(ex)
+            return
+
         self.store = self.get_store()
 
         self.current_filter = None
