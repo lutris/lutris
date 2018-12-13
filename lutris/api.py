@@ -73,24 +73,31 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_game_api_page(game_slugs, page):
-    """Read a single page of games from the API and return the response"""
+def get_game_api_page(game_ids, page, query_type="games"):
+    """Read a single page of games from the API and return the response
+
+    Args:
+        game_ids (list): list of game IDs, the ID type is determined by `query_type`
+        page (str): Page of results to get
+        query_type (str): Type of the IDs in game_ids, by default 'games' queries
+                          games by their Lutris slug. 'gogid' can also be used.
+    """
     url = settings.SITE_URL + "/api/games"
 
     if int(page) > 1:
         url += "?page={}".format(page)
 
     response = http.Request(url, headers={"Content-Type": "application/json"})
-    if game_slugs:
-        payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
+    if game_ids:
+        payload = json.dumps({query_type: game_ids, "page": page}).encode("utf-8")
     else:
         payload = None
     response.get(data=payload)
     response_data = response.json
-    logger.info("Loaded %s games from page %s", len(response_data.get("results")), page)
+    logger.debug("Loaded %s games from page %s", len(response_data.get("results")), page)
 
     if not response_data:
-        logger.warning("Unable to get games from API")
+        logger.warning("Unable to get games from API, status code: %s", response.status_code)
         return None
     return response_data
 
