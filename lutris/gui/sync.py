@@ -161,8 +161,7 @@ class ServiceSyncBox(Gtk.Box):
             str,  # appid
             str,  # name
             Pixbuf,  # icon
-            str,  # exe
-            str,  # args
+            str,  # details
         )
         for game in sorted(self.games, key=lambda x: x.name):
             liststore.append(
@@ -171,8 +170,7 @@ class ServiceSyncBox(Gtk.Box):
                     game.appid,
                     game.name,
                     get_pixbuf(game.icon, (32, 32)),
-                    game.exe,
-                    game.args
+                    str(game.details),
                 ]
             )
         return liststore

@@ -205,8 +205,7 @@ def load_games():
             store="gog",
             name=game['title'],
             icon=cache_path,
-            exe='',
-            args='',
+            details=json.dumps(game)
         ))
     return games
 
