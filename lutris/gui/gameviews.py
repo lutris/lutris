@@ -321,8 +321,10 @@ class GameView:
         row = self.get_row_by_id(game_id)
         if row:
             row[COL_YEAR] = str(game_year)
-
-            game_playtime = "%.1f hrs" % game_playtime
+            if game_playtime:
+                game_playtime = "%.1f hrs" % game_playtime
+            else:
+                game_playtime = "-"
             row[COL_PLAYTIME_TEXT] = game_playtime
 
             self.update_image(game_id, row[COL_INSTALLED])
