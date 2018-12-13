@@ -249,6 +249,12 @@ def add_games_bulk(games):
 
 
 def add_or_update(**params):
+    """Add a game to the PGA or update an existing one
+
+    If an 'id' is provided in the parameters then it
+    will try to match it, otherwise it will try matching
+    by slug, creating one when possible.
+    """
     slug = params.get("slug")
     name = params.get("name")
     game_id = params.get("id")

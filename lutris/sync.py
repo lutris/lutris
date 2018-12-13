@@ -58,6 +58,7 @@ def sync_game_details(remote_library):
                     and not local_game[key]
                 ):
                     # Remote game has data that is missing from the local game.
+                    logger.info("Key %s is not present, forcing update", key)
                     sync_required = True
                     break
 
