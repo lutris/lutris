@@ -73,7 +73,7 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_game_api_page(game_ids, page, query_type="games"):
+def get_game_api_page(game_ids, page="1", query_type="games"):
     """Read a single page of games from the API and return the response
 
     Args:
@@ -102,8 +102,9 @@ def get_game_api_page(game_ids, page, query_type="games"):
     return response_data
 
 
-def get_games(game_slugs=None, page="1"):
-    response_data = get_game_api_page(game_slugs, page)
+def get_api_games(game_slugs=None, page="1"):
+    """Return all games from the Lutris API matching the given game slugs"""
+    response_data = get_game_api_page(game_slugs, page=page)
     results = response_data.get("results", [])
     while response_data.get("next"):
         page_match = re.search(r"page=(\d+)", response_data["next"])
@@ -113,7 +114,7 @@ def get_games(game_slugs=None, page="1"):
             logger.error("No page found in %s", response_data["next"])
             break
         logger.debug("Current page is %s, next page is %s", page, next_page)
-        response_data = get_game_api_page(game_slugs=game_slugs, page=next_page)
+        response_data = get_game_api_page(game_slugs, page=next_page)
         if not response_data.get("results"):
             logger.warning("Unable to get response for page %s", next_page)
             break

@@ -47,7 +47,7 @@ def fetch_icons(game_slugs, callback=None):
     logger.debug(
         "Requesting missing icons from API for %d games", len(missing_media_slugs)
     )
-    results = api.get_games(game_slugs=missing_media_slugs)
+    results = api.get_api_games(game_slugs=missing_media_slugs)
     if not results:
         logger.warning("Unable to get games, check your network connectivity")
 

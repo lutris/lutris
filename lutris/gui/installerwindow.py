@@ -164,7 +164,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
                 game = Game(game_data["id"])
             else:
                 # Try to load game data from remote.
-                games = api.get_games([self.game_slug])
+                games = api.get_api_games([self.game_slug])
 
                 if games and len(games) >= 1:
                     remote_game = games[0]
