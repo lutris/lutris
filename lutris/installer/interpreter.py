@@ -172,7 +172,6 @@ class ScriptInterpreter(CommandsMixin):
         """Fucked up shit, messed up naming, get your shit right"""
         return (
             not os.path.exists(self.target_path)
-            and "nocreatedir" not in self.script
             and self.creates_game_folder
         )
 
