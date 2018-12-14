@@ -168,14 +168,6 @@ class ScriptInterpreter(CommandsMixin):
         return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
 
     @property
-    def should_create_target(self):
-        """Fucked up shit, messed up naming, get your shit right"""
-        return (
-            not os.path.exists(self.target_path)
-            and self.creates_game_folder
-        )
-
-    @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
         if self.requires:
@@ -314,7 +306,7 @@ class ScriptInterpreter(CommandsMixin):
             if not os.path.exists(self.cache_path):
                 os.mkdir(self.cache_path)
 
-            if self.target_path and self.should_create_target:
+            if self.target_path and not system.path_exists(self.target_path) and self.creates_game_folder:
                 try:
                     os.makedirs(self.target_path)
                 except PermissionError:
