@@ -2,6 +2,7 @@
 import os
 import subprocess
 import resource
+from functools import lru_cache
 from collections import OrderedDict
 
 from lutris import runtime, settings
@@ -124,6 +125,7 @@ def is_installed_systemwide():
     return False
 
 
+@lru_cache(maxsize=8)
 def get_wine_versions():
     """Return the list of Wine versions installed"""
     versions = []
