@@ -31,6 +31,7 @@ gi.require_version("Gtk", "3.0")  # NOQA # isort:skip
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris import settings
+from lutris.running_game import RunningGame
 from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
@@ -62,6 +63,7 @@ class Application(Gtk.Application):
         update_platforms()
 
         GLib.set_application_name(_("Lutris"))
+        self.running_games = []
         self.window = None
         self.help_overlay = None
         self.tray = None
@@ -251,7 +253,6 @@ class Application(Gtk.Application):
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
-            GLib.timeout_add(300, self.refresh_status)
 
     @staticmethod
     def _print(command_line, string):
@@ -385,15 +386,11 @@ class Application(Gtk.Application):
 
         return 0
 
-    def refresh_status(self):
-        if (
-            self.window.running_game is None
-            or self.window.running_game.state == self.window.running_game.STATE_STOPPED
-        ):
-            if not self.window.is_visible():
-                self.do_shutdown()
-                return False
-        return True
+    def launch(self, game_id):
+        """Launch a Lutris game"""
+        running_game = RunningGame(game_id, application=self, window=self.window)
+        self.running_games.append(running_game)
+        running_game.play()
 
     @staticmethod
     def get_lutris_action(url):

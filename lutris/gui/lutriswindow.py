@@ -303,8 +303,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_steam_game_changed(self, operation, path):
         """Action taken when a Steam AppManifest file is updated"""
         appmanifest = steam.AppManifest(path)
-        if self.running_game and "steam" in self.running_game.runner_name:
-            self.running_game.notify_steam_game_changed(appmanifest)
+        # if self.running_game and "steam" in self.running_game.runner_name:
+        #     self.running_game.notify_steam_game_changed(appmanifest)
 
         runner_name = appmanifest.get_runner_name()
         games = pga.get_games_where(steamid=appmanifest.steamid)
@@ -744,31 +744,28 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game_id = self._get_current_game_id()
         if not game_id:
             return None
-        self.running_game = Game(game_id)
-        self.running_game.connect("game-error", self.on_game_error)
-        if self.running_game.is_installed:
-            self.running_game.play()
-        else:
-            game_slug = self.running_game.slug
-            logger.warning("%s is not available", game_slug)
-            self.running_game = None
-            InstallerWindow(
-                game_slug=game_slug, parent=self, application=self.application
-            )
+        self.application.launch(game_id)
 
     def on_game_error(self, game, error):
+        """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
     @GtkTemplate.Callback
-    def on_game_stop(self, *_args):
+    def on_game_stop(self, *args):
         """Callback to stop a running game."""
-        if self.running_game:
-            self.running_game.stop()
-            self.actions["stop-game"].props.enabled = False
-            self.view.update_row(
-                self.running_game.id, self.running_game.year, self.running_game.playtime
-            )
+        logger.debug("Stop game callback called with %s", args)
+        # XXX how do we know which game to stop?
+        # game = Game("???")
+        game = None
+        if not game:
+            logger.warning("Couldn't find game to stop")
+            return
+        game.stop()
+        # XXX the action below doesn't make sense, there shouldn't be a global stop game, only per game actions
+        # self.actions["stop-game"].props.enabled = False
+        # XXX Why year? to differenciate between games? is it reliable?
+        self.view.update_row(game.id, game.year, game.playtime)
 
     def on_install_clicked(
         self, *_args, game_slug=None, installer_file=None, revision=None
@@ -853,12 +850,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_view_game_log_activate(self, *_args):
         """Callback for opening the log window"""
-        if not self.running_game:
+        # XXX which game?
+        game = None
+        if not game:
             dialogs.ErrorDialog("No game log available", parent=self)
             return
-        log_title = u"Log for {}".format(self.running_game)
+        log_title = u"Log for {}".format(game)
         log_window = LogDialog(
-            title=log_title, buffer=self.running_game.log_buffer, parent=self
+            title=log_title, buffer=game.log_buffer, parent=self
         )
         log_window.run()
         log_window.destroy()

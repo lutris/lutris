@@ -42,7 +42,6 @@ def fetch_icons(game_slugs, callback=None):
     # Remove duplicate slugs
     missing_media_slugs = list(set(no_banners) | set(no_icons))
     if not missing_media_slugs:
-        logger.debug("No icon are missing")
         return
     logger.debug(
         "Requesting missing icons from API for %d games", len(missing_media_slugs)
