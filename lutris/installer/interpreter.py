@@ -417,22 +417,18 @@ class ScriptInterpreter(CommandsMixin):
             dest_file_uri (str): The uri for the destination file
         """
 
-        if ':' not in checksum:
+        try:
+            hash_type, expected_hash = checksum.split(':', 1)
+        except ValueError
             raise ScriptingError("Invalid checksum, expected format (type:hash) ", dest_file_uri)
 
-        hash_args = checksum.split(':')
-        hash_type = hash_args[0]
-        checksum = hash_args[1]
-
         hasher = hashlib.new(hash_type)
-
         with open(dest_file, "rb") as data:
             for chunk in iter(lambda: data.read(4096), b""):
                 hasher.update(chunk)
-
         hash_string = hasher.hexdigest()
 
-        if hash_string != checksum:
+        if hash_string != expected_hash:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
 
     def check_runner_install(self):
@@ -960,4 +956,3 @@ class ScriptInterpreter(CommandsMixin):
             if installer["id"] == self.gog_data["installerid"]:
                 return (True, installer)
         return (False, "")
-    
