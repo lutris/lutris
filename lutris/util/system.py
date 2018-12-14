@@ -135,6 +135,14 @@ def get_md5_hash(filename):
     return md5.hexdigest()
 
 
+def get_file_checksum(filename, hash_type):
+    """Return the checksum of type `hash_type` for a given filename"""
+    hasher = hashlib.new(hash_type)
+    with open(filename, "rb") as input_file:
+        for chunk in iter(lambda: input_file.read(4096), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
 def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:

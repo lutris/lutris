@@ -419,16 +419,10 @@ class ScriptInterpreter(CommandsMixin):
 
         try:
             hash_type, expected_hash = checksum.split(':', 1)
-        except ValueError
+        except ValueError:
             raise ScriptingError("Invalid checksum, expected format (type:hash) ", dest_file_uri)
 
-        hasher = hashlib.new(hash_type)
-        with open(dest_file, "rb") as data:
-            for chunk in iter(lambda: data.read(4096), b""):
-                hasher.update(chunk)
-        hash_string = hasher.hexdigest()
-
-        if hash_string != expected_hash:
+        if system.get_file_checksum(dest_file, hash_type) != expected_hash:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
 
     def check_runner_install(self):
