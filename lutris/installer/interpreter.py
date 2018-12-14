@@ -942,13 +942,17 @@ class ScriptInterpreter(CommandsMixin):
 
         # Filter out Mac installers
         gog_installers = [installer for installer in self.gog_data["downloads"]["installers"] if installer["os"] != "mac"]
-
+        available_platforms = set([installer["os"] for installer in gog_installers])
         # If it's a Linux game, also filter out Windows games
-        if self.gog_data["content_system_compatibility"]["linux"]:
+        if "linux" in available_platforms:
             gog_installers = [installer for installer in gog_installers if installer["os"] != "windows"]
+
+        # Keep only the english installer until we have locale detection and / or language selection implemented
+        gog_installers = [installer for installer in gog_installers if installer["language"] == "en"]
         return gog_installers
 
     def get_gog_download_links(self):
+        """Return a list of downloadable links for a GOG game"""
         if not is_gog_connected():
             logger.info("You are not connected to GOG")
             connect_gog()
