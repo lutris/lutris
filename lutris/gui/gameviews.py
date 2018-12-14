@@ -322,7 +322,11 @@ class GameView:
         if row:
             row[COL_YEAR] = str(game_year)
             if game_playtime:
-                game_playtime = "%.1f hrs" % game_playtime
+                try:
+                    game_playtime = "%.1f hrs" % game_playtime
+                except TypeError:
+                    logger.exception("Failed to parse playtime %s", game_playtime)
+                    game_playtime = "-"
             else:
                 game_playtime = "-"
             row[COL_PLAYTIME_TEXT] = game_playtime
