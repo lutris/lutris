@@ -152,7 +152,7 @@ class ServiceSyncBox(Gtk.Box):
 
     def on_import_toggled(self, widget, game_index):
         """Toggle state for import"""
-        self.store[game_index][self.COL_SELECTED] = not self.store[game_index][self.COL_SELECTED]
+        self.store_filter[game_index][self.COL_SELECTED] = not self.store_filter[game_index][self.COL_SELECTED]
 
     def get_store(self):
         """Return a ListStore for the games to import"""
