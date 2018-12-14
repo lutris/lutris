@@ -28,11 +28,12 @@ from lutris.thread import LutrisThread
 
 from lutris.services import get_services_synced_at_startup, steam
 
+from lutris.vendor.gi_composites import GtkTemplate
+
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
 from lutris.gui.logdialog import LogDialog
 from lutris.gui.sync import SyncServiceWindow
-from lutris.gui.gi_composites import GtkTemplate
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
@@ -64,7 +65,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     zoom_adjustment = GtkTemplate.Child()
     no_results_overlay = GtkTemplate.Child()
     infobar_revealer = GtkTemplate.Child()
-    infobar_label = GtkTemplate.Child()
     connect_button = GtkTemplate.Child()
     disconnect_button = GtkTemplate.Child()
     register_button = GtkTemplate.Child()
