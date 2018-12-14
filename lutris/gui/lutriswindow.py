@@ -208,7 +208,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.sync_library()
 
         # Timers
-        self.timer_ids = [GLib.timeout_add(300, self.refresh_status)]
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
@@ -524,7 +523,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
-        self.runtime_updater.update(self.set_status)
+        self.runtime_updater.update()
         self.threads_stoppers += self.runtime_updater.cancellables
 
     def sync_icons(self):
@@ -539,31 +538,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             logger.exception(
                 "Invalid game list:\n%s\nException: %s", self.game_list, ex
             )
-
-    def set_status(self, text):
-        """Sets the statusbar text"""
-
-    def refresh_status(self):
-        """Refresh status bar."""
-        if self.running_game:
-            name = self.running_game.name
-            if self.running_game.state == self.running_game.STATE_IDLE:
-                self.set_status("Preparing to launch %s" % name)
-            elif self.running_game.state == self.running_game.STATE_STOPPED:
-                self.set_status("Game has quit")
-                self.infobar_revealer.set_reveal_child(False)
-                if self.actions["stop-game"].props.enabled:
-                    self.actions["stop-game"].props.enabled = False
-                    self.view.update_row(
-                        self.running_game.id,
-                        self.running_game.year,
-                        self.running_game.playtime,
-                    )
-            elif self.running_game.state == self.running_game.STATE_RUNNING:
-                self.actions["stop-game"].props.enabled = True
-                self.infobar_label.props.label = "{} running".format(name)
-                self.infobar_revealer.set_reveal_child(True)
-        return True
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
