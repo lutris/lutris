@@ -133,6 +133,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = self.script.get("custom-name") or installer["name"]
         self.game_slug = installer["game_slug"]
         self.steamid = installer.get("steamid")
+        self.gogid = installer.get("gogid")
 
         if not self.is_valid():
             raise ScriptingError(
@@ -279,24 +280,50 @@ class ScriptInterpreter(CommandsMixin):
     # "Get the files" stage
     # ---------------------
 
-    def prepare_game_files(self):
-        """Seems fishy"""
-        # Add gog installer to files
-        if self.script["game"].get("gog", False):
-            data = self.get_gog_downloadlink()
-            gog_url = data[0]
-            self.gog_data["os"] = data[1]
-            file = {
-                "installer": {
-                    "url": gog_url,
-                    "filename": gog_url.split("?")[0].split("/")[-1],
-                }
-            }
-            self.files.append(file)
+    def swap_gog_game_files(self):
+        if not self.gogid:
+            raise ScriptingError("The installer has no GOG ID!")
+        links = self.get_gog_download_links()
+        installer_file_id = None
+        if links:
+            for index, file in enumerate(self.files):
+                file_id = list(file.keys())[0]
+                file_meta = file[file_id]
+                if (
+                    (isinstance(file_meta, str) and file_meta.startswith("N/A")) or
+                    (isinstance(file_meta, dict) and file_meta.get('url', '').startswith('N/A'))
+                ):
+                    logger.debug("Removing file %s", file_id)
+                    self.files.pop(index)
+                    installer_file_id = file_id
+                    break
 
-            if self.gog_data["os"] == "linux":
-                file = {"unzip": "http://lutris.net/files/tools/unzip.tar.gz"}
-                self.files.append(file)
+        if not installer_file_id:
+            raise ScriptingError("Could not match a GOG installer file in the files")
+
+        for index, link in enumerate(links):
+
+            filename = link.split("?")[0].split("/")[-1]
+
+            if filename.lower().endswith((".exe", ".sh")):
+                file_id = installer_file_id
+            else:
+                file_id = "gog_file_%s" % index
+
+            logger.debug("Adding GOG file %s as %s", filename, file_id)
+
+            self.files.append({
+                file_id: {
+                    "url": link,
+                    "filename": filename,
+                }
+            })
+
+    def prepare_game_files(self):
+        """Gathers necessary files before iterating through them."""
+        # If this is a GOG installer, download required files.
+        if self.version.startswith("GOG"):
+            self.swap_gog_game_files()
         self.iter_game_files()
 
     def iter_game_files(self):
@@ -473,11 +500,11 @@ class ScriptInterpreter(CommandsMixin):
 
     def install_runners(self):
         """Install required runners for a game"""
-        if not self.runners_to_install:
-            self.prepare_game_files()
-        else:
-            runner = self.runners_to_install.pop(0)
-            self.install_runner(runner)
+        if self.runners_to_install:
+            self.install_runner(self.runners_to_install.pop(0))
+            return
+        self.prepare_game_files()
+
 
     def install_runner(self, runner):
         """Install runner required by the install script"""
@@ -537,29 +564,6 @@ class ScriptInterpreter(CommandsMixin):
             )
             commands.insert(0, "install_steam_game")
             self.script["installer"] = commands
-
-        # Add gog installation to commands, if it's a GOG and linux game
-        if self.gog_data and self.gog_data["os"] == "linux":
-            commands = self.script.get("installer", [])
-            gogcommands = []
-            gogcommands.append({"extract": {"dst": "$CACHE", "file": "$unzip"}})
-            gogcommands.append(
-                {
-                    "execute": {
-                        "args": '$installer -d "$GAMEDIR" "data/noarch/*"',
-                        "description": "Extracting game data, it will take a while...",
-                        "file": "$CACHE/unzip",
-                    }
-                }
-            )
-            gogcommands.append(
-                {"rename": {"dst": "$GAMEDIR/Game", "src": "$GAMEDIR/data/noarch"}}
-            )
-            gogcommands.extend(commands)
-            self.script["installer"] = gogcommands
-
-            if not self.script.get("exe", False):
-                self.script["exe"] = "Game/start.sh"
 
         self._iter_commands()
 
@@ -931,41 +935,37 @@ class ScriptInterpreter(CommandsMixin):
             self.steam_data["platform"] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
 
-    # -----------
-    # GOG stuff
-    # -----------
+    def get_gog_installers(self, gog_service):
+        """Return available installers for a GOG game"""
 
-    def get_gog_downloadlink(self):
-        """Get url of a gog installer."""
-        self.gog_data = self.script["game"]["gog"]
+        self.gog_data = gog_service.get_game_details(self.gogid)
 
+        # Filter out Mac installers
+        gog_installers = [installer for installer in self.gog_data["downloads"]["installers"] if installer["os"] != "mac"]
+
+        # If it's a Linux game, also filter out Windows games
+        if self.gog_data["content_system_compatibility"]["linux"]:
+            gog_installers = [installer for installer in gog_installers if installer["os"] != "windows"]
+        return gog_installers
+
+    def get_gog_download_links(self):
         if not is_gog_connected():
+            logger.info("You are not connected to GOG")
             connect_gog()
-
         gog_service = GogService()
-        game_details = gog_service.get_game_details(self.gog_data["appid"])
-        installer = self._get_gog_installer(game_details)
-        if installer[0]:
-            installer = installer[1]
-            for game_file in installer.get("files", []):
-                downlink = game_file.get("downlink")
-                if not downlink:
-                    logger.error("No download information for %s", installer)
-                    continue
-
-                download_info = gog_service.get_download_info(downlink)
-                return (download_info["downlink"], installer["os"])
-        else:
-            logger.error(
-                "Installer with id %s not found!", self.gog_data["installerid"]
-            )
-            raise ScriptingError("Given installer id not existing!")
-
-    def _get_gog_installer(self, game_details):
-        installers = game_details["downloads"]["installers"]
-        for _, installer in enumerate(installers):
-            logger.debug("Found gog installer with id: %s", installer["id"])
-            print(installer)
-            if installer["id"] == self.gog_data["installerid"]:
-                return (True, installer)
-        return (False, "")
+        gog_installers = self.get_gog_installers(gog_service)
+        if len(gog_installers) > 1:
+            raise ScriptingError("Don't know how to deal with multiple installers yet.")
+        installer = gog_installers[0]
+        download_links = []
+        for game_file in installer.get('files', []):
+            downlink = game_file.get("downlink")
+            if not downlink:
+                logger.error("No download information for %s", installer)
+                continue
+            download_info = gog_service.get_download_info(downlink)
+            for field in ('checksum', 'downlink'):
+                url = download_info[field]
+                logger.info("Adding %s to download links", url)
+                download_links.append(download_info[field])
+        return download_links
