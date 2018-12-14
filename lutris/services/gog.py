@@ -221,7 +221,7 @@ def sync_with_lutris(games):
             "slug": game["slug"],
             "year": game["year"],
             "updated": game["updated"],
-            "gogid": game["gogid"],
+            "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
         }
         pga.add_or_update(**game_data)
 
