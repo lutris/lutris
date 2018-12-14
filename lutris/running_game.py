@@ -11,8 +11,6 @@ class RunningGame:
         self.game_id = game_id
         self.game = Game(game_id)
         self.game.connect("game-error", self.window.on_game_error)
-        self.start_time = None
-        self.stop_time = None
 
     def play(self):
         if self.game.is_installed:

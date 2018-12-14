@@ -76,7 +76,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def __init__(self, application, **kwargs):
         self.application = application
         self.runtime_updater = RuntimeUpdater()
-        self.running_game = None
         self.threads_stoppers = []
         self.search_event = None  # Event ID for search entry debouncing
 
@@ -604,13 +603,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         for stopper in self.threads_stoppers:
             stopper()
         self.steam_watcher = None
-
-        if (
-            self.running_game
-            and self.running_game.state != self.running_game.STATE_STOPPED
-        ):
-            logger.info("%s is still running, stopping it", self.running_game.name)
-            self.running_game.stop()
 
         # Save settings
         width, height = self.window_size
