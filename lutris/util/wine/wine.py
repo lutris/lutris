@@ -33,8 +33,16 @@ def get_proton():
                     return path
     return None
 
+def get_playonlinux():
+    """Return the folder containing PoL config files"""
+    pol_path = os.path.expanduser("~/.PlayOnLinux")
+    if system.path_exists(os.path.join(pol_path, "wine")):
+        return pol_path
+    return None
+
 
 PROTON_PATH = get_proton()
+POL_PATH = get_playonlinux()
 
 
 def detect_arch(prefix_path=None, wine_path=None):
@@ -137,6 +145,17 @@ def get_wine_versions():
             proton_path = os.path.join(PROTON_PATH, version, "dist/bin/wine")
             if os.path.isfile(proton_path):
                 versions.append(version)
+    if POL_PATH:
+        for arch in ['x86', 'amd64']:
+            builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)
+            if not system.path_exists(builds_path):
+                continue
+            for version in os.listdir(builds_path):
+                if system.path_exists(os.path.join(builds_path, version, "bin/wine")):
+                    logger.debug("Adding PoL version %s", version)
+                    versions.append("PlayOnLinux %s-%s" % (version, arch))
+                else:
+                    logger.warning(os.path.join(builds_path, "bin/wine"))
     return versions
 
 

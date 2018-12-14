@@ -16,6 +16,7 @@ from lutris.util.wine.x360ce import X360ce
 from lutris.util.wine import dxvk
 from lutris.util.wine.wine import (
     PROTON_PATH,
+    POL_PATH,
     WINE_DIR,
     WINE_PATHS,
     detect_arch,
@@ -509,6 +510,9 @@ class wine(Runner):
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
             return os.path.join(PROTON_PATH, version, "dist/bin/wine")
+        if version.startswith("PlayOnLinux"):
+            version, arch = version.split()[1].rsplit("-", 1)
+            return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
         if version == "custom":
             return self.runner_config.get("custom_wine_path", "")
         return os.path.join(WINE_DIR, version, "bin/wine")
