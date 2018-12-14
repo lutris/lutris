@@ -2,12 +2,10 @@
 """Install a game by following its install script."""
 import os
 import time
+import json
 import yaml
-import hashlib
 
 from gi.repository import GLib
-
-from json import dumps
 
 from lutris import pga
 from lutris import settings
@@ -97,7 +95,10 @@ def _get_game_launcher(script):
 
 
 class ScriptInterpreter(CommandsMixin):
-    """Convert raw installer script data into actions."""
+    """Convert raw installer script data into actions.
+
+    Really fucked up class that tries to do way more than it should.
+    """
 
     def __init__(self, installer, parent):
         self.error = None
@@ -116,8 +117,12 @@ class ScriptInterpreter(CommandsMixin):
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
 
-        self.script_pretty = dumps(self.script, indent=4)
+        self.script_pretty = json.dumps(self.script, indent=4)
 
+        self.install_start_time = None  # Time of the start of the install
+        self.steam_poll = None  # Reference to the Steam poller that checks if games are downloaded
+        self.current_command = None  # Current installer command when iterating through them
+        self.current_file_id = None  # Current file when downloading / gathering files
         self.runners_to_install = []
         self.prev_states = []  # Previous states for the Steam installer
 
@@ -159,10 +164,12 @@ class ScriptInterpreter(CommandsMixin):
 
     @property
     def cache_path(self):
+        """Return the directory used as a cache for the duration of the installation"""
         return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
 
     @property
     def should_create_target(self):
+        """Fucked up shit, messed up naming, get your shit right"""
         return (
             not os.path.exists(self.target_path)
             and "nocreatedir" not in self.script
@@ -171,6 +178,7 @@ class ScriptInterpreter(CommandsMixin):
 
     @property
     def creates_game_folder(self):
+        """Determines if an install script should create a game folder for the game"""
         if self.requires:
             # Game is an extension of an existing game, folder exists
             return False
@@ -281,15 +289,16 @@ class ScriptInterpreter(CommandsMixin):
     # ---------------------
 
     def prepare_game_files(self):
+        """Seems fishy"""
         # Add gog installer to files
         if self.script["game"].get("gog", False):
             data = self.get_gog_downloadlink()
-            gogUrl = data[0]
+            gog_url = data[0]
             self.gog_data["os"] = data[1]
             file = {
                 "installer": {
-                    "url": gogUrl,
-                    "filename": gogUrl.split("?")[0].split("/")[-1],
+                    "url": gog_url,
+                    "filename": gog_url.split("?")[0].split("/")[-1],
                 }
             }
             self.files.append(file)
@@ -300,6 +309,7 @@ class ScriptInterpreter(CommandsMixin):
         self.iter_game_files()
 
     def iter_game_files(self):
+        """Iterate through game files, downloading them or querying them from the user"""
         if self.files:
             # Create cache dir if needed
             if not os.path.exists(self.cache_path):
@@ -324,7 +334,7 @@ class ScriptInterpreter(CommandsMixin):
                 current_file = self.files[file_index]
             except KeyError:
                 raise ScriptingError(
-                    "Error getting file %d in %s", file_index, self.files
+                    "Error getting file %d in %s" % file_index, self.files
                 )
             self._download_file(current_file)
         else:
@@ -333,6 +343,8 @@ class ScriptInterpreter(CommandsMixin):
 
     def _download_file(self, game_file):
         """Download a file referenced in the installer script.
+
+        KILL IT WITH FIRE!!! This method is a mess.
 
         Game files can be either a string, containing the location of the
         file to fetch or a dict with the following keys:
@@ -403,10 +415,14 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[file_id] = dest_file
 
         if checksum:
-            self.parent.start_download(file_uri, dest_file, lambda *args: self.check_hash(checksum, dest_file, file_uri), referer=referer)
+            self.parent.start_download(
+                file_uri,
+                dest_file,
+                lambda *args: self.check_hash(checksum, dest_file, file_uri),
+                referer=referer
+            )
         else:
             self.parent.start_download(file_uri, dest_file, referer=referer)
-
 
     def check_hash(self, checksum, dest_file, dest_file_uri):
         """Checks the checksum of `file` and compare it to `value`
@@ -465,6 +481,7 @@ class ScriptInterpreter(CommandsMixin):
         self.install_runners()
 
     def install_runners(self):
+        """Install required runners for a game"""
         if not self.runners_to_install:
             self.prepare_game_files()
         else:
@@ -472,6 +489,7 @@ class ScriptInterpreter(CommandsMixin):
             self.install_runner(runner)
 
     def install_runner(self, runner):
+        """Install runner required by the install script"""
         logger.debug("Installing %s", runner.name)
         try:
             runner.install(
@@ -484,6 +502,7 @@ class ScriptInterpreter(CommandsMixin):
             raise ScriptingError(ex.message)
 
     def get_runner_class(self, runner_name):
+        """Runner the runner class from its name"""
         try:
             runner = import_runner(runner_name)
         except InvalidRunner:
@@ -492,6 +511,7 @@ class ScriptInterpreter(CommandsMixin):
         return runner
 
     def file_selected(self, file_path):
+        """Continue install after a file has been selected by the user"""
         file_id = self.current_file_id
         if not file_path or not os.path.exists(file_path):
             raise ScriptingError("Can't continue installation without file", file_id)
@@ -609,7 +629,7 @@ class ScriptInterpreter(CommandsMixin):
         game = self.script.get("game")
         launcher_value = None
         if game:
-            launcher, launcher_value = _get_game_launcher(game)
+            _launcher, launcher_value = _get_game_launcher(game)
         path = None
         if launcher_value:
             path = self._substitute(launcher_value)
@@ -625,7 +645,10 @@ class ScriptInterpreter(CommandsMixin):
         self.parent.on_install_finished()
 
     def _write_config(self):
-        """Write the game configuration in the DB and config file."""
+        """Write the game configuration in the DB and config file.
+
+        This needs to be unfucked
+        """
         if self.extends:
             logger.info(
                 "This is an extension to %s, not creating a new game entry",
@@ -687,7 +710,7 @@ class ScriptInterpreter(CommandsMixin):
             if launcher_value in self.game_files:
                 launcher_value = self.game_files[launcher_value]
             elif self.target_path and os.path.exists(
-                os.path.join(self.target_path, launcher_value)
+                    os.path.join(self.target_path, launcher_value)
             ):
                 launcher_value = os.path.join(self.target_path, launcher_value)
             config["game"][launcher] = launcher_value
@@ -728,6 +751,7 @@ class ScriptInterpreter(CommandsMixin):
     # --------------------
 
     def cleanup(self):
+        """Clean up install dir after a successful install"""
         os.chdir(os.path.expanduser("~"))
         system.remove_folder(self.cache_path)
 
@@ -736,6 +760,7 @@ class ScriptInterpreter(CommandsMixin):
     # --------------
 
     def revert(self):
+        """Revert installation in case of an error"""
         logger.debug("Install cancelled")
         self.cancelled = True
 
@@ -774,6 +799,7 @@ class ScriptInterpreter(CommandsMixin):
         return self.user_inputs[-1]["value"] if self.user_inputs else ""
 
     def eject_wine_disc(self):
+        """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
         wine_path = get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, self.target_path)
 
@@ -795,6 +821,7 @@ class ScriptInterpreter(CommandsMixin):
         steam_runner = self._get_steam_runner(runner_class)
         self.steam_data["is_game_files"] = is_game_files
         appid = self.steam_data["appid"]
+
         if not steam_runner.get_game_path_from_appid(appid):
             logger.debug("Installing steam game %s", appid)
             steam_runner.config = LutrisConfig(runner_slug=steam_runner.name)
@@ -806,7 +833,8 @@ class ScriptInterpreter(CommandsMixin):
             self.steam_poll = GLib.timeout_add(2000, self._monitor_steam_game_install)
             self.abort_current_task = lambda: steam_runner.remove_game_data(appid=appid)
             return "STOP"
-        elif is_game_files:
+
+        if is_game_files:
             self._append_steam_data_to_files(runner_class)
         else:
             self.target_path = self._get_steam_game_path()
@@ -843,7 +871,7 @@ class ScriptInterpreter(CommandsMixin):
             return False
         return True
 
-    def _on_steam_game_installed(self, *args):
+    def _on_steam_game_installed(self, *_args):
         """Fired whenever a Steam game has finished installing."""
         self.abort_current_task = None
         if self.steam_data["is_game_files"]:
@@ -898,7 +926,7 @@ class ScriptInterpreter(CommandsMixin):
             "file_id": file_id,
         }
 
-        logger.debug("Getting Steam data for appid %s" % self.steam_data["appid"])
+        logger.debug("Getting Steam data for appid %s", self.steam_data["appid"])
 
         self.parent.clean_widgets()
         self.parent.add_spinner()
