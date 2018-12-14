@@ -1,3 +1,12 @@
+"""GtkTemplate implementation for PyGI
+
+Blog post: http://www.virtualroadside.com/blog/index.php/2015/05/24/gtk3-composite-widget-templates-for-python/
+
+Github: https://github.com/virtuald/pygi-composite-templates/blob/master/gi_composites.py
+
+This should have landed in PyGObect and will be available without this shim in the future.
+See: https://gitlab.gnome.org/GNOME/pygobject/merge_requests/52
+"""
 #
 # Copyright (C) 2015 Dustin Spicuzza <dustin@virtualroadside.com>
 #
