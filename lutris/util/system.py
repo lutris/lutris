@@ -421,6 +421,7 @@ def open_uri(uri):
 
 
 def get_desktop_environment():
+    """Return the desktop environment currently being used"""
     # From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
     # and http://ubuntuforums.org/showthread.php?t=652320
     # and http://ubuntuforums.org/showthread.php?t=652320
@@ -443,7 +444,7 @@ def get_desktop_environment():
     ]
     desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
     if (
-        desktop_session
+            desktop_session
     ):  # easier to match if we doesn't have to deal with caracter cases
         if desktop_session in deskop_environments:
             return desktop_session

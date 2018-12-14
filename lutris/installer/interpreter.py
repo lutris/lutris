@@ -408,7 +408,7 @@ class ScriptInterpreter(CommandsMixin):
             self.parent.start_download(file_uri, dest_file, referer=referer)
 
 
-    def check_hash(args, checksum, dest_file, dest_file_uri):
+    def check_hash(self, checksum, dest_file, dest_file_uri):
         """Checks the checksum of `file` and compare it to `value`
 
         Args:
