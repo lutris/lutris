@@ -8,7 +8,7 @@ from lutris import runtime
 from lutris.settings import RUNTIME_DIR
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
-from lutris.util import datapath, display, system
+from lutris.util import display, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
 from lutris.util.vkquery import is_vulkan_supported
