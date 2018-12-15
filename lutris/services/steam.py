@@ -52,12 +52,15 @@ def sync_appmanifest_state(appmanifest_path, update=None):
         update (dict, optional): Existing lutris game to update
     """
 
+    proton_ids = ["858280", "930400", "961940", "228980"]
     try:
         appmanifest = AppManifest(appmanifest_path)
     except Exception:
         logger.error("Unable to parse file %s", appmanifest_path)
         return
     if appmanifest.is_installed():
+        if appmanifest.steamid in proton_ids or re.match(r"^Proton \d*", appmanifest.name):
+            return
         if update:
             game_info = update
         else:
@@ -70,7 +73,6 @@ def sync_with_lutris(games, platform="linux"):
     logger.debug("Syncing Steam for %s games to Lutris", platform.capitalize())
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not="")
-    proton_ids = ["858280", "930400", "961940", "228980"]
     steamids_in_lutris = {str(game["steamid"]) for game in steam_games_in_lutris}
     seen_ids = set()  # Set of Steam appids seen while browsing AppManifests
 
@@ -80,7 +82,7 @@ def sync_with_lutris(games, platform="linux"):
             steamid = re.findall(r"(\d+)", appmanifest_file)[0]
             seen_ids.add(steamid)
             appmanifest_path = os.path.join(steamapps_path, appmanifest_file)
-            if steamid not in steamids_in_lutris and steamid not in proton_ids:
+            if steamid not in steamids_in_lutris:
                 # New Steam game, not seen before in Lutris,
                 if platform != "linux":
                     # Windows games might require additional steps.
