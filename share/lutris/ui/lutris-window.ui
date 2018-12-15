@@ -71,7 +71,7 @@
                 <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
                 <property name="tooltip_text" translatable="yes">Search Games</property>
-                <signal name="toggled" handler="_on_search_toggle"/>
+                <signal name="toggled" handler="on_search_toggle"/>
                 <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
                 <child>
                   <object class="GtkImage">

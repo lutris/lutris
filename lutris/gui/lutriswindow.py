@@ -358,6 +358,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("remove-game", self.on_remove_game)
 
     def _bind_zoom_adjustment(self):
+        """I have no clue what this supposed to achieve"""
         SCALE = list(IMAGE_SIZES.keys())
         self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
         self.zoom_adjustment.connect(
@@ -679,7 +680,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return False
 
     @GtkTemplate.Callback
-    def _on_search_toggle(self, button):
+    def on_search_toggle(self, button):
         active = button.props.active
         self.search_revealer.set_reveal_child(active)
         if not active:
@@ -962,10 +963,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_visible = value.get_boolean()
         setting = "true" if self.sidebar_visible else "false"
         settings.write_setting("sidebar_visible", setting)
-        if self.sidebar_visible:
-            settings.write_setting("sidebar_visible", "true")
-        else:
-            settings.write_setting("sidebar_visible", "false")
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
 
     def on_sidebar_changed(self, widget):
@@ -982,19 +979,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         action.set_state(value)
         settings.write_setting("show_tray_icon", value)
         self.application.set_tray_icon(value)
-
-    # def on_sidebar_changed(self, widget):
-    #     """Callback to handle selected runner/platforms updates in sidebar"""
-    #     filer_type, slug = widget.get_selected_filter()
-    #     selected_runner = None
-    #     selected_platform = None
-    #     if not slug:
-    #         pass
-    #     elif filer_type == 'platforms':
-    #         selected_platform = slug
-    #     elif filer_type == 'runners':
-    #         selected_runner = slug
-    #     self.set_selected_filter(selected_runner, selected_platform)
 
     def set_selected_filter(self, runner, platform):
         """Filter the view to a given runner and platform"""
