@@ -1,4 +1,5 @@
 import os
+from lutris.settings import RUNTIME_DIR
 from lutris.util import datapath, system
 from lutris.util.log import logger
 
@@ -52,7 +53,7 @@ class ControllerMapping:
 
 
 class GameControllerDB:
-    db_path = os.path.join(datapath.get(), "controllers/gamecontrollerdb.txt")
+    db_path = os.path.join(RUNTIME_DIR, "gamecontrollerdb/gamecontrollerdb.txt")
 
     def __init__(self):
         if not system.path_exists(self.db_path):
