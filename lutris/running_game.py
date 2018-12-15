@@ -21,3 +21,11 @@ class RunningGame:
                 game_slug=self.game.slug, parent=self.window, application=self.application
             )
         self.game.play()
+
+    def stop(self):
+        """Stops the game"""
+        raise NotImplementedError
+
+    def show_logs(self):
+        """Display game log in a LogWindow"""
+        raise NotImplementedError
