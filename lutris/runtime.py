@@ -47,12 +47,6 @@ class Runtime:
             return True
 
         if local_updated_at and local_updated_at >= remote_updated_at:
-            logger.debug(
-                "Runtime %s is already up to date (locally updated on %s, remote created on %s)",
-                self.name,
-                time.strftime("%c", local_updated_at),
-                time.strftime("%c", remote_updated_at),
-            )
             return False
 
         logger.debug(
