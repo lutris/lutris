@@ -37,8 +37,6 @@ class RunningGame:
         running_game_box.log_button.connect("clicked", self.on_show_logs)
         self.window.add_running_game(running_game_box)
 
-        self.game.play()
-
     def on_stop(self, widget):
         """Stops the game"""
         self.game.stop()
