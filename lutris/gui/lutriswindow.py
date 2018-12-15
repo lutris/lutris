@@ -227,7 +227,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "synchronize": Action(lambda *x: self.sync_library()),
             "sync-local": Action(lambda *x: self.open_sync_dialog()),
             "add-game": Action(self.on_add_game_button_clicked),
-            "view-game-log": Action(self.on_view_game_log_activate),
             "start-game": Action(self.on_game_run, enabled=False),
             "remove-game": Action(self.on_remove_game, enabled=False),
             "preferences": Action(self.on_preferences_activate),
@@ -795,21 +794,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             runner=self.selected_runner,
             callback=lambda: on_game_added(game),
         )
-
-    @GtkTemplate.Callback
-    def on_view_game_log_activate(self, *_args):
-        """Callback for opening the log window"""
-        # XXX which game?
-        game = None
-        if not game:
-            dialogs.ErrorDialog("No game log available", parent=self)
-            return
-        log_title = u"Log for {}".format(game)
-        log_window = LogDialog(
-            title=log_title, buffer=game.log_buffer, parent=self
-        )
-        log_window.run()
-        log_window.destroy()
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):

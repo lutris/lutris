@@ -117,12 +117,6 @@
           <attribute name="action">win.remove-game</attribute>
         </item>
       </section>
-      <section>
-        <item>
-          <attribute name="label">View last game's _log</attribute>
-          <attribute name="action">win.view-game-log</attribute>
-        </item>
-      </section>
     </submenu>
     <submenu>
       <attribute name="label">_Help</attribute>

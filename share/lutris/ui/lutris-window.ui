@@ -294,13 +294,6 @@
                             <property name="label" translatable="yes">Game running</property>
                           </object>
                         </child>
-                        <child>
-                          <object class="GtkButton">
-                            <property name="label" translatable="yes">View logs</property>
-                            <property name="action-name">win.view-game-log</property>
-                            <property name="visible">1</property>
-                          </object>
-                        </child>
                       </object>
                     </child>
                   </object>
