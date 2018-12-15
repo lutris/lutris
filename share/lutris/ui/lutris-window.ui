@@ -348,6 +348,7 @@
                 <property name="shrink">True</property>
               </packing>
             </child>
+            <signal name="size-allocate" handler="on_sidebar_resize" swapped="no"/>
           </object>
           <packing>
             <property name="expand">True</property>
