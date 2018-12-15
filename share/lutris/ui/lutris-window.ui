@@ -279,21 +279,14 @@
                   <object class="GtkRevealer" id="infobar_revealer">
                     <property name="visible">1</property>
                     <child>
-                      <object class="GtkBox">
+                      <object class="GtkBox" id="infobar_box">
                         <property name="visible">1</property>
                         <property name="spacing">6</property>
                         <property name="margin-start">12</property>
                         <property name="margin-end">12</property>
                         <property name="margin-top">6</property>
                         <property name="margin-bottom">6</property>
-                        <child>
-                          <object class="GtkLabel" id="infobar_label">
-                            <property name="visible">1</property>
-                            <property name="hexpand">1</property>
-                            <property name="halign">start</property>
-                            <property name="label" translatable="yes">Game running</property>
-                          </object>
-                        </child>
+                        <property name="orientation">vertical</property>
                       </object>
                     </child>
                   </object>
