@@ -21,8 +21,10 @@ class RunningGame:
         self.application = application
         self.window = window
         self.game_id = game_id
+        self.running_game_box = None
         self.game = Game(game_id)
         self.game.connect("game-error", self.window.on_game_error)
+        self.game.connect("game-stop", self.on_stop)
 
     def play(self):
         if self.game.is_installed:
@@ -32,17 +34,16 @@ class RunningGame:
             InstallerWindow(
                 game_slug=self.game.slug, parent=self.window, application=self.application
             )
-        running_game_box = RunningGameBox(self.game)
-        running_game_box.stop_button.connect("clicked", self.on_stop)
-        running_game_box.log_button.connect("clicked", self.on_show_logs)
-        self.window.add_running_game(running_game_box)
+        self.running_game_box = RunningGameBox(self.game)
+        self.running_game_box.stop_button.connect("clicked", self.on_stop)
+        self.running_game_box.log_button.connect("clicked", self.on_show_logs)
+        self.window.add_running_game(self.running_game_box)
 
     def on_stop(self, widget):
         """Stops the game"""
         self.game.stop()
-        widget.get_parent().destroy()
+        self.running_game_box.destroy()
         self.application.running_games.pop(self.application.running_games.index(self))
-        logger.debug("Now %s games running", len(self.application.running_games))
         self.window.remove_running_game()
 
     def on_show_logs(self, _widget):

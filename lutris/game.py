@@ -46,7 +46,10 @@ class Game(GObject.Object):
     STATE_STOPPED = "stopped"
     STATE_RUNNING = "running"
 
-    __gsignals__ = {"game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,))}
+    __gsignals__ = {
+        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ())
+    }
 
     def __init__(self, game_id=None):
         super().__init__()
@@ -59,7 +62,7 @@ class Game(GObject.Object):
         self.killswitch = None
         self.state = self.STATE_IDLE
         self.exit_main_loop = False
-
+        self.xboxdrv_thread = None
         game_data = pga.get_game_by_field(game_id, "id")
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
@@ -528,6 +531,10 @@ class Game(GObject.Object):
         return True
 
     def stop(self):
+        if self.state == self.STATE_STOPPED:
+            logger.debug("Game already stopped")
+            return
+        logger.info("Stopping %s", self)
         if self.runner.system_config.get("xboxdrv"):
             logger.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
@@ -553,9 +560,7 @@ class Game(GObject.Object):
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
-            logger.debug(
-                "Game thread still running, stopping it (state: %s)", self.state
-            )
+            logger.debug("Game thread still running (state: %s)", self.state)
             self.stop()
 
         # Check for post game script
@@ -589,7 +594,7 @@ class Game(GObject.Object):
             display.restore_gamma()
 
         self.process_return_codes()
-
+        self.emit('game-stop')
         if self.exit_main_loop:
             exit()
 
