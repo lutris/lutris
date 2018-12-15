@@ -1,208 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.14"/>
-  <object class="GtkPopover" id="account_popover">
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox">
-        <property name="width_request">180</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="border_width">9</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">3</property>
-        <child>
-          <object class="GtkButton" id="connect_button">
-            <property name="label" translatable="yes">Login</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.connect</property>
-            <property name="relief">none</property>
-            <property name="xalign">0</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="disconnect_button">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.disconnect</property>
-            <property name="relief">none</property>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="spacing">3</property>
-                <child>
-                  <object class="GtkLabel" id="connection_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="hexpand">True</property>
-                    <property name="ellipsize">end</property>
-                    <property name="max_width_chars">20</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="pixel_size">16</property>
-                    <property name="icon_name">application-exit-symbolic</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="register_button">
-            <property name="label" translatable="yes">Register</property>
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.register-account</property>
-            <property name="relief">none</property>
-            <property name="xalign">0</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="sync_button">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.synchronize</property>
-            <property name="relief">none</property>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="spacing">3</property>
-                <child>
-                  <object class="GtkLabel" id="sync_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">Synchronize Library</property>
-                    <property name="ellipsize">end</property>
-                    <property name="max_width_chars">18</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkSpinner" id="sync_spinner">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
-  <object class="GtkPopover" id="add_popover">
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox">
-        <property name="width_request">140</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="border_width">9</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">3</property>
-        <child>
-          <object class="GtkButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.add-game</property>
-            <property name="relief">none</property>
-            <property name="xalign">0</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Add Game…</property>
-                <property name="use_underline">True</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.sync-local</property>
-            <property name="relief">none</property>
-            <property name="xalign">0</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Import Games…</property>
-                <property name="use_underline">True</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkImage" id="view_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -215,196 +14,6 @@
     <property name="pixel_size">16</property>
     <property name="icon_name">view-list-symbolic</property>
   </object>
-  <object class="GtkAdjustment" id="zoom_adjustment">
-    <property name="upper">3</property>
-    <property name="value">1</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">1</property>
-  </object>
-  <object class="GtkPopover" id="view_menu_widget">
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox">
-        <property name="width_request">160</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="border_width">9</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">3</property>
-        <child>
-          <object class="GtkScale">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <property name="adjustment">zoom_adjustment</property>
-            <property name="restrict_to_fill_level">False</property>
-            <property name="round_digits">0</property>
-            <property name="draw_value">False</property>
-            <property name="has_origin">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.show-installed-only</property>
-            <property name="text" translatable="yes">_Installed Games Only</property>
-            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting-ascending</property>
-            <property name="text" translatable="yes">Sort _Ascending</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Name</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Year</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Runner</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Platform</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">6</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Last played</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">7</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">Ins_talled at</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">8</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSeparator">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">9</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.use-dark-theme</property>
-            <property name="text" translatable="yes">Use _Dark Theme</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">10</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.show-side-bar</property>
-            <property name="text" translatable="yes">Show _Side Panel</property>
-            <accelerator key="0xffffff" signal="clicked"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">11</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
   <template class="LutrisWindow" parent="GtkApplicationWindow">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Lutris</property>
@@ -414,148 +23,111 @@
     <signal name="size-allocate" handler="on_resize" swapped="no"/>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="header_bar">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="visible">1</property>
         <property name="title" translatable="yes">Lutris</property>
-        <property name="has_subtitle">False</property>
-        <property name="show_close_button">True</property>
+        <property name="has-subtitle">0</property>
+        <property name="show-close-button">1</property>
         <child>
           <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="visible">1</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkMenuButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
                 <property name="tooltip_text" translatable="yes">Manage Account</property>
                 <property name="popover">account_popover</property>
                 <child>
                   <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">avatar-default-symbolic</property>
+                    <property name="visible">1</property>
+                    <property name="icon-name">avatar-default-symbolic</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
             </child>
             <child>
               <object class="GtkMenuButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
                 <property name="tooltip_text" translatable="yes">Add Game</property>
                 <property name="popover">add_popover</property>
                 <child>
                   <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">list-add-symbolic</property>
+                    <property name="visible">1</property>
+                    <property name="icon-name">list-add-symbolic</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </object>
         </child>
         <child>
           <object class="GtkBox">
-            <property name="can_focus">False</property>
+            <property name="visible" bind-source="main_box" bind-property="visible" bind-flags="sync-create"/>
             <property name="spacing">6</property>
             <child>
               <object class="GtkToggleButton" id="search_toggle">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="visible">1</property>
+                <property name="can-focus">1</property>
+                <property name="receives-default">1</property>
                 <property name="tooltip_text" translatable="yes">Search Games</property>
-                <signal name="toggled" handler="_on_search_toggle" swapped="no"/>
+                <signal name="toggled" handler="_on_search_toggle"/>
+                <accelerator key="f" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
                 <child>
                   <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">edit-find-symbolic</property>
+                    <property name="visible">1</property>
+                    <property name="icon-name">edit-find-symbolic</property>
                   </object>
                 </child>
-                <accelerator key="f" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
             </child>
             <child>
               <object class="GtkButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
                 <property name="tooltip_text" translatable="yes">Toggle View</property>
-                <property name="action_name">win.toggle-viewtype</property>
+                <property name="action-name">win.toggle-viewtype</property>
                 <child>
                   <object class="GtkImage" id="viewtype_icon">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">view-list-symbolic</property>
+                    <property name="visible">1</property>
+                    <property name="icon-name">view-list-symbolic</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
             </child>
             <child>
               <object class="GtkMenuButton">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="receives_default">1</property>
                 <property name="tooltip_text" translatable="yes">View Options</property>
                 <property name="popover">view_menu_widget</property>
                 <child>
                   <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="visible">1</property>
                     <property name="icon_name">open-menu-symbolic</property>
                     <property name="icon_size">2</property>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
             </child>
           </object>
           <packing>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
+            <property name="pack-type">end</property>
           </packing>
         </child>
       </object>
     </child>
     <child>
       <object class="GtkStack">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="visible">1</property>
         <child>
           <object class="GtkBox" id="splash_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="valign">center</property>
             <property name="orientation">vertical</property>
             <property name="spacing">10</property>
+            <property name="valign">center</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
@@ -603,13 +175,14 @@
             <child>
               <object class="GtkLinkButton" id="connect_link">
                 <property name="label" translatable="yes">Connecting to your Lutris.net account to sync your library</property>
+                <property name="tooltip_text"></property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="halign">center</property>
-                <property name="action_name">win.connect</property>
                 <property name="relief">half</property>
                 <property name="uri">null</property>
+                <property name="action-name">win.connect</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -620,13 +193,14 @@
             <child>
               <object class="GtkLinkButton">
                 <property name="label" translatable="yes">Manually adding a game installed on your hard drive</property>
+                <property name="tooltip_text"></property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="halign">center</property>
-                <property name="action_name">win.add-game</property>
                 <property name="relief">half</property>
                 <property name="uri">null</property>
+                <property name="action-name">win.add-game</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -642,19 +216,19 @@
             <property name="can_focus">True</property>
             <child>
               <object class="GtkRevealer" id="sidebar_revealer">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">False</property>
-                <property name="transition_type">slide-right</property>
+                <property name="visible">1</property>
+                <property name="can_focus">1</property>
+                <property name="hexpand">0</property>
+                <property name="transition-type">slide-right</property>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">never</property>
+                    <property name="hscrollbar-policy">never</property>
                     <child>
                       <object class="GtkViewport">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="visible">1</property>
+                        <property name="can_focus">1</property>
                         <child>
                           <object class="LutrisSidebar" id="sidebar_listbox">
                             <property name="visible">1</property>
@@ -668,106 +242,105 @@
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
             </child>
             <child>
               <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="hexpand">True</property>
+                <property name="visible">1</property>
+                <property name="hexpand">1</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkRevealer" id="search_revealer">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="visible">1</property>
                     <child>
                       <object class="GtkBox">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <child>
-                          <object class="GtkSearchEntry" id="search_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="halign">center</property>
-                            <property name="valign">center</property>
-                            <property name="hexpand">True</property>
-                            <property name="width_chars">50</property>
-                            <property name="placeholder_text" translatable="yes">Filter the list of games</property>
-                            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
+                        <property name="visible">1</property>
+                        <property name="orientation">horizontal</property>
                         <style>
                           <class name="searchbar"/>
                         </style>
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="visible">1</property>
+                            <property name="can_focus">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="margin">5</property>
+                            <property name="width_chars">50</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="placeholder-text" translatable="yes">Filter the list of games</property>
+                            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
                 </child>
                 <child>
                   <object class="GtkRevealer" id="infobar_revealer">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="visible">1</property>
                     <child>
-                      <object class="GtkBox" id="infobar_box">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="margin_start">12</property>
-                        <property name="margin_end">12</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
+                      <object class="GtkBox">
+                        <property name="visible">1</property>
                         <property name="spacing">6</property>
-                        <property name="orientation">vertical</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <child>
+                          <object class="GtkLabel" id="infobar_label">
+                            <property name="visible">1</property>
+                            <property name="hexpand">1</property>
+                            <property name="halign">start</property>
+                            <property name="label" translatable="yes">Game running</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">View logs</property>
+                            <property name="action-name">win.view-game-log</property>
+                            <property name="visible">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Stop</property>
+                            <property name="visible">1</property>
+                            <property name="action-name">win.stop-game</property>
+                            <style>
+                              <class name="destructive-action"/>
+                            </style>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
                 <child>
                   <object class="GtkOverlay">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="visible">1</property>
                     <child>
                       <object class="GtkScrolledWindow" id="games_scrollwindow">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="vexpand">True</property>
+                        <property name="vexpand">1</property>
                       </object>
-                      <packing>
-                        <property name="index">-1</property>
-                      </packing>
                     </child>
                     <child type="overlay">
                       <object class="GtkGrid" id="no_results_overlay">
-                        <property name="can_focus">False</property>
+                        <property name="visible">0</property>
+                        <property name="row_spacing">12</property>
+                        <property name="hexpand">1</property>
+                        <property name="vexpand">1</property>
                         <property name="halign">center</property>
                         <property name="valign">center</property>
-                        <property name="hexpand">True</property>
-                        <property name="vexpand">True</property>
-                        <property name="row_spacing">12</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
                         <child>
                           <object class="GtkImage">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="pixel_size">72</property>
-                            <property name="icon_name">edit-find-symbolic</property>
+                            <property name="icon-name">edit-find-symbolic</property>
+                            <property name="pixel-size">72</property>
                             <style>
                               <class name="dim-label"/>
                             </style>
@@ -780,11 +353,10 @@
                         <child>
                           <object class="GtkLabel">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
                             <property name="label" translatable="yes">No Games Found</property>
                             <attributes>
                               <attribute name="weight" value="bold"/>
-                              <attribute name="scale" value="1.4399999999999999"/>
+                              <attribute name="scale" value="1.44"/>
                             </attributes>
                           </object>
                           <packing>
@@ -792,34 +364,281 @@
                             <property name="top_attach">1</property>
                           </packing>
                         </child>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
                       </object>
                       <packing>
-                        <property name="pass_through">True</property>
+                        <property name="pass-through">1</property>
                       </packing>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="position">1</property>
-          </packing>
         </child>
       </object>
     </child>
   </template>
+  <object class="GtkPopover" id="add_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">140</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.add-game</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">_Add Game…</property>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.sync-local</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">1</property>
+                <property name="label" translatable="yes">_Import Games…</property>
+                <property name="use-underline">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="account_popover">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">180</property>
+        <property name="spacing">3</property>
+        <child>
+          <object class="GtkButton" id="connect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Login</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.connect</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="disconnect_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.disconnect</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="connection_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes"></property>
+                    <property name="max-width-chars">20</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">1</property>
+                    <property name="icon-name">application-exit-symbolic</property>
+                    <property name="pixel_size">16</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="register_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="label" translatable="yes">Register</property>
+            <property name="xalign">0.0</property>
+            <property name="action-name">win.register-account</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="sync_button">
+            <property name="visible">1</property>
+            <property name="relief">none</property>
+            <property name="action-name">win.synchronize</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">1</property>
+                <property name="spacing">3</property>
+                <child>
+                  <object class="GtkLabel" id="sync_label">
+                    <property name="visible">1</property>
+                    <property name="label" translatable="yes">Synchronize Library</property>
+                    <property name="max-width-chars">18</property>
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSpinner" id="sync_spinner">
+                    <property name="visible">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="view_menu_widget">
+    <child>
+      <object class="GtkBox">
+        <property name="visible">1</property>
+        <property name="can_focus">0</property>
+        <property name="border_width">9</property>
+        <property name="orientation">vertical</property>
+        <property name="width_request">160</property>
+        <property name="spacing">3</property>
+        <property name="homogeneous">0</property>
+        <child>
+          <object class="GtkScale">
+            <property name="visible">1</property>
+            <property name="can_focus">True</property>
+            <property name="draw_value">0</property>
+            <property name="has_origin">False</property>
+            <property name="adjustment">zoom_adjustment</property>
+            <property name="round_digits">0</property>
+            <property name="restrict_to_fill_level">0</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <marks>
+              <mark value="0" position="bottom"/>
+              <mark value="1" position="bottom"/>
+              <mark value="2" position="bottom"/>
+              <mark value="3" position="bottom"/>
+            </marks>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">1</property>
+            <property name="action-name">win.show-installed-only</property>
+            <property name="text" translatable="yes">_Installed Games Only</property>
+            <accelerator key="h" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
+            <property name="use-underline">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Sort _Ascending</property>
+            <property name="action-name">win.view-sorting-ascending</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Name</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'name'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Year</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'year'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Runner</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'runner'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Platform</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'platform'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">_Last played</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'lastplayed'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Ins_talled at</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'installed_at'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator">
+            <property name="visible">1</property>
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">1</property>
+            <property name="action-name">win.use-dark-theme</property>
+            <property name="text" translatable="yes">Use _Dark Theme</property>
+            <property name="use-underline">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">1</property>
+            <property name="action-name">win.show-side-bar</property>
+            <accelerator key="f9" signal="clicked"/>
+            <property name="text" translatable="yes">Show _Side Panel</property>
+            <property name="use-underline">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkAdjustment" id="zoom_adjustment">
+    <property name="lower">0</property>
+    <property name="upper">3</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">1</property>
+    <property name="value">1</property>
+  </object>
 </interface>
