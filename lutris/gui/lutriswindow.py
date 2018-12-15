@@ -65,6 +65,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     zoom_adjustment = GtkTemplate.Child()
     no_results_overlay = GtkTemplate.Child()
     infobar_revealer = GtkTemplate.Child()
+    infobar_box = GtkTemplate.Child()
     connect_button = GtkTemplate.Child()
     disconnect_button = GtkTemplate.Child()
     register_button = GtkTemplate.Child()
