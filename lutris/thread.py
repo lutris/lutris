@@ -11,6 +11,8 @@ import contextlib
 from collections import defaultdict
 from itertools import chain
 
+import ctypes
+from ctypes.util import find_library
 
 from textwrap import dedent
 from gi.repository import GLib
@@ -55,6 +57,9 @@ EXCLUDED_PROCESSES = [
 ]
 
 
+PR_SET_CHILD_SUBREAPER = 36
+
+
 class LutrisThread(threading.Thread):
     """Run the game in a separate thread."""
 
@@ -75,6 +80,9 @@ class LutrisThread(threading.Thread):
     ):
         """Thread init"""
         threading.Thread.__init__(self)
+        result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
+        if result == -1:
+            logger.warning("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
         self.ready_state = True
         if env is None:
             self.env = {}
@@ -407,7 +415,7 @@ class LutrisThread(threading.Thread):
                 self.is_running = False
                 return False
 
-        if num_watched_children == 0:
+        if num_watched_children == 0 or num_watched_children == terminated_children:
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
