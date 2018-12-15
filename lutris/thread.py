@@ -48,9 +48,6 @@ class LutrisThread(threading.Thread):
                  watch=True, cwd=None, include_processes=None, exclude_processes=None, log_buffer=None):
         """Thread init"""
         threading.Thread.__init__(self)
-        result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
-        if result == -1:
-            logger.warning("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
         self.ready_state = True
         if env is None:
             self.env = {}
@@ -133,6 +130,9 @@ class LutrisThread(threading.Thread):
         """Run the thread."""
         logger.debug("Command env: %s", self.env_string)
         logger.debug("Running command: %s", self.command_string)
+        result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
+        if result == -1:
+            logger.warning("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
 
         if self.terminal and system.find_executable(self.terminal):
             self.game_process = self.run_in_terminal()
@@ -283,24 +283,17 @@ class LutrisThread(threading.Thread):
         if killed_processes:
             logger.debug("Killed processes: %s", ', '.join(killed_processes))
 
-    def is_zombie(self):
-        return all([
-            p.endswith('Z')
-            for p in chain(*[
-                self.monitored_processes[key]
-                for key in self.monitored_processes
-                if key != 'external'
-            ])
-        ])
-
     def get_processes(self):
         process = Process(self.rootpid)
         num_children = 0
         num_watched_children = 0
-        terminated_children = 0
         passed_terminal_procs = False
         processes = defaultdict(list)
         for child in self.iter_children(process):
+            if child.state == 'Z':
+                os.wait3(os.WNOHANG)
+                continue
+
             # Exclude terminal processes
             if self.terminal:
                 if child.name == "run_in_term.sh":
@@ -318,13 +311,11 @@ class LutrisThread(threading.Thread):
                 continue
             num_watched_children += 1
             processes['monitored'].append(str(child))
-            if child.state == 'Z':
-                terminated_children += 1
         for child in self.monitored_processes['monitored']:
             if child not in processes['monitored']:
                 num_children += 1
                 num_watched_children += 1
-        return processes, num_children, num_watched_children, terminated_children
+        return processes, num_children, num_watched_children
 
     def watch_children(self):
         """Poke at the running process(es).
@@ -344,7 +335,7 @@ class LutrisThread(threading.Thread):
             self.cycles_without_children = 0
             return True
 
-        processes, num_children, num_watched_children, terminated_children = self.get_processes()
+        processes, num_children, num_watched_children = self.get_processes()
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
             self.monitoring_started = True
@@ -359,7 +350,7 @@ class LutrisThread(threading.Thread):
                 self.is_running = False
                 return False
 
-        if num_watched_children == 0 or num_watched_children == terminated_children:
+        if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
                 self.cycles_without_children += 1
@@ -385,18 +376,9 @@ class LutrisThread(threading.Thread):
                 self.game_process.communicate()
             else:
                 logger.debug('%d processes are still active', num_children)
-                if self.is_zombie():
-                    logger.warning('Zombie process detected, killing game process')
-                    self.game_process.kill()
             self.return_code = self.game_process.returncode
             return False
 
-        if terminated_children and terminated_children == num_watched_children:
-            try:
-                # Really not sure if that's necessary...
-                self.game_process.wait(2)
-            except subprocess.TimeoutExpired:
-                logger.warning("Processes are still running")
         return True
 
 def exec_in_thread(command):
