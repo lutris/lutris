@@ -536,8 +536,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
-        self.runtime_updater.update()
-        self.threads_stoppers += self.runtime_updater.cancellables
+        runtime_sync = AsyncCall(self.runtime_updater.update, None)
+        self.threads_stoppers.append(runtime_sync.stop_request.set)
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""

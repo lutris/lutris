@@ -123,7 +123,6 @@ class RuntimeUpdater:
 
     current_updates = 0
     status_updater = None
-    cancellables = []
 
     def is_updating(self):
         """Return True if the update process is running"""
@@ -144,7 +143,6 @@ class RuntimeUpdater:
             downloader = runtime.download(remote_runtime)
             if downloader:
                 self.current_updates += 1
-                self.cancellables.append(downloader.cancel)
         return None
 
     @staticmethod
