@@ -33,59 +33,69 @@ def has_icon(game, icon_type):
         return system.path_exists(icon_path)
     return False
 
-
-def fetch_icons(game_slugs, callback=None):
-    """Get missing icons from lutris.net"""
-    no_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
-    no_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
+def get_missing_media(game_slugs):
+    """Query the Lutris.net API for missing icons"""
+    unavailable_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
+    unavailable_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
 
     # Remove duplicate slugs
-    missing_media_slugs = list(set(no_banners) | set(no_icons))
+    missing_media_slugs = list(set(unavailable_banners) | set(unavailable_icons))
     if not missing_media_slugs:
         return
     logger.debug(
         "Requesting missing icons from API for %d games", len(missing_media_slugs)
     )
-    results = api.get_api_games(missing_media_slugs)
-    if not results:
+    lutris_media = api.get_api_games(missing_media_slugs)
+    if not lutris_media:
         logger.warning("Unable to get games, check your network connectivity")
-    new_icon = False
-    banner_downloads = []
-    icon_downloads = []
-    updated_slugs = []
-    for game in results:
-        if game["slug"] in no_banners:
-            banner_url = game["banner_url"]
-            if banner_url:
-                dest_path = get_icon_path(game["slug"], BANNER)
-                banner_downloads.append((game["banner_url"], dest_path))
-                updated_slugs.append(game["slug"])
-        if game["slug"] in no_icons:
-            icon_url = game["icon_url"]
-            if icon_url:
-                dest_path = get_icon_path(game["slug"], ICON)
-                icon_downloads.append((game["icon_url"], dest_path))
-                updated_slugs.append(game["slug"])
-                new_icon = True
+        return
 
-    updated_slugs = list(set(updated_slugs))  # Deduplicate slugs
-    downloads = banner_downloads + icon_downloads
-    if downloads:
-        logger.debug("Downloading %d files", len(downloads))
+    available_banners = {}
+    available_icons = {}
+    for game in lutris_media:
+        if game["slug"] in unavailable_banners and game["banner_url"]:
+            available_banners[game["slug"]] = game["banner_url"]
+        if game["slug"] in unavailable_icons and game["icon_url"]:
+            available_icons[game["slug"]] = game["icon_url"]
+    return available_banners, available_icons
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        futs = [
-            executor.submit(download_media, url, dest_path)
-            for url, dest_path in downloads
-        ]
-        concurrent.futures.wait(futs)
+def fetch_icons(lutris_media, window):
+    """Download missing icons from lutris.net"""
+    if not lutris_media:
+        return
 
-    if new_icon:
+    available_banners, available_icons = lutris_media
+    downloads = [
+        (slug, available_banners[slug], get_icon_path(slug, BANNER))
+        for slug in available_banners
+    ] + [
+        (slug, available_icons[slug], get_icon_path(slug, ICON))
+        for slug in available_icons
+    ]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+        future_downloads = {
+            executor.submit(download_media, url, dest_path): slug
+            for slug, url, dest_path in downloads
+        }
+        for future in concurrent.futures.as_completed(future_downloads):
+            slug = future_downloads[future]
+            try:
+                future.result()
+            except Exception as ex:  # pylint: disable=broad-except
+                logger.exception('%r generated an exception: %s', slug, ex)
+            else:
+                GLib.idle_add(window.update_image_for_slug, slug, priority=GLib.PRIORITY_LOW)
+
+    if bool(available_icons):
         udpate_desktop_icons()
 
-    if updated_slugs and callback:
-        callback(updated_slugs)
 
+def fetch_icon(slug, media_type="banner"):
+    lutris_media = api.get_api_games([slug])
+    if not lutris_media:
+        return
+    game = lutris_media[0]
+    download_media(game["url"], get_icon_path(slug, BANNER if media_type == "banner" else ICON))
 
 def udpate_desktop_icons():
     """Update Icon for GTK+ desktop manager"""
@@ -101,15 +111,15 @@ def udpate_desktop_icons():
 
 def download_media(url, dest, overwrite=False):
     """Save a remote media locally"""
-    logger.debug("Downloading %s to %s", url, dest)
+    # logger.debug("Downloading %s to %s", url, dest)
     if system.path_exists(dest):
         if overwrite:
             os.remove(dest)
         else:
-            return
+            return dest
     request = Request(url).get()
     request.write_to_file(dest)
-
+    return dest
 
 def parse_installer_url(url):
     """

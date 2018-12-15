@@ -526,26 +526,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
             for game_id in added:
                 logger.debug("Adding %s", game_id)
                 self.add_game_to_view(game_id)
-            icons_sync = AsyncCall(self.sync_icons, callback=None)
-            self.threads_stoppers.append(icons_sync.stop_request.set)
+            game_slugs = [game["slug"] for game in self.game_list]
+            AsyncCall(resources.get_missing_media, self.on_media_returned, game_slugs)
+
+    def on_media_returned(self, lutris_media, _error=None):
+        """Called when the Lutris API has provided a list of downloadable media"""
+        icons_sync = AsyncCall(resources.fetch_icons, None, lutris_media, self)
+        self.threads_stoppers.append(icons_sync.stop_request.set)
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
         self.runtime_updater.update()
         self.threads_stoppers += self.runtime_updater.cancellables
-
-    def sync_icons(self):
-        """Download missing icons"""
-        game_slugs = [game["slug"] for game in self.game_list]
-        if not game_slugs:
-            return
-        logger.debug("Syncing %d icons", len(game_slugs))
-        try:
-            GLib.idle_add(resources.fetch_icons, game_slugs, self.on_image_downloaded)
-        except TypeError as ex:
-            logger.exception(
-                "Invalid game list:\n%s\nException: %s", self.game_list, ex
-            )
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
@@ -778,24 +770,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game = Game(game_id)
         view.set_installed(game)
         self.sidebar_listbox.update()
-        GLib.idle_add(resources.fetch_icons, [game.slug], self.on_image_downloaded)
+        GLib.idle_add(resources.fetch_icon, game.slug, self.on_image_downloaded)
 
-    def on_image_downloaded(self, game_slugs):
+    def on_image_downloaded(self, game_slugs, _error=None):
         """Callback for handling successful image downloads"""
-        logger.debug("Updated images for %d games", len(game_slugs))
-
         for game_slug in game_slugs:
-            games = pga.get_games_where(slug=game_slug)
-            for game in games:
-                game = Game(game["id"])
-                is_installed = game.is_installed
-                self.view.update_image(game.id, is_installed)
+            self.update_image_for_slug(game_slug)
+
+    def update_image_for_slug(self, slug):
+        for pga_game in pga.get_games_where(slug=slug):
+            game = Game(pga_game["id"])
+            self.view.update_image(game.id, game.is_installed)
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
 
         def on_game_added(game):
             self.view.set_installed(game)
+            GLib.idle_add(resources.fetch_icon, game.slug, self.on_image_downloaded)
             self.sidebar_listbox.update()
 
         game = Game(self.view.selected_game)
