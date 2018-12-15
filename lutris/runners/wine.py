@@ -5,6 +5,7 @@ import shlex
 import shutil
 
 from lutris import runtime
+from lutris.settings import RUNTIME_DIR
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
 from lutris.util import datapath, display, system
@@ -762,9 +763,7 @@ class wine(Runner):
         for dll_file in dll_files:
             xinput_dest_path = os.path.join(x360ce_path, dll_file)
             xinput_arch = self.runner_config.get("xinput-arch") or self.wine_arch
-            dll_path = os.path.join(
-                datapath.get(), "controllers/{}-{}".format(mode, xinput_arch)
-            )
+            dll_path = os.path.join(RUNTIME_DIR, mode, xinput_arch)
             if not system.path_exists(xinput_dest_path):
                 source_file = dll_file if mode == "dumbxinputemu" else "xinput1_3.dll"
                 shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
