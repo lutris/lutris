@@ -203,8 +203,8 @@ def get_system_wine_version(wine_path="wine"):
             return
     try:
         version = subprocess.check_output([wine_path, "--version"]).decode().strip()
-    except (OSError, subprocess.CalledProcessError):
-        logger.error("Error reading wine version for %s", wine_path)
+    except (OSError, subprocess.CalledProcessError) as ex:
+        logger.exception("Error reading wine version for %s: %s", wine_path, ex)
         return
     else:
         if version.startswith("wine-"):
