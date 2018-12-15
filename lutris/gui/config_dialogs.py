@@ -7,7 +7,7 @@ from lutris.game import Game
 from lutris import gui
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry
+from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
@@ -46,11 +46,13 @@ class GameDialogCommon:
     def _build_info_tab(self):
         info_box = VBox()
 
+        if self.game:
+            info_box.pack_start(self._get_banner_box(), False, False, 5)  # Banner
+
         info_box.pack_start(self._get_name_box(), False, False, 5)  # Game name
 
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 5)  # Game id
-            info_box.pack_start(self._get_banner_box(), False, False, 5)  # Banner
 
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 5)  # Runner
@@ -61,57 +63,61 @@ class GameDialogCommon:
         self._add_notebook_tab(info_sw, "Game info")
 
     def _get_name_box(self):
-        box = Gtk.Box()
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
-        label = Gtk.Label(label="Name")
-        box.pack_start(label, False, False, 20)
+        label = Label("Name")
+        box.pack_start(label, False, False, 0)
 
         self.name_entry = Gtk.Entry()
         if self.game:
             self.name_entry.set_text(self.game.name)
-        box.pack_start(self.name_entry, True, True, 20)
+        box.pack_start(self.name_entry, True, True, 0)
 
         return box
 
     def _get_slug_box(self):
-        box = Gtk.Box()
+        slug_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
-        label = Gtk.Label(label="Identifier")
-        box.pack_start(label, False, False, 20)
+        label = Label("Identifier")
+        slug_box.pack_start(label, False, False, 0)
 
         self.slug_entry = SlugEntry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
-        box.pack_start(self.slug_entry, True, True, 0)
+        slug_box.pack_start(self.slug_entry, True, True, 0)
 
         self.slug_change_button = Gtk.Button("Change")
         self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
-        box.pack_start(self.slug_change_button, False, False, 20)
+        slug_box.pack_start(self.slug_change_button, False, False, 0)
 
-        return box
+        return slug_box
 
     def _get_runner_box(self):
-        runner_box = Gtk.Box()
-        runner_label = Gtk.Label("Runner")
-        runner_label.set_alignment(0.5, 0.5)
-        self.runner_dropdown = self._get_runner_dropdown()
-        install_runners_btn = Gtk.Button(label="Install runners")
-        install_runners_btn.connect("clicked", self.on_install_runners_clicked)
-        install_runners_btn.set_margin_right(20)
+        runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
-        runner_box.pack_start(runner_label, False, False, 20)
-        runner_box.pack_start(self.runner_dropdown, False, False, 20)
-        runner_box.pack_start(install_runners_btn, False, False, 0)
+        runner_label = Label("Runner")
+        runner_box.pack_start(runner_label, False, False, 0)
+
+        self.runner_dropdown = self._get_runner_dropdown()
+        runner_box.pack_start(self.runner_dropdown, True, True, 0)
+
+        install_runners_btn = Gtk.Button("Install runners")
+        install_runners_btn.connect("clicked", self.on_install_runners_clicked)
+        runner_box.pack_start(install_runners_btn, True, True, 0)
+
         return runner_box
 
     def _get_banner_box(self):
-        banner_box = Gtk.Box()
-        banner_label = Gtk.Label("Banner")
-        banner_label.set_alignment(0.5, 0.5)
+        banner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        label = Label("")
+        banner_box.pack_start(label, False, False, 0)
+
         self.banner_button = Gtk.Button()
         self._set_image("banner")
         self.banner_button.connect("clicked", self.on_custom_image_select, "banner")
+        banner_box.pack_start(self.banner_button, False, False, 0)
 
         reset_banner_button = Gtk.Button.new_from_icon_name(
             "edit-clear", Gtk.IconSize.MENU
@@ -121,10 +127,12 @@ class GameDialogCommon:
         reset_banner_button.connect(
             "clicked", self.on_custom_image_reset_clicked, "banner"
         )
+        banner_box.pack_start(reset_banner_button, False, False, 0)
 
         self.icon_button = Gtk.Button()
         self._set_image("icon")
         self.icon_button.connect("clicked", self.on_custom_image_select, "icon")
+        banner_box.pack_start(self.icon_button, False, False, 0)
 
         reset_icon_button = Gtk.Button.new_from_icon_name(
             "edit-clear", Gtk.IconSize.MENU
@@ -132,24 +140,20 @@ class GameDialogCommon:
         reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_icon_button.set_tooltip_text("Remove custom icon")
         reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, "icon")
-
-        banner_box.pack_start(banner_label, False, False, 20)
-        banner_box.pack_start(self.banner_button, False, False, 0)
-        banner_box.pack_start(reset_banner_button, False, False, 0)
-        banner_box.pack_start(self.icon_button, False, False, 0)
         banner_box.pack_start(reset_icon_button, False, False, 0)
+
         return banner_box
 
     def _get_year_box(self):
-        box = Gtk.Box()
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
-        label = Gtk.Label(label="Release year")
-        box.pack_start(label, False, False, 20)
+        label = Label("Release year")
+        box.pack_start(label, False, False, 0)
 
         self.year_entry = NumberEntry()
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
-        box.pack_start(self.year_entry, True, True, 20)
+        box.pack_start(self.year_entry, True, True, 0)
 
         return box
 

@@ -120,9 +120,9 @@ class Label(Gtk.Label):
     def __init__(self, message=None):
         """Custom init of label."""
         super().__init__(label=message)
-        self.set_alignment(0.1, 0.0)
-        self.set_padding(5, 0)
         self.set_line_wrap(True)
+        self.set_size_request(200, -1)
+        self.set_alignment(0, 0)
 
 
 class VBox(Gtk.Box):

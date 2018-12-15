@@ -32,11 +32,11 @@ class ConfigBox(VBox):
         icon = Gtk.Image.new_from_icon_name("dialog-information", Gtk.IconSize.MENU)
         help_box.pack_start(icon, False, False, 5)
 
-        label = Gtk.Label("<i>%s</i>" % text)
-        label.set_line_wrap(True)
-        label.set_alignment(0, 0.5)
-        label.set_use_markup(True)
-        help_box.pack_start(label, False, False, 5)
+        title_label = Gtk.Label("<i>%s</i>" % text)
+        title_label.set_line_wrap(True)
+        title_label.set_alignment(0, 0.5)
+        title_label.set_use_markup(True)
+        help_box.pack_start(title_label, False, False, 5)
 
         self.pack_start(help_box, False, False, 0)
         self.pack_start(Gtk.HSeparator(), False, False, 12)
@@ -46,10 +46,10 @@ class ConfigBox(VBox):
     def generate_widgets(self, config_section):
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
-            label = Label("No options available")
-            label.set_halign(Gtk.Align.CENTER)
-            label.set_valign(Gtk.Align.CENTER)
-            self.pack_start(label, True, True, 0)
+            no_options_label = Label("No options available")
+            no_options_label.set_halign(Gtk.Align.CENTER)
+            no_options_label.set_valign(Gtk.Align.CENTER)
+            self.pack_start(no_options_label, True, True, 0)
             return
 
         # Select config section.
@@ -250,12 +250,11 @@ class ConfigBox(VBox):
     # Entry
     def generate_entry(self, option_name, label, value=None, option_size=None):
         """Generate an entry box."""
-        label = Label(label)
         entry = Gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
-        label.set_alignment(0.5, 0.5)
+        label = Label(label)
         self.wrapper.pack_start(label, False, False, 0)
         if option_size == "small":
             self.wrapper.pack_start(entry, False, False, 0)
@@ -306,7 +305,6 @@ class ConfigBox(VBox):
         combobox.connect("changed", self.on_combobox_change, option_name)
         combobox.connect("scroll-event", self.on_combobox_scroll)
         label = Label(label)
-        label.set_alignment(0.5, 0.5)
         combobox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(combobox, True, True, 0)
@@ -343,7 +341,6 @@ class ConfigBox(VBox):
             spin_button.set_value(value)
         spin_button.connect("changed", self.on_spin_button_changed, option_name)
         label = Label(label)
-        label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(spin_button, True, True, 0)
         self.option_widget = spin_button
@@ -380,7 +377,6 @@ class ConfigBox(VBox):
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
-        label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
@@ -405,7 +401,6 @@ class ConfigBox(VBox):
             "changed", self._on_chooser_dir_set, option_name
         )
         directory_chooser.set_valign(Gtk.Align.CENTER)
-        label.set_alignment(0.5, 0.5)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.option_widget = directory_chooser
@@ -419,7 +414,6 @@ class ConfigBox(VBox):
         value = value or {}
         value = list(value.items())
         label = Label(label)
-        label.set_alignment(0.5, 0)
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", self.on_grid_changed, option_name)
