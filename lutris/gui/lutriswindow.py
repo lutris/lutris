@@ -87,6 +87,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
+        self.sidebar_width = int(settings.read_setting('sidebar_width')) or 180
         self.use_dark_theme = settings.read_setting('dark_theme', default='false').lower() == 'true'
         self.show_tray_icon = settings.read_setting('show_tray_icon', default='false').lower() == 'true'
 
@@ -549,6 +550,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting('width', width)
         settings.write_setting('height', height)
         settings.write_setting('maximized', self.maximized)
+        settings.write_setting('sidebar_width', self.sidebar_width)
 
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
@@ -872,7 +874,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def show_sidebar(self):
         """Displays the sidebar"""
-        width = 180 if self.sidebar_visible else 0
+        width = self.sidebar_width if self.sidebar_visible else 0
         self.sidebar_paned.set_position(width)
 
     def on_sidebar_changed(self, widget):
@@ -895,3 +897,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
         self.game_store.modelfilter.refilter()
+
+    @GtkTemplate.Callback
+    def on_sidebar_resize(self, widget, *_args):
+        """Size-allocate signal.
+
+        Updates stored sidebar size.
+        """
+        self.sidebar_width = widget.get_position()
