@@ -28,7 +28,7 @@ setup(
     packages=['lutris', 'lutris.gui', 'lutris.gui.widgets', 'lutris.util',
               'lutris.util.steam', 'lutris.util.wine', 'lutris.runners',
               'lutris.runners.commands', 'lutris.services', 'lutris.installer',
-              'lutris.migrations'],
+              'lutris.migrations', 'lutris.vendor'],
     scripts=['bin/lutris'],
     data_files=data_files,
     zip_safe=False,
