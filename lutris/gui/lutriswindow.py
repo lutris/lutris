@@ -389,6 +389,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
             return view_type
         return settings.GAME_VIEW
 
+    def add_running_game(self, running_game_box):
+        self.infobar_box.pack_start(running_game_box, True, True, 0)
+        if len(self.application.running_games) == 1:
+            self.infobar_revealer.set_reveal_child(True)
+
+    def remove_running_game(self):
+        if not self.application.running_games:
+            self.infobar_revealer.set_reveal_child(False)
+
     def do_key_press_event(self, event):
         if event.keyval == Gdk.KEY_Escape:
             self.search_toggle.set_active(False)
