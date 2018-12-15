@@ -228,7 +228,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "sync-local": Action(lambda *x: self.open_sync_dialog()),
             "add-game": Action(self.on_add_game_button_clicked),
             "view-game-log": Action(self.on_view_game_log_activate),
-            "stop-game": Action(self.on_game_stop, enabled=False),
             "start-game": Action(self.on_game_run, enabled=False),
             "remove-game": Action(self.on_remove_game, enabled=False),
             "preferences": Action(self.on_preferences_activate),
@@ -716,22 +715,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
-
-    @GtkTemplate.Callback
-    def on_game_stop(self, *args):
-        """Callback to stop a running game."""
-        logger.debug("Stop game callback called with %s", args)
-        # XXX how do we know which game to stop?
-        # game = Game("???")
-        game = None
-        if not game:
-            logger.warning("Couldn't find game to stop")
-            return
-        game.stop()
-        # XXX the action below doesn't make sense, there shouldn't be a global stop game, only per game actions
-        # self.actions["stop-game"].props.enabled = False
-        # XXX Why year? to differenciate between games? is it reliable?
-        self.view.update_row(game.id, game.year, game.playtime)
 
     def on_install_clicked(
         self, *_args, game_slug=None, installer_file=None, revision=None

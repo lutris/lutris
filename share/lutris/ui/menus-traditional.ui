@@ -109,10 +109,6 @@
           <attribute name="action">win.start-game</attribute>
         </item>
         <item>
-          <attribute name="label">_Stop</attribute>
-          <attribute name="action">win.stop-game</attribute>
-        </item>
-        <item>
           <attribute name="label">_Add</attribute>
           <attribute name="action">win.add-game</attribute>
         </item>

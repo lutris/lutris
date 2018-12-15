@@ -301,16 +301,6 @@
                             <property name="visible">1</property>
                           </object>
                         </child>
-                        <child>
-                          <object class="GtkButton">
-                            <property name="label" translatable="yes">Stop</property>
-                            <property name="visible">1</property>
-                            <property name="action-name">win.stop-game</property>
-                            <style>
-                              <class name="destructive-action"/>
-                            </style>
-                          </object>
-                        </child>
                       </object>
                     </child>
                   </object>
