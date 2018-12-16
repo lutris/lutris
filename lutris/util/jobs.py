@@ -7,7 +7,7 @@ from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    debug_traceback = False
+    debug_traceback = True
 
     def __init__(self, func, callback=None, *args, **kwargs):
         """Execute `function` in a new thread then schedule `callback` for
