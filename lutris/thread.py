@@ -10,7 +10,6 @@ import contextlib
 from collections import defaultdict
 from textwrap import dedent
 
-import yaml
 from gi.repository import GLib
 
 from lutris import settings
@@ -134,10 +133,6 @@ class LutrisThread(threading.Thread):
         """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
-        logger.debug(
-            "Setting environment variables %s",
-            yaml.safe_dump(self.env, default_flow_style=False),
-        )
         for key, value in self.env.items():
             self.original_env[key] = os.environ.get(key)
             os.environ[key] = value
