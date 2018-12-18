@@ -31,7 +31,6 @@ class LutrisThread(threading.Thread):
             command,
             runner=None,
             env=None,
-            rootpid=None,
             term=None,
             watch=True,
             cwd=None,
@@ -53,7 +52,6 @@ class LutrisThread(threading.Thread):
         self.stop_func = lambda: True
         self.game_process = None
         self.return_code = None
-        self.rootpid = rootpid or os.getpid()
         self.terminal = system.find_executable(term)
         self.watch = watch
         self.is_running = True
@@ -237,7 +235,7 @@ class LutrisThread(threading.Thread):
 
     def get_root_process(self):
         """Return root process, including Wine processes as children"""
-        process = Process(self.rootpid)
+        process = Process(os.getpid())
         if self.runner.name.startswith("wine"):
             # Track the correct version of wine for winetricks
             wine_version = self.env.get("WINE") or None

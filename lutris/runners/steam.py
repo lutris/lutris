@@ -340,7 +340,6 @@ class steam(Runner):
 
         return {
             "command": command,
-            "rootpid": self.original_steampid,
             "env": self.get_env(),
         }
 

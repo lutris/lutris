@@ -459,7 +459,6 @@ class Game(GObject.Object):
             launch_arguments,
             runner=self.runner,
             env=env,
-            rootpid=gameplay_info.get("rootpid"),
             watch=True,
             term=terminal,
             log_buffer=self.log_buffer,
