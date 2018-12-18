@@ -87,7 +87,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting('show_installed_first') == 'true'
         self.sidebar_visible = \
             settings.read_setting('sidebar_visible') in ['true', None]
-        self.sidebar_width = int(settings.read_setting('sidebar_width')) or 180
+        self.sidebar_width = int(settings.read_setting('sidebar_width') or 180)
         self.use_dark_theme = settings.read_setting('dark_theme', default='false').lower() == 'true'
         self.show_tray_icon = settings.read_setting('show_tray_icon', default='false').lower() == 'true'
 
