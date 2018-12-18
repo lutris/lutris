@@ -313,17 +313,6 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
-        "option": "disable_monitoring",
-        "label": "Disable process monitor",
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "help": (
-            "Disables process monitoring of games, "
-            "Lutris won't detect when game quits."
-        ),
-    },
-    {
         "option": "disable_compositor",
         "label": "Disable desktop effects",
         "type": "bool",

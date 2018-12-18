@@ -440,18 +440,6 @@ class Game(GObject.Object):
         include_processes = shlex.split(system_config.get("include_processes", ""))
         exclude_processes = shlex.split(system_config.get("exclude_processes", ""))
 
-        monitoring_disabled = system_config.get("disable_monitoring")
-        if monitoring_disabled:
-            dialogs.ErrorDialog(
-                "<b>The process monitor is disabled, Lutris "
-                "won't be able to keep track of the game status. "
-                "If this game requires the process monitor to be "
-                "disabled in order to run, please submit an "
-                "issue.</b>\n"
-                "To disable this message, re-enable the process monitor"
-            )
-        process_watch = not monitoring_disabled
-
         if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
 
@@ -472,7 +460,7 @@ class Game(GObject.Object):
             runner=self.runner,
             env=env,
             rootpid=gameplay_info.get("rootpid"),
-            watch=process_watch,
+            watch=True,
             term=terminal,
             log_buffer=self.log_buffer,
             include_processes=include_processes,
