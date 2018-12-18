@@ -1,5 +1,6 @@
 """Process monitor management"""
 import os
+import time
 import shlex
 import ctypes
 from ctypes.util import find_library
@@ -10,6 +11,9 @@ from lutris.util import system
 from lutris.util.log import logger
 
 PR_SET_CHILD_SUBREAPER = 36
+
+WARMUP_TIME = 5 * 60
+MAX_CYCLES_WITHOUT_CHILDREN = 5
 # List of process names that are ignored by the process monitoring
 EXCLUDED_PROCESSES = [
     "lutris",
@@ -91,8 +95,14 @@ class ProcessMonitor():
             x[0:15] for x in EXCLUDED_PROCESSES + exclude_processes
         ]
 
+        self.cycles_without_children = 0
+        self.startup_time = time.time()
+
         # Keep a copy of the monitored processes to allow comparisons
         self.monitored_processes = defaultdict(list)
+        self.monitoring_started = False
+
+        self.children = []
 
     def iter_children(self, process, topdown=True, first=True):
         """Iterator that yields all the children of a process"""
@@ -113,17 +123,17 @@ class ProcessMonitor():
             if not topdown:
                 yield child
 
+    def set_ready(self, is_ready):
+        if not is_ready:
+            self.cycles_without_children = 0
+
     def get_processes(self):
-        """Return sorted by monitoring state.
+        """Return sorted by monitoring state
 
-        TODO write more docs about the return data structure
-
-        OR
-
-        refactor the shit out of it
+        TODO Rename this an break down
         """
         process = Process(self.process_thread.rootpid)
-        num_children = 0
+        self.children = []
         num_watched_children = 0
         passed_terminal_procs = False
         processes = defaultdict(list)
@@ -139,7 +149,8 @@ class ProcessMonitor():
                 if not passed_terminal_procs:
                     continue
 
-            num_children += 1
+            self.children.append(child)
+
             if child.pid in self.old_pids:
                 processes["external"].append(str(child))
                 continue
@@ -154,7 +165,7 @@ class ProcessMonitor():
             num_watched_children += 1
         for child in self.monitored_processes["monitored"]:
             if child not in processes["monitored"]:
-                num_children += 1
+                self.children.append(child)
                 num_watched_children += 1
 
         for key in processes:
@@ -164,4 +175,21 @@ class ProcessMonitor():
                     "Processes %s: %s", key, ", ".join(processes[key]) or "none"
                 )
 
-        return processes, num_children, num_watched_children
+        if num_watched_children > 0 and not self.monitoring_started:
+            logger.debug("Start process monitoring")
+            self.monitoring_started = True
+
+        if num_watched_children == 0:
+            time_since_start = time.time() - self.startup_time
+            if self.monitoring_started or time_since_start > WARMUP_TIME:
+                self.cycles_without_children += 1
+                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
+                if cycles_left:
+                    if cycles_left < 4:
+                        logger.debug("Thread aborting in %d cycle", cycles_left)
+                else:
+                    logger.warning("Thread aborting now")
+        else:
+            self.cycles_without_children = 0
+
+        return self.cycles_without_children < MAX_CYCLES_WITHOUT_CHILDREN

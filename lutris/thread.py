@@ -19,7 +19,7 @@ from lutris.util import monitor
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
-WARMUP_TIME = 5 * 60
+
 MAX_CYCLES_WITHOUT_CHILDREN = 5
 
 
@@ -60,9 +60,6 @@ class LutrisThread(threading.Thread):
         self.is_running = True
         self.stdout = ""
         self.attached_threads = []
-        self.cycles_without_children = 0
-        self.startup_time = time.time()
-        self.monitoring_started = False
         self.daemon = True
         self.error = None
         self.log_buffer = log_buffer
@@ -256,32 +253,14 @@ class LutrisThread(threading.Thread):
         if not self.is_running:
             logger.error("Game is not running")
             return False
-
         if not self.ready_state:
             # Don't monitor processes until the thread is in a ready state
-            self.cycles_without_children = 0
+            self.process_monitor.cycles_without_children = 0
             return True
 
-        processes, num_children, num_watched_children = self.process_monitor.get_processes()
+        is_running = self.process_monitor.get_processes()
 
-        if num_watched_children > 0 and not self.monitoring_started:
-            logger.debug("Start process monitoring")
-            self.monitoring_started = True
-
-        if num_watched_children == 0:
-            time_since_start = time.time() - self.startup_time
-            if self.monitoring_started or time_since_start > WARMUP_TIME:
-                self.cycles_without_children += 1
-                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
-                if cycles_left:
-                    if cycles_left < 4:
-                        logger.debug("Thread aborting in %d cycle", cycles_left)
-                else:
-                    logger.warning("Thread aborting now")
-        else:
-            self.cycles_without_children = 0
-
-        if self.cycles_without_children >= MAX_CYCLES_WITHOUT_CHILDREN:
+        if not is_running:
             self.is_running = False
 
             resume_stop = self.stop()
@@ -289,11 +268,11 @@ class LutrisThread(threading.Thread):
                 logger.info("Full shutdown prevented")
                 return False
 
-            if num_children == 0:
+            if not self.process_monitor.children:
                 logger.debug("No children left in thread")
                 self.game_process.communicate()
             else:
-                logger.debug("%d processes are still active", num_children)
+                logger.debug("%d processes are still active", len(self.process_monitor.children))
             self.return_code = self.game_process.returncode
             return False
 
