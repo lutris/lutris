@@ -7,7 +7,6 @@ import shlex
 import threading
 import subprocess
 import contextlib
-from collections import defaultdict
 from textwrap import dedent
 
 from gi.repository import GLib
@@ -22,34 +21,6 @@ from lutris.util import system
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 WARMUP_TIME = 5 * 60
 MAX_CYCLES_WITHOUT_CHILDREN = 5
-# List of process names that are ignored by the process monitoring
-EXCLUDED_PROCESSES = [
-    "lutris",
-    "python",
-    "python3",
-    "bash",
-    "sh",
-    "tee",
-    "tr",
-    "zenity",
-    "xkbcomp",
-    "xboxdrv",
-    "steam",
-    "Steam.exe",
-    "steamer",
-    "steamerrorrepor",
-    "gameoverlayui",
-    "SteamService.ex",
-    "steamwebhelper",
-    "steamwebhelper.",
-    "PnkBstrA.exe",
-    "control",
-    "wineserver",
-    "winecfg.exe",
-    "wdfmgr.exe",
-    "wineconsole",
-    "winedbg",
-]
 
 
 class LutrisThread(threading.Thread):
@@ -94,28 +65,12 @@ class LutrisThread(threading.Thread):
         self.monitoring_started = False
         self.daemon = True
         self.error = None
-        if include_processes is None:
-            include_processes = []
-        elif isinstance(include_processes, str):
-            include_processes = shlex.split(include_processes)
-        if exclude_processes is None:
-            exclude_processes = []
-        elif isinstance(exclude_processes, str):
-            exclude_processes = shlex.split(exclude_processes)
-        # process names from /proc only contain 15 characters
-        self.include_processes = [x[0:15] for x in include_processes]
-        self.exclude_processes = [
-            x[0:15] for x in EXCLUDED_PROCESSES + exclude_processes
-        ]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
 
-        # Keep a copy of the monitored processes to allow comparisons
-        self.monitored_processes = defaultdict(list)
-
         # Keep a copy of previously running processes
-        self.old_pids = system.get_all_pids()
         self.cwd = self.get_cwd(cwd)
+        self.process_monitor = monitor.ProcessMonitor(self, include_processes, exclude_processes)
 
     def get_cwd(self, cwd):
         """Return the current working dir of the game"""
@@ -239,27 +194,6 @@ class LutrisThread(threading.Thread):
             logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
 
-    def iter_children(self, process, topdown=True, first=True):
-        if self.runner and self.runner.name.startswith("wine") and first:
-            if "WINE" in self.env:
-                # Track the correct version of wine for winetricks
-                wine_version = self.env["WINE"]
-            else:
-                wine_version = None
-            pids = self.runner.get_pids(wine_version)
-            for pid in pids:
-                wineprocess = Process(pid)
-                if wineprocess.name not in self.runner.core_processes:
-                    process.children.append(wineprocess)
-        for child in process.children:
-            if topdown:
-                yield child
-            subs = self.iter_children(child, topdown=topdown, first=False)
-            for sub in subs:
-                yield sub
-            if not topdown:
-                yield child
-
     def set_stop_command(self, func):
         self.stop_func = func
 
@@ -304,48 +238,11 @@ class LutrisThread(threading.Thread):
         """Kill every remaining child process"""
         logger.debug("Killing all remaining processes")
         killed_processes = []
-        for process in self.iter_children(Process(self.rootpid), topdown=False):
+        for process in self.process_monitor.iter_children(Process(self.rootpid), topdown=False):
             killed_processes.append(str(process))
             process.kill()
         if killed_processes:
             logger.debug("Killed processes: %s", ", ".join(killed_processes))
-
-    def get_processes(self):
-        process = Process(self.rootpid)
-        num_children = 0
-        num_watched_children = 0
-        passed_terminal_procs = False
-        processes = defaultdict(list)
-        for child in self.iter_children(process):
-            if child.state == 'Z':
-                os.wait3(os.WNOHANG)
-                continue
-
-            # Exclude terminal processes
-            if self.terminal:
-                if child.name == "run_in_term.sh":
-                    passed_terminal_procs = True
-                if not passed_terminal_procs:
-                    continue
-
-            num_children += 1
-            if child.pid in self.old_pids:
-                processes["external"].append(str(child))
-                continue
-
-            if (
-                    child.name
-                    and child.name in self.exclude_processes
-                    and child.name not in self.include_processes
-            ):
-                processes["excluded"].append(str(child))
-                continue
-            num_watched_children += 1
-        for child in self.monitored_processes["monitored"]:
-            if child not in processes["monitored"]:
-                num_children += 1
-                num_watched_children += 1
-        return processes, num_children, num_watched_children
 
     def watch_children(self):
         """Poke at the running process(es).
@@ -365,18 +262,11 @@ class LutrisThread(threading.Thread):
             self.cycles_without_children = 0
             return True
 
-        processes, num_children, num_watched_children = self.get_processes()
+        processes, num_children, num_watched_children = self.process_monitor.get_processes()
 
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
             self.monitoring_started = True
-
-        for key in processes:
-            if processes[key] != self.monitored_processes[key]:
-                self.monitored_processes[key] = processes[key]
-                logger.debug(
-                    "Processes %s: %s", key, ", ".join(processes[key]) or "none"
-                )
 
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
