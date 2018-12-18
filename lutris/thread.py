@@ -3,20 +3,17 @@
 import os
 import sys
 import time
-import yaml
 import shlex
 import threading
 import subprocess
 import contextlib
 from collections import defaultdict
-from itertools import chain
-
+from textwrap import dedent
 import ctypes
 from ctypes.util import find_library
 
-from textwrap import dedent
+import yaml
 from gi.repository import GLib
-
 
 from lutris import settings
 from lutris import runtime
@@ -66,17 +63,17 @@ class LutrisThread(threading.Thread):
     debug_output = True
 
     def __init__(
-        self,
-        command,
-        runner=None,
-        env=None,
-        rootpid=None,
-        term=None,
-        watch=True,
-        cwd=None,
-        include_processes=None,
-        exclude_processes=None,
-        log_buffer=None,
+            self,
+            command,
+            runner=None,
+            env=None,
+            rootpid=None,
+            term=None,
+            watch=True,
+            cwd=None,
+            include_processes=None,
+            exclude_processes=None,
+            log_buffer=None,
     ):
         """Thread init"""
         threading.Thread.__init__(self)
@@ -351,9 +348,9 @@ class LutrisThread(threading.Thread):
                 continue
 
             if (
-                child.name
-                and child.name in self.exclude_processes
-                and child.name not in self.include_processes
+                    child.name
+                    and child.name in self.exclude_processes
+                    and child.name not in self.include_processes
             ):
                 processes["excluded"].append(str(child))
                 continue
@@ -426,9 +423,6 @@ class LutrisThread(threading.Thread):
                 self.game_process.communicate()
             else:
                 logger.debug("%d processes are still active", num_children)
-                if self.is_zombie():
-                    logger.warning("Zombie process detected, killing game process")
-                    self.game_process.kill()
             self.return_code = self.game_process.returncode
             return False
 
