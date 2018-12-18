@@ -207,7 +207,7 @@ class LutrisThread(threading.Thread):
                 os.environ[key] = self.original_env[key]
         self.original_env = {}
 
-    def stop(self, killall=False):
+    def stop(self):
         """Stops the current game process and cleans up the thread"""
         # Remove logger early to avoid issues with zombie processes
         # (unconfirmed)
@@ -228,19 +228,7 @@ class LutrisThread(threading.Thread):
         self.is_running = False
         self.ready_state = False
 
-        if killall:
-            self.killall()
         return True
-
-    def killall(self):
-        """Kill every remaining child process"""
-        logger.debug("Killing all remaining processes")
-        killed_processes = []
-        for process in self.process_monitor.iter_children(Process(self.rootpid), topdown=False):
-            killed_processes.append(str(process))
-            process.kill()
-        if killed_processes:
-            logger.debug("Killed processes: %s", ", ".join(killed_processes))
 
     def get_root_process(self):
         """Return root process, including Wine processes as children"""

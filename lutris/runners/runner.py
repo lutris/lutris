@@ -122,10 +122,6 @@ class Runner:
         """Return the working directory to use when running the game."""
         return os.path.expanduser("~/")
 
-    @staticmethod
-    def killall_on_exit():
-        return True
-
     def get_platform(self):
         return self.platforms[0]
 

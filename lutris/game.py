@@ -539,9 +539,7 @@ class Game(GObject.Object):
             logger.debug("Stopping xboxdrv")
             self.xboxdrv_thread.stop()
         if self.game_thread:
-            jobs.AsyncCall(
-                self.game_thread.stop, None, killall=self.runner.killall_on_exit()
-            )
+            jobs.AsyncCall(self.game_thread.stop, None)
         self.state = self.STATE_STOPPED
         if not self.timer.finished:
             self.timer.end()
