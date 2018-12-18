@@ -1,13 +1,15 @@
+"""Class to manipulate a process"""
 import os
 from lutris.util.log import logger
 from lutris.util.system import kill_pid, path_exists
 
 
 class InvalidPid(Exception):
-    pass
+    """Exception raised when an operation on a non-existent PID is called"""
 
 
 class Process:
+    """Python abstraction a Linux process"""
     def __init__(self, pid, parent=None):
         try:
             self.pid = int(pid)
@@ -110,10 +112,12 @@ class Process:
 
     @property
     def cwd(self):
+        """Return current working dir of process"""
         cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
 
     def kill(self, killed_processes=None):
+        """Kills a process and its child processes"""
         if not killed_processes:
             killed_processes = set()
         for child_pid in reversed(sorted(self.get_thread_ids())):
