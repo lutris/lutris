@@ -118,9 +118,6 @@ class LutrisThread(threading.Thread):
         self.old_pids = system.get_all_pids()
 
         self.cwd = self.set_cwd(cwd)
-        self.env_string = ""
-        for key, value in self.env.items():
-            self.env_string += '%s="%s" ' % (key, value)
 
         self.command_string = " ".join(['"%s"' % token for token in self.command])
 
@@ -156,8 +153,10 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread."""
-        logger.debug("Command env: %s", self.env_string)
         logger.debug("Running command: %s", self.command_string)
+        for key, value in self.env.items():
+            logger.debug("ENV: %s=\"%s\"", key, value)
+
         monitor.set_child_subreaper()
 
         if self.terminal:
@@ -208,18 +207,23 @@ class LutrisThread(threading.Thread):
         game is quit.
         """
         file_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
-        with open(file_path, "w") as f:
-            f.write(
-                dedent(
-                    """\
-                #!/bin/sh
+
+        exported_environment = "\n".join(
+            'export %s="%s" ' % (key, value)
+            for key, value in self.env.items()
+        )
+        with open(file_path, "w") as script_file:
+            script_file.write(dedent(
+                """#!/bin/sh
                 cd "%s"
                 %s %s
                 exec sh # Keep term open
-                """
-                    % (self.cwd, self.env_string, self.command_string)
+                """ % (
+                    self.cwd,
+                    exported_environment,
+                    self.command_string
                 )
-            )
+            ))
             os.chmod(file_path, 0o744)
 
         return self.execute_process([self.terminal, "-e", file_path])
