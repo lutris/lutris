@@ -2,7 +2,6 @@
 
 import os
 import sys
-import time
 import shlex
 import threading
 import subprocess
@@ -19,8 +18,6 @@ from lutris.util import monitor
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
-
-MAX_CYCLES_WITHOUT_CHILDREN = 5
 
 
 class LutrisThread(threading.Thread):
@@ -67,7 +64,11 @@ class LutrisThread(threading.Thread):
 
         # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
-        self.process_monitor = monitor.ProcessMonitor(self, include_processes, exclude_processes)
+        self.process_monitor = monitor.ProcessMonitor(
+            include_processes,
+            exclude_processes,
+            "run_in_term.sh" if self.terminal else None
+        )
 
     def get_cwd(self, cwd):
         """Return the current working dir of the game"""
@@ -241,6 +242,18 @@ class LutrisThread(threading.Thread):
         if killed_processes:
             logger.debug("Killed processes: %s", ", ".join(killed_processes))
 
+    def get_root_process(self):
+        """Return root process, including Wine processes as children"""
+        process = Process(self.rootpid)
+        if self.runner.name.startswith("wine"):
+            # Track the correct version of wine for winetricks
+            wine_version = self.env.get("WINE") or None
+            for pid in self.runner.get_pids(wine_version):
+                wineprocess = Process(pid)
+                if wineprocess.name not in self.runner.core_processes:
+                    process.children.append(wineprocess)
+        return process
+
     def watch_children(self):
         """Poke at the running process(es).
 
@@ -258,9 +271,7 @@ class LutrisThread(threading.Thread):
             self.process_monitor.cycles_without_children = 0
             return True
 
-        is_running = self.process_monitor.get_processes()
-
-        if not is_running:
+        if not self.process_monitor.get_process_status(self.get_root_process()):
             self.is_running = False
 
             resume_stop = self.stop()
@@ -269,7 +280,6 @@ class LutrisThread(threading.Thread):
                 return False
 
             if not self.process_monitor.children:
-                logger.debug("No children left in thread")
                 self.game_process.communicate()
             else:
                 logger.debug("%d processes are still active", len(self.process_monitor.children))

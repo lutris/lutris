@@ -77,76 +77,67 @@ def set_child_subreaper():
 class ProcessMonitor():
     """Class to keep track of a process and its children status"""
 
-    def __init__(self, thread, include_processes, exclude_processes):
-        self.process_thread = thread
+    def __init__(self, include_processes, exclude_processes, exclusion_process):
+        """Creates a process monitor
+
+        All arguments accept process names like the ones in EXCLUDED_PROCESSES
+
+        Args:
+            exclude_processes (str or list): list of processes that shouldn't be monitored
+            include_processes (str or list): list of process that should be forced to be monitored
+            exclusion_process (str): If given, ignore all process before this one
+        """
         self.old_pids = system.get_all_pids()
 
-        if include_processes is None:
-            include_processes = []
-        elif isinstance(include_processes, str):
-            include_processes = shlex.split(include_processes)
-        if exclude_processes is None:
-            exclude_processes = []
-        elif isinstance(exclude_processes, str):
-            exclude_processes = shlex.split(exclude_processes)
         # process names from /proc only contain 15 characters
-        self.include_processes = [x[0:15] for x in include_processes]
-        self.exclude_processes = [
-            x[0:15] for x in EXCLUDED_PROCESSES + exclude_processes
+        self.include_processes = [
+            x[0:15] for x in self.parse_process_list(include_processes)
         ]
-
+        self.exclude_processes = [
+            x[0:15] for x in EXCLUDED_PROCESSES + self.parse_process_list(exclude_processes)
+        ]
+        self.exclusion_process = exclusion_process
         self.cycles_without_children = 0
         self.startup_time = time.time()
 
         # Keep a copy of the monitored processes to allow comparisons
         self.monitored_processes = defaultdict(list)
         self.monitoring_started = False
-
         self.children = []
 
-    def iter_children(self, process, topdown=True, first=True):
+    def parse_process_list(self, process_list):
+        """Parse a process list that may be given as a string"""
+        if not process_list:
+            return []
+        if isinstance(process_list, str):
+            return shlex.split(process_list)
+        return process_list
+
+    def iter_children(self, process, topdown=True):
         """Iterator that yields all the children of a process"""
-        if self.process_thread.runner.name.startswith("wine") and first:
-            # Track the correct version of wine for winetricks
-            wine_version = self.process_thread.env.get("WINE") or None
-            pids = self.process_thread.runner.get_pids(wine_version)
-            for pid in pids:
-                wineprocess = Process(pid)
-                if wineprocess.name not in self.process_thread.runner.core_processes:
-                    process.children.append(wineprocess)
         for child in process.children:
             if topdown:
                 yield child
-            subs = self.iter_children(child, topdown=topdown, first=False)
-            for sub in subs:
-                yield sub
+            for granchild in self.iter_children(child, topdown=topdown):
+                yield granchild
             if not topdown:
                 yield child
 
-    def set_ready(self, is_ready):
-        if not is_ready:
-            self.cycles_without_children = 0
-
-    def get_processes(self):
-        """Return sorted by monitoring state
-
-        TODO Rename this an break down
-        """
-        process = Process(self.process_thread.rootpid)
+    def get_process_status(self, process):
+        """Return status of a process"""
         self.children = []
         num_watched_children = 0
-        passed_terminal_procs = False
+        has_passed_exclusion_process = False
         processes = defaultdict(list)
         for child in self.iter_children(process):
             if child.state == 'Z':
                 os.wait3(os.WNOHANG)
                 continue
 
-            # Exclude terminal processes
-            if self.process_thread.terminal:
-                if child.name == "run_in_term.sh":
-                    passed_terminal_procs = True
-                if not passed_terminal_procs:
+            if self.exclusion_process:
+                if child.name == self.exclusion_process:
+                    has_passed_exclusion_process = True
+                if not has_passed_exclusion_process:
                     continue
 
             self.children.append(child)
