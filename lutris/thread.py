@@ -9,8 +9,6 @@ import subprocess
 import contextlib
 from collections import defaultdict
 from textwrap import dedent
-import ctypes
-from ctypes.util import find_library
 
 import yaml
 from gi.repository import GLib
@@ -19,6 +17,7 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util.process import Process
+from lutris.util import monitor
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
@@ -52,9 +51,6 @@ EXCLUDED_PROCESSES = [
     "wineconsole",
     "winedbg",
 ]
-
-
-PR_SET_CHILD_SUBREAPER = 36
 
 
 class LutrisThread(threading.Thread):
@@ -162,9 +158,7 @@ class LutrisThread(threading.Thread):
         """Run the thread."""
         logger.debug("Command env: %s", self.env_string)
         logger.debug("Running command: %s", self.command_string)
-        result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
-        if result == -1:
-            logger.warning("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
+        monitor.set_child_subreaper()
 
         if self.terminal and system.find_executable(self.terminal):
             self.game_process = self.run_in_terminal()
