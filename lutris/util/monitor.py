@@ -167,16 +167,10 @@ class ProcessMonitor():
             logger.debug("Start process monitoring")
             self.monitoring_started = True
 
-        if num_watched_children == 0:
-            if self.monitoring_started:
-                self.cycles_without_children += 1
-                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
-                if cycles_left:
-                    if cycles_left < 4:
-                        logger.debug("Thread aborting in %d cycle", cycles_left)
-                else:
-                    logger.warning("Thread aborting now")
-        else:
-            self.cycles_without_children = 0
-
-        return self.cycles_without_children < MAX_CYCLES_WITHOUT_CHILDREN
+        if num_watched_children == 0 and self.monitoring_started:
+            self.cycles_without_children += 1
+            if MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children == 0:
+                logger.info("Monitor detected no activity on the process")
+                return False
+        self.cycles_without_children = 0
+        return True
