@@ -143,6 +143,7 @@ def get_file_checksum(filename, hash_type):
             hasher.update(chunk)
     return hasher.hexdigest()
 
+
 def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:

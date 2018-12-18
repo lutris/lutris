@@ -85,7 +85,7 @@ class LutrisThread(threading.Thread):
         self.game_process = None
         self.return_code = None
         self.rootpid = rootpid or os.getpid()
-        self.terminal = term
+        self.terminal = system.find_executable(term)
         self.watch = watch
         self.is_running = True
         self.stdout = ""
@@ -160,10 +160,9 @@ class LutrisThread(threading.Thread):
         logger.debug("Running command: %s", self.command_string)
         monitor.set_child_subreaper()
 
-        if self.terminal and system.find_executable(self.terminal):
+        if self.terminal:
             self.game_process = self.run_in_terminal()
         else:
-            self.terminal = False
             env = self.apply_environment()
             self.game_process = self.execute_process(self.command, env)
 
