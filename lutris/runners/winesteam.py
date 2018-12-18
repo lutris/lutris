@@ -477,20 +477,6 @@ class winesteam(wine.wine):
         launch_info["command"] = command
         return launch_info
 
-    @property
-    def ready_for_launch(self):
-        """Duplicated from the steam runner"""
-        if not self.appid or not hasattr(self, "game_launch_time"):
-            return False
-        state_log = get_app_state_log(
-            self.steam_data_dir, self.appid, self.game_launch_time
-        )
-        if not state_log:
-            return False
-        if state_log.pop() == "Fully Installed,":
-            return True
-        return False
-
     def shutdown(self):
         logger.debug("Stopping all winesteam processes")
         super(winesteam, self).stop()

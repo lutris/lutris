@@ -378,10 +378,6 @@ class LutrisThread(threading.Thread):
                     "Processes %s: %s", key, ", ".join(processes[key]) or "none"
                 )
 
-        if not self.runner.ready_for_launch:
-            self.is_running = False
-            return False
-
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
             if self.monitoring_started or time_since_start > WARMUP_TIME:
