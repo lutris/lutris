@@ -43,6 +43,7 @@ from lutris.thread import exec_in_thread
 from lutris.util import datapath
 from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
 from lutris.util.resources import parse_installer_url
+from lutris.util.monitor import set_child_subreaper
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray
@@ -55,6 +56,7 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
         logger.info("Running Lutris %s", settings.VERSION)
+        set_child_subreaper()
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
