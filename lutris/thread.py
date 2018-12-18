@@ -3,7 +3,6 @@
 import os
 import sys
 import shlex
-import threading
 import subprocess
 import contextlib
 from textwrap import dedent
@@ -14,15 +13,15 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util.process import Process
-from lutris.util.monitor import ProcessMonitor, set_child_subreaper
+from lutris.util.monitor import ProcessMonitor
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 DEFAULT_MAX_CYCLES = 5
 
 
-class LutrisThread(threading.Thread):
-    """Run the game in a separate thread."""
+class LutrisThread:
+    """Run the game."""
 
     debug_output = True
 
@@ -39,8 +38,6 @@ class LutrisThread(threading.Thread):
             log_buffer=None,
             max_cycles=DEFAULT_MAX_CYCLES
     ):
-        """Thread init"""
-        threading.Thread.__init__(self)
         self.ready_state = True
         if env is None:
             self.env = {}
@@ -56,7 +53,6 @@ class LutrisThread(threading.Thread):
         self.watch = watch
         self.is_running = True
         self.stdout = ""
-        self.attached_threads = []
         self.daemon = True
         self.error = None
         self.log_buffer = log_buffer
@@ -82,10 +78,6 @@ class LutrisThread(threading.Thread):
             cwd = self.runner.working_dir if self.runner else "/tmp"
         return os.path.expanduser(cwd)
 
-    def attach_thread(self, thread):
-        """Attach child process that need to be killed on game exit."""
-        self.attached_threads.append(thread)
-
     def apply_environment(self):
         """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
@@ -103,13 +95,11 @@ class LutrisThread(threading.Thread):
         env.update(self.env)
         return env
 
-    def run(self):
+    def start(self):
         """Run the thread."""
         logger.debug("Running command: %s", " ".join(self.command))
         for key, value in self.env.items():
             logger.debug("ENV: %s=\"%s\"", key, value)
-
-        set_child_subreaper()
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
@@ -217,10 +207,6 @@ class LutrisThread(threading.Thread):
         if self.stdout_monitor:
             logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
-
-        for thread in self.attached_threads:
-            logger.debug("Stopping thread %s", thread)
-            thread.stop()
 
         if hasattr(self, "stop_func"):
             resume_stop = self.stop_func()
