@@ -270,6 +270,18 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
+        "option": "monitor_max_cycles",
+        "type": "string",
+        "label": "Maximum number of empty monitor cycles",
+        "advanced": True,
+        "default": "5",
+        "help": (
+            "Number of cycles to wait before the game is considered as exited. "
+            "Each cycle is 2 seconds. Increasing the value will increase the "
+            "time Lutris take to update the exit status."
+        )
+    },
+    {
         "option": "single_cpu",
         "type": "bool",
         "label": "Restrict to single core",

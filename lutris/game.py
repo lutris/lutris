@@ -452,8 +452,10 @@ class Game(GObject.Object):
             )
         process_watch = not monitoring_disabled
 
-        if self.runner.system_config.get("disable_compositor"):
+        if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
+
+        monitor_max_cycles = int(system_config.get("monitor_max_cycles")) or 5
 
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
         if system.path_exists(prelaunch_command):
@@ -475,6 +477,7 @@ class Game(GObject.Object):
             log_buffer=self.log_buffer,
             include_processes=include_processes,
             exclude_processes=exclude_processes,
+            max_cycles=monitor_max_cycles
         )
         if hasattr(self.runner, "stop"):
             self.game_thread.set_stop_command(self.runner.stop)

@@ -14,10 +14,11 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util.process import Process
-from lutris.util import monitor
+from lutris.util.monitor import ProcessMonitor, set_child_subreaper
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
+DEFAULT_MAX_CYCLES = 5
 
 
 class LutrisThread(threading.Thread):
@@ -37,6 +38,7 @@ class LutrisThread(threading.Thread):
             include_processes=None,
             exclude_processes=None,
             log_buffer=None,
+            max_cycles=DEFAULT_MAX_CYCLES
     ):
         """Thread init"""
         threading.Thread.__init__(self)
@@ -64,7 +66,13 @@ class LutrisThread(threading.Thread):
 
         # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
-        self.process_monitor = monitor.ProcessMonitor(
+        if max_cycles < 0:
+            logger.warning("Invalid value for maximum number of cycles: %s, using default: %s",
+                           max_cycles,
+                           DEFAULT_MAX_CYCLES)
+            max_cycles = DEFAULT_MAX_CYCLES
+        self.process_monitor = ProcessMonitor(
+            max_cycles,
             include_processes,
             exclude_processes,
             "run_in_term.sh" if self.terminal else None
@@ -103,7 +111,7 @@ class LutrisThread(threading.Thread):
         for key, value in self.env.items():
             logger.debug("ENV: %s=\"%s\"", key, value)
 
-        monitor.set_child_subreaper()
+        set_child_subreaper()
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
