@@ -118,8 +118,6 @@ class LutrisThread(threading.Thread):
 
         self.cwd = self.set_cwd(cwd)
 
-        self.command_string = " ".join(['"%s"' % token for token in self.command])
-
     def set_cwd(self, cwd):
         if not cwd:
             cwd = self.runner.working_dir if self.runner else "/tmp"
@@ -148,7 +146,7 @@ class LutrisThread(threading.Thread):
 
     def run(self):
         """Run the thread."""
-        logger.debug("Running command: %s", self.command_string)
+        logger.debug("Running command: %s", " ".join(self.command))
         for key, value in self.env.items():
             logger.debug("ENV: %s=\"%s\"", key, value)
 
@@ -201,27 +199,23 @@ class LutrisThread(threading.Thread):
         It's also the only reliable way to keep the term open when the
         game is quit.
         """
-        file_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
-
+        script_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
         exported_environment = "\n".join(
             'export %s="%s" ' % (key, value)
             for key, value in self.env.items()
         )
-        with open(file_path, "w") as script_file:
+        command = " ".join(['"%s"' % token for token in self.command])
+        with open(script_path, "w") as script_file:
             script_file.write(dedent(
                 """#!/bin/sh
                 cd "%s"
-                %s %s
+                %s
+                %s
                 exec sh # Keep term open
-                """ % (
-                    self.cwd,
-                    exported_environment,
-                    self.command_string
-                )
+                """ % (self.cwd, exported_environment, command)
             ))
-            os.chmod(file_path, 0o744)
-
-        return self.execute_process([self.terminal, "-e", file_path])
+            os.chmod(script_path, 0o744)
+        return self.execute_process([self.terminal, "-e", script_path])
 
     def execute_process(self, command, env=None):
         try:
