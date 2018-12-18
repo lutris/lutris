@@ -438,7 +438,6 @@ class winesteam(wine.wine):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
     def play(self):
-        self.game_launch_time = time.localtime()
         game_args = self.game_config.get("args") or ""
 
         launch_info = {"env": self.get_env(os_env=False)}

@@ -307,7 +307,6 @@ class steam(Runner):
         return {"command": self.launch_args, "env": self.get_env()}
 
     def play(self):
-        self.game_launch_time = time.localtime()
         game_args = self.game_config.get("args") or ""
 
         steamless_binary = self.game_config.get("steamless_binary")
