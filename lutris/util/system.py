@@ -147,7 +147,7 @@ def get_file_checksum(filename, hash_type):
 def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:
-        raise ValueError("find_executable: exec_name required")
+        return None
     return shutil.which(exec_name)
 
 
