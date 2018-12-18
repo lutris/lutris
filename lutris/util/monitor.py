@@ -6,13 +6,11 @@ import ctypes
 from ctypes.util import find_library
 from collections import defaultdict
 
-from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
 
 PR_SET_CHILD_SUBREAPER = 36
 
-WARMUP_TIME = 5 * 60
 MAX_CYCLES_WITHOUT_CHILDREN = 5
 # List of process names that are ignored by the process monitoring
 EXCLUDED_PROCESSES = [
@@ -98,7 +96,6 @@ class ProcessMonitor():
         ]
         self.exclusion_process = exclusion_process
         self.cycles_without_children = 0
-        self.startup_time = time.time()
 
         # Keep a copy of the monitored processes to allow comparisons
         self.monitored_processes = defaultdict(list)
@@ -171,8 +168,7 @@ class ProcessMonitor():
             self.monitoring_started = True
 
         if num_watched_children == 0:
-            time_since_start = time.time() - self.startup_time
-            if self.monitoring_started or time_since_start > WARMUP_TIME:
+            if self.monitoring_started:
                 self.cycles_without_children += 1
                 cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
                 if cycles_left:
