@@ -345,18 +345,19 @@ class steam(Runner):
             "env": self.get_env(),
         }
 
-    def watch_game_process(self):
+    @property
+    def ready_for_launch(self):
+        """Looks in the Steam logs if the game is installed"""
         if not self.appid or not hasattr(self, "game_launch_time"):
-            return None
+            return False
         state_log = get_app_state_log(
             self.steam_data_dir, self.appid, self.game_launch_time
         )
         if not state_log:
-            return True
-        state = state_log.pop()
-        if state == "Fully Installed,":
             return False
-        return True
+        if state_log.pop() == "Fully Installed,":
+            return True
+        return False
 
     def stop(self):
         if self.runner_config.get("quit_steam_on_exit") and not self.original_steampid:

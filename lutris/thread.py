@@ -115,10 +115,10 @@ class LutrisThread(threading.Thread):
 
         # Keep a copy of previously running processes
         self.old_pids = system.get_all_pids()
+        self.cwd = self.get_cwd(cwd)
 
-        self.cwd = self.set_cwd(cwd)
-
-    def set_cwd(self, cwd):
+    def get_cwd(self, cwd):
+        """Return the current working dir of the game"""
         if not cwd:
             cwd = self.runner.working_dir if self.runner else "/tmp"
         return os.path.expanduser(cwd)
@@ -378,10 +378,9 @@ class LutrisThread(threading.Thread):
                     "Processes %s: %s", key, ", ".join(processes[key]) or "none"
                 )
 
-        if self.runner and hasattr(self.runner, "watch_game_process"):
-            if not self.runner.watch_game_process():
-                self.is_running = False
-                return False
+        if not self.runner.ready_for_launch:
+            self.is_running = False
+            return False
 
         if num_watched_children == 0:
             time_since_start = time.time() - self.startup_time
