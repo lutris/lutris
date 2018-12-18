@@ -468,7 +468,7 @@ class Game(GObject.Object):
             max_cycles=monitor_max_cycles
         )
         if hasattr(self.runner, "stop"):
-            self.game_thread.set_stop_command(self.runner.stop)
+            self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
         self.state = self.STATE_RUNNING
 
@@ -477,10 +477,7 @@ class Game(GObject.Object):
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
 
-        if monitoring_disabled:
-            logger.info("Process monitoring disabled")
-        else:
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def xboxdrv_start(self, config):
         command = [
@@ -494,7 +491,7 @@ class Game(GObject.Object):
         ] + shlex.split(config)
         logger.debug("[xboxdrv] %s", " ".join(command))
         self.xboxdrv_thread = LutrisThread(command, include_processes=["xboxdrv"])
-        self.xboxdrv_thread.set_stop_command(self.xboxdrv_stop)
+        self.xboxdrv_thread.stop_func = self.xboxdrv_stop
         self.xboxdrv_thread.start()
 
     @staticmethod

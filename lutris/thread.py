@@ -200,9 +200,6 @@ class LutrisThread(threading.Thread):
             logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
 
-    def set_stop_command(self, func):
-        self.stop_func = func
-
     def restore_environment(self):
         logger.debug("Restoring environment")
         for key in self.original_env:
