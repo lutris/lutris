@@ -521,7 +521,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.update_row(game["id"], game["year"], game["playtime"])
 
         if first_run:
-            logger.info("Setting up view for first run")
             for game_id in added:
                 logger.debug("Adding %s", game_id)
                 self.add_game_to_view(game_id)

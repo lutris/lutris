@@ -240,7 +240,7 @@ class Game(GObject.Object):
             return
 
         if hasattr(self.runner, "prelaunch"):
-            logger.debug("Running %s prelaunch", self.runner)
+            logger.debug("Prelaunching %s", self.runner)
             try:
                 jobs.AsyncCall(self.runner.prelaunch, self.do_play)
             except Exception as ex:

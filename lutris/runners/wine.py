@@ -32,7 +32,7 @@ from lutris.util.wine.wine import (
     is_esync_limit_set,
     is_version_esync,
 )
-from lutris.runners.commands.wine import (  # pylint: disable=unused-import
+from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
     eject_disc,
@@ -64,7 +64,7 @@ class wine(Runner):
             "option": "args",
             "type": "string",
             "label": "Arguments",
-            "help": ("Windows command line arguments used when launching " "the game"),
+            "help": "Windows command line arguments used when launching the game"
         },
         {
             "option": "working_dir",
@@ -92,11 +92,7 @@ class wine(Runner):
             "label": "Prefix architecture",
             "choices": [("Auto", "auto"), ("32-bit", "win32"), ("64-bit", "win64")],
             "default": "auto",
-            "help": (
-                "The architecture of the Windows environment.\n"
-                "32-bit is recommended unless running "
-                "a 64-bit only game."
-            ),
+            "help": "The architecture of the Windows environment"
         },
     ]
 

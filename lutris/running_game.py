@@ -26,6 +26,9 @@ class RunningGame:
         self.game.connect("game-error", self.window.on_game_error)
         self.game.connect("game-stop", self.on_stop)
 
+    def __str__(self):
+        return "Running %s" % self.game.name
+
     def play(self):
         if self.game.is_installed:
             self.game.play()
@@ -45,7 +48,11 @@ class RunningGame:
             # If the signal is coming from a game, it has already stopped.
             self.game.stop()
         self.running_game_box.destroy()
-        self.application.running_games.pop(self.application.running_games.index(self))
+        try:
+            logger.debug("Removing %s from running games", self)
+            self.application.running_games.pop(self.application.running_games.index(self))
+        except ValueError:
+            logger.warning("%s not in running game list", self)
         self.window.remove_running_game()
 
     def on_show_logs(self, _widget):
