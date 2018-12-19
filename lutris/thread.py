@@ -20,7 +20,7 @@ HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 DEFAULT_MAX_CYCLES = 5
 
 
-class LutrisThread:
+class MonitoredCommand:
     """Run the game."""
 
     debug_output = True
@@ -271,8 +271,6 @@ def exec_in_thread(command):
 
     Used by the --exec command line flag.
     """
-    arguments = shlex.split(command)
-    env = runtime.get_env()
-    thread = LutrisThread(arguments, env=env)
-    thread.start()
-    return thread
+    command = MonitoredCommand(shlex.split(command), env=runtime.get_env())
+    command.start()
+    return command

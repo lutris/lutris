@@ -7,7 +7,7 @@ import time
 from lutris import runtime, settings
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 from lutris.util import datapath, system
 from lutris.util.log import logger
 from lutris.util.wine.wine import (
@@ -216,7 +216,7 @@ def wineexec(
 
     Returns:
         Process results if the process is running in blocking mode or
-        LutrisThread instance otherwise.
+        MonitoredCommand instance otherwise.
     """
     executable = str(executable) if executable else ""
     if not wine_path:
@@ -270,23 +270,23 @@ def wineexec(
 
     wineenv.update(env)
 
-    command = [wine_path]
+    command_parameters = [wine_path]
     if executable:
-        command.append(executable)
-    command += shlex.split(args)
+        command_parameters.append(executable)
+    command_parameters += shlex.split(args)
     if blocking:
-        return system.execute(command, env=wineenv, cwd=working_dir)
+        return system.execute(command_parameters, env=wineenv, cwd=working_dir)
     wine = import_runner("wine")
-    thread = LutrisThread(
-        command,
+    command = MonitoredCommand(
+        command_parameters,
         runner=wine(),
         env=wineenv,
         cwd=working_dir,
         include_processes=include_processes,
         exclude_processes=exclude_processes,
     )
-    thread.start()
-    return thread
+    command.start()
+    return command
 
 
 def winetricks(

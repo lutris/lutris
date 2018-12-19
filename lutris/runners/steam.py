@@ -6,7 +6,7 @@ import subprocess
 
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.steam.config import get_default_acf, read_config
@@ -353,5 +353,5 @@ class steam(Runner):
             )
         logger.debug("Launching Steam uninstall of game %s", appid)
         command = [self.get_executable(), "steam://uninstall/%s" % appid]
-        thread = LutrisThread(command, runner=self, env=self.get_env(), watch=False)
+        thread = MonitoredCommand(command, runner=self, env=self.get_env(), watch=False)
         thread.start()

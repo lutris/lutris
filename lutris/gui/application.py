@@ -455,7 +455,7 @@ class Application(Gtk.Application):
     def execute_command(command):
         """
             Execute an arbitrary command in a Lutris context
-            with the runtime enabled and monitored by LutrisThread
+            with the runtime enabled and monitored by a MonitoredCommand
         """
         logger.info("Running command '%s'", command)
         thread = exec_in_thread(command)

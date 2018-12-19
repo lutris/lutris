@@ -7,7 +7,7 @@ from gi.repository import Gtk
 from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system
@@ -218,8 +218,8 @@ class Runner:
         if hasattr(self, "prelaunch"):
             self.prelaunch()
 
-        thread = LutrisThread(command, runner=self, env=env, watch=False)
-        thread.start()
+        command_runner = MonitoredCommand(command, runner=self, env=env, watch=False)
+        command_runner.start()
 
     def use_runtime(self):
         if runtime.RUNTIME_DISABLED:

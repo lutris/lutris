@@ -24,7 +24,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.steam.watcher import SteamWatcher
 from lutris.util.wine.dxvk import init_dxvk_versions
 
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 
 from lutris.services import get_services_synced_at_startup, steam
 
@@ -33,7 +33,6 @@ from lutris.vendor.gi_composites import GtkTemplate
 from lutris.gui.util import open_uri
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
-from lutris.gui.logdialog import LogDialog
 from lutris.gui.sync import SyncServiceWindow
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -211,7 +210,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Timers
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
-
 
     def _init_actions(self):
         Action = namedtuple(
@@ -892,7 +890,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         game = Game(self.view.selected_game)
         manual_command = game.runner.system_config.get("manual_command")
         if path_exists(manual_command):
-            LutrisThread(
+            MonitoredCommand(
                 [manual_command],
                 include_processes=[os.path.basename(manual_command)],
                 cwd=game.directory,

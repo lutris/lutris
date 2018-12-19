@@ -6,7 +6,7 @@ import subprocess
 
 from lutris import settings
 from lutris.runners import wine
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
@@ -490,5 +490,5 @@ class winesteam(wine.wine):
         env = self.get_env(os_env=False)
         command = self.launch_args + ["steam://uninstall/%s" % appid]
         self.prelaunch()
-        thread = LutrisThread(command, runner=self, env=env, watch=False)
+        thread = MonitoredCommand(command, runner=self, env=env, watch=False)
         thread.start()

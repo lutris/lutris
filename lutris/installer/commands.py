@@ -18,7 +18,7 @@ from lutris.util.wine.wine import get_wine_version_exe
 from lutris.util import selective_merge
 
 from lutris.runners import wine, import_task
-from lutris.thread import LutrisThread
+from lutris.thread import MonitoredCommand
 
 
 class CommandsMixin:
@@ -130,7 +130,7 @@ class CommandsMixin:
 
         command = [exec_path] + args
         logger.debug("Executing %s", command)
-        thread = LutrisThread(
+        thread = MonitoredCommand(
             command,
             env=env,
             term=terminal,
@@ -393,7 +393,7 @@ class CommandsMixin:
         task = import_task(runner_name, task_name)
         thread = task(**data)
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-        if isinstance(thread, LutrisThread):
+        if isinstance(thread, MonitoredCommand):
             # Monitor thread and continue when task has executed
             GLib.idle_add(self.parent.attach_logger, thread)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)

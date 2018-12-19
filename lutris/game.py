@@ -16,7 +16,7 @@ from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
-from lutris.thread import LutrisThread, HEARTBEAT_DELAY
+from lutris.thread import MonitoredCommand, HEARTBEAT_DELAY
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
 
@@ -358,7 +358,7 @@ class Game(GObject.Object):
                 "-fullscreen",
             ]
 
-            xephyr_thread = LutrisThread(xephyr_command)
+            xephyr_thread = MonitoredCommand(xephyr_command)
             xephyr_thread.start()
             time.sleep(3)
             env["DISPLAY"] = ":2"
@@ -447,7 +447,7 @@ class Game(GObject.Object):
 
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
         if system.path_exists(prelaunch_command):
-            self.prelaunch_thread = LutrisThread(
+            self.prelaunch_thread = MonitoredCommand(
                 [prelaunch_command],
                 include_processes=[os.path.basename(prelaunch_command)],
                 cwd=self.directory,
@@ -455,7 +455,7 @@ class Game(GObject.Object):
             self.prelaunch_thread.start()
             logger.info("Running %s in the background", prelaunch_command)
 
-        self.game_thread = LutrisThread(
+        self.game_thread = MonitoredCommand(
             launch_arguments,
             runner=self.runner,
             env=env,
@@ -489,7 +489,7 @@ class Game(GObject.Object):
             "--silent",
         ] + shlex.split(config)
         logger.debug("[xboxdrv] %s", " ".join(command))
-        self.xboxdrv_thread = LutrisThread(command, include_processes=["xboxdrv"])
+        self.xboxdrv_thread = MonitoredCommand(command, include_processes=["xboxdrv"])
         self.xboxdrv_thread.stop_func = self.xboxdrv_stop
         self.xboxdrv_thread.start()
 
@@ -545,14 +545,14 @@ class Game(GObject.Object):
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
-            logger.debug("Game thread still running (state: %s)", self.state)
+            logger.warning("Game still running (state: %s)", self.state)
             self.stop()
 
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
         if system.path_exists(postexit_command):
             logger.info("Running post-exit command: %s", postexit_command)
-            postexit_thread = LutrisThread(
+            postexit_thread = MonitoredCommand(
                 [postexit_command],
                 include_processes=[os.path.basename(postexit_command)],
                 cwd=self.directory,
