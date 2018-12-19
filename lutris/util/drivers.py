@@ -1,4 +1,7 @@
-"""Hardware driver related utilities"""
+"""Hardware driver related utilities
+
+Everything in this module should rely on /proc or /sys only, no executable calls
+"""
 import os
 
 
