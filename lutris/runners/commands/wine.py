@@ -92,7 +92,7 @@ def create_prefix(
         install_mono=None,
 ):
     """Create a new Wine prefix."""
-    logger.debug("Creating a %s prefix in %s", arch, prefix)
+    logger.info("Creating a %s prefix in %s", arch, prefix)
 
     # Avoid issue of 64bit Wine refusing to create win32 prefix
     # over an existing empty folder.

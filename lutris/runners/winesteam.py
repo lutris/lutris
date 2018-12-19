@@ -305,12 +305,13 @@ class winesteam(wine.wine):
             return False
         return system.path_exists(self.get_steam_path())
 
-    def transfer_steam_registry(self, dest_path):
+    def transfer_steam_registry(self):
         """Export the contents of the Steam registry to a file.
 
         This is useful for moving a Steam install across prefixes
         and keep the authentication credentials.
         """
+        logger.debug("Transfering Steam information from default prefix to new prefix")
         dest_path = '/tmp/steam.reg'
         wineexec(
             "regedit",
@@ -407,7 +408,11 @@ class winesteam(wine.wine):
         subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
+        prefix_already_exists = system.path_exists(os.path.join(self.prefix_path, "user.reg"))
         super().prelaunch()
+
+        if not prefix_already_exists:
+            self.transfer_steam_registry()
 
         def has_steam_shutdown(times=10):
             for _ in range(1, times + 1):
