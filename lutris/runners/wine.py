@@ -31,7 +31,6 @@ from lutris.util.wine.wine import (
     get_wine_versions,
     is_esync_limit_set,
     is_version_esync,
-    support_legacy_version,
 )
 from lutris.runners.commands.wine import (  # pylint: disable=unused-import
     create_prefix,
@@ -500,7 +499,6 @@ class wine(Runner):
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version"""
         runner_version = self.runner_config.get("version")
-        runner_version = support_legacy_version(runner_version)
         if runner_version:
             return runner_version
         if use_default:

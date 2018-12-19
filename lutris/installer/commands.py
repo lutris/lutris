@@ -33,7 +33,7 @@ class CommandsMixin:
             if self.script.get(self.runner):
                 wine_version = self.script[self.runner].get("version")
                 logger.debug("Install script uses Wine %s", wine_version)
-                return wine.support_legacy_version(wine_version)
+                return wine_version
         if self.runner == "libretro":
             return self.script["game"]["core"]
         return None

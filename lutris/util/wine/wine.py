@@ -213,22 +213,6 @@ def get_system_wine_version(wine_path="wine"):
         return version
 
 
-def support_legacy_version(version):
-    """Since Lutris 0.3.7, wine version contains architecture and optional
-    info. Call this to keep existing games compatible with previous
-    configurations."""
-    if not version:
-        return
-    if (
-        version not in ("custom", "system")
-        and "-" not in version
-        and "Proton" not in version
-    ):
-        logger.error("Legacy wine format used: %s", version)
-        version += "-i386"
-    return version
-
-
 def is_version_esync(path):
     """Determines if a Wine build is Esync capable
 
