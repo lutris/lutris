@@ -87,6 +87,7 @@ class CommandCache:
     def get_terminals(self):
         return list(self._cache["TERMINALS"].values())
 
+
 COMMAND_CACHE = CommandCache()
 
 # Detect if system is 64bit capable

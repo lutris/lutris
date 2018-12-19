@@ -9,8 +9,6 @@ from gi.repository import Gdk, GnomeDesktop, GLib
 from lutris.util import system
 from lutris.util.log import logger
 
-XGAMMA_FOUND = None
-
 
 def get_vidmodes():
     """Return video modes from XrandR"""
@@ -173,11 +171,9 @@ def change_resolution(resolution):
 
 def restore_gamma():
     """Restores gamma to a normal level."""
-    global XGAMMA_FOUND
-    if XGAMMA_FOUND is None:
-        XGAMMA_FOUND = bool(system.find_executable("xgamma"))
-    if XGAMMA_FOUND is True:
-        subprocess.Popen(["xgamma", "-gamma", "1.0"])
+    xgamma_path = system.find_executable("xgamma")
+    if xgamma_path:
+        subprocess.Popen([xgamma_path, "-gamma", "1.0"])
     else:
         logger.warning("xgamma is not available on your system")
 
