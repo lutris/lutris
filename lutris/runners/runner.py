@@ -247,9 +247,6 @@ class Runner:
         if Gtk.ResponseType.YES == dialog.result:
             if hasattr(self, "get_version"):
                 version = self.get_version(use_default=False)
-            else:
-                version = None
-            if version:
                 return self.install(version=version)
             return self.install()
         return False

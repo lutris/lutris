@@ -122,7 +122,7 @@ class RunnersDialog(GtkBuilderDialog):
 
     def on_install_clicked(self, widget, runner, runner_label):
         """Install a runner."""
-        if runner.depends_on is not None:
+        if runner.depends_on:
             dependency = runner.depends_on()
             dependency.install(downloader=simple_downloader)
         try:
