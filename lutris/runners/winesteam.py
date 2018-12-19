@@ -314,7 +314,7 @@ class winesteam(wine.wine):
         """Checks if wine is installed and if the steam executable is on the drive"""
         if not super().is_installed(version=version, fallback=fallback, min_version=min_version):
             return False
-        if not system.path_exists(self.get_default_prefix()):
+        if not system.path_exists(self.get_default_prefix(arch=self.default_arch)):
             return False
         return system.path_exists(self.get_steam_path())
 
@@ -377,9 +377,9 @@ class winesteam(wine.wine):
             os.makedirs(os.path.dirname(prefix_dir))
         create_prefix(prefix_dir, arch=arch, wine_path=self.get_executable())
 
-    def get_default_prefix(self, arch=None):
+    def get_default_prefix(self, arch):
         """Return the default prefix' path."""
-        return self.runner_config["default_%s_prefix" % (arch or self.default_arch)]
+        return self.runner_config["default_%s_prefix" % arch]
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
