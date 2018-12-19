@@ -109,29 +109,32 @@ class WineRegistry:
         registry_lines = self.get_raw_registry(reg_filename)
         current_key = None
         add_next_to_value = False
-        additional_values = []
         for line in registry_lines:
-            line = line.rstrip("\n")
+            line = line.rstrip("\n")  # Remove trailing newlines
+
+            if line.startswith(self.version_header):
+                self.version = int(line[len(self.version_header):])
+                continue
+
+            if line.startswith(self.relative_to_header):
+                self.relative_to = line[len(self.relative_to_header):]
+                continue
+
+            if line.startswith("#arch"):
+                self.arch = line.split("=")[1]
+                continue
+
+            if line.startswith("["):
+                current_key = WineRegistryKey(key_def=line)
+                self.keys[current_key.name] = current_key
+                continue
 
             if current_key:
                 if add_next_to_value:
-                    additional_values.append(line)
-                elif not add_next_to_value:
-                    if additional_values:
-                        additional_values = '\n'.join(additional_values)
-                        current_key.add_to_last(additional_values)
-                        additional_values = []
+                    current_key.add_to_last(line)
+                else:
                     current_key.parse(line)
                 add_next_to_value = line.endswith("\\")
-            elif line.startswith("["):
-                current_key = WineRegistryKey(key_def=line)
-                self.keys[current_key.name] = current_key
-            elif line.startswith(self.version_header):
-                self.version = int(line[len(self.version_header):])
-            elif line.startswith(self.relative_to_header):
-                self.relative_to = line[len(self.relative_to_header):]
-            elif line.startswith("#arch"):
-                self.arch = line.split("=")[1]
 
     def render(self):
         content = "{}{}\n".format(self.version_header, self.version)
@@ -255,7 +258,7 @@ class WineRegistryKey:
             self.subkeys["default"] = value
 
     def add_to_last(self, line):
-        last_subkey = next(reversed(self.subkeys))
+        last_subkey = list(self.subkeys.keys())[-1]
         self.subkeys[last_subkey] += "\n{}".format(line)
 
     def render(self):
