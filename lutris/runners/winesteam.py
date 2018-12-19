@@ -243,7 +243,7 @@ class winesteam(wine.wine):
             if os.path.isdir(steam_dir):
                 return steam_dir
 
-    def get_steam_path(self, prefix=None):
+    def get_steam_path(self):
         """Return Steam exe's path"""
         custom_path = self.runner_config.get("steam_path") or ""
         if custom_path:
@@ -261,8 +261,8 @@ class winesteam(wine.wine):
         for prefix in candidates:
             # Try the default install path
             for default_path in [
-                "drive_c/Program Files (x86)/Steam/Steam.exe",
-                "drive_c/Program Files/Steam/Steam.exe",
+                    "drive_c/Program Files (x86)/Steam/Steam.exe",
+                    "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
                 if system.path_exists(steam_path):
