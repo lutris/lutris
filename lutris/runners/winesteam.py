@@ -13,6 +13,7 @@ from lutris.util.log import logger
 from lutris.util.steam.config import read_config
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
+from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     set_regedit,
     set_regedit_file,
@@ -48,7 +49,7 @@ class winesteam(wine.wine):
     platforms = ["Windows"]
     runnable_alone = True
     depends_on = wine.wine
-    default_arch = "win64"
+    default_arch = WINE_DEFAULT_ARCH
     game_options = [
         {
             "option": "appid",

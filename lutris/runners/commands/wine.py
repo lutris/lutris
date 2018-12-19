@@ -12,6 +12,7 @@ from lutris.util import datapath, system
 from lutris.util.log import logger
 from lutris.util.wine.wine import (
     WINE_DIR,
+    WINE_DEFAULT_ARCH,
     detect_arch,
     detect_prefix_arch,
     get_overrides_env,
@@ -28,7 +29,7 @@ def set_regedit(
         type="REG_SZ",  # pylint: disable=redefined-builtin
         wine_path=None,
         prefix=None,
-        arch="win32",
+        arch=WINE_DEFAULT_ARCH,
 ):
     """Add keys to the windows registry.
 
@@ -52,7 +53,7 @@ def set_regedit(
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None, arch="win32"):
+def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH):
     """Apply a regedit file to the Windows registry."""
     if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
@@ -70,7 +71,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch="win32"):
     )
 
 
-def delete_registry_key(key, wine_path=None, prefix=None, arch="win32"):
+def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH):
     """Deletes a registry key from a Wine prefix"""
     wineexec(
         "regedit",
@@ -85,7 +86,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch="win32"):
 def create_prefix(
         prefix,
         wine_path=None,
-        arch="win32",
+        arch=WINE_DEFAULT_ARCH,
         overrides={},
         install_gecko=None,
         install_mono=None,
@@ -141,7 +142,7 @@ def create_prefix(
     prefix_manager.setup_defaults()
 
 
-def winekill(prefix, arch="win32", wine_path=None, env=None, initial_pids=None):
+def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None):
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
@@ -326,7 +327,7 @@ def winetricks(
     )
 
 
-def winecfg(wine_path=None, prefix=None, arch="win32", config=None):
+def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")

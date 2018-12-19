@@ -4,6 +4,7 @@ from collections import OrderedDict
 from datetime import datetime
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 
 (
     REG_NONE,
@@ -71,7 +72,7 @@ class WineRegistry:
     relative_to_header = ";; All keys relative to "
 
     def __init__(self, reg_filename=None):
-        self.arch = "win32"
+        self.arch = WINE_DEFAULT_ARCH
         self.version = 2
         self.relative_to = "\\\\User\\\\S-1-5-21-0-0-0-1000"
         self.keys = OrderedDict()
@@ -136,8 +137,7 @@ class WineRegistry:
                 add_next_to_value = line.endswith("\\")
 
     def render(self):
-        content = ""
-        content += "{}{}\n".format(self.version_header, self.version)
+        content = "{}{}\n".format(self.version_header, self.version)
         content += "{}{}\n\n".format(self.relative_to_header, self.relative_to)
         content += "#arch={}\n".format(self.arch)
         for key in self.keys:
