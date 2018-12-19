@@ -5,7 +5,6 @@ import shlex
 import subprocess
 
 from lutris import settings
-from lutris.gui.dialogs import DownloadDialog
 from lutris.runners import wine
 from lutris.thread import LutrisThread
 from lutris.util.process import Process
