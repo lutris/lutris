@@ -1,4 +1,4 @@
-"""Runner for the Steam platform"""
+"""Steam for Windows runner"""
 import os
 import time
 import shlex
@@ -11,11 +11,10 @@ from lutris.thread import LutrisThread
 from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam.log import get_app_state_log
 from lutris.util.steam.config import read_config
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
-from lutris.runners.commands.wine import (  # pylint: disable=unused-import
+from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     set_regedit,
     set_regedit_file,
     delete_registry_key,
@@ -27,10 +26,6 @@ from lutris.runners.commands.wine import (  # pylint: disable=unused-import
 )
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
-
-
-def get_steam_installer_dest():
-    return os.path.join(settings.TMP_PATH, "SteamInstall.msi")
 
 
 def is_running():
@@ -293,9 +288,9 @@ class winesteam(wine.wine):
             return system.fix_path_case(registry.get_unix_path(steam_path))
 
     def install(self, version=None, downloader=None, callback=None):
-        installer_path = get_steam_installer_dest()
+        installer_path = os.path.join(settings.TMP_PATH, "SteamInstall.msi")
 
-        def on_steam_downloaded(*args):
+        def on_steam_downloaded(*_args):
             prefix = self.get_or_create_default_prefix()
             self.msi_exec(
                 installer_path,
@@ -315,25 +310,13 @@ class winesteam(wine.wine):
             dialog.run()
             on_steam_downloaded()
 
-    def is_wine_installed(self, version=None, fallback=True, min_version=None):
-        return super(winesteam, self).is_installed(
-            version=version, fallback=fallback, min_version=min_version
-        )
-
     def is_installed(self, version=None, fallback=True, min_version=None):
-        """Checks if wine is installed and if the steam executable is on the
-           harddrive.
-        """
-        wine_installed = self.is_wine_installed(
-            version, fallback, min_version=min_version
-        )
-        if not wine_installed:
-            logger.warning("wine is not installed")
+        """Checks if wine is installed and if the steam executable is on the drive"""
+        if not super().is_installed(version=version, fallback=fallback, min_version=min_version):
             return False
-        steam_path = self.get_steam_path()
         if not system.path_exists(self.get_default_prefix()):
             return False
-        return system.path_exists(steam_path)
+        return system.path_exists(self.get_steam_path())
 
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
@@ -378,15 +361,21 @@ class winesteam(wine.wine):
         if steamapps_paths:
             return steamapps_paths[0]
 
-    def create_prefix(self, prefix_dir, arch=None):
+    def create_default_prefix(self, prefix_dir, arch=None):
+        """Create the default prefix for Steam
+
+        Not sure Steam will keep on working on 32bit prefixes for long.
+
+        Args:
+            prefix_path (str): Destination of the default prefix
+            arch (str): Optional architecture for the prefix, defaults to win64
+        """
         logger.debug("Creating default winesteam prefix")
-        if not arch:
-            arch = self.default_arch
-        wine_path = self.get_executable()
+        arch = arch or self.default_arch
 
         if not system.path_exists(os.path.dirname(prefix_dir)):
             os.makedirs(os.path.dirname(prefix_dir))
-        create_prefix(prefix_dir, arch=arch, wine_path=wine_path)
+        create_prefix(prefix_dir, arch=arch, wine_path=self.get_executable())
 
     def get_default_prefix(self, arch=None):
         """Return the default prefix' path."""
@@ -398,7 +387,7 @@ class winesteam(wine.wine):
             arch = self.default_arch
         prefix = self.get_default_prefix(arch=arch)
         if not system.path_exists(prefix):
-            self.create_prefix(prefix, arch=arch)
+            self.create_default_prefix(prefix, arch=arch)
         return prefix
 
     def install_game(self, appid, generate_acf=False):
