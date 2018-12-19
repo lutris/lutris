@@ -12,35 +12,85 @@ import traceback
 
 from lutris.util.log import logger
 
-TERMINAL_CANDIDATES = [
-    "xterm",
-    "gnome-terminal",
-    "konsole",
-    "xfce4-terminal",
-    "pantheon-terminal",
-    "terminator",
-    "mate-terminal",
-    "urxvt",
-    "cool-retro-term",
-    "Eterm",
-    "guake",
-    "lilyterm",
-    "lxterminal",
-    "roxterm",
-    "rxvt",
-    "aterm",
-    "sakura",
-    "st",
-    "terminology",
-    "termite",
-    "tilix",
-    "wterm",
-    "kitty",
-    "yuakuake",
-]
+SYSTEM_COMMANDS = {
+    "COMMANDS": [
+        "xrandr",
+        "fuser",
+        "glxinfo",
+        "vulkaninfo",
+        "optirun",
+        "primusrun",
+        "xboxdrv",
+        "pulseaudio",
+        "lsi-steam",
+        "fuser",
+        "7z",
+        "gtk-update-icon-cache",
+        "lspci",
+        "xgamma",
+        "ldconfig",
+        "strangle",
+        "Xephyr",
+        "nvidia-smi",
+    ],
+    "TERMINALS": [
+        "xterm",
+        "gnome-terminal",
+        "konsole",
+        "xfce4-terminal",
+        "pantheon-terminal",
+        "terminator",
+        "mate-terminal",
+        "urxvt",
+        "cool-retro-term",
+        "Eterm",
+        "guake",
+        "lilyterm",
+        "lxterminal",
+        "roxterm",
+        "rxvt",
+        "aterm",
+        "sakura",
+        "st",
+        "terminology",
+        "termite",
+        "tilix",
+        "wterm",
+        "kitty",
+        "yuakuake",
+    ]
+}
 
-# Global variable holder for currently installed terminals
-INSTALLED_TERMINALS = []
+class CommandCache:
+    _cache = {}
+
+    def __init__(self):
+        for key in SYSTEM_COMMANDS:
+            self._cache[key] = {}
+            for command in SYSTEM_COMMANDS[key]:
+                command_path = shutil.which(command)
+                if not command_path:
+                    command_path = self.get_sbin_path(command)
+                if command_path:
+                    self._cache[key][command] = command_path
+                    logger.debug("%s found in %s", command, command_path)
+                else:
+                    logger.warning("%s is not available", command)
+
+    def get_sbin_path(self, command):
+        path_candidates = ["/sbin", "/usr/sbin"]
+        for candidate in path_candidates:
+            command_path = os.path.join(candidate, command)
+            if os.path.exists(command_path):
+                return command_path
+
+    def get(self, command):
+        return self._cache["COMMANDS"].get(command)
+
+    def get_terminals(self):
+        return self._cache["TERMINALS"]
+
+COMMAND_CACHE = CommandCache()
 
 # Detect if system is 64bit capable
 IS_64BIT = sys.maxsize > 2 ** 32
@@ -147,6 +197,9 @@ def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
+    cached = COMMAND_CACHE.get(exec_name)
+    if cached:
+        return cached
     return shutil.which(exec_name)
 
 
@@ -333,16 +386,7 @@ def get_pids_using_file(path):
     if not os.path.exists(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
         return set()
-    fuser_path = None
-    fuser_output = ""
     fuser_path = find_executable("fuser")
-    if not fuser_path:
-        # Some distributions don't include sbin folders in $PATH
-        path_candidates = ["/sbin", "/usr/sbin"]
-        for candidate in path_candidates:
-            fuser_path = os.path.join(candidate, "fuser")
-            if os.path.exists(fuser_path):
-                break
     if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
         return set([])
@@ -352,12 +396,7 @@ def get_pids_using_file(path):
 
 def get_terminal_apps():
     """Return the list of installed terminal emulators"""
-    if INSTALLED_TERMINALS:
-        return INSTALLED_TERMINALS
-    for exe in TERMINAL_CANDIDATES:
-        if find_executable(exe):
-            INSTALLED_TERMINALS.append(exe)
-    return INSTALLED_TERMINALS
+    return COMMAND_CACHE.get_terminals()
 
 
 def get_default_terminal():
