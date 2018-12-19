@@ -16,7 +16,7 @@ from lutris.runtime import RuntimeUpdater
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
-from lutris.util.system import open_uri, path_exists
+from lutris.util.system import path_exists
 
 from lutris.util import http
 from lutris.util import datapath
@@ -30,6 +30,7 @@ from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.vendor.gi_composites import GtkTemplate
 
+from lutris.gui.util import open_uri
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
 from lutris.gui.logdialog import LogDialog

@@ -9,7 +9,6 @@ import string
 import subprocess
 import sys
 import traceback
-from gi.repository import Gtk, Gdk
 
 from lutris.util.log import logger
 
@@ -413,12 +412,6 @@ def reset_library_preloads():
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
             del os.environ[key]
-
-
-def open_uri(uri):
-    """Opens a local or remote URI with the default application"""
-    reset_library_preloads()
-    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
 
 
 def get_desktop_environment():

@@ -7,8 +7,8 @@ from lutris.util import datapath
 
 from lutris import runners
 from lutris import settings
-from lutris.util.system import open_uri
 from lutris.util.log import logger
+from lutris.gui.util import open_uri
 from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
