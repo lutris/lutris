@@ -295,13 +295,7 @@ class winesteam(wine.wine):
             )
             if callback:
                 callback()
-
-        if downloader:
-            downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
-        else:
-            dialog = DownloadDialog(STEAM_INSTALLER_URL, installer_path)
-            dialog.run()
-            on_steam_downloaded()
+        downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the steam executable is on the drive"""

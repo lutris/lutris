@@ -9,10 +9,17 @@ from lutris import runners
 from lutris import settings
 from lutris.util.log import logger
 from lutris.gui.util import open_uri
-from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog
+from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog, DownloadDialog
 from lutris.gui.config_dialogs import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.widgets.utils import get_icon, ICON_SIZE, get_builder_from_file
+
+
+def simple_downloader(url, destination, callback, callback_args):
+    """Default downloader used for runners"""
+    dialog = DownloadDialog(url, destination)
+    dialog.run()
+    return callback(**callback_args)
 
 
 class RunnersDialog(GtkBuilderDialog):
@@ -117,9 +124,9 @@ class RunnersDialog(GtkBuilderDialog):
         """Install a runner."""
         if runner.depends_on is not None:
             dependency = runner.depends_on()
-            dependency.install()
+            dependency.install(downloader=simple_downloader)
         try:
-            runner.install()
+            runner.install(downloader=simple_downloader)
         except (
                 runners.RunnerInstallationError,
                 runners.NonInstallableRunnerError,

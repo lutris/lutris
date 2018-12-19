@@ -34,6 +34,7 @@ def get_proton():
                     return path
     return None
 
+
 def get_playonlinux():
     """Return the folder containing PoL config files"""
     pol_path = os.path.expanduser("~/.PlayOnLinux")

@@ -308,9 +308,10 @@ class Runner:
                     self.name, self.arch
                 )
             )
+        if not downloader:
+            raise RuntimeError("Missing mandatory downloader for runner %s" % self)
         opts = {}
-        if downloader:
-            opts["downloader"] = downloader
+        opts["downloader"] = downloader
         if callback:
             opts["callback"] = callback
         if "wine" in self.name:
@@ -325,34 +326,19 @@ class Runner:
         self.download_and_extract(url, **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
+        downloader = opts["downloader"]
         merge_single = opts.get("merge_single", False)
-        downloader = opts.get("downloader")
         callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        if downloader:
-            extract_args = {
-                "archive": runner_archive,
-                "dest": dest,
-                "merge_single": merge_single,
-                "callback": callback,
-            }
-            downloader(url, runner_archive, self.on_downloaded, extract_args)
-        else:
-            dialog = dialogs.DownloadDialog(url, runner_archive)
-            dialog.run()
-            self.extract(
-                archive=runner_archive,
-                dest=dest,
-                merge_single=merge_single,
-                callback=callback,
-            )
-
-    def on_downloaded(self, widget, data, user_data):
-        """GObject callback received by downloader"""
-        self.extract(**user_data)
+        downloader(url, runner_archive, self.extract, {
+            "archive": runner_archive,
+            "dest": dest,
+            "merge_single": merge_single,
+            "callback": callback,
+        })
 
     @staticmethod
     def extract(archive=None, dest=None, merge_single=None, callback=None):
