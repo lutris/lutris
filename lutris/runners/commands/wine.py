@@ -140,6 +140,23 @@ def create_prefix(
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
+    if 'steamapps/common' in prefix.lower():
+        from lutris.runners.winesteam import winesteam
+        runner = winesteam()
+        logger.info("Transfering Steam information from default prefix to new prefix")
+        dest_path = '/tmp/steam.reg'
+        wineexec(
+            "regedit",
+            args=r"/E '%s' 'HKEY_CURRENT_USER\Software\Valve\Steam'" % dest_path,
+            prefix=runner.get_default_prefix(runner.default_arch)
+        )
+        set_regedit_file(
+            dest_path,
+            wine_path=wine_path,
+            prefix=prefix,
+            arch=arch
+        )
+        os.remove(dest_path)
 
 
 def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None):
