@@ -1022,8 +1022,6 @@ Sysoptions
 
 ``disable_runtime`` (example: ``true``)
 
-``monitor_max_cycles`` adjusts the number of cycles the monitor will wait until declaring a game as exited (example: 10)
-
 ``disable_compositor`` (example: ``true``)
 
 ``reset_pulse`` (example: ``true``)

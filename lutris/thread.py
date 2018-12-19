@@ -5,6 +5,9 @@ import sys
 import shlex
 import subprocess
 import contextlib
+import signal
+import weakref
+import functools
 from textwrap import dedent
 
 from gi.repository import GLib
@@ -19,6 +22,57 @@ from lutris.util import system
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
 DEFAULT_MAX_CYCLES = 5
 
+
+def _reentrancy_guard(func):
+    """
+    Prevents an argumentless method from having two invocations running
+    at the same time. self must be hashable.
+    """
+    guards = weakref.WeakSet()
+    @functools.wraps(func)
+    def inner(self):
+        if self not in guards:
+            guards.add(self)
+            try:
+                return func(self)
+            finally:
+                guards.remove(self)
+
+    return inner
+
+
+#
+# This setup uses SIGCHLD as a trigger to check on the runner process
+# in order to detect the monitoredcommand's complete exit early instead
+# of on the next polling interval. Because processes can be created
+# and exited very rapidly, it includes a 16 millisecond debounce.
+#
+_commands = weakref.WeakSet()
+_timeout_set = False
+
+def _trigger_early_poll():
+    global _timeout_set
+    try:
+        # prevent changes to size during iteration
+        for command in set(_commands):
+            command.watch_children()
+    except Exception:
+        logger.exception("Signal handler exception")
+    finally:
+        _timeout_set = False
+    return False
+
+def _sigchld_handler(signum, frame):
+    global _timeout_set
+    try:
+        os.wait3(os.WNOHANG)
+    except ChildProcessError:  # already handled by someone else
+        return
+    if _commands and not _timeout_set:
+        GLib.timeout_add(16, _trigger_early_poll)
+        _timeout_set = True
+
+signal.signal(signal.SIGCHLD, _sigchld_handler)
 
 class MonitoredCommand:
     """Run the game."""
@@ -36,7 +90,6 @@ class MonitoredCommand:
             include_processes=None,
             exclude_processes=None,
             log_buffer=None,
-            max_cycles=DEFAULT_MAX_CYCLES
     ):
         self.ready_state = True
         if env is None:
@@ -57,16 +110,11 @@ class MonitoredCommand:
         self.error = None
         self.log_buffer = log_buffer
         self.stdout_monitor = None
+        self.watch_children_running = False
 
         # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
-        if max_cycles < 0:
-            logger.warning("Invalid value for maximum number of cycles: %s, using default: %s",
-                           max_cycles,
-                           DEFAULT_MAX_CYCLES)
-            max_cycles = DEFAULT_MAX_CYCLES
         self.process_monitor = ProcessMonitor(
-            max_cycles,
             include_processes,
             exclude_processes,
             "run_in_term.sh" if self.terminal else None
@@ -111,6 +159,7 @@ class MonitoredCommand:
             logger.warning("No game process available")
             return
 
+        _commands.add(self)
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
             self.stdout_monitor = GLib.io_add_watch(
@@ -202,6 +251,11 @@ class MonitoredCommand:
 
     def stop(self):
         """Stops the current game process and cleans up the thread"""
+        try:
+            _commands.remove(self)
+        except KeyError:  # may have never been added.
+            pass
+
         # Remove logger early to avoid issues with zombie processes
         # (unconfirmed)
         if self.stdout_monitor:
@@ -231,6 +285,7 @@ class MonitoredCommand:
                     process.children.append(wineprocess)
         return process
 
+    @_reentrancy_guard
     def watch_children(self):
         """Poke at the running process(es).
 
