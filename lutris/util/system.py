@@ -73,9 +73,6 @@ class CommandCache:
                     command_path = self.get_sbin_path(command)
                 if command_path:
                     self._cache[key][command] = command_path
-                    logger.debug("%s found in %s", command, command_path)
-                else:
-                    logger.warning("%s is not available", command)
 
     def get_sbin_path(self, command):
         path_candidates = ["/sbin", "/usr/sbin"]
@@ -88,7 +85,7 @@ class CommandCache:
         return self._cache["COMMANDS"].get(command)
 
     def get_terminals(self):
-        return self._cache["TERMINALS"]
+        return list(self._cache["TERMINALS"].values())
 
 COMMAND_CACHE = CommandCache()
 
