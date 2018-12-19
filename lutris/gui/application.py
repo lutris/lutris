@@ -1,4 +1,4 @@
-# pylint: disable=no-member
+# pylint: disable=no-member,wrong-import-position
 #
 # Copyright (C) 2016 Patrick Griffis <tingping@tingping.se>
 #
@@ -23,10 +23,11 @@ import sys
 import gettext
 from gettext import gettext as _
 
-import gi  # isort:skip
+import gi
 
-gi.require_version("Gdk", "3.0")  # NOQA # isort:skip
-gi.require_version("Gtk", "3.0")  # NOQA # isort:skip
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga

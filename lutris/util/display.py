@@ -2,48 +2,20 @@
 import os
 import re
 import subprocess
-import time
-
 from collections import namedtuple
-
-import gi
-
-gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gdk, GnomeDesktop, GLib
 
 from lutris.util import system
 from lutris.util.log import logger
 
-XRANDR_CACHE = None
-XRANDR_CACHE_SET_AT = None
 XGAMMA_FOUND = None
 
 
-def cached(func):
-    """Something that does not belong here"""
-
-    def wrapper():
-        """What does it feel being WRONG"""
-        global XRANDR_CACHE  # Fucked up shit
-        global XRANDR_CACHE_SET_AT  # Moar fucked up globals
-
-        if XRANDR_CACHE and time.time() - XRANDR_CACHE_SET_AT < 60:
-            return XRANDR_CACHE
-        XRANDR_CACHE = func()
-        XRANDR_CACHE_SET_AT = time.time()
-        return XRANDR_CACHE
-
-    return wrapper
-
-
-@cached
 def get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
-    xrandr_output = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE).communicate()[
-        0
-    ]
+    xrandr_output = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE).communicate()[0]
     return list([line for line in xrandr_output.decode().split("\n")])
 
 
