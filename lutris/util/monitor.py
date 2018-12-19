@@ -33,6 +33,10 @@ EXCLUDED_PROCESSES = [
     "PnkBstrA.exe",
     "control",
     "wineserver",
+    "services.exe",
+    "winedevice.exe",
+    "plugplay.exe",
+    "explorer.exe",
     "winecfg.exe",
     "wdfmgr.exe",
     "wineconsole",
@@ -73,14 +77,12 @@ def set_child_subreaper():
 class ProcessMonitor:
     """Class to keep track of a process and its children status"""
 
-    def __init__(self, max_cycles, include_processes, exclude_processes, exclusion_process):
+    def __init__(self, include_processes, exclude_processes, exclusion_process):
         """Creates a process monitor
 
         All arguments accept process names like the ones in EXCLUDED_PROCESSES
 
         Args:
-            max_cycles (int): number of cycles without children the monitor
-                              should wait before considering the game dead
             exclude_processes (str or list): list of processes that shouldn't be monitored
             include_processes (str or list): list of process that should be forced to be monitored
             exclusion_process (str): If given, ignore all process before this one
@@ -94,8 +96,6 @@ class ProcessMonitor:
             x[0:15] for x in EXCLUDED_PROCESSES + self.parse_process_list(exclude_processes)
         ]
         self.exclusion_process = exclusion_process
-        self.cycles_without_children = 0
-        self.max_cycles = int(max_cycles)
         self.old_pids = system.get_all_pids()
         # Keep a copy of the monitored processes to allow comparisons
         self.monitored_processes = defaultdict(list)
@@ -116,8 +116,7 @@ class ProcessMonitor:
         for child in process.children:
             if topdown:
                 yield child
-            for granchild in self.iter_children(child, topdown=topdown):
-                yield granchild
+            yield from self.iter_children(child, topdown=topdown)
             if not topdown:
                 yield child
 
@@ -128,8 +127,12 @@ class ProcessMonitor:
         has_passed_exclusion_process = False
         processes = defaultdict(list)
         for child in self.iter_children(process):
-            if child.state == 'Z':
-                os.wait3(os.WNOHANG)
+            if child.state == 'Z':  # should never happen anymore...
+                logger.debug("Unexpected zombie process %s", child)
+                try:
+                    os.wait3(os.WNOHANG)
+                except ChildProcessError:
+                    pass
                 continue
 
             if self.exclusion_process:
@@ -152,6 +155,7 @@ class ProcessMonitor:
                 processes["excluded"].append(str(child))
                 continue
             num_watched_children += 1
+
         for child in self.monitored_processes["monitored"]:
             if child not in processes["monitored"]:
                 self.children.append(child)
@@ -167,10 +171,8 @@ class ProcessMonitor:
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
             self.monitoring_started = True
+
         if num_watched_children == 0 and self.monitoring_started:
-            self.cycles_without_children += 1
-            if self.cycles_without_children >= self.max_cycles:
-                logger.info("Monitor detected no activity on the process")
-                return False
+            return False
 
         return True
