@@ -1,9 +1,9 @@
 dist: xenial
 language: python
 python:
+  - "3.4"
   - "3.5"
-virtualenv:
-  system_site_packages: true
+  - "3.6"
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
