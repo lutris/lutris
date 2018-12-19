@@ -95,7 +95,10 @@ def fetch_icon(slug, media_type="banner"):
     if not lutris_media:
         return
     game = lutris_media[0]
+    if "url" not in game:
+        raise ValueError("Invalid game: %s" % game)
     download_media(game["url"], get_icon_path(slug, BANNER if media_type == "banner" else ICON))
+
 
 def udpate_desktop_icons():
     """Update Icon for GTK+ desktop manager"""
