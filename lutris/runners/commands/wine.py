@@ -22,13 +22,13 @@ from lutris.util.wine.prefix import WinePrefixManager
 
 
 def set_regedit(
-    path,
-    key,
-    value="",
-    type="REG_SZ",  # pylint: disable=redefined-builtin
-    wine_path=None,
-    prefix=None,
-    arch="win32",
+        path,
+        key,
+        value="",
+        type="REG_SZ",  # pylint: disable=redefined-builtin
+        wine_path=None,
+        prefix=None,
+        arch="win32",
 ):
     """Add keys to the windows registry.
 
@@ -83,12 +83,12 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch="win32"):
 
 
 def create_prefix(
-    prefix,
-    wine_path=None,
-    arch="win32",
-    overrides={},
-    install_gecko=None,
-    install_mono=None,
+        prefix,
+        wine_path=None,
+        arch="win32",
+        overrides={},
+        install_gecko=None,
+        install_mono=None,
 ):
     """Create a new Wine prefix."""
     logger.debug("Creating a %s prefix in %s", arch, prefix)
@@ -183,20 +183,20 @@ def winekill(prefix, arch="win32", wine_path=None, env=None, initial_pids=None):
 
 
 def wineexec(
-    executable,
-    args="",
-    wine_path=None,
-    prefix=None,
-    arch=None,  # pylint: disable=too-many-locals
-    working_dir=None,
-    winetricks_wine="",
-    blocking=False,
-    config=None,
-    include_processes=[],
-    exclude_processes=[],
-    disable_runtime=False,
-    env={},
-    overrides=None,
+        executable,
+        args="",
+        wine_path=None,
+        prefix=None,
+        arch=None,  # pylint: disable=too-many-locals
+        working_dir=None,
+        winetricks_wine="",
+        blocking=False,
+        config=None,
+        include_processes=[],
+        exclude_processes=[],
+        disable_runtime=False,
+        env={},
+        overrides=None,
 ):
     """
     Execute a Wine command.
@@ -289,13 +289,13 @@ def wineexec(
 
 
 def winetricks(
-    app,
-    prefix=None,
-    arch=None,
-    silent=True,
-    wine_path=None,
-    config=None,
-    disable_runtime=False,
+        app,
+        prefix=None,
+        arch=None,
+        silent=True,
+        wine_path=None,
+        config=None,
+        disable_runtime=False,
 ):
     """Execute winetricks."""
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
@@ -349,6 +349,7 @@ def winecfg(wine_path=None, prefix=None, arch="win32", config=None):
 
 def joycpl(wine_path=None, prefix=None, config=None):
     """Execute Joystick control panel."""
+    logger.debug("What is config and why do we need it? %s", config)
     arch = detect_arch(prefix, wine_path)
     wineexec("control", prefix=prefix, wine_path=wine_path, arch=arch, args="joy.cpl")
 

@@ -11,7 +11,6 @@ from lutris.util import datapath
 from lutris.util.log import logger
 
 import gi
-
 gi.require_version("WebKit2", "4.0")
 
 from gi.repository import GLib, GObject, Gtk, WebKit2

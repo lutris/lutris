@@ -396,10 +396,10 @@ class winesteam(wine.wine):
         subprocess.Popen(command, env=self.get_env())
 
     def prelaunch(self):
-        super(winesteam, self).prelaunch()
+        super().prelaunch()
 
-        def check_shutdown(is_running, times=10):
-            for x in range(1, times + 1):
+        def has_steam_shutdown(times=10):
+            for _ in range(1, times + 1):
                 time.sleep(1)
                 if not is_running():
                     return True
@@ -408,10 +408,10 @@ class winesteam(wine.wine):
         if is_running():
             logger.info("Waiting for Steam to shutdown...")
             self.shutdown()
-            if not check_shutdown(is_running):
-                logger.info("Wine Steam does not shut down, killing it...")
+            if not has_steam_shutdown():
+                logger.info("Forcing Steam shutdown")
                 kill()
-                if not check_shutdown(is_running, 5):
+                if not has_steam_shutdown(5):
                     logger.error("Failed to shut down Wine Steam :(")
                     return False
         return True
