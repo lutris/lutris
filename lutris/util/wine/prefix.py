@@ -1,9 +1,10 @@
+"""Wine prefix management"""
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
 from lutris.util import joypad, system
 
-desktop_folders = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 
 
 class WinePrefixManager:
@@ -12,13 +13,20 @@ class WinePrefixManager:
     hkcu_prefix = "HKEY_CURRENT_USER"
 
     def __init__(self, path):
+        if not path:
+            logger.warning("No path specified for Wine prefix")
         self.path = path
 
     def setup_defaults(self):
+        """Sets the defaults for newly created prefixes"""
         self.override_dll("winemenubuilder.exe", "")
         self.desktop_integration()
 
     def get_registry_path(self, key):
+        """Matches registry keys to a registry file
+
+        Currently, only HKEY_CURRENT_USER keys are supported.
+        """
         if key.startswith(self.hkcu_prefix):
             return os.path.join(self.path, "user.reg")
         raise ValueError("Unsupported key '{}'".format(key))
@@ -67,7 +75,7 @@ class WinePrefixManager:
 
         if system.path_exists(user_dir):
             # Replace desktop integration symlinks
-            for item in desktop_folders:
+            for item in DESKTOP_FOLDERS:
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
@@ -93,7 +101,7 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
-                if item not in desktop_folders and os.path.islink(path):
+                if item not in DESKTOP_FOLDERS and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 
