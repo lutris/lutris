@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 import time
 
 from gi.repository import Gtk, Gdk, GObject, Pango, GLib
@@ -59,13 +60,13 @@ class GameStore(GObject.Object):
     }
 
     def __init__(
-        self,
-        games,
-        icon_type,
-        filter_installed,
-        sort_key,
-        sort_ascending,
-        show_installed_first=False,
+            self,
+            games,
+            icon_type,
+            filter_installed,
+            sort_key,
+            sort_ascending,
+            show_installed_first=False,
     ):
         super(GameStore, self).__init__()
         self.games = games

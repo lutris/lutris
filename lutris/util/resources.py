@@ -121,6 +121,7 @@ def download_media(url, dest, overwrite=False):
     request.write_to_file(dest)
     return dest
 
+
 def parse_installer_url(url):
     """
     Parses `lutris:` urls, extracting any info necessary to install or run a game.

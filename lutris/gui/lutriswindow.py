@@ -660,24 +660,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
-        """Callback for the search input keypresses.
-
-        Uses debouncing to avoid Gtk warnings like:
-        gtk_tree_model_filter_real_unref_node: assertion 'elt->ref_count > 0' failed
-
-        It doesn't seem to be very effective though and the Gtk warnings are still here.
-        """
-        if self.search_event:
-            GLib.source_remove(self.search_event)
-        self.search_event = GLib.timeout_add(
-            300, self._do_search_filter, widget.get_text()
-        )
-
-    def _do_search_filter(self, search_terms):
-        self.game_store.filter_text = search_terms
+        """Callback for the search input keypresses"""
+        self.game_store.filter_text = widget.get_text()
         self.invalidate_game_filter()
-        self.search_event = None
-        return False
 
     @GtkTemplate.Callback
     def on_search_toggle(self, button):
