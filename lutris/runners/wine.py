@@ -562,13 +562,13 @@ class wine(Runner):
 
     @classmethod
     def msi_exec(
-        cls,
-        msi_file,
-        quiet=False,
-        prefix=None,
-        wine_path=None,
-        working_dir=None,
-        blocking=False,
+            cls,
+            msi_file,
+            quiet=False,
+            prefix=None,
+            wine_path=None,
+            working_dir=None,
+            blocking=False,
     ):
         msi_args = "/i %s" % msi_file
         if quiet:

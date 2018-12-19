@@ -304,6 +304,23 @@ class winesteam(wine.wine):
             return False
         return system.path_exists(self.get_steam_path())
 
+    def transfer_steam_registry(self, dest_path):
+        """Export the contents of the Steam registry to a file.
+
+        This is useful for moving a Steam install across prefixes
+        and keep the authentication credentials.
+        """
+        dest_path = '/tmp/steam.reg'
+        wineexec(
+            "regedit",
+            args=r"/E '%s' 'HKEY_CURRENT_USER\Software\Valve\Steam'" % dest_path,
+            prefix=self.get_default_prefix(self.default_arch)
+        )
+        set_regedit_file(
+            dest_path,
+            prefix=self.prefix_path
+        )
+
     def get_appid_list(self):
         """Return the list of appids of all user's games"""
         steam_config = self.get_steam_config()
