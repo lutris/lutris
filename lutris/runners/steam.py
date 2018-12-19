@@ -277,24 +277,21 @@ class steam(Runner):
         subprocess.Popen(command)
 
     def prelaunch(self):
-        def check_shutdown(is_running, times=10):
-            for _ in range(1, times):
+        def has_steam_shutdown(times=10):
+            for _ in range(times):
                 time.sleep(1)
                 if not is_running():
                     return True
 
         # If using primusrun, shutdown existing Steam first
-        optimus = self.system_config.get("optimus")
-        if optimus != "off":
-            if is_running():
-                logger.info("Waiting for Steam shutdown...")
-                shutdown()
-                if not check_shutdown(is_running):
-                    logger.info("Steam does not shut down, killing it...")
-                    kill()
-                    if not check_shutdown(is_running, 5):
-                        logger.error("Failed to shut down Steam :(")
-                        return False
+        if self.system_config.get("optimus") != "off" and is_running():
+            shutdown()
+            if not has_steam_shutdown():
+                logger.info("Forcing Steam shutdown")
+                kill()
+                if not has_steam_shutdown(5):
+                    logger.error("Failed to shut down Steam :(")
+                    return False
         return True
 
     def get_run_data(self):
