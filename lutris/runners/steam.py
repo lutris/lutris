@@ -201,17 +201,11 @@ class steam(Runner):
 
     @property
     def launch_args(self):
+        """Provide launch arguments for Steam"""
         args = [self.get_executable()]
-
         if self.runner_config.get("start_in_big_picture"):
             args.append("-bigpicture")
-
-        steam_args = self.runner_config.get("args") or ""
-        if steam_args:
-            for arg in shlex.split(steam_args):
-                args.append(arg)
-
-        return args
+        return args + shlex.split(self.runner_config.get("args") or "")
 
     def get_env(self):
         env = super(steam, self).get_env()
