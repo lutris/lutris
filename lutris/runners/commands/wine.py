@@ -145,10 +145,11 @@ def create_prefix(
         runner = winesteam()
         logger.info("Transfering Steam information from default prefix to new prefix")
         dest_path = '/tmp/steam.reg'
+        default_prefix = runner.get_default_prefix(runner.default_arch)
         wineexec(
             "regedit",
             args=r"/E '%s' 'HKEY_CURRENT_USER\Software\Valve\Steam'" % dest_path,
-            prefix=runner.get_default_prefix(runner.default_arch)
+            prefix=default_prefix
         )
         set_regedit_file(
             dest_path,
@@ -157,6 +158,10 @@ def create_prefix(
             arch=arch
         )
         os.remove(dest_path)
+        steam_drive_path = os.path.join(prefix, 'dosdevices', 's:')
+        if not system.path_exists(steam_drive_path):
+            logger.info("Linking Steam default prefix to drive S:")
+            os.symlink(os.path.join(default_prefix, 'drive_c'), steam_drive_path)
 
 
 def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None):
