@@ -61,7 +61,9 @@ SYSTEM_COMMANDS = {
     ]
 }
 
+
 class CommandCache:
+    """Global cache for system commands"""
     _cache = {}
 
     def __init__(self):
@@ -74,7 +76,9 @@ class CommandCache:
                 if command_path:
                     self._cache[key][command] = command_path
 
-    def get_sbin_path(self, command):
+    @staticmethod
+    def get_sbin_path(command):
+        """Some distributions don't put sbin directories in $PATH"""
         path_candidates = ["/sbin", "/usr/sbin"]
         for candidate in path_candidates:
             command_path = os.path.join(candidate, command)
@@ -82,9 +86,11 @@ class CommandCache:
                 return command_path
 
     def get(self, command):
+        """Return a system command path if available"""
         return self._cache["COMMANDS"].get(command)
 
     def get_terminals(self):
+        """Return list of installed terminals"""
         return list(self._cache["TERMINALS"].values())
 
 
