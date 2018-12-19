@@ -209,20 +209,13 @@ class winesteam(wine.wine):
 
     @property
     def launch_args(self):
-        # Try to fix Steam's browser. Never worked but it's supposed to...
-        args = [
+        """Provide launch arguments for Steam"""
+        return [
             self.get_executable(),
             self.get_steam_path(),
             "-no-cef-sandbox",
             "-console",
-        ]
-
-        steam_args = self.runner_config.get("args") or ""
-        if steam_args:
-            for arg in shlex.split(steam_args):
-                args.append(arg)
-
-        return args
+        ] + shlex.split(self.runner_config.get("args") or "")
 
     @staticmethod
     def get_open_command(registry):
