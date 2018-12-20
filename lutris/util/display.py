@@ -202,15 +202,15 @@ def get_graphics_adapaters():
     Returns:
         list: list of tuples containing PCI ID and description of the VGA adapter
     """
-
-    if not system.find_executable("lspci"):
+    lspci_path = system.find_executable("lspci")
+    if not lspci_path:
         logger.warning("lspci is not available. List of graphics cards not available")
         return []
     return [
         (pci_id, vga_desc.split(": ")[1])
         for pci_id, vga_desc in [
             line.split(maxsplit=1)
-            for line in system.execute("lspci").split("\n")
+            for line in system.execute(lspci_path).split("\n")
             if "VGA" in line
         ]
     ]
