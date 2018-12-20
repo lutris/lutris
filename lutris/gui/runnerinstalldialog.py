@@ -1,8 +1,8 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring,no-member
 import os
 import random
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.dialogs import Dialog
@@ -189,9 +189,9 @@ class RunnerInstallDialog(Dialog):
 
     def on_extracted(self, row_info, error):
         """Called when a runner archive is extracted"""
-        if error:
-            logger.error("Error while extracting archive")
-            # Should probably exit here
+        if error or not row_info:
+            ErrorDialog("Failed to retrieve the runner archive", parent=self)
+            return
         src, row = row_info
         os.remove(src)
         row[self.COL_PROGRESS] = 0
@@ -199,7 +199,7 @@ class RunnerInstallDialog(Dialog):
         self.renderer_progress.props.text = ""
         self.installing.pop(row[self.COL_VER])
 
-    def on_response(self, dialog, response):
+    def on_response(self, _dialog, _response):
         self.destroy()
 
 
