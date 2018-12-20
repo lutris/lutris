@@ -163,10 +163,13 @@ class ProcessMonitor:
 
         for key in processes:
             if processes[key] != self.monitored_processes[key]:
+                process_pids = {p.split(":")[0] for p in processes[key]}
+                monitored_pids = {p.split(":")[0] for p in self.monitored_processes[key]}
                 self.monitored_processes[key] = processes[key]
-                logger.debug(
-                    "Processes %s: %s", key, ", ".join(processes[key]) or "no process"
-                )
+                if process_pids != monitored_pids:
+                    logger.debug(
+                        "Processes %s: %s", key, ", ".join(processes[key]) or "no process"
+                    )
 
         if num_watched_children > 0 and not self.monitoring_started:
             logger.debug("Start process monitoring")
