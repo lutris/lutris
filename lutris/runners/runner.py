@@ -341,7 +341,11 @@ class Runner:
     def extract(archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
             raise RunnerInstallationError("Failed to extract {}".format(archive))
-        extract_archive(archive, dest, merge_single=merge_single)
+        try:
+            extract_archive(archive, dest, merge_single=merge_single)
+        except EOFError:
+            logger.error("Failed to extract the archive %s file may be corrupt", archive)
+            return
         os.remove(archive)
         if callback:
             callback()
