@@ -458,9 +458,9 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        prefix_path = self.game_config.get("prefix", "")
+        prefix_path = self.game_config.get("prefix")
         if not prefix_path:
-            prefix_path = os.environ.get("WINEPREFIX", "")
+            prefix_path = os.environ.get("WINEPREFIX") or "~/.wine"
         return os.path.expanduser(prefix_path)
 
     @property
