@@ -7,43 +7,6 @@ from lutris import runners
 # from lutris.util.log import logger
 from lutris.util import display, system
 
-DISPLAYS = None
-
-
-def get_displays():
-    global DISPLAYS
-    if not DISPLAYS:
-        DISPLAYS = display.get_output_names()
-    return DISPLAYS
-
-
-def get_resolution_choices():
-    resolutions = display.get_resolutions()
-    resolution_choices = list(zip(resolutions, resolutions))
-    resolution_choices.insert(0, ("Keep current", "off"))
-    return resolution_choices
-
-
-def get_output_choices():
-    displays = get_displays()
-    output_choices = list(zip(displays, displays))
-    output_choices.insert(0, ("Off", "off"))
-    return output_choices
-
-
-def get_output_list():
-    choices = [("Off", "off")]
-    displays = get_displays()
-    for index, _ in enumerate(displays):
-        # Display name can't be used because they might not be in the right order
-        # Using DISPLAYS to get the number of connected monitors
-        choices.append(("Monitor {}".format(index + 1), str(index)))
-    return choices
-
-
-def get_dri_prime():
-    return len(display.get_providers()) > 1
-
 
 def get_optirun_choices():
     choices = [("Off", "off")]

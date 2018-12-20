@@ -10,7 +10,7 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-def get_vidmodes():
+def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
     xrandr_output = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE).communicate()[0]
@@ -26,7 +26,7 @@ def get_outputs():
     """Return list of namedtuples containing output 'name', 'geometry',
     'rotation' and wether it is the 'primary' display."""
     outputs = []
-    vid_modes = get_vidmodes()
+    vid_modes = _get_vidmodes()
     position = None
     rotate = None
     primary = None
@@ -93,7 +93,7 @@ def turn_off_except(display):
 def get_resolutions():
     """Return the list of supported screen resolutions."""
     resolution_list = []
-    for line in get_vidmodes():
+    for line in _get_vidmodes():
         if line.startswith("  "):
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
@@ -111,7 +111,7 @@ def get_unique_resolutions():
 def get_current_resolution(monitor=0):
     """Return the current resolution for the desktop."""
     resolution = list()
-    for line in get_vidmodes():
+    for line in _get_vidmodes():
         if line.startswith("  ") and "*" in line:
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
@@ -196,7 +196,7 @@ def get_xrandr_version():
         return {"major": 0, "minor": 0}
 
 
-def get_graphics_adapaters():
+def _get_graphics_adapters():
     """Return the list of graphics cards available on a system
 
     Returns:
@@ -217,40 +217,22 @@ def get_graphics_adapaters():
 
 
 class LegacyDisplayManager:
-    @staticmethod
-    def get_resolutions():
-        return get_resolutions()
-
-    @staticmethod
-    def get_display_names():
-        return get_output_names()
+    get_display_names = staticmethod(get_output_names)
+    get_resolutions = staticmethod(get_resolutions)
 
 
 class DisplayManager(object):
     def __init__(self):
-        self.screen = Gdk.Screen.get_default()
-        self.rr_screen = GnomeDesktop.RRScreen.new(self.screen)
+        screen = Gdk.Screen.get_default()
+        self.rr_screen = GnomeDesktop.RRScreen.new(screen)
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
-
-    @property
-    def outputs(self):
-        return self.rr_screen.list_outputs()
 
     def get_display_names(self):
         return [
             output_info.get_display_name()
             for output_info in self.rr_config.get_outputs()
         ]
-
-    def get_output_modes(self, output):
-        logger.debug("Retrieving modes for %s", output)
-        resolutions = []
-        for mode in output.list_modes():
-            resolution = "%sx%s" % (mode.get_width(), mode.get_height())
-            if resolution not in resolutions:
-                resolutions.append(resolution)
-        return resolutions
 
     def get_resolutions(self):
         resolutions = []
@@ -266,7 +248,7 @@ try:
 except GLib.Error:
     DISPLAY_MANAGER = LegacyDisplayManager()
 
-USE_DRI_PRIME = len(get_graphics_adapaters()) > 1
+USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
 
 
 def get_resolution_choices():
@@ -299,22 +281,6 @@ def get_output_list():
         # Using DISPLAYS to get the number of connected monitors
         choices.append((output, str(index)))
     return choices
-
-
-def get_providers():
-    """Return the list of available graphic cards"""
-    providers = []
-    lspci_cmd = system.find_executable("lspci")
-    if not lspci_cmd:
-        logger.warning("lspci is not installed, unable to list graphics providers")
-        return providers
-    providers_cmd = (
-        subprocess.Popen([lspci_cmd], stdout=subprocess.PIPE).communicate()[0].decode()
-    )
-    for provider in providers_cmd.strip().split("\n"):
-        if "VGA" in provider:
-            providers.append(provider)
-    return providers
 
 
 def get_compositor_commands():
