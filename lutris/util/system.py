@@ -32,6 +32,7 @@ SYSTEM_COMMANDS = {
         "strangle",
         "Xephyr",
         "nvidia-smi",
+        "wine"
     ],
     "TERMINALS": [
         "xterm",

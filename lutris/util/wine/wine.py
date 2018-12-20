@@ -198,6 +198,8 @@ def get_system_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
         return
+    if wine_path == "wine" and not system.find_executable("wine"):
+        return
     if os.path.isabs(wine_path):
         wine_stats = os.stat(wine_path)
         if wine_stats.st_size < 2000:
