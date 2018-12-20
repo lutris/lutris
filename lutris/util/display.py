@@ -13,8 +13,8 @@ from lutris.util.log import logger
 def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
-    xrandr_output = subprocess.Popen(["xrandr"], stdout=subprocess.PIPE).communicate()[0]
-    return list([line for line in xrandr_output.decode().split("\n")])
+    xrandr_output = subprocess.check_output(["xrandr"])
+    return xrandr_output.decode().split("\n")
 
 
 Output = namedtuple(
@@ -24,7 +24,7 @@ Output = namedtuple(
 
 def get_outputs():
     """Return list of namedtuples containing output 'name', 'geometry',
-    'rotation' and wether it is the 'primary' display."""
+    'rotation' and whether it is the 'primary' display."""
     outputs = []
     vid_modes = _get_vidmodes()
     position = None
@@ -35,32 +35,23 @@ def get_outputs():
         logger.error("xrandr didn't return anything")
         return []
     for line in vid_modes:
-        parts = line.split()
-        if len(parts) < 2:
-            continue
-        if parts[1] == "connected":
-            if len(parts) == 2:
-                continue
-            if parts[2] == "primary":
-                geom = parts[3]
-                rotate = parts[4]
-                primary = True
+        if "connected" in line:
+            primary = "primary" in line
+            if primary:
+                name, _, _, geometry, rotate, *_ = line.split()
             else:
-                geom = parts[2]
-                rotate = parts[3]
-                primary = False
-            if geom.startswith("("):  # Screen turned off, no geometry
+                name, _, geometry, rotate, *_ = line.split()
+            if geometry.startswith("("):  # Screen turned off, no geometry
                 continue
             if rotate.startswith("("):  # Screen not rotated, no need to include
                 rotate = "normal"
-            geom_parts = geom.split("+")
-            position = geom_parts[1] + "x" + geom_parts[2]
-            name = parts[0]
+            _, x_pos, y_pos = geometry.split("+")
+            position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
         elif "*" in line:
-            mode = parts[0]
-            for number in parts:
+            mode, *framerates = line.split()
+            for number in framerates:
                 if "*" in number:
-                    hertz = number[:5]
+                    hertz = number[:-2]
                     outputs.append(
                         Output(
                             name=name,
@@ -71,6 +62,7 @@ def get_outputs():
                             rate=hertz,
                         )
                     )
+                    break
     return outputs
 
 
@@ -172,9 +164,9 @@ def change_resolution(resolution):
 def restore_gamma():
     """Restores gamma to a normal level."""
     xgamma_path = system.find_executable("xgamma")
-    if xgamma_path:
+    try:
         subprocess.Popen([xgamma_path, "-gamma", "1.0"])
-    else:
+    except FileNotFoundError:
         logger.warning("xgamma is not available on your system")
 
 
