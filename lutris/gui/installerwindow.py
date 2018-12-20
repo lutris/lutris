@@ -403,17 +403,16 @@ class InstallerWindow(Gtk.ApplicationWindow):
             {"url": file_uri, "dest": dest_file, "referer": referer}, cancelable=True
         )
         self.download_progress.cancel_button.hide()
-        self.download_progress.connect("complete", lambda *args: self.on_download_complete(args, callback), data)
+        self.download_progress.connect("complete", self.on_download_complete, callback, data)
         self.widget_box.pack_start(self.download_progress, False, False, 10)
         self.download_progress.show()
         self.download_progress.start()
         self.interpreter.abort_current_task = self.download_progress.cancel
 
-    def on_download_complete(self, args, callback=None):
+    def on_download_complete(self, _widget, _data, callback=None, callback_data=None):
         """Action called on a completed download."""
-
         if callback:
-            callback(*args)
+            callback(**callback_data)
 
         self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
