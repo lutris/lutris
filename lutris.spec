@@ -41,6 +41,7 @@ BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
 Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
 Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0
+Requires:       fluid-soundfont-gm
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
