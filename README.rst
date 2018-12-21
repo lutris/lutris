@@ -119,3 +119,5 @@ You can always reach us on:
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
 * Email: contact@lutris.net
+
+And you can also support us here on Patreon: https://www.patreon.com/lutris
