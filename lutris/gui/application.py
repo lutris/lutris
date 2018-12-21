@@ -37,14 +37,15 @@ from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
-from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steamapps_paths
 from lutris.settings import read_setting, VERSION
 from lutris.thread import exec_in_thread
+from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
+from lutris.util.steam.config import get_steamapps_paths
 from lutris.util import datapath
 from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
 from lutris.util.resources import parse_installer_url
 from lutris.util.monitor import set_child_subreaper
+from lutris.util.system import check_libs
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray
@@ -64,6 +65,7 @@ class Application(Gtk.Application):
         check_config()
         migrate()
         update_platforms()
+        check_libs()
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = []
@@ -102,7 +104,7 @@ class Application(Gtk.Application):
             )
         else:
             logger.warning(
-                "GLib.set_option_context_summary was added in GLib 2.56 (Released 2018-03-12)"
+                "GLib.set_option_context_summary missing, was added in GLib 2.56 (Released 2018-03-12)"
             )
         self.add_main_option(
             "version",

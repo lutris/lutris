@@ -151,6 +151,14 @@ GAMEMODE_PATH = next(
 )
 
 
+def check_libs():
+    """Checks that required libraries are installed on the system"""
+    missing_libs = COMMAND_CACHE.get_missing_libs()
+    for index, arch in enumerate(("32", "64")):
+        for lib in missing_libs[index]:
+            logger.error("%s bit %s missing", arch, lib)
+
+
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
     """
         Execute a system command and return its results.
