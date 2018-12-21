@@ -28,7 +28,8 @@ Depends: ${misc:Depends},
  cabextract,
  unzip,
  p7zip,
- curl
+ curl,
+ fluid-soundfont-gs
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
