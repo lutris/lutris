@@ -91,6 +91,10 @@ class CommandCache:
         ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
         ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
     ]
+    soundfont_folders = [
+        '/usr/share/sounds/sf2',
+        '/usr/share/soundfonts',
+    ]
 
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
@@ -102,6 +106,7 @@ class CommandCache:
                 if command_path:
                     self._cache[key][command] = command_path
         self.populate_libraries()
+        self.populate_sound_fonts()
 
     @staticmethod
     def get_sbin_path(command):
@@ -128,6 +133,10 @@ class CommandCache:
         """Return list of installed terminals"""
         return list(self._cache["TERMINALS"].values())
 
+    def get_soundfonts(self):
+        """Return path of available soundfonts"""
+        return self._cache["SOUNDFONTS"]
+
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
         for lib_paths in self.lib_folders:
@@ -146,6 +155,15 @@ class CommandCache:
                         self._cache["LIBRARIES"]["i386"][req].append(lib)
                     if os.path.exists(os.path.join(lib64_path, lib)):
                         self._cache["LIBRARIES"]["x86_64"][req].append(lib)
+
+    def populate_sound_fonts(self):
+        """Populates the soundfont cache"""
+        self._cache["SOUNDFONTS"] = []
+        for folder in self.soundfont_folders:
+            if not os.path.exists(folder):
+                continue
+            for soundfont in os.listdir(folder):
+                self._cache["SOUNDFONTS"].append(soundfont)
 
     def get_missing_libs(self):
         """Return a tuple of 32 and 64bit missing libraries"""
