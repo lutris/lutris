@@ -99,7 +99,7 @@ class zdoom(Runner):
     def prelaunch(self):
         if not system.COMMAND_CACHE.get('fluidsynth'):
             logger.warning("FluidSynth is not installed, you might not have any music")
-        return False
+        return True
 
     def play(self):
         command = [self.get_executable()]
