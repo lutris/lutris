@@ -483,8 +483,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.continue_handler = self.continue_button.connect(
             "clicked", callback, alias, combobox
         )
-        if not preselect:
-            self.continue_button.set_sensitive(False)
         self.continue_button.grab_focus()
         self.continue_button.show()
 
