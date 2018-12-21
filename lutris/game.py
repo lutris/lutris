@@ -354,9 +354,10 @@ class Game(GObject.Object):
                 xephyr_resolution + "x" + xephyr_depth,
                 "-glamor",
                 "-reset",
-                "-terminate",
-                "-fullscreen",
+                "-terminate"
             ]
+            if system_config.get("xephyr_fullscreen"):
+                xephyr_command.append("-fullscreen")
 
             xephyr_thread = MonitoredCommand(xephyr_command)
             xephyr_thread.start()

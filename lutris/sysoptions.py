@@ -356,6 +356,14 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": "Screen resolution of the Xephyr server",
     },
+    {
+        "option": "xephyr_fullscreen",
+        "type": "bool",
+        "label": "Xephyr Fullscreen",
+        "default": True,
+        "advanced": True,
+        "help": "Open Xephyr in fullscreen (at the desktop resolution)",
+    },
 ]
 
 
