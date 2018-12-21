@@ -8,6 +8,7 @@ from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
+from lutris.util.system import COMMAND_CACHE
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 
@@ -234,19 +235,9 @@ def get_paths(prefer_system_libs=True, wine_path=None):
 
             # This prioritizes system libraries over
             # the Lutris and Steam runtimes.
-            paths.append("/usr/lib")
-            if system.path_exists("/usr/lib32"):
-                paths.append("/usr/lib32")
-            if system.path_exists("/usr/lib64"):
-                paths.append("/usr/lib64")
-            if system.path_exists("/lib/x86_64-linux-gnu"):
-                paths.append("/lib/x86_64-linux-gnu")
-            if system.path_exists("/lib/i386-linux-gnu"):
-                paths.append("/lib/i386-linux-gnu")
-            if system.path_exists("/usr/lib/x86_64-linux-gnu"):
-                paths.append("/usr/lib/x86_64-linux-gnu")
-            if system.path_exists("/usr/lib/i386-linux-gnu"):
-                paths.append("/usr/lib/i386-linux-gnu")
+            for lib32_path, lib64_path in COMMAND_CACHE.iter_lib_folders():
+                paths.append(lib32_path)
+                paths.append(lib64_path)
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]

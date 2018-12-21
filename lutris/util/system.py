@@ -13,14 +13,6 @@ from collections import defaultdict
 
 from lutris.util.log import logger
 
-LIB_FOLDERS = [
-    ('/lib', '/lib64'),
-    ('/lib32', '/lib64'),
-    ('/usr/lib', '/usr/lib64'),
-    ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
-    ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
-]
-
 SYSTEM_COMMANDS = {
     "COMMANDS": [
         "xrandr",
@@ -90,6 +82,14 @@ class CommandCache:
     """Global cache for system commands"""
     _cache = {}
 
+    lib_folders = [
+        ('/lib', '/lib64'),
+        ('/lib32', '/lib64'),
+        ('/usr/lib', '/usr/lib64'),
+        ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
+        ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
+    ]
+
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
             self._cache[key] = {}
@@ -112,6 +112,7 @@ class CommandCache:
 
     @ property
     def requirements(self):
+        """Return used system requirements"""
         return ("OPENGL", "WINE", "VULKAN")
 
     def get(self, command):
@@ -122,15 +123,18 @@ class CommandCache:
         """Return list of installed terminals"""
         return list(self._cache["TERMINALS"].values())
 
+    def iter_lib_folders(self):
+        """Loop over existing 32/64 bit library folders"""
+        for lib_paths in self.lib_folders:
+            if all([os.path.exists(path) for path in lib_paths]):
+                yield lib_paths
+
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
         self._cache["LIBRARIES"] = {}
         self._cache["LIBRARIES"]["i386"] = defaultdict(list)
         self._cache["LIBRARIES"]["x86_64"] = defaultdict(list)
-        for lib_paths in LIB_FOLDERS:
-            if not all([os.path.exists(path) for path in lib_paths]):
-                continue
-            lib32_path, lib64_path = lib_paths
+        for lib32_path, lib64_path in self.iter_lib_folders():
             for req in self.requirements:
                 for lib in SYSTEM_COMMANDS["LIBRARIES"][req]:
                     if os.path.exists(os.path.join(lib32_path, lib)):
