@@ -102,7 +102,7 @@ class Application(Gtk.Application):
             )
         else:
             logger.warning(
-                "This version of Gtk doesn't support set_option_context_summary"
+                "GLib.set_option_context_summary was added in GLib 2.56 (Released 2018-03-12)"
             )
         self.add_main_option(
             "version",
