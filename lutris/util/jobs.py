@@ -7,7 +7,6 @@ from lutris.util.log import logger
 
 
 class AsyncCall(threading.Thread):
-    debug_traceback = True
 
     def __init__(self, func, callback=None, *args, **kwargs):
         """Execute `function` in a new thread then schedule `callback` for
@@ -32,10 +31,9 @@ class AsyncCall(threading.Thread):
         except Exception as ex:  # pylint: disable=broad-except
             logger.error("Error while completing task %s: %s", self.function, ex)
             error = ex
-            if self.debug_traceback:
-                ex_type, ex_value, trace = sys.exc_info()
-                print(ex_type, ex_value)
-                traceback.print_tb(trace)
+            ex_type, ex_value, trace = sys.exc_info()
+            print(ex_type, ex_value)
+            traceback.print_tb(trace)
 
         self.source_id = GLib.idle_add(self.callback, result, error)
         return self.source_id
