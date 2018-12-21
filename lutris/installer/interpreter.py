@@ -711,7 +711,10 @@ class ScriptInterpreter(CommandsMixin):
             config["game"][launcher] = launcher_value
 
         if "game" in self.script:
-            config["game"].update(self.script["game"])
+            try:
+                config["game"].update(self.script["game"])
+            except ValueError:
+                raise ScriptingError("Invalid 'game' section", self.script["game"])
             config["game"] = self._substitute_config(config["game"])
 
             # steamless_binary64 can be used to specify 64 bit non-steam binaries
