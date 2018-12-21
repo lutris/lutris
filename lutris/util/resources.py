@@ -90,12 +90,14 @@ def fetch_icons(lutris_media, window):
         udpate_desktop_icons()
 
 
-def fetch_icon(slug, media_type="banner"):
+def fetch_icon(slug, callback):
     lutris_media = api.get_api_games([slug])
     if not lutris_media:
         return
     game = lutris_media[0]
-    download_media(game["%s_url" % media_type], get_icon_path(slug, BANNER if media_type == "banner" else ICON))
+    for media_type in ('banner', 'icon'):
+        download_media(game["%s_url" % media_type], get_icon_path(slug, BANNER if media_type == "banner" else ICON))
+    callback([slug])
 
 
 def udpate_desktop_icons():
