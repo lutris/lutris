@@ -52,6 +52,9 @@ def is_nvidia():
 
 def get_gpus():
     """Return GPUs connected to the system"""
+    if not os.path.exists("/sys/class/drm"):
+        logger.error("No GPU available on this system!")
+        return
     for cardname in os.listdir("/sys/class/drm/"):
         if re.match(r"^card\d$", cardname):
             yield cardname
