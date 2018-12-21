@@ -68,6 +68,13 @@ def get_gpu_info(card):
     return infos
 
 
+def is_amd():
+    """Return true if the system uses the AMD driver"""
+    for card in get_gpus():
+        if get_gpu_info(card)["DRIVER"] == "amdgpu":
+            return True
+
+
 def check_driver():
     """Report on the currently running driver"""
     if is_nvidia():

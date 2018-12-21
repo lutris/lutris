@@ -11,6 +11,7 @@ import sys
 import traceback
 from collections import defaultdict
 
+from lutris.util import drivers
 from lutris.util.log import logger
 
 SYSTEM_COMMANDS = {
@@ -113,7 +114,10 @@ class CommandCache:
     @ property
     def requirements(self):
         """Return used system requirements"""
-        return ("OPENGL", "WINE", "VULKAN")
+        _requirements = ["OPENGL", "WINE", "VULKAN"]
+        if drivers.is_amd():
+            _requirements.append("RADEON")
+        return _requirements
 
     def get(self, command):
         """Return a system command path if available"""
