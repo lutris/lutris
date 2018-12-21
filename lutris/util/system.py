@@ -9,6 +9,7 @@ import string
 import subprocess
 import sys
 import traceback
+from collections import defaultdict
 
 from lutris.util.log import logger
 
@@ -68,11 +69,20 @@ SYSTEM_COMMANDS = {
         "kitty",
         "yuakuake",
     ],
-    "LIBRARIES": [
-        "libGL.so.1",
-        "libvulkan.so.1",
-        "libsqlite3.so.0"
-    ]
+    "LIBRARIES": {
+        "OPENGL": [
+            "libGL.so.1",
+        ],
+        "VULKAN": [
+            "libvulkan.so.1",
+        ],
+        "WINE": [
+            "libsqlite3.so.0"
+        ],
+        "RADEON": [
+            "libvulkan_radeon.so"
+        ]
+    }
 }
 
 
@@ -100,6 +110,10 @@ class CommandCache:
             if os.path.exists(command_path):
                 return command_path
 
+    @ property
+    def requirements(self):
+        return ("OPENGL", "WINE", "VULKAN")
+
     def get(self, command):
         """Return a system command path if available"""
         return self._cache["COMMANDS"].get(command)
@@ -111,25 +125,29 @@ class CommandCache:
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
         self._cache["LIBRARIES"] = {}
-        self._cache["LIBRARIES"]["i386"] = []
-        self._cache["LIBRARIES"]["x86_64"] = []
+        self._cache["LIBRARIES"]["i386"] = defaultdict(list)
+        self._cache["LIBRARIES"]["x86_64"] = defaultdict(list)
         for lib_paths in LIB_FOLDERS:
             if not all([os.path.exists(path) for path in lib_paths]):
                 continue
             lib32_path, lib64_path = lib_paths
-            for lib in SYSTEM_COMMANDS["LIBRARIES"]:
-                if os.path.exists(os.path.join(lib32_path, lib)):
-                    self._cache["LIBRARIES"]["i386"].append(lib)
-                if os.path.exists(os.path.join(lib64_path, lib)):
-                    self._cache["LIBRARIES"]["x86_64"].append(lib)
+            for req in self.requirements:
+                for lib in SYSTEM_COMMANDS["LIBRARIES"][req]:
+                    if os.path.exists(os.path.join(lib32_path, lib)):
+                        self._cache["LIBRARIES"]["i386"][req].append(lib)
+                    if os.path.exists(os.path.join(lib64_path, lib)):
+                        self._cache["LIBRARIES"]["x86_64"][req].append(lib)
 
     def get_missing_libs(self):
         """Return a tuple of 32 and 64bit missing libraries"""
-        required_libs = set(SYSTEM_COMMANDS["LIBRARIES"])
-        return (
-            required_libs - set(self._cache["LIBRARIES"]["i386"]),
-            required_libs - set(self._cache["LIBRARIES"]["x86_64"])
-        )
+        missing_libs = {}
+        for req in self.requirements:
+            required_libs = set(SYSTEM_COMMANDS["LIBRARIES"][req])
+            missing_libs[req] = (
+                required_libs - set(self._cache["LIBRARIES"]["i386"][req]),
+                required_libs - set(self._cache["LIBRARIES"]["x86_64"][req])
+            )
+        return missing_libs
 
 
 COMMAND_CACHE = CommandCache()
@@ -154,9 +172,10 @@ GAMEMODE_PATH = next(
 def check_libs():
     """Checks that required libraries are installed on the system"""
     missing_libs = COMMAND_CACHE.get_missing_libs()
-    for index, arch in enumerate(("32", "64")):
-        for lib in missing_libs[index]:
-            logger.error("%s bit %s missing", arch, lib)
+    for req in COMMAND_CACHE.requirements:
+        for index, arch in enumerate(("32", "64")):
+            for lib in missing_libs[req][index]:
+                logger.error("%s bit %s missing (needed by %s)", arch, lib, req.lower())
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
