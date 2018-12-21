@@ -373,7 +373,8 @@ class ConfigBox(VBox):
             if not os.path.isabs(path):
                 path = os.path.expanduser(path)
                 if not os.path.isabs(path):
-                    path = os.path.join(self.game.directory, path)
+                    if self.game:
+                        path = os.path.join(self.game.directory, path)
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
