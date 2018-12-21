@@ -143,7 +143,7 @@ class EditableGrid(Gtk.Grid):
 
         self.liststore = Gtk.ListStore(str, str)
         for item in data:
-            self.liststore.append(list(item))
+            self.liststore.append([str(value) for value in item])
 
         self.treeview = Gtk.TreeView.new_with_model(self.liststore)
         self.treeview.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
