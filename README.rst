@@ -118,3 +118,5 @@ You can always reach us on:
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
+
+And you can also support us here on Patreon: https://www.patreon.com/lutris
