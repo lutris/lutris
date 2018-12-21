@@ -1,5 +1,6 @@
 import os
 import shlex
+from lutris.util.log import logger
 from lutris.util import display, system
 from lutris.runners.runner import Runner
 
@@ -94,6 +95,11 @@ class zdoom(Runner):
             if system.path_exists(gzdoom_executable):
                 return gzdoom_executable
         return executable
+
+    def prelaunch(self):
+        if not system.COMMAND_CACHE.get('fluidsynth'):
+            logger.warning("FluidSynth is not installed, you might not have any music")
+        return False
 
     def play(self):
         command = [self.get_executable()]
