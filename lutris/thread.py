@@ -132,7 +132,7 @@ class MonitoredCommand:
         # processes.
         for key, value in self.env.items():
             self.original_env[key] = os.environ.get(key)
-            os.environ[key] = value
+            os.environ[key] = str(value)
 
         # Reset library paths if they were not provided
         if not any([key in self.env for key in ("LD_LIBRARY_PATH", "LD_PRELOAD")]):
