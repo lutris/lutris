@@ -12,6 +12,14 @@ import traceback
 
 from lutris.util.log import logger
 
+LIB_FOLDERS = [
+    ('/lib', '/lib64'),
+    ('/lib32', '/lib64'),
+    ('/usr/lib', '/usr/lib64'),
+    ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
+    ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
+]
+
 SYSTEM_COMMANDS = {
     "COMMANDS": [
         "xrandr",
@@ -59,6 +67,11 @@ SYSTEM_COMMANDS = {
         "wterm",
         "kitty",
         "yuakuake",
+    ],
+    "LIBRARIES": [
+        "libGL.so.1",
+        "libvulkan.so.1",
+        "libsqlite3.so.0"
     ]
 }
 
@@ -68,7 +81,7 @@ class CommandCache:
     _cache = {}
 
     def __init__(self):
-        for key in SYSTEM_COMMANDS:
+        for key in ("COMMANDS", "TERMINALS"):
             self._cache[key] = {}
             for command in SYSTEM_COMMANDS[key]:
                 command_path = shutil.which(command)
@@ -76,6 +89,7 @@ class CommandCache:
                     command_path = self.get_sbin_path(command)
                 if command_path:
                     self._cache[key][command] = command_path
+        self.populate_libraries()
 
     @staticmethod
     def get_sbin_path(command):
@@ -93,6 +107,29 @@ class CommandCache:
     def get_terminals(self):
         """Return list of installed terminals"""
         return list(self._cache["TERMINALS"].values())
+
+    def populate_libraries(self):
+        """Populates the LIBRARIES cache with what is found on the system"""
+        self._cache["LIBRARIES"] = {}
+        self._cache["LIBRARIES"]["i386"] = []
+        self._cache["LIBRARIES"]["x86_64"] = []
+        for lib_paths in LIB_FOLDERS:
+            if not all([os.path.exists(path) for path in lib_paths]):
+                continue
+            lib32_path, lib64_path = lib_paths
+            for lib in SYSTEM_COMMANDS["LIBRARIES"]:
+                if os.path.exists(os.path.join(lib32_path, lib)):
+                    self._cache["LIBRARIES"]["i386"].append(lib)
+                if os.path.exists(os.path.join(lib64_path, lib)):
+                    self._cache["LIBRARIES"]["x86_64"].append(lib)
+
+    def get_missing_libs(self):
+        """Return a tuple of 32 and 64bit missing libraries"""
+        required_libs = set(SYSTEM_COMMANDS["LIBRARIES"])
+        return (
+            required_libs - set(self._cache["LIBRARIES"]["i386"]),
+            required_libs - set(self._cache["LIBRARIES"]["x86_64"])
+        )
 
 
 COMMAND_CACHE = CommandCache()
