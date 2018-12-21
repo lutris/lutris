@@ -9,7 +9,7 @@ from lutris import api, pga, settings
 from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError
 from lutris.game import Game
-from lutris.gui.config_dialogs import AddGameDialog
+from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
@@ -28,12 +28,12 @@ class InstallerWindow(Gtk.ApplicationWindow):
     download_progress = None
 
     def __init__(
-        self,
-        game_slug=None,
-        installer_file=None,
-        revision=None,
-        parent=None,
-        application=None,
+            self,
+            game_slug=None,
+            installer_file=None,
+            revision=None,
+            parent=None,
+            application=None,
     ):
         Gtk.ApplicationWindow.__init__(self, application=application)
         self.set_default_icon_name("lutris")

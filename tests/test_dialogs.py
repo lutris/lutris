@@ -3,12 +3,13 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gio, Gtk
+from gi.repository import Gtk
 from lutris.game import Game
 from lutris.config import check_config
 # from lutris import settings
 from lutris import pga
-from lutris.gui import config_dialogs
+from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
 from unittest import TestCase
 from lutris import runners
@@ -18,7 +19,7 @@ TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
-        dlg = config_dialogs.GameDialogCommon()
+        dlg = GameDialogCommon()
         list_store = dlg._get_runner_liststore()
         self.assertTrue(
             list_store[1][0].startswith(runners.get_installed()[0].human_name)
@@ -31,7 +32,7 @@ class TestGameDialog(TestCase):
         check_config()
         lutris_application = Application()
         lutris_window = lutris_application.window
-        self.dlg = config_dialogs.AddGameDialog(lutris_window)
+        self.dlg = AddGameDialog(lutris_window)
 
     def get_notebook(self):
         return self.dlg.vbox.get_children()[0]

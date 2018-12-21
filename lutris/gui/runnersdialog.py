@@ -10,7 +10,7 @@ from lutris import settings
 from lutris.util.log import logger
 from lutris.gui.util import open_uri
 from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog, DownloadDialog
-from lutris.gui.config_dialogs import RunnerConfigDialog
+from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.widgets.utils import get_icon, ICON_SIZE, get_builder_from_file
 

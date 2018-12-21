@@ -1,14 +1,13 @@
+"""Shared config dialog stuff"""
 import os
 from gi.repository import Gtk, Pango
-
-from lutris import runners, settings
-from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
 from lutris.game import Game
-from lutris import gui
+from lutris.config import LutrisConfig, TEMP_CONFIG
+from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
 from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
-from lutris.gui.widgets.dialogs import Dialog
+from lutris import runners, settings
+from lutris import gui
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -18,12 +17,17 @@ from lutris.gui.widgets.utils import (
 from lutris.util.strings import slugify
 from lutris.util import datapath, resources
 
-DIALOG_WIDTH = 780
-DIALOG_HEIGHT = 560
 
-
+# pylint: disable=too-many-instance-attributes,missing-docstring
 class GameDialogCommon:
+    """Mixin for config dialogs"""
     no_runner_label = "Select a runner in the Game Info tab"
+
+    def __init__(self):
+        self.notebook = None
+        self.vbox = None
+        self.name_entry = None
+        self.runner_box = None
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -456,101 +460,3 @@ class GameDialogCommon:
             raise ValueError("Unsupported image type %s", image_type)
         os.remove(dest_path)
         self._set_image(image_type)
-
-
-class AddGameDialog(Dialog, GameDialogCommon):
-    """Add game dialog class."""
-
-    def __init__(self, parent, game=None, runner=None, callback=None):
-        super().__init__("Add a new game", parent=parent)
-        self.game = game
-        self.saved = False
-
-        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-        if game:
-            self.runner_name = game.runner_name
-            self.slug = game.slug
-        else:
-            self.runner_name = runner
-            self.slug = None
-
-        self.game_config_id = self.get_config_id()
-        self.lutris_config = LutrisConfig(
-            runner_slug=self.runner_name,
-            game_config_id=self.game_config_id,
-            level="game",
-        )
-        self.build_notebook()
-        self.build_tabs("game")
-        self.build_action_area(self.on_save, callback)
-        self.name_entry.grab_focus()
-        self.show_all()
-
-    def get_config_id(self):
-        """For new games, create a special config type that won't be read
-        from disk.
-        """
-        return make_game_config_id(self.slug) if self.slug else TEMP_CONFIG
-
-
-class EditGameConfigDialog(Dialog, GameDialogCommon):
-    """Game config edit dialog."""
-
-    def __init__(self, parent, game, callback):
-        super().__init__("Configure %s" % game.name, parent=parent)
-        self.game = game
-        self.lutris_config = game.config
-        self.game_config_id = game.config.game_config_id
-        self.slug = game.slug
-        self.runner_name = game.runner_name
-
-        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-
-        self.build_notebook()
-        self.build_tabs("game")
-        self.build_action_area(self.on_save, callback)
-        self.show_all()
-
-
-class RunnerConfigDialog(Dialog, GameDialogCommon):
-    """Runner config edit dialog."""
-
-    def __init__(self, runner, parent=None):
-        self.runner_name = runner.__class__.__name__
-        super().__init__("Configure %s" % runner.human_name, parent=parent)
-
-        self.game = None
-        self.saved = False
-        self.lutris_config = LutrisConfig(runner_slug=self.runner_name)
-
-        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-
-        self.build_notebook()
-        self.build_tabs("runner")
-        self.build_action_area(self.on_save)
-        self.show_all()
-
-    def on_save(self, wigdet, data=None):
-        self.lutris_config.save()
-        self.destroy()
-
-
-class SystemConfigDialog(Dialog, GameDialogCommon):
-    def __init__(self, parent=None):
-        super().__init__("System preferences", parent=parent)
-
-        self.game = None
-        self.runner_name = None
-        self.lutris_config = LutrisConfig()
-
-        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-
-        self.system_box = SystemBox(self.lutris_config)
-        self.system_sw = self.build_scrolled_window(self.system_box)
-        self.vbox.pack_start(self.system_sw, True, True, 0)
-        self.build_action_area(self.on_save)
-        self.show_all()
-
-    def on_save(self, widget):
-        self.lutris_config.save()
-        self.destroy()

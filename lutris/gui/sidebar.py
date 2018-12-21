@@ -7,7 +7,7 @@ from lutris import platforms
 from lutris import pga
 from lutris.util import datapath
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
-from lutris.gui.config_dialogs import RunnerConfigDialog
+from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.runnersdialog import RunnersDialog
 
 TYPE = 0

@@ -37,11 +37,9 @@ from lutris.gui.sync import SyncServiceWindow
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
-from lutris.gui.config_dialogs import (
-    AddGameDialog,
-    EditGameConfigDialog,
-    SystemConfigDialog,
-)
+from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.gameviews import GameListView, GameGridView, ContextualMenu, GameStore
 from lutris.gui.widgets.utils import IMAGE_SIZES
 
