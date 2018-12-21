@@ -276,7 +276,7 @@ class MonitoredCommand:
     def get_root_process(self):
         """Return root process, including Wine processes as children"""
         process = Process(os.getpid())
-        if self.runner.name.startswith("wine"):
+        if self.runner and self.runner.name.startswith("wine"):
             # Track the correct version of wine for winetricks
             wine_version = self.env.get("WINE") or None
             for pid in self.runner.get_pids(wine_version):
