@@ -822,7 +822,7 @@ class ScriptInterpreter(CommandsMixin):
             steam_runner.config = LutrisConfig(runner_slug=steam_runner.name)
             if "arch" in self.steam_data:
                 steam_runner.config.game_config["arch"] = self.steam_data["arch"]
-            AsyncCall(steam_runner.install_game, None, appid, is_game_files)
+            AsyncCall(steam_runner.install_game, self.on_steam_game_installed, appid, is_game_files)
 
             self.install_start_time = time.localtime()
             self.steam_poll = GLib.timeout_add(2000, self._monitor_steam_game_install)
@@ -833,6 +833,12 @@ class ScriptInterpreter(CommandsMixin):
             self._append_steam_data_to_files(runner_class)
         else:
             self.target_path = self._get_steam_game_path()
+
+    def on_steam_game_installed(self, _data, error):
+        """Callback for Steam game installer, mostly for error handling since install progress
+        is handled by _monitor_steam_game_install"""
+        if error:
+            raise ScriptingError(str(error))
 
     def _get_steam_runner(self, runner_class=None):
         if not runner_class:
