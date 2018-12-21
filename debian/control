@@ -29,7 +29,8 @@ Depends: ${misc:Depends},
  unzip,
  p7zip,
  curl,
- fluid-soundfont-gs
+ fluid-soundfont-gs,
+ x11-xserver-utils
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
