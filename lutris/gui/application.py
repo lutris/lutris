@@ -47,6 +47,7 @@ from lutris.util.resources import parse_installer_url
 from lutris.util.monitor import set_child_subreaper
 from lutris.util.system import check_libs
 from lutris.util.drivers import check_driver
+from lutris.util.vkquery import check_vulkan
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray
@@ -68,6 +69,7 @@ class Application(Gtk.Application):
         update_platforms()
         check_driver()
         check_libs()
+        check_vulkan()
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = []
