@@ -3,6 +3,7 @@
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
 import os
+from lutris.util.log import logger
 
 
 def get_nvidia_driver_info():
@@ -41,3 +42,20 @@ def get_nvidia_gpu_info(gpu_id):
         key, value = line.split(":", 1)
         infos[key] = value.strip()
     return infos
+
+
+def is_nvidia():
+    """Return true if the Nvidia drivers are currently in use"""
+    return os.path.exists("/proc/driver/nvidia")
+
+
+def check_driver():
+    """Report on the currently running driver"""
+    if is_nvidia():
+        driver_info = get_nvidia_driver_info()
+        # pylint: disable=logging-format-interpolation
+        logger.info("Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"]))
+        gpus = get_nvidia_gpu_ids()
+        for gpu_id in gpus:
+            gpu_info = get_nvidia_gpu_info(gpu_id)
+            logger.info("GPU: %s", gpu_info.get("Model"))

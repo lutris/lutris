@@ -46,6 +46,7 @@ from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
 from lutris.util.resources import parse_installer_url
 from lutris.util.monitor import set_child_subreaper
 from lutris.util.system import check_libs
+from lutris.util.drivers import check_driver
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray
@@ -65,6 +66,7 @@ class Application(Gtk.Application):
         check_config()
         migrate()
         update_platforms()
+        check_driver()
         check_libs()
 
         GLib.set_application_name(_("Lutris"))
@@ -240,6 +242,7 @@ class Application(Gtk.Application):
         menubar = builder.get_object("menubar")
         self.set_menubar(menubar)
         self.set_tray_icon(read_setting("show_tray_icon", default="false") == "true")
+
 
     def set_tray_icon(self, active=False):
         """Creates or destroys a tray icon for the application"""
