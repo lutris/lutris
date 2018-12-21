@@ -56,7 +56,7 @@ class Game(GObject.Object):
         self.id = game_id
         self.runner = None
         self.game_thread = None
-        self.prelaunch_thread = None
+        self.prelaunch_executor = None
         self.heartbeat = None
         self.config = None
         self.killswitch = None
@@ -79,6 +79,7 @@ class Game(GObject.Object):
         self.has_custom_icon = bool(game_data.get("has_custom_icon")) or False
 
         self.load_config()
+        self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
         self.stop_compositor = self.start_compositor = ""
@@ -242,17 +243,19 @@ class Game(GObject.Object):
         if hasattr(self.runner, "prelaunch"):
             logger.debug("Prelaunching %s", self.runner)
             try:
-                jobs.AsyncCall(self.runner.prelaunch, self.do_play)
+                jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
             except Exception as ex:
                 logger.error(ex)
                 raise
 
         else:
-            self.do_play(True)
+            self.configure_game(True)
 
     @watch_lutris_errors
-    def do_play(self, prelaunched, error=None):
-
+    def configure_game(self, prelaunched, error=None):
+        """Get the game ready to start, applying all the options
+        This methods sets the game_runtime_config attribute.
+        """
         self.timer.start()
 
         if error:
@@ -281,8 +284,8 @@ class Game(GObject.Object):
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r") as f:
-                    sdl_gamecontrollerconfig = f.read()
+                with open(path, "r") as controllerdb_file:
+                    sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
         sdl_video_fullscreen = system_config.get("sdl_video_fullscreen") or ""
@@ -441,38 +444,50 @@ class Game(GObject.Object):
         include_processes = shlex.split(system_config.get("include_processes", ""))
         exclude_processes = shlex.split(system_config.get("exclude_processes", ""))
 
+        self.game_runtime_config = {
+            "args": launch_arguments,
+            "env": env,
+            "terminal": terminal,
+            "include_processes": include_processes,
+            "exclude_processes": exclude_processes
+        }
+
         if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
-
-        prelaunch_command = self.runner.system_config.get("prelaunch_command")
-        if system.path_exists(prelaunch_command):
-            self.prelaunch_thread = MonitoredCommand(
-                [prelaunch_command],
-                include_processes=[os.path.basename(prelaunch_command)],
-                cwd=self.directory,
-            )
-            self.prelaunch_thread.start()
-            logger.info("Running %s in the background", prelaunch_command)
-
-        self.game_thread = MonitoredCommand(
-            launch_arguments,
-            runner=self.runner,
-            env=env,
-            watch=True,
-            term=terminal,
-            log_buffer=self.log_buffer,
-            include_processes=include_processes,
-            exclude_processes=exclude_processes,
-        )
-        if hasattr(self.runner, "stop"):
-            self.game_thread.stop_func = self.runner.stop
-        self.game_thread.start()
-        self.state = self.STATE_RUNNING
 
         # xboxdrv setup
         xboxdrv_config = system_config.get("xboxdrv")
         if xboxdrv_config:
             self.xboxdrv_start(xboxdrv_config)
+
+        prelaunch_command = system_config.get("prelaunch_command")
+        if system.path_exists(prelaunch_command):
+            self.prelaunch_executor = MonitoredCommand(
+                [prelaunch_command],
+                include_processes=[os.path.basename(prelaunch_command)],
+                cwd=self.directory,
+            )
+            self.prelaunch_executor.start()
+            logger.info("Running %s in the background", prelaunch_command)
+        if system_config.get("prelaunch_wait"):
+            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
+        else:
+            self.start_game()
+
+    def start_game(self):
+        self.game_thread = MonitoredCommand(
+            self.game_runtime_config["args"],
+            runner=self.runner,
+            env=self.game_runtime_config["env"],
+            term=self.game_runtime_config["terminal"],
+            log_buffer=self.log_buffer,
+            include_processes=self.game_runtime_config["include_processes"],
+            exclude_processes=self.game_runtime_config["exclude_processes"],
+        )
+        if hasattr(self.runner, "stop"):
+            self.game_thread.stop_func = self.runner.stop
+        self.game_thread.start()
+        self.state = self.STATE_RUNNING
 
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
@@ -496,6 +511,13 @@ class Game(GObject.Object):
         os.system("pkexec xboxdrvctl --shutdown")
         if system.path_exists("/usr/share/lutris/bin/resetxpad"):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")
+
+    def prelaunch_beat(self):
+        """Watch the prelaunch command"""
+        if self.prelaunch_executor.is_running:
+            return True
+        self.start_game()
+        return False
 
     def beat(self):
         """Watch the game's process(es)."""
@@ -537,9 +559,9 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime = self.timer.duration + self.playtime
 
-        if self.prelaunch_thread:
+        if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
-            self.prelaunch_thread.stop()
+            self.prelaunch_executor.stop()
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:

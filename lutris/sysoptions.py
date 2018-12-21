@@ -9,6 +9,7 @@ from lutris.util import display, system
 
 
 def get_optirun_choices():
+    """Return menu choices (label, value) for Optimus"""
     choices = [("Off", "off")]
     if system.find_executable("primusrun"):
         choices.append(("primusrun", "primusrun"))
@@ -199,6 +200,14 @@ system_options = [  # pylint: disable=invalid-name
         "label": "Pre-launch command",
         "advanced": True,
         "help": "Script to execute before the game starts",
+    },
+    {
+        "option": "prelaunch_wait",
+        "type": "bool",
+        "label": "Wait for pre-launch command to complete",
+        "advanced": True,
+        "default": False,
+        "help": "Run the game only once the pre-launch command has exited",
     },
     {
         "option": "postexit_command",
