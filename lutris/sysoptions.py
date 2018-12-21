@@ -256,7 +256,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "prefer_system_libs",
         "type": "bool",
         "label": "Prefer system libraries",
-        "default": True,
+        "default": False,
         "advanced": True,
         "help": (
             "When the runtime is enabled, prioritize the system libraries"
