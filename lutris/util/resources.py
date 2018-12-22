@@ -96,7 +96,14 @@ def fetch_icon(slug, callback):
         return
     game = lutris_media[0]
     for media_type in ('banner', 'icon'):
-        download_media(game["%s_url" % media_type], get_icon_path(slug, BANNER if media_type == "banner" else ICON))
+        url = game.get("%s_url" % media_type)
+        if url:
+            download_media(
+                url,
+                get_icon_path(slug, BANNER if media_type == "banner" else ICON)
+            )
+        else:
+            logger.error("No URL found in %s", game)
     callback([slug])
 
 
