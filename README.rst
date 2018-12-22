@@ -100,7 +100,7 @@ to be implemented.
 
 Here's what to expect from future versions of Lutris:
 
-* GOG and Humble Bundle integration
+* Humble Bundle integration
 * TOSEC database integration
 * Management of personal game data (i.e. syncing games across devices using private cloud storage)
 * Community features (friends list, chat, multiplayer game scheduling, etc.)
