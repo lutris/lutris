@@ -90,6 +90,7 @@ class LinuxSystem:
         ('/lib', '/lib64'),
         ('/lib32', '/lib64'),
         ('/usr/lib', '/usr/lib64'),
+        ('/usr/lib32', '/usr/lib64'),
         ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
         ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
     ]
