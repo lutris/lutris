@@ -1,4 +1,5 @@
 """Utility functions for YAML handling"""
+# pylint: disable=no-member
 import yaml
 
 from lutris.util.log import logger

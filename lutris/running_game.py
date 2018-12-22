@@ -4,16 +4,24 @@ from lutris.game import Game
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.logdialog import LogDialog
 
+
 class RunningGameBox(Gtk.Box):
     def __init__(self, game):
         super().__init__(self, spacing=6, homogeneous=False)
         label = Gtk.Label("%s is running" % game.name)
         self.pack_start(label, True, True, 0)
-        self.stop_button = Gtk.Button.new_from_icon_name("media-playback-stop-symbolic", Gtk.IconSize.MENU)
+        self.stop_button = Gtk.Button.new_from_icon_name(
+            "media-playback-stop-symbolic",
+            Gtk.IconSize.MENU
+        )
         self.pack_start(self.stop_button, False, False, 0)
-        self.log_button = Gtk.Button.new_from_icon_name("utilities-terminal-symbolic", Gtk.IconSize.MENU)
+        self.log_button = Gtk.Button.new_from_icon_name(
+            "utilities-terminal-symbolic",
+            Gtk.IconSize.MENU
+        )
         self.pack_start(self.log_button, False, False, 0)
         self.show_all()
+
 
 class RunningGame:
     """Class for manipulating running games"""

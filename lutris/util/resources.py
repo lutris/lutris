@@ -33,6 +33,7 @@ def has_icon(game, icon_type):
         return system.path_exists(icon_path)
     return False
 
+
 def get_missing_media(game_slugs):
     """Query the Lutris.net API for missing icons"""
     unavailable_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
@@ -58,6 +59,7 @@ def get_missing_media(game_slugs):
         if game["slug"] in unavailable_icons and game["icon_url"]:
             available_icons[game["slug"]] = game["icon_url"]
     return available_banners, available_icons
+
 
 def fetch_icons(lutris_media, window):
     """Download missing icons from lutris.net"""

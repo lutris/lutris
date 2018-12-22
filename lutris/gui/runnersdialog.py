@@ -150,7 +150,12 @@ class RunnersDialog(GtkBuilderDialog):
             builder = get_builder_from_file('runner-remove-all-versions-dialog.ui')
             builder.connect_signals(self)
             remove_confirm_button = builder.get_object('remove_confirm_button')
-            remove_confirm_button.connect("clicked", self.on_remove_all_clicked, runner, runner_label)
+            remove_confirm_button.connect(
+                "clicked",
+                self.on_remove_all_clicked,
+                runner,
+                runner_label
+            )
             all_versions_label = builder.get_object('runner_all_versions_label')
             all_versions_label.set_markup(all_versions_label.get_label() % runner.human_name)
             self.all_versions_dialog = builder.get_object('runner_remove_all_versions_dialog')
@@ -160,7 +165,12 @@ class RunnersDialog(GtkBuilderDialog):
             builder = get_builder_from_file('runner-remove-confirm-dialog.ui')
             builder.connect_signals(self)
             remove_confirm_button = builder.get_object('remove_confirm_button')
-            remove_confirm_button.connect("clicked", self.on_remove_confirm_clicked, runner, runner_label)
+            remove_confirm_button.connect(
+                "clicked",
+                self.on_remove_confirm_clicked,
+                runner,
+                runner_label
+            )
             runner_remove_label = builder.get_object('runner_remove_label')
             runner_remove_label.set_markup(runner_remove_label.get_label() % runner.human_name)
             self.remove_confirm_dialog = builder.get_object('runner_remove_confirm_dialog')

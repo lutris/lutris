@@ -1,6 +1,6 @@
 import os
 from lutris.settings import RUNTIME_DIR
-from lutris.util import datapath, system
+from lutris.util import system
 from lutris.util.log import logger
 
 

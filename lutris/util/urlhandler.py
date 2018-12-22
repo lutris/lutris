@@ -1,11 +1,12 @@
-"""Unused handler registration but since someone reports problems with URL integration once in a while,
-it could prove itself useful."""
+"""Unused handler registration but since someone reports problems with URL
+integration once in a while, it could prove itself useful."""
 import os
 import sys
 
 from gi.repository import Gio
 
 from lutris.util.log import logger
+
 
 def register_handler():
     """Register the lutris: protocol to open with the application."""

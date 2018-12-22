@@ -108,7 +108,8 @@ class Application(Gtk.Application):
             )
         else:
             logger.warning(
-                "GLib.set_option_context_summary missing, was added in GLib 2.56 (Released 2018-03-12)"
+                "GLib.set_option_context_summary missing, "
+                "was added in GLib 2.56 (Released 2018-03-12)"
             )
         self.add_main_option(
             "version",
@@ -244,7 +245,6 @@ class Application(Gtk.Application):
         menubar = builder.get_object("menubar")
         self.set_menubar(menubar)
         self.set_tray_icon(read_setting("show_tray_icon", default="false") == "true")
-
 
     def set_tray_icon(self, active=False):
         """Creates or destroys a tray icon for the application"""

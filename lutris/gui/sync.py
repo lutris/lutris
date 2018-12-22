@@ -2,7 +2,6 @@
 from gi.repository import Gtk, Gio
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
-from lutris.gui.dialogs import NoticeDialog
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 from lutris.util.log import logger
@@ -74,7 +73,6 @@ class ServiceSyncBox(Gtk.Box):
 
         if hasattr(service, "load_games"):
             self.load_games()
-
 
     def get_icon(self):
         """Return the icon for the service (used in tabs)"""
@@ -150,9 +148,10 @@ class ServiceSyncBox(Gtk.Box):
         treeview.append_column(name_column)
         return treeview
 
-    def on_import_toggled(self, widget, game_index):
+    def on_import_toggled(self, _widget, game_index):
         """Toggle state for import"""
-        self.store_filter[game_index][self.COL_SELECTED] = not self.store_filter[game_index][self.COL_SELECTED]
+        col = self.COL_SELECTED
+        self.store_filter[game_index][col] = not self.store_filter[game_index][col]
 
     def get_store(self):
         """Return a ListStore for the games to import"""
@@ -229,6 +228,7 @@ class ServiceSyncBox(Gtk.Box):
                     'details': game[self.COL_DETAILS],
                 })
         return games
+
 
 class SyncServiceWindow(Gtk.Window):
     def __init__(self, parent=None):

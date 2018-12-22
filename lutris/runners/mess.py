@@ -201,7 +201,10 @@ class mess(Runner):
                 ("Right Super", "RWIN"),
                 ("Left Super", "LWIN"),
             ],
-            "help": "Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: Scroll Lock)",
+            "help": (
+                "Key to switch between Full Keyboard Mode and "
+                "Partial Keyboard Mode (default: Scroll Lock)",
+            )
         },
     ]
 

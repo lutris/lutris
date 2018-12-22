@@ -290,8 +290,13 @@ class ScriptInterpreter(CommandsMixin):
                 file_id = list(file.keys())[0]
                 file_meta = file[file_id]
                 if (
-                    (isinstance(file_meta, str) and file_meta.startswith("N/A")) or
-                    (isinstance(file_meta, dict) and file_meta.get('url', '').startswith('N/A'))
+                        (
+                            isinstance(file_meta, str)
+                            and file_meta.startswith("N/A")
+                        ) or (
+                            isinstance(file_meta, dict)
+                            and file_meta.get('url', '').startswith('N/A')
+                        )
                 ):
                     logger.debug("Removing file %s", file_id)
                     self.files.pop(index)
@@ -333,7 +338,11 @@ class ScriptInterpreter(CommandsMixin):
             if not os.path.exists(self.cache_path):
                 os.mkdir(self.cache_path)
 
-            if self.target_path and not system.path_exists(self.target_path) and self.creates_game_folder:
+            if (
+                    self.target_path
+                    and not system.path_exists(self.target_path)
+                    and self.creates_game_folder
+            ):
                 try:
                     os.makedirs(self.target_path)
                 except PermissionError:
@@ -504,7 +513,6 @@ class ScriptInterpreter(CommandsMixin):
             self.install_runner(self.runners_to_install.pop(0))
             return
         self.prepare_game_files()
-
 
     def install_runner(self, runner):
         """Install runner required by the install script"""
@@ -950,14 +958,27 @@ class ScriptInterpreter(CommandsMixin):
         self.gog_data = gog_service.get_game_details(self.gogid)
 
         # Filter out Mac installers
-        gog_installers = [installer for installer in self.gog_data["downloads"]["installers"] if installer["os"] != "mac"]
+        gog_installers = [
+            installer
+            for installer in self.gog_data["downloads"]["installers"]
+            if installer["os"] != "mac"
+        ]
         available_platforms = set([installer["os"] for installer in gog_installers])
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
-            gog_installers = [installer for installer in gog_installers if installer["os"] != "windows"]
+            gog_installers = [
+                installer
+                for installer in gog_installers
+                if installer["os"] != "windows"
+            ]
 
-        # Keep only the english installer until we have locale detection and / or language selection implemented
-        gog_installers = [installer for installer in gog_installers if installer["language"] == "en"]
+        # Keep only the english installer until we have locale detection
+        # and / or language selection implemented
+        gog_installers = [
+            installer
+            for installer in gog_installers
+            if installer["language"] == "en"
+        ]
         return gog_installers
 
     def get_gog_download_links(self):

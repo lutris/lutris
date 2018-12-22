@@ -9,7 +9,6 @@ from lutris import pga
 from lutris import api
 from lutris.services import AuthenticationError
 from lutris.util.http import Request
-from lutris.util.strings import slugify
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar

@@ -29,6 +29,7 @@ def _reentrancy_guard(func):
     at the same time. self must be hashable.
     """
     guards = weakref.WeakSet()
+
     @functools.wraps(func)
     def inner(self):
         if self not in guards:
@@ -50,6 +51,7 @@ def _reentrancy_guard(func):
 _commands = weakref.WeakSet()
 _timeout_set = False
 
+
 def _trigger_early_poll():
     global _timeout_set
     try:
@@ -62,6 +64,7 @@ def _trigger_early_poll():
         _timeout_set = False
     return False
 
+
 def _sigchld_handler(signum, frame):
     global _timeout_set
     try:
@@ -72,7 +75,9 @@ def _sigchld_handler(signum, frame):
         GLib.timeout_add(16, _trigger_early_poll)
         _timeout_set = True
 
+
 signal.signal(signal.SIGCHLD, _sigchld_handler)
+
 
 class MonitoredCommand:
     """Run the game."""

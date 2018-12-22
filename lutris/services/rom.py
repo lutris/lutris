@@ -86,11 +86,7 @@ def sync_with_lutris():
     for folder, _subfolder, files in os.walk(scan_directory, followlinks=True):
         for scanned_file in files:
             element = folder + "/" + scanned_file
-            result = False
-            try:
-                result = rom_read_data(element)
-            except:
-                logger.error("failed to add the rom at %s.", element)
+            result = rom_read_data(element)
             if result:
                 roms.append(result)
                 roms_slug.append(result["data"]["slug"])

@@ -316,6 +316,10 @@ def get_compositor_commands():
         )
         == "true"
     ):
-        stop_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
-        start_compositor = "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
+        stop_compositor = (
+            "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
+        )
+        start_compositor = (
+            "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
+        )
     return start_compositor, stop_compositor

@@ -1,6 +1,6 @@
 import os
 from lutris.runners.runner import Runner
-from lutris.runners.commands.dosbox import dosexec, makeconfig
+from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.util import system
 
 
