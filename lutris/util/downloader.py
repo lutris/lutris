@@ -64,7 +64,11 @@ class Downloader:
         if not self.queue.qsize() or self.state in [self.CANCELLED, self.ERROR]:
             return self.progress_fraction
 
-        downloaded_size, full_size = self.write_queue()
+        try:
+            downloaded_size, full_size = self.write_queue()
+        except OSError as ex:
+            self.on_done(None, str(ex))
+            return 0
         self.get_stats(downloaded_size, full_size)
 
         return self.progress_fraction
