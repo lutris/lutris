@@ -8,6 +8,7 @@ cover:
 test:
 	rm tests/fixtures/pga.db -f
 	nosetests
+	flake8 lutris
 
 deb-source: clean
 	gbp buildpackage -S --git-debian-branch=${GITBRANCH}
