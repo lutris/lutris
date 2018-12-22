@@ -8,10 +8,8 @@ PROJECT = "Lutris"
 VERSION = __version__
 COPYRIGHT = "(c) 2010-2018 Lutris Gaming Platform"
 AUTHORS = [
-    "Mathieu Comandon <strycore@gmail.com>",
-    "Pascal Reinhard (Xodetaetl) <dev@xod.me",
+    "The Lutris team"
 ]
-ARTISTS = ["Ludovic Soulié <contact@ludal.net>"]
 
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
