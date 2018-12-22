@@ -105,6 +105,10 @@ class LinuxSystem:
                     command_path = self.get_sbin_path(command)
                 if command_path:
                     self._cache[key][command] = command_path
+
+        # Detect if system is 64bit capable
+        self.is_64_bit = sys.maxsize > 2 ** 32
+
         self.populate_libraries()
         self.populate_sound_fonts()
 
@@ -178,9 +182,6 @@ class LinuxSystem:
 
 
 LINUX_SYSTEM = LinuxSystem()
-
-# Detect if system is 64bit capable
-IS_64BIT = sys.maxsize > 2 ** 32
 
 # Path to Feral gamemode library
 GAMEMODE_PATH = next(

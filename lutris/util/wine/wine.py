@@ -14,7 +14,7 @@ from lutris.runners.steam import steam
 
 MIN_NUMBER_FILES_OPEN = 1048576
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-WINE_DEFAULT_ARCH = "win64" if system.IS_64BIT else "win32"
+WINE_DEFAULT_ARCH = "win64" if system.LINUX_SYSTEM.is_64_bit else "win32"
 WINE_PATHS = {
     "winehq-devel": "/opt/wine-devel/bin/wine",
     "winehq-staging": "/opt/wine-staging/bin/wine",

@@ -77,7 +77,7 @@ def _get_game_launcher(script):
     launcher_value = None
 
     # exe64 can be provided to specify an executable for 64bit systems
-    exe = "exe64" if "exe64" in script and system.IS_64BIT else "exe"
+    exe = "exe64" if "exe64" in script and system.LINUX_SYSTEM.is_64_bit else "exe"
 
     for launcher in (exe, "iso", "rom", "disk", "main_file"):
         if launcher not in script:
@@ -726,7 +726,7 @@ class ScriptInterpreter(CommandsMixin):
             config["game"] = self._substitute_config(config["game"])
 
             # steamless_binary64 can be used to specify 64 bit non-steam binaries
-            if system.IS_64BIT and "steamless_binary64" in config["game"]:
+            if system.LINUX_SYSTEM.is_64_bit and "steamless_binary64" in config["game"]:
                 config["game"]["steamless_binary"] = config["game"][
                     "steamless_binary64"
                 ]

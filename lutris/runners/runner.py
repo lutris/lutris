@@ -282,9 +282,9 @@ class Runner:
                 default_version = [v for v in versions_for_arch if v["default"] is True]
                 if default_version:
                     return default_version[0]
-            elif len(versions) == 1 and system.IS_64BIT:
+            elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
                 return versions[0]
-            elif len(versions) > 1 and system.IS_64BIT:
+            elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
                 default_version = [v for v in versions if v["default"] is True]
                 if default_version:
                     return default_version[0]

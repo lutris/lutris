@@ -155,9 +155,9 @@ class RuntimeUpdater:
 
             # Skip 32bit runtimes on 64 bit systems except the lib32 one
             if (
-                runtime["architecture"] == "i386"
-                and system.IS_64BIT
-                and runtime["name"] != "lib32"
+                    runtime["architecture"] == "i386"
+                    and system.LINUX_SYSTEM.is_64_bit
+                    and runtime["name"] != "lib32"
             ):
                 logger.debug(
                     "Skipping runtime %s for %s",
@@ -167,7 +167,7 @@ class RuntimeUpdater:
                 continue
 
             # Skip 64bit runtimes on 32 bit systems
-            if runtime["architecture"] == "x86_64" and not system.IS_64BIT:
+            if runtime["architecture"] == "x86_64" and not system.LINUX_SYSTEM.is_64_bit:
                 logger.debug(
                     "Skipping runtime %s for %s",
                     runtime["name"],
@@ -215,7 +215,7 @@ def get_paths(prefer_system_libs=True, wine_path=None):
             "steam/i386/usr/lib",
         ]
 
-        if system.IS_64BIT:
+        if system.LINUX_SYSTEM.is_64_bit:
             runtime_paths += [
                 "lib64",
                 "steam/amd64/lib/x86_64-linux-gnu",
