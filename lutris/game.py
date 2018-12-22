@@ -37,6 +37,18 @@ def watch_lutris_errors(function):
     return wrapper
 
 
+def join_coll(collection):
+    if collection is None:
+        return None
+    return "§".join(collection)
+
+
+def split_coll(collection):
+    if collection is None:
+        return ""
+    return collection.split("§")
+
+
 class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
@@ -90,6 +102,8 @@ class Game(GObject.Object):
         self.timer = Timer("hours")
         self.playtime = game_data.get("playtime") or "0.0 hrs"
         self.playtime = float(self.playtime.split()[0])
+
+        self.collections = split_coll(game_data.get('collections') or None)
 
     def __repr__(self):
         return self.__unicode__()
@@ -205,6 +219,8 @@ class Game(GObject.Object):
             steamid=self.steamid,
             id=self.id,
             playtime=self.playtime,
+            # We have to join the collections, because we cant save lists
+            collections=join_coll(self.collections),
         )
 
     def prelaunch(self):

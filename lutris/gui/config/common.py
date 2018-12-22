@@ -66,6 +66,8 @@ class GameDialogCommon:
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
+        info_box.pack_start(self._get_collection_box(), False, False, 5)  # Collections
+
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
@@ -76,6 +78,22 @@ class GameDialogCommon:
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
+
+        return box
+
+    def _get_collection_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        label = Label("Collection")
+        box.pack_start(label, False, False, 0)
+
+        self.collection_entry = Gtk.Entry()
+        if self.game:
+            if self.game.collections is None:
+                self.collection_entry.set_text("")
+            else:
+                self.collection_entry.set_text("§".join(self.game.collections))
+        box.pack_start(self.collection_entry, True, True, 0)
 
         return box
 
@@ -388,6 +406,12 @@ class GameDialogCommon:
         self.game.slug = self.slug
         self.game.year = year
         self.game.config = self.lutris_config
+
+        custom = self.collection_entry.get_text().strip(" ")
+        if custom == "":
+            self.game.collections = None
+        else:
+            self.game.collections = custom.split('§')
 
         fps_limit = self.game.config.system_config.get("fps_limit", None)
         if fps_limit:

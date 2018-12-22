@@ -85,6 +85,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.last_selected_game = None
         self.selected_runner = None
         self.selected_platform = None
+        self.selected_collection = None
         self.icon_type = None
 
         # Load settings
@@ -456,7 +457,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.set_selected_filter(self.selected_runner, self.selected_platform)
+        self.set_selected_filter(self.selected_runner, self.selected_platform, self.selected_collection)
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
@@ -951,11 +952,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
         if row is None:
-            self.set_selected_filter(None, None)
+            self.set_selected_filter(None, None, None)
         elif row.type == "runner":
-            self.set_selected_filter(row.id, None)
+            self.set_selected_filter(row.id, None, None)
+        elif row.type == "collections":
+            self.set_selected_filter(None, None, row.id)
         else:
-            self.set_selected_filter(None, row.id)
+            self.set_selected_filter(None, row.id, None)
 
     def on_tray_icon_toggle(self, action, value):
         """Callback for handling tray icon toggle"""
@@ -963,10 +966,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting("show_tray_icon", value)
         self.application.set_tray_icon(value)
 
-    def set_selected_filter(self, runner, platform):
+    def set_selected_filter(self, runner, platform, collection):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner
         self.selected_platform = platform
+        self.selected_collection = collection
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
+        self.game_store.filter_collection = self.selected_collection
         self.invalidate_game_filter()

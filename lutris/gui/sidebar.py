@@ -135,7 +135,7 @@ class SidebarListBox(Gtk.ListBox):
         self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
-
+        self.__sidebarrow__ = dict()    # We have to keep track on the elements somewhere
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
 
         # TODO: This should be in a more logical location
@@ -173,6 +173,10 @@ class SidebarListBox(Gtk.ListBox):
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
+        elif row.type == "collections":
+            if len(self.__sidebarrow__) < 1:
+                return False  # Hide useless filter
+            return True
         else:
             if len(self.active_platforms) <= 1:
                 return False  # Hide useless filter
@@ -188,8 +192,29 @@ class SidebarListBox(Gtk.ListBox):
             row.set_header(SidebarHeader("Runners"))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader("Platforms"))
+        elif before.type == "platform" and row.type == "collections":
+            row.set_header(SidebarHeader("Collections 🐸"))
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
+        # use database directly so we dont have to deal with other references
+        tempcollections = []
+        for collections in pga.get_used_collections():
+            for custom in collections.split('§'):
+                if custom not in tempcollections and custom != "":
+                    tempcollections.append(custom)
+                    if custom not in self.__sidebarrow__.keys():
+                        temp = SidebarRow(custom, "collections", custom, None)
+                        self.__sidebarrow__[custom] = temp
+                        self.add(temp)
+        tempkey = []
+        for x in self.__sidebarrow__.keys():
+            if x not in tempcollections:
+                self.remove(self.__sidebarrow__[x])
+                tempkey.append(x)
+        for y in tempkey:
+            del self.__sidebarrow__[y]
+
+        self.show_all()
         self.invalidate_filter()

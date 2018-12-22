@@ -33,6 +33,7 @@ DATABASE = {
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "playtime", "type": "TEXT"},
+        {'name': 'collections', 'type': 'TEXT'},
     ],
     "store_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
@@ -384,3 +385,14 @@ def get_used_platforms_game_count():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
+
+def get_used_collections():
+    """Return a list of collections currently in use"""
+    with sql.db_cursor(PGA_DB) as cursor:
+        query = (
+            "select distinct collections from games "
+            "where collections is not null and collections is not '' order by collections"
+        )
+        rows = cursor.execute(query)
+        results = rows.fetchall()
+    return [result[0] for result in results if result[0]]

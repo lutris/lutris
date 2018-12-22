@@ -32,7 +32,8 @@ from lutris.util.strings import gtk_safe
     COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
-) = list(range(15))
+    COL_COLLECTIONS,
+) = list(range(16))
 
 COLUMN_NAMES = {
     COL_NAME: "name",
@@ -76,23 +77,25 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
+        self.filter_collection = None
         self.runner_names = self.populate_runner_names()
         self.store = Gtk.ListStore(
-            int,
-            str,
-            str,
-            Pixbuf,
-            str,
-            str,
-            str,
-            str,
-            int,
-            str,
-            bool,
-            int,
-            str,
-            str,
-            str,
+            int,        # ID
+            str,        # SLUG
+            str,        # NAME
+            Pixbuf,     # ICON
+            str,        # YEAR
+            str,        # RUNNER
+            str,        # RUNNER_HUMAN
+            str,        # PLATFORM
+            int,        # LASTPLAYED
+            str,        # LASTPLAYED_TEXT
+            bool,       # INSTALLED
+            int,        # INSTALLED_AT
+            str,        # INSTALLED_AT_TEXT
+            str,        # PLAYTIME
+            str,        # PLAYTIME_TEXT
+            str,        # CUSTOM_COLLECTION
         )
         if show_installed_first:
             self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
@@ -145,6 +148,10 @@ class GameStore(GObject.Object):
         if self.filter_platform:
             platform = model.get_value(_iter, COL_PLATFORM)
             if platform != self.filter_platform:
+                return False
+        if self.filter_collection:
+            custom = model.get_value(_iter, COL_COLLECTIONS)
+            if (custom is None) or not (self.filter_collection in custom.split('§')):
                 return False
         return True
 
@@ -232,6 +239,7 @@ class GameStore(GObject.Object):
                 gtk_safe(installed_at_text),
                 game["playtime"],
                 playtime_text,
+                game["collections"],
             )
         )
         # self.sort_view(self.show_installed_first)
