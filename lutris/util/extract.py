@@ -9,6 +9,10 @@ from lutris.util.log import logger
 from lutris import settings
 
 
+class ExtractFailure(Exception):
+    """Exception raised when and archive fails to extract"""
+
+
 def is_7zip_supported(path, extractor):
     supported_extractors = (
         "7z",
@@ -81,7 +85,11 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         )
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
-    _do_extract(path, temp_path, opener, mode, extractor)
+    try:
+        _do_extract(path, temp_path, opener, mode, extractor)
+    except OSError as ex:
+        logger.exception("Extraction failed: %s", ex)
+        raise ExtractFailure(str(ex))
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:

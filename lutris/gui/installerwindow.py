@@ -412,7 +412,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_download_complete(self, _widget, _data, callback=None, callback_data=None):
         """Action called on a completed download."""
         if callback:
-            callback(**callback_data)
+            try:
+                callback(**callback_data)
+            except Exception as ex:  # pylint: disable:broad-except
+                raise ScriptingError(str(ex))
 
         self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
