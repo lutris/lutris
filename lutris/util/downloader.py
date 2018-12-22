@@ -85,12 +85,13 @@ class Downloader:
             os.remove(self.dest)
 
     def on_done(self, _result, error):
-        if self.state == self.CANCELLED:
-            return
         if error:
             self.state = self.ERROR
             self.error = error
             self.file_pointer.close()
+            return
+
+        if self.state == self.CANCELLED:
             return
 
         logger.debug("Finished downloading %s", self.url)

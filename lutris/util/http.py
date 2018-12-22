@@ -10,6 +10,10 @@ from lutris.settings import SITE_URL, VERSION, PROJECT
 from lutris.util.log import logger
 
 
+class HTTPError(Exception):
+    """Exception raised on request failures"""
+
+
 class Request:
     def __init__(
         self,
@@ -66,45 +70,43 @@ class Request:
             else:
                 request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as error:
-            logger.error("Unavailable url (%s): %s", self.url, error)
+            raise HTTPError("Unavailable url %s: %s" % (self.url, error))
         except (socket.timeout, urllib.error.URLError) as error:
-            logger.error("Unable to connect to server (%s): %s", self.url, error)
-        else:
-            # Response code is available with getcode but should 200 if there
-            # is no exception
-            # logger.debug("Got response code: %s", request.getcode())
-            try:
-                total_size = request.info().get("Content-Length").strip()
-                total_size = int(total_size)
-            except AttributeError:
-                logger.warning("Failed to read response's content length")
-                total_size = 0
+            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
+        if request.getcode() > 200:
+            logger.debug("Server responded with status code %s", request.getcode())
+        try:
+            total_size = request.info().get("Content-Length").strip()
+            total_size = int(total_size)
+        except AttributeError:
+            logger.warning("Failed to read response's content length")
+            total_size = 0
 
-            self.response_headers = request.getheaders()
-            self.status_code = request.getcode()
-            if self.status_code > 299:
-                logger.warning("Request responded with code %s", self.status_code)
-            chunks = []
-            while 1:
-                if self.stop_request and self.stop_request.is_set():
-                    self.content = ""
-                    return self
-                try:
-                    chunk = request.read(self.buffer_size)
-                except socket.timeout:
-                    logger.error("Request timed out")
-                    self.content = ""
-                    return self
-                self.downloaded_size += len(chunk)
-                if self.thread_queue:
-                    self.thread_queue.put((chunk, self.downloaded_size, total_size))
-                else:
-                    chunks.append(chunk)
-                if not chunk:
-                    break
-            request.close()
-            self.content = b"".join(chunks)
-            self.info = request.info()
+        self.response_headers = request.getheaders()
+        self.status_code = request.getcode()
+        if self.status_code > 299:
+            logger.warning("Request responded with code %s", self.status_code)
+        chunks = []
+        while 1:
+            if self.stop_request and self.stop_request.is_set():
+                self.content = ""
+                return self
+            try:
+                chunk = request.read(self.buffer_size)
+            except socket.timeout:
+                logger.error("Request timed out")
+                self.content = ""
+                return self
+            self.downloaded_size += len(chunk)
+            if self.thread_queue:
+                self.thread_queue.put((chunk, self.downloaded_size, total_size))
+            else:
+                chunks.append(chunk)
+            if not chunk:
+                break
+        request.close()
+        self.content = b"".join(chunks)
+        self.info = request.info()
         return self
 
     def post(self, data):

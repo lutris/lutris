@@ -83,7 +83,10 @@ class DownloadProgressBox(Gtk.Box):
         progress = min(self.downloader.check_progress(), 1)
         if self.downloader.state in [self.downloader.CANCELLED, self.downloader.ERROR]:
             self.progressbar.set_fraction(0)
-            self._set_text("Download interrupted")
+            if self.downloader.state == self.downloader.CANCELLED:
+                self._set_text("Download interrupted")
+            else:
+                self._set_text(self.downloader.error)
             if self.downloader.state == self.downloader.CANCELLED:
                 self.emit("cancel", {})
             return False
