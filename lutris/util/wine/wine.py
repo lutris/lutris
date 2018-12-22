@@ -1,7 +1,6 @@
 """Utilities for manipulating Wine"""
 import os
 import subprocess
-import resource
 from functools import lru_cache
 from collections import OrderedDict
 
@@ -12,7 +11,6 @@ from lutris.util.log import logger
 from lutris.util.strings import version_sort
 from lutris.runners.steam import steam
 
-MIN_NUMBER_FILES_OPEN = 1048576
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_DEFAULT_ARCH = "win64" if system.LINUX_SYSTEM.is_64_bit else "win32"
 WINE_PATHS = {
@@ -180,8 +178,7 @@ def is_esync_limit_set():
     if ESYNC_LIMIT_CHECK in ("0", "off"):
         logger.info("fd limit check for esync was manually disabled")
         return True
-    _soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
-    return hard_limit >= MIN_NUMBER_FILES_OPEN
+    return system.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
 def get_default_version():

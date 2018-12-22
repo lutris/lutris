@@ -1,6 +1,7 @@
 """System utilities"""
 # pylint: disable=inconsistent-return-statements
 import platform
+import resource
 import hashlib
 import signal
 import os
@@ -97,6 +98,8 @@ class LinuxSystem:
         '/usr/share/soundfonts',
     ]
 
+    recommended_no_file_open = 1048576
+
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
             self._cache[key] = {}
@@ -113,6 +116,7 @@ class LinuxSystem:
 
         self.populate_libraries()
         self.populate_sound_fonts()
+        self.hard_limit, self.soft_limit = self.get_file_limits()
 
     @staticmethod
     def get_sbin_path(command):
@@ -122,6 +126,13 @@ class LinuxSystem:
             command_path = os.path.join(candidate, command)
             if os.path.exists(command_path):
                 return command_path
+
+    @staticmethod
+    def get_file_limits():
+        return resource.getrlimit(resource.RLIMIT_NOFILE)
+
+    def has_enough_file_descriptors(self):
+        return self.hard_limit >= self.recommended_no_file_open
 
     @staticmethod
     def get_arch():
