@@ -14,7 +14,7 @@ from collections import defaultdict
 from lutris.util import drivers
 from lutris.util.log import logger
 
-SYSTEM_COMMANDS = {
+SYSTEM_COMPONENTS = {
     "COMMANDS": [
         "xrandr",
         "fuser",
@@ -80,7 +80,7 @@ SYSTEM_COMMANDS = {
 }
 
 
-class CommandCache:
+class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
@@ -99,7 +99,7 @@ class CommandCache:
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
             self._cache[key] = {}
-            for command in SYSTEM_COMMANDS[key]:
+            for command in SYSTEM_COMPONENTS[key]:
                 command_path = shutil.which(command)
                 if not command_path:
                     command_path = self.get_sbin_path(command)
@@ -150,7 +150,7 @@ class CommandCache:
         self._cache["LIBRARIES"]["x86_64"] = defaultdict(list)
         for lib32_path, lib64_path in self.iter_lib_folders():
             for req in self.requirements:
-                for lib in SYSTEM_COMMANDS["LIBRARIES"][req]:
+                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
                     if os.path.exists(os.path.join(lib32_path, lib)):
                         self._cache["LIBRARIES"]["i386"][req].append(lib)
                     if os.path.exists(os.path.join(lib64_path, lib)):
@@ -169,7 +169,7 @@ class CommandCache:
         """Return a tuple of 32 and 64bit missing libraries"""
         missing_libs = {}
         for req in self.requirements:
-            required_libs = set(SYSTEM_COMMANDS["LIBRARIES"][req])
+            required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
             missing_libs[req] = (
                 required_libs - set(self._cache["LIBRARIES"]["i386"][req]),
                 required_libs - set(self._cache["LIBRARIES"]["x86_64"][req])
@@ -177,7 +177,7 @@ class CommandCache:
         return missing_libs
 
 
-COMMAND_CACHE = CommandCache()
+LINUX_SYSTEM = LinuxSystem()
 
 # Detect if system is 64bit capable
 IS_64BIT = sys.maxsize > 2 ** 32
@@ -198,8 +198,8 @@ GAMEMODE_PATH = next(
 
 def check_libs():
     """Checks that required libraries are installed on the system"""
-    missing_libs = COMMAND_CACHE.get_missing_libs()
-    for req in COMMAND_CACHE.requirements:
+    missing_libs = LINUX_SYSTEM.get_missing_libs()
+    for req in LINUX_SYSTEM.requirements:
         for index, arch in enumerate(("32", "64")):
             for lib in missing_libs[req][index]:
                 logger.error("%s bit %s missing (needed by %s)", arch, lib, req.lower())
@@ -293,7 +293,7 @@ def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
-    cached = COMMAND_CACHE.get(exec_name)
+    cached = LINUX_SYSTEM.get(exec_name)
     if cached:
         return cached
     return shutil.which(exec_name)
@@ -492,7 +492,7 @@ def get_pids_using_file(path):
 
 def get_terminal_apps():
     """Return the list of installed terminal emulators"""
-    return COMMAND_CACHE.get_terminals()
+    return LINUX_SYSTEM.get_terminals()
 
 
 def get_default_terminal():
