@@ -1,6 +1,5 @@
 """Base module for runners"""
 import os
-import platform
 
 from gi.repository import Gtk
 
@@ -13,19 +12,6 @@ from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
 from lutris.runners import RunnerInstallationError
-
-
-def get_arch():
-    """Return the architecture returning values compatible with the reponses
-    from the API
-    """
-    machine = platform.machine()
-    if "64" in machine:
-        return "x86_64"
-    if "86" in machine:
-        return "i386"
-    if "armv7" in machine:
-        return "armv7"
 
 
 class Runner:
@@ -43,7 +29,7 @@ class Runner:
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = get_arch()
+        self.arch = system.LINUX_SYSTEM.arch
         self.logger = logger
         self.config = config
         self.game_data = {}

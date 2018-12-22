@@ -1,5 +1,6 @@
 """System utilities"""
 # pylint: disable=inconsistent-return-statements
+import platform
 import hashlib
 import signal
 import os
@@ -108,6 +109,7 @@ class LinuxSystem:
 
         # Detect if system is 64bit capable
         self.is_64_bit = sys.maxsize > 2 ** 32
+        self.arch = self.get_arch()
 
         self.populate_libraries()
         self.populate_sound_fonts()
@@ -120,6 +122,20 @@ class LinuxSystem:
             command_path = os.path.join(candidate, command)
             if os.path.exists(command_path):
                 return command_path
+
+    @staticmethod
+    def get_arch():
+        """Return the system architecture only if compatible
+        with the supported architectures from the Lutris API
+        """
+        machine = platform.machine()
+        if "64" in machine:
+            return "x86_64"
+        if "86" in machine:
+            return "i386"
+        if "armv7" in machine:
+            return "armv7"
+        logger.warning("Unsupported architecture %s", machine)
 
     @ property
     def requirements(self):
