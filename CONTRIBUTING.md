@@ -69,7 +69,7 @@ the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 When writing docstrings, you should follow the Google style
 (See: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
 
-Do *not* add type annotations.
+Do *not* add type annotations, those are not supported in Python 3.4.
 
 Writing tests
 -------------
