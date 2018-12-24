@@ -235,9 +235,9 @@ def get_paths(prefer_system_libs=True, wine_path=None):
 
             # This prioritizes system libraries over
             # the Lutris and Steam runtimes.
-            for lib32_path, lib64_path in LINUX_SYSTEM.iter_lib_folders():
-                paths.append(lib32_path)
-                paths.append(lib64_path)
+            for lib_paths in LINUX_SYSTEM.iter_lib_folders():
+                for arch in LINUX_SYSTEM.runtime_architectures:
+                    paths.append(lib_paths[0])
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]

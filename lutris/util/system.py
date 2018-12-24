@@ -148,7 +148,13 @@ class LinuxSystem:
             return "armv7"
         logger.warning("Unsupported architecture %s", machine)
 
-    @ property
+    @property
+    def runtime_architectures(self):
+        if self.arch == "x86_64":
+            return ["i386", "x86_64"]
+        return ["i386"]
+
+    @property
     def requirements(self):
         """Return used system requirements"""
         _requirements = ["OPENGL", "WINE", "VULKAN"]
@@ -171,21 +177,23 @@ class LinuxSystem:
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
         for lib_paths in self.lib_folders:
+            if self.arch != 'x86_64':
+                # On non amd64 setups, only the first element is relevant
+                lib_paths = [lib_paths[0]]
             if all([os.path.exists(path) for path in lib_paths]):
                 yield lib_paths
 
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
         self._cache["LIBRARIES"] = {}
-        self._cache["LIBRARIES"]["i386"] = defaultdict(list)
-        self._cache["LIBRARIES"]["x86_64"] = defaultdict(list)
-        for lib32_path, lib64_path in self.iter_lib_folders():
+        for arch in self.runtime_architectures:
+            self._cache["LIBRARIES"][arch] = defaultdict(list)
+        for lib_paths in self.iter_lib_folders():
             for req in self.requirements:
                 for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
-                    if os.path.exists(os.path.join(lib32_path, lib)):
-                        self._cache["LIBRARIES"]["i386"][req].append(lib)
-                    if os.path.exists(os.path.join(lib64_path, lib)):
-                        self._cache["LIBRARIES"]["x86_64"][req].append(lib)
+                    for index, arch in enumerate(self.runtime_architectures):
+                        if os.path.exists(os.path.join(lib_paths[index], lib)):
+                            self._cache["LIBRARIES"][arch][req].append(lib)
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
@@ -201,10 +209,10 @@ class LinuxSystem:
         missing_libs = {}
         for req in self.requirements:
             required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
-            missing_libs[req] = (
-                required_libs - set(self._cache["LIBRARIES"]["i386"][req]),
-                required_libs - set(self._cache["LIBRARIES"]["x86_64"][req])
-            )
+            missing_libs[req] = [
+                required_libs - set(self._cache["LIBRARIES"]["i386"][req])
+                for arch in self.runtime_architectures
+            ]
         return missing_libs
 
 
@@ -228,9 +236,9 @@ def check_libs():
     """Checks that required libraries are installed on the system"""
     missing_libs = LINUX_SYSTEM.get_missing_libs()
     for req in LINUX_SYSTEM.requirements:
-        for index, arch in enumerate(("32", "64")):
+        for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
             for lib in missing_libs[req][index]:
-                logger.error("%s bit %s missing (needed by %s)", arch, lib, req.lower())
+                logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
