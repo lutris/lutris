@@ -116,7 +116,7 @@ class LinuxSystem:
 
         self.populate_libraries()
         self.populate_sound_fonts()
-        self.hard_limit, self.soft_limit = self.get_file_limits()
+        self.soft_limit, self.hard_limit = self.get_file_limits()
 
     @staticmethod
     def get_sbin_path(command):
