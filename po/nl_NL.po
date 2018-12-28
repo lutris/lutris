@@ -1,0 +1,213 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Tim Terhorst <mynamewastaken+git@gmail.com>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-09 21:49+0100\n"
+"PO-Revision-Date: 2018-12-27 18:17-0600\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"Last-Translator: Tim Terhorst <mynamewastaken+git@gmail.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl_NL\n"
+
+#: ../data/ui/AboutDialog.ui.h:1
+msgid "About Lutris"
+msgstr "Over Lutris"
+
+#: ../data/ui/AboutDialog.ui.h:2
+msgid "© 2010, 2012 Mathieu Comandon"
+msgstr "© 2010, 2012 Mathieu Comandon"
+
+#: ../data/ui/AboutDialog.ui.h:3
+#, fuzzy
+msgid "Open Source Gaming Platform"
+msgstr "Open Source Gaming Platform"
+
+#: ../data/ui/AboutDialog.ui.h:4
+msgid "http://lutris.net"
+msgstr "http://lutris.net"
+
+#: ../data/ui/AboutDialog.ui.h:5
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+
+#: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
+msgid "Lutris"
+msgstr "Lutris"
+
+#: ../data/ui/LutrisWindow3.ui.h:2
+msgid "_File"
+msgstr "_Map"
+
+#: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
+msgid "_Edit"
+msgstr "_Bewerk"
+
+#: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
+#, fuzzy
+msgid "_View"
+msgstr "_View"
+
+#: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
+msgid "_Help"
+msgstr "_Hulp"
+
+#: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
+msgid "Add game"
+msgstr "Spel toevoegen"
+
+#: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
+msgid "Play"
+msgstr "Speel"
+
+#: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
+msgid "Stop"
+msgstr "Stop"
+
+#: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
+msgid "Remove"
+msgstr "Verwijder"
+
+#: ../data/ui/LutrisWindow.ui.h:2
+msgid "_Lutris"
+msgstr "_Lutris"
+
+#: ../data/ui/LutrisWindow.ui.h:3
+msgid "Connect"
+msgstr "Aansluiten"
+
+#: ../data/ui/LutrisWindow.ui.h:4
+msgid "Install and configure runners"
+msgstr "Lopers installeren en configureren"
+
+#: ../data/ui/LutrisWindow.ui.h:5
+msgid "Manage runners"
+msgstr "Lopers beheren"
+
+#: ../data/ui/LutrisWindow.ui.h:6
+msgid "Import"
+msgstr "Importeren"
+
+#: ../data/ui/LutrisWindow.ui.h:7
+msgid "Import games from ScummVM"
+msgstr "Spellen importeren uit ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:8
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:10
+msgid "configure the default options"
+msgstr "runners installeren en configureren"
+
+#: ../data/ui/LutrisWindow.ui.h:12
+msgid "Icons"
+msgstr "Iconen"
+
+#: ../data/ui/LutrisWindow.ui.h:13
+msgid "List"
+msgstr "Lijst"
+
+#: ../data/ui/LutrisWindow.ui.h:14
+msgid "_Game"
+msgstr "_Spel"
+
+#: ../data/ui/LutrisWindow.ui.h:15
+msgid "Start"
+msgstr "Begin"
+
+#: ../data/ui/LutrisWindow.ui.h:17
+msgid "Play game"
+msgstr "Spel spelen"
+
+#: ../data/ui/LutrisWindow.ui.h:19
+msgid "Stop game"
+msgstr "Stop het spel"
+
+#: ../data/ui/LutrisWindow.ui.h:22
+msgid "Add Game"
+msgstr "Spel toevoegen"
+
+#: ../data/ui/LutrisWindow.ui.h:23
+msgid "Remove game from library"
+msgstr "Verwijder spel van bibliotheek"
+
+#: ../data/ui/LutrisWindow.ui.h:25
+msgid "Filter the list of games"
+msgstr "Filter het lijst van spellen"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:1
+#, fuzzy
+msgid ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:14
+#, fuzzy
+msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+msgstr "Auteursrecht (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:1
+#, fuzzy
+msgid "gtk-cancel"
+msgstr "gtk-cancel"
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:2
+#, fuzzy
+msgid "gtk-ok"
+msgstr "gtk-ok"
