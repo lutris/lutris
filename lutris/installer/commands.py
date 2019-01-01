@@ -17,7 +17,7 @@ from lutris.util.log import logger
 from lutris.util.wine.wine import get_wine_version_exe
 from lutris.util import selective_merge
 
-from lutris.runners import wine, import_task
+from lutris.runners import import_task
 from lutris.thread import MonitoredCommand
 
 
@@ -354,6 +354,14 @@ class CommandsMixin:
             runner_name = self.runner
         return runner_name, task_name
 
+    def _get_default_prefix(self):
+        """Return the appropriate prefix path for case where one isn't provided"""
+        game_prefix = self.script.get("game", {}).get("prefix")
+        if not game_prefix:
+            logger.debug("Default prefix set to $GAMEDIR")
+            game_prefix = "$GAMEDIR"
+        return self._substitute(game_prefix)
+
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -385,10 +393,7 @@ class CommandsMixin:
             data[key] = value
 
         if "prefix" not in data:
-            if runner_name == "wine":
-                data["prefix"] = wine.wine.prefix_path
-            elif runner_name == "winesteam":
-                data["prefix"] = self._get_steam_runner().prefix_path
+            data["prefix"] = self._get_default_prefix()
 
         task = import_task(runner_name, task_name)
         thread = task(**data)
