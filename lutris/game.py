@@ -541,6 +541,10 @@ class Game(GObject.Object):
         if self.state == self.STATE_STOPPED:
             logger.debug("Game already stopped")
             return
+        if not self.runner:
+            self.error("No game actually running, this shouldn't happen")
+            return
+
         logger.info("Stopping %s", self)
         if self.runner.system_config.get("xboxdrv"):
             logger.debug("Stopping xboxdrv")
