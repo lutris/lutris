@@ -227,6 +227,8 @@ def load_games():
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""
     gog_ids = [game["appid"] for game in games]
+    if not gog_ids:
+        return
     lutris_games = api.get_api_games(gog_ids, query_type="gogid")
     for game in lutris_games:
         game_data = {
