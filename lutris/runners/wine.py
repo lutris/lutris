@@ -469,7 +469,6 @@ class wine(Runner):
         exe = self.game_config.get("exe") or ""
         if exe and os.path.isabs(exe):
             return exe
-        return os.path.join(self.game_path, exe)
 
     @property
     def working_dir(self):
