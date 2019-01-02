@@ -42,6 +42,19 @@ Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
 
 %if 0%{?fedora} || 0%{?suse_version}
 BuildRequires: fdupes
+
+%ifarch x86_64
+Requires:       mesa-dri-drivers(x86-32)
+Requires:       mesa-vulkan-drivers(x86-32)
+Requires:       vulkan-loader(x86-32)
+%endif
+
+Requires:       mesa-vulkan-drivers
+Requires:       mesa-dri-drivers
+Requires:       vulkan-loader
+Recommends:     wine-core
+BuildRequires:  fdupes
+BuildRequires:  libappstream-glib
 %endif
 
 #!BuildIgnore: rpmlint-mini
