@@ -32,18 +32,6 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
-        "option": "rom_directory",
-        "type": "directory_chooser",
-        "label": "rom directory",
-        "default": os.path.expanduser("~/roms"),
-        "scope": ["system"],
-        "help": (
-            "The folder where your console roms are stored\n"
-            "Lutris can scan folder recursively\n"
-            "You can sync from the game import menu"
-        ),
-    },
-    {
         "option": "reset_desktop",
         "type": "bool",
         "label": "Restore to default resolution when game quits",

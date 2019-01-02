@@ -80,7 +80,7 @@ def rom_read_data(location):
 def sync_with_lutris():
     """Add games to Lutris"""
     system_config = LutrisConfig()
-    scan_directory = system_config.system_config["rom_directory"]
+    scan_directory = "????"
     roms = []
     roms_slug = []
 
