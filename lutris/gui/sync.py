@@ -53,7 +53,7 @@ class ServiceSyncBox(Gtk.Box):
         self.content_widget = center_alignment
         self.pack_start(center_alignment, True, True, 0)
 
-        actions = Gtk.Box()
+        actions = Gtk.Box(spacing=6)
         self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
@@ -65,13 +65,13 @@ class ServiceSyncBox(Gtk.Box):
             actions.pack_start(self.sync_button, False, False, 0)
 
             self.sync_switch = Gtk.Switch()
-            self.sync_switch.set_margin_left(12)
             self.sync_switch.props.valign = Gtk.Align.CENTER
             self.sync_switch.connect("notify::active", self.on_switch_changed)
 
             if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
-            actions.pack_start(self.sync_switch, False, False, 6)
+            actions.pack_start(Gtk.Alignment(), True, True, 0)
+            actions.pack_start(self.sync_switch, False, False, 0)
             actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
 
             if service.ONLINE and not service.is_connected():
@@ -156,6 +156,10 @@ class ServiceSyncBox(Gtk.Box):
         col = self.COL_SELECTED
         self.store_filter[game_index][col] = not self.store_filter[game_index][col]
 
+    def on_select_all(self, widget):
+        for game in self.store_filter:
+            game[self.COL_SELECTED] = widget.get_active()
+
     def get_store(self):
         """Return a ListStore for the games to import"""
         liststore = Gtk.ListStore(
@@ -178,19 +182,23 @@ class ServiceSyncBox(Gtk.Box):
         return liststore
 
     def get_game_list_widget(self):
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        filter_box = Gtk.Box(spacing=6)
+        select_all_button = Gtk.CheckButton.new_with_label("Select all")
+        select_all_button.connect("toggled", self.on_select_all)
+        filter_box.add(select_all_button)
+
         search_entry = Gtk.Entry()
         search_entry.connect("changed", self.on_search_entry_changed)
-
-        treeview = self.get_treeview(self.store_filter)
+        filter_box.pack_start(Gtk.Alignment(), True, True, 0)
+        filter_box.add(Gtk.Label("Filter:"))
+        filter_box.add(search_entry)
+        content.pack_start(filter_box, False, False, 0)
 
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC,
-                                   Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_window.add(treeview)
-
-        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        content.pack_start(search_entry, False, False, 0)
+        scrolled_window.add(self.get_treeview(self.store_filter))
         content.pack_start(scrolled_window, True, True, 0)
         content.show_all()
         return content
