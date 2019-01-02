@@ -314,4 +314,17 @@ def get_compositor_commands():
         start_compositor = (
             "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
         )
+    elif (
+        desktop_session == "deepin"
+        and system.execute(
+            "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
+            "--print-reply=literal /com/deepin/WMSwitcher com.deepin.WMSwitcher.CurrentWM",
+            shell=True,
+        )
+        == "deepin wm"
+    ):
+        start_compositor, stop_compositor = (
+            "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
+            "/com/deepin/WMSwitcher com.deepin.WMSwitcher.RequestSwitchWM",
+        ) * 2
     return start_compositor, stop_compositor
