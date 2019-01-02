@@ -122,7 +122,7 @@ class Label(Gtk.Label):
         super().__init__(label=message)
         self.set_line_wrap(True)
         self.set_size_request(200, -1)
-        self.set_alignment(0, 0)
+        self.set_alignment(1, 0.5)
 
 
 class VBox(Gtk.Box):
