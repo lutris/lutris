@@ -361,7 +361,7 @@ class Application(Gtk.Application):
                 dlg = InstallOrPlayDialog(db_game["name"])
                 if not dlg.action_confirmed:
                     action = None
-                if dlg.action == "play":
+                elif dlg.action == "play":
                     action = "rungame"
                 elif dlg.action == "install":
                     action = "install"
