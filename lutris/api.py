@@ -91,7 +91,7 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
     if game_ids:
         payload = json.dumps({query_type: game_ids, "page": page}).encode("utf-8")
     else:
-        payload = None
+        raise ValueError("No game id provided will fetch all games from the API")
     response.get(data=payload)
     response_data = response.json
     logger.debug("Loaded %s games from page %s", len(response_data.get("results")), page)
