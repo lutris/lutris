@@ -64,19 +64,19 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         # Title label
         self.title_label = Gtk.Label()
-        self.vbox.pack_start(self.title_label, False, False, 20)
+        self.vbox.pack_start(self.title_label, False, False, 18)
 
         self.status_label = Gtk.Label()
         self.status_label.set_max_width_chars(80)
         self.status_label.set_property("wrap", True)
         self.status_label.set_selectable(True)
-        self.vbox.pack_start(self.status_label, False, False, 15)
+        self.vbox.pack_start(self.status_label, False, False, 18)
 
         # Main widget box
         self.widget_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, margin_right=25, margin_left=25
+            orientation=Gtk.Orientation.VERTICAL, margin_right=18, margin_left=18
         )
-        self.vbox.pack_start(self.widget_box, True, True, 15)
+        self.vbox.pack_start(self.widget_box, True, True, 18)
 
         self.location_entry = None
 
@@ -87,7 +87,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
         self.action_buttons = Gtk.Box()
         action_buttons_alignment.add(self.action_buttons)
-        self.vbox.pack_start(action_buttons_alignment, False, True, 20)
+        self.vbox.pack_start(action_buttons_alignment, False, True, 18)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
         self.cancel_button.set_tooltip_text("Abort and revert the " "installation")
@@ -113,7 +113,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def add_button(self, label, handler=None):
         button = Gtk.Button.new_with_mnemonic(label)
-        button.set_margin_left(20)
+        button.set_margin_left(18)
         if handler:
             button.connect("clicked", handler)
         self.action_buttons.add(button)
