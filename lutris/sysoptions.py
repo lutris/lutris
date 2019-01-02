@@ -34,7 +34,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "reset_desktop",
         "type": "bool",
-        "label": "Restore to default resolution when game quits",
+        "label": "Restore resolution on game exit",
         "default": False,
         "help": (
             "Some games don't restore your screen resolution when \n"
@@ -46,7 +46,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "restore_gamma",
         "type": "bool",
         "default": False,
-        "label": "Restore default gamma correction after game quits",
+        "label": "Restore gamma on game exit",
         "help": (
             "Some games don't correctly restores gamma on exit, making "
             "your display too bright. Select this option to correct it."
@@ -106,11 +106,11 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "sdl_video_fullscreen",
         "type": "choice",
-        "label": "Fullscreen SDL games to display",
+        "label": "SDL 1.2 Fullscreen Monitor",
         "choices": display.get_output_list,
         "default": "off",
         "help": (
-            "Hint SDL games to use a specific monitor when going "
+            "Hint SDL 1.2 games to use a specific monitor when going "
             "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
             "environment variable"
         ),
@@ -192,7 +192,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "prelaunch_wait",
         "type": "bool",
-        "label": "Wait for pre-launch command to complete",
+        "label": "Wait for pre-launch command completion",
         "advanced": True,
         "default": False,
         "help": "Run the game only once the pre-launch command has exited",
