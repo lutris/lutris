@@ -394,7 +394,7 @@ class WebConnectDialog(Dialog):
 
         super(WebConnectDialog, self).__init__(title=service.name, parent=parent)
         self.set_border_width(0)
-        self.set_default_size(390, 425)
+        self.set_default_size(390, 500)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
         self.webview.load_uri(service.login_url)
