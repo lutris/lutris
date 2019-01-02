@@ -71,12 +71,9 @@ class ServiceSyncBox(Gtk.Box):
                 self.sync_switch.set_sensitive(False)
                 self.sync_button.set_sensitive(False)
 
-        if hasattr(service, "load_games"):
-            self.load_games()
-
     def get_icon(self):
         """Return the icon for the service (used in tabs)"""
-        icon = get_icon(self.icon_name)
+        icon = get_icon(self.icon_name, size=(24, 24))
         if icon:
             return icon
         return Gtk.Label(self.name)
