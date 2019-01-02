@@ -360,7 +360,7 @@ class CommandsMixin:
         if not game_prefix:
             logger.debug("Default prefix set to $GAMEDIR")
             game_prefix = "$GAMEDIR"
-        return self._substitute(game_prefix)
+        return game_prefix
 
     def task(self, data):
         """Directive triggering another function specific to a runner.
@@ -380,6 +380,8 @@ class CommandsMixin:
             if wine_version:
                 data["wine_path"] = get_wine_version_exe(wine_version)
 
+        data["prefix"] = data.get("prefix") or self._get_default_prefix()
+
         for key in data:
             value = data[key]
             if isinstance(value, dict):
@@ -391,9 +393,6 @@ class CommandsMixin:
             else:
                 value = self._substitute(data[key])
             data[key] = value
-
-        if "prefix" not in data:
-            data["prefix"] = self._get_default_prefix()
 
         task = import_task(runner_name, task_name)
         thread = task(**data)
