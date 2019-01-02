@@ -61,21 +61,23 @@ def get_icon(icon_name, format="image", size=None, icon_type="runner"):
         return None
     if format == "image":
         icon = Gtk.Image()
-        icon.set_from_file(icon_path)
+        if size:
+            icon.set_from_pixbuf(get_pixbuf(icon_path, size))
+        else:
+            icon.set_from_file(icon_path)
+        return icon
     elif format == "pixbuf" and size:
-        icon = get_pixbuf(icon_path, size)
-    else:
-        raise ValueError("Invalid arguments")
-    return icon
+        return get_pixbuf(icon_path, size)
+    raise ValueError("Invalid arguments")
 
 
 def get_overlay(size):
-    x, y = size
+    width, height = size
     transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-        UNAVAILABLE_GAME_OVERLAY, x, y
+        UNAVAILABLE_GAME_OVERLAY, width, height
     )
     transparent_pixbuf = transparent_pixbuf.scale_simple(
-        x, y, GdkPixbuf.InterpType.NEAREST
+        width, height, GdkPixbuf.InterpType.NEAREST
     )
     return transparent_pixbuf
 
