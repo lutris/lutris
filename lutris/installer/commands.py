@@ -14,7 +14,7 @@ from lutris import runtime
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
-from lutris.util.wine.wine import get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version_exe, WINE_DEFAULT_ARCH
 from lutris.util import selective_merge
 
 from lutris.runners import import_task
@@ -354,14 +354,6 @@ class CommandsMixin:
             runner_name = self.runner
         return runner_name, task_name
 
-    def _get_default_prefix(self):
-        """Return the appropriate prefix path for case where one isn't provided"""
-        game_prefix = self.script.get("game", {}).get("prefix")
-        if not game_prefix:
-            logger.debug("Default prefix set to $GAMEDIR")
-            game_prefix = "$GAMEDIR"
-        return game_prefix
-
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -379,8 +371,12 @@ class CommandsMixin:
             wine_version = self._get_runner_version()
             if wine_version:
                 data["wine_path"] = get_wine_version_exe(wine_version)
-
-        data["prefix"] = data.get("prefix") or self._get_default_prefix()
+            data["prefix"] = data.get("prefix") \
+                or self.script.get("game", {}).get("prefix") \
+                or "$GAMEDIR"
+            data["arch"] = data.get("arch") \
+                or self.script.get("game", {}).get("arch") \
+                or WINE_DEFAULT_ARCH
 
         for key in data:
             value = data[key]
