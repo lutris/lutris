@@ -9,6 +9,7 @@ NAME = "rom"
 ICON = "dolphin"
 INSTALLER_SLUG = "rom"
 TDB_DB_CACHE = None
+ONLINE = False
 
 
 def add_rom(rom, config):

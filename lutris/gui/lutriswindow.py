@@ -507,8 +507,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def open_sync_dialog(self):
         """Opens the service sync dialog"""
-        SyncServiceWindow(parent=self)
-        # XXX keep a reference to the sync window?
+        SyncServiceWindow(application=self.application)
 
     def update_existing_games(self, added, updated, first_run=False):
         """???"""

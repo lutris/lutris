@@ -16,6 +16,7 @@ from lutris.services import ServiceGame
 
 NAME = "Desktop games"
 ICON = "linux"
+ONLINE = False
 INSTALLER_SLUG = "desktopapp"
 
 IGNORED_GAMES = (
@@ -174,7 +175,7 @@ def load_games():
 
         # executable is blacklisted
         if app.get_executable().lower() in IGNORED_EXECUTABLES:
-            logger.debug("Skipping %s with executable %s", appid, app.get_executable())
+            # logger.debug("Skipping %s with executable %s", appid, app.get_executable())
             continue
 
         cli = shlex.split(app.get_commandline())

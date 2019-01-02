@@ -20,6 +20,9 @@ class ServiceSyncBox(Gtk.Box):
     def __init__(self, service, _dialog):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.set_spacing(12)
+        self.set_margin_right(12)
+        self.set_margin_left(12)
+        self.set_margin_bottom(12)
 
         self.service = service
         self.identifier = service.__name__.split(".")[-1]
@@ -27,17 +30,16 @@ class ServiceSyncBox(Gtk.Box):
         self.name = service.NAME
         self.games = []
 
+        title_box = Gtk.Box()
         label = Gtk.Label()
         label.set_markup("<b>{}</b>".format(self.name))
-        self.pack_start(label, False, False, 20)
+        title_box.pack_start(label, True, True, 0)
 
-        if hasattr(service, "connect"):
-            service_connected = service.is_connected()
-            logger.debug("%s is %sconnected", self.name, "" if service_connected else "not ")
-            self.connect_button = Gtk.Button()
-            self.connect_button.connect("clicked", self.on_connect_clicked, service)
-            self._connect_button_toggle(service_connected)
-            self.pack_start(self.connect_button, False, False, 0)
+        self.connect_button = None
+        if service.ONLINE:
+            title_box.add(self._connect_button_toggle())
+
+        self.pack_start(title_box, False, False, 12)
 
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
@@ -49,7 +51,7 @@ class ServiceSyncBox(Gtk.Box):
         self.pack_start(center_alignment, True, True, 0)
 
         actions = Gtk.Box()
-        self.pack_start(actions, False, False, 10)
+        self.pack_start(actions, False, False, 0)
 
         if hasattr(service, "sync_with_lutris"):
             self.sync_button = Gtk.Button("Import games")
@@ -57,18 +59,19 @@ class ServiceSyncBox(Gtk.Box):
             self.sync_button.connect(
                 "clicked", self.on_sync_button_clicked, service.sync_with_lutris
             )
-            actions.pack_start(self.sync_button, False, False, 10)
+            actions.pack_start(self.sync_button, False, False, 0)
 
             self.sync_switch = Gtk.Switch()
+            self.sync_switch.set_margin_left(12)
             self.sync_switch.props.valign = Gtk.Align.CENTER
             self.sync_switch.connect("notify::active", self.on_switch_changed)
 
             if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
-            actions.pack_start(self.sync_switch, False, False, 10)
-            actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 10)
+            actions.pack_start(self.sync_switch, False, False, 6)
+            actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
 
-            if hasattr(service, "connect") and not service.is_connected():
+            if service.ONLINE and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
                 self.sync_button.set_sensitive(False)
 
@@ -82,7 +85,7 @@ class ServiceSyncBox(Gtk.Box):
     def on_connect_clicked(self, button, service):
         if service.is_connected():
             service.disconnect()
-            self._connect_button_toggle(False)
+            self._connect_button_toggle()
 
             self.sync_switch.set_sensitive(False)
             self.sync_button.set_sensitive(False)
@@ -92,14 +95,21 @@ class ServiceSyncBox(Gtk.Box):
                 self.sync_switch.set_state(False)
         else:
             service.connect()
-            self._connect_button_toggle(True)
+            self._connect_button_toggle()
             self.sync_switch.set_sensitive(True)
             self.sync_button.set_sensitive(True)
 
-    def _connect_button_toggle(self, is_connected):
-        self.connect_button.set_label("Disconnect" if is_connected else "Connect")
+    def _connect_button_toggle(self):
+        if self.connect_button:
+            self.connect_button.destroy()
+        self.connect_button = Gtk.Button.new_from_icon_name(
+            "user-offline-symbolic" if self.service.is_connected() else "user-available-symbolic",
+            Gtk.IconSize.MENU
+        )
+        self.connect_button.connect("clicked", self.on_connect_clicked, self.service)
+        return self.connect_button
 
-    def on_sync_button_clicked(self, button, sync_method):
+    def on_sync_button_clicked(self, _button, sync_method):
         """Called when the sync button is clicked.
 
         Launches the import of selected games
@@ -109,10 +119,10 @@ class ServiceSyncBox(Gtk.Box):
 
     def on_service_synced(self, caller, data):
         """Called when games are imported"""
-        parent = self.get_toplevel()
-        if not isinstance(parent, Gtk.Window):
-            # The sync dialog may have closed
-            parent = Gio.Application.get_default().props.active_window
+        # parent = self.get_toplevel()
+        # if not isinstance(parent, Gtk.Window):
+        #     # The sync dialog may have closed
+        #     parent = Gio.Application.get_default().props.active_window
         logger.info("Games imported to library")
 
     def on_switch_changed(self, switch, data):
@@ -169,6 +179,8 @@ class ServiceSyncBox(Gtk.Box):
 
     def load_games(self):
         """Load the list of games in a treeview"""
+        if self.service.ONLINE and not self.service.is_connected():
+            return
         try:
             self.games = self.service.load_games()
         except Exception as ex:
@@ -225,9 +237,9 @@ class ServiceSyncBox(Gtk.Box):
         return games
 
 
-class SyncServiceWindow(Gtk.Window):
-    def __init__(self, parent=None):
-        super().__init__(title="Import local games", parent=parent)
+class SyncServiceWindow(Gtk.ApplicationWindow):
+    def __init__(self, application=None):
+        super().__init__(title="Import local games", application=application)
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.set_border_width(10)

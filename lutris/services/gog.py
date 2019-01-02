@@ -2,7 +2,6 @@
 import os
 import time
 import json
-from pprint import pprint
 from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
 from lutris import pga
@@ -19,6 +18,7 @@ from lutris.services import ServiceGame
 
 NAME = "GOG"
 ICON = "gog"
+ONLINE = True
 
 
 class GogService:
@@ -47,13 +47,27 @@ class GogService:
         }
         return "https://auth.gog.com/auth?" + urlencode(params)
 
+    @property
+    def credential_files(self):
+        return [self.credentials_path, self.token_path]
+
     def disconnect(self):
         """Disconnect from GOG by removing all credentials"""
-        for auth_file in [self.credentials_path, self.token_path]:
+        for auth_file in self.credential_files:
             try:
                 os.remove(auth_file)
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
+
+    def is_authenticated(self):
+        return all([os.path.exists(path) for path in self.credential_files])
+
+    def is_available(self):
+        """Return whether the user is authenticated and if the service is available"""
+        if not self.is_authenticated():
+            return False
+        user_data = self.get_user_data()
+        return user_data and "username" in user_data
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
@@ -138,6 +152,8 @@ class GogService:
 
     def get_library(self, page=None, search=None):
         """Return a page of GOG games"""
+        if not self.is_authenticated():
+            raise RuntimeError("User is not logged in")
         params = {"mediaType": "1"}
         if page:
             params["page"] = page
@@ -163,17 +179,17 @@ class GogService:
         return response
 
 
+GOG_SERVICE = GogService()
+
+
 def is_connected():
     """Return True if user is connected to GOG"""
-    service = GogService()
-    user_data = service.get_user_data()
-    return user_data and "username" in user_data
+    return GOG_SERVICE.is_available()
 
 
 def connect(parent=None):
     """Connect to GOG"""
-    service = GogService()
-    dialog = WebConnectDialog(service, parent)
+    dialog = WebConnectDialog(GOG_SERVICE, parent)
     dialog.run()
 
 
@@ -185,10 +201,8 @@ def disconnect():
 
 def load_games():
     """Load the user game library from the GOG API"""
-    service = GogService()
-    game_list = service.get_library()
+    game_list = GOG_SERVICE.get_library()
 
-    pprint(game_list)
     games = []
     for game in game_list['products']:
         image_url = "https:%s_prof_game_100x60.jpg" % game['image']
@@ -223,26 +237,3 @@ def sync_with_lutris(games):
             "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
         }
         pga.add_or_update(**game_data)
-
-
-def get_games():
-    """?"""
-    service = GogService()
-
-    game_list = service.get_library()
-    print(json.dumps(game_list, indent=2))
-
-    game_details = service.get_game_details("1430740694")
-    done = False
-    for installer in game_details["downloads"]["installers"]:
-        pprint(installer)
-        for file in installer["files"]:
-            if not done:
-                print(service.get_download_info(file["downlink"]))
-                done = True
-
-                # url = "https://www.gog.com/downlink/{}/{}".format(
-                #     game_details['slug'],
-                #     file['id']
-                # )
-                # print(service.get_download_info(url))

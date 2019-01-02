@@ -25,7 +25,6 @@ from lutris.installer.errors import ScriptingError
 from lutris.installer.commands import CommandsMixin
 
 from lutris.services.gog import (
-    is_connected as is_gog_connected,
     connect as connect_gog,
     GogService,
 )
@@ -983,10 +982,10 @@ class ScriptInterpreter(CommandsMixin):
 
     def get_gog_download_links(self):
         """Return a list of downloadable links for a GOG game"""
-        if not is_gog_connected():
+        gog_service = GogService()
+        if not gog_service.is_available():
             logger.info("You are not connected to GOG")
             connect_gog()
-        gog_service = GogService()
         gog_installers = self.get_gog_installers(gog_service)
         if len(gog_installers) > 1:
             raise ScriptingError("Don't know how to deal with multiple installers yet.")

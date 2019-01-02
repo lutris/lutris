@@ -10,6 +10,7 @@ from lutris.util.steam.config import get_steamapps_paths
 
 NAME = "Steam"
 ICON = "steam"
+ONLINE = True
 
 
 def mark_as_installed(steamid, runner_name, game_info):
@@ -115,3 +116,8 @@ def sync_with_lutris(games, platform="linux"):
                     and game["runner"] == runner
             ):
                 mark_as_uninstalled(game)
+
+
+def is_connected():
+    # XXX
+    return True
