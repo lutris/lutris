@@ -77,14 +77,9 @@ class ConfigBox(VBox):
             if callable(option.get("condition")):
                 option["condition"] = option["condition"]()
 
-            hbox = Gtk.Box()
-            hbox.set_margin_left(20)
             self.wrapper = Gtk.Box()
-            self.wrapper.set_spacing(20)
-
-            placeholder = Gtk.Box()
-            placeholder.set_size_request(32, 32)
-            hbox.pack_end(placeholder, False, False, 5)
+            self.wrapper.set_spacing(12)
+            self.wrapper.set_margin_bottom(6)
 
             # Set tooltip's "Default" part
             default = option.get("default")
@@ -106,6 +101,9 @@ class ConfigBox(VBox):
                 self.wrapper,
             )
 
+            placeholder = Gtk.Box()
+            placeholder.set_size_request(32, 32)
+
             if option_key not in self.raw_config:
                 reset_btn.set_visible(False)
                 reset_btn.set_no_show_all(True)
@@ -126,6 +124,9 @@ class ConfigBox(VBox):
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
+            hbox = Gtk.Box()
+            hbox.set_margin_left(18)
+            hbox.pack_end(placeholder, False, False, 5)
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
@@ -136,9 +137,8 @@ class ConfigBox(VBox):
                 show_advanced = settings.read_setting("show_advanced_options")
                 if not show_advanced == "True":
                     hbox.set_no_show_all(True)
-
             hbox.pack_start(self.wrapper, True, True, 0)
-            self.pack_start(hbox, False, False, 5)
+            self.pack_start(hbox, False, False, 0)
 
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
@@ -208,7 +208,7 @@ class ConfigBox(VBox):
         if value is True:
             checkbox.set_active(value)
         checkbox.connect("toggled", self.checkbox_toggle, option["option"])
-        self.wrapper.pack_start(checkbox, True, True, 5)
+        self.wrapper.pack_start(checkbox, True, True, 0)
         self.option_widget = checkbox
 
     # Checkbox with callback
@@ -228,7 +228,7 @@ class ConfigBox(VBox):
             option["callback"],
             option["callback_on"],
         )
-        self.wrapper.pack_start(checkbox, True, True, 5)
+        self.wrapper.pack_start(checkbox, True, True, 0)
         self.option_widget = checkbox
 
     def checkbox_toggle(self, widget, option_name):

@@ -36,7 +36,7 @@ class FileChooserEntry(Gtk.Box):
         self, title="Select file", action=Gtk.FileChooserAction.OPEN, default_path=None
     ):
         """Widget with text entry and button to select file or folder."""
-        super().__init__()
+        super().__init__(spacing=6)
 
         self.entry = Gtk.Entry()
         if default_path:
@@ -127,7 +127,7 @@ class Label(Gtk.Label):
 
 class VBox(Gtk.Box):
     def __init__(self, **kwargs):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=20, **kwargs)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 
 
 class EditableGrid(Gtk.Grid):
