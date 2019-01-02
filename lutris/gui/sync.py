@@ -202,6 +202,7 @@ class ServiceSyncBox(Gtk.Box):
 
         spinner = self.get_content_widget()
         spinner.destroy()
+        content.show_all()
 
         self.pack_start(content, True, True, 0)
         self.reorder_child(content, self.content_index)
@@ -242,4 +243,12 @@ class SyncServiceWindow(Gtk.Window):
         for service in get_services():
             sync_row = ServiceSyncBox(service, self)
             notebook.append_page(sync_row, sync_row.get_icon())
+        notebook.connect("switch-page", self.on_page_change)
         self.show_all()
+
+    def on_page_change(self, notebook, child, page_index):
+        """Event handler to trigger game load"""
+        current_page = notebook.get_current_page()
+        if current_page == -1 and page_index > 0:
+            return
+        child.load_games()
