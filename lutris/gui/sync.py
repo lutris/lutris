@@ -11,8 +11,6 @@ from lutris.util.jobs import AsyncCall
 class ServiceSyncBox(Gtk.Box):
     """Display components to import games from a service"""
 
-    content_index = 1
-
     COL_SELECTED = 0
     COL_APPID = 1
     COL_NAME = 2
@@ -33,18 +31,21 @@ class ServiceSyncBox(Gtk.Box):
         label.set_markup("<b>{}</b>".format(self.name))
         self.pack_start(label, False, False, 20)
 
+        if hasattr(service, "connect"):
+            service_connected = service.is_connected()
+            logger.debug("%s is %sconnected", self.name, "" if service_connected else "not ")
+            self.connect_button = Gtk.Button()
+            self.connect_button.connect("clicked", self.on_connect_clicked, service)
+            self._connect_button_toggle(service_connected)
+            self.pack_start(self.connect_button, False, False, 0)
+
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
 
-        if hasattr(service, "connect"):
-            self.connect_button = Gtk.Button()
-            self.connect_button.connect("clicked", self.on_connect_clicked, service)
-            self._connect_button_toggle(service.is_connected())
-            center_alignment.add(self.connect_button)
-        else:
-            spinner = Gtk.Spinner()
-            spinner.start()
-            center_alignment.add(spinner)
+        spinner = Gtk.Spinner()
+        spinner.start()
+        center_alignment.add(spinner)
+        self.content_widget = center_alignment
         self.pack_start(center_alignment, True, True, 0)
 
         actions = Gtk.Box()
@@ -65,7 +66,7 @@ class ServiceSyncBox(Gtk.Box):
             if read_setting("sync_at_startup", self.identifier) == "True":
                 self.sync_switch.set_state(True)
             actions.pack_start(self.sync_switch, False, False, 10)
-            actions.pack_start(Gtk.Label("Sync (Re-import all games at startup)"), False, False, 10)
+            actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 10)
 
             if hasattr(service, "connect") and not service.is_connected():
                 self.sync_switch.set_sensitive(False)
@@ -117,11 +118,6 @@ class ServiceSyncBox(Gtk.Box):
     def on_switch_changed(self, switch, data):
         state = switch.get_active()
         write_setting("sync_at_startup", state, self.identifier)
-
-    def get_content_widget(self):
-        for index, child in enumerate(self.get_children()):
-            if index == self.content_index:
-                return child
 
     def get_treeview(self, model):
         treeview = Gtk.TreeView(model=model)
@@ -200,12 +196,13 @@ class ServiceSyncBox(Gtk.Box):
         content.pack_start(search_entry, False, False, 0)
         content.pack_start(scrolled_window, True, True, 0)
 
-        spinner = self.get_content_widget()
-        spinner.destroy()
+        position = self.child_get_property(self.content_widget, 'position')
+        self.content_widget.destroy()
         content.show_all()
+        self.content_widget = content
 
         self.pack_start(content, True, True, 0)
-        self.reorder_child(content, self.content_index)
+        self.reorder_child(content, position)
 
     def store_filter_func(self, model, _iter, _data):
         if not self.current_filter:
