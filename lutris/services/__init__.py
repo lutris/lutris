@@ -4,7 +4,7 @@ from collections import namedtuple
 from lutris.settings import read_setting
 
 
-__all__ = ["xdg", "gog", "steam", "winesteam", "scummvm", "rom"]
+__all__ = ["xdg", "gog", "steam", "winesteam", "scummvm"]
 
 
 class AuthenticationError(Exception):
