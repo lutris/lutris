@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
 from lutris.services import get_services
@@ -29,15 +29,18 @@ class ServiceSyncBox(Gtk.Box):
         self.icon_name = service.ICON
         self.name = service.NAME
         self.games = []
+        self.store = None
 
         title_box = Gtk.Box()
         label = Gtk.Label()
         label.set_markup("<b>{}</b>".format(self.name))
         title_box.pack_start(label, True, True, 0)
 
-        self.connect_button = None
+        self.connect_button = Gtk.Button()
+        self.connect_button.connect("clicked", self.on_connect_clicked, self.service)
         if service.ONLINE:
-            title_box.add(self._connect_button_toggle())
+            self._connect_button_toggle()
+            title_box.add(self.connect_button)
 
         self.pack_start(title_box, False, False, 12)
 
@@ -98,16 +101,13 @@ class ServiceSyncBox(Gtk.Box):
             self._connect_button_toggle()
             self.sync_switch.set_sensitive(True)
             self.sync_button.set_sensitive(True)
+            self.load_games()
 
     def _connect_button_toggle(self):
-        if self.connect_button:
-            self.connect_button.destroy()
-        self.connect_button = Gtk.Button.new_from_icon_name(
-            "user-offline-symbolic" if self.service.is_connected() else "user-available-symbolic",
-            Gtk.IconSize.MENU
-        )
-        self.connect_button.connect("clicked", self.on_connect_clicked, self.service)
-        return self.connect_button
+        icon_name = "user-offline-symbolic" \
+            if self.service.is_connected() \
+            else "user-available-symbolic"
+        self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
     def on_sync_button_clicked(self, _button, sync_method):
         """Called when the sync button is clicked.
@@ -177,22 +177,7 @@ class ServiceSyncBox(Gtk.Box):
             )
         return liststore
 
-    def load_games(self):
-        """Load the list of games in a treeview"""
-        if self.service.ONLINE and not self.service.is_connected():
-            return
-        try:
-            self.games = self.service.load_games()
-        except Exception as ex:
-            logger.exception(ex)
-            return
-
-        self.store = self.get_store()
-
-        self.current_filter = None
-        self.store_filter = self.store.filter_new()
-        self.store_filter.set_visible_func(self.store_filter_func)
-
+    def get_game_list_widget(self):
         search_entry = Gtk.Entry()
         search_entry.connect("changed", self.on_search_entry_changed)
 
@@ -207,14 +192,26 @@ class ServiceSyncBox(Gtk.Box):
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.pack_start(search_entry, False, False, 0)
         content.pack_start(scrolled_window, True, True, 0)
+        content.show_all()
+        return content
+
+    def load_games(self):
+        """Load the list of games in a treeview"""
+        if self.service.ONLINE and not self.service.is_connected():
+            return
+        self.games = self.service.load_games()
+        self.store = self.get_store()
+
+        self.current_filter = None
+        self.store_filter = self.store.filter_new()
+        self.store_filter.set_visible_func(self.store_filter_func)
 
         position = self.child_get_property(self.content_widget, 'position')
         self.content_widget.destroy()
-        content.show_all()
-        self.content_widget = content
+        self.content_widget = self.get_game_list_widget()
 
-        self.pack_start(content, True, True, 0)
-        self.reorder_child(content, position)
+        self.pack_start(self.content_widget, True, True, 0)
+        self.reorder_child(self.content_widget, position)
 
     def store_filter_func(self, model, _iter, _data):
         if not self.current_filter:
