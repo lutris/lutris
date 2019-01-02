@@ -94,3 +94,8 @@ def gtk_safe(string):
     if not string:
         string = ""
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def escape_gtk_label(string):
+    """Used to escape some characters for display in Gtk labels"""
+    return re.sub("&(?!amp;)", "&amp;", string)

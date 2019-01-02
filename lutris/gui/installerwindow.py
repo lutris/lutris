@@ -1,6 +1,5 @@
 import os
 import time
-import re
 import webbrowser
 
 from gi.repository import Gtk, Pango
@@ -18,7 +17,7 @@ from lutris.util import jobs
 from lutris.util import system
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags
+from lutris.util.strings import add_url_tags, escape_gtk_label
 
 
 class InstallerWindow(Gtk.ApplicationWindow):
@@ -191,11 +190,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
     # "Choose installer" stage
     # ---------------------------
 
-    @staticmethod
-    def _escape_text(text):
-        """Used to escape some characters for display in Gtk labels"""
-        return re.sub("&(?!amp;)", "&amp;", text)
-
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.title_label.set_markup("<b>Select which version to install</b>")
@@ -229,7 +223,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
             label.set_alignment(0, 0.5)
             label.set_margin_left(50)
             label.set_margin_right(50)
-            label.set_markup(self._escape_text(text))
+            label.set_markup(escape_gtk_label(text))
             return label
 
         self.description_label = _create_label(
@@ -260,10 +254,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def on_installer_toggled(self, btn, script_index):
         description = self.scripts[script_index]["description"]
         self.description_label.set_markup(
-            "<b>{}</b>".format(self._escape_text(description))
+            "<b>{}</b>".format(escape_gtk_label(description))
         )
         self.notes_label.set_markup(
-            "{}".format(self._escape_text(self.scripts[script_index]["notes"]))
+            "{}".format(escape_gtk_label(self.scripts[script_index]["notes"]))
         )
         if btn.get_active():
             self.installer_choice = script_index
@@ -278,7 +272,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.interpreter = interpreter.ScriptInterpreter(script, self)
         self.title_label.set_markup(
             u"<b>Installing {}</b>".format(
-                self._escape_text(self.interpreter.game_name)
+                escape_gtk_label(self.interpreter.game_name)
             )
         )
         self.select_install_folder()
