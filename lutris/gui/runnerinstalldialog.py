@@ -141,6 +141,10 @@ class RunnerInstallDialog(Dialog):
         arch = row[self.COL_ARCH]
         system.remove_folder(self.get_runner_path(version, arch))
         row[self.COL_INSTALLED] = False
+        if self.runner == "wine":
+            logger.debug("Clearing wine version cache")
+            from lutris.util.wine.wine import get_wine_versions
+            get_wine_versions.cache_clear()
 
     def install_runner(self, row):
         url = row[2]
