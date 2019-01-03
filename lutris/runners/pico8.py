@@ -5,6 +5,7 @@ import json
 import shutil
 import shlex
 import math
+from time import sleep
 
 from lutris import pga, settings
 from lutris.runners import web
@@ -88,9 +89,12 @@ class pico8(web.web):
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):
             opts = {}
-            opts['callback'] = callback
+            if callback:
+                opts["callback"] = callback
             opts['dest'] = settings.RUNNER_DIR + '/pico8'
             opts['merge_single'] = True
+            if downloader:
+                opts['downloader'] = downloader
             self.download_and_extract(DOWNLOAD_URL, **opts)
 
         if not self.is_web_installed():
@@ -180,25 +184,49 @@ class pico8(web.web):
                 cartPath = self.cart_path
                 system.create_folder(os.path.dirname(cartPath))
 
+                downloadCompleted = False
+
                 def on_downloaded_cart():
+                    nonlocal downloadCompleted
                     # If we are offline we don't want an empty file to overwrite the cartridge
                     if dl.downloaded_size:
                         shutil.move(cartPath + '.download', cartPath)
                     else:
                         os.remove(cartPath + '.download')
+                    downloadCompleted = True
 
                 dl = downloader.Downloader(downloadUrl, cartPath + '.download', True, callback=on_downloaded_cart)
                 dl.start()
-                dl.thread.join() # Doesn't actually wait until finished
 
+                # Wait for download to complete or continue if it exists (to work in offline mode)
+                while not os.path.exists(cartPath):
+                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
+                        logger.error("Could not download cartridge from " + downloadUrl)
+                        return False
+                    sleep(0.1)
+
+        # Download js engine
         if not self.is_native and not os.path.exists(self.runner_config.get('engine')):
             enginePath = os.path.join(settings.RUNNER_DIR, 'pico8/web/engines', self.runner_config.get('engine') + '.js')
             if not os.path.exists(enginePath):
                 downloadUrl = 'https://www.lexaloffle.com/bbs/' + self.runner_config.get('engine') + '.js'
                 system.create_folder(os.path.dirname(enginePath))
-                dl = downloader.Downloader(downloadUrl, enginePath, True)
+                downloadCompleted = False
+
+                def on_downloaded_engine():
+                    nonlocal downloadCompleted
+                    downloadCompleted = True
+                dl = downloader.Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
                 dl.start()
-                dl.thread.join() # Doesn't actually wait until finished
+                dl.thread.join()  # Doesn't actually wait until finished
+
+                # Waits for download to complete
+                while not os.path.exists(enginePath):
+                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
+                        logger.error("Could not download engine from " + downloadUrl)
+                        return False
+                    sleep(0.1)
+
         return True
 
     def play(self):
