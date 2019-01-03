@@ -265,6 +265,7 @@ class Game(GObject.Object):
             logger.error("Game prelaunch unsuccessful")
             dialogs.ErrorDialog("An error prevented the game from running")
             self.state = self.STATE_STOPPED
+            self.emit('game-stop')
             return
         system_config = self.runner.system_config
         self.original_outputs = sorted(
