@@ -233,9 +233,11 @@ class Runner:
 
             from lutris.gui.runnersdialog import simple_downloader
             if hasattr(self, "get_version"):
-                return self.install(downloader=simple_downloader,
-                                    version=self.get_version(use_default=False))
-            return self.install(downloader=simple_downloader)
+                self.install(downloader=simple_downloader,
+                             version=self.get_version(use_default=False))
+            else:
+                self.install(downloader=simple_downloader)
+            return self.is_installed()
         return False
 
     def is_installed(self):
