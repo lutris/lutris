@@ -149,7 +149,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Load view
         self.games_scrollwindow.add(self.view)
         self.connect_signals()
-        other_view = "list" if view_type is "grid" else "grid"
+        other_view = "list" if view_type == "grid" else "grid"
         self.viewtype_icon.set_from_icon_name(
             "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
         )
@@ -861,7 +861,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             dialog = EditGameConfigDialog(self, game, on_dialog_saved)
 
     def on_toggle_viewtype(self, *args):
-        if self.current_view_type is "grid":
+        if self.current_view_type == "grid":
             self.switch_view("list")
         else:
             self.switch_view("grid")
