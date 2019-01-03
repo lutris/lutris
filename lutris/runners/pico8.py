@@ -8,20 +8,19 @@ import math
 from time import sleep
 
 from lutris import pga, settings
-from lutris.runners import web
 from lutris.util import system, datapath, downloader
 from lutris.util.log import logger
+from lutris.runners.runner import Runner
 
-DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.zip"
+DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.tar.gz"
 
 
 # pylint: disable=C0103
-class pico8(web.web):
+class pico8(Runner):
     description = "Runs PICO-8 fantasy console cartridges"
     multiple_versions = False
     human_name = "PICO-8"
     platforms = ['PICO-8']
-    depends_on = web.web
     game_options = [
         {
             'option': 'main_file',
@@ -64,7 +63,7 @@ class pico8(web.web):
             'option': 'engine',
             'type': 'string',
             'label': 'Engine (web only)',
-            'default': 'pico8_0111g',
+            'default': 'pico8_0111g_4',
             'help': 'Name of engine (will be downloaded) or local file path'
         },
     ]
@@ -76,7 +75,7 @@ class pico8(web.web):
         }
     ]
 
-    runner_executable = 'web/electron/electron'
+    runner_executable = 'pico8/web.py'
 
     def __init__(self, config=None):
         super(pico8, self).__init__(config)
@@ -87,20 +86,17 @@ class pico8(web.web):
         return "PICO-8 runner (%s)" % self.config
 
     def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed(*args):
-            opts = {}
-            if callback:
-                opts["callback"] = callback
-            opts['dest'] = settings.RUNNER_DIR + '/pico8'
-            opts['merge_single'] = True
-            if downloader:
-                opts['downloader'] = downloader
-            self.download_and_extract(DOWNLOAD_URL, **opts)
-
-        if not self.is_web_installed():
-            web.web().install(version, downloader, on_runner_installed)
+        opts = {}
+        if callback:
+            opts["callback"] = callback
+        opts['dest'] = settings.RUNNER_DIR + '/pico8'
+        opts['merge_single'] = True
+        if downloader:
+            opts['downloader'] = downloader
         else:
-            on_runner_installed()
+            from lutris.gui.runnersdialog import simple_downloader
+            opts['downloader'] = simple_downloader
+        self.download_and_extract(DOWNLOAD_URL, **opts)
 
     @property
     def is_native(self):
@@ -143,7 +139,6 @@ class pico8(web.web):
         else:
             args = [
                 self.get_executable(),
-                os.path.join(settings.RUNNER_DIR, 'web/electron/resources/app.asar'),
                 os.path.join(settings.RUNNER_DIR, 'pico8/web/player.html'),
                 '--window-size',
                 self.runner_config.get('window_size')
@@ -155,21 +150,15 @@ class pico8(web.web):
 
         return {'command': self.launch_args, 'env': env}
 
-    def is_web_installed(self):
-        return super(pico8, self).is_installed()
-
     def is_installed(self, version=None, fallback=True, min_version=None):
-        """Checks if web & pico8 is installed and if the pico8 executable available.
+        """Checks if pico8 runner is installed and if the pico8 executable available.
         """
         if self.is_native and system.path_exists(self.runner_config.get('runner_executable')):
             return True
-        if not self.is_web_installed():
-            logger.warning('web is not installed')
-            return False
         return system.path_exists(os.path.join(settings.RUNNER_DIR, 'pico8/web/player.html'))
 
     def prelaunch(self):
-        if os.path.exists(os.path.join(settings.RUNNER_DIR, 'pico8/cartridges',  'tmp.p8.png')):
+        if os.path.exists(os.path.join(settings.RUNNER_DIR, 'pico8/cartridges', 'tmp.p8.png')):
             os.remove(os.path.join(settings.RUNNER_DIR, 'pico8/cartridges',  'tmp.p8.png'))
 
         # Don't download cartridge if using web backend and cart is url
