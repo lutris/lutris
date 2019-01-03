@@ -304,6 +304,7 @@ class Runner:
                 self.name,
                 "{}-{}".format(runner_info["version"], runner_info["architecture"])
             )
+
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
@@ -324,8 +325,7 @@ class Runner:
             "callback": callback,
         })
 
-    @staticmethod
-    def extract(archive=None, dest=None, merge_single=None, callback=None):
+    def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
             raise RunnerInstallationError("Failed to extract {}".format(archive))
         try:
@@ -334,6 +334,12 @@ class Runner:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
             return
         os.remove(archive)
+
+        if self.name == "wine":
+            logger.debug("Clearing wine version cache")
+            from lutris.util.wine.wine import get_wine_versions
+            get_wine_versions.cache_clear()
+
         if callback:
             callback()
 

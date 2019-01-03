@@ -198,6 +198,10 @@ class RunnerInstallDialog(Dialog):
         row[self.COL_INSTALLED] = True
         self.renderer_progress.props.text = ""
         self.installing.pop(row[self.COL_VER])
+        if self.runner == "wine":
+            logger.debug("Clearing wine version cache")
+            from lutris.util.wine.wine import get_wine_versions
+            get_wine_versions.cache_clear()
 
     def on_response(self, _dialog, _response):
         self.destroy()
