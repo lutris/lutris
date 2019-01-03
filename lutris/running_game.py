@@ -45,6 +45,10 @@ class RunningGame:
             InstallerWindow(
                 game_slug=self.game.slug, parent=self.window, application=self.application
             )
+
+        if self.game.state == Game.STATE_STOPPED:
+            return
+
         self.running_game_box = RunningGameBox(self.game)
         self.running_game_box.stop_button.connect("clicked", self.on_stop)
         self.running_game_box.log_button.connect("clicked", self.on_show_logs)
