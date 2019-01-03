@@ -101,7 +101,6 @@ class Runner:
         """Return the directory where the game is installed."""
         if self.game_data.get("directory"):
             return self.game_data.get("directory")
-        return self.system_config.get("game_path")
 
     @property
     def working_dir(self):
