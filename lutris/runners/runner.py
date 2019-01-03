@@ -14,6 +14,14 @@ from lutris.util.http import Request
 from lutris.runners import RunnerInstallationError
 
 
+def simple_downloader(url, destination, callback, callback_args):
+    """Default downloader used for runners"""
+    dialog = dialogs.DownloadDialog(url, destination)
+    dialog.run()
+    if callback:
+        return callback(**callback_args)
+
+
 class Runner:
     """Generic runner (base class for other runners)."""
 
@@ -233,8 +241,10 @@ class Runner:
         if Gtk.ResponseType.YES == dialog.result:
             if hasattr(self, "get_version"):
                 version = self.get_version(use_default=False)
-                return self.install(version=version)
-            return self.install()
+                self.install(version=version)
+            else:
+                self.install()
+            return self.is_installed()
         return False
 
     def is_installed(self):
@@ -292,7 +302,7 @@ class Runner:
                 )
             )
         if not downloader:
-            raise RuntimeError("Missing mandatory downloader for runner %s" % self)
+            downloader = simple_downloader
         opts = {}
         opts["downloader"] = downloader
         if callback:
@@ -309,7 +319,7 @@ class Runner:
         self.download_and_extract(url, **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
-        downloader = opts["downloader"]
+        downloader = opts.get("downloader", simple_downloader)
         merge_single = opts.get("merge_single", False)
         callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
