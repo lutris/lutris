@@ -1,7 +1,7 @@
 """Misc widgets used in the GUI."""
 import os
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Pango
 
 from lutris.util.system import reverse_expanduser
 
@@ -121,7 +121,8 @@ class Label(Gtk.Label):
         """Custom init of label."""
         super().__init__(label=message)
         self.set_line_wrap(True)
-        self.set_size_request(200, -1)
+        self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.set_size_request(160, -1)
         self.set_alignment(1, 0.5)
 
 
