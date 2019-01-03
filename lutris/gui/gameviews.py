@@ -53,6 +53,13 @@ sortings = {
 }
 
 
+def get_formatted_playtime(playtime):
+    """Return a human readable value of the play time"""
+    if not playtime:
+        return "0.0 hrs"
+    return "%.2f hrs" % float(playtime)
+
+
 class GameStore(GObject.Object):
     __gsignals__ = {
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
@@ -212,9 +219,13 @@ class GameStore(GObject.Object):
             )
 
         pixbuf = get_pixbuf_for_game(game["slug"], self.icon_type, game["installed"])
-        playtime_text = "0.0 hrs"
-        if game["playtime"]:
-            playtime_text = game["playtime"]
+        try:
+            playtime_text = get_formatted_playtime(game["playtime"])
+        except ValueError:
+            # We're all screwed
+            # unfuck_playtime(game)
+            playtime_text = game["playtime"] + ":("
+
         self.store.append(
             (
                 game["id"],
@@ -234,7 +245,6 @@ class GameStore(GObject.Object):
                 playtime_text,
             )
         )
-        # self.sort_view(self.show_installed_first)
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
