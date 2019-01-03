@@ -293,20 +293,21 @@ class Runner:
             )
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
-        opts = {}
-        opts["downloader"] = downloader
-        if callback:
-            opts["callback"] = callback
+        opts = {
+            "downloader": downloader,
+            "callback": callback
+        }
         if "wine" in self.name:
-            version = runner_info["version"]
             opts["merge_single"] = True
-            dirname = "{}-{}".format(version, runner_info["architecture"])
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name, dirname)
+            opts["dest"] = os.path.join(
+                settings.RUNNER_DIR,
+                self.name,
+                "{}-{}".format(runner_info["version"], runner_info["architecture"])
+            )
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        url = runner_info["url"]
-        self.download_and_extract(url, **opts)
+        self.download_and_extract(runner_info["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         downloader = opts["downloader"]

@@ -55,7 +55,8 @@ class FileChooserEntry(Gtk.Box):
         )
 
         self.file_chooser_dlg.add_buttons(
-            "_Cancel", Gtk.ResponseType.CLOSE, "_OK", Gtk.ResponseType.OK
+            "_Cancel", Gtk.ResponseType.CLOSE,
+            "_OK", Gtk.ResponseType.OK
         )
 
         self.file_chooser_dlg.set_create_folders(True)
