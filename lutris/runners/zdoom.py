@@ -97,7 +97,7 @@ class zdoom(Runner):
         return executable
 
     def prelaunch(self):
-        if not system.COMMAND_CACHE.get_soundfonts():
+        if not system.LINUX_SYSTEM.get_soundfonts():
             logger.warning("FluidSynth is not installed, you might not have any music")
         return True
 
