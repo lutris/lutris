@@ -212,6 +212,7 @@ class ConfigBox(VBox):
         if value is True:
             switch.set_active(value)
         switch.connect("notify::active", self.checkbox_toggle, option["option"])
+        switch.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(switch, False, False, 0)
         self.option_widget = switch
 
@@ -234,7 +235,8 @@ class ConfigBox(VBox):
             option["callback"],
             option["callback_on"],
         )
-        self.wrapper.pack_start(checkbox, True, True, 0)
+        checkbox.set_valign(Gtk.Align.CENTER)
+        self.wrapper.pack_start(checkbox, False, False, 0)
         self.option_widget = checkbox
 
     def checkbox_toggle(self, widget, _gparam, option_name):
