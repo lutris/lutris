@@ -122,10 +122,11 @@ class Label(Gtk.Label):
         """Custom init of label."""
         super().__init__(label=message)
         self.set_line_wrap(True)
+        self.set_max_width_chars(23)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.set_size_request(160, -1)
+        self.set_size_request(175, -1)
         self.set_alignment(1, 0.5)
-
+        self.set_justify(Gtk.Justification.RIGHT)
 
 class VBox(Gtk.Box):
     def __init__(self, **kwargs):

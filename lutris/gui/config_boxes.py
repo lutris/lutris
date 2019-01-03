@@ -204,25 +204,31 @@ class ConfigBox(VBox):
     # Checkbox
     def generate_checkbox(self, option, value=None):
         """Generate a checkbox."""
-        checkbox = Gtk.CheckButton(label=option["label"])
+
+        label = Label(option["label"])
+        self.wrapper.pack_start(label, False, False, 0)
+
+        switch = Gtk.Switch()
         if value is True:
-            checkbox.set_active(value)
-        checkbox.connect("toggled", self.checkbox_toggle, option["option"])
-        self.wrapper.pack_start(checkbox, True, True, 0)
-        self.option_widget = checkbox
+            switch.set_active(value)
+        switch.connect("notify::active", self.checkbox_toggle, option["option"])
+        self.wrapper.pack_start(switch, False, False, 0)
+        self.option_widget = switch
 
     # Checkbox with callback
     def generate_checkbox_with_callback(self, option, value=None):
         """Generate a checkbox. With callback"""
-        checkbox = Gtk.CheckButton(label=option["label"])
-        if option["active"] is True:
-            checkbox.set_sensitive(True)
-        else:
-            checkbox.set_sensitive(False)
+
+        label = Label(option["label"])
+        self.wrapper.pack_start(label, False, False, 0)
+
+        checkbox = Gtk.Switch()
+        checkbox.set_sensitive(option["active"] is True)
         if value is True:
             checkbox.set_active(value)
+
         checkbox.connect(
-            "toggled",
+            "notify::active",
             self.checkbox_toggle_with_callback,
             option["option"],
             option["callback"],
@@ -231,12 +237,12 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(checkbox, True, True, 0)
         self.option_widget = checkbox
 
-    def checkbox_toggle(self, widget, option_name):
+    def checkbox_toggle(self, widget, _gparam, option_name):
         """Action for the checkbox's toggled signal."""
         self.option_changed(widget, option_name, widget.get_active())
 
     def checkbox_toggle_with_callback(
-        self, widget, option_name, callback, callback_on=None
+        self, widget, _gparam, option_name, callback, callback_on=None
     ):
         """Action for the checkbox's toggled signal. With callback method"""
         if widget.get_active() == callback_on or callback_on is None:
@@ -250,16 +256,15 @@ class ConfigBox(VBox):
     # Entry
     def generate_entry(self, option_name, label, value=None, option_size=None):
         """Generate an entry box."""
+        label = Label(label)
+        self.wrapper.pack_start(label, False, False, 0)
+
         entry = Gtk.Entry()
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
-        label = Label(label)
-        self.wrapper.pack_start(label, False, False, 0)
-        if option_size == "small":
-            self.wrapper.pack_start(entry, False, False, 0)
-        else:
-            self.wrapper.pack_start(entry, True, True, 0)
+        expand = option_size != "small"
+        self.wrapper.pack_start(entry, expand, expand, 0)
         self.option_widget = entry
 
     def entry_changed(self, entry, option_name):
