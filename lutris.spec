@@ -47,6 +47,7 @@ BuildRequires: fdupes
 Requires:       mesa-dri-drivers(x86-32)
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
+Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
@@ -55,6 +56,7 @@ Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
 BuildRequires:  libappstream-glib
+Requires:       mesa-libGL
 %endif
 
 #!BuildIgnore: rpmlint-mini
