@@ -99,3 +99,10 @@ def gtk_safe(string):
 def escape_gtk_label(string):
     """Used to escape some characters for display in Gtk labels"""
     return re.sub("&(?!amp;)", "&amp;", string)
+
+
+def get_formatted_playtime(playtime):
+    """Return a human readable value of the play time"""
+    if not playtime:
+        return "0.0 hrs"
+    return "%.2f hrs" % float(playtime)

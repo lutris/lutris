@@ -14,7 +14,7 @@ from lutris.gui.widgets.utils import get_pixbuf_for_game, BANNER_SIZE, BANNER_SM
 
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, get_formatted_playtime
 
 (
     COL_ID,
@@ -51,13 +51,6 @@ sortings = {
     "lastplayed": COL_LASTPLAYED,
     "installed_at": COL_INSTALLED_AT,
 }
-
-
-def get_formatted_playtime(playtime):
-    """Return a human readable value of the play time"""
-    if not playtime:
-        return "0.0 hrs"
-    return "%.2f hrs" % float(playtime)
 
 
 class GameStore(GObject.Object):
@@ -223,7 +216,7 @@ class GameStore(GObject.Object):
             playtime_text = get_formatted_playtime(game["playtime"])
         except ValueError:
             # We're all screwed
-            # unfuck_playtime(game)
+            pga.unfuck_playtime(game)
             playtime_text = game["playtime"] + ":("
 
         self.store.append(
