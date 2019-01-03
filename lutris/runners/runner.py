@@ -183,18 +183,18 @@ class Runner:
         """Return dict with command (exe & args list) and env vars (dict).
 
         Reimplement in derived runner if need be."""
-        exe = self.get_executable()
-        env = self.get_env()
-
-        return {"command": [exe], "env": env}
+        return {
+            "command": [self.get_executable()],
+            "env": self.get_env()
+        }
 
     def run(self, *args):
         """Run the runner alone."""
         if not self.runnable_alone:
             return
         if not self.is_installed():
-            installed = self.install_dialog()
-            if not installed:
+            if not self.install_dialog():
+                logger.info("Runner install cancelled")
                 return
 
         command_data = self.get_run_data()
@@ -231,17 +231,16 @@ class Runner:
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
+
+            from lutris.gui.runnersdialog import simple_downloader
             if hasattr(self, "get_version"):
-                version = self.get_version(use_default=False)
-                return self.install(version=version)
-            return self.install()
+                return self.install(downloader=simple_downloader, version=self.get_version(use_default=False))
+            return self.install(downloader=simple_downloader)
         return False
 
     def is_installed(self):
-        """Return True if runner is installed else False."""
-        executable = self.get_executable()
-        if executable and system.path_exists(executable):
-            return True
+        """Return whether the runner is installed"""
+        return system.path_exists(self.get_executable())
 
     def get_runner_info(self, version=None):
         runner_api_url = "{}/api/runners/{}".format(settings.SITE_URL, self.name)
@@ -255,7 +254,6 @@ class Runner:
         response_content = response.json
         if response_content:
             versions = response_content.get("versions") or []
-            logger.debug("Got %s versions", len(versions))
             arch = self.arch
             if version:
                 if version.endswith("-i386") or version.endswith("-x86_64"):
