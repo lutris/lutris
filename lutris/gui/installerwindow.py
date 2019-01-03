@@ -2,7 +2,7 @@ import os
 import time
 import webbrowser
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk
 
 from lutris import api, pga, settings
 from lutris.installer import interpreter
@@ -12,6 +12,7 @@ from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.installer import InstallerPicker
 from lutris.gui.logdialog import LogTextView
 from lutris.util import jobs
 from lutris.util import system
@@ -54,6 +55,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_show_menubar(False)
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.vbox.set_margin_top(18)
+        self.vbox.set_margin_bottom(18)
+        self.vbox.set_margin_right(18)
+        self.vbox.set_margin_left(18)
         self.add(self.vbox)
 
         # Default signals
@@ -63,30 +68,30 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         # Title label
         self.title_label = Gtk.Label()
-        self.vbox.pack_start(self.title_label, False, False, 18)
+        self.vbox.add(self.title_label)
 
         self.status_label = Gtk.Label()
         self.status_label.set_max_width_chars(80)
         self.status_label.set_property("wrap", True)
         self.status_label.set_selectable(True)
-        self.vbox.pack_start(self.status_label, False, False, 18)
+        self.vbox.add(self.status_label)
 
         # Main widget box
-        self.widget_box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, margin_right=18, margin_left=18
-        )
-        self.vbox.pack_start(self.widget_box, True, True, 18)
+        self.widget_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.vbox.pack_start(self.widget_box, True, True, 0)
 
         self.location_entry = None
 
         # Separator
-        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
+        self.vbox.add(Gtk.HSeparator())
 
         # Buttons
-        action_buttons_alignment = Gtk.Alignment.new(0.95, 0, 0.15, 0)
-        self.action_buttons = Gtk.Box()
+
+        self.action_buttons = Gtk.Box(spacing=6)
+        self.action_buttons.set_margin_top(18)
+        action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
         action_buttons_alignment.add(self.action_buttons)
-        self.vbox.pack_start(action_buttons_alignment, False, True, 18)
+        self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
         self.cancel_button.set_tooltip_text("Abort and revert the " "installation")
@@ -112,7 +117,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def add_button(self, label, handler=None):
         button = Gtk.Button.new_with_mnemonic(label)
-        button.set_margin_left(18)
         if handler:
             button.connect("clicked", handler)
         self.action_buttons.add(button)
@@ -204,76 +208,23 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.validate_scripts()
         base_script = self.scripts[0]
         self.title_label.set_markup("<b>Install %s</b>" % base_script["name"])
-        self.installer_choice_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.installer_choice = 0
-        radio_group = None
+        installer_picker = InstallerPicker(self.scripts)
+        installer_picker.connect("installer-selected", self.on_installer_selected)
+        self.widget_box.pack_start(installer_picker, False, False, 0)
 
-        # Build list
-        for index, script in enumerate(self.scripts):
-            runner = script["runner"]
-            version = script["version"]
-            label = "{} ({})".format(version, runner)
-            btn = Gtk.RadioButton.new_with_label_from_widget(radio_group, label)
-            btn.connect("toggled", self.on_installer_toggled, index)
-            self.installer_choice_box.pack_start(btn, False, False, 10)
-            if not radio_group:
-                radio_group = btn
-
-        def _create_label(text):
-            label = Gtk.Label()
-            label.set_max_width_chars(60)
-            label.set_line_wrap(True)
-            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-            label.set_alignment(0, 0.5)
-            label.set_margin_left(50)
-            label.set_margin_right(50)
-            label.set_markup(escape_gtk_label(text))
-            return label
-
-        self.description_label = _create_label(
-            "<b>{}</b>".format(self.scripts[0]["description"])
-        )
-        self.installer_choice_box.pack_start(self.description_label, True, True, 10)
-
-        self.notes_label = _create_label("{}".format(self.scripts[0]["notes"]))
-        notes_scrolled_area = Gtk.ScrolledWindow()
-        try:
-            notes_scrolled_area.set_propagate_natural_height(True)
-        except AttributeError:
-            logger.debug("set_propagate_natural_height not available")
-        notes_scrolled_area.set_min_content_height(100)
-        notes_scrolled_area.set_overlay_scrolling(False)
-        notes_scrolled_area.add(self.notes_label)
-        self.installer_choice_box.pack_start(notes_scrolled_area, True, True, 10)
-
-        self.widget_box.pack_start(self.installer_choice_box, False, False, 10)
-        self.installer_choice_box.show_all()
-
-        self.continue_button.grab_focus()
-        self.continue_button.show()
-        self.continue_handler = self.continue_button.connect(
-            "clicked", self.on_installer_selected
-        )
-
-    def on_installer_toggled(self, btn, script_index):
-        description = self.scripts[script_index]["description"]
-        self.description_label.set_markup(
-            "<b>{}</b>".format(escape_gtk_label(description))
-        )
-        self.notes_label.set_markup(
-            "{}".format(escape_gtk_label(self.scripts[script_index]["notes"]))
-        )
-        if btn.get_active():
-            self.installer_choice = script_index
-
-    def on_installer_selected(self, widget):
-        self.prepare_install(self.installer_choice)
-        self.installer_choice_box.destroy()
+    def on_installer_selected(self, widget, installer_slug):
+        self.clean_widgets()
+        self.prepare_install(installer_slug)
         self.show_non_empty_warning()
 
-    def prepare_install(self, script_index):
-        script = self.scripts[script_index]
-        self.interpreter = interpreter.ScriptInterpreter(script, self)
+    def prepare_install(self, script_slug):
+        install_script = None
+        for script in self.scripts:
+            if script["slug"] == script_slug:
+                install_script = script
+        if not install_script:
+            raise ValueError("Could not find script %s" % script_slug)
+        self.interpreter = interpreter.ScriptInterpreter(install_script, self)
         self.title_label.set_markup(
             u"<b>Installing {}</b>".format(
                 escape_gtk_label(self.interpreter.game_name)
