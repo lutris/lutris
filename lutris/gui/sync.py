@@ -30,6 +30,7 @@ class ServiceSyncBox(Gtk.Box):
         self.name = service.NAME
         self.games = []
         self.store = None
+        self.num_selected = 0
 
         title_box = Gtk.Box()
         label = Gtk.Label()
@@ -58,6 +59,7 @@ class ServiceSyncBox(Gtk.Box):
 
         if hasattr(service, "sync_with_lutris"):
             self.sync_button = Gtk.Button("Import games")
+            self.sync_button.set_sensitive(False)
             self.sync_button.set_tooltip_text("Sync now")
             self.sync_button.connect(
                 "clicked", self.on_sync_button_clicked, service.sync_with_lutris
@@ -154,11 +156,21 @@ class ServiceSyncBox(Gtk.Box):
     def on_import_toggled(self, _widget, game_index):
         """Toggle state for import"""
         col = self.COL_SELECTED
-        self.store_filter[game_index][col] = not self.store_filter[game_index][col]
+        new_state = not self.store_filter[game_index][col]
+        if new_state:
+            self.num_selected += 1
+        else:
+            self.num_selected -= 1
+        self.sync_button.set_sensitive(bool(self.num_selected))
+        self.store_filter[game_index][col] = new_state
 
     def on_select_all(self, widget):
+        self.num_selected = 0
         for game in self.store_filter:
+            if widget.get_active():
+                self.num_selected += 1
             game[self.COL_SELECTED] = widget.get_active()
+        self.sync_button.set_sensitive(bool(self.num_selected))
 
     def get_store(self):
         """Return a ListStore for the games to import"""
