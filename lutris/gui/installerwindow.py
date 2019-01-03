@@ -189,23 +189,27 @@ class InstallerWindow(Gtk.ApplicationWindow):
     # ---------------------------
     # "Choose installer" stage
     # ---------------------------
+    def validate_scripts(self):
+        """Auto-fixes some script aspects and checks for mandatory fields"""
+        for script in self.scripts:
+            for item in ["description", "notes"]:
+                script[item] = script.get(item) or ""
+            for item in ["name", "runner", "version"]:
+                if item not in script:
+                    logger.error("Invalid script: %s", script)
+                    raise ScriptingError('Missing field "%s" in install script' % item)
 
     def choose_installer(self):
         """Stage where we choose an install script."""
-        self.title_label.set_markup("<b>Select which version to install</b>")
+        self.validate_scripts()
+        base_script = self.scripts[0]
+        self.title_label.set_markup("<b>Install %s</b>" % base_script["name"])
         self.installer_choice_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.installer_choice = 0
         radio_group = None
 
         # Build list
         for index, script in enumerate(self.scripts):
-            for item in ["description", "notes"]:
-                script[item] = script.get(item) or ""
-            for item in ["runner", "version"]:
-                if item not in script:
-                    logger.error("Invalid script: %s", script)
-                    raise ScriptingError('Missing field "%s" in install script' % item)
-
             runner = script["runner"]
             version = script["version"]
             label = "{} ({})".format(version, runner)
