@@ -3,6 +3,7 @@ from gi.repository import Gtk, GObject, Pango
 from lutris.util.strings import escape_gtk_label
 from lutris.gui.widgets.utils import get_icon
 
+
 class InstallerLabel(Gtk.Label):
     """A label for installers"""
     def __init__(self, text):
@@ -96,8 +97,9 @@ class InstallerScriptBox(Gtk.VBox):
             self.revealer.set_reveal_child(reveal)
 
     def on_install_clicked(self, _widget):
-        """Handler to notify the parent of the selected installer""""
+        """Handler to notify the parent of the selected installer"""
         self.parent.emit("installer-selected", self.script["slug"])
+
 
 class InstallerPicker(Gtk.ListBox):
     """List box to pick between several installers"""
