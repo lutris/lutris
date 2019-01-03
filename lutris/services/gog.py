@@ -150,8 +150,19 @@ class GogService:
         url = "https://embed.gog.com/userData.json"
         return self.make_api_request(url)
 
-    def get_library(self, page=None, search=None):
-        """Return a page of GOG games"""
+    def get_library(self):
+        """Return the user's library of GOG games"""
+        total_pages = 1
+        games = []
+        page = 1
+        while page <= total_pages:
+            products_response = self.get_products_page(page=page)
+            page += 1
+            total_pages = products_response["totalPages"]
+            games += products_response["products"]
+        return games
+
+    def get_products_page(self, page=1, search=None):
         if not self.is_authenticated():
             raise RuntimeError("User is not logged in")
         params = {"mediaType": "1"}
@@ -201,28 +212,26 @@ def disconnect():
 
 def load_games():
     """Load the user game library from the GOG API"""
-    game_list = GOG_SERVICE.get_library()
+    return [get_service_game(game) for game in GOG_SERVICE.get_library()]
 
-    games = []
-    for game in game_list['products']:
-        image_url = "https:%s_prof_game_100x60.jpg" % game['image']
-        image_hash = game['image'].split("/")[-1]
-        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
-        if not system.path_exists(cache_dir):
-            os.makedirs(cache_dir)
-        cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
-        if not system.path_exists(cache_path):
-            download_media(image_url, cache_path)
 
-        games.append(ServiceGame(
-            appid=str(game['id']),
-            store="gog",
-            name=game['title'],
-            icon=cache_path,
-            details=json.dumps(game)
-        ))
-    return games
+def get_service_game(game):
+    image_url = "https:%s_prof_game_100x60.jpg" % game['image']
+    image_hash = game['image'].split("/")[-1]
+    cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
+    if not system.path_exists(cache_dir):
+        os.makedirs(cache_dir)
+    cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
+    if not system.path_exists(cache_path):
+        download_media(image_url, cache_path)
 
+    return ServiceGame(
+        appid=str(game['id']),
+        store="gog",
+        name=game['title'],
+        icon=cache_path,
+        details=json.dumps(game)
+    )
 
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""

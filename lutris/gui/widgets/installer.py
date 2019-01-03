@@ -8,7 +8,6 @@ class InstallerLabel(Gtk.Label):
     """A label for installers"""
     def __init__(self, text):
         super().__init__()
-        # self.set_max_width_chars(60)
         self.set_line_wrap(True)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.set_alignment(0, 0.5)
