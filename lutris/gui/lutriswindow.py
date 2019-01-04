@@ -114,10 +114,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting("show_tray_icon", default="false").lower() == "true"
         )
 
-        # Sync local lutris library with current Steam games and desktop games
-        for service in get_services_synced_at_startup():
-            service.sync_with_lutris([])
-
         # Window initialization
         self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
         self.game_store = GameStore(
@@ -205,6 +201,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.toggle_connection(False)
             self.sync_library()
 
+        self.sync_services()
         # Timers
         steamapps_paths = steam.get_steamapps_paths(flat=True)
         self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
@@ -293,6 +290,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def current_view_type(self):
         """Returns which kind of view is currently presented (grid or list)"""
         return "grid" if isinstance(self.view, GameGridView) else "list"
+
+    def sync_services(self):
+        # Sync local lutris library with current Steam games and desktop games
+        def full_sync(service):
+            syncer = service.SYNCER()
+            games = syncer.load()
+            syncer.sync(games, full=True)
+
+        def on_sync_complete(args, errors):
+            print(args)
+            print(errors)
+
+        for service in get_services_synced_at_startup():
+            AsyncCall(full_sync, on_sync_complete, service)
 
     def on_steam_game_changed(self, operation, path):
         """Action taken when a Steam AppManifest file is updated"""
