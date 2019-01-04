@@ -99,7 +99,6 @@ class ProcessMonitor:
         self.old_pids = system.get_all_pids()
         # Keep a copy of the monitored processes to allow comparisons
         self.monitored_processes = defaultdict(list)
-        self.monitoring_started = False
         self.children = []
 
     @staticmethod
@@ -171,11 +170,4 @@ class ProcessMonitor:
                         "Processes %s: %s", key, ", ".join(processes[key]) or "no process"
                     )
 
-        if num_watched_children > 0 and not self.monitoring_started:
-            logger.debug("Start process monitoring")
-            self.monitoring_started = True
-
-        if num_watched_children == 0 and self.monitoring_started:
-            return False
-
-        return True
+        return num_watched_children > 0
