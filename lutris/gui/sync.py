@@ -2,6 +2,7 @@
 from gi.repository import Gtk, Gio
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
+from lutris.gui.notifications import send_notification
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 from lutris.util.log import logger
@@ -137,7 +138,12 @@ class ServiceSyncBox(Gtk.Box):
         if not window:
             logger.warning("Unable to get main window")
             return
-        window.update_games(games)
+        if games:
+            window.update_games(games)
+            send_notification(
+                "Games imported",
+                "%s game%s imported to Lutris" % (len(games), "s were" if len(games) > 1 else " was")
+            )
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)
