@@ -523,6 +523,12 @@
           </object>
         </child>
         <child>
+          <object class="GtkSeparator">
+            <property name="visible">1</property>
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkModelButton">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -579,9 +585,18 @@
           <object class="GtkModelButton">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="text" translatable="yes">Ins_talled at</property>
+            <property name="text" translatable="yes">In_stalled at</property>
             <property name="action-name">win.view-sorting</property>
             <property name="action-target">'installed_at'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="text" translatable="yes">Play _time</property>
+            <property name="action-name">win.view-sorting</property>
+            <property name="action-target">'playtime'</property>
           </object>
         </child>
         <child>
