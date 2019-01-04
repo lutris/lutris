@@ -292,18 +292,28 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return "grid" if isinstance(self.view, GameGridView) else "list"
 
     def sync_services(self):
-        # Sync local lutris library with current Steam games and desktop games
-        def full_sync(service):
-            syncer = service.SYNCER()
+        """Sync local lutris library with current Steam games and desktop games"""
+        def full_sync(syncer_cls):
+            syncer = syncer_cls()
             games = syncer.load()
-            syncer.sync(games, full=True)
+            return syncer.sync(games, full=True)
 
-        def on_sync_complete(args, errors):
-            print(args)
-            print(errors)
+        def on_sync_complete(response, errors):
+            """Callback to update the view on sync complete"""
+            if errors:
+                logger.error("Sync failed: %s", errors)
+            added_games, removed_games = response
+            game_ids = [game["id"] for game in self.game_list]
+            for game_id in added_games:
+                if game_id not in game_ids:
+                    self.add_game_to_view(game_id)
+                else:
+                    self.view.set_installed(Game(game_id))
+            for game_id in removed_games:
+                self.remove_game_from_view(game_id)
 
         for service in get_services_synced_at_startup():
-            AsyncCall(full_sync, on_sync_complete, service)
+            AsyncCall(full_sync, on_sync_complete, service.SYNCER)
 
     def on_steam_game_changed(self, operation, path):
         """Action taken when a Steam AppManifest file is updated"""

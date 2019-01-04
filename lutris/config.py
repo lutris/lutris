@@ -205,7 +205,7 @@ class LutrisConfig:
 
     def save(self):
         """Save configuration file according to its type"""
-        logger.debug("Saving config %s", self.__repr__())
+        # logger.debug("Saving config %s", self.__repr__())
         if self.level == "system":
             config = self.system_level
             config_path = self.system_config_path
