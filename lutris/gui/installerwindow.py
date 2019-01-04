@@ -54,7 +54,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_show_menubar(False)
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.vbox.set_margin_top(18)
         self.vbox.set_margin_bottom(18)
         self.vbox.set_margin_right(18)
@@ -88,7 +88,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         # Buttons
 
         self.action_buttons = Gtk.Box(spacing=6)
-        self.action_buttons.set_margin_top(18)
+        # self.action_buttons.set_margin_top(18)
         action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
@@ -576,13 +576,13 @@ class InstallerWindow(Gtk.ApplicationWindow):
         label.set_property("wrap", True)
         label.set_alignment(0, 0)
         label.show()
-        self.widget_box.pack_start(label, False, False, 10)
+        self.widget_box.pack_start(label, False, False, 18)
 
     def add_spinner(self):
         """Display a wait icon."""
         self.clean_widgets()
         spinner = Gtk.Spinner()
-        self.widget_box.pack_start(spinner, False, False, 10)
+        self.widget_box.pack_start(spinner, False, False, 18)
         spinner.show()
         spinner.start()
 
