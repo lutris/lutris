@@ -1,6 +1,5 @@
 """Service package"""
 from importlib import import_module
-from collections import namedtuple
 from lutris.settings import read_setting
 
 

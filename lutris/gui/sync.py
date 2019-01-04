@@ -52,7 +52,9 @@ class ServiceSyncBox(Gtk.Box):
         if service.ONLINE:
             gog_logo = self.get_icon(size=(64, 64))
 
-            gog_label = Gtk.Label("Connect to GOG to automatically \ndownload games during installations")
+            gog_label = Gtk.Label(
+                "Connect to GOG to automatically \ndownload games during installations"
+            )
             gog_label.set_justify(Gtk.Justification.CENTER)
 
             gog_button = Gtk.Button("Connect your account")
@@ -160,7 +162,8 @@ class ServiceSyncBox(Gtk.Box):
             window.update_games(games)
             send_notification(
                 "Games imported",
-                "%s game%s imported to Lutris" % (len(games), "s were" if len(games) > 1 else " was")
+                "%s game%s imported to Lutris" %
+                (len(games), "s were" if len(games) > 1 else " was")
             )
 
     def on_switch_changed(self, switch, _data):

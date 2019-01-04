@@ -3,7 +3,6 @@ import os
 import re
 
 from lutris import pga
-from lutris.util.log import logger
 from lutris.config import make_game_config_id, LutrisConfig
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
@@ -118,7 +117,11 @@ class SteamSyncer:
     def get_pga_game(self, game):
         """Return a PGA game if one is found"""
         for pga_game in self.lutris_games:
-            if str(pga_game["steamid"]) == game.appid and pga_game["runner"] == self.runner and not pga_game["installed"]:
+            if (
+                    str(pga_game["steamid"]) == game.appid
+                    and pga_game["runner"] == self.runner
+                    and not pga_game["installed"]
+            ):
                 return pga_game
 
     def sync(self, games, full=False):
