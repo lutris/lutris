@@ -255,23 +255,25 @@ def add_or_update(**params):
     will try to match it, otherwise it will try matching
     by slug, creating one when possible.
     """
-    slug = params.get("slug")
     name = params.get("name")
+    slug = params.get("slug")
+    if "id" in params and params["id"] is None:
+        params.pop("id")
     game_id = params.get("id")
     assert any([slug, name, game_id])
-    if "id" in params:
+    game = None
+    if game_id:
         game = get_game_by_field(params["id"], "id")
-    else:
+    if not game:
         if not slug:
             slug = slugify(name)
         game = get_game_by_field(slug, "slug")
     if game and (
-        game["runner"] == params.get("runner")
-        or not all([params.get("runner"), game["runner"]])
+            game["runner"] == params.get("runner")
+            or not all([params.get("runner"), game["runner"]])
     ):
-        game_id = game["id"]
-        sql.db_update(PGA_DB, "games", params, ("id", game_id))
-        return game_id
+        sql.db_update(PGA_DB, "games", params, ("id", game["id"]))
+        return game["id"]
     return add_game(**params)
 
 
