@@ -17,7 +17,6 @@ from lutris.services.service_game import ServiceGame
 NAME = "Desktop games"
 ICON = "linux"
 ONLINE = False
-INSTALLER_SLUG = "desktopapp"
 
 
 class XDGGame(ServiceGame):
@@ -147,7 +146,7 @@ class XDGGame(ServiceGame):
     def iter_lutris_games(cls):
         """Iterates through Lutris games imported from XDG"""
         for game in pga.get_games_where(runner=cls.runner,
-                                        installer_slug=INSTALLER_SLUG,
+                                        installer_slug=cls.installer_slug,
                                         installed=1):
             yield game
 

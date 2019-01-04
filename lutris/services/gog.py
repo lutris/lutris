@@ -13,7 +13,7 @@ from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.resources import download_media
 from lutris.gui.dialogs import WebConnectDialog
-from lutris.services import ServiceGame
+from lutris.services.service_game import ServiceGame
 
 
 NAME = "GOG"
@@ -190,6 +190,35 @@ class GogService:
         return response
 
 
+class GOGGame(ServiceGame):
+    store = "gog"
+
+    @classmethod
+    def new_from_gog_game(cls, gog_game):
+        """Return a GOG game instance from the API info"""
+        service_game = GOGGame()
+        service_game.appid = str(gog_game['id'])
+        service_game.icon = cls.get_banner(gog_game)
+        service_game.name = gog_game['title']
+        service_game.details = json.dumps(gog_game)
+        return service_game
+
+    @classmethod
+    def get_banner(cls, gog_game):
+        """Return the path to the game banner.
+        Downloads the banner if not present.
+        """
+        image_url = "https:%s_prof_game_100x60.jpg" % gog_game['image']
+        image_hash = gog_game['image'].split("/")[-1]
+        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
+        if not system.path_exists(cache_dir):
+            os.makedirs(cache_dir)
+        cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
+        if not system.path_exists(cache_path):
+            download_media(image_url, cache_path)
+        return cache_path
+
+
 GOG_SERVICE = GogService()
 
 
@@ -206,8 +235,7 @@ def connect(parent=None):
 
 def disconnect():
     """Disconnect from GOG"""
-    service = GogService()
-    service.disconnect()
+    GOG_SERVICE.disconnect()
 
 
 def load_games():
@@ -216,30 +244,16 @@ def load_games():
 
 
 def get_service_game(game):
-    image_url = "https:%s_prof_game_100x60.jpg" % game['image']
-    image_hash = game['image'].split("/")[-1]
-    cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
-    if not system.path_exists(cache_dir):
-        os.makedirs(cache_dir)
-    cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
-    if not system.path_exists(cache_path):
-        download_media(image_url, cache_path)
-
-    return ServiceGame(
-        appid=str(game['id']),
-        store="gog",
-        name=game['title'],
-        icon=cache_path,
-        details=json.dumps(game)
-    )
+    return GOGGame.new_from_gog_game(game)
 
 
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""
-    gog_ids = [game["appid"] for game in games]
+    gog_ids = [game.appid for game in games]
     if not gog_ids:
         return
     lutris_games = api.get_api_games(gog_ids, query_type="gogid")
+    added_games = []
     for game in lutris_games:
         game_data = {
             "name": game["name"],
@@ -248,4 +262,5 @@ def sync_with_lutris(games):
             "updated": game["updated"],
             "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
         }
-        pga.add_or_update(**game_data)
+        added_games.append(pga.add_or_update(**game_data))
+    return (added_games, [])
