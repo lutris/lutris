@@ -1,14 +1,13 @@
 from lutris.services.steam import sync_with_lutris as _sync_with_lutris
+from lutris.services.steam import load_games as _load_games
 
 NAME = "Steam for Windows"
 ICON = "winesteam"
-ONLINE = True
+ONLINE = False
 
 
-def is_connected():
-    # XXX
-    return True
-
+def load_games():
+    return _load_games(platform="windows")
 
 def sync_with_lutris(games):
-    _sync_with_lutris(games, platform="windows")
+    return _sync_with_lutris(games, platform="windows")

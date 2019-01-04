@@ -28,7 +28,6 @@ class SteamGame(ServiceGame):
         steam_game.name = appmanifest.name
         steam_game.slug = appmanifest.slug
         steam_game.runner = appmanifest.get_runner_name()
-        steam_game.icon = "/home/strider/peek.png"
         return steam_game
 
     @classmethod
