@@ -3,6 +3,8 @@
 %{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
+%global appid net.lutris.Lutris
+
 Name:           lutris
 Version:        0.4.23
 Release:        2%{?dist}
@@ -21,7 +23,7 @@ BuildRequires:  python3-devel
 
 %if 0%{?fedora}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
-Requires:       python3-gobject, python3-PyYAML, cabextract
+Requires:       python3-gobject, python3-PyYAML, cabextract, gnome-deskop3
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Recommends:     wine-core
 %endif
@@ -38,6 +40,8 @@ BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
 Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
+Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0
+Requires:       fluid-soundfont-gm
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
@@ -85,7 +89,7 @@ on Linux.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{name} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Network FileTransfer
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -109,15 +113,17 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %files
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
-%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
+%{_datadir}/appdata/%{appid}.appdata.xml
+%{_datadir}/applications/%{appid}.desktop
+%{_datadir}/icons/hicolor/16x16/apps/lutris.svg
+%{_datadir}/icons/hicolor/22x22/apps/lutris.svg
+%{_datadir}/icons/hicolor/24x24/apps/lutris.svg
+%{_datadir}/icons/hicolor/32x32/apps/lutris.svg
+%{_datadir}/icons/hicolor/48x48/apps/lutris.svg
+%{_datadir}/icons/hicolor/scalable/apps/lutris.svg
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
-
-%dir
-%{_datadir}/appdata/
 
 %changelog
 * Tue Nov 29 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.3

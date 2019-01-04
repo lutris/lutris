@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+  <id type="desktop">lutris.desktop</id>
+  <name>Lutris</name>
+  <summary>Lutris is an open source gaming platform</summary>
+  <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto</summary>
+  <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto</summary>
+  <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
+  <developer_name>Lutris Team</developer_name>
+  <url type="homepage">https://lutris.net</url>
+  <url type="donation">https://lutris.net/donate</url>
+  <url type="help">https://forums.lutris.net</url>
+  <url type="faq">https://lutris.net/faq</url>
+  <url type="translate">https://github.com/lutris/lutris/wiki/Translations</url>
+  <categories>
+    <category>Game</category>
+  </categories>
+  <screenshots>
+    <screenshot type="default"><image>https://lutris.net/static/images/lutris-main-window.jpg</image></screenshot>
+  </screenshots>
+  <description><p>Lutris helps you install and manage your games in a unified interface. Our goal is to support every game which runs on Linux, from native to Windows games (via Wine) to emulators and browser games. The desktop application and the website are libre software, your contributions are welcome!</p></description>
+  <description xml:lang="pt_BR"><p>Lutris ajuda você a instalar e gerenciar seus jogos em uma interface unificada. Nosso objetivo é suportar todos os jogos que rodam no Linux, desde jogos nativos até Windows (via Wine), emuladores e jogos de navegador. O aplicativo de desktop e o site são softwares livres, suas contribuições são bem vindas!</p></description>
+  <description xml:lang="es"><p>Lutris ayuda a instalar y administrar tus juegos en una interfaz unificada. Nuestro objetivo es apoyar todos los juegos que se ejecutan en Linux, desde juegos nativos a juegos de Windows (a través de Wine) a emuladores y juegos de navegador. La aplicación de escritorio y el sitio web son software libre, ¡sus contribuciones son bienvenidas!</p></description>
+  <description xml:lang="id"><p>Lutris membantu Anda memasang dan mengelola permainan Anda dalam antarmuka terpadu. Tujuan kami adalah untuk mendukung setiap permainan yang berjalan di Linux, dari permainan native ke Windows (melalui Wine) ke emulator dan peramban permainan. Aplikasi destop dan situs web adalah perangkat lunak libre, kontribusi Anda diterima!</p></description>
+  <launchable type="desktop-id">lutris.desktop</launchable>
+  <project_license>GPL-3.0</project_license>
+  <metadata_license>CC0-1.0</metadata_license>
+  <releases>
+    <release version="0.4.23" date="2018-11-07"/>
+  </releases>
+</application>

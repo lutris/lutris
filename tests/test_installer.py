@@ -4,7 +4,9 @@ from lutris.installer.errors import ScriptingError
 
 TEST_INSTALLER = {
     'script': {
-        'game': 'test'
+        'game': {
+            'exe': 'test'
+        }
     },
     'version': 'test',
     'game_slug': 'test',

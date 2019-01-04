@@ -1,8 +1,19 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, invalid-name
 # Vulkan detection by Patryk Obara (@dreamer)
 """Query Vulkan capabilities"""
+from lutris.util.log import logger
 
-from ctypes import c_int32, c_uint32, c_void_p, c_char_p, Structure, POINTER, pointer, CDLL, byref
+from ctypes import (
+    c_int32,
+    c_uint32,
+    c_void_p,
+    c_char_p,
+    Structure,
+    POINTER,
+    pointer,
+    CDLL,
+    byref,
+)
 
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0
@@ -35,13 +46,15 @@ class VkApplicationInfo(Structure):
 
     # pylint: disable=too-few-public-methods
 
-    _fields_ = [('sType', VkStructureType),
-                ('pNext', c_void_p),
-                ('pApplicationName', c_char_p),
-                ('applicationVersion', c_uint32),
-                ('pEngineName', c_char_p),
-                ('engineVersion', c_uint32),
-                ('apiVersion', c_uint32)]
+    _fields_ = [
+        ("sType", VkStructureType),
+        ("pNext", c_void_p),
+        ("pApplicationName", c_char_p),
+        ("applicationVersion", c_uint32),
+        ("pEngineName", c_char_p),
+        ("engineVersion", c_uint32),
+        ("apiVersion", c_uint32),
+    ]
 
     def __init__(self, name, version):
         super().__init__()
@@ -60,14 +73,16 @@ class VkInstanceCreateInfo(Structure):
 
     # pylint: disable=too-few-public-methods
 
-    _fields_ = [('sType', VkStructureType),
-                ('pNext', c_void_p),
-                ('flags', VkInstanceCreateFlags),
-                ('pApplicationInfo', POINTER(VkApplicationInfo)),
-                ('enabledLayerCount', c_uint32),
-                ('ppEnabledLayerNames', c_char_p),
-                ('enabledExtensionCount', c_uint32),
-                ('ppEnabledExtensionNames', c_char_p)]
+    _fields_ = [
+        ("sType", VkStructureType),
+        ("pNext", c_void_p),
+        ("flags", VkInstanceCreateFlags),
+        ("pApplicationInfo", POINTER(VkApplicationInfo)),
+        ("enabledLayerCount", c_uint32),
+        ("ppEnabledLayerNames", c_char_p),
+        ("enabledExtensionCount", c_uint32),
+        ("ppEnabledExtensionNames", c_char_p),
+    ]
 
     def __init__(self, app_info):
         super().__init__()
@@ -82,10 +97,10 @@ def is_vulkan_supported():
     """
     vulkan = None
     try:
-        vulkan = CDLL('libvulkan.so.1')
+        vulkan = CDLL("libvulkan.so.1")
     except OSError:
         return False
-    app_info = VkApplicationInfo('vkinfo', version=(0, 1, 0))
+    app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
     create_info = VkInstanceCreateInfo(app_info)
     instance = VkInstance()
     result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
@@ -95,3 +110,11 @@ def is_vulkan_supported():
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), 0)
     vulkan.vkDestroyInstance(instance, 0)
     return result == VK_SUCCESS and dev_count.value > 0
+
+
+def check_vulkan():
+    """Reports if Vulkan is enabled on the system"""
+    if is_vulkan_supported():
+        logger.info("Vulkan is supported")
+    else:
+        logger.info("Vulkan is not available or your system isn't Vulkan capable")

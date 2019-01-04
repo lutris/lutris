@@ -100,11 +100,19 @@ to be implemented.
 
 Here's what to expect from future versions of Lutris:
 
-* GOG and Humble Bundle integration
+* Humble Bundle integration
 * TOSEC database integration
 * Management of personal game data (i.e. syncing games across devices using private cloud storage)
 * Community features (friends list, chat, multiplayer game scheduling, etc.)
 * Controller configuration GUI (with xboxdrv support)
+
+Support the project
+===================
+
+Lutris is 100% community supported, to ensure a continuous developement on the
+project, please consider donating to the project.
+Our main platform for supporting Lutris is Patreon: https://www.patreon.com/lutris
+but there are also other options available at https://lutris.net/donate
 
 Come with us!
 =============
@@ -114,10 +122,8 @@ pre-releases, or simply chat with the developers?
 
 You can always reach us on:
 
+* Discord: #lutris_support and #lutris_dev on the LGG server: https://discord.gg/C3uJjRD
 * IRC: #lutris on the Freenode servers
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 * Google+: https://plus.google.com/+LutrisNet
-* Email: contact@lutris.net
-
-And you can also support us here on Patreon: https://www.patreon.com/lutris

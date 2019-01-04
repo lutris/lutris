@@ -8,12 +8,14 @@ from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
+from lutris.util.system import LINUX_SYSTEM
 
-RUNTIME_DISABLED = os.environ.get('LUTRIS_RUNTIME', '').lower() in ('0', 'off')
+RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 
 
 class Runtime:
     """Class for manipulating runtime folders"""
+
     def __init__(self, name, updater):
         self.name = name
         self.updater = updater
@@ -46,33 +48,26 @@ class Runtime:
             return True
 
         if local_updated_at and local_updated_at >= remote_updated_at:
-            logger.debug(
-                "Runtime %s is already up to date (locally updated on %s, remote created on %s)",
-                self.name,
-                time.strftime("%c", local_updated_at),
-                time.strftime("%c", remote_updated_at)
-            )
             return False
 
         logger.debug(
             "Runtime %s locally updated on %s, remote created on %s)",
             self.name,
             time.strftime("%c", local_updated_at),
-            time.strftime("%c", remote_updated_at)
+            time.strftime("%c", remote_updated_at),
         )
         return True
 
     def download(self, remote_runtime_info):
         """Downloads a runtime locally"""
-        remote_updated_at = remote_runtime_info['created_at']
+        remote_updated_at = remote_runtime_info["created_at"]
         remote_updated_at = time.strptime(
-            remote_updated_at[:remote_updated_at.find('.')],
-            "%Y-%m-%dT%H:%M:%S"
+            remote_updated_at[: remote_updated_at.find(".")], "%Y-%m-%dT%H:%M:%S"
         )
         if not self.should_update(remote_updated_at):
             return None
 
-        url = remote_runtime_info['url']
+        url = remote_runtime_info["url"]
         archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
         downloader = Downloader(url, archive_path, overwrite=True)
         downloader.start()
@@ -81,8 +76,10 @@ class Runtime:
 
     def check_download_progress(self, downloader):
         """Call download.check_progress(), return True if download finished."""
-        if (not downloader or downloader.state in [downloader.CANCELLED,
-                                                   downloader.ERROR]):
+        if not downloader or downloader.state in [
+            downloader.CANCELLED,
+            downloader.ERROR,
+        ]:
             logger.debug("Runtime update interrupted")
             return False
 
@@ -105,8 +102,9 @@ class Runtime:
         system.remove_folder(initial_path)
 
         # Extract the runtime archive
-        jobs.AsyncCall(extract_archive, self.on_extracted, path, RUNTIME_DIR,
-                       merge_single=False)
+        jobs.AsyncCall(
+            extract_archive, self.on_extracted, path, RUNTIME_DIR, merge_single=False
+        )
 
     def on_extracted(self, result, error):
         """Callback method when a runtime has extracted"""
@@ -123,15 +121,15 @@ class Runtime:
 
 class RuntimeUpdater:
     """Class handling the runtime updates"""
+
     current_updates = 0
     status_updater = None
-    cancellables = []
 
     def is_updating(self):
         """Return True if the update process is running"""
         return self.current_updates > 0
 
-    def update(self, status_updater=None):
+    def update(self):
         """Launch the update process"""
         if RUNTIME_DISABLED:
             logger.debug("Runtime disabled, not updating it.")
@@ -141,17 +139,11 @@ class RuntimeUpdater:
             logger.debug("Runtime already updating")
             return []
 
-        if status_updater:
-            self.status_updater = status_updater
-
-        if self.status_updater:
-            self.status_updater("Updating Runtime")
         for remote_runtime in self._iter_remote_runtimes():
-            runtime = Runtime(remote_runtime['name'], self)
+            runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
             if downloader:
                 self.current_updates += 1
-                self.cancellables.append(downloader.cancel)
         return None
 
     @staticmethod
@@ -162,18 +154,25 @@ class RuntimeUpdater:
         for runtime in runtimes:
 
             # Skip 32bit runtimes on 64 bit systems except the lib32 one
-            if(runtime['architecture'] == 'i386' and
-               system.IS_64BIT and
-               runtime['name'] != 'lib32'):
-                logger.debug('Skipping runtime %s for %s',
-                             runtime['name'], runtime['architecture'])
+            if (
+                    runtime["architecture"] == "i386"
+                    and system.LINUX_SYSTEM.is_64_bit
+                    and runtime["name"] != "lib32"
+            ):
+                logger.debug(
+                    "Skipping runtime %s for %s",
+                    runtime["name"],
+                    runtime["architecture"],
+                )
                 continue
 
             # Skip 64bit runtimes on 32 bit systems
-            if(runtime['architecture'] == 'x86_64' and
-               not system.IS_64BIT):
-                logger.debug('Skipping runtime %s for %s',
-                             runtime['name'], runtime['architecture'])
+            if runtime["architecture"] == "x86_64" and not system.LINUX_SYSTEM.is_64_bit:
+                logger.debug(
+                    "Skipping runtime %s for %s",
+                    runtime["name"],
+                    runtime["architecture"],
+                )
                 continue
 
             yield runtime
@@ -182,21 +181,24 @@ class RuntimeUpdater:
         """A runtime has finished downloading"""
         logger.debug("Runtime %s is now updated and available", runtime.name)
         self.current_updates -= 1
-        if self.status_updater and self.current_updates == 0:
-            self.status_updater("Runtime updated")
+        if self.current_updates == 0:
+            logger.info("Runtime updated")
 
 
 def get_env(prefer_system_libs=True, wine_path=None):
     """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
     # Adding the STEAM_RUNTIME here is probably unneeded and unwanted
     return {
-        key: value for key, value in {
-            'STEAM_RUNTIME': os.path.join(RUNTIME_DIR, 'steam') if not RUNTIME_DISABLED else None,
-            'LD_LIBRARY_PATH': ':'.join(get_paths(
-                prefer_system_libs=prefer_system_libs,
-                wine_path=wine_path
-            ))
-        }.items() if value
+        key: value
+        for key, value in {
+            "STEAM_RUNTIME": os.path.join(RUNTIME_DIR, "steam")
+            if not RUNTIME_DISABLED
+            else None,
+            "LD_LIBRARY_PATH": ":".join(
+                get_paths(prefer_system_libs=prefer_system_libs, wine_path=wine_path)
+            ),
+        }.items()
+        if value
     }
 
 
@@ -210,47 +212,37 @@ def get_paths(prefer_system_libs=True, wine_path=None):
             "steam/i386/lib/i386-linux-gnu",
             "steam/i386/lib",
             "steam/i386/usr/lib/i386-linux-gnu",
-            "steam/i386/usr/lib"
+            "steam/i386/usr/lib",
         ]
 
-        if system.IS_64BIT:
+        if system.LINUX_SYSTEM.is_64_bit:
             runtime_paths += [
                 "lib64",
                 "steam/amd64/lib/x86_64-linux-gnu",
                 "steam/amd64/lib",
                 "steam/amd64/usr/lib/x86_64-linux-gnu",
-                "steam/amd64/usr/lib"
+                "steam/amd64/usr/lib",
             ]
 
         if prefer_system_libs:
             paths = []
             # Prioritize libwine.so.1 for lutris builds
             if system.path_exists(wine_path):
-                paths.append(os.path.join(wine_path, 'lib'))
-                lib64_path = os.path.join(wine_path, 'lib64')
+                paths.append(os.path.join(wine_path, "lib"))
+                lib64_path = os.path.join(wine_path, "lib64")
                 if system.path_exists(lib64_path):
                     paths.append(lib64_path)
 
             # This prioritizes system libraries over
             # the Lutris and Steam runtimes.
-            paths.append("/usr/lib")
-            if system.path_exists("/usr/lib32"):
-                paths.append("/usr/lib32")
-            if system.path_exists("/usr/lib64"):
-                paths.append("/usr/lib64")
-            if system.path_exists("/lib/x86_64-linux-gnu"):
-                paths.append("/lib/x86_64-linux-gnu")
-            if system.path_exists("/lib/i386-linux-gnu"):
-                paths.append("/lib/i386-linux-gnu")
-            if system.path_exists("/usr/lib/x86_64-linux-gnu"):
-                paths.append("/usr/lib/x86_64-linux-gnu")
-            if system.path_exists("/usr/lib/i386-linux-gnu"):
-                paths.append("/usr/lib/i386-linux-gnu")
+            for lib_paths in LINUX_SYSTEM.iter_lib_folders():
+                for arch in LINUX_SYSTEM.runtime_architectures:
+                    paths.append(lib_paths[0])
 
         # Then resolve absolute paths for the runtime
         paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
 
-    if os.environ.get('LD_LIBRARY_PATH'):
-        paths.append(os.environ['LD_LIBRARY_PATH'])
+    if os.environ.get("LD_LIBRARY_PATH"):
+        paths.append(os.environ["LD_LIBRARY_PATH"])
 
     return paths

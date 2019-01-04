@@ -5381,6 +5381,10 @@ winetricks_handle_option()
     return 0
 }
 
+# Test whether temporary directory is valid - before initialising script
+[ -d "$W_TMP_EARLY" ] || w_die "temporary directory: '$W_TMP_EARLY' ; does not exist"
+[ -w "$W_TMP_EARLY" ] || w_die "temporary directory: '$W_TMP_EARLY' ; is not user writeable"
+
 # Must initialize variables before calling w_metadata
 if ! test "$WINETRICKS_LIB"
 then
@@ -5575,7 +5579,8 @@ load_adobeair()
     # 2018/01/30: 28.0.0.127 (strings 'Adobe AIR.dll' | grep 28\\. ) sha256sum 9076489e273652089a4a53a1d38c6631e8b7477e39426a843e0273f25bfb109f
     # 2018/03/16: 29.0.0.112 (strings 'Adobe AIR.dll' | grep -E "^29\..+\..+" ) sha256sum 5186b54682644a30f2be61c9b510de9a9a76e301bc1b42f0f1bc50bd809a3625
     # 2018/06/08: 30.0.0.107 (strings 'Adobe AIR.dll' | grep -E "^30\..+\..+" ) sha256sum bcc36174f6f70baba27e5ed1c0df67e55c306ac7bc86b1d280eff4db8c314985
-    w_download https://airdownload.adobe.com/air/win/download/latest/AdobeAIRInstaller.exe bcc36174f6f70baba27e5ed1c0df67e55c306ac7bc86b1d280eff4db8c314985
+    # 2018/09/12: 31.0.0.96 (strings 'Adobe AIR.dll' | grep -E "^31\..+\..+" ) sha256sum dc82421f135627802b21619bdb7e4b9b0ec16d351120485c575aa6c16cd2737e
+    w_download https://airdownload.adobe.com/air/win/download/latest/AdobeAIRInstaller.exe dc82421f135627802b21619bdb7e4b9b0ec16d351120485c575aa6c16cd2737e
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # See https://bugs.winehq.org/show_bug.cgi?id=43506
@@ -5854,6 +5859,33 @@ load_d3dcompiler_43()
     fi
 
     w_override_dlls native $dllname
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dcompiler_47 dlls \
+    title="MS d3dcompiler_47.dll" \
+    publisher="Microsoft" \
+    year="FIXME" \
+    media="download" \
+    file1="FirefoxSetup62.0.3-win32.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dcompiler_47.dll"
+
+load_d3dcompiler_47()
+{
+    # FIXME: would be awesome to find a small download that has both 32/64bit dlls, but this works for now:
+
+    w_download https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win32/ach/Firefox%20Setup%2062.0.3.exe "d6edb4ff0a713f417ebd19baedfe07527c6e45e84a6c73ed8c66a33377cc0aca" "FirefoxSetup62.0.3-win32.exe"
+    w_try_7z "$W_TMP/win32" "$W_CACHE/d3dcompiler_47/FirefoxSetup62.0.3-win32.exe" "core/d3dcompiler_47.dll"
+    w_try cp "$W_TMP/win32/core/d3dcompiler_47.dll" "$W_SYSTEM32_DLLS/d3dcompiler_47.dll"
+
+    if [ "$W_ARCH" = "win64" ]; then
+        w_download https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win64/ach/Firefox%20Setup%2062.0.3.exe "721977f36c008af2b637aedd3f1b529f3cfed6feb10f68ebe17469acb1934986" "FirefoxSetup62.0.3-win64.exe"
+        w_try_7z "$W_TMP/win64" "$W_CACHE/d3dcompiler_47/FirefoxSetup62.0.3-win64.exe" "core/d3dcompiler_47.dll"
+        w_try cp "$W_TMP/win64/core/d3dcompiler_47.dll" "$W_SYSTEM64_DLLS/d3dcompiler_47.dll"
+    fi
+
+    w_override_dlls native d3dcompiler_47
 }
 
 #----------------------------------------------------------------
@@ -6535,12 +6567,20 @@ load_directx9()
 
     # How many of these do we really need?
     # We should probably remove most of these...?
+    w_call devenum
+    w_call quartz
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "msdmo.dll" "$W_TMP/dxnt.cab"
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "qcap.dll" "$W_TMP/dxnt.cab"
+    w_try_regsvr qcap.dll
+
     w_override_dlls native d3dim d3drm d3dx8 d3dx9_24 d3dx9_25 d3dx9_26 d3dx9_27 d3dx9_28 d3dx9_29
     w_override_dlls native d3dx9_30 d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 d3dx9_35 d3dx9_36 d3dx9_37
     w_override_dlls native d3dx9_38 d3dx9_39 d3dx9_40 d3dx9_41 d3dx9_42 d3dx9_43 d3dxof
-    w_override_dlls native dciman32 ddrawex devenum dmband dmcompos dmime dmloader dmscript dmstyle
+    w_override_dlls native dciman32 ddrawex dmband dmcompos dmime dmloader dmscript dmstyle
     w_override_dlls native dmsynth dmusic dmusic32 dplay dplayx dpnaddr dpnet dpnhpast dpnlobby
-    w_override_dlls native dswave dxdiagn msdmo qcap quartz streamci
+    w_override_dlls native dswave dxdiagn msdmo qcap streamci
     w_override_dlls native dxdiag.exe
     w_override_dlls builtin d3d8 d3d9 dinput dinput8 dsound
 
@@ -6848,6 +6888,101 @@ load_dxvk71()
     helper_dxvk "$file1" "d3d10_enabled" "3.10" "1.0.76"
 }
 
+w_metadata dxvk72 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.72)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.72.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk72()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.72/dxvk-0.72.tar.gz" bc84f48f99cf5add3c8919a43d7a9c0bf208c994dc58326a636b56b8db650c52
+    helper_dxvk "$file1" "d3d10_enabled" "3.10" "1.0.76"
+}
+
+w_metadata dxvk80 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.80)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.80.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk80()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.80/dxvk-0.80.tar.gz" f9e736cdbf1e83e45ca748652a94a3a189fc5accde1eac549b2ba5af8f7acacb
+    helper_dxvk "$file1" "d3d10_enabled" "3.10" "1.0.76"
+}
+
+w_metadata dxvk81 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.81)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.81.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk81()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.81/dxvk-0.81.tar.gz" 9bf6eda9ae4ee74b509e07dfe9cc003dfa4bba192b519dacdd542a57f6a43869
+    helper_dxvk "$file1" "d3d10_enabled" "3.10" "1.0.76"
+}
+
+w_metadata dxvk90 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.90)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.90.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk90()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.90/dxvk-0.90.tar.gz" 15bce7b282065054ff9233b33738bf1d2c74b16829361cbd6843bc2f5dfe4509
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
+w_metadata dxvk91 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.91)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.91.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk91()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.91/dxvk-0.91.tar.gz" 5296106ac3a8c631d7f26fa46dbff4be1332cda14fa493fd89ccf97e050c4855
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
 
 #----------------------------------------------------------------
 
@@ -6869,7 +7004,7 @@ load_dxvk()
     w_download_to "${W_TMP_EARLY}" "https://raw.githubusercontent.com/doitsujin/dxvk/master/RELEASE"
     dxvk_version="$(cat "${W_TMP_EARLY}/RELEASE")"
     w_linkcheck=1_ignore w_download "https://github.com/doitsujin/dxvk/releases/download/v${dxvk_version}/dxvk-${dxvk_version}.tar.gz"
-    helper_dxvk "dxvk-${dxvk_version}.tar.gz" "d3d10_enabled" "3.10" "1.0.76"
+    helper_dxvk "dxvk-${dxvk_version}.tar.gz" "d3d10_enabled" "3.19" "1.1.88"
     unset dxvk_version
 }
 
@@ -7967,7 +8102,7 @@ load_dotnet462()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
-    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" /sfxlang:1027 ${W_OPT_UNATTENDED:+$unattended_args}
+    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args}
     status=$?
 
     echo "exit status: $status"
@@ -8026,7 +8161,7 @@ load_dotnet472()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
-    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" /sfxlang:1027 ${W_OPT_UNATTENDED:+$unattended_args}
+    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args}
     status=$?
 
     echo "exit status: $status"
@@ -9638,6 +9773,8 @@ w_metadata secur32 dlls \
 
 load_secur32()
 {
+    w_warn "Installing native secur32 may lead to stack overflow crashes, see https://bugs.winehq.org/show_bug.cgi?id=45344"
+
     helper_win7sp1 x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll
     w_try cp "$W_TMP/x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll" "$W_SYSTEM32_DLLS/secur32.dll"
 
@@ -10713,17 +10850,12 @@ load_xact()
         w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'xapofx*.dll' "$x"
     done
 
-    if test "$W_ARCH" = "win64" ; then
-        w_try_cabextract -d "$W_TMP" -L -F '*_xact_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        w_try_cabextract -d "$W_TMP" -L -F '*_x3daudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        w_try_cabextract -d "$W_TMP" -L -F '*_xaudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        for x in "$W_TMP"/*x64.cab ; do
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xactengine*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xaudio*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'x3daudio*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xapofx*.dll' "$x"
-        done
-    fi
+    # Don't install 64-bit xact DLLs. They are broken in Wine, see:
+    # https://bugs.winehq.org/show_bug.cgi?id=41618#c5
+
+    w_override_dlls native,builtin xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 xaudio2_5 xaudio2_6 xaudio2_7
+    w_override_dlls native,builtin x3daudio1_0 x3daudio1_1 x3daudio1_2 x3daudio1_3 x3daudio1_4 x3daudio1_5 x3daudio1_6 x3daudio1_7
+    w_override_dlls native,builtin xapofx1_1 xapofx1_2 xapofx1_3 xapofx1_4 xapofx1_5
 
     # Register xactengine?_?.dll
     for x in "$W_SYSTEM32_DLLS"/xactengine* ; do
@@ -11603,7 +11735,7 @@ w_metadata lucida fonts \
 
 load_lucida()
 {
-    w_download "ftp://ftp.fu-berlin.de/pc/security/ms-patches/winnt/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe" 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
+    w_download "https://ftpmirror.your.org/pub/misc/ftp.microsoft.com/bussys/winnt/winnt-public/fixes/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe" 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
     w_try_cabextract -d "$W_TMP" -F "lucon.ttf" "$W_CACHE"/lucida/eurofixi.exe
     w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX"
     w_register_font lucon.ttf "Lucida Console"

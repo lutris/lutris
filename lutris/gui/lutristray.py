@@ -1,26 +1,26 @@
 """Module for the tray icon"""
 from gi.repository import Gtk
 
-from lutris import runners
 from lutris import pga
-from lutris.gui.widgets.utils import get_runner_icon, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
 class LutrisTray(Gtk.StatusIcon):
     """Lutris tray icon"""
+
     def __init__(self, application, **_kwargs):
         super().__init__()
-        self.set_tooltip_text('Lutris')
+        self.set_tooltip_text("Lutris")
         self.set_visible(True)
         self.application = application
-        self.set_from_icon_name('lutris')
+        self.set_from_icon_name("lutris")
 
         self.menu = None
 
         self.load_menu()
 
-        self.connect('activate', self.on_activate)
-        self.connect('popup-menu', self.on_menu_popup)
+        self.connect("activate", self.on_activate)
+        self.connect("popup-menu", self.on_menu_popup)
 
     def load_menu(self):
         """Instanciates the menu attached to the tray icon"""
@@ -60,7 +60,8 @@ class LutrisTray(Gtk.StatusIcon):
         installed_games = pga.get_games(filter_installed=True)
         installed_games.sort(
             key=lambda game: max(game["lastplayed"] or 0, game["installed_at"] or 0),
-            reverse=True)
+            reverse=True,
+        )
         for game in installed_games[:number_of_games_in_menu]:
             self.menu.append(self._make_menu_item_for_game(game))
 

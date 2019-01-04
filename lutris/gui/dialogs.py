@@ -1,21 +1,25 @@
 """Commonly used dialogs"""
 # pylint: disable=no-member
 import os
-from gi.repository import GLib, Gtk, GObject
 
 from lutris import api, pga, runtime, settings
+from lutris.gui.util import open_uri
+from lutris.gui.logdialog import LogTextView
+from lutris.gui.widgets.dialogs import Dialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.util import datapath
-from lutris.util.system import open_uri
 from lutris.util.log import logger
+
+import gi
+gi.require_version("WebKit2", "4.0")
+
+from gi.repository import GLib, GObject, Gtk, WebKit2
 
 
 class GtkBuilderDialog(GObject.Object):
-
     def __init__(self, parent=None, **kwargs):
-        super(GtkBuilderDialog, self).__init__()
-        ui_filename = os.path.join(datapath.get(), 'ui',
-                                   self.glade_file)
+        super().__init__()
+        ui_filename = os.path.join(datapath.get(), "ui", self.glade_file)
         if not os.path.exists(ui_filename):
             raise ValueError("ui file does not exists: %s" % ui_filename)
 
@@ -45,7 +49,7 @@ class GtkBuilderDialog(GObject.Object):
 
 
 class AboutDialog(GtkBuilderDialog):
-    glade_file = 'about-dialog.ui'
+    glade_file = "about-dialog.ui"
     dialog_object = "about_dialog"
 
     def initialize(self):
@@ -54,8 +58,9 @@ class AboutDialog(GtkBuilderDialog):
 
 class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
+
     def __init__(self, message, parent=None):
-        super(NoticeDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         self.run()
         self.destroy()
@@ -63,8 +68,9 @@ class NoticeDialog(Gtk.MessageDialog):
 
 class ErrorDialog(Gtk.MessageDialog):
     """Display an error message."""
+
     def __init__(self, message, secondary=None, parent=None):
-        super(ErrorDialog, self).__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary)
@@ -74,29 +80,29 @@ class ErrorDialog(Gtk.MessageDialog):
 
 class QuestionDialog(Gtk.MessageDialog):
     """Ask the user a question."""
+
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
     def __init__(self, dialog_settings):
         super().__init__(
-            message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.YES_NO
+            message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO
         )
-        self.set_markup(dialog_settings['question'])
-        self.set_title(dialog_settings['title'])
+        self.set_markup(dialog_settings["question"])
+        self.set_title(dialog_settings["title"])
         self.result = self.run()
         self.destroy()
 
 
 class DirectoryDialog(Gtk.FileChooserDialog):
     """Ask the user to select a directory."""
+
     def __init__(self, message, parent=None):
-        super(DirectoryDialog, self).__init__(
+        super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=('_Cancel', Gtk.ResponseType.CLOSE,
-                     '_OK', Gtk.ResponseType.OK),
-            parent=parent
+            buttons=("_Cancel", Gtk.ResponseType.CLOSE, "_OK", Gtk.ResponseType.OK),
+            parent=parent,
         )
         self.result = self.run()
         self.folder = self.get_current_folder()
@@ -105,14 +111,16 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 
 class FileDialog(Gtk.FileChooserDialog):
     """Ask the user to select a file."""
+
     def __init__(self, message=None, default_path=None):
         self.filename = None
         if not message:
             message = "Please choose a file"
-        super(FileDialog, self).__init__(
-            message, None, Gtk.FileChooserAction.OPEN,
-            ('_Cancel', Gtk.ResponseType.CANCEL,
-             '_OK', Gtk.ResponseType.OK)
+        super().__init__(
+            message,
+            None,
+            Gtk.FileChooserAction.OPEN,
+            ("_Cancel", Gtk.ResponseType.CANCEL, "_OK", Gtk.ResponseType.OK),
         )
         if default_path and os.path.exists(default_path):
             self.set_current_folder(default_path)
@@ -126,19 +134,17 @@ class FileDialog(Gtk.FileChooserDialog):
 
 class DownloadDialog(Gtk.Dialog):
     """Dialog showing a download in progress."""
-    def __init__(self, url=None, dest=None, title=None, label=None,
-                 downloader=None):
+
+    def __init__(self, url=None, dest=None, title=None, label=None, downloader=None):
         Gtk.Dialog.__init__(self, title or "Downloading file")
         self.set_size_request(485, 104)
         self.set_border_width(12)
-        params = {'url': url,
-                  'dest': dest,
-                  'title': label or "Downloading %s" % url}
+        params = {"url": url, "dest": dest, "title": label or "Downloading %s" % url}
         self.download_box = DownloadProgressBox(params, downloader=downloader)
 
-        self.download_box.connect('complete', self.download_complete)
-        self.download_box.connect('cancel', self.download_cancelled)
-        self.connect('response', self.on_response)
+        self.download_box.connect("complete", self.download_complete)
+        self.download_box.connect("cancel", self.download_cancelled)
+        self.connect("response", self.on_response)
 
         self.get_content_area().add(self.download_box)
         self.show_all()
@@ -168,19 +174,19 @@ class InstallOrPlayDialog(Gtk.Dialog):
 
         self.set_size_request(320, 120)
         self.set_border_width(12)
-        vbox = Gtk.VBox(spacing=6)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
-        play_button.connect('toggled', self.on_button_toggled, "play")
+        play_button.connect("toggled", self.on_button_toggled, "play")
         vbox.pack_start(play_button, False, False, 0)
         install_button = Gtk.RadioButton.new_from_widget(play_button)
         install_button.set_label("Install the game again")
-        install_button.connect('toggled', self.on_button_toggled, "install")
+        install_button.connect("toggled", self.on_button_toggled, "install")
         vbox.pack_start(install_button, False, False, 0)
 
         confirm_button = Gtk.Button("OK")
-        confirm_button.connect('clicked', self.on_confirm)
+        confirm_button.connect("clicked", self.on_confirm)
         vbox.pack_start(confirm_button, False, False, 0)
 
         self.show_all()
@@ -198,6 +204,7 @@ class InstallOrPlayDialog(Gtk.Dialog):
 
 class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
+
     def __init__(self, parent=None):
         Gtk.Dialog.__init__(self, "Runtime updating", parent=parent)
         self.set_size_request(360, 104)
@@ -223,8 +230,8 @@ class RuntimeUpdateDialog(Gtk.Dialog):
 
 
 class PgaSourceDialog(GtkBuilderDialog):
-    glade_file = 'dialog-pga-sources.ui'
-    dialog_object = 'pga_dialog'
+    glade_file = "dialog-pga-sources.ui"
+    dialog_object = "pga_dialog"
 
     def __init__(self, parent=None):
         super(PgaSourceDialog, self).__init__(parent=parent)
@@ -232,9 +239,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         # GtkBuilder Objects
         self.sources_selection = self.builder.get_object("sources_selection")
         self.sources_treeview = self.builder.get_object("sources_treeview")
-        self.remove_source_button = self.builder.get_object(
-            "remove_source_button"
-        )
+        self.remove_source_button = self.builder.get_object("remove_source_button")
 
         # Treeview setup
         self.sources_liststore = Gtk.ListStore(str)
@@ -245,7 +250,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         self.sources_treeview.set_model(self.sources_liststore)
         sources = pga.read_sources()
         for index, source in enumerate(sources):
-            self.sources_liststore.append((source, ))
+            self.sources_liststore.append((source,))
 
         self.remove_source_button.set_sensitive(False)
         self.dialog.show_all()
@@ -260,17 +265,17 @@ class PgaSourceDialog(GtkBuilderDialog):
 
     def on_add_source_button_clicked(self, widget, data=None):
         chooser = Gtk.FileChooserDialog(
-            "Select directory", self.dialog,
+            "Select directory",
+            self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
-            ('_Cancel', Gtk.ResponseType.CANCEL,
-             '_OK', Gtk.ResponseType.OK)
+            ("_Cancel", Gtk.ResponseType.CANCEL, "_OK", Gtk.ResponseType.OK),
         )
         chooser.set_local_only(False)
         response = chooser.run()
         if response == Gtk.ResponseType.OK:
             uri = chooser.get_uri()
             if uri not in self.sources_list:
-                self.sources_liststore.append((uri, ))
+                self.sources_liststore.append((uri,))
         chooser.destroy()
 
     def on_remove_source_button_clicked(self, widget, data=None):
@@ -287,26 +292,24 @@ class PgaSourceDialog(GtkBuilderDialog):
 
 
 class ClientLoginDialog(GtkBuilderDialog):
-    glade_file = 'dialog-lutris-login.ui'
-    dialog_object = 'lutris-login'
+    glade_file = "dialog-lutris-login.ui"
+    dialog_object = "lutris-login"
     __gsignals__ = {
-        'connected': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,)),
-        'cancel': (GObject.SignalFlags.RUN_LAST, None,
-                   (GObject.TYPE_PYOBJECT,))
+        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, parent):
-        super(ClientLoginDialog, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         self.parent = parent
-        self.username_entry = self.builder.get_object('username_entry')
-        self.password_entry = self.builder.get_object('password_entry')
+        self.username_entry = self.builder.get_object("username_entry")
+        self.password_entry = self.builder.get_object("password_entry")
 
-        cancel_button = self.builder.get_object('cancel_button')
-        cancel_button.connect('clicked', self.on_close)
-        connect_button = self.builder.get_object('connect_button')
-        connect_button.connect('clicked', self.on_connect)
+        cancel_button = self.builder.get_object("cancel_button")
+        cancel_button.connect("clicked", self.on_close)
+        connect_button = self.builder.get_object("connect_button")
+        connect_button.connect("clicked", self.on_connect)
 
     def get_credentials(self):
         username = self.username_entry.get_text()
@@ -331,12 +334,12 @@ class ClientLoginDialog(GtkBuilderDialog):
         if not token:
             NoticeDialog("Login failed", parent=self.parent)
         else:
-            self.emit('connected', username)
+            self.emit("connected", username)
             self.dialog.destroy()
 
 
 class ClientUpdateDialog(GtkBuilderDialog):
-    glade_file = 'dialog-client-update.ui'
+    glade_file = "dialog-client-update.ui"
     dialog_object = "client_update_dialog"
 
     @staticmethod
@@ -350,23 +353,110 @@ class NoInstallerDialog(Gtk.MessageDialog):
     EXIT = 4
 
     def __init__(self, parent=None):
-        Gtk.MessageDialog.__init__(self, parent, 0, Gtk.MessageType.ERROR,
-                                   Gtk.ButtonsType.NONE,
-                                   "Unable to install the game")
+        Gtk.MessageDialog.__init__(
+            self,
+            parent,
+            0,
+            Gtk.MessageType.ERROR,
+            Gtk.ButtonsType.NONE,
+            "Unable to install the game",
+        )
         self.format_secondary_text("No installer is available for this game")
-        self.add_buttons("Configure manually", self.MANUAL_CONF,
-                         "Write installer", self.NEW_INSTALLER,
-                         "Close", self.EXIT)
+        self.add_buttons(
+            "Configure manually",
+            self.MANUAL_CONF,
+            "Write installer",
+            self.NEW_INSTALLER,
+            "Close",
+            self.EXIT,
+        )
         self.result = self.run()
+        self.destroy()
+
+
+class WebConnectDialog(Dialog):
+    """Login form for external services"""
+
+    def __init__(self, service, parent=None):
+
+        self.context = WebKit2.WebContext.new()
+        if "http_proxy" in os.environ:
+            proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
+            self.context.set_network_proxy_settings(
+                WebKit2.NetworkProxyMode.CUSTOM, proxy
+            )
+        WebKit2.CookieManager.set_persistent_storage(
+            self.context.get_cookie_manager(),
+            service.credentials_path,
+            WebKit2.CookiePersistentStorage(0),
+        )
+        self.service = service
+
+        super(WebConnectDialog, self).__init__(title=service.name, parent=parent)
+        self.set_border_width(0)
+        self.set_default_size(390, 500)
+
+        self.webview = WebKit2.WebView.new_with_context(self.context)
+        self.webview.load_uri(service.login_url)
+        self.webview.connect("load-changed", self.on_navigation)
+        self.vbox.pack_start(self.webview, True, True, 0)
+
+        self.show_all()
+
+    def on_navigation(self, widget, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            uri = widget.get_uri()
+            if uri.startswith(self.service.redirect_uri):
+                self.service.request_token(uri)
+                self.destroy()
+
+
+class InstallerSourceDialog(Gtk.Dialog):
+    """Show install script source"""
+
+    def __init__(self, code, name, parent):
+        Gtk.Dialog.__init__(self, "Install script for {}".format(name), parent=parent)
+        self.set_size_request(500, 350)
+        self.set_border_width(0)
+
+        self.scrolled_window = Gtk.ScrolledWindow()
+        self.scrolled_window.set_hexpand(True)
+        self.scrolled_window.set_vexpand(True)
+
+        source_buffer = Gtk.TextBuffer()
+        source_buffer.set_text(code)
+
+        source_box = LogTextView(source_buffer, autoscroll=False)
+
+        self.get_content_area().add(self.scrolled_window)
+        self.scrolled_window.add(source_box)
+
+        close_button = Gtk.Button("OK")
+        close_button.connect("clicked", self.on_close)
+        self.get_content_area().add(close_button)
+
+        self.show_all()
+
+    def on_close(self, *args):
         self.destroy()
 
 
 class DontShowAgainDialog(Gtk.MessageDialog):
     """Display a message to the user and offer an option not to display this dialog again."""
-    def __init__(self, setting, message, secondary_message=None, parent=None, checkbox_message=None):
-        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        if settings.read_setting(setting) == 'True':
+    def __init__(
+        self,
+        setting,
+        message,
+        secondary_message=None,
+        parent=None,
+        checkbox_message=None,
+    ):
+        super().__init__(
+            type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent
+        )
+
+        if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
             self.destroy()
             return
@@ -395,14 +485,15 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
 class WineNotInstalledWarning(DontShowAgainDialog):
     """Display a warning if Wine is not detected on the system"""
+
     def __init__(self, parent=None):
         super().__init__(
-            'hide-wine-systemwide-install-warning',
+            "hide-wine-systemwide-install-warning",
             "Wine is not installed on your system.",
             secondary_message="Having Wine installed on your system guarantees that "
             "Wine builds from Lutris will have all required dependencies.\n\nPlease "
             "follow the instructions given in the <a "
             "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
             "install Wine.",
-            parent=parent
+            parent=parent,
         )

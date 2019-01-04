@@ -109,22 +109,12 @@
           <attribute name="action">win.start-game</attribute>
         </item>
         <item>
-          <attribute name="label">_Stop</attribute>
-          <attribute name="action">win.stop-game</attribute>
-        </item>
-        <item>
           <attribute name="label">_Add</attribute>
           <attribute name="action">win.add-game</attribute>
         </item>
         <item>
           <attribute name="label">_Remove</attribute>
           <attribute name="action">win.remove-game</attribute>
-        </item>
-      </section>
-      <section>
-        <item>
-          <attribute name="label">View last game's _log</attribute>
-          <attribute name="action">win.view-game-log</attribute>
         </item>
       </section>
     </submenu>

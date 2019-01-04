@@ -1,0 +1,26 @@
+<interface>
+  <menu id="app-menu">
+    <section>
+      <item>
+        <attribute name="label">Manage runners</attribute>
+        <attribute name="action">win.manage-runners</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">_Preferences</attribute>
+        <attribute name="action">win.preferences</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">_About</attribute>
+        <attribute name="action">win.about</attribute>
+      </item>
+      <item>
+        <attribute name="label">_Quit</attribute>
+        <attribute name="action">app.quit</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

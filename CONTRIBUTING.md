@@ -66,12 +66,27 @@ it to use 120 characters max per line instead of 80.
 You can help fixing formatting issues or other code smells by having a look at
 the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
+When writing docstrings, you should follow the Google style
+(See: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
+
+Do *not* add type annotations, those are not supported in Python 3.4.
+
 Writing tests
 -------------
 
 If your patch does not require interactions with a GUI or external processes,
 please consider adding unit tests for your code. Have a look at the existing
 test suite in the `tests` folder to see what kind of features are tested.
+
+Running tests
+-------------
+
+Be sure to test your changes thoroughly, never submit changes without running
+the code. At the very least, run the test suite and check that nothing broke.
+You can run the test suite by typing `make test` in the source directory.
+In order to run the test, you'll need to install nosetests and flake8:
+
+    pip3 install nose flake8
 
 Submitting your changes
 -----------------------

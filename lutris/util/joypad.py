@@ -1,5 +1,6 @@
 import struct
 import binascii
+
 try:
     import evdev
 except ImportError:
@@ -39,11 +40,13 @@ def read_button(device):
 
 
 def get_sdl_identifier(device_info):
-    device_identifier = struct.pack("<LLLL",
-                                    device_info.bustype,
-                                    device_info.vendor,
-                                    device_info.product,
-                                    device_info.version)
+    device_identifier = struct.pack(
+        "<LLLL",
+        device_info.bustype,
+        device_info.vendor,
+        device_info.product,
+        device_info.version,
+    )
     return binascii.hexlify(device_identifier).decode()
 
 

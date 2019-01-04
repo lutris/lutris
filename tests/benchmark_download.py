@@ -13,8 +13,6 @@ from lutris.gui.dialogs import DownloadDialog
 
 TEST_URL = "https://lutris.net/releases/lutris_0.3.0.tar.gz"
 TEST_FILE_SIZE = 4582508
-Gdk.threads_init()
-GObject.threads_init()
 
 
 def timed(function):

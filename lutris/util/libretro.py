@@ -2,11 +2,7 @@ from lutris.util import system
 
 
 class RetroConfig:
-    value_map = {
-        'true': True,
-        'false': False,
-        '': None
-    }
+    value_map = {"true": True, "false": False, "": None}
 
     def __init__(self, config_path):
         if not config_path:
@@ -15,19 +11,19 @@ class RetroConfig:
             raise OSError("Specified config file {} does not exist".format(config_path))
         self.config_path = config_path
         self.config = []
-        with open(config_path, 'r') as config_file:
+        with open(config_path, "r") as config_file:
             for line in config_file.readlines():
                 try:
-                    key, value = line.strip().split(' = ', 1)
+                    key, value = line.strip().split(" = ", 1)
                 except ValueError:
                     continue
-                value = value.strip("\"")
+                value = value.strip('"')
                 self.config.append((key, value))
 
     def save(self):
-        with open(self.config_path, 'w') as config_file:
+        with open(self.config_path, "w") as config_file:
             for (key, value) in self.config:
-                config_file.write("{} = \"{}\"\n".format(key, value))
+                config_file.write('{} = "{}"\n'.format(key, value))
 
     def serialize_value(self, value):
         for k, v in self.value_map.items():

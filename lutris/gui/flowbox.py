@@ -13,26 +13,26 @@ except AttributeError:
 
 
 class GameItem(Gtk.VBox):
-    def __init__(self, game, parent, icon_type='banner'):
+    def __init__(self, game, parent, icon_type="banner"):
         super(GameItem, self).__init__()
 
         self.icon_type = icon_type
 
         self.parent = parent
-        self.game = Game(game['id'])
-        self.id = game['id']
-        self.name = game['name']
-        self.slug = game['slug']
-        self.runner = game['runner']
-        self.platform = game['platform']
-        self.installed = game['installed']
+        self.game = Game(game["id"])
+        self.id = game["id"]
+        self.name = game["name"]
+        self.slug = game["slug"]
+        self.runner = game["runner"]
+        self.platform = game["platform"]
+        self.installed = game["installed"]
 
         image = self.get_image()
         self.pack_start(image, False, False, 0)
         label = self.get_label()
         self.pack_start(label, False, False, 0)
 
-        self.connect('button-press-event', self.popup_contextual_menu)
+        self.connect("button-press-event", self.popup_contextual_menu)
         self.show_all()
 
     def get_image(self):
@@ -45,21 +45,19 @@ class GameItem(Gtk.VBox):
         return eventbox
 
     def set_image_pixbuf(self):
-        pixbuf = get_pixbuf_for_game(self.slug,
-                                     self.icon_type,
-                                     self.installed)
+        pixbuf = get_pixbuf_for_game(self.slug, self.icon_type, self.installed)
         self.image.set_from_pixbuf(pixbuf)
 
     def get_label(self):
         self.label = Gtk.Label(self.name)
         self.label.set_size_request(184, 40)
 
-        if self.icon_type == 'banner':
+        if self.icon_type == "banner":
             self.label.set_max_width_chars(20)
         else:
             self.label.set_max_width_chars(15)
 
-        self.label.set_property('wrap', True)
+        self.label.set_property("wrap", True)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_halign(Gtk.Align.CENTER)
         eventbox = Gtk.EventBox()
@@ -80,17 +78,17 @@ class GameFlowBox(FlowBox):
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
-        "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ())
+        "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game_list, icon_type='banner', filter_installed=False):
+    def __init__(self, game_list, icon_type="banner", filter_installed=False):
         super(GameFlowBox, self).__init__()
 
         self.set_valign(Gtk.Align.START)
 
-        self.connect('child-activated', self.on_child_activated)
-        self.connect('selected-children-changed', self.on_selection_changed)
-        self.connect('key-press-event', self.handle_key_press)
+        self.connect("child-activated", self.on_child_activated)
+        self.connect("selected-children-changed", self.on_selection_changed)
+        self.connect("key-press-event", self.handle_key_press)
 
         self.set_filter_func(self.filter_func)
         self.set_sort_func(self.sort_func)
@@ -102,7 +100,7 @@ class GameFlowBox(FlowBox):
 
         self.icon_type = icon_type
 
-        self.filter_text = ''
+        self.filter_text = ""
         self.filter_runner = None
         self.filter_platform = None
         self.filter_installed = filter_installed
@@ -130,7 +128,7 @@ class GameFlowBox(FlowBox):
         n = 0
         for game in games:
             item = GameItem(game, self, icon_type=self.icon_type)
-            game['item'] = item  # keep a reference of created widgets
+            game["item"] = item  # keep a reference of created widgets
             self.add(item)
             n += 1
             if (n % step) == 0:
@@ -167,10 +165,10 @@ class GameFlowBox(FlowBox):
             return 0
 
     def on_child_activated(self, widget, child):
-        self.emit('game-activated')
+        self.emit("game-activated")
 
     def on_selection_changed(self, widget):
-        self.emit('game-selected')
+        self.emit("game-selected")
 
     def get_child(self, game_item):
         for child in self.get_children():
@@ -180,30 +178,28 @@ class GameFlowBox(FlowBox):
 
     def has_game_id(self, game_id):
         for game in self.game_list:
-            if game['id'] == game_id:
+            if game["id"] == game_id:
                 return True
         return False
 
     def add_game_by_id(self, game_id):
         if not game_id:
             return
-        game = pga.get_game_by_field(game_id, 'id')
-        if not game or 'slug' not in game:
-            raise ValueError('Can\'t find game {} ({})'.format(
-                game_id, game
-            ))
+        game = pga.get_game_by_field(game_id, "id")
+        if not game or "slug" not in game:
+            raise ValueError("Can't find game {} ({})".format(game_id, game))
         self.add_game(game)
 
     def add_game(self, game):
         item = GameItem(game, self)
-        game['item'] = item
+        game["item"] = item
         self.add(item)
         self.game_list.append(game)
 
     def remove_game(self, game_id):
         for index, game in enumerate(self.game_list):
-            if game['id'] == game_id:
-                child = self.get_child(game['item'])
+            if game["id"] == game_id:
+                child = self.get_child(game["item"])
                 self.remove(child)
                 child.destroy()
                 self.game_list.pop(index)
@@ -211,29 +207,29 @@ class GameFlowBox(FlowBox):
 
     def set_installed(self, game):
         for index, _game in enumerate(self.game_list):
-            if game.id == _game['id']:
-                _game['runner'] = game.runner_name
-                _game['item'].game.is_installed = True
-                _game['installed'] = True
-                self.update_image(_game['id'], True)
+            if game.id == _game["id"]:
+                _game["runner"] = game.runner_name
+                _game["item"].game.is_installed = True
+                _game["installed"] = True
+                self.update_image(_game["id"], True)
 
     def set_uninstalled(self, game):
         for index, _game in enumerate(self.game_list):
-            if game.id == _game['id']:
-                _game['runner'] = ''
-                _game['installed'] = False
-                _game['item'].game.is_installed = False
-                self.update_image(_game['id'], False)
+            if game.id == _game["id"]:
+                _game["runner"] = ""
+                _game["installed"] = False
+                _game["item"].game.is_installed = False
+                self.update_image(_game["id"], False)
 
     def update_row(self, game):
         for index, _game in enumerate(self.game_list):
-            if game['id'] == _game['id']:
-                self.update_image(game['id'], _game['installed'])
+            if game["id"] == _game["id"]:
+                self.update_image(game["id"], _game["installed"])
 
     def update_image(self, game_id, is_installed):
         for index, game in enumerate(self.game_list):
-            if game['id'] == game_id:
-                item = game.get('item')
+            if game["id"] == game_id:
+                item = game.get("item")
                 if not item:
                     logger.error("Couldn't get item for game %s", game)
                     return
@@ -242,8 +238,8 @@ class GameFlowBox(FlowBox):
 
     def set_selected_game(self, game_id):
         for game in self.game_list:
-            if game['id'] == game_id:
-                self.select_child(self.get_child(game['item']))
+            if game["id"] == game_id:
+                self.select_child(self.get_child(game["item"]))
 
     def popup_contextual_menu(self, event, widget):
         self.select_child(self.get_child(widget))

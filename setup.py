@@ -2,7 +2,7 @@
 import os
 import sys
 from setuptools import setup
-from lutris.settings import VERSION
+from lutris import __version__ as VERSION
 
 if sys.version_info < (3, 4):
     sys.exit('Python 3.4 is required to run Lutris')
@@ -25,9 +25,21 @@ setup(
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
-    packages=['lutris', 'lutris.gui', 'lutris.gui.widgets', 'lutris.util',
-              'lutris.runners', 'lutris.runners.commands', 'lutris.services',
-              'lutris.installer', 'lutris.migrations'],
+    packages=[
+        'lutris',
+        'lutris.gui',
+        'lutris.gui.widgets',
+        'lutris.gui.config',
+        'lutris.installer',
+        'lutris.migrations',
+        'lutris.runners',
+        'lutris.runners.commands',
+        'lutris.services',
+        'lutris.util',
+        'lutris.util.steam',
+        'lutris.util.wine',
+        'lutris.vendor'
+    ],
     scripts=['bin/lutris'],
     data_files=data_files,
     zip_safe=False,

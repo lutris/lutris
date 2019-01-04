@@ -2,20 +2,43 @@ import datetime
 
 
 class Timer:
+    """Simple Timer class to time code"""
 
-    def start_t(self):
-        self.start = datetime.datetime.now()
+    def __init__(self, format="hours"):
+        self.format = format
+        self._start = None
+        self._end = None
+        self.finished = False
 
-    def end_t(self):
-        self.end = datetime.datetime.now()
+    def start(self):
+        self._end = None
+        self._start = datetime.datetime.now()
+        self.finished = False
 
+    def end(self):
+        self._end = datetime.datetime.now()
+        self.finished = True
+
+    @property
     def duration(self):
-        return (self.end - self.start).seconds / 3600
+        if not self._start:
+            dur = 0
 
-    def increment(self, saved_dur):
-        if saved_dur == '':
-            return "%.1f hrs" % self.duration()
+        elif not self.finished:
+            now = datetime.datetime.now()
+            dur = (now - self._start).seconds
 
-        saved_dur = float(saved_dur.split()[0])
-        new_dur = saved_dur + self.duration()
-        return "%.1f hrs" % new_dur
+        else:
+            dur = (self._end - self._start).seconds
+
+        return self._convert_time(dur)
+
+    def _convert_time(self, dur):
+        if self.format == "seconds":
+            return dur
+        if self.format == "minutes":
+            return dur / 60
+        if self.format == "hours":
+            return dur / 3600
+        if self.format == "days":
+            return dur / 86400

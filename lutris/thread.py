@@ -1,53 +1,101 @@
-# -*- coding: utf-8 -*-
 """Threading module, used to launch games while monitoring them."""
 
 import os
 import sys
-import time
 import shlex
-import threading
 import subprocess
 import contextlib
-from collections import defaultdict
-from itertools import chain
-
-import ctypes
-from ctypes.util import find_library
-
+import signal
+import weakref
+import functools
 from textwrap import dedent
-from gi.repository import GLib
 
+from gi.repository import GLib
 
 from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util.process import Process
+from lutris.util.monitor import ProcessMonitor
 from lutris.util import system
 
 HEARTBEAT_DELAY = 2000  # Number of milliseconds between each heartbeat
-WARMUP_TIME = 5 * 60
-MAX_CYCLES_WITHOUT_CHILDREN = 5
-# List of process names that are ignored by the process monitoring
-EXCLUDED_PROCESSES = [
-    'lutris', 'python', 'python3',
-    'bash', 'sh', 'tee', 'tr', 'zenity', 'xkbcomp', 'xboxdrv',
-    'steam', 'Steam.exe', 'steamer', 'steamerrorrepor', 'gameoverlayui',
-    'SteamService.ex', 'steamwebhelper', 'steamwebhelper.', 'PnkBstrA.exe',
-    'control', 'wineserver', 'winecfg.exe', 'wdfmgr.exe', 'wineconsole', 'winedbg',
-]
+DEFAULT_MAX_CYCLES = 5
 
 
-PR_SET_CHILD_SUBREAPER = 36
+def _reentrancy_guard(func):
+    """
+    Prevents an argumentless method from having two invocations running
+    at the same time. self must be hashable.
+    """
+    guards = weakref.WeakSet()
+
+    @functools.wraps(func)
+    def inner(self):
+        if self not in guards:
+            guards.add(self)
+            try:
+                return func(self)
+            finally:
+                guards.remove(self)
+
+    return inner
 
 
-class LutrisThread(threading.Thread):
-    """Run the game in a separate thread."""
+#
+# This setup uses SIGCHLD as a trigger to check on the runner process
+# in order to detect the monitoredcommand's complete exit early instead
+# of on the next polling interval. Because processes can be created
+# and exited very rapidly, it includes a 16 millisecond debounce.
+#
+_commands = weakref.WeakSet()
+_timeout_set = False
+
+
+def _trigger_early_poll():
+    global _timeout_set
+    try:
+        # prevent changes to size during iteration
+        for command in set(_commands):
+            command.watch_children()
+    except Exception:
+        logger.exception("Signal handler exception")
+    finally:
+        _timeout_set = False
+    return False
+
+
+def _sigchld_handler(signum, frame):
+    global _timeout_set
+    try:
+        os.wait3(os.WNOHANG)
+    except ChildProcessError:  # already handled by someone else
+        return
+    if _commands and not _timeout_set:
+        GLib.timeout_add(16, _trigger_early_poll)
+        _timeout_set = True
+
+
+signal.signal(signal.SIGCHLD, _sigchld_handler)
+
+
+class MonitoredCommand:
+    """Run the game."""
+
     debug_output = True
 
-    def __init__(self, command, runner=None, env=None, rootpid=None, term=None,
-                 watch=True, cwd=None, include_processes=None, exclude_processes=None, log_buffer=None):
-        """Thread init"""
-        threading.Thread.__init__(self)
+    def __init__(
+            self,
+            command,
+            runner=None,
+            env=None,
+            term=None,
+            watch=True,
+            cwd=None,
+            include_processes=None,
+            exclude_processes=None,
+            log_buffer=None,
+    ):
         self.ready_state = True
         if env is None:
             self.env = {}
@@ -59,66 +107,40 @@ class LutrisThread(threading.Thread):
         self.stop_func = lambda: True
         self.game_process = None
         self.return_code = None
-        self.rootpid = rootpid or os.getpid()
-        self.terminal = term
+        self.terminal = system.find_executable(term)
         self.watch = watch
         self.is_running = True
-        self.stdout = ''
-        self.attached_threads = []
-        self.cycles_without_children = 0
-        self.startup_time = time.time()
-        self.monitoring_started = False
+        self.stdout = ""
         self.daemon = True
         self.error = None
-        if include_processes is None:
-            include_processes = []
-        elif isinstance(include_processes, str):
-            include_processes = shlex.split(include_processes)
-        if exclude_processes is None:
-            exclude_processes = []
-        elif isinstance(exclude_processes, str):
-            exclude_processes = shlex.split(exclude_processes)
-        # process names from /proc only contain 15 characters
-        self.include_processes = [x[0:15] for x in include_processes]
-        self.exclude_processes = [x[0:15] for x in EXCLUDED_PROCESSES + exclude_processes]
         self.log_buffer = log_buffer
         self.stdout_monitor = None
-
-        # Keep a copy of the monitored processes to allow comparisons
-        self.monitored_processes = defaultdict(list)
+        self.watch_children_running = False
 
         # Keep a copy of previously running processes
-        self.old_pids = system.get_all_pids()
-
-        self.cwd = self.set_cwd(cwd)
-        self.env_string = ''
-        for key, value in self.env.items():
-            self.env_string += '%s="%s" ' % (key, value)
-
-        self.command_string = ' '.join(
-            ['"%s"' % token for token in self.command]
+        self.cwd = self.get_cwd(cwd)
+        self.process_monitor = ProcessMonitor(
+            include_processes,
+            exclude_processes,
+            "run_in_term.sh" if self.terminal else None
         )
 
-    def set_cwd(self, cwd):
+    def get_cwd(self, cwd):
+        """Return the current working dir of the game"""
         if not cwd:
-            cwd = self.runner.working_dir if self.runner else '/tmp'
+            cwd = self.runner.working_dir if self.runner else "/tmp"
         return os.path.expanduser(cwd)
-
-    def attach_thread(self, thread):
-        """Attach child process that need to be killed on game exit."""
-        self.attached_threads.append(thread)
 
     def apply_environment(self):
         """Applies the environment variables to the system's environment."""
         # Store provided environment variables so they can be used by future
         # processes.
         for key, value in self.env.items():
-            logger.debug('Storing environment variable %s to %s', key, value)
             self.original_env[key] = os.environ.get(key)
-            os.environ[key] = value
+            os.environ[key] = str(value)
 
         # Reset library paths if they were not provided
-        if not any([key in self.env for key in ('LD_LIBRARY_PATH', 'LD_PRELOAD')]):
+        if not any([key in self.env for key in ("LD_LIBRARY_PATH", "LD_PRELOAD")]):
             system.reset_library_preloads()
 
         # Copy the resulting environment to what will be passed to the process
@@ -126,18 +148,15 @@ class LutrisThread(threading.Thread):
         env.update(self.env)
         return env
 
-    def run(self):
+    def start(self):
         """Run the thread."""
-        logger.debug("Command env: %s", self.env_string)
-        logger.debug("Running command: %s", self.command_string)
-        result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
-        if result == -1:
-            logger.warning("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
+        logger.debug("Running command: %s", " ".join(self.command))
+        for key, value in self.env.items():
+            logger.debug("ENV: %s=\"%s\"", key, value)
 
-        if self.terminal and system.find_executable(self.terminal):
+        if self.terminal:
             self.game_process = self.run_in_terminal()
         else:
-            self.terminal = False
             env = self.apply_environment()
             self.game_process = self.execute_process(self.command, env)
 
@@ -145,11 +164,14 @@ class LutrisThread(threading.Thread):
             logger.warning("No game process available")
             return
 
+        _commands.add(self)
         if self.watch:
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
-            self.stdout_monitor = GLib.io_add_watch(self.game_process.stdout,
-                                                    GLib.IO_IN | GLib.IO_HUP,
-                                                    self.on_stdout_output)
+            self.stdout_monitor = GLib.io_add_watch(
+                self.game_process.stdout,
+                GLib.IO_IN | GLib.IO_HUP,
+                self.on_stdout_output,
+            )
 
     def on_stdout_output(self, fd, condition):
         if condition == GLib.IO_HUP:
@@ -158,11 +180,11 @@ class LutrisThread(threading.Thread):
         if not self.is_running:
             return False
         try:
-            line = fd.readline().decode('utf-8', errors='ignore')
+            line = fd.readline().decode("utf-8", errors="ignore")
         except ValueError:
             # fd might be closed
             line = None
-        if line:
+        if line and "winemenubuilder.exe" not in line:
             self.stdout += line
             if self.log_buffer:
                 self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
@@ -180,19 +202,23 @@ class LutrisThread(threading.Thread):
         It's also the only reliable way to keep the term open when the
         game is quit.
         """
-        file_path = os.path.join(settings.CACHE_DIR, 'run_in_term.sh')
-        with open(file_path, 'w') as f:
-            f.write(dedent(
-                """\
-                #!/bin/sh
+        script_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
+        exported_environment = "\n".join(
+            'export %s="%s" ' % (key, value)
+            for key, value in self.env.items()
+        )
+        command = " ".join(['"%s"' % token for token in self.command])
+        with open(script_path, "w") as script_file:
+            script_file.write(dedent(
+                """#!/bin/sh
                 cd "%s"
-                %s %s
+                %s
+                %s
                 exec sh # Keep term open
-                """ % (self.cwd, self.env_string, self.command_string)
+                """ % (self.cwd, exported_environment, command)
             ))
-            os.chmod(file_path, 0o744)
-
-        return self.execute_process([self.terminal, '-e', file_path])
+            os.chmod(script_path, 0o744)
+        return self.execute_process([self.terminal, "-e", script_path])
 
     def execute_process(self, command, env=None):
         try:
@@ -204,36 +230,17 @@ class LutrisThread(threading.Thread):
             else:
                 pipe = None
 
-            return subprocess.Popen(command, bufsize=1,
-                                    stdout=pipe, stderr=subprocess.STDOUT,
-                                    cwd=self.cwd, env=env)
+            return subprocess.Popen(
+                command,
+                bufsize=1,
+                stdout=pipe,
+                stderr=subprocess.STDOUT,
+                cwd=self.cwd,
+                env=env,
+            )
         except OSError as ex:
-            logger.exception("Failed to execute %s: %s", ' '.join(command), ex)
+            logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
-
-    def iter_children(self, process, topdown=True, first=True):
-        if self.runner and self.runner.name.startswith('wine') and first:
-            if 'WINE' in self.env:
-                # Track the correct version of wine for winetricks
-                wine_version = self.env['WINE']
-            else:
-                wine_version = None
-            pids = self.runner.get_pids(wine_version)
-            for pid in pids:
-                wineprocess = Process(pid)
-                if wineprocess.name not in self.runner.core_processes:
-                    process.children.append(wineprocess)
-        for child in process.children:
-            if topdown:
-                yield child
-            subs = self.iter_children(child, topdown=topdown, first=False)
-            for sub in subs:
-                yield sub
-            if not topdown:
-                yield child
-
-    def set_stop_command(self, func):
-        self.stop_func = func
 
     def restore_environment(self):
         logger.debug("Restoring environment")
@@ -247,19 +254,20 @@ class LutrisThread(threading.Thread):
                 os.environ[key] = self.original_env[key]
         self.original_env = {}
 
-    def stop(self, killall=False):
+    def stop(self):
         """Stops the current game process and cleans up the thread"""
+        try:
+            _commands.remove(self)
+        except KeyError:  # may have never been added.
+            pass
+
         # Remove logger early to avoid issues with zombie processes
         # (unconfirmed)
         if self.stdout_monitor:
             logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
 
-        for thread in self.attached_threads:
-            logger.debug("Stopping thread %s", thread)
-            thread.stop()
-
-        if hasattr(self, 'stop_func'):
+        if hasattr(self, "stop_func"):
             resume_stop = self.stop_func()
             if not resume_stop:
                 return False
@@ -268,55 +276,21 @@ class LutrisThread(threading.Thread):
         self.is_running = False
         self.ready_state = False
 
-        if killall:
-            self.killall()
         return True
 
-    def killall(self):
-        """Kill every remaining child process"""
-        logger.debug("Killing all remaining processes")
-        killed_processes = []
-        for process in self.iter_children(Process(self.rootpid),
-                                          topdown=False):
-            killed_processes.append(str(process))
-            process.kill()
-        if killed_processes:
-            logger.debug("Killed processes: %s", ', '.join(killed_processes))
+    def get_root_process(self):
+        """Return root process, including Wine processes as children"""
+        process = Process(os.getpid())
+        if self.runner and self.runner.name.startswith("wine"):
+            # Track the correct version of wine for winetricks
+            wine_version = self.env.get("WINE") or None
+            for pid in self.runner.get_pids(wine_version):
+                wineprocess = Process(pid)
+                if wineprocess.name not in self.runner.core_processes:
+                    process.children.append(wineprocess)
+        return process
 
-    def get_processes(self):
-        process = Process(self.rootpid)
-        num_children = 0
-        num_watched_children = 0
-        passed_terminal_procs = False
-        processes = defaultdict(list)
-        for child in self.iter_children(process):
-            if child.state == 'Z':
-                os.wait3(os.WNOHANG)
-                continue
-
-            # Exclude terminal processes
-            if self.terminal:
-                if child.name == "run_in_term.sh":
-                    passed_terminal_procs = True
-                if not passed_terminal_procs:
-                    continue
-
-            num_children += 1
-            if child.pid in self.old_pids:
-                processes['external'].append(str(child))
-                continue
-
-            if child.name and child.name in self.exclude_processes and child.name not in self.include_processes:
-                processes['excluded'].append(str(child))
-                continue
-            num_watched_children += 1
-            processes['monitored'].append(str(child))
-        for child in self.monitored_processes['monitored']:
-            if child not in processes['monitored']:
-                num_children += 1
-                num_watched_children += 1
-        return processes, num_children, num_watched_children
-
+    @_reentrancy_guard
     def watch_children(self):
         """Poke at the running process(es).
 
@@ -324,46 +298,17 @@ class LutrisThread(threading.Thread):
             bool: True to keep monitoring, False to stop (Used by GLib.timeout_add)
         """
         if not self.game_process:
-            logger.error('No game process available')
+            logger.error("No game process available")
             return False
         if not self.is_running:
-            logger.error('Game is not running')
+            logger.error("Game is not running")
             return False
-
         if not self.ready_state:
             # Don't monitor processes until the thread is in a ready state
-            self.cycles_without_children = 0
+            self.process_monitor.cycles_without_children = 0
             return True
 
-        processes, num_children, num_watched_children = self.get_processes()
-        if num_watched_children > 0 and not self.monitoring_started:
-            logger.debug("Start process monitoring")
-            self.monitoring_started = True
-
-        for key in processes:
-            if processes[key] != self.monitored_processes[key]:
-                self.monitored_processes[key] = processes[key]
-                logger.debug("Processes %s: %s", key, ', '.join(processes[key]) or 'none')
-
-        if self.runner and hasattr(self.runner, 'watch_game_process'):
-            if not self.runner.watch_game_process():
-                self.is_running = False
-                return False
-
-        if num_watched_children == 0:
-            time_since_start = time.time() - self.startup_time
-            if self.monitoring_started or time_since_start > WARMUP_TIME:
-                self.cycles_without_children += 1
-                cycles_left = MAX_CYCLES_WITHOUT_CHILDREN - self.cycles_without_children
-                if cycles_left:
-                    if cycles_left < 4:
-                        logger.debug("Thread aborting in %d cycle", cycles_left)
-                else:
-                    logger.warning("Thread aborting now")
-        else:
-            self.cycles_without_children = 0
-
-        if self.cycles_without_children >= MAX_CYCLES_WITHOUT_CHILDREN:
+        if not self.process_monitor.get_process_status(self.get_root_process()):
             self.is_running = False
 
             resume_stop = self.stop()
@@ -371,23 +316,21 @@ class LutrisThread(threading.Thread):
                 logger.info("Full shutdown prevented")
                 return False
 
-            if num_children == 0:
-                logger.debug("No children left in thread")
+            if not self.process_monitor.children:
                 self.game_process.communicate()
             else:
-                logger.debug('%d processes are still active', num_children)
+                logger.debug("%d processes are still active", len(self.process_monitor.children))
             self.return_code = self.game_process.returncode
             return False
 
         return True
+
 
 def exec_in_thread(command):
     """Execute arbitrary command in a Lutris thread
 
     Used by the --exec command line flag.
     """
-    arguments = shlex.split(command)
-    env = runtime.get_env()
-    thread = LutrisThread(arguments, env=env)
-    thread.start()
-    return thread
+    command = MonitoredCommand(shlex.split(command), env=runtime.get_env())
+    command.start()
+    return command

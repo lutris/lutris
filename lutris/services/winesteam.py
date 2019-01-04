@@ -1,7 +1,12 @@
-from lutris.services.steam import sync_with_lutris as _sync_with_lutris
+from lutris.services.steam import SteamSyncer
 
-NAME = 'Steam for Windows'
+NAME = "Steam for Windows"
+ICON = "winesteam"
+ONLINE = False
 
 
-def sync_with_lutris():
-    _sync_with_lutris(platform='windows')
+class WineSteamSyncer(SteamSyncer):
+    platform = "windows"
+
+
+SYNCER = WineSteamSyncer
