@@ -41,8 +41,7 @@ def mark_as_uninstalled(game_info):
         if key not in game_info:
             raise ValueError("Missing %s field in %s" % (key, game_info))
     logger.info("Setting %s as uninstalled", game_info["name"])
-    game_id = pga.add_or_update(id=game_info["id"], runner="", installed=0)
-    return game_id
+    return pga.add_or_update(id=game_info["id"], runner="", installed=0)
 
 
 def sync_appmanifest_state(appmanifest_path, update=None):
@@ -52,25 +51,23 @@ def sync_appmanifest_state(appmanifest_path, update=None):
         appmanifest_path (str): Path to the Steam AppManifest file
         update (dict, optional): Existing lutris game to update
     """
-
     proton_ids = ["858280", "930400", "961940", "228980"]
     try:
         appmanifest = AppManifest(appmanifest_path)
     except Exception:
-        logger.error("Unable to parse file %s", appmanifest_path)
+        logger.exception("Unable to parse file %s", appmanifest_path)
         return
     if appmanifest.is_installed():
         if appmanifest.steamid in proton_ids or re.match(r"^Proton \d*", appmanifest.name):
             return
-        if update:
-            game_info = update
-        else:
-            game_info = {"name": appmanifest.name, "slug": appmanifest.slug}
-        runner_name = appmanifest.get_runner_name()
-        mark_as_installed(appmanifest.steamid, runner_name, game_info)
+        mark_as_installed(
+            appmanifest.steamid,
+            appmanifest.get_runner_name(),
+            update or {"name": appmanifest.name, "slug": appmanifest.slug}
+        )
 
 
-def sync_with_lutris(games, platform="linux"):
+def sync_with_lutris(_games, platform="linux"):
     logger.debug("Syncing Steam for %s games to Lutris", platform.capitalize())
     steamapps_paths = get_steamapps_paths()
     steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not="")

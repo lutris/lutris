@@ -111,13 +111,16 @@ class ServiceSyncBox(Gtk.Box):
             else "user-available-symbolic"
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
-    def on_sync_button_clicked(self, _button, sync_method):
+    def on_sync_button_clicked(self, _button, sync_with_lutris_method):
         """Called when the sync button is clicked.
 
         Launches the import of selected games
         """
-        games = self.get_imported_games()
-        AsyncCall(sync_method, self.on_service_synced, games)
+        AsyncCall(
+            sync_with_lutris_method,
+            self.on_service_synced,
+            self.get_imported_games()
+        )
 
     def on_service_synced(self, caller, data):
         """Called when games are imported"""
@@ -126,10 +129,11 @@ class ServiceSyncBox(Gtk.Box):
         #     # The sync dialog may have closed
         #     parent = Gio.Application.get_default().props.active_window
         logger.info("Games imported to library")
+        logger.info(caller)
+        logger.info(data)
 
-    def on_switch_changed(self, switch, data):
-        state = switch.get_active()
-        write_setting("sync_at_startup", state, self.identifier)
+    def on_switch_changed(self, switch, _data):
+        write_setting("sync_at_startup", switch.get_active(), self.identifier)
 
     def get_treeview(self, model):
         treeview = Gtk.TreeView(model=model)
@@ -243,15 +247,9 @@ class ServiceSyncBox(Gtk.Box):
         self.store_filter.refilter()
 
     def get_imported_games(self):
-        games = []
-        for game in self.store:
-            if game[self.COL_SELECTED]:
-                games.append({
-                    'appid': game[self.COL_APPID],
-                    'name': game[self.COL_NAME],
-                    'details': game[self.COL_DETAILS],
-                })
-        return games
+        """Return a list of ServiceGames reflecting the selection in the UI"""
+        selected_ids = [game[self.COL_APPID] for game in self.store if game[self.COL_SELECTED]]
+        return [game for game in self.games if game.appid in selected_ids]
 
 
 class SyncServiceWindow(Gtk.ApplicationWindow):

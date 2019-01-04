@@ -128,6 +128,7 @@ class Label(Gtk.Label):
         self.set_alignment(1, 0.5)
         self.set_justify(Gtk.Justification.RIGHT)
 
+
 class VBox(Gtk.Box):
     def __init__(self, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)

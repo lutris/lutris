@@ -233,6 +233,7 @@ def get_service_game(game):
         details=json.dumps(game)
     )
 
+
 def sync_with_lutris(games):
     """Import GOG games to the Lutris library"""
     gog_ids = [game["appid"] for game in games]
