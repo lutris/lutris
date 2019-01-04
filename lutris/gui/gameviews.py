@@ -48,8 +48,9 @@ sortings = {
     "year": COL_YEAR,
     "runner": COL_RUNNER_HUMAN_NAME,
     "platform": COL_PLATFORM,
-    "lastplayed": COL_LASTPLAYED,
-    "installed_at": COL_INSTALLED_AT,
+    "lastplayed": COL_LASTPLAYED_TEXT,
+    "installed_at": COL_INSTALLED_AT_TEXT,
+    "playtime": COL_PLAYTIME_TEXT
 }
 
 
@@ -408,9 +409,9 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, "Year", COL_YEAR, 60)
         self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
         self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
-        self.set_column(default_text_cell, "Last played", COL_LASTPLAYED_TEXT, 120)
+        self.set_column(default_text_cell, "Last Played", COL_LASTPLAYED_TEXT, 120)
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_column(default_text_cell, "Installed at", COL_INSTALLED_AT_TEXT, 120)
+        self.set_column(default_text_cell, "Installed At", COL_INSTALLED_AT_TEXT, 120)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
         self.set_column(default_text_cell, "Play Time", COL_PLAYTIME_TEXT, 100)
 
