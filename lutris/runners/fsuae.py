@@ -62,14 +62,6 @@ class fsuae(Runner):
             "help": "Specify the Amiga model you want to emulate.",
         },
         {
-            "option": "fmemory",
-            "label": "Fast Memory",
-            "type": "choice",
-            "choices": memory_choices,
-            "default": "0",
-            "help": "Specify how much Fast Memory the Amiga model should have.",
-        },
-        {
             "option": "kickstart_file",
             "label": "Kickstart ROMs location",
             "type": "file",
@@ -111,14 +103,6 @@ class fsuae(Runner):
             for index, machine in enumerate(self.model_choices):
                 if machine[1] == model:
                     return self.platforms[index]
-        return ""
-
-    def get_memory(self):
-        fmemory = self.runner_config.get("fmemory")
-        if fmemory:
-            for index, fmemory1 in enumerate(self.memory_choices):
-                if fmemory1[1] == fmemory:
-                    return self.mem0ry[index]
         return ""
 
     def insert_floppies(self):
