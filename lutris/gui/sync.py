@@ -39,7 +39,7 @@ class ServiceSyncBox(Gtk.Box):
         title_box.pack_start(label, True, True, 0)
 
         self.connect_button = Gtk.Button()
-        self.connect_button.connect("clicked", self.on_connect_clicked, self.service)
+        self.connect_button.connect("clicked", self.on_connect_clicked)
         if service.ONLINE:
             self._connect_button_toggle()
             title_box.add(self.connect_button)
@@ -49,9 +49,24 @@ class ServiceSyncBox(Gtk.Box):
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
 
-        spinner = Gtk.Spinner()
-        spinner.start()
-        center_alignment.add(spinner)
+        if service.ONLINE:
+            gog_logo = self.get_icon(size=(64, 64))
+
+            gog_label = Gtk.Label("Connect to GOG to automatically \ndownload games during installations")
+            gog_label.set_justify(Gtk.Justification.CENTER)
+
+            gog_button = Gtk.Button("Connect your account")
+            gog_button.connect("clicked", self.on_connect_clicked)
+
+            gog_box = Gtk.VBox()
+            gog_box.add(gog_logo)
+            gog_box.add(gog_label)
+            gog_box.add(gog_button)
+            center_alignment.add(gog_box)
+        else:
+            spinner = Gtk.Spinner()
+            spinner.start()
+            center_alignment.add(spinner)
         self.content_widget = center_alignment
         self.pack_start(center_alignment, True, True, 0)
 
@@ -80,16 +95,18 @@ class ServiceSyncBox(Gtk.Box):
             self.sync_switch.set_sensitive(False)
             self.sync_button.set_sensitive(False)
 
-    def get_icon(self):
+    def get_icon(self, size=None):
         """Return the icon for the service (used in tabs)"""
-        icon = get_icon(self.icon_name, size=(24, 24))
+        if not size:
+            size = (24, 24)
+        icon = get_icon(self.icon_name, size=size)
         if icon:
             return icon
         return Gtk.Label(self.name)
 
-    def on_connect_clicked(self, button, service):
-        if service.is_connected():
-            service.disconnect()
+    def on_connect_clicked(self, _button):
+        if self.service.is_connected():
+            self.service.disconnect()
             self._connect_button_toggle()
 
             self.sync_switch.set_sensitive(False)
@@ -99,11 +116,12 @@ class ServiceSyncBox(Gtk.Box):
             if self.sync_switch and self.sync_switch.get_active():
                 self.sync_switch.set_state(False)
         else:
-            service.connect()
+            self.service.connect()
             self._connect_button_toggle()
             self.sync_switch.set_sensitive(True)
             self.sync_button.set_sensitive(True)
             self.load_games()
+        return False
 
     def _connect_button_toggle(self):
         icon_name = "user-offline-symbolic" \
