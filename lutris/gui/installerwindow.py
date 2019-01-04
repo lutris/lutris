@@ -153,6 +153,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button.hide()
         self.source_button.hide()
         self.eject_button.hide()
+        self.continue_button.hide()
 
         self.choose_installer()
 
