@@ -70,6 +70,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_button = GtkTemplate.Child()
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
+    add_popover = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -532,6 +533,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def open_sync_dialog(self):
         """Opens the service sync dialog"""
+        self.add_popover.hide()
         SyncServiceWindow(application=self.application)
 
     def update_existing_games(self, added, updated, first_run=False):
@@ -806,6 +808,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
+        self.add_popover.hide()
         init_dxvk_versions()
         dialog = AddGameDialog(
             self,

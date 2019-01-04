@@ -126,9 +126,11 @@ class ServiceSyncBox(Gtk.Box):
         return False
 
     def _connect_button_toggle(self):
+        is_connected = self.service.is_connected()
         icon_name = "user-offline-symbolic" \
-            if self.service.is_connected() \
+            if is_connected \
             else "user-available-symbolic"
+        self.connect_button.set_tooltip_text('Disconnect' if is_connected else 'Connect')
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
     def on_sync_button_clicked(self, _button, sync_with_lutris_method):
@@ -291,6 +293,7 @@ class SyncServiceWindow(Gtk.ApplicationWindow):
     def __init__(self, application):
         super().__init__(title="Import games", application=application)
         self.application = application
+        self.set_show_menubar(False)
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.set_border_width(10)
