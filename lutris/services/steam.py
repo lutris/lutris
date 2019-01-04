@@ -49,12 +49,6 @@ class SteamGame(ServiceGame):
             return False
         return True
 
-    def get_pga_game(self, lutris_games):
-        """Return a PGA game if one is found"""
-        for pga_game in lutris_games:
-            if str(pga_game["steamid"]) == self.appid and not pga_game["installed"]:
-                return pga_game
-
     def install(self, updated_info=None):
         """Add an installed game to the library
 
@@ -87,45 +81,76 @@ class SteamGame(ServiceGame):
         game_config.save()
 
 
-def load_games(platform="linux"):
-    """Return importable Steam games"""
-    games = []
-    steamapps_paths = get_steamapps_paths()
-    for steamapps_path in steamapps_paths[platform]:
-        for appmanifest_file in get_appmanifests(steamapps_path):
-            app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
-            if SteamGame.is_importable(app_manifest):
-                games.append(SteamGame.new_from_steam_game(app_manifest))
-    return games
+class SteamSyncer:
+    platform = "linux"
+
+    def __init__(self):
+        self._lutris_games = None
+        self._lutris_steamids = None
+
+    @property
+    def runner(self):
+        return "steam" if self.platform == "linux" else "winesteam"
+
+    @property
+    def lutris_games(self):
+        if not self._lutris_games:
+            self._lutris_games = pga.get_games_where(steamid__isnull=False, steamid__not="")
+        return self._lutris_games
+
+    @property
+    def lutris_steamids(self):
+        if not self._lutris_steamids:
+            self._lutris_steamids = {str(game["steamid"]) for game in self.lutris_games}
+        return self._lutris_steamids
+
+    def load(self):
+        """Return importable Steam games"""
+        games = []
+        steamapps_paths = get_steamapps_paths()
+        for steamapps_path in steamapps_paths[self.platform]:
+            for appmanifest_file in get_appmanifests(steamapps_path):
+                app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
+                if SteamGame.is_importable(app_manifest):
+                    games.append(SteamGame.new_from_steam_game(app_manifest))
+        return games
+
+    def get_pga_game(self, game):
+        """Return a PGA game if one is found"""
+        for pga_game in self.lutris_games:
+            if str(pga_game["steamid"]) == game.appid and not pga_game["installed"]:
+                return pga_game
+
+    def sync(self, games, full=False):
+        """Syncs Steam games to Lutris"""
+        available_ids = set()  # Set of Steam appids seen while browsing AppManifests
+        added_games = []
+        for game in games:
+            steamid = game.appid
+            available_ids.add(steamid)
+            if steamid not in self.lutris_steamids:
+                added_games.append(game.install())
+            else:
+                pga_game = self.get_pga_game(game)
+                if pga_game:
+                    added_games.append(game.install(pga_game))
+
+        if not full:
+            return added_games
+
+        removed_games = []
+        unavailable_ids = self.lutris_steamids.difference(available_ids)
+        for steamid in unavailable_ids:
+            for pga_game in self.lutris_games:
+                if (
+                        str(pga_game["steamid"]) == steamid
+                        and pga_game["installed"]
+                        and pga_game["runner"] == self.runner
+                ):
+                    game = SteamGame.new_from_lutris_id(pga_game["id"])
+                    game.uninstall()
+                    removed_games.append(pga_game["id"])
+        return (added_games, removed_games)
 
 
-def sync_with_lutris(games, platform="linux"):
-    logger.debug("Syncing %d Steam for %s games to Lutris", len(games), platform.capitalize())
-    steam_games_in_lutris = pga.get_games_where(steamid__isnull=False, steamid__not="")
-    steamids_in_lutris = {str(game["steamid"]) for game in steam_games_in_lutris}
-    available_ids = set()  # Set of Steam appids seen while browsing AppManifests
-    added_games = []
-    removed_games = []
-    for game in games:
-        steamid = game.appid
-        available_ids.add(steamid)
-        if steamid not in steamids_in_lutris:
-            added_games.append(game.install())
-        else:
-            pga_game = game.get_pga_game(steam_games_in_lutris)
-            if pga_game:
-                added_games.append(game.install(pga_game))
-
-    unavailable_ids = steamids_in_lutris.difference(available_ids)
-    for steamid in unavailable_ids:
-        for pga_game in steam_games_in_lutris:
-            runner = "steam" if platform == "linux" else "winesteam"
-            if (
-                    str(pga_game["steamid"]) == steamid
-                    and pga_game["installed"]
-                    and pga_game["runner"] == runner
-            ):
-                game = SteamGame.new_from_lutris_id(pga_game["id"])
-                game.uninstall()
-                removed_games.append(pga_game["id"])
-    return (added_games, removed_games)
+SYNCER = SteamSyncer

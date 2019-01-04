@@ -19,37 +19,23 @@ ICON = "linux"
 ONLINE = False
 
 
+def get_appid(app):
+    """Get the appid for the game"""
+    try:
+        return os.path.splitext(app.get_id())[0]
+    except UnicodeDecodeError:
+        logger.exception(
+            "Failed to read ID for app %s (non UTF-8 encoding). Reverting to executable name.",
+            app,
+        )
+        return app.get_executable()
+
+
 class XDGGame(ServiceGame):
     """XDG game (Linux game with a desktop launcher)"""
     store = "xdg"
     runner = "linux"
     installer_slug = "desktopapp"
-
-    ignored_games = (
-        "lutris",
-        "mame",
-        "dosbox",
-        "playonlinux",
-        "org.gnome.Games",
-        "com.github.tkashkin.gamehub",
-        "retroarch",
-        "steam",
-        "steam-runtime",
-        "steam-valve",
-        "steam-native",
-        "PlayOnLinux",
-        "fs-uae-arcade",
-        "PCSX2",
-        "ppsspp",
-        "qchdman",
-        "qmc2-sdlmame",
-        "qmc2-arcade",
-        "sc-controller",
-        "epsxe",
-        "lsi-settings",
-    )
-    ignored_executables = ("lutris", "steam")
-    ignored_categories = ("Emulator", "Development", "Utility")
 
     @classmethod
     def new_from_xdg_app(cls, xdg_app):
@@ -57,7 +43,7 @@ class XDGGame(ServiceGame):
         service_game = cls()
         service_game.name = xdg_app.get_display_name()
         service_game.icon = xdg_app.get_icon().to_string()
-        service_game.appid = cls.get_appid(xdg_app)
+        service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
         service_game.runner = "linux"
         exe, args = cls.get_command_args(xdg_app)
@@ -90,26 +76,58 @@ class XDGGame(ServiceGame):
         return exe, subprocess.list2cmdline(args)
 
     @staticmethod
-    def get_appid(app):
-        """Get the appid for the game"""
-        try:
-            return os.path.splitext(app.get_id())[0]
-        except UnicodeDecodeError:
-            logger.exception(
-                "Failed to read ID for app %s (non UTF-8 encoding). Reverting to executable name.",
-                app,
-            )
-            return app.get_executable()
+    def get_slug(xdg_app):
+        """Get the slug from the game name"""
+        return slugify(xdg_app.get_display_name()) or slugify(get_appid(xdg_app))
+
+
+class XDGSyncer:
+    """Sync games available in a XDG compliant menu to Lutris"""
+    ignored_games = (
+        "lutris",
+        "mame",
+        "dosbox",
+        "playonlinux",
+        "org.gnome.Games",
+        "com.github.tkashkin.gamehub",
+        "retroarch",
+        "steam",
+        "steam-runtime",
+        "steam-valve",
+        "steam-native",
+        "PlayOnLinux",
+        "fs-uae-arcade",
+        "PCSX2",
+        "ppsspp",
+        "qchdman",
+        "qmc2-sdlmame",
+        "qmc2-arcade",
+        "sc-controller",
+        "epsxe",
+        "lsi-settings",
+    )
+    ignored_executables = ("lutris", "steam")
+    ignored_categories = ("Emulator", "Development", "Utility")
 
     @classmethod
-    def get_slug(cls, xdg_app):
-        """Get the slug from the game name"""
-        return slugify(xdg_app.get_display_name()) or slugify(cls.get_appid(xdg_app))
+    def iter_xdg_games(cls):
+        """Iterates through XDG games only"""
+        for app in Gio.AppInfo.get_all():
+            if cls.is_importable(app):
+                yield app
+
+    @classmethod
+    def iter_lutris_games(cls):
+        """Iterates through Lutris games imported from XDG"""
+        for game in pga.get_games_where(runner=XDGGame.runner,
+                                        installer_slug=XDGGame.installer_slug,
+                                        installed=1):
+            yield game
 
     @classmethod
     def is_importable(cls, app):
         """Returns whether a XDG game is importable to Lutris"""
-        appid = cls.get_appid(app)
+        appid = get_appid(app)
         executable = app.get_executable() or ''
         if any([
                 app.get_nodisplay() or app.get_is_hidden(),  # App is hidden
@@ -136,50 +154,42 @@ class XDGGame(ServiceGame):
         return True
 
     @classmethod
-    def iter_xdg_games(cls):
-        """Iterates through XDG games only"""
-        for app in Gio.AppInfo.get_all():
-            if cls.is_importable(app):
-                yield app
+    def load(cls):
+        """Return the list of games stored in the XDG menu."""
+        return [
+            XDGGame.new_from_xdg_app(app)
+            for app in cls.iter_xdg_games()
+        ]
 
     @classmethod
-    def iter_lutris_games(cls):
-        """Iterates through Lutris games imported from XDG"""
-        for game in pga.get_games_where(runner=cls.runner,
-                                        installer_slug=cls.installer_slug,
-                                        installed=1):
-            yield game
+    def sync(cls, games, full=False):
+        """Sync the given games to the lutris library
+
+        Params:
+            games (list): List of ServiceGames to sync
+
+        Return:
+            tuple: 2-tuple of added and removed game ID lists
+        """
+        installed_games = {game["slug"]: game for game in cls.iter_lutris_games()}
+        available_games = set()
+        added_games = []
+        removed_games = []
+        for xdg_game in games:
+            available_games.add(xdg_game.slug)
+            if xdg_game.slug not in installed_games.keys():
+                game_id = xdg_game.install()
+                added_games.append(game_id)
+
+        if not full:
+            return added_games
+
+        for slug in set(installed_games.keys()).difference(available_games):
+            game_id = installed_games[slug]["id"]
+            removed_games.append(game_id)
+            service_game = XDGGame.new_from_lutris_id(game_id)
+            service_game.uninstall()
+        return added_games, removed_games
 
 
-def sync_with_lutris(games):
-    """Sync the given games to the lutris library
-
-    Params:
-        games (list): List of ServiceGames to sync
-
-    Return:
-        tuple: 2-tuple of added and removed game ID lists
-    """
-    installed_games = {game["slug"]: game for game in XDGGame.iter_lutris_games()}
-    available_games = set()
-    added_games = []
-    removed_games = []
-    for xdg_game in games:
-        available_games.add(xdg_game.slug)
-        if xdg_game.slug not in installed_games.keys():
-            game_id = xdg_game.install()
-            added_games.append(game_id)
-    for slug in set(installed_games.keys()).difference(available_games):
-        game_id = installed_games[slug]["id"]
-        removed_games.append(game_id)
-        service_game = XDGGame.new_from_lutris_id(game_id)
-        service_game.uninstall()
-    return added_games, removed_games
-
-
-def load_games():
-    """Return the list of games stored in the XDG menu."""
-    return [
-        XDGGame.new_from_xdg_app(app)
-        for app in XDGGame.iter_xdg_games()
-    ]
+SYNCER = XDGSyncer

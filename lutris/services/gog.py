@@ -238,25 +238,33 @@ def disconnect():
     GOG_SERVICE.disconnect()
 
 
-def load_games():
-    """Load the user game library from the GOG API"""
-    return [GOGGame.new_from_gog_game(game) for game in GOG_SERVICE.get_library()]
+class GOGSyncer:
+    """Sync GOG games to Lutris"""
+    @classmethod
+    def load(cls):
+        """Load the user game library from the GOG API"""
+        return [GOGGame.new_from_gog_game(game) for game in GOG_SERVICE.get_library()]
+
+    @classmethod
+    def sync(cls, games, full=False):
+        """Import GOG games to the Lutris library"""
+        gog_ids = [game.appid for game in games]
+        if not gog_ids:
+            return ([], [])
+        lutris_games = api.get_api_games(gog_ids, query_type="gogid")
+        added_games = []
+        for game in lutris_games:
+            game_data = {
+                "name": game["name"],
+                "slug": game["slug"],
+                "year": game["year"],
+                "updated": game["updated"],
+                "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
+            }
+            added_games.append(pga.add_or_update(**game_data))
+        if not full:
+            return added_games
+        return added_games, []
 
 
-def sync_with_lutris(games):
-    """Import GOG games to the Lutris library"""
-    gog_ids = [game.appid for game in games]
-    if not gog_ids:
-        return
-    lutris_games = api.get_api_games(gog_ids, query_type="gogid")
-    added_games = []
-    for game in lutris_games:
-        game_data = {
-            "name": game["name"],
-            "slug": game["slug"],
-            "year": game["year"],
-            "updated": game["updated"],
-            "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
-        }
-        added_games.append(pga.add_or_update(**game_data))
-    return (added_games, [])
+SYNCER = GOGSyncer

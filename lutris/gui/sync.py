@@ -57,28 +57,27 @@ class ServiceSyncBox(Gtk.Box):
         actions = Gtk.Box(spacing=6)
         self.pack_start(actions, False, False, 0)
 
-        if hasattr(service, "sync_with_lutris"):
-            self.sync_button = Gtk.Button("Import games")
+        self.sync_button = Gtk.Button("Import games")
+        self.sync_button.set_sensitive(False)
+        self.sync_button.set_tooltip_text("Sync now")
+        self.sync_button.connect(
+            "clicked", self.on_sync_button_clicked, service.SYNCER.sync
+        )
+        actions.pack_start(self.sync_button, False, False, 0)
+
+        self.sync_switch = Gtk.Switch()
+        self.sync_switch.props.valign = Gtk.Align.CENTER
+        self.sync_switch.connect("notify::active", self.on_switch_changed)
+
+        if read_setting("sync_at_startup", self.identifier) == "True":
+            self.sync_switch.set_state(True)
+        actions.pack_start(Gtk.Alignment(), True, True, 0)
+        actions.pack_start(self.sync_switch, False, False, 0)
+        actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
+
+        if service.ONLINE and not service.is_connected():
+            self.sync_switch.set_sensitive(False)
             self.sync_button.set_sensitive(False)
-            self.sync_button.set_tooltip_text("Sync now")
-            self.sync_button.connect(
-                "clicked", self.on_sync_button_clicked, service.sync_with_lutris
-            )
-            actions.pack_start(self.sync_button, False, False, 0)
-
-            self.sync_switch = Gtk.Switch()
-            self.sync_switch.props.valign = Gtk.Align.CENTER
-            self.sync_switch.connect("notify::active", self.on_switch_changed)
-
-            if read_setting("sync_at_startup", self.identifier) == "True":
-                self.sync_switch.set_state(True)
-            actions.pack_start(Gtk.Alignment(), True, True, 0)
-            actions.pack_start(self.sync_switch, False, False, 0)
-            actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
-
-            if service.ONLINE and not service.is_connected():
-                self.sync_switch.set_sensitive(False)
-                self.sync_button.set_sensitive(False)
 
     def get_icon(self):
         """Return the icon for the service (used in tabs)"""
@@ -116,8 +115,9 @@ class ServiceSyncBox(Gtk.Box):
 
         Launches the import of selected games
         """
+        syncer = self.service.SYNCER()
         AsyncCall(
-            sync_with_lutris_method,
+            syncer.sync,
             self.on_service_synced,
             self.get_imported_games()
         )
@@ -191,7 +191,7 @@ class ServiceSyncBox(Gtk.Box):
                     False,
                     game.appid,
                     game.name,
-                    get_pixbuf(game.icon, (32, 32)) if game.icon else None,
+                    get_pixbuf(game.icon, (32, 32)),
                     str(game.details),
                 ]
             )
@@ -223,7 +223,8 @@ class ServiceSyncBox(Gtk.Box):
         """Load the list of games in a treeview"""
         if self.service.ONLINE and not self.service.is_connected():
             return
-        self.games = self.service.load_games()
+        syncer = self.service.SYNCER()
+        self.games = syncer.load()
         self.store = self.get_store()
 
         self.current_filter = None
