@@ -1,3 +1,9 @@
+lutris (0.50-beta) cosmic; urgency=medium
+
+  * TODO
+
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 04 Jan 2019 09:08:25 -0800
+
 lutris (0.4.23) bionic; urgency=medium
 
   * Prevent monitor from quitting games that open a 2nd process
