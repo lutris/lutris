@@ -118,7 +118,7 @@ class SteamSyncer:
     def get_pga_game(self, game):
         """Return a PGA game if one is found"""
         for pga_game in self.lutris_games:
-            if str(pga_game["steamid"]) == game.appid and not pga_game["installed"]:
+            if str(pga_game["steamid"]) == game.appid and pga_game["runner"] == self.runner and not pga_game["installed"]:
                 return pga_game
 
     def sync(self, games, full=False):
