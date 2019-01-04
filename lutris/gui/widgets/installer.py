@@ -33,7 +33,7 @@ class InstallerScriptBox(Gtk.VBox):
         """Return a string representation of the API rating"""
         try:
             rating = int(self.script["rating"])
-        except ValueError:
+        except (ValueError, TypeError):
             return ""
         return "⭐" * rating
 
