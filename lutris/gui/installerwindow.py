@@ -438,9 +438,11 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.continue_button.grab_focus()
         self.continue_button.show()
 
+        self.on_input_menu_changed(combobox)
+
     def on_input_menu_changed(self, widget):
-        if widget.get_active_id():
-            self.continue_button.set_sensitive(True)
+        # Enable continue button if a non-empty choice is selected
+        self.continue_button.set_sensitive(bool(widget.get_active_id()))
 
     # ----------------
     # "Finalize" stage
