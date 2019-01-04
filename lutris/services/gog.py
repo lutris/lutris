@@ -240,11 +240,7 @@ def disconnect():
 
 def load_games():
     """Load the user game library from the GOG API"""
-    return [get_service_game(game) for game in GOG_SERVICE.get_library()]
-
-
-def get_service_game(game):
-    return GOGGame.new_from_gog_game(game)
+    return [GOGGame.new_from_gog_game(game) for game in GOG_SERVICE.get_library()]
 
 
 def sync_with_lutris(games):

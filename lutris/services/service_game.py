@@ -31,6 +31,7 @@ class ServiceGame:
     def install(self):
         """Add an installed game to the library"""
         self.game_id = pga.add_or_update(
+            id=self.game_id,
             name=self.name,
             runner=self.runner,
             slug=self.slug,
