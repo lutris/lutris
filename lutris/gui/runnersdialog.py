@@ -15,8 +15,10 @@ from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.widgets.utils import get_icon, ICON_SIZE, get_builder_from_file
 
 
-def simple_downloader(url, destination, callback, callback_args):
+def simple_downloader(url, destination, callback, callback_args=None):
     """Default downloader used for runners"""
+    if not callback_args:
+        callback_args = {}
     dialog = DownloadDialog(url, destination)
     dialog.run()
     return callback(**callback_args)
