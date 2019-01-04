@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
 from lutris.services import get_services
@@ -122,15 +122,22 @@ class ServiceSyncBox(Gtk.Box):
             self.get_imported_games()
         )
 
-    def on_service_synced(self, caller, data):
+    def get_main_window(self):
+        parent = self.get_toplevel()
+        if not isinstance(parent, Gtk.Window):
+            # The sync dialog may have closed
+            parent = Gio.Application.get_default().props.active_window
+        for window in parent.application.get_windows():
+            if "LutrisWindow" in window.__class__.__name__:
+                return window
+
+    def on_service_synced(self, games, _extra):
         """Called when games are imported"""
-        # parent = self.get_toplevel()
-        # if not isinstance(parent, Gtk.Window):
-        #     # The sync dialog may have closed
-        #     parent = Gio.Application.get_default().props.active_window
-        logger.info("Games imported to library")
-        logger.info(caller)
-        logger.info(data)
+        window = self.get_main_window()
+        if not window:
+            logger.warning("Unable to get main window")
+            return
+        window.update_games(games)
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)
@@ -254,8 +261,9 @@ class ServiceSyncBox(Gtk.Box):
 
 
 class SyncServiceWindow(Gtk.ApplicationWindow):
-    def __init__(self, application=None):
-        super().__init__(title="Import local games", application=application)
+    def __init__(self, application):
+        super().__init__(title="Import games", application=application)
+        self.application = application
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.set_border_width(10)

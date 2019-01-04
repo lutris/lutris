@@ -291,6 +291,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Returns which kind of view is currently presented (grid or list)"""
         return "grid" if isinstance(self.view, GameGridView) else "list"
 
+    def update_games(self, games):
+        """Update games from a list of game IDs"""
+        game_ids = [game["id"] for game in self.game_list]
+        for game_id in games:
+            if game_id not in game_ids:
+                self.add_game_to_view(game_id)
+            else:
+                self.view.set_installed(Game(game_id))
+
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
         def full_sync(syncer_cls):
@@ -303,12 +312,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             if errors:
                 logger.error("Sync failed: %s", errors)
             added_games, removed_games = response
-            game_ids = [game["id"] for game in self.game_list]
-            for game_id in added_games:
-                if game_id not in game_ids:
-                    self.add_game_to_view(game_id)
-                else:
-                    self.view.set_installed(Game(game_id))
+            self.update_games(added_games)
             for game_id in removed_games:
                 self.remove_game_from_view(game_id)
 
