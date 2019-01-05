@@ -205,6 +205,7 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
             )
             break
         time.sleep(0.1)
+    logger.debug("Done waiting.")
 
 
 def wineexec(

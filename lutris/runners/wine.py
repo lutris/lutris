@@ -126,6 +126,7 @@ class wine(Runner):
             ("wineexec", "Run EXE inside wine prefix", self.run_wineexec),
             ("winecfg", "Wine configuration", self.run_winecfg),
             ("wine-regedit", "Wine registry", self.run_regedit),
+            ("winekill", "Kill all wine processes", self.run_winekill),
             ("winetricks", "Winetricks", self.run_winetricks),
             ("joycpl", "Joystick Control Panel", self.run_joycpl),
         ]
@@ -623,6 +624,17 @@ class wine(Runner):
         self.prelaunch()
         joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
 
+    def run_winekill(self, *args):
+        """Runs wineserver -k."""
+        winekill(
+            self.prefix_path,
+            arch=self.wine_arch,
+            wine_path=self.get_executable(),
+            env=self.get_env(),
+            initial_pids=self.get_pids(),
+        )
+        return True
+
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
         prefix = self.prefix_path
@@ -833,14 +845,7 @@ class wine(Runner):
         return launch_info
 
     def stop(self):
-        """The kill command runs wineserver -k."""
-        winekill(
-            self.prefix_path,
-            arch=self.wine_arch,
-            wine_path=self.get_executable(),
-            env=self.get_env(),
-            initial_pids=self.get_pids(),
-        )
+        """Does nothing whatsoever."""
         return True
 
     @staticmethod

@@ -16,9 +16,12 @@ from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
-from lutris.command import MonitoredCommand, HEARTBEAT_DELAY
+from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+
+
+HEARTBEAT_DELAY = 2000
 
 
 def watch_lutris_errors(function):
