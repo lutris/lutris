@@ -17,6 +17,9 @@ class SteamGame(ServiceGame):
     """SericeGame for Steam games"""
     store = "steam"
     installer_slug = "steam"
+    excluded_appids = [
+        "228980",  # Steamworks Common Redistributables
+    ]
 
     @classmethod
     def new_from_steam_game(cls, appmanifest, game_id=None):
@@ -43,6 +46,8 @@ class SteamGame(ServiceGame):
     def is_importable(cls, appmanifest):
         """Return whether a Steam game should be imported"""
         if not appmanifest.is_installed():
+            return False
+        if appmanifest.steamid in cls.excluded_appids:
             return False
         if re.match(r"^Proton \d*", appmanifest.name):
             return False
