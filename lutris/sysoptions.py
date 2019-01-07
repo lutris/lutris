@@ -53,14 +53,6 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
-        "option": "gamemode",
-        "type": "bool",
-        "default": bool(system.GAMEMODE_PATH),
-        "condition": bool(system.GAMEMODE_PATH),
-        "label": "Enable Feral gamemode",
-        "help": "Request a set of optimisations be temporarily applied to the host OS",
-    },
-    {
         "option": "optimus",
         "type": "choice",
         "default": "off",
