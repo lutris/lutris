@@ -475,7 +475,7 @@ class winesteam(wine.wine):
         if not self.is_installed():
             logger.warning("Trying to remove a winesteam game but it's not installed.")
             return False
-        self.prelaunch()
+        self.force_shutdown()
         thread = MonitoredCommand(
             (self.launch_args + ["steam://uninstall/%s" % appid or self.appid]),
             runner=self,
