@@ -467,13 +467,13 @@ class winesteam(wine.wine):
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
-            installed = self.install_dialog()
-            if not installed:
-                return False
-        appid = appid if appid else self.appid
-
-        env = self.get_env(os_env=False)
-        command = self.launch_args + ["steam://uninstall/%s" % appid]
+            logger.warning("Trying to remove a winesteam game but it's not installed.")
+            return False
         self.prelaunch()
-        thread = MonitoredCommand(command, runner=self, env=env, watch=False)
+        thread = MonitoredCommand(
+            (self.launch_args + ["steam://uninstall/%s" % appid or self.appid]),
+            runner=self,
+            env=self.get_env(os_env=False),
+            watch=False
+        )
         thread.start()
