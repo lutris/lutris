@@ -348,7 +348,6 @@
                 </child>
               </object>
             </child>
-            <signal name="size-allocate" handler="on_sidebar_resize" swapped="no"/>
           </object>
         </child>
       </object>
