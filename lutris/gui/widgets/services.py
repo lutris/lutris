@@ -46,31 +46,8 @@ class ServiceSyncBox(Gtk.Box):
 
         self.pack_start(title_box, False, False, 12)
 
-        center_alignment = Gtk.Alignment()
-        center_alignment.set(0.5, 0.5, 0.1, 0.1)
-
-        if service.ONLINE:
-            gog_logo = self.get_icon(size=(64, 64))
-
-            gog_label = Gtk.Label(
-                "Connect to GOG to automatically \ndownload games during installations"
-            )
-            gog_label.set_justify(Gtk.Justification.CENTER)
-
-            gog_button = Gtk.Button("Connect your account")
-            gog_button.connect("clicked", self.on_connect_clicked)
-
-            gog_box = Gtk.VBox()
-            gog_box.add(gog_logo)
-            gog_box.add(gog_label)
-            gog_box.add(gog_button)
-            center_alignment.add(gog_box)
-        else:
-            spinner = Gtk.Spinner()
-            spinner.start()
-            center_alignment.add(spinner)
-        self.content_widget = center_alignment
-        self.pack_start(center_alignment, True, True, 0)
+        self.content_widget = self.get_content_widget()
+        self.pack_start(self.content_widget, True, True, 0)
 
         actions = Gtk.Box(spacing=6)
         self.pack_start(actions, False, False, 0)
@@ -97,6 +74,32 @@ class ServiceSyncBox(Gtk.Box):
             self.sync_switch.set_sensitive(False)
             self.sync_button.set_sensitive(False)
 
+    def get_content_widget(self):
+        center_alignment = Gtk.Alignment()
+        center_alignment.set(0.5, 0.5, 0.1, 0.1)
+        if self.service.ONLINE:
+            gog_logo = self.get_icon(size=(64, 64))
+
+            gog_label = Gtk.Label(
+                "Connect to GOG to automatically \ndownload games during installations"
+            )
+            gog_label.set_justify(Gtk.Justification.CENTER)
+
+            gog_button = Gtk.Button("Connect your account")
+            gog_button.connect("clicked", self.on_connect_clicked)
+
+            gog_box = Gtk.VBox()
+            gog_box.add(gog_logo)
+            gog_box.add(gog_label)
+            gog_box.add(gog_button)
+            center_alignment.add(gog_box)
+        else:
+            spinner = Gtk.Spinner()
+            spinner.start()
+            center_alignment.add(spinner)
+        center_alignment.show_all()
+        return center_alignment
+
     def get_icon(self, size=None):
         """Return the icon for the service (used in tabs)"""
         if not size:
@@ -108,7 +111,9 @@ class ServiceSyncBox(Gtk.Box):
 
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
+            self.games = []
             self.service.disconnect()
+            self.swap_content(self.get_content_widget())
             self._connect_button_toggle()
 
             self.sync_switch.set_sensitive(False)
@@ -266,13 +271,14 @@ class ServiceSyncBox(Gtk.Box):
         self.current_filter = None
         self.store_filter = self.store.filter_new()
         self.store_filter.set_visible_func(self.store_filter_func)
+        self.swap_content(self.get_game_list_widget())
 
-        position = self.child_get_property(self.content_widget, 'position')
+    def swap_content(self, widget):
+        widget_position = self.child_get_property(self.content_widget, 'position')
         self.content_widget.destroy()
-        self.content_widget = self.get_game_list_widget()
-
+        self.content_widget = widget
         self.pack_start(self.content_widget, True, True, 0)
-        self.reorder_child(self.content_widget, position)
+        self.reorder_child(self.content_widget, widget_position)
 
     def store_filter_func(self, model, _iter, _data):
         if not self.current_filter:
