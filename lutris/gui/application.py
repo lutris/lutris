@@ -32,7 +32,6 @@ gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris import settings
-from lutris.running_game import RunningGame
 from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow

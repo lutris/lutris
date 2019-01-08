@@ -140,7 +140,7 @@ class GameActions:
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "browse": not self.game.is_installed or self.game.runner_name == "browser",
+            "browse": not self.game.is_installed and self.game.runner_name != "browser"
         }
 
     def get_disabled_entries(self):

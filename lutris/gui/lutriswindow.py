@@ -666,6 +666,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
         box.set_size_request(100, -1)
         box.show()
+        game = self.game_actions.game
+        label = Gtk.Label(game.name)
+        label.show()
+        box.add(label)
+        sep = Gtk.Separator()
+        sep.show()
+        box.add(sep)
         displayed = self.game_actions.get_displayed_entries()
         disabled_entries = self.game_actions.get_disabled_entries()
         for action in self.game_actions.get_game_actions():
@@ -685,7 +692,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             button.connect("clicked", callback)
             if displayed.get(action_id):
                 button.show()
-            if disabled_entries.get(action_id):
+            if disabled_entries.get(action_id, False) or True:
                 button.set_sensitive(False)
             box.add(button)
         return box
