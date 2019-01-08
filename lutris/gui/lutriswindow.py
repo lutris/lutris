@@ -196,7 +196,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "synchronize": Action(lambda *x: self.sync_library()),
             "sync-local": Action(lambda *x: self.open_sync_dialog()),
             "add-game": Action(self.on_add_game_button_clicked),
-            "start-game": Action(self.on_game_run, enabled=False),
             "remove-game": Action(self.on_remove_game, enabled=False),
             "preferences": Action(self.on_preferences_activate),
             "manage-runners": Action(self.on_manage_runners),
@@ -786,7 +785,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.last_selected_game = self.view.selected_game
 
         sensitive = True if self.view.selected_game else False
-        self.actions["start-game"].props.enabled = sensitive
         self.actions["remove-game"].props.enabled = sensitive
 
     def on_game_installed(self, view, game_id):
