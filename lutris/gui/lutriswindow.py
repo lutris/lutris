@@ -32,7 +32,7 @@ from lutris.vendor.gi_composites import GtkTemplate
 
 from lutris.gui.util import open_uri
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
+from lutris.gui.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -58,7 +58,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
-    sidebar_listbox = GtkTemplate.Child()
+    sidebar_scrolled = GtkTemplate.Child()
     connection_label = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
@@ -153,6 +153,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.viewtype_icon.set_from_icon_name(
             "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
         )
+
+
+        self.sidebar_listbox = SidebarListBox()
+        self.sidebar_listbox.set_size_request(250, -1)
+        self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
+        self.sidebar_scrolled.add(self.sidebar_listbox)
         self.view.show()
 
         # Contextual menu
