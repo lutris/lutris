@@ -598,13 +598,13 @@ Example:
         id: LANG
         options:
         - en: English
-        - bf: Brainfuck
+        - fr: French
         - "value and": "label can be anything, surround them with quotes to avoid issues"
         preselect: bf
 
 In this example, English would be preselected. If the option eventually
-selected is Brainfuck, the "$INPUT_LANG" alias would be available in
-following directives and would correspond to "bf". "$INPUT" would work as well,
+selected is French, the "$INPUT_LANG" alias would be available in
+following directives and would correspond to "fr". "$INPUT" would work as well,
 up until the next input directive.
 
 
