@@ -118,6 +118,9 @@ class GameListView(Gtk.TreeView, GameView):
             return None
         return model.get_value(select_iter, COL_ID)
 
+    def select(self):
+        self.set_cursor(self.current_path[0])
+
     def set_selected_game(self, game_id):
         row = self.get_row_by_id(game_id, filtered=True)
         if row:
