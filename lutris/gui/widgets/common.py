@@ -3,7 +3,7 @@ import os
 
 from gi.repository import Gtk, GObject, Pango
 
-from lutris.util.system import reverse_expanduser
+from lutris.util import system
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
@@ -70,7 +70,7 @@ class FileChooserEntry(Gtk.Box):
 
         button = Gtk.Button()
         button.set_label("Browse...")
-        button.connect("clicked", self._open_filechooser, default_path)
+        button.connect("clicked", self.on_browse_clicked, default_path)
         self.add(button)
 
     def get_text(self):
@@ -79,9 +79,19 @@ class FileChooserEntry(Gtk.Box):
     def get_filename(self):
         return self.entry.get_text()
 
-    def _open_filechooser(self, widget, default_path):
-        if default_path:
-            self.file_chooser_dlg.set_current_folder(os.path.expanduser(default_path))
+    def get_default_folder(self, default=None):
+        if not default:
+            current_entry = self.get_text()
+            if os.path.isfile(current_entry):
+                current_entry = os.path.dirname(current_entry)
+            if system.path_exists(current_entry):
+                default = current_entry
+        return os.path.expanduser(default)
+
+    def on_browse_clicked(self, _widget, default_path):
+        default_folder = self.get_default_folder(default_path)
+        if default_folder:
+            self.file_chooser_dlg.set_current_folder(default_folder)
         self.file_chooser_dlg.connect("response", self._select_file)
         self.file_chooser_dlg.run()
 
@@ -111,7 +121,7 @@ class FileChooserEntry(Gtk.Box):
             target_path = dialog.get_filename()
             if target_path:
                 self.file_chooser_dlg.set_current_folder(target_path)
-                self.entry.set_text(reverse_expanduser(target_path))
+                self.entry.set_text(system.reverse_expanduser(target_path))
         dialog.hide()
 
 
