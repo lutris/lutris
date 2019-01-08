@@ -20,7 +20,6 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.connect</property>
             <property name="relief">none</property>
-            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -85,7 +84,6 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.register-account</property>
             <property name="relief">none</property>
-            <property name="xalign">0</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -161,7 +159,6 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.add-game</property>
             <property name="relief">none</property>
-            <property name="xalign">0</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
@@ -184,7 +181,6 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.sync-local</property>
             <property name="relief">none</property>
-            <property name="xalign">0</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
@@ -296,6 +292,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Name</property>
+            <property name="action-target">'name'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -310,6 +307,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Year</property>
+            <property name="action-target">'year'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -324,6 +322,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Runner</property>
+            <property name="action-target">'runner'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -338,6 +337,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Platform</property>
+            <property name="action-target">'platform'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -352,6 +352,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Last played</property>
+            <property name="action-target">'lastplayed'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -366,6 +367,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">In_stalled at</property>
+            <property name="action-target">'installed_at'</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -380,6 +382,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">Play _time</property>
+            <property name="action-target">'playtime'</property>
           </object>
           <packing>
             <property name="expand">False</property>
