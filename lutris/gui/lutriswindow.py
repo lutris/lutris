@@ -21,7 +21,7 @@ from lutris.util.system import path_exists
 from lutris.util import http
 from lutris.util import datapath
 from lutris.util import xdgshortcuts
-from lutris.util.steam.watcher import SteamWatcher
+# from lutris.util.steam.watcher import SteamWatcher
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from lutris.command import MonitoredCommand
@@ -143,26 +143,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self._init_actions()
         self._bind_zoom_adjustment()
 
-        # Set theme to dark if set in the settings
-        self.set_dark_theme(self.use_dark_theme)
-
         # Load view
         self.games_scrollwindow.add(self.view)
-        self.connect_signals()
-        other_view = "list" if view_type == "grid" else "grid"
-        self.viewtype_icon.set_from_icon_name(
-            "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
-        )
+        self._connect_signals()
+        # Set theme to dark if set in the settings
+        self.set_dark_theme(self.use_dark_theme)
+        self.set_viewtype_icon(view_type)
 
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
+
         self.view.show()
 
         # Contextual menu
-        self.menu = ContextualMenu(self.get_game_actions())
-        self.view.contextual_menu = self.menu
+        self.view.contextual_menu = ContextualMenu(self.get_game_actions())
 
         # Sidebar
         self.game_store.fill_store(self.game_list)
@@ -180,7 +176,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.sync_library()
 
         self.sync_services()
-        # Timers
+
         # steamapps_paths = steam.get_steamapps_paths(flat=True)
         # self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
@@ -386,11 +382,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 game_id = steam.mark_as_installed(
                     appmanifest.steamid, runner_name, game_info
                 )
-                game_ids = [game["id"] for game in self.game_list]
-                if game_id not in game_ids:
-                    self.add_game_to_view(game_id)
-                else:
-                    self.view.set_installed(Game(game_id))
+                self.update_games([game_id])
 
     @staticmethod
     def set_dark_theme(is_dark):
@@ -404,7 +396,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             return GameGridView(self.game_store)
         return GameListView(self.game_store)
 
-    def connect_signals(self):
+    def _connect_signals(self):
         """Connect signals from the view with the main window.
 
         This must be called each time the view is rebuilt.
@@ -416,12 +408,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.connect("remove-game", self.on_remove_game)
 
     def _bind_zoom_adjustment(self):
-        """I have no clue what this supposed to achieve"""
-        SCALE = list(IMAGE_SIZES.keys())
-        self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
+        """Bind the zoom slider to the supported banner sizes"""
+        image_sizes = list(IMAGE_SIZES.keys())
+        self.zoom_adjustment.props.value = image_sizes.index(self.icon_type)
         self.zoom_adjustment.connect(
             "value-changed",
-            lambda adj: self._set_icon_type(SCALE[int(adj.props.value)]),
+            lambda adj: self._set_icon_type(image_sizes[int(adj.props.value)]),
         )
 
     @staticmethod
@@ -509,8 +501,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.set_icon_type(self.icon_type)
 
         self.view = self.get_view(view_type)
-        self.view.contextual_menu = self.menu
-        self.connect_signals()
+        self.view.contextual_menu = ContextualMenu(self.get_game_actions())
+        self._connect_signals()
         scrollwindow_children = self.games_scrollwindow.get_children()
         if scrollwindow_children:
             child = scrollwindow_children[0]
@@ -520,14 +512,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
-        other_view = "list" if view_type == "grid" else "grid"
-        self.viewtype_icon.set_from_icon_name(
-            "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
-        )
-        SCALE = list(IMAGE_SIZES.keys())
-        self.zoom_adjustment.props.value = SCALE.index(self.icon_type)
+        self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
 
         settings.write_setting("view_type", view_type)
+
+    def set_viewtype_icon(self, view_type):
+        self.viewtype_icon.set_from_icon_name(
+            "view-%s-symbolic" % "list" if view_type == "grid" else "grid",
+            Gtk.IconSize.BUTTON
+        )
 
     def sync_library(self):
         """Synchronize games with local stuff and server."""
@@ -573,15 +566,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def update_existing_games(self, added, updated, first_run=False):
         """???"""
         for game_id in updated.difference(added):
-            # XXX this might not work if the game has no 'item' set
-            logger.debug("Updating row for ID %s", game_id)
             game = pga.get_game_by_field(game_id, "id")
             self.view.update_row(game["id"], game["year"], game["playtime"])
 
         if first_run:
-            for game_id in added:
-                logger.debug("Adding %s", game_id)
-                self.add_game_to_view(game_id)
+            self.update_games(added)
             game_slugs = [game["slug"] for game in self.game_list]
             AsyncCall(resources.get_missing_media, self.on_media_returned, game_slugs)
 
@@ -659,7 +648,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
-        self.steam_watcher = None
+        # self.steam_watcher = None
 
         # Save settings
         width, height = self.window_size
