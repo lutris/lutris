@@ -3,8 +3,6 @@ import os
 from collections import OrderedDict
 
 from lutris import runners
-
-# from lutris.util.log import logger
 from lutris.util import display, system
 
 
@@ -22,14 +20,10 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "game_path",
         "type": "directory_chooser",
-        "label": "Main game folder",
+        "label": "Default installation folder",
         "default": os.path.expanduser("~/Games"),
         "scope": ["runner", "system"],
-        "help": (
-            "The main folder where you install your games.\n"
-            "Lutris uses it to propose you a default path when you \n"
-            "install a new game."
-        ),
+        "help": "The default folder where you install your games."
     },
     {
         "option": "reset_desktop",
