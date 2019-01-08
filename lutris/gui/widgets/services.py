@@ -127,9 +127,9 @@ class ServiceSyncBox(Gtk.Box):
 
     def _connect_button_toggle(self):
         is_connected = self.service.is_connected()
-        icon_name = "user-offline-symbolic" \
+        icon_name = "system-log-out-symbolic" \
             if is_connected \
-            else "user-available-symbolic"
+            else "avatar-default-symbolic"
         self.connect_button.set_tooltip_text('Disconnect' if is_connected else 'Connect')
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
