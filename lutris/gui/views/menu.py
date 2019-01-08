@@ -28,17 +28,50 @@ class ContextualMenu(Gtk.Menu):
             menuitem.action_id = name
             self.append(menuitem)
 
+    def get_runner_entries(self, game):
+        try:
+            runner = runners.import_runner(game.runner_name)(game.config)
+        except runners.InvalidRunner:
+            return None
+        return runner.context_menu_entries
+
+    @staticmethod
+    def get_hidden_entries(game):
+        """Return a dictionary of actions that should be hidden for a game"""
+        return {
+            "add": game.is_installed,
+            "install": game.is_installed,
+            "install_more": not game.is_installed,
+            "play": not game.is_installed,
+            "configure": not game.is_installed,
+            "desktop-shortcut": (
+                not game.is_installed or xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
+            ),
+            "menu-shortcut": (
+                not game.is_installed or xdgshortcuts.menu_launcher_exists(game.slug, game.id)
+            ),
+            "rm-desktop-shortcut": (
+                not game.is_installed or not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
+            ),
+            "rm-menu-shortcut": (
+                not game.is_installed or not xdgshortcuts.menu_launcher_exists(game.slug, game.id)
+            ),
+            "browse": not game.is_installed or game.runner_name == "browser",
+        }
+
+    @staticmethod
+    def get_disabled_entries(game):
+        """Return a dictionary of actions that should be disabled for a game"""
+        return {
+            "execute-script": game.runner and not game.runner.system_config.get("manual_command")
+        }
+
     def popup(self, event, game_row=None, game=None):
         if game_row:
-            game_id = game_row[COL_ID]
-            game_slug = game_row[COL_SLUG]
-            runner_slug = game_row[COL_RUNNER]
-            is_installed = game_row[COL_INSTALLED]
-        elif game:
-            game_id = game.id
-            game_slug = game.slug
-            runner_slug = game.runner_name
-            is_installed = game.is_installed
+            game = Game(game_row[COL_ID])
+
+        if not game:
+            raise ValueError("Missing game")
 
         # Clear existing menu
         for item in self.get_children():
@@ -47,56 +80,19 @@ class ContextualMenu(Gtk.Menu):
         # Main items
         self.add_menuitems(self.main_entries)
         # Runner specific items
-        runner_entries = None
-        if runner_slug:
-            game = game or Game(game_id)
-            try:
-                runner = runners.import_runner(runner_slug)(game.config)
-            except runners.InvalidRunner:
-                runner_entries = None
-            else:
-                runner_entries = runner.context_menu_entries
-        if runner_entries:
-            self.append(Gtk.SeparatorMenuItem())
-            self.add_menuitems(runner_entries)
+        if game.runner_name and game.is_installed:
+            runner_entries = self.get_runner_entries(game)
+            if runner_entries:
+                self.append(Gtk.SeparatorMenuItem())
+                self.add_menuitems(runner_entries)
         self.show_all()
 
-        def manual_script_not_set():
-            game = Game(game_id)
-            if game.runner:
-                return not game.runner.system_config.get("manual_command")
-
-        # Hide some items
-        hiding_condition = {
-            "add": is_installed,
-            "install": is_installed,
-            "install_more": not is_installed,
-            "play": not is_installed,
-            "configure": not is_installed,
-            "desktop-shortcut": (
-                not is_installed or xdgshortcuts.desktop_launcher_exists(game_slug, game_id)
-            ),
-            "menu-shortcut": (
-                not is_installed or xdgshortcuts.menu_launcher_exists(game_slug, game_id)
-            ),
-            "rm-desktop-shortcut": (
-                not is_installed or not xdgshortcuts.desktop_launcher_exists(game_slug, game_id)
-            ),
-            "rm-menu-shortcut": (
-                not is_installed or not xdgshortcuts.menu_launcher_exists(game_slug, game_id)
-            ),
-            "browse": not is_installed or runner_slug == "browser",
-        }
-        # desactivate some items
-        desactivate_condition = {"execute-script": manual_script_not_set()}
-
+        hidden_entries = self.get_hidden_entries(game)
+        disabled_entries = self.get_disabled_entries(game)
         for menuitem in self.get_children():
             if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue
-            action = menuitem.action_id
-            visible = not hiding_condition.get(action)
-            sensitive = not desactivate_condition.get(action)
-            menuitem.set_sensitive(sensitive)
-            menuitem.set_visible(visible)
+            menuitem.set_visible(not hidden_entries.get(menuitem.action_id))
+            menuitem.set_sensitive(not disabled_entries.get(menuitem.action_id))
 
         super().popup(None, None, None, None, event.button, event.time)
