@@ -124,7 +124,7 @@ class Label(Gtk.Label):
         self.set_line_wrap(True)
         self.set_max_width_chars(22)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.set_size_request(180, -1)
+        self.set_size_request(230, -1)
         self.set_alignment(1, 0.5)
         self.set_justify(Gtk.Justification.RIGHT)
 
