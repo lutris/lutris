@@ -978,15 +978,11 @@ Sysoptions
 
 ``quit_steam_on_exit`` (example: ``true``)
 
-``steamless_binary64`` (example: fallout64-nosteam)
-
 ``steamless_binary`` (example: fallout-nosteam)
 
 ``run_without_steam`` (example: ``true``)
 
 **steam section:**
-
-``steamless_binary64`` (example: fallout64-nosteam)
 
 ``steamless_binary`` (example: fallout-nosteam)
 

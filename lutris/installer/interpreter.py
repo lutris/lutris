@@ -724,12 +724,6 @@ class ScriptInterpreter(CommandsMixin):
                 raise ScriptingError("Invalid 'game' section", self.script["game"])
             config["game"] = self._substitute_config(config["game"])
 
-            # steamless_binary64 can be used to specify 64 bit non-steam binaries
-            if system.LINUX_SYSTEM.is_64_bit and "steamless_binary64" in config["game"]:
-                config["game"]["steamless_binary"] = config["game"][
-                    "steamless_binary64"
-                ]
-
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
