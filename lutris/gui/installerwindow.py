@@ -587,9 +587,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
         spinner.show()
         spinner.start()
 
-    def attach_logger(self, thread):
+    def attach_logger(self, command):
+        """Creates a TextBuffer and attach it to a command"""
         self.log_buffer = Gtk.TextBuffer()
-        thread.log_buffer = self.log_buffer
+        command.set_log_buffer(self.log_buffer)
         self.log_textview = LogTextView(self.log_buffer)
         scrolledwindow = Gtk.ScrolledWindow(
             hexpand=True, vexpand=True, child=self.log_textview

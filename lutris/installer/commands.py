@@ -128,19 +128,17 @@ class CommandsMixin:
         if not working_dir or not os.path.exists(working_dir):
             working_dir = self.target_path
 
-        command = [exec_path] + args
-        logger.debug("Executing %s", command)
-        thread = MonitoredCommand(
-            command,
+        command = MonitoredCommand(
+            [exec_path] + args,
             env=env,
             term=terminal,
             cwd=working_dir,
             include_processes=include_processes,
             exclude_processes=exclude_processes,
         )
-        thread.start()
-        GLib.idle_add(self.parent.attach_logger, thread)
-        self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+        command.start()
+        GLib.idle_add(self.parent.attach_logger, command)
+        self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
         return "STOP"
 
     def extract(self, data):

@@ -115,9 +115,7 @@ class MonitoredCommand:
             self.log_handler_stdout,
             self.log_handler_console_output,
         ]
-        self.log_buffer = log_buffer
-        if self.log_buffer:
-            self.log_handlers.append(self.log_handler_buffer)
+        self.set_log_buffer(log_buffer)
         self.stdout_monitor = None
         self.watch_children_running = False
 
@@ -128,6 +126,12 @@ class MonitoredCommand:
             exclude_processes,
             "run_in_term.sh" if self.terminal else None
         )
+
+    def set_log_buffer(self, log_buffer):
+        """Attach a TextBuffer to this command enables the buffer handler"""
+        self.log_buffer = log_buffer
+        if self.log_handler_buffer not in self.log_handlers:
+            self.log_handlers.append(self.log_handler_buffer)
 
     def get_cwd(self, cwd):
         """Return the current working dir of the game"""
