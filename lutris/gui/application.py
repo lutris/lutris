@@ -402,11 +402,10 @@ class Application(Gtk.Application):
 
         return 0
 
-    def launch(self, game_id):
+    def launch(self, game):
         """Launch a Lutris game"""
-        running_game = RunningGame(game_id, application=self, window=self.window)
-        self.running_games.append(running_game)
-        running_game.play()
+        self.running_games.append(game)
+        game.play()
 
     @staticmethod
     def get_lutris_action(url):

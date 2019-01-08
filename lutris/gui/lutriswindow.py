@@ -57,8 +57,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
     no_results_overlay = GtkTemplate.Child()
-    infobar_revealer = GtkTemplate.Child()
-    infobar_box = GtkTemplate.Child()
     connect_button = GtkTemplate.Child()
     disconnect_button = GtkTemplate.Child()
     register_button = GtkTemplate.Child()
@@ -147,11 +145,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
         self.game_revealer = Gtk.Revealer()
+        self.game_revealer.show()
         self.game_revealer.set_transition_duration(500)
         self.game_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
         self.game_action_box = Gtk.Box()
-        self.game_revealer.add(self.game_action_box)
-        self.game_revealer.show_all()
         self.main_box.pack_end(self.game_revealer, False, False, 0)
 
         self.view.show()
@@ -375,15 +372,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if view_type in ["grid", "list"]:
             return view_type
         return settings.GAME_VIEW
-
-    def add_running_game(self, running_game_box):
-        self.infobar_box.pack_start(running_game_box, True, True, 0)
-        if len(self.application.running_games) == 1:
-            self.infobar_revealer.set_reveal_child(True)
-
-    def remove_running_game(self):
-        if not self.application.running_games:
-            self.infobar_revealer.set_reveal_child(False)
 
     def do_key_press_event(self, event):
         if event.keyval == Gdk.KEY_Escape:
@@ -669,13 +657,36 @@ class LutrisWindow(Gtk.ApplicationWindow):
         dialogs.ErrorDialog(error, parent=self)
 
     def get_action_box(self):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            margin_top=18,
+            margin_right=18,
+            margin_left=18
+        )
+        box.set_size_request(100, -1)
         box.show()
+        displayed = self.game_actions.get_displayed_entries()
+        disabled_entries = self.game_actions.get_disabled_entries()
         for action in self.game_actions.get_game_actions():
             action_id, label, callback = action
-            button = Gtk.Button(label)
+            if action_id == "stop":
+                button = Gtk.Button.new_from_icon_name(
+                    "media-playback-stop-symbolic",
+                    Gtk.IconSize.MENU
+                )
+            elif action == "play":
+                button = Gtk.Button.new_from_icon_name(
+                    "media-playback-play-symbolic",
+                    Gtk.IconSize.MENU
+                )
+            else:
+                button = Gtk.Button(label)
             button.connect("clicked", callback)
-            button.show()
+            if displayed.get(action_id):
+                button.show()
+            if disabled_entries.get(action_id):
+                button.set_sensitive(False)
             box.add(button)
         return box
 
@@ -685,7 +696,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if not self.view.selected_game:
             self.game_revealer.set_reveal_child(False)
             return
-        self.game_actions.game_id = self.view.selected_game
+        self.game_actions.set_game(game_id=self.view.selected_game)
         self.game_action_box = self.get_action_box()
         self.game_revealer.add(self.game_action_box)
         self.game_revealer.set_reveal_child(True)

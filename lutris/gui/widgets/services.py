@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk, Gio
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
 from lutris.gui.notifications import send_notification
@@ -46,7 +46,9 @@ class ServiceSyncBox(Gtk.Box):
             self.refresh_button = Gtk.Button()
             self.refresh_button.connect("clicked", self.on_refresh_clicked)
             self.refresh_button.set_tooltip_text("Reload")
-            self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
+            self.refresh_button.set_image(
+                Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU)
+            )
             title_box.add(self.refresh_button)
             self._connect_button_toggle()
             title_box.add(self.connect_button)
