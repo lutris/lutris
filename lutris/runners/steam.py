@@ -64,11 +64,21 @@ class steam(Runner):
             ),
         },
         {
+            "option": "run_without_steam",
+            "label": "DRM free mode (Do not launch Steam)",
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "help": (
+                "Run the game directly without Steam, requires the game binary path to be set"
+            ),
+        },
+        {
             "option": "steamless_binary",
             "type": "file",
-            "label": "Steamless binary",
+            "label": "Game binary path",
             "advanced": True,
-            "help": "Steamless binary for running the game directly",
+            "help": "Path to the game executable (Required by DRM free mode)"
         },
     ]
     runner_options = [
@@ -115,16 +125,6 @@ class steam(Runner):
                 "Make sure Lutris Runtime is disabled and "
                 "you have LSI installed. "
                 "https://github.com/solus-project/linux-steam-integration"
-            ),
-        },
-        {
-            "option": "run_without_steam",
-            "label": "Run without Steam (if possible)",
-            "type": "bool",
-            "default": False,
-            "help": (
-                "If a steamless binary is available launches the game "
-                "directly instead of launching it through Steam"
             ),
         },
         {
@@ -193,7 +193,7 @@ class steam(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.runner_config["run_without_steam"]:
+        if self.game_config["run_without_steam"]:
             steamless_binary = self.game_config.get("steamless_binary")
             if steamless_binary and os.path.isfile(steamless_binary):
                 return os.path.dirname(steamless_binary)
@@ -300,13 +300,13 @@ class steam(Runner):
     def play(self):
         game_args = self.game_config.get("args") or ""
 
-        steamless_binary = self.game_config.get("steamless_binary")
-        if self.runner_config["run_without_steam"] and steamless_binary:
+        binary_path = self.game_config.get("steamless_binary")
+        if self.game_config["run_without_steam"] and binary_path:
             # Start without steam
-            if not system.path_exists(steamless_binary):
-                return {"error": "FILE_NOT_FOUND", "file": steamless_binary}
+            if not system.path_exists(binary_path):
+                return {"error": "FILE_NOT_FOUND", "file": binary_path}
             self.original_steampid = None
-            command = [steamless_binary]
+            command = [binary_path]
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)

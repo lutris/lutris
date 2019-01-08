@@ -101,12 +101,22 @@ class winesteam(wine.wine):
             ),
         },
         {
+            "option": "run_without_steam",
+            "label": "DRM free mode (Do not launch Steam)",
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "help": (
+                "Run the game directly without Steam, requires the game binary path to be set"
+            ),
+        },
+        {
             "option": "steamless_binary",
             "type": "file",
-            "label": "Steamless binary",
+            "label": "Game binary path",
             "advanced": True,
-            "help": "Steamless binary for running the game directly",
-        },
+            "help": "Path to the game executable (Required by DRM free mode)"
+        }
     ]
 
     def __init__(self, config=None):
@@ -131,16 +141,6 @@ class winesteam(wine.wine):
                 "type": "bool",
                 "default": True,
                 "help": "Shut down Steam after the game has quit.",
-            },
-            {
-                "option": "run_without_steam",
-                "label": "Run without Steam (if possible)",
-                "type": "bool",
-                "default": False,
-                "help": (
-                    "If a steamless binary is available launches the game "
-                    "directly instead of launching it through Steam"
-                ),
             },
             {
                 "option": "args",
@@ -201,7 +201,7 @@ class winesteam(wine.wine):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.runner_config["run_without_steam"]:
+        if self.game_config["run_without_steam"]:
             steamless_binary = self.game_config.get("steamless_binary")
             if steamless_binary and os.path.isfile(steamless_binary):
                 return os.path.dirname(steamless_binary)
@@ -430,7 +430,7 @@ class winesteam(wine.wine):
             self.setup_x360ce(self.runner_config["x360ce-path"])
 
         steamless_binary = self.game_config.get("steamless_binary")
-        if self.runner_config["run_without_steam"] and steamless_binary:
+        if self.game_config["run_without_steam"] and steamless_binary:
             # Start without steam
             if not system.path_exists(steamless_binary):
                 return {"error": "FILE_NOT_FOUND", "file": steamless_binary}
