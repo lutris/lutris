@@ -298,6 +298,7 @@ class ServiceSyncBox(Gtk.Box):
 class SyncServiceWindow(Gtk.ApplicationWindow):
     def __init__(self, application):
         super().__init__(title="Import games", application=application)
+        self.set_default_icon_name("lutris")
         self.application = application
         self.set_show_menubar(False)
         self.connect("delete-event", lambda *x: self.destroy())
