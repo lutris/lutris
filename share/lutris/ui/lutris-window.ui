@@ -497,6 +497,7 @@
         </child>
         <child>
           <object class="GtkBox">
+            <property name="visible" bind-source="main_box" bind-property="visible" bind-flags="sync-create"/>
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
             <child>
