@@ -173,6 +173,29 @@ class MonitoredCommand:
                 self.on_stdout_output,
             )
 
+    def log_handler_stdout(self, line):
+        """Add the line to this command's stdout attribute"""
+        self.stdout += line
+
+    def log_handler_buffer(self, line):
+        """Add the line to the associated LogBuffer object"""
+        self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
+
+    def log_handler_console_output(self, line):
+        """Print the line to stdout"""
+        with contextlib.suppress(BlockingIOError):
+            sys.stdout.write(line)
+            sys.stdout.flush()
+
+    def get_log_handlers(self):
+        """Return appropriate log handlers"""
+        log_handlers = [self.log_handler_stdout]
+        if self.log_buffer:
+            log_handlers.append(self.log_handler_buffer)
+        if self.debug_output:
+            log_handlers.append(self.log_handler_console_output)
+        return log_handlers
+
     def on_stdout_output(self, fd, condition):
         if condition == GLib.IO_HUP:
             self.stdout_monitor = None
@@ -183,15 +206,11 @@ class MonitoredCommand:
             line = fd.readline().decode("utf-8", errors="ignore")
         except ValueError:
             # fd might be closed
-            line = None
-        if line and "winemenubuilder.exe" not in line:
-            self.stdout += line
-            if self.log_buffer:
-                self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
-            if self.debug_output:
-                with contextlib.suppress(BlockingIOError):
-                    sys.stdout.write(line)
-                    sys.stdout.flush()
+            return True
+        if "winemenubuilder.exe" in line:
+            return True
+        for log_handler in self.get_log_handlers():
+            log_handler(line)
         return True
 
     def run_in_terminal(self):
