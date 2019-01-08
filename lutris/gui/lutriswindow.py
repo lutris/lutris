@@ -181,8 +181,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.sync_services()
         # Timers
-        steamapps_paths = steam.get_steamapps_paths(flat=True)
-        self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
+        # steamapps_paths = steam.get_steamapps_paths(flat=True)
+        # self.steam_watcher = SteamWatcher(steamapps_paths, self.on_steam_game_changed)
 
     def _init_actions(self):
         Action = namedtuple(
